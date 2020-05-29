@@ -201,14 +201,14 @@ public class StringIdsRecordsCachesDataStore {
 		if (dto == null) {
 			return null;
 		} else if (dto instanceof ByteArrayRecordDTOWithStringId) {
-			int mainSortValue = mainSortValues.get(RecordId.id(dto.getId()).intValue());
-			if (mainSortValue > 0) {
+			Integer mainSortValue = mainSortValues.get(RecordId.id(dto.getId()).intValue());
+			if (mainSortValue != null && mainSortValue > 0) {
 				((ByteArrayRecordDTOWithStringId) dto).setMainSortValue(mainSortValue);
 			}
 
 		} else if (dto instanceof SolrRecordDTO) {
-			int mainSortValue = mainSortValues.get(RecordId.id(dto.getId()).intValue());
-			if (mainSortValue > 0) {
+			Integer mainSortValue = mainSortValues.get(RecordId.id(dto.getId()).intValue());
+			if (mainSortValue != null && mainSortValue > 0) {
 				return ((SolrRecordDTO) dto).withMainSortValue(mainSortValue);
 			}
 		}
