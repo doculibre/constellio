@@ -11,6 +11,7 @@ import com.constellio.app.api.pdf.signature.services.PdfSignatureServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -179,7 +180,15 @@ public class PdfJSServices {
 	}
 
 	public boolean isSignaturePossible(Record record, Metadata metadata, User user) {
-		return record != null && user.hasWriteAccess().on(record);
+		boolean signaturePossible;
+		if (record != null && user.hasWriteAccess().on(record)) {
+			StreamFactory keystore = appLayerFactory.getModelLayerFactory()
+					.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE);
+			signaturePossible = keystore != null;
+		} else {
+			signaturePossible = false;
+		}
+		return signaturePossible;
 	}
 
 	public String getSignatureBase64Url(User user, boolean initials) {

@@ -122,11 +122,16 @@ public class GetRecordContentServlet extends HttpServlet {
 				int contentLength;
 				String filename = contentVersion.getFilename();
 				InputStream in;
-				if (preview && contentManager.hasContentPreview(contentHash)) {
-					mimeType = "application/pdf";
-					contentLength = -1;
-					filename += ".pdf";
-					in = contentManager.getContentPreviewInputStream(contentHash, getClass().getName());
+				if (preview) {
+					if (contentManager.hasContentPreview(contentHash)) {
+						mimeType = "application/pdf";
+						contentLength = -1;
+						filename += ".pdf";
+						in = contentManager.getContentPreviewInputStream(contentHash, getClass().getName());
+					} else {
+						response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+						return;
+					}
 				} else {
 					// gets MIME type of the file
 					mimeType = contentVersion.getMimetype();
