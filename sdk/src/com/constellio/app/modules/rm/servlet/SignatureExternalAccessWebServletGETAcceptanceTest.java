@@ -88,6 +88,19 @@ public class SignatureExternalAccessWebServletGETAcceptanceTest extends Constell
 		assertThat(response.getStatusCode()).isEqualTo(HttpServletResponse.SC_OK);
 	}*/
 
+	/* TODO --> Hadle redirection without crashing test?
+	@Test
+	public void whenCallingServiceWithToClosedAccessStatus()
+			throws Exception {
+
+		validAccess.setStatus(ExternalAccessUrlStatus.TO_CLOSE);
+		recordServices.update(validAccess);
+
+		WebResponse response = callWebservice(validAccessId, validAccess.getToken(), validLanguage);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpServletResponse.SC_OK);
+	}*/
+
 	@Test
 	public void whenCallingServiceWithMissingId()
 			throws Exception {

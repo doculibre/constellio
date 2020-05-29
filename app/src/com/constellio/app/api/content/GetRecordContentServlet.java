@@ -20,6 +20,7 @@ import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
 import org.apache.chemistry.opencmis.commons.impl.IOUtils;
+import org.apache.commons.io.FilenameUtils;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -121,6 +122,7 @@ public class GetRecordContentServlet extends HttpServlet {
 				String mimeType;
 				int contentLength;
 				String filename = contentVersion.getFilename();
+				String extension = FilenameUtils.getExtension(contentVersion.getFilename()).toLowerCase();
 				InputStream in;
 				if (preview) {
 					if (contentManager.hasContentPreview(contentHash)) {
@@ -128,6 +130,10 @@ public class GetRecordContentServlet extends HttpServlet {
 						contentLength = -1;
 						filename += ".pdf";
 						in = contentManager.getContentPreviewInputStream(contentHash, getClass().getName());
+					} else if ("pdf".equals(extension)) {
+						mimeType = contentVersion.getMimetype();
+						contentLength = (int) contentVersion.getLength();
+						in = contentManager.getContentInputStream(contentHash, getClass().getName());
 					} else {
 						response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 						return;
