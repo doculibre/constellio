@@ -2,6 +2,7 @@ package com.constellio.app.modules.restapi.health;
 
 import com.constellio.app.modules.restapi.RestApiConfigs;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.IntermittentFailureTest;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
@@ -108,6 +109,7 @@ public class HealthRestfulServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@IntermittentFailureTest
 	public void testGetHealth() {
 		prepareSystemWithoutHyperTurbo(withZeCollection().withConstellioRMModule().withConstellioRestApiModule());
 
