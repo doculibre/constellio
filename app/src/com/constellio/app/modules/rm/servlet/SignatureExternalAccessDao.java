@@ -35,6 +35,7 @@ public class SignatureExternalAccessDao {
 	public static final String MISSING_EXTERNAL_USER_FULLNAME_PARAM = "Missing external user fullname param.";
 	public static final String MISSING_DATE_PARAM = "Missing expiration date param.";
 	public static final String INVALID_DATE_PARAM = "The expiration date is not valid.";
+	public static final String MISSING_LANGUAGE_PARAM = "Missing language param.";
 	public static final String ACTION_IMPOSSIBLE = "The url generation is not possible for this type of document.";
 	private static final String CANNOT_SAVE_RECORD = "Impossible to save record.";
 
@@ -65,7 +66,7 @@ public class SignatureExternalAccessDao {
 		documentMenuItemActionBehaviors = new DocumentMenuItemActionBehaviors(collection, appLayerFactory);
 	}
 
-	public String accessExternalSignature(String accessId, String token, Locale locale)
+	public String accessExternalSignature(String accessId, String token, String language)
 			throws SignatureExternalAccessServiceException {
 
 		if (StringUtils.isBlank(accessId)) {
@@ -112,6 +113,10 @@ public class SignatureExternalAccessDao {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
 		}
 
+		if (StringUtils.isBlank(language)) {
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
+		}
+
 		Record recordToAccess = recordServices.getDocumentById(signatureAccess.getAccessRecord());
 		Metadata metadata = metadataSchemasManager.getSchemaOf(recordToAccess).get(Document.CONTENT);
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(recordToAccess.getCollection());
@@ -119,11 +124,12 @@ public class SignatureExternalAccessDao {
 		Record tempUserRecord = recordServices.newRecordWithSchema(userSchema, UUID.randomUUID().toString());
 		Roles roles = rolesManager.getCollectionRoles(recordToAccess.getCollection());
 		ExternalAccessUser user = new ExternalAccessUser(tempUserRecord, types, roles, signatureAccess);
+		Locale locale = new Locale(language);
 		return pdfJSServices.getExternalViewerUrl(recordToAccess, metadata, user, locale, null, null, true);
 	}
 
 	public String createExternalSignatureUrl(String username, String documentId, String externalUserFullname,
-											 String expirationDate)
+											 String expirationDate, String language)
 			throws SignatureExternalAccessServiceException {
 
 		if (StringUtils.isBlank(documentId)) {
@@ -179,8 +185,12 @@ public class SignatureExternalAccessDao {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, INVALID_DATE_PARAM);
 		}
 
+		if (StringUtils.isBlank(language)) {
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, MISSING_LANGUAGE_PARAM);
+		}
+
 		try {
-			return documentMenuItemActionBehaviors.createExternalSignatureUrl(documentId, externalUserFullname, convertedDate);
+			return documentMenuItemActionBehaviors.createExternalSignatureUrl(documentId, externalUserFullname, convertedDate, language);
 		} catch (RecordServicesException e) {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, CANNOT_SAVE_RECORD);
 		}
