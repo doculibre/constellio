@@ -124,7 +124,7 @@ public class PdfJSServices {
 		}
 
 		StringBuilder viewerParams = new StringBuilder();
-		viewerParams.append("locale=" + locale.getLanguage());
+		viewerParams.append("locale=" + getPdfJSLocaleCode(locale.getLanguage()));
 		viewerParams.append("&disableSignature=" + disableSignature);
 		if (!disableSignature) {
 			String configParams = getCallbackParams(record, metadata, user, locale.getLanguage(), serviceKey, token);
@@ -161,7 +161,7 @@ public class PdfJSServices {
 	private String getCallbackParams(Record record, Metadata metadata, User user, String localeCode, String serviceKey,
 									 String token) {
 		StringBuilder params = new StringBuilder();
-		params.append("locale=" + localeCode);
+		params.append("locale=" + getPdfJSLocaleCode(localeCode));
 		if (serviceKey != null) {
 			params.append("&serviceKey=" + serviceKey);
 		}
@@ -179,6 +179,17 @@ public class PdfJSServices {
 		return params.toString();
 	}
 
+	private static String getPdfJSLocaleCode(String language) {
+		String pdfJSLocaleCode;
+		if ("en".equalsIgnoreCase(language)) {
+			pdfJSLocaleCode = "en-US";
+		} else {
+			pdfJSLocaleCode = language;
+		}
+		return pdfJSLocaleCode;
+	}
+
+	@SuppressWarnings("rawtypes")
 	public boolean isSignaturePossible(Record record, Metadata metadata, User user) {
 		boolean signaturePossible;
 		if (record != null && user.hasWriteAccess().on(record)) {
@@ -308,12 +319,13 @@ public class PdfJSServices {
 		PdfJSAnnotations existingAnnotations = getAnnotations(record, metadata, user);
 		if (existingAnnotations != null) {
 			String existingVersion = existingAnnotations.getVersion();
-			if (!existingVersion.equals(annotations.getVersion())) {
-				// TODO Handle better
-				throw new RuntimeException("Optimistic locking exception!");
-			} else {
-				newAnnotationsVersion = getNextVersionNumber(existingVersion, false);
-			}
+			//			if (!existingVersion.equals(annotations.getVersion())) {
+			//				// TODO Handle better
+			//				throw new RuntimeException("Optimistic locking exception!");
+			//			} else {
+			//				newAnnotationsVersion = getNextVersionNumber(existingVersion, false);
+			//			}
+			newAnnotationsVersion = getNextVersionNumber(existingVersion, false);
 		} else {
 			newAnnotationsVersion = "1.0";
 		}

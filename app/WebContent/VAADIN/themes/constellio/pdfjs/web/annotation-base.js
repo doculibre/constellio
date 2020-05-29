@@ -7,6 +7,7 @@ function Annotation(x, y, width, height) {
 	this.y = y;
 	this.width = width;
 	this.height = height;
+	this.readOnly = false;	
 }
 
 Annotation.prototype.uuidV4 = function() {
@@ -140,6 +141,17 @@ Annotation.prototype.setHeight = function(height) {
 	}
 };
 
+Annotation.prototype.isReadOnly = function() {
+	return this.readOnly;
+};
+
+Annotation.prototype.setReadOnly = function(readOnly) {
+	this.readOnly = readOnly;
+	if (this.deleteLink) {
+		this.deleteLink.style.display = this.readOnly ? "none" : "";
+	}
+};
+
 Annotation.prototype.isAttached = function() {
 	var attached;
 	if (this.htmlElement && this.htmlElement.parentNode) {
@@ -178,8 +190,11 @@ Annotation.prototype.bind = function(htmlElement) {
 	this.deleteLink = document.createElement("a");
 	this.deleteLink.innerHTML = "&#10006;";
 	this.deleteLink.classList.add("annotation-delete-link");
+	this.deleteLink.style.display = this.readOnly ? "none" : "";
 	this.deleteLink.onclick = function(e) {
-		self.remove();
+		if (!self.isReadOnly()) {
+			self.remove();
+		}
 	};	
 	this.htmlElement.appendChild(this.deleteLink);
 };	

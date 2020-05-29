@@ -58,6 +58,7 @@ PDFAnnotationsServices.prototype.parseAnnotationJSON = function(json) {
 	annotation.y = json["y"];
 	annotation.width = json["width"];
 	annotation.height = json["height"];
+	annotation.readOnly = json["readOnly"];
 	return annotation;
 };
 
@@ -111,14 +112,14 @@ PDFAnnotationsServices.prototype.savePDFAnnotations = function(pdfAnnotations, s
 			pagesAndAnnotations: pdfAnnotations.pagesAndAnnotations
 		};
 		var stringifiedPdfAnnotations = JSON.stringify(pdfAnnotationsJson);
-
 		$.ajaxQueue({
 			url: this.saveServiceUrl,
 			data: stringifiedPdfAnnotations,
 			method: "POST",
 			contentType: "application/json; charset=utf-8",
 			dataType: "json",
-			processData: false
+			processData: false,
+			timeout: 30000
 		})
 		.done(function(data, textStatus, jqXHR) {
 			var newVersion = data;
@@ -134,26 +135,27 @@ PDFAnnotationsServices.prototype.certifyPDFSignatures = function(pdfAnnotations,
 	var self = this;
 	var atLeastOneSignatureAnnotation = false;
 	var pagesWithAnnotations = pdfAnnotations.getPagesWithAnnotations();
+	var signatureAnnotations = [];
 	for (var i = 0; i < pagesWithAnnotations.length; i++) {
 		var pageWithAnnotation = pagesWithAnnotations[i];
 		var pageAnnotations = pdfAnnotations.getPageAnnotations(pageWithAnnotation);
 		for (var j = 0; j < pageAnnotations.length; j++) {
 			var pageAnnotation = pageAnnotations[j];
 			var annotationType = pageAnnotation.getType();
-			if ("signature-image-annotation" == annotationType 
+			if (!pageAnnotation.isReadOnly() && 
+				("signature-image-annotation" == annotationType 
 				|| "signature-pad-annotation" == annotationType 
-				|| "signature-text-annotation" == annotationType) {
+				|| "signature-text-annotation" == annotationType)) {
 				atLeastOneSignatureAnnotation = true;
+				signatureAnnotations.push(pageAnnotation);
 			} 
 		}
 	}
 
 	if (!atLeastOneSignatureAnnotation) {
-		// TODO i10n
-		alert("No signature annotation!");
-	}
-
-	if (this.certifyServiceUrl) {
+		var errorMessage = this.i10n("pdf-annotation-services.noSignature",  "The document doesn''t contain a signature.");
+		alert(errorMessage);
+	} else if (this.certifyServiceUrl) {
 		var pdfAnnotationsJson = {
 			apiVersion: "" + pdfAnnotations.apiVersion,
 			version: "" + pdfAnnotations.version,
@@ -165,13 +167,26 @@ PDFAnnotationsServices.prototype.certifyPDFSignatures = function(pdfAnnotations,
 			data: stringifiedPdfAnnotations,
 			method: "POST",
 			contentType: "application/json; charset=utf-8",
-			dataType: "json"
+			dataType: "json",
+			processData: false,
+			timeout: 60000
 		})
 		.done(function(data, textStatus, jqXHR) {
-			success(data);			
+			success(data);	
 		})
 		.fail(function(jqXHR, textStatus, errorThrown) {
 			fail(textStatus, errorThrown);
 		});  
 	}
+};
+
+PDFAnnotationsServices.prototype.i10n = function(key, defaultValue) {
+	var value;
+	var mozL10n = document.mozL10n || document.webL10n;
+	if (mozL10n) {
+		value = mozL10n.get(key, null, null);
+	} else {
+		value = defaultValue;
+	}
+	return value;
 };

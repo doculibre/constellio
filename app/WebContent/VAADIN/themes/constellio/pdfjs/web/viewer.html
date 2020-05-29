@@ -67,25 +67,6 @@ See https://github.com/adobe-type-tools/cmap-resources
       <script src="./pdf-annotations-services.js"></script>
       <script src="./pdf-annotations-manager.js"></script>
 
-      <script>
-	document.addEventListener("pagechange", function(e) {
-	    console.info("page changed to " + e.pageNumber);
-	});
-	document.addEventListener("pagerendered", function(e) {
-		console.info("Page " + JSON.stringify(e) + " rendered");
-		console.info(window.PDFViewerApplication);	
-	});
-	document.addEventListener("documentload", function(e) {
-		//console.info("PDF.js : " + window.PDFViewerApplication);	
-		console.info("Document loaded");	
-	});
-
-	// self executing function here
-	(function() {
-	})();
-
-      </script>
-
   </head>
 
   <body tabindex="1" class="loadingInProgress">

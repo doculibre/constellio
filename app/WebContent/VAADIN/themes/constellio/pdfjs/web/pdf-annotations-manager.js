@@ -101,10 +101,8 @@ PDFAnnotationsManager.prototype.newDropZoneManager = function(pageNumber) {
 
 PDFAnnotationsManager.prototype.loadPDFAnnotations = function() {
     var self = this;
-    console.info("Pre PDF annotations loaded!");
     this.pdfAnnotationsServices.getPDFAnnotations(
         function(pdfAnnotations) {
-            console.info("PDF annotations loaded!");
             self.pdfAnnotations = pdfAnnotations;
         },
         function(textStatus, errorThrown) {
@@ -115,11 +113,9 @@ PDFAnnotationsManager.prototype.loadPDFAnnotations = function() {
 
 PDFAnnotationsManager.prototype.savePDFAnnotations = function() {
     var self = this;
-    console.info("Pre PDF annotations saved!");
     this.pdfAnnotationsServices.savePDFAnnotations(this.pdfAnnotations, 
         function(newVersion) {
             self.pdfAnnotations.setVersion(newVersion);
-            console.info("PDF annotations saved!");
         },
         function(textStatus, errorThrown) {
             console.error("Unable to save PDF annotations (status: " + textStatus + ")");
@@ -128,17 +124,19 @@ PDFAnnotationsManager.prototype.savePDFAnnotations = function() {
 };    
 
 PDFAnnotationsManager.prototype.certifyPDFSignatures = function() {
-    console.info("Pre PDF signatures certified!");
+    var self = this;
     this.pdfAnnotationsServices.certifyPDFSignatures(this.pdfAnnotations, 
         function() {
-            // TODO i10n
-            alert("PDF successfully signed.");
+            console.info("certification process successful!");
+            var successMessage = self.i10n("pdf-annotations-manager.documentCertified", "The document was successfully signed and certified.");
+            alert(successMessage);
             location.reload();
         },
         function(textStatus, errorThrown) {
             console.error("Unable to save PDF annotations (status: " + textStatus + ")");
             console.error(errorThrown);
-            alert("Unable to certify the PDF signatures: check your connection and try again.");
+            var errorMessage = self.i10n("pdf-annotations-manager.documentCertificationError", "The document was not signed nor certified. Check your connection and try again.");
+            alert(errorMessage);
         });
 };    
 
@@ -158,5 +156,16 @@ PDFAnnotationsManager.prototype.refreshDropZones = function() {
         var pageNumber = dropZonePageNumbers[i];
         this.refreshDropZone(pageNumber);
     }    
+};
+
+PDFAnnotationsManager.prototype.i10n = function(key, defaultValue) {
+	var value;
+	var mozL10n = document.mozL10n || document.webL10n;
+	if (mozL10n) {
+		value = mozL10n.get(key, null, null);
+	} else {
+		value = defaultValue;
+	}
+	return value;
 };
 

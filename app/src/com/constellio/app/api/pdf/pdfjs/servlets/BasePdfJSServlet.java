@@ -69,12 +69,12 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 				response.getWriter().flush();
 				return;
 			} // Handle UIDL post requests
-			else if ("post".equalsIgnoreCase(request.getMethod())) {
-				response.addHeader("Access-Control-Allow-Origin", origin);
-				response.addHeader("Access-Control-Allow-Credentials", "true");
-				super.service(request, response);
-				return;
-			}
+			//			else if ("post".equalsIgnoreCase(request.getMethod())) {
+			//				response.addHeader("Access-Control-Allow-Origin", origin);
+			//				response.addHeader("Access-Control-Allow-Credentials", "true");
+			//				super.service(request, response);
+			//				return;
+			//			}
 		}
 
 		String recordId = request.getParameter("recordId");
@@ -93,22 +93,18 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 		User user;
 		if (userCredentials != null) {
 			user = getUser(userCredentials, collection);
-		} else {
-			// FIXME based on SignatureExternalAccessWebServlet
-			String token = request.getParameter("token");
-			if (accessId != null) {
-				MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-				RolesManager rolesManager = modelLayerFactory.getRolesManager();
+		} else if (accessId != null) {
+			MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+			RolesManager rolesManager = modelLayerFactory.getRolesManager();
 
-				MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
-				MetadataSchema userSchema = types.getDefaultSchema(User.SCHEMA_TYPE);
-				Record tempUserRecord = recordServices.newRecordWithSchema(userSchema, UUID.randomUUID().toString());
-				Roles roles = rolesManager.getCollectionRoles(collection);
-				ExternalAccessUrl externalAccessUrl = new ExternalAccessUrl(recordServices.getDocumentById(accessId), types);
-				user = new ExternalAccessUser(tempUserRecord, types, roles, externalAccessUrl);
-			} else {
-				user = null;
-			}
+			MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
+			MetadataSchema userSchema = types.getDefaultSchema(User.SCHEMA_TYPE);
+			Record tempUserRecord = recordServices.newRecordWithSchema(userSchema, UUID.randomUUID().toString());
+			Roles roles = rolesManager.getCollectionRoles(collection);
+			ExternalAccessUrl externalAccessUrl = new ExternalAccessUrl(recordServices.getDocumentById(accessId), types);
+			user = new ExternalAccessUser(tempUserRecord, types, roles, externalAccessUrl);
+		} else {
+			user = null;
 		}
 		if (user != null) {
 			doService(record, metadata, user, localeCode, request, response);

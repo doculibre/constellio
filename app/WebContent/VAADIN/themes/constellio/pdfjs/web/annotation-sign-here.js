@@ -5,7 +5,7 @@ function SignHereAnnotation(text, x, y, width, height) {
 	if (!text) {
 		var mozL10n = document.mozL10n || document.webL10n;
 		if (mozL10n) {
-			text = mozL10n.get("annotation.signHere.text", null, null);
+			text = mozL10n.get("annotation.signHere.text", null, "Sign here");
 		} else {
 			text = "Sign here";
 		}

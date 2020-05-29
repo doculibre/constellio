@@ -47,7 +47,8 @@ SignatureDataStore.prototype.callSaveSignatureImageUrlService = function(imageUr
 		data: imageUrlParam,
 		method: "POST",
 		contentType: "application/json; charset=utf-8",
-		dataType: "json"
+		dataType: "json",
+		timeout: 30000
 	})
 	.done(function(data, textStatus, jqXHR) {
 		if (success) {
