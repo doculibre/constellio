@@ -8,6 +8,8 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.configs.UserConfiguration;
 import com.constellio.model.entities.configs.UserConfigurationType;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.structures.TablePanelProperties;
+import com.constellio.model.entities.structures.TablePanelPropertiesFactory;
 import com.constellio.model.entities.structures.TableProperties;
 import com.constellio.model.entities.structures.TablePropertiesFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -83,6 +85,26 @@ public class UserConfigurationsManager implements StatefulService {
 		}
 
 		return new TableProperties(tableId);
+	}
+
+	public void setTablePanelPropertiesValue(User user, String tablePanelId, final TablePanelProperties newValue) {
+		String key = UserConfiguration.TABLE_PANEL_PROPERTIES + tablePanelId;
+
+		TablePanelPropertiesFactory factory = new TablePanelPropertiesFactory();
+		setValue(user, key, UserConfigurationType.STRING, factory.toString(newValue));
+	}
+
+	public TablePanelProperties getTablePanelPropertiesValue(User user, String tablePanelId) {
+		String key = UserConfiguration.TABLE_PANEL_PROPERTIES + tablePanelId;
+		String value = getValue(user, key, UserConfigurationType.STRING);
+
+		TablePanelPropertiesFactory factory = new TablePanelPropertiesFactory();
+		TablePanelProperties properties = (TablePanelProperties) factory.build(value);
+		if (properties != null) {
+			return properties;
+		}
+
+		return new TablePanelProperties(tablePanelId);
 	}
 
 	public void deleteConfigurations(User user) {

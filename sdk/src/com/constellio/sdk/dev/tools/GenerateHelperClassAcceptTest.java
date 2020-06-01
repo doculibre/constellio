@@ -26,6 +26,7 @@ import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
+import com.constellio.app.modules.rm.wrappers.SignatureExternalAccessUrl;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.UserFunction;
@@ -61,7 +62,6 @@ import com.constellio.model.entities.records.wrappers.ImportAudit;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
-import com.constellio.model.entities.records.wrappers.SignatureExternalAccessUrl;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.entities.records.wrappers.User;
@@ -137,7 +137,6 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(CapsuleLanguage.DEFAULT_SCHEMA, CapsuleLanguage.class);
 		//wrappers.put(SavedSearch.DEFAULT_SCHEMA, SavedSearch.class);
 		wrappers.put(ExternalAccessUrl.DEFAULT_SCHEMA, ExternalAccessUrl.class);
-		wrappers.put(SignatureExternalAccessUrl.FULL_SCHEMA, SignatureExternalAccessUrl.class);
 
 		System.out.println(header());
 
@@ -186,6 +185,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 
 		wrappers.put(ExternalLink.DEFAULT_SCHEMA, ExternalLink.class);
 		wrappers.put(ExternalLinkType.DEFAULT_SCHEMA, ExternalLinkType.class);
+		wrappers.put(SignatureExternalAccessUrl.FULL_SCHEMA, SignatureExternalAccessUrl.class);
 
 
 		System.out.println(header());

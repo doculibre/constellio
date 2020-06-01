@@ -18,6 +18,7 @@ import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.tasks.data.trees.TaskFoldersTreeNodesDataProvider;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -55,6 +56,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.vaadin.ui.Label;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -378,4 +380,15 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 		return newDocumentRecordIds;
 	}
 
+	public Label getDelegatedTaskAlertState() {
+		String delegateUserId = getCurrentUser().get(TaskUser.DELEGATION_TASK_USER);
+		if (StringUtils.isBlank(delegateUserId)) {
+			return new Label();
+		} else {
+			TasksSchemasRecordsServices tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
+			return new Label($("TaskManagementView.tasksDelegatedToUser", tasksSchemasRecordsServices.getUser(delegateUserId).getUsername()));
+		}
+	}
+
+	;
 }

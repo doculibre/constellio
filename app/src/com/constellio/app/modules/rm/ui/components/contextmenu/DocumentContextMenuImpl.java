@@ -99,6 +99,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			addItem(borrowedMessage);
 		}
 
+		// FIXME quick test only
 		RecordServices recordServices = getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newRecordServices();
 		Record record = recordServices.getDocumentById(recordVO.getId());
 

@@ -252,7 +252,10 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	protected byte[] readStreamEntity(Response response) throws Exception {
-		InputStream inputStream = (InputStream) response.getEntity();
+		return readStreamEntity((InputStream) response.getEntity());
+	}
+
+	protected byte[] readStreamEntity(InputStream inputStream) throws Exception {
 		ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
 		IOUtils.copy(inputStream, byteArray);
 		return byteArray.toByteArray();

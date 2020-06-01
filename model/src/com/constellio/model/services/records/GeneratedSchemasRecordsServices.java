@@ -14,7 +14,6 @@ import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
-import com.constellio.model.entities.records.wrappers.SignatureExternalAccessUrl;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.entities.records.wrappers.User;
@@ -602,58 +601,6 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 		public Metadata token() {
 			return metadata("token");
-		}
-	}
-
-	public SignatureExternalAccessUrl wrapSignatureExternalAccessUrl(Record record) {
-		return record == null ? null : new SignatureExternalAccessUrl(record, getTypes());
-	}
-
-	public List<SignatureExternalAccessUrl> wrapSignatureExternalAccessUrls(List<Record> records) {
-		List<SignatureExternalAccessUrl> wrapped = new ArrayList<>();
-		for (Record record : records) {
-			wrapped.add(new SignatureExternalAccessUrl(record, getTypes()));
-		}
-
-		return wrapped;
-	}
-
-	public List<SignatureExternalAccessUrl> searchSignatureExternalAccessUrls(LogicalSearchQuery query) {
-		return wrapSignatureExternalAccessUrls(modelLayerFactory.newSearchServices().search(query));
-	}
-
-	public List<SignatureExternalAccessUrl> searchSignatureExternalAccessUrls(LogicalSearchCondition condition) {
-		MetadataSchemaType type = externalAccessUrl.schemaType();
-		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
-		return wrapSignatureExternalAccessUrls(modelLayerFactory.newSearchServices().search(query));
-	}
-
-	public SignatureExternalAccessUrl getSignatureExternalAccessUrl(String id) {
-		return wrapSignatureExternalAccessUrl(get(externalAccessUrl.schemaType(), id));
-	}
-
-	public List<SignatureExternalAccessUrl> getSignatureExternalAccessUrls(List<String> ids) {
-		return wrapSignatureExternalAccessUrls(get(externalAccessUrl.schemaType(), ids));
-	}
-
-	public SignatureExternalAccessUrl getSignatureExternalAccessUrlWithLegacyId(String legacyId) {
-		return wrapSignatureExternalAccessUrl(getByLegacyId(externalAccessUrl.schemaType(), legacyId));
-	}
-
-	public SignatureExternalAccessUrl newSignatureExternalAccessUrl() {
-		return wrapSignatureExternalAccessUrl(create(externalAccessUrl_signature.schema()));
-	}
-
-	public SignatureExternalAccessUrl newSignatureExternalAccessUrlWithId(String id) {
-		return wrapSignatureExternalAccessUrl(create(externalAccessUrl_signature.schema(), id));
-	}
-
-	public final SchemaTypeShortcuts_externalAccessUrl_signature externalAccessUrl_signature
-			= new SchemaTypeShortcuts_externalAccessUrl_signature("externalAccessUrl_signature");
-
-	public class SchemaTypeShortcuts_externalAccessUrl_signature extends SchemaTypeShortcuts_externalAccessUrl_default {
-		protected SchemaTypeShortcuts_externalAccessUrl_signature(String schemaCode) {
-			super(schemaCode);
 		}
 	}
 

@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -270,6 +271,15 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 						@Override
 						public void manage(Table table, String tableId) {
 							super.manage(table, tableId);
+
+							Object[] visibleColumns = table.getVisibleColumns();
+							List<Object> visibleColumnsList = new ArrayList<>(Arrays.asList(visibleColumns));
+							for (Object column : visibleColumns) {
+								if (column.equals(MENUBAR_PROPERTY_ID)) {
+									visibleColumnsList.remove(column);
+								}
+							}
+							table.setVisibleColumns(visibleColumnsList.toArray());
 
 							List<String> visibleIds = getDefaultVisibleColumnIds(table);
 							Collection<?> propertyIds = table.getContainerPropertyIds();

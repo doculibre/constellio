@@ -2,6 +2,7 @@ package com.constellio.app.modules.restapi.health;
 
 import com.constellio.app.modules.restapi.RestApiConfigs;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.IntermittentFailureTest;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
@@ -99,10 +100,20 @@ public class HealthRestfulServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void testHeadHealthy() {
+	public void testHeadHealth() {
 		prepareSystemWithoutHyperTurbo(withZeCollection().withConstellioRMModule().withConstellioRestApiModule());
 
 		Response response = newWebTarget("v1/health").request().head();
+		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
+		assertThat(response.getHeaderString("Access-Control-Expose-Headers")).isNull();
+	}
+
+	@Test
+	@IntermittentFailureTest
+	public void testGetHealth() {
+		prepareSystemWithoutHyperTurbo(withZeCollection().withConstellioRMModule().withConstellioRestApiModule());
+
+		Response response = newWebTarget("v1/health").request().get();
 		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
 		assertThat(response.getHeaderString("Access-Control-Expose-Headers")).isNull();
 	}

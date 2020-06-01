@@ -13,6 +13,7 @@ import com.constellio.model.entities.enums.MemoryConsumptionLevel;
 import com.constellio.model.entities.enums.MetadataPopulatePriority;
 import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.enums.SearchSortType;
+import com.constellio.model.entities.enums.TableMode;
 import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.EnableThumbnailsScript;
@@ -71,6 +72,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration TRASH_PURGE_DELAI;
 
 	public static final SystemConfiguration MAX_SELECTABLE_SEARCH_RESULTS;
+	public static final SystemConfiguration ALWAYS_SELECT_INTERVALS;
 	public static final SystemConfiguration WRITE_ZZRECORDS_IN_TLOG;
 
 	public static final SystemConfiguration SEARCH_SORT_TYPE;
@@ -180,6 +182,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration ENABLE_ILLEGAL_CHARACTERS_VALIDATION;
 	public static final SystemConfiguration CALENDAR_COUNTRY;
 
+	public static final SystemConfiguration DEFAULT_TABLE_MODE;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -201,7 +205,7 @@ public class ConstellioEIMConfigs {
 		add(TITLE_METADATA_POPULATE_PRIORITY = others
 				.createEnum("titleMetadataPopulatePriority", TitleMetadataPopulatePriority.class)
 				.withDefaultValue(TitleMetadataPopulatePriority.STYLES_FILENAME_PROPERTIES));
-		add(CONSTELLIO_URL = others.createString("constellioUrl", "http://localhost:8080/constellio/"));
+		add(CONSTELLIO_URL = others.createString("constellioUrl", "http://localhost:7070/constellio/"));
 		add(INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS = others.createBooleanTrueByDefault("includeFromFieldWhenGeneratingEmails"));
 
 		add(DATE_FORMAT = others.createString("dateFormat").withDefaultValue("yyyy-MM-dd"));
@@ -253,6 +257,7 @@ public class ConstellioEIMConfigs {
 				.withDefaultValue(AutocompleteSplitCriteria.SPACE).withReIndexationRequired());
 
 		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(1000));
+		add(ALWAYS_SELECT_INTERVALS = advanced.createBooleanFalseByDefault("alwaysSelectIntervals"));
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
 				.scriptedBy(WriteZZRecordsScript.class).whichIsHidden());
 		add(CMIS_NEVER_RETURN_ACL = advanced.createBooleanTrueByDefault("cmisNeverReturnACL"));
@@ -361,6 +366,8 @@ public class ConstellioEIMConfigs {
 
 		add(ALWAYS_SEARCH_USING_EDISMAX = search.createBooleanFalseByDefault("alwaysSearchUsingEDismax").whichIsHidden());
 		add(SEARCH_USING_TERMS_IN_BQ = search.createBooleanTrueByDefault("searchUsingBQ").whichIsHidden());
+
+		add(DEFAULT_TABLE_MODE = others.createEnum("defaultTableMode", TableMode.class).withDefaultValue(TableMode.LIST));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -715,5 +722,9 @@ public class ConstellioEIMConfigs {
 
 	public CalendarCountry getCalendarCountry() {
 		return manager.getValue(CALENDAR_COUNTRY);
+	}
+
+	public TableMode getDefaultTableMode() {
+		return manager.getValue(DEFAULT_TABLE_MODE);
 	}
 }

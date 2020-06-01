@@ -3,13 +3,14 @@ package com.constellio.model.entities.records.wrappers;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.structure.ExternalAccessUrlStatus;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import org.joda.time.LocalDateTime;
+import org.joda.time.LocalDate;
 
 public class ExternalAccessUrl extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "externalAccessUrl";
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
 
 	public static final String TOKEN = "token";
+	public static final String FULLNAME = "fullname";
 	public static final String EXPIRATION_DATE = "expirationDate";
 	public static final String STATUS = "status";
 	public static final String ACCESS_RECORD = "accessRecord";
@@ -27,11 +28,20 @@ public class ExternalAccessUrl extends RecordWrapper {
 		return this;
 	}
 
-	public LocalDateTime getExpirationDate() {
+	public String getFullname() {
+		return get(FULLNAME);
+	}
+
+	public ExternalAccessUrl setFullname(String name) {
+		set(FULLNAME, name);
+		return this;
+	}
+
+	public LocalDate getExpirationDate() {
 		return get(EXPIRATION_DATE);
 	}
 
-	public ExternalAccessUrl setExpirationDate(LocalDateTime date) {
+	public ExternalAccessUrl setExpirationDate(LocalDate date) {
 		set(EXPIRATION_DATE, date);
 		return this;
 	}

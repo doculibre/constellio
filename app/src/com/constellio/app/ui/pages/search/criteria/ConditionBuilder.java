@@ -53,11 +53,11 @@ public class ConditionBuilder {
 		BooleanOperator operator = BooleanOperator.AND;
 		while (criteria.hasNext()) {
 			Criterion criterion = criteria.next();
-			if (criterion.isLeftParens()) {
+			if (criterion.isLeftParens() && !criterion.isRightParens()) {
 				appender.append(buildInnerCondition(criterion, criteria), operator);
 				operator = criteria.previous().getBooleanOperator();
 				criteria.next();
-			} else if (criterion.isRightParens()) {
+			} else if (criterion.isRightParens() && !criterion.isLeftParens()) {
 				throw new ConditionException_TooManyClosedParentheses();
 			} else {
 				appender.append(buildClause(criterion), operator);

@@ -1,5 +1,8 @@
 package com.constellio.model.services.background;
 
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.PersistedSortValuesServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
@@ -27,7 +30,11 @@ public class RefreshSortValuesBackgroundAction implements Runnable {
 			return;
 		}
 
-		if (!lastRefresh.equals(persistedSortValuesServices.getLastVersionTimeStamp())) {
+		boolean officeHours = new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER
+							  && TimeProvider.getLocalDateTime().getHourOfDay() >= 7
+							  && TimeProvider.getLocalDateTime().getHourOfDay() <= 18;
+
+		if (!officeHours && !lastRefresh.equals(persistedSortValuesServices.getLastVersionTimeStamp())) {
 			recordsCaches.updateRecordsMainSortValue();
 		}
 

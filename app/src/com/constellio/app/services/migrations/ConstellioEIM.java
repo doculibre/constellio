@@ -1,6 +1,13 @@
 package com.constellio.app.services.migrations;
 
 import com.constellio.app.api.content.GetRecordContentServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.CertifyPdfJSSignaturesServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSAnnotationsConfigServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSAnnotationsServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSSignatureServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.RemovePdfJSSignatureServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSAnnotationsServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSSignatureServlet;
 import com.constellio.app.api.search.CachedSearchWebService;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.extensions.ui.AppSupportedExtensionExtension;
@@ -221,6 +228,14 @@ public class ConstellioEIM {
 		ApplicationStarter.registerFilter("/cachedSelect", filterHolder);
 
 		ApplicationStarter.registerServlet("/getRecordContent", new GetRecordContentServlet());
+
+		ApplicationStarter.registerServlet(CertifyPdfJSSignaturesServlet.PATH, new CertifyPdfJSSignaturesServlet());
+		ApplicationStarter.registerServlet(GetPdfJSAnnotationsConfigServlet.PATH, new GetPdfJSAnnotationsConfigServlet());
+		ApplicationStarter.registerServlet(GetPdfJSAnnotationsServlet.PATH, new GetPdfJSAnnotationsServlet());
+		ApplicationStarter.registerServlet(GetPdfJSSignatureServlet.PATH, new GetPdfJSSignatureServlet());
+		ApplicationStarter.registerServlet(RemovePdfJSSignatureServlet.PATH, new RemovePdfJSSignatureServlet());
+		ApplicationStarter.registerServlet(SavePdfJSAnnotationsServlet.PATH, new SavePdfJSAnnotationsServlet());
+		ApplicationStarter.registerServlet(SavePdfJSSignatureServlet.PATH, new SavePdfJSSignatureServlet());
 	}
 
 	static public void start(AppLayerFactory appLayerFactory, String collection) {

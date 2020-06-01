@@ -566,4 +566,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public User getUser() {
 		return getCurrentUser();
 	}
+
+	public void refreshActionMenuRequested() {
+		Record record = getRecord(documentVO.getId());
+		document = rm.wrapDocument(record);
+		documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
+		view.setRecordVO(documentVO);
+	}
 }

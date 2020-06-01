@@ -4,6 +4,7 @@ import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRepla
 import org.joda.time.Duration;
 
 import java.io.File;
+import java.util.List;
 
 public interface DataLayerConfiguration {
 
@@ -42,6 +43,8 @@ public interface DataLayerConfiguration {
 	ConfigManagerType getSettingsConfigType();
 
 	CacheType getCacheType();
+
+	List<String> getSubvaults();
 
 	String getCacheUrl();
 

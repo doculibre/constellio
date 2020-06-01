@@ -14,10 +14,10 @@ import java.util.StringTokenizer;
 
 public class TablePropertiesFactory implements StructureFactory {
 
-	private static final String NULL = "~null~";
-	private static final String DELIMITER = ":";
-	private static final String ITEM_DELIMITER = ",";
-	private static final String VALUE_DELIMITER = "=";
+	protected static final String NULL = "~null~";
+	protected static final String DELIMITER = ":";
+	protected static final String ITEM_DELIMITER = ",";
+	protected static final String VALUE_DELIMITER = "=";
 
 	@Override
 	public ModifiableStructure build(String value) {
@@ -53,7 +53,7 @@ public class TablePropertiesFactory implements StructureFactory {
 		return stringBuilder.toString();
 	}
 
-	private Map<String, Integer> readMap(StringTokenizer stringTokenizer) {
+	protected Map<String, Integer> readMap(StringTokenizer stringTokenizer) {
 		String value = readString(stringTokenizer);
 		if (value == null) {
 			return null;
@@ -73,7 +73,7 @@ public class TablePropertiesFactory implements StructureFactory {
 		return valueMap;
 	}
 
-	private void writeMap(StringBuilder stringBuilder, Map<String, Integer> valueMap) {
+	protected void writeMap(StringBuilder stringBuilder, Map<String, Integer> valueMap) {
 		if (valueMap != null) {
 			StringBuilder mapBuilder = new StringBuilder();
 			for (Entry<String, Integer> entry : valueMap.entrySet()) {
@@ -86,7 +86,7 @@ public class TablePropertiesFactory implements StructureFactory {
 		}
 	}
 
-	private List<String> readList(StringTokenizer stringTokenizer) {
+	protected List<String> readList(StringTokenizer stringTokenizer) {
 		String value = readString(stringTokenizer);
 		if (value == null) {
 			return null;
@@ -101,7 +101,7 @@ public class TablePropertiesFactory implements StructureFactory {
 		return valueList;
 	}
 
-	private void writeList(StringBuilder stringBuilder, List<String> valueList) {
+	protected void writeList(StringBuilder stringBuilder, List<String> valueList) {
 		if (valueList != null) {
 			StringBuilder listBuilder = new StringBuilder();
 			for (String value : valueList) {
@@ -113,7 +113,7 @@ public class TablePropertiesFactory implements StructureFactory {
 		}
 	}
 
-	private Boolean readBoolean(StringTokenizer stringTokenizer) {
+	protected Boolean readBoolean(StringTokenizer stringTokenizer) {
 		String value = readString(stringTokenizer);
 		if (value == null) {
 			return null;
@@ -121,7 +121,7 @@ public class TablePropertiesFactory implements StructureFactory {
 		return "1".equals(value);
 	}
 
-	private void writeBoolean(StringBuilder stringBuilder, Boolean value) {
+	protected void writeBoolean(StringBuilder stringBuilder, Boolean value) {
 		if (value == null) {
 			writeString(stringBuilder, null);
 		} else {
@@ -129,7 +129,7 @@ public class TablePropertiesFactory implements StructureFactory {
 		}
 	}
 
-	private String readString(StringTokenizer stringTokenizer) {
+	protected String readString(StringTokenizer stringTokenizer) {
 		String value = stringTokenizer.nextToken();
 		if (NULL.equals(value)) {
 			return null;
@@ -137,11 +137,11 @@ public class TablePropertiesFactory implements StructureFactory {
 		return value;
 	}
 
-	private void writeString(StringBuilder stringBuilder, String value) {
+	protected void writeString(StringBuilder stringBuilder, String value) {
 		writeString(DELIMITER, stringBuilder, value);
 	}
 
-	private void writeString(String delimiter, StringBuilder stringBuilder, String value) {
+	protected void writeString(String delimiter, StringBuilder stringBuilder, String value) {
 		if (stringBuilder.length() != 0) {
 			stringBuilder.append(delimiter);
 		}

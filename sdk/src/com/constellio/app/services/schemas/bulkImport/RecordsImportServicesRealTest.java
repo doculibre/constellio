@@ -813,7 +813,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	}
 
 
-	@Test    //todo
+	@Test
 	public void givenAnImportedAuthorizationRecordWithInvalidTargetIdThenValidationErrorThrown()
 			throws Exception {
 		final String INVALID_TARGET_ID = "invalid_target_id";
@@ -845,11 +845,10 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationException e) {
+			assertThat(recordServices.getRecordsById(zeCollection, Arrays.asList(VALID_TARGET_ID, INVALID_TARGET_ID))).isEmpty();
 			assertThat(frenchMessages(e))
 					.containsOnly("Autorisation 2 : L'enregistrement avec l'ancien identfiant «invalid_target_id» ciblé par l'autorisation n'existe pas.");
 		}
-
-		//TODO Valider que autorisation 1 pas ajoutée!
 	}
 
 	@Test

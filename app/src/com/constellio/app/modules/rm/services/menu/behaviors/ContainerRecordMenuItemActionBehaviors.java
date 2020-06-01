@@ -23,6 +23,8 @@ import com.constellio.app.ui.framework.buttons.ReportButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
+import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -212,6 +214,42 @@ public class ContainerRecordMenuItemActionBehaviors {
 
 		Button borrowButton = new BorrowWindowButton(records, params);
 		borrowButton.click();
+	}
+
+	public void generateReport(ContainerRecord container, MenuItemActionBehaviorParams params) {
+		RMSelectionPanelReportPresenter reportPresenter =
+				new RMSelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
+					@Override
+					public String getSelectedSchemaType() {
+						return ContainerRecord.SCHEMA_TYPE;
+					}
+
+					@Override
+					public List<String> getSelectedRecordIds() {
+						return asList(container.getId());
+					}
+				};
+
+		ReportTabButton reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), appLayerFactory,
+				params.getView().getCollection(), false, false, reportPresenter, params.getView().getSessionContext()) {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				setRecordVoList(params.getRecordVO());
+				super.buttonClick(event);
+			}
+		};
+
+		reportGeneratorButton.click();
+	}
+
+	public void addToSelection(ContainerRecord container, MenuItemActionBehaviorParams params) {
+		params.getView().getSessionContext().addSelectedRecordId(container.getId(),
+				params.getRecordVO().getSchema().getTypeCode());
+	}
+
+	public void removeToSelection(ContainerRecord container, MenuItemActionBehaviorParams params) {
+		params.getView().getSessionContext().removeSelectedRecordId(container.getId(),
+				params.getRecordVO().getSchema().getTypeCode());
 	}
 
 	private class ContainerReportPresenter implements NewReportPresenter {
