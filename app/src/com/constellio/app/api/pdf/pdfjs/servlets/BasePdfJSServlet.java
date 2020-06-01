@@ -158,12 +158,12 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 
 	protected void writeJSONResponse(JSONObject jsonObject, HttpServletRequest request, HttpServletResponse response)
 			throws IOException {
-		response.setCharacterEncoding("UTF-8");
 		writeResponse(jsonObject.toString(4), request, response);
 	}
 
 	protected void writeResponse(String content, HttpServletRequest request, HttpServletResponse response)
 			throws IOException {
+		response.setCharacterEncoding("UTF-8");
 		response.setStatus(HttpServletResponse.SC_OK);
 		PrintWriter writer = response.getWriter();
 		writer.write(content);
