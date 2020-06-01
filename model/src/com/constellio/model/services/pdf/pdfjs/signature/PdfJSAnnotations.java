@@ -5,7 +5,9 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -33,7 +35,7 @@ public class PdfJSAnnotations {
 		jsonObject.put("version", version);
 	}
 
-	public List<PdfSignatureAnnotation> getSignatureAnnotations(PDDocument pdDocument) {
+	public List<PdfSignatureAnnotation> getSignatureAnnotations(PDDocument pdDocument, boolean unbakedOnly) {
 		List<PdfSignatureAnnotation> signatureAnnotations = new ArrayList<>();
 		JSONObject pagesAndAnnotations = jsonObject.getJSONObject("pagesAndAnnotations");
 		for (String pageStr : pagesAndAnnotations.keySet()) {
@@ -44,25 +46,13 @@ public class PdfJSAnnotations {
 				if (isSignatureAnnotation(annotationJson)) {
 					int page0Base = Integer.parseInt(pageStr) - 1;
 					PdfJSSignatureAnnotation signatureAnnotation = new PdfJSSignatureAnnotation(annotationJson, pdDocument, page0Base);
-					signatureAnnotations.add(signatureAnnotation);
+					if (!unbakedOnly || !signatureAnnotation.isBaked()) {
+						signatureAnnotations.add(signatureAnnotation);
+					}
 				}
 			}
 		}
 		return signatureAnnotations;
-	}
-
-	public void clearSignatureAnnotations() {
-		JSONObject pagesAndAnnotations = jsonObject.getJSONObject("pagesAndAnnotations");
-		for (String pageStr : pagesAndAnnotations.keySet()) {
-			// 1 based in PDFJS, 0 based in PDFBox
-			JSONArray pageAnnotations = pagesAndAnnotations.getJSONArray(pageStr);
-			for (Iterator<Object> it = pageAnnotations.iterator(); it.hasNext(); ) {
-				JSONObject annotationJson = (JSONObject) it.next();
-				if (isSignatureAnnotation(annotationJson)) {
-					it.remove();
-				}
-			}
-		}
 	}
 
 	private boolean isSignatureAnnotation(JSONObject annotationJson) {
@@ -74,6 +64,30 @@ public class PdfJSAnnotations {
 			signatureAnnotation = false;
 		}
 		return signatureAnnotation;
+	}
+
+	public void markSignatureAnnotationsAsBaked(String bakeUser, Date bakeDate) {
+		JSONObject pagesAndAnnotations = jsonObject.getJSONObject("pagesAndAnnotations");
+		for (String pageStr : pagesAndAnnotations.keySet()) {
+			// 1 based in PDFJS, 0 based in PDFBox
+			JSONArray pageAnnotations = pagesAndAnnotations.getJSONArray(pageStr);
+			for (Iterator<Object> it = pageAnnotations.iterator(); it.hasNext(); ) {
+				JSONObject annotationJson = (JSONObject) it.next();
+				if (isSignatureAnnotation(annotationJson) && !annotationJson.getBoolean("baked")) {
+					String type = annotationJson.getString("type");
+					if ("signature-pad-annotation".equals(type)) {
+						annotationJson.put("type", "signature-image-annotation");
+						String imageUrl = annotationJson.getString("imageUrl");
+						annotationJson.remove("imageUrl");
+						annotationJson.put("url", imageUrl);
+					}
+					annotationJson.put("readOnly", true);
+					annotationJson.put("baked", true);
+					annotationJson.put("bakeUser", bakeUser);
+					annotationJson.put("bakeDate", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(bakeDate));
+				}
+			}
+		}
 	}
 
 }

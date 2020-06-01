@@ -5,6 +5,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.pdf.pdfjs.signature.PdfJSAnnotations;
+import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -21,8 +22,13 @@ public class SavePdfJSAnnotationsServlet extends BasePdfJSServlet {
 		PdfJSServices pdfJSServices = newPdfJSServices();
 
 		PdfJSAnnotations annotations = getAnnotationsFromRequest(request);
-		pdfJSServices.saveAnnotations(record, metadata, user, annotations);
-		writeResponse(annotations.getVersion(), request, response);
+		if (annotations != null) {
+			pdfJSServices.saveAnnotations(record, metadata, user, annotations);
+			String newVersion = annotations.getVersion();
+			JSONObject newVersionJson = new JSONObject();
+			newVersionJson.put("newVersion", newVersion);
+			writeJSONResponse(newVersionJson, request, response);
+		}
 	}
 
 }

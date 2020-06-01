@@ -17,6 +17,7 @@ import com.gargoylesoftware.htmlunit.WebRequest;
 import com.gargoylesoftware.htmlunit.WebResponse;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -60,8 +61,8 @@ public class SignatureExternalAccessWebServletGETAcceptanceTest extends Constell
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		documentMenuItemActionBehaviors = new DocumentMenuItemActionBehaviors(zeCollection, getAppLayerFactory());
 
-		validUrl = documentMenuItemActionBehaviors.createExternalSignatureUrl(records.document_A19, "Constellio Test", getTomorrow(), validLanguage);
-		expiredUrl = documentMenuItemActionBehaviors.createExternalSignatureUrl(records.document_A19, "Constellio Test", getYesterday(), validLanguage);
+		validUrl = documentMenuItemActionBehaviors.createExternalSignatureUrl(records.document_A19, "Constellio Test", getTomorrow(), validLanguage, users.adminIn(zeCollection));
+		expiredUrl = documentMenuItemActionBehaviors.createExternalSignatureUrl(records.document_A19, "Constellio Test", getYesterday(), validLanguage, users.adminIn(zeCollection));
 		validAccess = createAccess();
 	}
 
@@ -79,7 +80,7 @@ public class SignatureExternalAccessWebServletGETAcceptanceTest extends Constell
 		assertThat(response.getStatusCode()).isEqualTo(HttpServletResponse.SC_OK);
 	}*/
 
-	/* TODO --> Hadle redirection without crashing test?
+	/* TODO --> Handle redirection without crashing test?
 	@Test
 	public void whenCallingServiceWithValidAccess()
 			throws Exception {
@@ -88,7 +89,7 @@ public class SignatureExternalAccessWebServletGETAcceptanceTest extends Constell
 		assertThat(response.getStatusCode()).isEqualTo(HttpServletResponse.SC_OK);
 	}*/
 
-	/* TODO --> Hadle redirection without crashing test?
+	/* TODO --> Handle redirection without crashing test?
 	@Test
 	public void whenCallingServiceWithToClosedAccessStatus()
 			throws Exception {
@@ -241,6 +242,8 @@ public class SignatureExternalAccessWebServletGETAcceptanceTest extends Constell
 		access.setStatus(ExternalAccessUrlStatus.OPEN);
 		access.setFullname("Mister X");
 		access.setExpirationDate(getTomorrow());
+		access.setCreatedBy(users.adminIn(zeCollection));
+		access.setCreatedOn(new LocalDateTime());
 
 		recordServices.add(access);
 		return access;

@@ -7,15 +7,20 @@ function SignatureDataStore(config) {
 	if (this.config) {
 		this.getSignatureServiceUrl = this.config["getSignatureServiceUrl"];
 		this.saveSignatureServiceUrl = this.config["saveSignatureServiceUrl"];
+		this.removeSignatureServiceUrl = this.config["removeSignatureServiceUrl"];
 	}
 	if (this.getSignatureServiceUrl) {
 		this.callGetSignatureImageUrlService(false, function(signatureImageUrl) {
 			if (signatureImageUrl) {
 				self.setSignatureImageUrl(signatureImageUrl, true);
+			} else {
+				self.removeSignatureImageUrl(true);
 			}
 			self.callGetSignatureImageUrlService(true, function(initialsImageUrl) {
 				if (initialsImageUrl) {
 					self.setInitialsImageUrl(initialsImageUrl, true);
+				} else {
+					self.removeInitialsImageUrl(true);
 				}
 			});
 		});
@@ -65,6 +70,24 @@ SignatureDataStore.prototype.callSaveSignatureImageUrlService = function(imageUr
 	});  
 };	
 
+SignatureDataStore.prototype.callRemoveSignatureImageUrlService = function(initials, success, fail) {
+	var adjustedUrl = this.addInitialsParam(this.removeSignatureServiceUrl, initials);
+	$.ajaxQueue(adjustedUrl)
+	.done(function(data, textStatus, jqXHR) {
+		if (success) {
+			success();
+		}
+	})
+	.fail(function(jqXHR, textStatus, errorThrown) {
+		if (fail) {
+			fail(textStatus, errorThrown);
+		} else {
+			console.error("Error while removing user signature: " + textStatus);
+			console.error(errorThrown);
+		}
+	});  
+};	
+
 SignatureDataStore.prototype.addInitialsParam = function(serviceUrl, initials) {
 	var result = serviceUrl;
 	if (result.indexOf("?") != -1) {
@@ -92,10 +115,10 @@ SignatureDataStore.prototype.setSignatureImageUrl = function(signatureImageUrl, 
 	}
 };
 
-SignatureDataStore.prototype.removeSignatureImageUrl = function() {
+SignatureDataStore.prototype.removeSignatureImageUrl = function(noServiceCall) {
 	this.getStorage().removeItem("signatureImageUrl");
-	if (this.saveSignatureServiceUrl) {
-		this.callSaveSignatureImageUrlService("", false);
+	if (this.removeSignatureServiceUrl && !noServiceCall) {
+		this.callRemoveSignatureImageUrlService(false);
 	}
 };
 
@@ -110,10 +133,10 @@ SignatureDataStore.prototype.setInitialsImageUrl = function(initialsImageUrl, no
 	}
 };
 
-SignatureDataStore.prototype.removeInitialsImageUrl = function() {
+SignatureDataStore.prototype.removeInitialsImageUrl = function(noServiceCall) {
 	this.getStorage().removeItem("initialsImageUrl");	
-	if (this.saveSignatureServiceUrl) {
-		this.callSaveSignatureImageUrlService("", true);
+	if (this.removeSignatureServiceUrl && !noServiceCall) {
+		this.callRemoveSignatureImageUrlService(true);
 	}
 };
 

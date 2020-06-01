@@ -10,7 +10,11 @@ SignaturePadAnnotation.prototype.constructor = SignaturePadAnnotation;
 
 SignaturePadAnnotation.prototype.getType = function() {
 	return "signature-pad-annotation";
-}	
+}
+
+SignaturePadAnnotation.prototype.getBakeInfoI10nKey = function() {
+	return "annotation.signature.bakeInfo";
+};	
 
 SignaturePadAnnotation.prototype.bind = function(htmlElement) {
 	Annotation.prototype.bind.call(this, htmlElement);

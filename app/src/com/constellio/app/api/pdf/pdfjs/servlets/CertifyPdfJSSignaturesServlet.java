@@ -1,7 +1,6 @@
 package com.constellio.app.api.pdf.pdfjs.servlets;
 
 import com.constellio.app.api.pdf.pdfjs.services.PdfJSServices;
-import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -26,10 +25,13 @@ public class CertifyPdfJSSignaturesServlet extends BasePdfJSServlet {
 		try {
 			pdfJSServices.signAndCertifyPdf(record, metadata, user, annotations);
 			response.setStatus(HttpServletResponse.SC_OK);
-			JSONObject result = new JSONObject();
-			writeResponse(result.toString(), request, response);
-		} catch (PdfSignatureException e) {
-			throw new ServletException(e);
+			writeJSONResponse(new JSONObject(), request, response);
+		} catch (Throwable t) {
+			if (t instanceof IOException) {
+				throw (IOException) t;
+			} else {
+				throw new ServletException(t);
+			}
 		}
 	}
 

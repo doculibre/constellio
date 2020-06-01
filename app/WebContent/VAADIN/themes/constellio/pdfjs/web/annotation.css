@@ -9,9 +9,10 @@
 .annotation {
 	position: absolute;
 	z-index: 2;
+	box-sizing: border-box;
 }
 
-.annotation-movable, .annotation-resizable {
+.annotation-movable, .annotation-resizable, .annotation-baked:hover, .annotation-baked:focus {
 	border-color: #197de1;
 	border-width: 1px;
 	border-style: solid;
@@ -110,9 +111,11 @@
 	margin: initial;
 }
 
-.annotation-editor-window, .signature-picker-window {
+.annotation-editor-window, 
+.signature-picker-window, 
+.certify-dialog-window {
 	position: fixed; /* Stay in place */
-	z-index: 3; /* Sit on top */
+	z-index: 30000; /* Sit on top */
 	left: 0px;
 	top: 0px;
 	width: 100%; /* Full width */
@@ -124,7 +127,8 @@
 	text-align: center;
 }
 
-.annotation-editor-window-content {
+.annotation-editor-window-content, 
+.certify-dialog-window-content {
 	background-color: #fefefe;
 	margin: 15% auto; /* 15% from the top and centered */
 	padding: 20px;
@@ -134,14 +138,66 @@
 	width: -webkit-fit-content;
 	width: -o-fit-content;
 	/* width: -ms-fit-content;*/
+	color: #474747;
 }	
 
-.annotation-editor-window button {
-	background-color: #474747;
-	background-image: url(images/buttons/texture.png), linear-gradient(hsla(0,0%,32%,.99), hsla(0,0%,27%,.95));
-	color: white;
-	padding: 5px 10px 5px 10px;
-	cursor: pointer;
+.annotation-editor-window button, 
+.certify-dialog-window button {	
+    border: 0;
+    cursor: pointer;
+    margin: 0;
+    display: inline-flex;
+    outline: 0;
+    padding: 0;
+    position: relative;
+    align-items: center;
+    user-select: none;
+    border-radius: 0;
+    vertical-align: middle;
+    -moz-appearance: none;
+    justify-content: center;
+    text-decoration: none;
+    -webkit-appearance: none;
+	-webkit-tap-highlight-color: transparent;
+	
+    padding: 6px 16px;
+    font-size: 0.875rem;
+    min-width: 64px;
+    box-sizing: border-box;
+    transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,border 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    font-weight: 500;
+    line-height: 1.75;
+    border-radius: 4px;
+    letter-spacing: 0.02857em;
+    text-transform: uppercase;
+	
+    color: rgba(0, 0, 0, 0.87);
+    box-shadow: 0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12);
+	background-color: #e0e0e0;
+	
+	margin: 5px; 
+}
+
+.annotation-editor-window button:hover, 
+.annotation-editor-window button:focus, 
+.certify-dialog-action-buttons button:hover,
+.certify-dialog-action-buttons button:focus {
+    box-shadow: 0px 2px 4px -1px rgba(0,0,0,0.2), 0px 4px 5px 0px rgba(0,0,0,0.14), 0px 1px 10px 0px rgba(0,0,0,0.12);
+    background-color: #d5d5d5;
+}
+
+.annotation-editor-window button.primary, 
+.certify-dialog-window button.primary {
+	color: #fff;
+    background-color: #197de1;
+}
+
+.annotation-editor-window button.primary:hover, 
+.annotation-editor-window button.primary:focus, 
+.certify-dialog-window button.primary:hover, 
+.certify-dialog-window button.primary:focus {
+	background-color: rgb(17, 82, 147);
 }
 
 .annotation-editor-window-close-button {
@@ -175,3 +231,26 @@
 	border-style: solid;
 	cursor: crosshair;
 }
+
+
+.certify-dialog-title {
+	font-weight: bold;
+	padding-bottom: 10px;
+}
+
+.certify-dialog-progress {
+	font-weight: bold;
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+.certify-dialog-loading {
+	background: url(images/loading-icon.gif)  no-repeat scroll right center; 
+	padding-right: 30px;
+}
+
+.certify-dialog-error {
+	font-weight: bold;
+	color: #ff0000;
+}
+

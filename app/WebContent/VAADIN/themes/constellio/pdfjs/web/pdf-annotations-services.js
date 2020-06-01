@@ -59,6 +59,9 @@ PDFAnnotationsServices.prototype.parseAnnotationJSON = function(json) {
 	annotation.width = json["width"];
 	annotation.height = json["height"];
 	annotation.readOnly = json["readOnly"];
+	annotation.baked = json["baked"];
+	annotation.bakeUser = json["bakeUser"];
+	annotation.bakeDate = json["bakeDate"];
 	return annotation;
 };
 
@@ -122,7 +125,7 @@ PDFAnnotationsServices.prototype.savePDFAnnotations = function(pdfAnnotations, s
 			timeout: 30000
 		})
 		.done(function(data, textStatus, jqXHR) {
-			var newVersion = data;
+			var newVersion = data["newVersion"];
 			success(newVersion);			
 		})
 		.fail(function(jqXHR, textStatus, errorThrown) {
@@ -168,16 +171,16 @@ PDFAnnotationsServices.prototype.certifyPDFSignatures = function(pdfAnnotations,
 
 	if (!atLeastOneSignatureAnnotation) {
 		var errorMessage = this.i10n("pdf-annotation-services.noSignature",  "The document doesn''t contain a signature.");
-		alert(errorMessage);
+		fail(errorMessage);
 	} else if (this.certifyServiceUrl) {
 		// Work on a copy in case an error gets thrown
-		var pdfAnnotationsCopy = JSON.parse(JSON.stringify(pdfAnnotations));
-		this.makeSignatureAnnotationsReadOnly(pdfAnnotationsCopy);
+		//var pdfAnnotationsCopy = JSON.parse(JSON.stringify(pdfAnnotations));
+		//this.makeSignatureAnnotationsReadOnly(pdfAnnotationsCopy);
 
 		var pdfAnnotationsJson = {
-			apiVersion: "" + pdfAnnotationsCopy.apiVersion,
-			version: "" + pdfAnnotationsCopy.version,
-			pagesAndAnnotations: pdfAnnotationsCopy.pagesAndAnnotations
+			apiVersion: "" + pdfAnnotations.apiVersion,
+			version: "" + pdfAnnotations.version,
+			pagesAndAnnotations: pdfAnnotations.pagesAndAnnotations
 		};
 		var stringifiedPdfAnnotations = JSON.stringify(pdfAnnotationsJson);
 		$.ajaxQueue({
@@ -187,24 +190,11 @@ PDFAnnotationsServices.prototype.certifyPDFSignatures = function(pdfAnnotations,
 			contentType: "application/json; charset=utf-8",
 			dataType: "json",
 			processData: false,
-			timeout: 60000
+			timeout: 300000
 		})
 		.done(function(data, textStatus, jqXHR) {
-			self.makeSignatureAnnotationsReadOnly(pdfAnnotations);
-			success(data);		
-			/*	
-			for (var i = 0; i < signatureAnnotations.length; i++) {
-				var signatureAnnotation = signatureAnnotations[i];
-				signatureAnnotation.setReadOnly(true);
-			}
-			self.savePDFAnnotations(pdfAnnotations, function(saveData, textStatus, jqXHR) {
-				console.info("finished saving annotations after certification");
-				success(data);			
-			}, function(textStatus, errorThrown) {
-				console.error("Error trying to save annotations after certification (status: " + textStatus + ")");
-				console.error(errorThrown);
-			});
-			*/
+			//self.makeSignatureAnnotationsReadOnly(pdfAnnotations);
+			success(data);	
 		})
 		.fail(function(jqXHR, textStatus, errorThrown) {
 			fail(textStatus, errorThrown);

@@ -20,6 +20,7 @@ import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import javax.servlet.ServletConfig;
@@ -135,7 +136,7 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 		return new PdfJSServices(getAppLayerFactory());
 	}
 
-	protected String getJSONFromRequest(HttpServletRequest request) throws IOException {
+	protected String readRequestInputStream(HttpServletRequest request) throws IOException {
 		String result;
 		try (InputStream in = request.getInputStream()) {
 			result = IOUtils.toString(in, "UTF-8");
@@ -144,9 +145,21 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 	}
 
 	protected PdfJSAnnotations getAnnotationsFromRequest(HttpServletRequest request) throws IOException {
-		String jsonString = getJSONFromRequest(request);
-		JSONObject jsonObject = new JSONObject(jsonString);
-		return new PdfJSAnnotations(jsonObject);
+		PdfJSAnnotations result;
+		String jsonString = readRequestInputStream(request);
+		if (StringUtils.isNotBlank(jsonString)) {
+			JSONObject jsonObject = new JSONObject(jsonString);
+			result = new PdfJSAnnotations(jsonObject);
+		} else {
+			result = null;
+		}
+		return result;
+	}
+
+	protected void writeJSONResponse(JSONObject jsonObject, HttpServletRequest request, HttpServletResponse response)
+			throws IOException {
+		response.setCharacterEncoding("UTF-8");
+		writeResponse(jsonObject.toString(4), request, response);
 	}
 
 	protected void writeResponse(String content, HttpServletRequest request, HttpServletResponse response)

@@ -107,6 +107,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.simplejavamail.converter.EmailConverter;
 import org.simplejavamail.email.AttachmentResource;
 import org.simplejavamail.email.Email;
@@ -894,7 +895,7 @@ public class DocumentMenuItemActionBehaviors {
 							try {
 								Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
 								String url = createExternalSignatureUrl(document.getId(), nameField.getValue(),
-										(LocalDate) dateField.getConvertedValue(), locale.getLanguage());
+										(LocalDate) dateField.getConvertedValue(), locale.getLanguage(), params.getUser());
 								CopyToClipBoard.copyToClipBoard(url);
 							} catch (RecordServicesException e) {
 								params.getView().showErrorMessage($("DocumentMenuItemActionBehaviors.errorGeneratingAccess"));
@@ -915,7 +916,7 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public String createExternalSignatureUrl(String documentId, String externalUserFullname, LocalDate expirationDate,
-											 String language)
+											 String language, User user)
 			throws RecordServicesException {
 		ExternalAccessUrl accessUrl = rm.newSignatureExternalAccessUrl()
 				.setToken(UUID.randomUUID().toString())
@@ -923,6 +924,8 @@ public class DocumentMenuItemActionBehaviors {
 				.setStatus(ExternalAccessUrlStatus.OPEN)
 				.setFullname(externalUserFullname)
 				.setExpirationDate(expirationDate);
+		accessUrl.setCreatedBy(user.getId());
+		accessUrl.setCreatedOn(new LocalDateTime());
 
 		Transaction transaction = new Transaction();
 		transaction.add(accessUrl);

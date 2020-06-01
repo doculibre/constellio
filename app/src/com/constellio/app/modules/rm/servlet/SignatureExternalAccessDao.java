@@ -191,7 +191,7 @@ public class SignatureExternalAccessDao {
 		}
 
 		try {
-			return documentMenuItemActionBehaviors.createExternalSignatureUrl(documentId, externalUserFullname, convertedDate, language);
+			return documentMenuItemActionBehaviors.createExternalSignatureUrl(documentId, externalUserFullname, convertedDate, language, user);
 		} catch (RecordServicesException e) {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, CANNOT_SAVE_RECORD);
 		}

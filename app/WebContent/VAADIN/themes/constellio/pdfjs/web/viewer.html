@@ -43,9 +43,13 @@ See https://github.com/adobe-type-tools/cmap-resources
 
       <link rel="stylesheet" href="./signature-picker.css"/>
       <link rel="stylesheet" href="./annotation.css"/>
+      <link rel="stylesheet" href="./tooltipster/dist/css/tooltipster.bundle.min.css"/>
+      <link rel="stylesheet" href="./constellio-pdfjs.css"/>
 
-      <script src="./jquery/jquery-1.12.4.min.js"></script>
+      <script src="./jquery/1.12.4/jquery.min.js"></script>
       <script src="./jquery/jquery.ajaxQueue.min.js"></script>
+
+      <script src="./tooltipster/dist/js/tooltipster.bundle.min.js"></script>
 
       <script src="./annotation-common.js"></script>
       <script src="./signature-datastore.js"></script>
@@ -427,6 +431,14 @@ See https://github.com/adobe-type-tools/cmap-resources
     <div id="printContainer"></div>
 
     <script src="./signature_pad.umd.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.tooltip').tooltipster();
+            //$('[data-l10n-id]').tooltipster();
+        });
+
+
+    </script>
   </body>
 </html>
 

@@ -4,7 +4,7 @@ import com.constellio.app.api.pdf.pdfjs.services.PdfJSServices;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.services.records.RecordServicesException;
+import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -22,12 +22,16 @@ public class SavePdfJSSignatureServlet extends BasePdfJSServlet {
 
 		PdfJSServices pdfJSServices = newPdfJSServices();
 
-		String signatureBase64 = getJSONFromRequest(request);
+		String signatureBase64 = readRequestInputStream(request);
 		try {
 			pdfJSServices.saveSignatureBase64Url(user, signatureBase64, initials);
-			response.setStatus(HttpServletResponse.SC_OK);
-		} catch (RecordServicesException e) {
-			throw new ServletException(e);
+			writeJSONResponse(new JSONObject(), request, response);
+		} catch (Throwable t) {
+			if (t instanceof IOException) {
+				throw (IOException) t;
+			} else {
+				throw new ServletException(t);
+			}
 		}
 	}
 

@@ -22,7 +22,7 @@ SignaturePadAnnotationEditor.prototype.calculateAspectRatioFit = function(srcWid
     return { width: srcWidth*ratio, height: srcHeight*ratio };
 };
 
-SignaturePadAnnotationEditor.prototype.initSignaturePad = function(annotation) {
+SignaturePadAnnotationEditor.prototype.initSignaturePad = function(annotation, actionButtonsElement) {
 	if (!this.formElement) {
 		var self = this;
 		
@@ -56,7 +56,7 @@ SignaturePadAnnotationEditor.prototype.initSignaturePad = function(annotation) {
 		
 		var descriptionElement = document.createElement("div");
 		//descriptionElement.classList.add("description");
-		descriptionElement.innerHTML = "Sign above";
+		descriptionElement.innerHTML = this.i10n("signature-pad.signAbove", "Sign above");	
 		
 		var signaturePadActionsElement = document.createElement("div");
 		//signaturePadActionsElement.classList.add("signature-pad--actions");
@@ -65,7 +65,7 @@ SignaturePadAnnotationEditor.prototype.initSignaturePad = function(annotation) {
 		clearButton.onclick = function(e) {
 			self.signaturePad.clear();
 		};
-		clearButton.innerHTML = "Clear";
+		clearButton.innerHTML = this.i10n("buttons.clear", "Clear");
 		
 		var undoButton = document.createElement("button");
 		undoButton.onclick = function(e) {
@@ -75,7 +75,7 @@ SignaturePadAnnotationEditor.prototype.initSignaturePad = function(annotation) {
 				self.signaturePad.fromData(data);
 			}
 		};
-		undoButton.innerHTML = "Undo";	
+		undoButton.innerHTML = this.i10n("buttons.undo", "Undo");	
 
 		signaturePadContainerElement.appendChild(signaturePadElement);
 		signaturePadElement.appendChild(signaturePadBodyElement);
@@ -83,15 +83,15 @@ SignaturePadAnnotationEditor.prototype.initSignaturePad = function(annotation) {
 		signaturePadContainerElement.appendChild(signaturePadFooterElement);
 		signaturePadFooterElement.appendChild(descriptionElement);
 		signaturePadFooterElement.appendChild(signaturePadActionsElement);
-		signaturePadActionsElement.appendChild(clearButton);
-		signaturePadActionsElement.appendChild(undoButton);
+		actionButtonsElement.appendChild(clearButton);
+		actionButtonsElement.appendChild(undoButton);
 		
 		this.formElement = signaturePadContainerElement;
 	}
 };	
 
-SignaturePadAnnotationEditor.prototype.getFormHtmlElement = function(annotation, saveButton, cancelButton) {
-	this.initSignaturePad(annotation);
+SignaturePadAnnotationEditor.prototype.getFormHtmlElement = function(annotation, actionButtonsElement, saveButton, cancelButton) {
+	this.initSignaturePad(annotation, actionButtonsElement);
 	return this.formElement;
 };	
 
