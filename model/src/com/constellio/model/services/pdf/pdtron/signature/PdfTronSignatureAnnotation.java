@@ -22,7 +22,9 @@ public class PdfTronSignatureAnnotation extends PdfSignatureAnnotation {
 				createPositionRectangle(annotation.getAttributeValue(POSITION_ELEMENT_NAME)),
 				annotation.getAttributeValue(USER_ELEMENT_NAME),
 				annotation.getAttributeValue(USERNAME_ELEMENT_NAME),
-				fetchImageData(annotation)
+				fetchImageData(annotation),
+				false,
+				false
 		);
 	}
 
