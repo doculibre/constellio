@@ -23,6 +23,11 @@ SignaturePadAnnotation.prototype.bind = function(htmlElement) {
 	if (this.imageUrl) {
 		htmlElement.style.backgroundImage = "url(" + this.imageUrl + ")"; 
 	}
+	if (!this.isBaked()) {
+		htmlElement.title = this.i10n("annotation.signature.clickToCertify", "Click on the Certify button to save the signature");
+		htmlElement.classList.add("tooltip");
+		$(htmlElement).tooltipster();
+	}
 };
 
 SignaturePadAnnotation.prototype.annotationDefined = function(htmlElement) {

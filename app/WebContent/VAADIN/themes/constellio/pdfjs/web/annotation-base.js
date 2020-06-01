@@ -231,7 +231,6 @@ Annotation.prototype.bind = function(htmlElement) {
 		this.htmlElement.classList.add("annotation-baked");
 	}
 	if (this.bakeUser && this.bakeDate) {
-		applyTooltip = true;
 		var bakeInfoKey = this.getBakeInfoI10nKey();
 		var bakeInfo = this.i10n(bakeInfoKey, "By ({{bakeUser}} on {{bakeDate}})", {
 			bakeUser: self.bakeUser,
@@ -257,7 +256,7 @@ Annotation.prototype.bind = function(htmlElement) {
 	};	
 	this.htmlElement.appendChild(this.deleteLink);
 	
-	if (applyTooltip) {
+	if (this.htmlElement.className.indexOf("tooltip") != -1) {
 		$(this.htmlElement).tooltipster();
 	}
 };	
