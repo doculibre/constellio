@@ -19,10 +19,11 @@ public class GetPdfJSAnnotationsConfigServlet extends BasePdfJSServlet {
 							 HttpServletResponse response) throws ServletException, IOException {
 		String serviceKey = authenticator.getUserServiceKey(request);
 		String token = authenticator.getUserToken(request);
+		String urlPrefix = request.getParameter("urlPrefix");
 
 		PdfJSServices pdfJSServices = newPdfJSServices();
 
-		String pdfJSAnnotationsConfig = pdfJSServices.getAnnotationsConfig(record, metadata, user, localeCode, serviceKey, token);
+		String pdfJSAnnotationsConfig = pdfJSServices.getAnnotationsConfig(record, metadata, user, localeCode, serviceKey, token, urlPrefix);
 		writeResponse(pdfJSAnnotationsConfig, request, response);
 	}
 

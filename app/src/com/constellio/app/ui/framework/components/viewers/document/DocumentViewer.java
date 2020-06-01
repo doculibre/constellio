@@ -14,8 +14,10 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ResourceReference;
@@ -189,19 +191,45 @@ public class DocumentViewer extends CustomComponent {
 				ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 				AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 				ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+				UserServices userServices = modelLayerFactory.newUserServices();
 				PresenterService presenterService = new PresenterService(modelLayerFactory);
 				PdfJSServices pdfJSServices = new PdfJSServices(appLayerFactory);
 				SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 
 				User user = presenterService.getCurrentUser(sessionContext);
+				String username = user.getUsername();
+				UserCredential userCredentials = userServices.getUserCredential(username);
+				String serviceKey = userCredentials.getServiceKey();
+				if (serviceKey == null) {
+					serviceKey = userServices.giveNewServiceToken(userCredentials);
+					userServices.addUpdateUserCredential(userCredentials);
+				}
+				String tokenAttributeName = "document_viewer_token";
+				String token = ConstellioUI.getCurrent().getAttribute(tokenAttributeName);
+				if (token == null || userServices.isAuthenticated(serviceKey, token)) {
+					token = userServices.generateToken(username);
+					ConstellioUI.getCurrent().setAttribute(tokenAttributeName, token);
+					final String finalToken = token;
+					// Token only valid while current UI is alive
+					ConstellioUI.getCurrent().addDetachListener(new DetachListener() {
+						@Override
+						public void detach(DetachEvent event) {
+							ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+							ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+							UserServices userServices = modelLayerFactory.newUserServices();
+							userServices.removeToken(finalToken);
+						}
+					});
+				}
+				
 				String viewerUrl;
 				if (recordVO != null) {
 					Record record = presenterService.getRecord(recordVO.getId());
 					MetadataSchema metadataSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record);
 					Metadata metadata = metadataSchema.get(metadataCode);
-					viewerUrl = pdfJSServices.getInternalViewerUrl(record, metadata, user, locale, contentPathPrefix, contentPathPrefix + contentURL, null, null);
+					viewerUrl = pdfJSServices.getInternalViewerUrl(record, metadata, user, locale, contentPathPrefix, contentPathPrefix + contentURL, serviceKey, token);
 				} else {
-					viewerUrl = pdfJSServices.getInternalViewerUrl(null, null, user, locale, contentPathPrefix, contentPathPrefix + contentURL, null, null);
+					viewerUrl = pdfJSServices.getInternalViewerUrl(null, null, user, locale, contentPathPrefix, contentPathPrefix + contentURL, serviceKey, token);
 				}
 
 				String iframeHTML = "<iframe src = \"" + viewerUrl + "\" width=\"100%\" height=\"100%\" allowfullscreen webkitallowfullscreen></iframe>";

@@ -3,12 +3,7 @@
 function SignHereAnnotation(text, x, y, width, height) {
 	Annotation.call(this, x, y, width, height);
 	if (!text) {
-		var mozL10n = document.mozL10n || document.webL10n;
-		if (mozL10n) {
-			text = mozL10n.get("annotation.signHere.text", null, "Sign here");
-		} else {
-			text = "Sign here";
-		}
+		text = this.i10n("annotation.signHere.text", "Sign here");
 	}
 	this.setText(text);
 }

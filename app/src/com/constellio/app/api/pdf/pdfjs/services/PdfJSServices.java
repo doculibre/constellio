@@ -4,9 +4,11 @@ import com.constellio.app.api.pdf.pdfjs.servlets.CertifyPdfJSSignaturesServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSAnnotationsConfigServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSAnnotationsServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSSignatureServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.RemovePdfJSSignatureServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSAnnotationsServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSSignatureServlet;
 import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException;
+import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException.PdfSignatureException_CannotSignDocumentException;
 import com.constellio.app.api.pdf.signature.services.PdfSignatureServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.contents.ContentDao;
@@ -25,6 +27,7 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManager.ContentVersionDataSummaryResponse;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.pdf.pdfjs.signature.PdfJSAnnotations;
@@ -45,6 +48,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Base64;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -75,19 +79,10 @@ public class PdfJSServices {
 		return getViewerUrl(record, metadata, user, locale, contentPathPrefix, contentPreviewPath, serviceKey, token, false);
 	}
 
-	private String getViewerUrl(Record record, Metadata metadata, User user, Locale locale, String contentPathPrefix,
-							   String contentPreviewPath, String serviceKey, String token, boolean includeConstellioUrl) {
-		UserServices userServices = modelLayerFactory.newUserServices();
+	private String getViewerUrl(Record record, Metadata metadata, User user, Locale locale, String urlPrefix,
+								String contentPreviewPath, String serviceKey, String token,
+								boolean includeConstellioUrl) {
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
-
-		String username = user.getUsername();
-		if (serviceKey == null && !(user instanceof ExternalAccessUser)) {
-			UserCredential userCredentials = userServices.getUserCredential(username);
-			serviceKey = userServices.giveNewServiceToken(userCredentials);
-		}
-		if (token == null && !(user instanceof ExternalAccessUser)) {
-			token = userServices.generateToken(username);
-		}
 
 		String constellioUrl = systemConfigurationsManager.getValue(ConstellioEIMConfigs.CONSTELLIO_URL);
 		if (StringUtils.endsWith(constellioUrl, "/")) {
@@ -96,19 +91,23 @@ public class PdfJSServices {
 		boolean disableSignature = !isSignaturePossible(record, metadata, user);
 
 		String metadataCode = metadata.getCode();
-		if (contentPathPrefix == null) {
-			contentPathPrefix = "../../../../../";
+		if (urlPrefix == null) {
+			urlPrefix = "../../../../../";
 		}
-		if (StringUtils.endsWith(contentPathPrefix, "/")) {
-			contentPathPrefix = StringUtils.substringBeforeLast(contentPathPrefix, "/");
+		if (StringUtils.endsWith(urlPrefix, "/")) {
+			urlPrefix = StringUtils.substringBeforeLast(urlPrefix, "/");
 		}
 		if (contentPreviewPath == null && record != null) {
 			StringBuilder contentPreviewParams = new StringBuilder();
 			contentPreviewParams.append("recordId=" + record.getId());
 			contentPreviewParams.append("&metadataCode=" + metadataCode);
 			contentPreviewParams.append("&preview=true");
-			contentPreviewParams.append("&serviceKey=" + serviceKey);
-			contentPreviewParams.append("&token=" + token);
+			if (serviceKey != null) {
+				contentPreviewParams.append("&serviceKey=" + serviceKey);
+			}
+			if (token != null) {
+				contentPreviewParams.append("&token=" + token);
+			}
 			if (user instanceof ExternalAccessUser) {
 				ExternalAccessUser externalAccessUser = (ExternalAccessUser) user;
 				contentPreviewParams.append("&accessId=" + externalAccessUser.getExternalAccessUrl().getId());
@@ -120,19 +119,19 @@ public class PdfJSServices {
 				filename += ".pdf";
 			}
 			contentPreviewParams.append("&z-filename=" + filename);
-			contentPreviewPath = contentPathPrefix + "/getRecordContent?" + contentPreviewParams;
+			contentPreviewPath = urlPrefix + "/getRecordContent?" + contentPreviewParams;
 		}
 
 		StringBuilder viewerParams = new StringBuilder();
 		viewerParams.append("locale=" + getPdfJSLocaleCode(locale.getLanguage()));
 		viewerParams.append("&disableSignature=" + disableSignature);
 		if (!disableSignature) {
-			String configParams = getCallbackParams(record, metadata, user, locale.getLanguage(), serviceKey, token);
+			String configParams = getCallbackParams(record, metadata, user, locale.getLanguage(), serviceKey, token, urlPrefix);
 			String configPath;
 			if (includeConstellioUrl) {
 				configPath = constellioUrl;
 			} else {
-				configPath = contentPathPrefix;
+				configPath = urlPrefix;
 			}
 			configPath += GetPdfJSAnnotationsConfigServlet.PATH + "?" + configParams;
 			try {
@@ -159,7 +158,7 @@ public class PdfJSServices {
 	}
 
 	private String getCallbackParams(Record record, Metadata metadata, User user, String localeCode, String serviceKey,
-									 String token) {
+									 String token, String urlPrefix) {
 		StringBuilder params = new StringBuilder();
 		params.append("locale=" + getPdfJSLocaleCode(localeCode));
 		if (serviceKey != null) {
@@ -175,6 +174,9 @@ public class PdfJSServices {
 		if (user instanceof ExternalAccessUser) {
 			ExternalAccessUser externalAccessUser = (ExternalAccessUser) user;
 			params.append("&accessId=" + externalAccessUser.getExternalAccessUrl().getId());
+		}
+		if (urlPrefix != null) {
+			params.append("&urlPrefix=" + urlPrefix);
 		}
 		return params.toString();
 	}
@@ -193,9 +195,14 @@ public class PdfJSServices {
 	public boolean isSignaturePossible(Record record, Metadata metadata, User user) {
 		boolean signaturePossible;
 		if (record != null && user.hasWriteAccess().on(record)) {
-			StreamFactory keystore = appLayerFactory.getModelLayerFactory()
-					.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE);
-			signaturePossible = keystore != null;
+			Content content = record.get(metadata);
+			if (content == null || content.isCheckedOut()) {
+				signaturePossible = false;
+			} else {
+				StreamFactory keystore = appLayerFactory.getModelLayerFactory()
+						.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE);
+				signaturePossible = keystore != null;
+			}
 		} else {
 			signaturePossible = false;
 		}
@@ -264,6 +271,9 @@ public class PdfJSServices {
 					} else {
 						userCredential.setElectronicSignature(signatureContent);
 					}
+				} else {
+					ContentVersionDataSummary contentVersionDataSummary = uploadResponse.getContentVersionDataSummary();
+					signatureContent.replaceCurrentVersionContent(user, contentVersionDataSummary);
 				}
 				recordServices.update(userCredential, user);
 			}
@@ -342,63 +352,110 @@ public class PdfJSServices {
 			throws PdfSignatureException, InvalidPasswordException, IOException {
 		IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
 
-		Content content = record.get(metadata);
-		ContentVersion contentVersion = content.getCurrentVersion();
-		String extension = FilenameUtils.getExtension(contentVersion.getFilename()).toLowerCase();
-		String hash = contentVersion.getHash();
+		if (isSignaturePossible(record, metadata, user)) {
+			Content content = record.get(metadata);
+			ContentVersion contentVersion = content.getCurrentVersion();
+			String extension = FilenameUtils.getExtension(contentVersion.getFilename()).toLowerCase();
+			String hash = contentVersion.getHash();
 
-		InputStream pdfInputStream;
-		if ("pdf".equals(extension)) {
-			pdfInputStream = contentManager.getContentInputStream(hash, getClass().getSimpleName() + ".signAndCertifyPdf");
-		} else {
-			pdfInputStream = contentManager.getContentPreviewInputStream(hash, getClass().getSimpleName() + ".signAndCertifyPdf");
-		}
-		PDDocument pdDocument = null;
-		try {
-			pdDocument = PDDocument.load(pdfInputStream);
-			List<PdfSignatureAnnotation> signatureAnnotations = annotations.getSignatureAnnotations(pdDocument);
-			pdfSignatureServices.signAndCertify(record, metadata, user, signatureAnnotations);
-
-			String annotationsVersion = annotations.getVersion();
-			String newAnnotationsVersion = getNextVersionNumber(annotationsVersion, true);
-			annotations.setVersion(newAnnotationsVersion);
-			saveAnnotations(record, metadata, user, annotations);
-
-			if (user instanceof ExternalAccessUser) {
-				ExternalAccessUser externalUser = (ExternalAccessUser) user;
-				ExternalAccessUrl externalAccess = externalUser.getExternalAccessUrl();
-				externalAccess.setStatus(ExternalAccessUrlStatus.TO_CLOSE);
-
-				RecordServices recordServices = modelLayerFactory.newRecordServices();
-				recordServices.update(externalAccess);
+			InputStream pdfInputStream;
+			if ("pdf".equals(extension)) {
+				pdfInputStream = contentManager.getContentInputStream(hash, getClass().getSimpleName() + ".signAndCertifyPdf");
+			} else {
+				pdfInputStream = contentManager.getContentPreviewInputStream(hash, getClass().getSimpleName() + ".signAndCertifyPdf");
 			}
-		} catch (RecordServicesException e) {
-			log.error("Unable to close external access for " + user.getUsername(), e);
-		} finally {
-			ioServices.closeQuietly(pdfInputStream);
-			ioServices.closeQuietly(pdDocument);
+			PDDocument pdDocument = null;
+			try {
+				pdDocument = PDDocument.load(pdfInputStream);
+
+				String bakeUserInfo = getUserSignatureInfo(user);
+				List<PdfSignatureAnnotation> signatureAnnotations = annotations.getSignatureAnnotations(pdDocument, true);
+				for (PdfSignatureAnnotation signatureAnnotation : signatureAnnotations) {
+					if (signatureAnnotation.getUserId() == null && !(user instanceof ExternalAccessUser)) {
+						signatureAnnotation.setUserId(user.getId());
+					}
+					if (signatureAnnotation.getUsername() == null) {
+						signatureAnnotation.setUsername(bakeUserInfo);
+					}
+				}
+				pdfSignatureServices.signAndCertify(record, metadata, user, signatureAnnotations);
+
+				String annotationsVersion = annotations.getVersion();
+				String newAnnotationsVersion = getNextVersionNumber(annotationsVersion, true);
+				annotations.setVersion(newAnnotationsVersion);
+
+				Date bakeDate = new Date();
+				annotations.markSignatureAnnotationsAsBaked(bakeUserInfo, bakeDate);
+				saveAnnotations(record, metadata, user, annotations);
+
+				if (user instanceof ExternalAccessUser) {
+					ExternalAccessUser externalUser = (ExternalAccessUser) user;
+					ExternalAccessUrl externalAccess = externalUser.getExternalAccessUrl();
+					externalAccess.setStatus(ExternalAccessUrlStatus.TO_CLOSE);
+
+					RecordServices recordServices = modelLayerFactory.newRecordServices();
+					try {
+						recordServices.update(externalAccess);
+					} catch (RecordServicesException e) {
+						log.error("Unable to close external access for " + user.getUsername(), e);
+					}
+				}
+			} finally {
+				ioServices.closeQuietly(pdfInputStream);
+				ioServices.closeQuietly(pdDocument);
+			}
+		} else {
+			throw new PdfSignatureException_CannotSignDocumentException(new Exception());
 		}
 	}
 
+	private String getUserSignatureInfo(User user) {
+		StringBuilder userSignatureInfo = new StringBuilder();
+		if (user instanceof ExternalAccessUser) {
+			userSignatureInfo.append(user.getUsername());
+		} else {
+			if (StringUtils.isNotBlank(user.getFirstName())) {
+				userSignatureInfo.append(user.getFirstName());
+			}
+			if (StringUtils.isNotBlank(user.getLastName())) {
+				if (userSignatureInfo.length() > 0) {
+					userSignatureInfo.append(" ");
+				}
+				userSignatureInfo.append(user.getLastName());
+			}
+			if (userSignatureInfo.length() > 0) {
+				userSignatureInfo.append(" (");
+				userSignatureInfo.append(user.getUsername());
+				userSignatureInfo.append(")");
+			} else {
+				userSignatureInfo.append(user.getUsername());
+			}
+		}
+		return userSignatureInfo.toString();
+	}
+
 	public String getAnnotationsConfig(Record record, Metadata metadata, User user, String localeCode,
-									   String serviceKey, String token) {
+									   String serviceKey, String token, String urlPrefix) {
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 
-		String constellioUrl = systemConfigurationsManager.getValue(ConstellioEIMConfigs.CONSTELLIO_URL);
-		String prefix = constellioUrl;
-		if (StringUtils.endsWith(prefix, "/")) {
-			prefix = StringUtils.substringBeforeLast(prefix, "/");
+		if (urlPrefix == null) {
+			String constellioUrl = systemConfigurationsManager.getValue(ConstellioEIMConfigs.CONSTELLIO_URL);
+			urlPrefix = constellioUrl;
+			if (StringUtils.endsWith(urlPrefix, "/")) {
+				urlPrefix = StringUtils.substringBeforeLast(urlPrefix, "/");
+			}
 		}
 
-		String params = getCallbackParams(record, metadata, user, localeCode, serviceKey, token);
+		String params = getCallbackParams(record, metadata, user, localeCode, serviceKey, token, urlPrefix);
 
 		JSONObject jsonObject = new JSONObject();
-		jsonObject.put("certifyServiceUrl", prefix + CertifyPdfJSSignaturesServlet.PATH + "?" + params);
-		jsonObject.put("getAnnotationsServiceUrl", prefix + GetPdfJSAnnotationsServlet.PATH + "?" + params);
-		jsonObject.put("saveAnnotationsServiceUrl", prefix + SavePdfJSAnnotationsServlet.PATH + "?" + params);
+		jsonObject.put("certifyServiceUrl", urlPrefix + CertifyPdfJSSignaturesServlet.PATH + "?" + params);
+		jsonObject.put("getAnnotationsServiceUrl", urlPrefix + GetPdfJSAnnotationsServlet.PATH + "?" + params);
+		jsonObject.put("saveAnnotationsServiceUrl", urlPrefix + SavePdfJSAnnotationsServlet.PATH + "?" + params);
 		if (!(user instanceof ExternalAccessUser)) {
-			jsonObject.put("getSignatureServiceUrl", prefix + GetPdfJSSignatureServlet.PATH + "?" + params);
-			jsonObject.put("saveSignatureServiceUrl", prefix + SavePdfJSSignatureServlet.PATH + "?" + params);
+			jsonObject.put("getSignatureServiceUrl", urlPrefix + GetPdfJSSignatureServlet.PATH + "?" + params);
+			jsonObject.put("saveSignatureServiceUrl", urlPrefix + SavePdfJSSignatureServlet.PATH + "?" + params);
+			jsonObject.put("removeSignatureServiceUrl", urlPrefix + RemovePdfJSSignatureServlet.PATH + "?" + params);
 		}
 		return jsonObject.toString(4);
 	}

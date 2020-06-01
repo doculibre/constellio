@@ -19,11 +19,17 @@ SignaturePicker.prototype.openPicker = function(signHereAnnotation) {
 		self.closeWindow.call(self);
 	};
 
+	var titleElement = document.createElement("div");
+	titleElement.classList.add("signature-picker-window-title");
+	titleElement.innerHTML = this.i10n("signaturePicker.title", "To save signatures in the PDF document, click on the Certify button.");
+
 	var signHereButton;
 	if (!signHereAnnotation) {
 		signHereButton = document.createElement("button");
 		signHereButton.setAttribute("data-l10n-id", "buttons.newSignHereAnnotation");
-		signHereButton.innerHTML = this.i10n("buttons.newSignHereAnnotation", "New Sign Here Zone");
+		signHereButton.innerHTML = this.i10n("buttons.newSignHereAnnotation", "New sign here zone");
+		signHereButton.title=this.i10n("buttons.newSignHereAnnotation.tooltip", "Define a new sign here zone");
+		signHereButton.classList.add("tooltip");
 		signHereButton.classList.add("signature-picker-sign-here-button");
 		signHereButton.onclick = function(e) {
 			self.signHereAnnotationPicked();
@@ -32,10 +38,12 @@ SignaturePicker.prototype.openPicker = function(signHereAnnotation) {
 	}
 		
 	var signatureLabelElement = document.createElement("div");
-	signatureLabelElement.innerHTML = this.i10n("signaturePicker.signature", "Signature");
+	signatureLabelElement.classList.add("signature-picker-signature-label");
+	signatureLabelElement.innerHTML = this.i10n("signaturePicker.signature", "Use an existing signature or create a new one");
 	
 	var initialsLabelElement = document.createElement("div");
-	initialsLabelElement.innerHTML = this.i10n("signaturePicker.initials", "Initials");
+	initialsLabelElement.classList.add("signature-picker-initials-label");
+	initialsLabelElement.innerHTML = this.i10n("signaturePicker.initials", "Use existing initials or create new ones");
 	
 	var signatureFields = this.buildFields(signHereAnnotation, false);
 	var initialsFields = this.buildFields(signHereAnnotation, true);
@@ -45,12 +53,14 @@ SignaturePicker.prototype.openPicker = function(signHereAnnotation) {
 	if (signHereButton) {
 		windowContentElement.appendChild(signHereButton);
 	}
+	windowContentElement.appendChild(titleElement);
 	windowContentElement.appendChild(signatureLabelElement);
 	windowContentElement.appendChild(signatureFields);
 	windowContentElement.appendChild(initialsLabelElement);
 	windowContentElement.appendChild(initialsFields);
 	
 	document.body.appendChild(this.windowElement);
+	$(".signature-picker-window .tooltip").tooltipster();
 };
 
 SignaturePicker.prototype.closeWindow = function() {
@@ -66,10 +76,13 @@ SignaturePicker.prototype.buildFields = function(signHereAnnotation, initials) {
 	// Delete Button (if exists)
 	var self = this;
 	
+	var tooltipPrefix;
 	var signatureExists;
 	if (initials) {
+		tooltipPrefix = "initials";
 		signatureExists = this.signatureDataStore.getInitialsImageUrl();
 	} else {
+		tooltipPrefix = "signature";
 		signatureExists = this.signatureDataStore.getSignatureImageUrl();
 	}
 	
@@ -87,12 +100,11 @@ SignaturePicker.prototype.buildFields = function(signHereAnnotation, initials) {
 	}
 	containerElement.classList.add("signature-picker-fields");
 
-	var existingChoiceElement = document.createElement("div");
-	existingChoiceElement.classList.add("signature-picker-choice");
-	
 	var thumbnailUrl = initials ? this.signatureDataStore.getInitialsImageUrl() : this.signatureDataStore.getSignatureImageUrl();
 	
 	var thumbnailElement = document.createElement("img");
+	thumbnailElement.title = this.i10n("signaturePicker." + tooltipPrefix + ".use.tooltip", "Use");
+	thumbnailElement.classList.add("tooltip");
 	thumbnailElement.classList.add("signature-picker-thumbnail");
 	thumbnailElement.src = thumbnailUrl;
 	thumbnailElement.style.maxWidth = "200px";
@@ -165,7 +177,8 @@ SignaturePicker.prototype.buildFields = function(signHereAnnotation, initials) {
 	var uploadButton = document.createElement("button");
 	uploadButton.classList.add("signature-picker-upload-button");
 	uploadButton.setAttribute("data-l10n-id", "buttons.upload");
-	uploadButton.innerHTML = this.i10n("buttons.upload", "Upload");
+	uploadButton.classList.add("tooltip");
+	uploadButton.title=this.i10n("signaturePicker." + tooltipPrefix + ".upload.tooltip", "Upload");
 	uploadButton.onclick = function(e) {
 		inputField.click();
 	};
@@ -173,7 +186,8 @@ SignaturePicker.prototype.buildFields = function(signHereAnnotation, initials) {
 	var drawButton = document.createElement("button");
 	drawButton.classList.add("signature-picker-draw-button");
 	drawButton.setAttribute("data-l10n-id", "buttons.draw");
-	drawButton.innerHTML = this.i10n("buttons.draw", "Draw");
+	drawButton.classList.add("tooltip");
+	drawButton.title=this.i10n("signaturePicker." + tooltipPrefix + ".draw.tooltip", "Draw");
 	drawButton.onclick = function(e) {
 		var saveCallback = function(imageUrl) {
 			if (initials) {
@@ -189,7 +203,8 @@ SignaturePicker.prototype.buildFields = function(signHereAnnotation, initials) {
 	var typeButton = document.createElement("button");
 	typeButton.classList.add("signature-picker-type-button");
 	typeButton.setAttribute("data-l10n-id", "buttons.type");
-	typeButton.innerHTML = this.i10n("buttons.type", "Type");
+	typeButton.classList.add("tooltip");
+	typeButton.title=this.i10n("signaturePicker." + tooltipPrefix + ".type.tooltip", "Type");
 	typeButton.onclick = function(e) {
 		self.textAnnotationPicked(signHereAnnotation, initials);
 		self.closeWindow();
@@ -198,7 +213,8 @@ SignaturePicker.prototype.buildFields = function(signHereAnnotation, initials) {
 	var deleteButton = document.createElement("button");
 	deleteButton.classList.add("signature-picker-delete-button");
 	deleteButton.setAttribute("data-l10n-id", "buttons.delete");
-	deleteButton.innerHTML = this.i10n("buttons.delete", "Delete");
+	deleteButton.classList.add("tooltip");
+	deleteButton.title=this.i10n("signaturePicker." + tooltipPrefix + ".delete.tooltip", "Delete");
 	deleteButton.onclick = function(e) {
 		if (initials) {
 			self.signatureDataStore.removeInitialsImageUrl();
@@ -212,20 +228,20 @@ SignaturePicker.prototype.buildFields = function(signHereAnnotation, initials) {
 	var useButton = document.createElement("button");
 	useButton.classList.add("signature-picker-use-button");
 	useButton.setAttribute("data-l10n-id", "buttons.use");
-	useButton.innerHTML = this.i10n("buttons.use", "Use");
+	useButton.classList.add("tooltip");
+	useButton.title=this.i10n("signaturePicker." + tooltipPrefix + ".use.tooltip", "Use");
 	useButton.onclick = function(e) {
 		self.imageAnnotationPicked(signHereAnnotation, initials, thumbnailElement.src);
 		self.closeWindow();
 	};
 	
-	containerElement.appendChild(existingChoiceElement);
+	containerElement.appendChild(thumbnailElement);
 	containerElement.appendChild(actionsElement);
-	existingChoiceElement.appendChild(thumbnailElement);
-	existingChoiceElement.appendChild(deleteButton);
-	existingChoiceElement.appendChild(useButton);
 	actionsElement.appendChild(inputField);
-	actionsElement.appendChild(uploadButton);
 	actionsElement.appendChild(drawButton);
+	actionsElement.appendChild(uploadButton);
+	actionsElement.appendChild(deleteButton);
+	//actionsElement.appendChild(useButton);
 	//actionsElement.appendChild(typeButton);
 	
 	adjustVisibility();
@@ -237,7 +253,10 @@ SignaturePicker.prototype.i10n = function(key, defaultValue) {
 	var value;
 	var mozL10n = document.mozL10n || document.webL10n;
 	if (mozL10n) {
-		value = mozL10n.get(key, null, null);
+        value = mozL10n.get(key, null, null);
+        if (!value || value.indexOf("{{") == 0) {
+            value = defaultValue;
+        }
 	} else {
 		value = defaultValue;
 	}

@@ -5,6 +5,7 @@ import com.constellio.app.api.pdf.pdfjs.servlets.CertifyPdfJSSignaturesServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSAnnotationsConfigServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSAnnotationsServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSSignatureServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.RemovePdfJSSignatureServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSAnnotationsServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSSignatureServlet;
 import com.constellio.app.api.search.CachedSearchWebService;
@@ -232,6 +233,7 @@ public class ConstellioEIM {
 		ApplicationStarter.registerServlet(GetPdfJSAnnotationsConfigServlet.PATH, new GetPdfJSAnnotationsConfigServlet());
 		ApplicationStarter.registerServlet(GetPdfJSAnnotationsServlet.PATH, new GetPdfJSAnnotationsServlet());
 		ApplicationStarter.registerServlet(GetPdfJSSignatureServlet.PATH, new GetPdfJSSignatureServlet());
+		ApplicationStarter.registerServlet(RemovePdfJSSignatureServlet.PATH, new RemovePdfJSSignatureServlet());
 		ApplicationStarter.registerServlet(SavePdfJSAnnotationsServlet.PATH, new SavePdfJSAnnotationsServlet());
 		ApplicationStarter.registerServlet(SavePdfJSSignatureServlet.PATH, new SavePdfJSSignatureServlet());
 	}

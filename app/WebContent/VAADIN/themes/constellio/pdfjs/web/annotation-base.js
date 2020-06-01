@@ -8,6 +8,7 @@ function Annotation(x, y, width, height) {
 	this.width = width;
 	this.height = height;
 	this.readOnly = false;	
+	this.baked = false;
 }
 
 Annotation.prototype.uuidV4 = function() {
@@ -164,6 +165,34 @@ Annotation.prototype.setReadOnly = function(readOnly) {
 	}
 };
 
+Annotation.prototype.isBaked = function() {
+	return this.baked;
+};
+
+Annotation.prototype.setBaked = function(baked) {
+	this.baked = baked;
+};
+
+Annotation.prototype.getBakeUser = function() {
+	return this.bakeUser;
+};
+
+Annotation.prototype.setBakeUser = function(bakeUser) {
+	this.bakeUser = bakeUser;
+};
+
+Annotation.prototype.getBakeDate = function() {
+	return this.bakeDate;
+};
+
+Annotation.prototype.setBakeDate = function(bakeDate) {
+	this.bakeDate = bakeDate;
+};
+
+Annotation.prototype.getBakeInfoI10nKey = function() {
+	return "annotation.bakeInfo";
+};
+
 Annotation.prototype.isAttached = function() {
 	var attached;
 	if (this.htmlElement && this.htmlElement.parentNode) {
@@ -190,12 +219,25 @@ Annotation.prototype.remove = function() {
 
 Annotation.prototype.bind = function(htmlElement) {
 	var self = this;
+	var applyTooltip = false;
 	this.remove();
 	this.htmlElement = htmlElement;
 	this.htmlElement.classList.add("annotation");
 	if (!this.readOnly) {
 		this.htmlElement.classList.add("annotation-resizable");
 		this.htmlElement.classList.add("annotation-movable");
+	}
+	if (this.baked) {
+		this.htmlElement.classList.add("annotation-baked");
+	}
+	if (this.bakeUser && this.bakeDate) {
+		var bakeInfoKey = this.getBakeInfoI10nKey();
+		var bakeInfo = this.i10n(bakeInfoKey, "By ({{bakeUser}} on {{bakeDate}})", {
+			bakeUser: self.bakeUser,
+			bakeDate: self.bakeDate
+		  });
+		this.htmlElement.title = bakeInfo;
+		this.htmlElement.classList.add("tooltip");
 	}
 	this.htmlElement.id = this.getHtmlElementId();
 	this.htmlElement.style.left = this.getX() + "%";
@@ -213,6 +255,10 @@ Annotation.prototype.bind = function(htmlElement) {
 		}
 	};	
 	this.htmlElement.appendChild(this.deleteLink);
+	
+	if (this.htmlElement.className.indexOf("tooltip") != -1) {
+		$(this.htmlElement).tooltipster();
+	}
 };	
 
 Annotation.prototype.initHtmlElement = function() {
@@ -258,4 +304,18 @@ Annotation.prototype.getDebugString = function() {
 
 Annotation.prototype.debug = function() {
 	console.info(this.getDebugString());
+};
+
+Annotation.prototype.i10n = function(key, defaultValue, replacements) {
+	var value;
+	var mozL10n = document.mozL10n || document.webL10n;
+	if (mozL10n) {
+        value = mozL10n.get(key, replacements, defaultValue);
+        if (!value || value.indexOf("{{") == 0) {
+            value = defaultValue;
+        }
+	} else {
+		value = defaultValue;
+	}
+	return value;
 };

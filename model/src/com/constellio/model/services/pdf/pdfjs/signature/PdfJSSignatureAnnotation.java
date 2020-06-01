@@ -9,6 +9,8 @@ import java.awt.*;
 
 public class PdfJSSignatureAnnotation extends PdfSignatureAnnotation {
 
+	private boolean baked;
+
 	public PdfJSSignatureAnnotation(JSONObject annotationJson, PDDocument pdDocument, int page) {
 		super(
 				page,
@@ -17,6 +19,7 @@ public class PdfJSSignatureAnnotation extends PdfSignatureAnnotation {
 				getUsername(annotationJson),
 				fetchImageData(annotationJson)
 		);
+		this.baked = annotationJson.getBoolean("baked");
 	}
 
 	private static Rectangle createPositionRectangle(JSONObject annotationJson, PDDocument pdDocument, int page) {
@@ -58,6 +61,10 @@ public class PdfJSSignatureAnnotation extends PdfSignatureAnnotation {
 			imageUrl = null;
 		}
 		return imageUrl;
+	}
+
+	public boolean isBaked() {
+		return baked;
 	}
 
 }
