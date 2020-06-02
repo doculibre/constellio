@@ -36,7 +36,12 @@ import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
+import java.awt.Rectangle;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -136,8 +141,65 @@ public class PdfSignatureServices {
 			}
 			Collections.sort(signatures);
 
-			File signedDocument = null;
+			List<PdfSignatureAnnotation> signedAnnotations = new ArrayList<>();
+			List<PdfSignatureAnnotation> initialsAnnotations = new ArrayList<>();
+			List<PdfSignatureAnnotation> notInitialsAnnotations = new ArrayList<>();
+
 			for (PdfSignatureAnnotation signature : signatures) {
+				if (signature.isInitials()) {
+					initialsAnnotations.add(signature);
+				} else {
+					notInitialsAnnotations.add(signature);
+				} 
+			}
+			
+			if (initialsAnnotations.size() > 1) {
+				signedAnnotations.add(initialsAnnotations.get(0));
+				
+				PDDocument doc = null;
+				try {
+					doc = PDDocument.load(docToSignFile);
+	
+					for (int i = 1; i < initialsAnnotations.size(); i++) {
+						PdfSignatureAnnotation initialsAnnotation = initialsAnnotations.get(i);
+						
+						int pageNumber = initialsAnnotation.getPage();
+						//Retrieving the page
+						PDPage page = doc.getPage(pageNumber);
+						
+						File initialsFile = createTempFileFromBase64("initials", initialsAnnotation.getImageData());
+						if (initialsFile == null) {
+							throw new PdfSignatureException_CannotReadSignatureFileException();
+						} else {
+							tempFiles.add(initialsFile);
+						}
+					   
+						//Creating PDImageXObject object
+						PDImageXObject pdImage = PDImageXObject.createFromFile(initialsFile.getAbsolutePath(), doc);
+					   
+						//Creating the PDPageContentStream object
+						try (PDPageContentStream contents = new PDPageContentStream(doc, page, PDPageContentStream.AppendMode.APPEND, true)) {
+							//Drawing the image in the PDF document
+							Rectangle initialsPosition = initialsAnnotation.getPosition();
+							contents.drawImage(pdImage, (float) initialsPosition.getX(), (float) initialsPosition.getY(), (float) initialsPosition.getWidth(), (float) initialsPosition.getHeight());
+						}
+					}
+					
+					File docWithInitialsFile = fileService.newTemporaryFile(docToSignFile.getName() + "_with_initials.pdf");
+					tempFiles.add(docWithInitialsFile);
+					//Saving the document
+					doc.save(docWithInitialsFile);
+					docToSignFile = docWithInitialsFile;
+				} catch (IOException e) {
+					throw new PdfSignatureException_CannotSignDocumentException(e);
+				} finally {
+					ioServices.closeQuietly(doc);
+				}
+			}
+			signedAnnotations.addAll(notInitialsAnnotations);
+
+			File signedDocument = null;
+			for (PdfSignatureAnnotation signature : signedAnnotations) {
 				File signatureFile = createTempFileFromBase64("signature", signature.getImageData());
 				if (signatureFile == null) {
 					throw new PdfSignatureException_CannotReadSignatureFileException();
@@ -269,7 +331,7 @@ public class PdfSignatureServices {
 		if (parts.length != 2) {
 			return null;
 		}
-
+		String imageExtension = StringUtils.substringAfter(StringUtils.substringBefore(fileAsBase64Str, ";"), "image/");
 		String encodedText;
 		try {
 			encodedText = new String(parts[1].getBytes("UTF-8"));
@@ -278,7 +340,7 @@ public class PdfSignatureServices {
 		}
 		byte[] data = Base64.getDecoder().decode(encodedText);
 		FileService fileService = modelLayerFactory.getIOServicesFactory().newFileService();
-		File tempFile = fileService.newTemporaryFile(filename);
+		File tempFile = fileService.newTemporaryFile(filename, "." + imageExtension);
 
 		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 		try (OutputStream outputStream = ioServices.newFileOutputStream(tempFile, getClass().getSimpleName() + ".createTempFileFromBase64")) {
