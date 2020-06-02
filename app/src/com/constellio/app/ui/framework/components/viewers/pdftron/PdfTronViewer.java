@@ -38,6 +38,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.json.simple.JSONObject;
@@ -457,12 +458,12 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		toExecute.append("documentAnnotationRK='" + documentAnnotationResourceKey + "';");
 		toExecute.append("documentAnnotationUrl='" + documentAnnotationUrl + "';");
 		toExecute.append("documentAnnotationCallBack='" + saveButtonCallbackURL + "';");
-		toExecute.append("name='" + userFirstNameAndLastName + " (" + currentUser.getUsername() + ")" + "';");
+		toExecute.append("name='" + StringEscapeUtils.escapeJavaScript(userFirstNameAndLastName + " (" + currentUser.getUsername() + ")") + "';");
 		toExecute.append("admin=" + userHasRightToEditOtherUserAnnotation + ";");
-		toExecute.append("license=" + pdfTronLicense + ";");
+		toExecute.append("license='" + StringEscapeUtils.escapeJavaScript(pdfTronLicense) + "';");
 		toExecute.append("isReadOnly=" + isViewerInReadOnly + ";");
 		toExecute.append("language='" + getPdfTronLanguageCode() + "';");
-		toExecute.append("fileName='" + pdfTronPresenter.getContentName() + "';");
+		toExecute.append("fileName='" + StringEscapeUtils.escapeJavaScript(pdfTronPresenter.getContentName()) + "';");
 
 		if (searchTerm != null) {
 			toExecute.append("searchTerm='" + searchTerm + "';");
