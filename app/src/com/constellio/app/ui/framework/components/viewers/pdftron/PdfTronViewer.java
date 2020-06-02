@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.components.viewers.pdftron;
 
+import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -15,10 +16,10 @@ import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditAnnotationWithoutLock;
-import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
-import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_IOExeption;
-import com.constellio.model.services.pdftron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
+import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_CannotEditAnnotationWithoutLock;
+import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
+import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_IOExeption;
+import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Page;
@@ -423,7 +424,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	private void handleFinalDocument(String fileAsStr) {
 		try {
 			pdfTronPresenter.handleFinalDocument(fileAsStr);
-		} catch (PdfTronSignatureException e) {
+		} catch (PdfSignatureException e) {
 			log.error(MessageUtils.toMessage(e));
 			showErrorMessage(e.getMessage());
 		}

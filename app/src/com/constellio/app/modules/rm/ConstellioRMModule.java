@@ -81,6 +81,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.background.AlertDocumentBorrowingPeriodBackgroundAction;
+import com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -104,6 +105,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.security.GlobalSecuredTypeCondition;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -273,6 +276,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo9_1_0_22());
 		scripts.add(new RMMigrationTo9_1_0_23());
 		scripts.add(new RMMigrationTo9_1_0_24());
+		scripts.add(new RMMigrationTo9_1_10());
 
 		return scripts;
 	}
@@ -335,6 +339,13 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				.configure(repeatingAction("alertDocumentBorrowingPeriod", action)
 						.executedEvery(standardHours(2)).handlingExceptionWith(CONTINUE));
 
+		ApplicationStarter.registerServlet("/signatureExternalAccess", new SignatureExternalAccessWebServlet());
+		FilterHolder filterHolder = new FilterHolder(new CrossOriginFilter());
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,POST,GET");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "content-type,access-control-allow-origin,authorization");
+		filterHolder.setInitParameter(CrossOriginFilter.CHAIN_PREFLIGHT_PARAM, "false");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
+		ApplicationStarter.registerFilter("/signatureExternalAccess", filterHolder);
 	}
 
 

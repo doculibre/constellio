@@ -1,6 +1,13 @@
 package com.constellio.app.services.migrations;
 
 import com.constellio.app.api.content.GetRecordContentServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.CertifyPdfJSSignaturesServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSAnnotationsConfigServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSAnnotationsServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSSignatureServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.RemovePdfJSSignatureServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSAnnotationsServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSSignatureServlet;
 import com.constellio.app.api.search.CachedSearchWebService;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.extensions.ui.AppSupportedExtensionExtension;
@@ -96,6 +103,7 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_0;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_10;
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -202,6 +210,7 @@ public class ConstellioEIM {
 		scripts.add(new CoreMigrationTo_9_0_42_2());
 		scripts.add(new CoreMigrationTo_9_0_3());
 		scripts.add(new CoreMigrationTo_9_1_0());
+		scripts.add(new CoreMigrationTo_9_1_10());
 		return scripts;
 	}
 
@@ -219,6 +228,14 @@ public class ConstellioEIM {
 		ApplicationStarter.registerFilter("/cachedSelect", filterHolder);
 
 		ApplicationStarter.registerServlet("/getRecordContent", new GetRecordContentServlet());
+
+		ApplicationStarter.registerServlet(CertifyPdfJSSignaturesServlet.PATH, new CertifyPdfJSSignaturesServlet());
+		ApplicationStarter.registerServlet(GetPdfJSAnnotationsConfigServlet.PATH, new GetPdfJSAnnotationsConfigServlet());
+		ApplicationStarter.registerServlet(GetPdfJSAnnotationsServlet.PATH, new GetPdfJSAnnotationsServlet());
+		ApplicationStarter.registerServlet(GetPdfJSSignatureServlet.PATH, new GetPdfJSSignatureServlet());
+		ApplicationStarter.registerServlet(RemovePdfJSSignatureServlet.PATH, new RemovePdfJSSignatureServlet());
+		ApplicationStarter.registerServlet(SavePdfJSAnnotationsServlet.PATH, new SavePdfJSAnnotationsServlet());
+		ApplicationStarter.registerServlet(SavePdfJSSignatureServlet.PATH, new SavePdfJSSignatureServlet());
 	}
 
 	static public void start(AppLayerFactory appLayerFactory, String collection) {

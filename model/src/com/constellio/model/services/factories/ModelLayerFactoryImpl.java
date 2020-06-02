@@ -40,7 +40,7 @@ import com.constellio.model.services.migrations.RecordMigrationsManager;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.ForkParsers;
 import com.constellio.model.services.parser.LanguageDetectionManager;
-import com.constellio.model.services.pdftron.AnnotationLockManager;
+import com.constellio.model.services.pdf.pdtron.AnnotationLockManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.StringRecordIdLegacyMemoryMapping;

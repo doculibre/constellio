@@ -55,14 +55,7 @@ public class MetadataToFormVOBuilder implements Serializable {
 		boolean isMultiLingual = metadata.isMultiLingual();
 		Map<Language, String> helpMessages = config.getHelpMessages();
 
-		boolean advancedSearch;
-		if (metadata.getInheritance() == null) {
-			advancedSearch = config.isVisibleInAdvancedSearch();
-		} else {
-			String codeInDefaultSchema = schemaTypeCode + "_default_" + new SchemaUtils().getLocalCodeFromMetadataCode(code);
-			MetadataDisplayConfig inheritanceConfig = configManager.getMetadata(metadata.getCollection(), codeInDefaultSchema);
-			advancedSearch = inheritanceConfig.isVisibleInAdvancedSearch();
-		}
+		boolean advancedSearch = config.isVisibleInAdvancedSearch();
 		boolean highlight = config.isHighlight();
 		boolean enabled = metadata.isEnabled();
 		boolean facet = false;

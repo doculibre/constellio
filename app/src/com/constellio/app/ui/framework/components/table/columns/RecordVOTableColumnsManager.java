@@ -14,9 +14,13 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.ui.Table;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
 public class RecordVOTableColumnsManager extends TableColumnsManager {
+	public static final String BUTTONS_PROPERTY_ID = "buttons";
 
 	public RecordVOTableColumnsManager() {
 	}
@@ -107,4 +111,15 @@ public class RecordVOTableColumnsManager extends TableColumnsManager {
 		return columnId;
 	}
 
+	@Override
+	public void manage(Table table, String tableId) {
+		super.manage(table, tableId);
+		List<Object> visibleColumnsList = new ArrayList<>(Arrays.asList(table.getVisibleColumns()));
+		if (visibleColumnsList.contains(BUTTONS_PROPERTY_ID)) {
+			int columnIndex = isRightToLeft() ? 0 : visibleColumnsList.size() - 1;
+			visibleColumnsList.remove(BUTTONS_PROPERTY_ID);
+			visibleColumnsList.add(columnIndex, BUTTONS_PROPERTY_ID);
+		}
+		table.setVisibleColumns(visibleColumnsList.toArray());
+	}
 }

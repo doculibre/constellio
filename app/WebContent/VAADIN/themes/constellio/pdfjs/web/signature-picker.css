@@ -1,0 +1,176 @@
+.signature-picker-window * {
+	padding: initial;
+	outline: initial;
+	margin: initial;
+}
+
+.signature-picker-window {
+	position: fixed; /* Stay in place */
+	z-index: 3; /* Sit on top */
+	left: 0px;
+	top: 0px;
+	width: 100%; /* Full width */
+	height: 100%; /* Full height */
+	overflow: auto; /* Enable scroll if needed */
+	background-color: rgb(0,0,0); /* Fallback color */
+	background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+	vertical-align: middle;
+	text-align: center;
+}
+
+.signature-picker-thumbnail {
+	cursor: pointer;
+}
+
+.signature-picker-window-content {
+	background-color: #fefefe;
+	margin: 15% auto; /* 15% from the top and centered */
+	padding: 20px;
+	border: 1px solid #888;
+	width: 80%; /* Could be more or less, depending on screen size */
+	width: -moz-fit-content;
+	width: -webkit-fit-content;
+	width: -o-fit-content;
+	/* width: -ms-fit-content;*/
+}	
+
+.signature-picker-window-title {
+	font-size: 1.2em;
+	padding: 10px 0px 10px 0px;
+}
+
+.signature-picker-window-title,
+.signature-picker-signature-label,
+.signature-picker-initials-label {
+	font-weight: bold;
+}
+
+.signature-picker-choice {
+	display: inline-block;
+}
+
+.signature-picker-window .signature-picker-delete-button,
+.signature-picker-window .signature-picker-use-button  {
+	vertical-align: top;
+	position: relative;
+}
+
+.signature-picker-window button {
+    border: 0;
+    cursor: pointer;
+    margin: 0;
+    display: inline-flex;
+    outline: 0;
+    padding: 0;
+    position: relative;
+    align-items: center;
+    user-select: none;
+    border-radius: 0;
+    vertical-align: middle;
+    -moz-appearance: none;
+    justify-content: center;
+    text-decoration: none;
+    -webkit-appearance: none;
+	-webkit-tap-highlight-color: transparent;
+	
+    font-size: 0.875rem;
+    box-sizing: border-box;
+    transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,border 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    font-weight: 500;
+    line-height: 1.75;
+    border-radius: 10px;
+    letter-spacing: 0.02857em;
+    text-transform: uppercase;
+	
+    color: rgba(0, 0, 0, 0.87);
+    box-shadow: 0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12);
+	background-color: #e0e0e0;
+	
+	margin: 5px; 
+	min-width: 24px;
+	min-height: 24px;
+}
+
+.signature-picker-window  button:hover,
+.signature-picker-window  button:focus {
+    box-shadow: 0px 2px 4px -1px rgba(0,0,0,0.2), 0px 4px 5px 0px rgba(0,0,0,0.14), 0px 1px 10px 0px rgba(0,0,0,0.12);
+    background-color: #d5d5d5;
+}
+
+.signature-picker-window button.primary {
+	color: #fff;
+    background-color: #197de1;
+}
+
+.signature-picker-window button.primary:focus,
+.signature-picker-window button.primary:hover {
+	background-color: rgb(17, 82, 147);
+}
+
+.signature-picker-window .signature-picker-sign-here-button,
+.signature-picker-window .signature-picker-upload-button,
+.signature-picker-window .signature-picker-draw-button,
+.signature-picker-window .signature-picker-type-button,
+.signature-picker-window .signature-picker-delete-button,
+.signature-picker-window .signature-picker-use-button  {
+    background-repeat: no-repeat;
+    background-position-y: center ;
+    background-position-x: center;
+}
+
+.signature-picker-window .signature-picker-sign-here-button {
+    background-position-x: 4px;
+}
+
+.signature-picker-window .signature-picker-sign-here-button {
+	padding-left: 28px;
+	padding-right: 5px;
+	background-image: url('images/buttons/sign.png');
+	background-color: #FFFF00;
+	border-radius: 0px;
+	line-height: 24px;
+}
+
+.signature-picker-window .signature-picker-sign-here-button:focus,
+.signature-picker-window .signature-picker-sign-here-button:hover {
+	background-color: rgb(173, 173, 0);
+;
+}
+
+.signature-picker-window .signature-picker-upload-button {
+    background-image: url('images/buttons/sign-image.png');
+}
+
+.signature-picker-window .signature-picker-draw-button {
+    background-image: url('images/buttons/sign-draw.png');
+}
+
+.signature-picker-window .signature-picker-type-button {
+    background-image: url('images/buttons/sign-text.png');
+}
+
+.signature-picker-window .signature-picker-delete-button {
+    background-image: url('images/buttons/delete.png');
+}
+
+.signature-picker-window .signature-picker-use-button {
+    background-image: url('images/buttons/use.png');
+}
+
+.signature-picker-window .signature-picker-window-close-button {
+	color: #aaa;
+	float: right;
+	font-size: 20px;
+	font-weight: bold;
+	position: relative;
+	top: -10px;
+	right: -10px;
+}
+
+.signature-picker-window .signature-picker-window-close-button:hover,
+.signature-picker-window .signature-picker-window-close-button:focus {
+	color: black;
+	text-decoration: none;
+	cursor: pointer;
+}  

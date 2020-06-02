@@ -245,8 +245,8 @@ public class DocumentMenuItemServicesAcceptanceTest extends ConstellioTest {
 		assertThat(emailToSend.getError()).isNull();
 		assertThat(emailToSend.getTryingCount()).isEqualTo(0);
 		assertThat(emailToSend.getParameters()).containsOnly("subject:" + StringEscapeUtils.escapeHtml4("Le document demandé est disponible: Chevreuil.odt"),
-				"returnDate:2016-04-03  01:02:03", "title:Chevreuil.odt", "constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayDocument/docA19", "recordType:document");
+				"returnDate:2016-04-03  01:02:03", "title:Chevreuil.odt", "constellioURL:http://localhost:7070/constellio/",
+				"recordURL:http://localhost:7070/constellio/#!displayDocument/docA19", "recordType:document");
 
 		assertThat(rmRecords.getDocumentWithContent_A19().getAlertUsersWhenAvailable()).isEmpty();
 	}

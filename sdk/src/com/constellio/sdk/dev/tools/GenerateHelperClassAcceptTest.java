@@ -26,6 +26,7 @@ import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
+import com.constellio.app.modules.rm.wrappers.SignatureExternalAccessUrl;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.UserFunction;
@@ -54,12 +55,12 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.ExportAudit;
+import com.constellio.model.entities.records.wrappers.ExternalAccessUrl;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.ImportAudit;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.Report;
-import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
@@ -134,7 +135,8 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(SearchEvent.DEFAULT_SCHEMA, SearchEvent.class);
 		wrappers.put(ThesaurusConfig.DEFAULT_SCHEMA, ThesaurusConfig.class);
 		wrappers.put(CapsuleLanguage.DEFAULT_SCHEMA, CapsuleLanguage.class);
-		wrappers.put(SavedSearch.DEFAULT_SCHEMA, SavedSearch.class);
+		//wrappers.put(SavedSearch.DEFAULT_SCHEMA, SavedSearch.class);
+		wrappers.put(ExternalAccessUrl.DEFAULT_SCHEMA, ExternalAccessUrl.class);
 
 		System.out.println(header());
 
@@ -183,6 +185,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 
 		wrappers.put(ExternalLink.DEFAULT_SCHEMA, ExternalLink.class);
 		wrappers.put(ExternalLinkType.DEFAULT_SCHEMA, ExternalLinkType.class);
+		wrappers.put(SignatureExternalAccessUrl.FULL_SCHEMA, SignatureExternalAccessUrl.class);
 
 
 		System.out.println(header());

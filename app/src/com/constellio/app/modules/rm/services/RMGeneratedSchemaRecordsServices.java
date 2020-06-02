@@ -16,6 +16,7 @@ import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
+import com.constellio.app.modules.rm.wrappers.SignatureExternalAccessUrl;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.UserFunction;
@@ -951,6 +952,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("contents");
 		}
 
+		public Metadata currentBatchProcess() {
+			return metadata("currentBatchProcess");
+		}
+
 		public Metadata description() {
 			return metadata("description");
 		}
@@ -1033,6 +1038,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata validationDate() {
 			return metadata("validationDate");
+		}
+
+		public Metadata validationRequester() {
+			return metadata("validationRequester");
 		}
 
 		public Metadata validationUser() {
@@ -1229,6 +1238,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("favorites");
 		}
 
+		public Metadata filename() {
+			return metadata("filename");
+		}
+
 		public Metadata filingSpace() {
 			return metadata("filingSpace");
 		}
@@ -1243,6 +1256,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata inheritedRetentionRule() {
 			return metadata("inheritedRetentionRule");
+		}
+
+		public Metadata isCheckoutAlertSent() {
+			return metadata("isCheckoutAlertSent");
 		}
 
 		public Metadata isModel() {
@@ -1275,6 +1292,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata published() {
 			return metadata("published");
+		}
+
+		public Metadata publishingExpirationDate() {
+			return metadata("publishingExpirationDate");
+		}
+
+		public Metadata publishingStartDate() {
+			return metadata("publishingStartDate");
 		}
 
 		public Metadata retentionRule() {
@@ -1407,10 +1432,75 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("emailTo");
 		}
 
+		public Metadata emailVersions() {
+			return metadata("emailVersions");
+		}
+
 		public Metadata subjectToBroadcastRule() {
 			return metadata("subjectToBroadcastRule");
 		}
 	}
+
+	public SignatureExternalAccessUrl wrapSignatureExternalAccessUrl(Record record) {
+		return record == null ? null : new SignatureExternalAccessUrl(record, getTypes());
+	}
+
+	public List<SignatureExternalAccessUrl> wrapSignatureExternalAccessUrls(List<Record> records) {
+		List<SignatureExternalAccessUrl> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new SignatureExternalAccessUrl(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<SignatureExternalAccessUrl> searchSignatureExternalAccessUrls(LogicalSearchQuery query) {
+		return wrapSignatureExternalAccessUrls(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<SignatureExternalAccessUrl> searchSignatureExternalAccessUrls(LogicalSearchCondition condition) {
+		MetadataSchemaType type = externalAccessUrl.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapSignatureExternalAccessUrls(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<SignatureExternalAccessUrl> signatureExternalAccessUrlIterator() {
+		return iterateFromCache(externalAccessUrl.schemaType(), this::wrapSignatureExternalAccessUrl);
+	}
+
+	public Stream<SignatureExternalAccessUrl> signatureExternalAccessUrlStream() {
+		return streamFromCache(externalAccessUrl.schemaType(), this::wrapSignatureExternalAccessUrl);
+	}
+
+	public SignatureExternalAccessUrl getSignatureExternalAccessUrl(String id) {
+		return wrapSignatureExternalAccessUrl(get(externalAccessUrl.schemaType(), id));
+	}
+
+	public List<SignatureExternalAccessUrl> getSignatureExternalAccessUrls(List<String> ids) {
+		return wrapSignatureExternalAccessUrls(get(externalAccessUrl.schemaType(), ids));
+	}
+
+	public SignatureExternalAccessUrl getSignatureExternalAccessUrlWithLegacyId(String legacyId) {
+		return wrapSignatureExternalAccessUrl(getByLegacyId(externalAccessUrl.schemaType(), legacyId));
+	}
+
+	public SignatureExternalAccessUrl newSignatureExternalAccessUrl() {
+		return wrapSignatureExternalAccessUrl(create(externalAccessUrl_signature.schema()));
+	}
+
+	public SignatureExternalAccessUrl newSignatureExternalAccessUrlWithId(String id) {
+		return wrapSignatureExternalAccessUrl(create(externalAccessUrl_signature.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_externalAccessUrl_signature externalAccessUrl_signature
+			= new SchemaTypeShortcuts_externalAccessUrl_signature("externalAccessUrl_signature");
+
+	public class SchemaTypeShortcuts_externalAccessUrl_signature extends SchemaTypeShortcuts_externalAccessUrl_default {
+		protected SchemaTypeShortcuts_externalAccessUrl_signature(String schemaCode) {
+			super(schemaCode);
+		}
+	}
+
 	public ExternalLink wrapExternalLink(Record record) {
 		return record == null ? null : new ExternalLink(record, getTypes());
 	}
@@ -1469,12 +1559,16 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			super(schemaCode);
 		}
 
+		public Metadata importedOn() {
+			return metadata("importedOn");
+		}
+
 		public Metadata type() {
 			return metadata("type");
 		}
 
-		public Metadata importedOn() {
-			return metadata("importedOn");
+		public Metadata typeCode() {
+			return metadata("typeCode");
 		}
 	}
 	public ExternalLinkType wrapExternalLinkType(Record record) {
@@ -1771,6 +1865,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata expectedTransferDate() {
 			return metadata("expectedTransferDate");
+		}
+
+		public Metadata externalLinks() {
+			return metadata("externalLinks");
 		}
 
 		public Metadata favorites() {
@@ -2498,6 +2596,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("criteria");
 		}
 
+		public Metadata description() {
+			return metadata("description");
+		}
+
 		public Metadata target() {
 			return metadata("target");
 		}
@@ -2566,6 +2668,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			super(schemaCode);
 		}
 
+		public Metadata title() {
+			return metadata("title");
+		}
+
 		public Metadata type() {
 			return metadata("type");
 		}
@@ -2628,6 +2734,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	public class SchemaTypeShortcuts_triggerAction_moveInFolder extends SchemaTypeShortcuts_triggerAction_default {
 		protected SchemaTypeShortcuts_triggerAction_moveInFolder(String schemaCode) {
 			super(schemaCode);
+		}
+
+		public Metadata date() {
+			return metadata("date");
 		}
 	}
 

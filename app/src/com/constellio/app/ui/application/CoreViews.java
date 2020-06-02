@@ -754,5 +754,6 @@ public class CoreViews {
 		uiContext.clearAttribute(BaseBreadcrumbTrail.SEARCH_ID);
 		uiContext.clearAttribute(BaseBreadcrumbTrail.ADVANCED_SEARCH);
 		uiContext.clearAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE);
+		uiContext.clearAttribute(BaseBreadcrumbTrail.RECENT_ITEMS);
 	}
 }

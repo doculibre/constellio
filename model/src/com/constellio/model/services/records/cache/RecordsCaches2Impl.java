@@ -920,6 +920,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		});
 
 		fullyPermanentInitialized = true;
+
 	}
 
 	public void updateRecordsMainSortValue(boolean forceLoadingFromSolr) {

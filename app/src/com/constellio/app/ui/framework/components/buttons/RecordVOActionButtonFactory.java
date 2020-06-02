@@ -19,6 +19,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.ui.Button;
@@ -41,6 +42,7 @@ public class RecordVOActionButtonFactory {
 	private MenuItemServices menuItemServices;
 	private MenuItemFactory menuItemFactory;
 	private UserServices userServices;
+	private RecordServices recordServices;
 	private Object objectRecordVO = null;
 
 	public RecordVOActionButtonFactory(RecordVO recordVO, List<String> excludedActionTypes) {
@@ -61,6 +63,7 @@ public class RecordVOActionButtonFactory {
 
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		userServices = appLayerFactory.getModelLayerFactory().newUserServices();
+		recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		menuItemServices = new MenuItemServices(collection, appLayerFactory);
 		menuItemFactory = new MenuItemFactory();
 	}
@@ -74,7 +77,7 @@ public class RecordVOActionButtonFactory {
 		Record record = null;
 
 		if (recordVO != null) {
-			record = recordVO.getRecord();
+			record = recordServices.getDocumentById(recordVO.getId());
 		}
 
 		List<MenuItemAction> menuItemActions = menuItemServices.getActionsForRecord(record, excludedActionTypes,

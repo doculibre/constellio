@@ -33,7 +33,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 public class SolrGlobalGroupsManager implements StatefulService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SolrGlobalGroupsManager.class);
-	
+
 	private final ModelLayerFactory modelLayerFactory;
 	private final SearchServices searchServices;
 	private final SchemasRecordsServices schemas;
@@ -89,7 +89,10 @@ public class SolrGlobalGroupsManager implements StatefulService {
 	public void activateGlobalGroupHierarchy(GlobalGroup group) {
 		Transaction transaction = new Transaction();
 		for (GlobalGroup each : getGroupHierarchy((GlobalGroup) group)) {
-			transaction.add(((GlobalGroup) each).setStatus(GlobalGroupStatus.ACTIVE));
+			RecordWrapper record = ((GlobalGroup) each).setStatus(GlobalGroupStatus.ACTIVE)
+					.set(Schemas.LOGICALLY_DELETED_STATUS, null)
+					.set(Schemas.LOGICALLY_DELETED_ON, null);
+			transaction.add(record);
 		}
 		try {
 			modelLayerFactory.newRecordServices().execute(transaction);

@@ -1753,4 +1753,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		String[] parts = version.trim().replace("\"", "").split(Pattern.quote("."));
 		return Double.valueOf(parts[0] + "." + parts[1]);
 	}
+
+	public QueryCounter newQueryCounter() {
+		return new QueryCounter(getDataLayerFactory(), getClass());
+	}
 }
