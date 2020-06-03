@@ -46,12 +46,10 @@ public class TenantService {
 			TenantProperties[] tenants = gson.fromJson(reader, TenantProperties[].class);
 			return tenants == null ? new ArrayList<>() : Arrays.asList(tenants);
 		} catch (NoSuchFileException ignored) {
-			// NO file found continue with empty tenant properties
+			return new ArrayList<>();
 		} catch (IOException e) {
 			throw new RuntimeException(CANNOT_LOAD_TENANT_PROPERTIES);
 		}
-
-		return new ArrayList<>();
 	}
 
 	private void buildCache() {
