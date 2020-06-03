@@ -3,29 +3,45 @@ package com.constellio.app.services.importExport.systemStateExport;
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
+import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.utils.SavestateFileWriter;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.io.FileUtils;
+import org.apache.ignite.internal.util.lang.GridFunc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.USE_SOLR;
 import static java.util.Arrays.asList;
 
 public class SystemStateExporter {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SystemStateExporter.class);
 
+	private static final String TEMP_FILE_RESOURCE = "SystemStateExporter-tempFile";
+	private static final String TEMP_ZIP_FILE_RESOURCE = "SystemStateExporter-tempZipFile";
 	public static final String TEMP_FOLDER_RESOURCE_NAME = "SystemStateExporter-tempFolder";
 
 	RecordServices recordServices;
@@ -43,13 +59,13 @@ public class SystemStateExporter {
 	SecondTransactionLogManager secondTransactionLogManager;
 
 	DataLayerFactory dataLayerFactory;
-
+	ModelLayerFactory modelLayerFactory;
 	AppLayerFactory appLayerFactory;
 
 	public SystemStateExporter(AppLayerFactory appLayerFactory) {
 		this.appLayerConfiguration = appLayerFactory.getAppLayerConfiguration();
-		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
-		dataLayerFactory = modelLayerFactory.getDataLayerFactory();
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		this.dataLayerFactory = modelLayerFactory.getDataLayerFactory();
 		this.dataLayerConfiguration = dataLayerFactory.getDataLayerConfiguration();
 		this.zipService = dataLayerFactory.getIOServicesFactory().newZipService();
 		this.ioServices = dataLayerFactory.getIOServicesFactory().newIOServices();
@@ -63,21 +79,23 @@ public class SystemStateExporter {
 		secondTransactionLogManager.regroupAndMoveInVault();
 		File tempFolderContentFolder = new File(folder, "content");
 		File tempFolderSettingsFolder = new File(folder, "settings");
-		File tempPluginsFolder = new File(folder, "plugins");
 
 		copySettingsTo(tempFolderSettingsFolder);
 
 		if (params.isExportAllContent()) {
+
 			copyContentsTo(tempFolderContentFolder);
 		} else {
 
 			new PartialVaultExporter(tempFolderContentFolder, appLayerFactory)
 					.export(params.getOnlyExportContentOfRecords());
 
-			copyTLogsTo(tempFolderContentFolder);
+			if (params.isUseWeeklyExport()) {
+				File tempBaseSavestateZip = new File(folder, "weeklyExport.zip");
+			}
+			//copyTLogsTo(tempFolderContentFolder);
 		}
 
-		copyPluginsJarFolderTo(tempPluginsFolder, params.isExportPluginJars());
 	}
 
 	public void exportSystemToFile(File file, SystemStateExportParams params) {
@@ -89,17 +107,7 @@ public class SystemStateExporter {
 			File tempFolderContentFolder = new File(tempFolder, "content");
 			File tempFolderSettingsFolder = new File(tempFolder, "settings");
 
-			List<File> list;
-			if (params.isExportPluginJars()) {
-				File tempPluginsFolder = new File(tempFolder, "plugins");
-				if (tempPluginsFolder.exists()) {
-					list = asList(tempFolderContentFolder, tempFolderSettingsFolder, tempPluginsFolder);
-				} else {
-					list = asList(tempFolderContentFolder, tempFolderSettingsFolder);
-				}
-			} else {
-				list = asList(tempFolderContentFolder, tempFolderSettingsFolder);
-			}
+			List<File> list = asList(tempFolderContentFolder, tempFolderSettingsFolder);
 			try {
 				zipService.zip(file, list);
 			} catch (ZipServiceException e) {
@@ -153,10 +161,18 @@ public class SystemStateExporter {
 	//		return exportedHashes;
 	//	}
 
-	private void copyTLogsTo(File tempFolderContentsFolder) {
+	private void copyTLogsTo(File tempFolderContentsFolder, LocalDateTime filter) {
 		final File contentsFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
 		final File tlogsFolder = new File(contentsFolder, "tlogs");
 		final File tlogsBckFolder = new File(contentsFolder, "tlogs_bck");
+
+		File[] tlogsFiles = tlogsFolder.listFiles();
+		if (tlogsFiles != null) {
+			if (!Toggle.EXPORT_SAVESTATES_USING_WITH_FAILSAFE.isEnabled() && filter != null) {
+
+			}
+		}
+
 		try {
 			FileUtils.copyDirectory(contentsFolder, tempFolderContentsFolder, new FileFilter() {
 				@Override
@@ -196,15 +212,68 @@ public class SystemStateExporter {
 		dataLayerFactory.getConfigManager().exportTo(tempFolderSettingsFolder);
 	}
 
-	private void copyPluginsJarFolderTo(File tempPluginsFolder, boolean exportJars) {
-		File pluginsFolder = appLayerConfiguration.getPluginsFolder();
-		if (exportJars && pluginsFolder.exists()) {
-			try {
-				FileUtils.copyDirectory(pluginsFolder, tempPluginsFolder);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
+	public void createSavestateBaseFileInVault() {
+		File tempFile = ioServices.newTemporaryFile(TEMP_FILE_RESOURCE);
+		File zippedFile = ioServices.newTemporaryFile(TEMP_FILE_RESOURCE);
+		try {
+			createSavestateBaseFile(tempFile);
+			zipService.zip(zippedFile, GridFunc.asList(tempFile));
+			modelLayerFactory.getDataLayerFactory().getContentsDao().moveFileToVault(zippedFile, "shared/baseTlog.zip");
+
+		} catch (ZipServiceException e) {
+			throw new RuntimeException(e);
+
+		} finally {
+			ioServices.deleteQuietly(tempFile);
+			ioServices.deleteQuietly(zippedFile);
 		}
 	}
 
+	public void createSavestateBaseFile(File file) {
+		boolean writeZZRecords = modelLayerFactory.getSystemConfigs().isWriteZZRecordsInTlog();
+
+		SavestateFileWriter savestateFileWriter = new SavestateFileWriter(modelLayerFactory, file);
+
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+
+		int loadedRecordMemoryInBytes = 100_000_000;
+		int[] maxRecordSizeSteps = new int[]{1_000, 10_000, 100_000, 1_000_000, 10_000_000, 1_000_000_000};
+
+		for (int maxRecordSize : maxRecordSizeSteps) {
+			int batchSize = Math.max(1, loadedRecordMemoryInBytes / maxRecordSize / 2);
+			LogicalSearchQuery query = new LogicalSearchQuery();
+			query.setQueryExecutionMethod(USE_SOLR);
+
+			LogicalSearchCondition condition =
+					fromEveryTypesOfEveryCollection().where(Schemas.ESTIMATED_SIZE).isLessOrEqualThan(maxRecordSize);
+			if (maxRecordSize == 1000) {
+				condition = condition.orWhere(Schemas.ESTIMATED_SIZE).isNull();
+			}
+
+			if (writeZZRecords) {
+				query.setCondition(condition);
+			} else {
+
+				query.setCondition(LogicalSearchQueryOperators.allConditions(
+						condition,
+						where(Schemas.IDENTIFIER).isNot(LogicalSearchQueryOperators.startingWithText("ZZ"))
+				));
+			}
+
+			SearchResponseIterator<List<Record>> recordIterator = searchServices.recordsIterator(query, batchSize).inBatches();
+
+			String taskName = "Exporting records with size smaller than " + maxRecordSize + " bytes  in batch of " + batchSize;
+			int counter = 0;
+			while (recordIterator.hasNext()) {
+				LOGGER.info(taskName + " " + counter + " / " + recordIterator.getNumFound());
+				List<Record> records = recordIterator.next();
+
+				savestateFileWriter.write(records);
+				counter++;
+			}
+			LOGGER.info(taskName + " " + counter + " / " + recordIterator.getNumFound());
+
+		}
+		savestateFileWriter.close();
+	}
 }

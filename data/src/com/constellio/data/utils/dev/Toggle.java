@@ -11,7 +11,7 @@ import java.util.Map;
 public class Toggle {
 
 
-	public static AvailableToggle EXPORT_V2_SAVESTATES = newToggle(true);
+	public static AvailableToggle EXPORT_SAVESTATES_USING_WITH_FAILSAFE = newToggle(true);
 
 	public static AvailableToggle SDK_CACHE_INTEGRITY_VALIDATION = newToggle(false);
 	public static AvailableToggle SDK_REQUEST_CACHE_VALIDATION = newToggle();
