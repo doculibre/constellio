@@ -39,7 +39,9 @@ public class CheckedOutDocumentsTable implements Serializable {
 			@Override
 			public LogicalSearchQuery getQuery() {
 				MetadataSchemaType document = rm.documentSchemaType();
-				return new LogicalSearchQuery(from(document).where(rm.documentContent()).is(isCheckedOutBy(user)))
+				return new LogicalSearchQuery(from(document)
+						.where(rm.documentContent()).is(isCheckedOutBy(user))
+						.andWhere(Schemas.LOGICALLY_DELETED_ON).isNull())
 						.sortDesc(Schemas.MODIFIED_ON);
 			}
 		};
