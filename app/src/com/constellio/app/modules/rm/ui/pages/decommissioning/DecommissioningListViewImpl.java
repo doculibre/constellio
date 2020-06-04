@@ -1162,7 +1162,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		multiFileUpload = new BaseMultiFileUpload() {
 			@Override
-			protected void handleFile(File file, String fileName, String mimeType, long length) {
+			protected void handleFile(File file, String fileName, String mimeType, long length, int filesLeftInQueue) {
 				presenter.handleFile(file, fileName);
 			}
 

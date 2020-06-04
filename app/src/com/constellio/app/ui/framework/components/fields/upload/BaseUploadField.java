@@ -25,7 +25,6 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window.CloseEvent;
 import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.easyuploads.FileBuffer;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -58,13 +57,18 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 	private boolean isViewOnly;
 
 	public BaseUploadField() {
-		this(true, false);
+		this(false);
 	}
 
-	public BaseUploadField(boolean haveDeleteButton, boolean isViewOnly) {
+	public BaseUploadField(boolean multiValue) {
+		this(true, false, multiValue);
+	}
+
+	public BaseUploadField(boolean haveDeleteButton, boolean isViewOnly, boolean multiValue) {
 		super();
 
 		this.isViewOnly = isViewOnly;
+		this.multiValue = multiValue;
 
 		setSizeFull();
 
@@ -73,17 +77,50 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 
-		multiFileUpload = new BaseMultiFileUpload() {
+		multiFileUpload = new BaseMultiFileUpload(multiValue) {
 			@Override
 			protected void onUploadWindowClosed(CloseEvent e) {
 				BaseUploadField.this.onUploadWindowClosed(e);
 			}
 
-			@SuppressWarnings("unchecked")
 			@Override
-			protected void handleFile(File file, String fileName, String mimeType, long length) {
+			protected void handleFile(File file, String fileName, String mimeType, long length,
+									  int filesLeftInQueue) {
 				try {
-					file.deleteOnExit();
+					try {
+
+						TempFileUpload newTempFileUpload = new TempFileUpload(fileName, mimeType, length, file);
+						Object newConvertedValue;
+						Converter<Object, Object> converter = BaseUploadField.this.getConverter();
+						if (converter != null) {
+							newConvertedValue = converter.convertToModel(newTempFileUpload, Object.class, getLocale());
+						} else {
+							newConvertedValue = newTempFileUpload;
+						}
+						if (!isMultiValue()) {
+							if (!newConvertedValue.equals(getConvertedValue())) {
+								deleteTempFiles();
+								BaseUploadField.this.setValue(newConvertedValue);
+							} else if (fireValueChangeWhenEqual()) {
+								fireValueChange(true);
+							}
+						} else {
+							List<Object> previousListValue = (List<Object>) BaseUploadField.this.getValue();
+							List<Object> newListValue = new ArrayList<Object>();
+							if (previousListValue != null) {
+								newListValue.addAll(previousListValue);
+							}
+							if (!newListValue.contains(newConvertedValue)) {
+								newListValue.add(newConvertedValue);
+							}
+							BaseUploadField.this.setValue(newListValue);
+						}
+
+					} catch (Throwable t) {
+						t.printStackTrace();
+						throw t;
+					}
+
 					TempFileUpload newTempFileUpload = new TempFileUpload(fileName, mimeType, length, file);
 					Object newConvertedValue;
 					Converter<Object, Object> converter = BaseUploadField.this.getConverter();
@@ -113,21 +150,10 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 
 				} catch (Throwable t) {
 					t.printStackTrace();
-
-					throw t;
+					throw new RuntimeException(t);
 				}
 			}
 
-			@Override
-			protected FileBuffer createReceiver() {
-				FileBuffer receiver = super.createReceiver();
-				/*
-				 * Make receiver not to deleteLogically files after they have been
-				 * handled by #handleFile().
-				 */
-				receiver.setDeleteFiles(false);
-				return receiver;
-			}
 		};
 		multiFileUpload.setWidth("100%");
 		multiFileUpload.addStyleName(STYLE_NAME + "-multifileupload");
@@ -331,10 +357,6 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 
 	public final boolean isMultiValue() {
 		return multiValue;
-	}
-
-	public final void setMultiValue(boolean multiValue) {
-		this.multiValue = multiValue;
 	}
 
 	public String getUploadButtonCaption() {

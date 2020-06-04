@@ -252,7 +252,6 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
 	private BaseForm<FormBean> buildSkosForm() {
 		uploadSkosField = new BaseUploadField();
 		uploadSkosField.setUploadButtonCaption($("ThesaurusConfigurationView.upload"));
-		uploadSkosField.setMultiValue(false);
 		uploadSkosField.setCaption($("ThesaurusConfigurationView.file"));
 		uploadSkosField.setImmediate(true);
 

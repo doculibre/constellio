@@ -76,6 +76,7 @@ dependencies {
     compile 'nl.bitwalker:UserAgentUtils:1.2.4'
     compile 'org.samba.jcifs:jcifs_gcm:322'
     compile 'au.com.bytecode:opencsv:2.4'
+    compile 'com.wcs.wcslib:wcslib-vaadin-widget-multifileupload:2.0.3'
 
     compile files("../libs/vaadin-breadcrumb-1.7.3.jar")
     compile files("../libs/vaadin-filteringtable-1.0.0.v7.jar")

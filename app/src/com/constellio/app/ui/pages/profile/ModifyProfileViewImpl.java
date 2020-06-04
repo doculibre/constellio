@@ -129,7 +129,6 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		imageField.addStyleName("image");
 		imageField.setCaption($("ModifyProfileView.image"));
 		imageField.setUploadButtonCaption($("ModifyProfileView.upload"));
-		imageField.setMultiValue(false);
 		imageField.setConverter(new TempFileUploadToContentVersionVOConverter());
 		imageField.addValidator(new Validator() {
 			@Override

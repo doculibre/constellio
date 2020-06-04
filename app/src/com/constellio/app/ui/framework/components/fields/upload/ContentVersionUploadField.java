@@ -33,7 +33,7 @@ public class ContentVersionUploadField extends BaseUploadField {
 
 	public ContentVersionUploadField(boolean multiValue, boolean haveDeleteButton, boolean isViewOnly, String recordId,
 									 String metadataCode) {
-		super(haveDeleteButton, isViewOnly);
+		super(haveDeleteButton, isViewOnly, multiValue);
 		this.recordId = recordId;
 		this.metadataCode = metadataCode;
 		this.isReadonly = isViewOnly;
@@ -44,7 +44,6 @@ public class ContentVersionUploadField extends BaseUploadField {
 				return true;
 			}
 		});
-		setMultiValue(multiValue);
 	}
 
 	@Override

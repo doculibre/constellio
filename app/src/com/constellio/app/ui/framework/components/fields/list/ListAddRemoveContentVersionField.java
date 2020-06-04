@@ -21,8 +21,7 @@ public class ListAddRemoveContentVersionField extends ListAddRemoveField<Seriali
 
 	@Override
 	protected ContentVersionUploadField newAddEditField() {
-		ContentVersionUploadField contentUploadField = new ContentVersionUploadField(this.recordId, this.metadata);
-		contentUploadField.setMultiValue(true);
+		ContentVersionUploadField contentUploadField = new ContentVersionUploadField(true, this.recordId, this.metadata);
 		return contentUploadField;
 	}
 

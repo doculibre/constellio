@@ -1,0 +1,1 @@
+$wnd.com_constellio_app_ui_application_widgetset_AppWidgetset.runAsyncCallback2('Cjb(1784,1,oze);_.yc=function Ztc(){rbc((!kbc&&(kbc=new wbc),kbc),this.a.d)};$re(_h)(2);\n//# sourceURL=com.constellio.app.ui.application.widgetset.AppWidgetset-2.js\n')

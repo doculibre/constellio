@@ -70,8 +70,7 @@ public class PluginManagementViewImpl extends BaseViewImpl implements PluginMana
 		restartPanel.setSpacing(true);
 		restartPanel.setVisible(presenter.isRestartMessageVisible());
 
-		fileUpload = new BaseUploadField();
-		fileUpload.setMultiValue(true);
+		fileUpload = new BaseUploadField(true);
 		layout.addComponent(fileUpload);
 		Button uploadButton = new BaseButton($("PluginManagementView.upload")) {
 			@Override
