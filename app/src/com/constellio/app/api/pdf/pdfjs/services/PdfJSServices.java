@@ -54,6 +54,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import static com.constellio.data.utils.dev.Toggle.ENABLE_SIGNATURE;
+
 @Slf4j
 public class PdfJSServices {
 
@@ -197,7 +199,7 @@ public class PdfJSServices {
 	@SuppressWarnings("rawtypes")
 	public boolean isSignaturePossible(Record record, Metadata metadata, User user) {
 		boolean signaturePossible;
-		if (record != null && user.hasWriteAccess().on(record)) {
+		if (ENABLE_SIGNATURE.isEnabled() && record != null && user.hasWriteAccess().on(record)) {
 			Content content = record.get(metadata);
 			if (content == null || content.isCheckedOut()) {
 				signaturePossible = false;
