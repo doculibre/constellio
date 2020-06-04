@@ -376,6 +376,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 
 	@Override
 	public void detach() {
+		closeUploadWindow();
 		UI.getCurrent().getNavigator().removeViewChangeListener(this);
 		UI.getCurrent().removePollListener(this);
 		UI.getCurrent().setPollInterval(uiPollIntervalBefore);
@@ -539,6 +540,10 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 		});
 	}
 
+	protected void closeUploadWindow() {
+		UI.getCurrent().removeWindow(uploadWindow);
+	}
+
 	private void closeUploadWindowIfAllDone() {
 		closeUploadWindowIfAllDone(Collections.<String>emptyList());
 	}
@@ -548,8 +553,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 			@Override
 			public void run() {
 				if (!isUploadInProgress()) {
-					UI.getCurrent().removeWindow(uploadWindow);
-
+					closeUploadWindow();
 					if (!emptyFilesName.isEmpty()) {
 						StringBuilder errorMessage = new StringBuilder(
 								$("BaseMultiFileUpload.fileUploadCancel") + " :");
