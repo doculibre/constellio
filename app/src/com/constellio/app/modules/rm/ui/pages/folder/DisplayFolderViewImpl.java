@@ -806,14 +806,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void drop(DragAndDropEvent event) {
-		boolean handledByViewer;
-		if (viewerPanel != null && viewerPanel.isDropSupported()) {
-			viewerPanel.drop(event);
-			handledByViewer = true;
-		} else {
-			handledByViewer = false;
-		}
-		if (!handledByViewer && dragNDropAllowed) {
+		if (dragNDropAllowed) {
 			uploadField.drop(event);
 		}
 	}

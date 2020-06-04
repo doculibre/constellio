@@ -275,7 +275,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		}
 		Label spacer = new Label("");
 		spacer.setHeight("50px");
-		tableLayout.addComponent(spacer);
+		//tableLayout.addComponent(spacer);
 
 		closeButtonViewerMetadataLayout = new VerticalLayout(closeViewerButton, viewerMetadataPanel);
 		closeButtonViewerMetadataLayout.addStyleName("close-button-viewer-metadata-layout");
