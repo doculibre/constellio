@@ -13,6 +13,8 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.utils.PropertyFileUtils;
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -65,6 +67,7 @@ public class PdfSignatureServices {
 		signAndCertify(record, metadata, user, signatures, null);
 	}
 
+	@SuppressWarnings("rawtypes")
 	public void signAndCertify(Record record, Metadata metadata, User user, List<PdfSignatureAnnotation> signatures,
 							   String base64PdfContent)
 			throws PdfSignatureException {
@@ -106,13 +109,27 @@ public class PdfSignatureServices {
 				throw new PdfSignatureException_CannotReadSourceFileException();
 			}
 
-			File keystoreFile = createTempKeystoreFile("keystore");
-			if (keystoreFile == null) {
-				throw new PdfSignatureException_CannotReadKeystoreFileException();
-			} else {
+			File keystoreFile;
+			String keystorePass;
+			StreamFactory keystore = appLayerFactory.getModelLayerFactory()
+					.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE);
+			if (keystore != null) {
+				keystoreFile = createTempKeystoreFile("keystore");
+				keystorePass = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE_PASSWORD);
 				tempFiles.add(keystoreFile);
+			} else {
+				FoldersLocator foldersLocator = new FoldersLocator();
+				keystoreFile = foldersLocator.getKeystoreFile();
+				File constellioPropertiesFile = foldersLocator.getConstellioProperties();
+				if (constellioPropertiesFile.exists()) {
+					keystorePass = PropertyFileUtils.loadKeyValues(constellioPropertiesFile).get("server.keystorePassword");
+				} else {
+					keystorePass = null;
+				}
 			}
-			String keystorePass = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE_PASSWORD);
+			if (keystoreFile == null || !keystoreFile.exists() || keystorePass == null) {
+				throw new PdfSignatureException_CannotReadKeystoreFileException();
+			}
 
 			if (signatures.size() < 1) {
 				throw new PdfSignatureException_NothingToSignException();
@@ -127,7 +144,6 @@ public class PdfSignatureServices {
 				} else {
 					tempFiles.add(signatureFile);
 				}
-
 				try {
 					String keystorePath = keystoreFile.getAbsolutePath();
 					String docToSignFilePath = docToSignFile.getAbsolutePath();

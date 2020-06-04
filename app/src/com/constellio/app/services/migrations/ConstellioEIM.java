@@ -9,6 +9,7 @@ import com.constellio.app.api.pdf.pdfjs.servlets.RemovePdfJSSignatureServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSAnnotationsServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSSignatureServlet;
 import com.constellio.app.api.search.CachedSearchWebService;
+import com.constellio.app.api.systemManagement.services.SystemInfoWebService;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.extensions.ui.AppSupportedExtensionExtension;
 import com.constellio.app.services.extensions.AppRecordExtension;
@@ -226,6 +227,14 @@ public class ConstellioEIM {
 		filterHolder.setInitParameter(CrossOriginFilter.CHAIN_PREFLIGHT_PARAM, "false");
 		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
 		ApplicationStarter.registerFilter("/cachedSelect", filterHolder);
+
+		ApplicationStarter.registerServlet("/systemInfo", new SystemInfoWebService());
+		filterHolder = new FilterHolder(new CrossOriginFilter());
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,GET");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "content-type,access-control-allow-origin,token,serviceKey");
+		filterHolder.setInitParameter(CrossOriginFilter.CHAIN_PREFLIGHT_PARAM, "false");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
+		ApplicationStarter.registerFilter("/systemInfo", filterHolder);
 
 		ApplicationStarter.registerServlet("/getRecordContent", new GetRecordContentServlet());
 

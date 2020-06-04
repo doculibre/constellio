@@ -12,6 +12,14 @@ SignaturePadAnnotation.prototype.getType = function() {
 	return "signature-pad-annotation";
 }
 
+SignaturePadAnnotation.prototype.isInitials = function() {
+	return this.initials;
+};
+
+SignaturePadAnnotation.prototype.setInitials = function(initials) {
+	this.initials = initials;
+};
+
 SignaturePadAnnotation.prototype.getBakeInfoI10nKey = function() {
 	return "annotation.signature.bakeInfo";
 };	

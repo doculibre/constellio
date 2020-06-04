@@ -25,11 +25,11 @@ PDFAnnotations.prototype.getPagesWithAnnotations = function() {
 };
 
 PDFAnnotations.prototype.getPageAnnotations = function(pageNumber) {
-    return this.pagesAndAnnotations[pageNumber];
+    return this.pagesAndAnnotations["" + pageNumber];
 }; 
 
 PDFAnnotations.prototype.setPageAnnotations = function(pageNumber, annotations) {
-    this.pagesAndAnnotations[pageNumber] = annotations;
+    this.pagesAndAnnotations["" + pageNumber] = annotations;
 }; 
 
 PDFAnnotations.prototype.getPageTypeAnnotations = function(pageNumber, type) {
