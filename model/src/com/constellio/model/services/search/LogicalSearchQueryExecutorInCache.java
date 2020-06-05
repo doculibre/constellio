@@ -3,6 +3,7 @@ package com.constellio.model.services.search;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.LazyMergingIterator;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
@@ -105,29 +106,42 @@ public class LogicalSearchQueryExecutorInCache {
 			return Stream.empty();
 		}
 
-		MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
+		if (!query.getCacheableQueries().isEmpty()) {
+			List<Iterator<Record>> iterators = new ArrayList<>();
 
-		Locale locale = query.getLanguage() == null ? null : Language.withCode(query.getLanguage()).getLocale();
-		final Predicate<TestedQueryRecord> filter = toStreamFilter(query, schemaType);
-		Predicate<Record> recordFilter = new Predicate<Record>() {
-			@Override
-			public boolean test(Record record) {
-				return filter.test(new TestedQueryRecord(record, locale, PREFERRING));
-			}
-		};
-
-		Stream<Record> stream = newBaseRecordStream(query, schemaType, recordFilter);
-
-		if (!query.getSortFields().isEmpty()) {
-			List<Record> records = consummeForSorting(stream, query, schemaType);
-			if (query.getSkipSortingOverRecordSize() == -1 || records.size() <= query.getSkipSortingOverRecordSize()) {
-				records.sort(newQuerySortFieldsComparator(query, schemaType));
+			for (LogicalSearchQuery childQuery : query.getCacheableQueries()) {
+				iterators.add(stream(childQuery).iterator());
 			}
 
-			return records.stream();
+			Iterator<Record> mainIterator = new LazyMergingIterator<>(iterators);
 
+			return LangUtils.stream(mainIterator);
 		} else {
-			return stream;
+
+			MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
+
+			Locale locale = query.getLanguage() == null ? null : Language.withCode(query.getLanguage()).getLocale();
+			final Predicate<TestedQueryRecord> filter = toStreamFilter(query, schemaType);
+			Predicate<Record> recordFilter = new Predicate<Record>() {
+				@Override
+				public boolean test(Record record) {
+					return filter.test(new TestedQueryRecord(record, locale, PREFERRING));
+				}
+			};
+
+			Stream<Record> stream = newBaseRecordStream(query, schemaType, recordFilter);
+
+			if (!query.getSortFields().isEmpty()) {
+				List<Record> records = consummeForSorting(stream, query, schemaType);
+				if (query.getSkipSortingOverRecordSize() == -1 || records.size() <= query.getSkipSortingOverRecordSize()) {
+					records.sort(newQuerySortFieldsComparator(query, schemaType));
+				}
+
+				return records.stream();
+
+			} else {
+				return stream;
+			}
 		}
 	}
 
@@ -502,6 +516,10 @@ public class LogicalSearchQueryExecutorInCache {
 			return false;
 		}
 
+		if (!query.getQueryExecutionMethod().tryCache()) {
+			return false;
+		}
+
 		if (!query.getCacheableQueries().isEmpty()) {
 			for (LogicalSearchQuery cacheableQuery : query.getCacheableQueries()) {
 				if (!hasNoUnsupportedFeatureOrFilter(cacheableQuery) ||
@@ -549,7 +567,7 @@ public class LogicalSearchQueryExecutorInCache {
 				if (query.getQueryExecutionMethod().requiringCacheExecution()) {
 					throw new IllegalArgumentException("Query is using a feature which is not supported with execution in cache. Requirement at index '" + i + "' failed.");
 				} else {
-						return false;
+					return false;
 				}
 			}
 		}
