@@ -822,86 +822,13 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		resultsTable.removeStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
 		//resultsTable.setAlwaysRecalculateColumnWidths(true);
 
-		resultsTable.setDragMode(TableDragMode.ROW);
-		resultsTable.setDropHandler(new DropHandler() {
-			@Override
-			public AcceptCriterion getAcceptCriterion() {
-				return AcceptAll.get();
-			}
-
-			@Override
-			public void drop(DragAndDropEvent event) {
-				Transferable t = event.getTransferable();
-				if (t.getSourceComponent() != table || table.size() <= 1) {
-					return;
-				}
-
-				AbstractSelectTargetDetails target = (AbstractSelectTargetDetails) event.getTargetDetails();
-				Object sourceItemId = t.getData("itemId");
-				Object targetItemId = target.getItemIdOver();
-
-				Boolean above;
-				if (target.getDropLocation().equals(VerticalDropLocation.TOP)) {
-					above = true;
-				} else if (target.getDropLocation().equals(VerticalDropLocation.MIDDLE) && targetItemId.equals(table.firstItemId())) {
-					above = true;
-				} else {
-					above = false;
-				}
-
-				if (isRowDragPossible((String) sourceItemId, (String) targetItemId, above)) {
-					moveAfter(targetItemId, sourceItemId);
-					if (Boolean.TRUE.equals(above)) {
-						moveAfter(sourceItemId, targetItemId);
-					}
-				}
-			}
-		});
+		if (isRowDragSupported()) {
+			resultsTable.setDragMode(TableDragMode.ROW);
+			resultsTable.setDropHandler(this);
+		}
 
 		return resultsTable;
 	}
-
-	protected boolean isRowDragPossible(Object targetItemId, Object sourceItemId, boolean above) {
-		return false;
-	}
-
-	@SuppressWarnings("unchecked")
-	/**
-	 *
-	 * @param targetItemId
-	 * @param sourceItemId
-	 * @return ItemId of the object the item moved to
-	 */
-	private Object moveAfter(Object targetItemId, Object sourceItemId) {
-		if (sourceItemId == null) {
-			return null;
-		}
-		Item sourceItem = table.getItem(sourceItemId);
-
-		Object[] propertyIds = table.getContainerPropertyIds().toArray();
-		int size = propertyIds.length;
-		Object[][] properties = new Object[size][2];
-
-		// backup source item properties and values
-		for (int i = 0; i < size; i++) {
-			Object propertyId = propertyIds[i];
-			Object value = sourceItem.getItemProperty(propertyId).getValue();
-			properties[i][0] = propertyId;
-			properties[i][1] = value;
-		}
-		table.removeItem(sourceItemId);
-		Item item = table.addItemAfter(targetItemId, sourceItemId);
-
-		// restore source item properties and values
-		for (int i = 0; i < size; i++) {
-			Object propertyId = properties[i][0];
-			Object value = properties[i][1];
-			item.getItemProperty(propertyId).setValue(value);
-		}
-
-		return sourceItemId;
-	}
-
 
 	protected int getSelectedSize() {
 		return table.getSelectionManager().getAllSelectedItemIds().size();
@@ -1427,12 +1354,43 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		return selectedItemId != null && viewerMetadataPanel.getPanelContent() instanceof DropHandler;
 	}
 
+	public boolean isRowDragSupported() {
+		return false;
+	}
+
 	@Override
 	public void drop(DragAndDropEvent event) {
-		Component panelContent = viewerMetadataPanel.getPanelContent();
-		if (panelContent instanceof DropHandler) {
-			((DropHandler) panelContent).drop(event);
+		// Limitation: https://vaadin.com/forum/thread/986110/table-drag-and-drop-with-layout-in-a-cell-doesn-t-work
+		if (event.getTargetDetails() instanceof AbstractSelectTargetDetails) {
+			Transferable t = event.getTransferable();
+			if (t.getSourceComponent() != table || table.size() <= 1) {
+				return;
+			}
+
+			AbstractSelectTargetDetails target = (AbstractSelectTargetDetails) event.getTargetDetails();
+			Object sourceItemId = t.getData("itemId");
+			Object targetItemId = target.getItemIdOver();
+
+			Boolean above;
+			if (target.getDropLocation().equals(VerticalDropLocation.TOP)) {
+				above = true;
+			} else if (target.getDropLocation().equals(VerticalDropLocation.MIDDLE) && targetItemId.equals(table.firstItemId())) {
+				above = true;
+			} else {
+				above = false;
+			}
+			RecordVO sourceRecordVO = recordVOContainer.getRecordVO(sourceItemId);
+			RecordVO targetRecordVO = recordVOContainer.getRecordVO(targetItemId);
+			recordDroppedOn(sourceRecordVO, targetRecordVO, above);
+		} else {
+			Component panelContent = viewerMetadataPanel.getPanelContent();
+			if (panelContent instanceof DropHandler) {
+				((DropHandler) panelContent).drop(event);
+			}
 		}
+	}
+
+	protected void recordDroppedOn(RecordVO sourceRecordVO, RecordVO targetRecordVO, Boolean above) {
 	}
 
 	@Override

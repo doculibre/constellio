@@ -490,6 +490,18 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 
 				@Override
+				public boolean isRowDragSupported() {
+					return true;
+				}
+
+				@Override
+				protected void recordDroppedOn(RecordVO sourceRecordVO, RecordVO targetRecordVO, Boolean above) {
+					if (dragNDropAllowed) {
+						presenter.recordDroppedOn(sourceRecordVO, targetRecordVO);
+					}
+				}
+
+				@Override
 				protected SelectionManager newSelectionManager() {
 					return new SelectionManager() {
 
@@ -823,14 +835,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void drop(DragAndDropEvent event) {
-		boolean handledByViewer;
-		if (viewerPanel != null && viewerPanel.isDropSupported()) {
-			viewerPanel.drop(event);
-			handledByViewer = true;
-		} else {
-			handledByViewer = false;
-		}
-		if (!handledByViewer && dragNDropAllowed) {
+		if (dragNDropAllowed) {
 			uploadField.drop(event);
 		}
 	}
