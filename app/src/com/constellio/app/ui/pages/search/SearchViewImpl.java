@@ -35,6 +35,7 @@ import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
@@ -1234,4 +1235,18 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	public List<String> menuItemToExcludeInSelectionMenu() {
 		return Collections.emptyList();
 	}
+
+	@Override
+	public BaseView getNestedView() {
+		BaseView nestedView;
+		if (resultsTable instanceof ViewableRecordVOTablePanel) {
+			ViewableRecordVOTablePanel viewerPanel = (ViewableRecordVOTablePanel) resultsTable;
+			Component panelContent = viewerPanel.getPanelContent();
+			nestedView = panelContent instanceof BaseView ? (BaseView) panelContent : null;
+		} else {
+			nestedView = null;
+		}
+		return nestedView;
+	}
+	
 }

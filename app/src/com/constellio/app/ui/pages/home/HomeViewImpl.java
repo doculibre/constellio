@@ -30,6 +30,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.TreeNode;
 import com.constellio.app.ui.framework.decorators.contextmenu.ContextMenuDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
@@ -598,5 +599,19 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefre
 				}
 			};
 		}
+	}
+
+	@Override
+	public BaseView getNestedView() {
+		BaseView nestedView;
+		Component selectedTabComponent = getSelectedTabComponent();
+		if (selectedTabComponent instanceof ViewableRecordVOTablePanel) {
+			ViewableRecordVOTablePanel viewerPanel = (ViewableRecordVOTablePanel) selectedTabComponent;
+			Component panelContent = viewerPanel.getPanelContent();
+			nestedView = panelContent instanceof BaseView ? (BaseView) panelContent : null;
+		} else {
+			nestedView = null;
+		}
+		return nestedView;
 	}
 }
