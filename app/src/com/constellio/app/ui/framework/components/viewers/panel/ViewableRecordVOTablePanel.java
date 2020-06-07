@@ -4,7 +4,6 @@ import com.constellio.app.api.extensions.params.SchemaDisplayParams;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.ui.ViewableRecordVOTablePanelExtension.ViewableRecordVOTablePanelExtensionParams;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -45,7 +44,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -479,7 +477,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		return ResponsiveUtils.isDesktop() && !isNested() && tableMode == TableMode.LIST;
 	}
 
-	protected boolean isNested() {
+	public boolean isNested() {
 		return false;
 	}
 
@@ -922,16 +920,13 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	void rowClicked(ItemClickEvent event) {
 		Object itemId = event.getItemId();
+		selectRecordVO(itemId, event, false);
 		if (isCompressionSupported()) {
-			selectRecordVO(itemId, event, false);
 			previousButton.setVisible(itemId != null);
 			nextButton.setVisible(itemId != null);
 			if (isHideQuickActionButtonsOnSelection()) {
 				setQuickActionButtonsVisible(false);
 			}
-		} else {
-			RecordVO recordVO = getRecordVO(itemId);
-			displayInWindowOrNavigate(recordVO);
 		}
 	}
 
@@ -991,7 +986,12 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	}
 
 	private void navigateToRecordVO(RecordVO recordVO) {
-		new ReferenceDisplay(recordVO).click();
+		AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(recordVO.getRecord().getCollection());
+		boolean navigationHandledByExtensions = extensions.navigateFromViewerToRecordVO(new ViewableRecordVOTablePanelExtensionParams(recordVO, searchTerm, this));
+		if (!navigationHandledByExtensions) {
+			new ReferenceDisplay(recordVO).click();
+		}
 	}
 
 	protected boolean isDisplayInWindowOnSelection(RecordVO recordVO) {
@@ -1016,14 +1016,15 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	}
 
 	protected boolean isSelectionPossible(RecordVO recordVO) {
-		boolean selectionPossible;
+		Boolean selectionPossible;
 		if (recordVO != null) {
-			String schemaType = SchemaUtils.getSchemaTypeCode(recordVO.getSchema().getCode());
-			selectionPossible = !Folder.SCHEMA_TYPE.equals(schemaType);
+			AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
+			AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(recordVO.getRecord().getCollection());
+			selectionPossible = extensions.isViewerSelectionPossible(new ViewableRecordVOTablePanelExtensionParams(recordVO, searchTerm, this));
 		} else {
 			selectionPossible = false;
 		}
-		return selectionPossible;
+		return selectionPossible != null ? selectionPossible.booleanValue() : true;
 	}
 
 	void selectRecordVO(Object itemId, ItemClickEvent event, boolean reload) {
@@ -1398,6 +1399,42 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		return AcceptAll.get();
 	}
 
+	private String getPanelId() {
+		List<MetadataSchemaVO> schemaVOs = recordVOContainer.getSchemas();
+
+		StringBuilder schemaVOSuffix = new StringBuilder();
+		for (MetadataSchemaVO schemaVO : schemaVOs) {
+			if (schemaVOSuffix.length() > 0) {
+				schemaVOSuffix.append("_");
+			}
+			schemaVOSuffix.append(schemaVO.getCode());
+		}
+		String navigatorState = ConstellioUI.getCurrent().getNavigator().getState();
+		String navigatorStateWithoutParams;
+		if (navigatorState.contains("/")) {
+			navigatorStateWithoutParams = StringUtils.substringBefore(navigatorState, "/");
+		} else {
+			navigatorStateWithoutParams = navigatorState;
+		}
+		return navigatorStateWithoutParams + "." + schemaVOSuffix;
+	}
+
+	public Component getPanelContent() {
+		return viewerMetadataPanel != null ? viewerMetadataPanel.getPanelContent() : null;
+	}
+
+	public RecordVO getPanelRecordVO() {
+		return selectedRecordVO;
+	}
+
+	public Integer getPanelRecordIndex() {
+		return selectedRecordVO != null ? recordVOContainer.indexOfId(selectedItemId) : null;
+	}
+
+	public Button getCloseViewerButton() {
+		return closeViewerButton;
+	}
+
 	private class ViewerMetadataPanel extends VerticalLayout {
 
 		private VerticalLayout mainLayout;
@@ -1466,30 +1503,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			return panelContent;
 		}
 
-	}
-
-	private String getPanelId() {
-		List<MetadataSchemaVO> schemaVOs = recordVOContainer.getSchemas();
-
-		StringBuilder schemaVOSuffix = new StringBuilder();
-		for (MetadataSchemaVO schemaVO : schemaVOs) {
-			if (schemaVOSuffix.length() > 0) {
-				schemaVOSuffix.append("_");
-			}
-			schemaVOSuffix.append(schemaVO.getCode());
-		}
-		String navigatorState = ConstellioUI.getCurrent().getNavigator().getState();
-		String navigatorStateWithoutParams;
-		if (navigatorState.contains("/")) {
-			navigatorStateWithoutParams = StringUtils.substringBefore(navigatorState, "/");
-		} else {
-			navigatorStateWithoutParams = navigatorState;
-		}
-		return navigatorStateWithoutParams + "." + schemaVOSuffix;
-	}
-
-	public Button getCloseViewerButton() {
-		return closeViewerButton;
 	}
 
 	public class TableCompressEvent implements Serializable {

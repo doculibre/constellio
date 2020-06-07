@@ -1370,6 +1370,11 @@ $popup-view-z-index: 3;
 				top: -2px;
 			}
 		}
+
+		.edit-record-comment-button,
+		.delete-record-comment-button {
+			width: initial;
+		}
 	}
 
 	.error-label {
@@ -2633,6 +2638,13 @@ $popup-view-z-index: 3;
 				position: relative;
 				top: 8px;
 			}
+		}
+	}
+	
+	.cart-view {
+		.v-slot-action-menu-bar {
+			position: relative;
+			right: 20px;
 		}
 	}
 

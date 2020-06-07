@@ -12,4 +12,7 @@ public interface HomeView extends BaseView, RecordsManagementViewGroup {
 	void recordChanged(String recordId);
 
 	void updateCaption(String recordId, String newCaption);
+
+	BaseView getNestedView();
+	
 }
