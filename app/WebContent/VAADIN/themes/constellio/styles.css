@@ -15503,6 +15503,27 @@ div.v-layout.v-horizontal.v-widget {
 	cursor: pointer;
 }
 
+.constellio .viewable-record-table-panel .viewable-record-table-drag .viewer-results-table-thumbnail .v-table-cell-wrapper {
+	position: relative;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table-drag .viewer-results-table-thumbnail .v-table-cell-wrapper:before {
+	position: absolute;
+	content: "\F0C9";
+	font-family: FontAwesome;
+	top: 24px;
+	left: -8px;
+	width: 4px;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table-drag .viewer-results-table-thumbnail .v-table-cell-wrapper:hover:before {
+	cursor: move;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table-drag .viewer-results-table-thumbnail .v-table-cell-wrapper img {
+	margin-left: 2px;
+}
+
 .constellio .viewable-record-table-panel .viewable-record-table .v-table-cell-content {
 	border: none;
 }

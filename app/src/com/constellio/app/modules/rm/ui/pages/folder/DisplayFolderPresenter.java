@@ -1451,33 +1451,41 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return suggestions;
 	}
 
-	void recordDroppedOn(RecordVO droppedRecordVO, RecordVO targetFolderRecordVO) {
-		if (!getCurrentUser().hasWriteAccess().on(droppedRecordVO.getRecord()) ||
-			!getCurrentUser().hasWriteAccess().on(targetFolderRecordVO.getRecord())) {
-			return;
-		}
+	void recordsDroppedOn(List<RecordVO> droppedRecordVOs, RecordVO targetFolderRecordVO) {
+		if (!droppedRecordVOs.isEmpty()) {
+			Transaction transaction = new Transaction(getCurrentUser());
 
-		if (droppedRecordVO.getRecord().isOfSchemaType(Folder.SCHEMA_TYPE)) {
-			Folder folder = rmSchemasRecordsServices.getFolder(droppedRecordVO.getId());
-			folder.setParentFolder(targetFolderRecordVO.getId());
-			addOrUpdate(folder.getWrappedRecord());
-		} else if (droppedRecordVO.getRecord().isOfSchemaType(Document.SCHEMA_TYPE)) {
-			Document document = rmSchemasRecordsServices.getDocument(droppedRecordVO.getId());
-			document.setFolder(targetFolderRecordVO.getId());
-			addOrUpdate(document.getWrappedRecord());
-		} else if (droppedRecordVO.getRecord().isOfSchemaType(ExternalLink.SCHEMA_TYPE)) {
-			Folder currentFolder = rmSchemasRecordsServices.wrapFolder(getLazyFullFolderVO().getRecord());
-			currentFolder.removeExternalLink(droppedRecordVO.getId());
+			for (RecordVO droppedRecordVO : droppedRecordVOs) {
+				if (!getCurrentUser().hasWriteAccess().on(droppedRecordVO.getRecord()) ||
+					!getCurrentUser().hasWriteAccess().on(targetFolderRecordVO.getRecord())) {
+					return;
+				}
 
-			Folder targetFolder = rmSchemasRecordsServices.getFolder(targetFolderRecordVO.getId());
-			targetFolder.addExternalLink(droppedRecordVO.getId());
+				if (droppedRecordVO.getRecord().isOfSchemaType(Folder.SCHEMA_TYPE)) {
+					Folder folder = rmSchemasRecordsServices.getFolder(droppedRecordVO.getId());
+					folder.setParentFolder(targetFolderRecordVO.getId());
+					transaction.update(folder.getWrappedRecord());
+				} else if (droppedRecordVO.getRecord().isOfSchemaType(Document.SCHEMA_TYPE)) {
+					Document document = rmSchemasRecordsServices.getDocument(droppedRecordVO.getId());
+					document.setFolder(targetFolderRecordVO.getId());
+					transaction.update(document.getWrappedRecord());
+				} else if (droppedRecordVO.getRecord().isOfSchemaType(ExternalLink.SCHEMA_TYPE)) {
+					Folder currentFolder = rmSchemasRecordsServices.wrapFolder(getLazyFullFolderVO().getRecord());
+					currentFolder.removeExternalLink(droppedRecordVO.getId());
 
+					Folder targetFolder = rmSchemasRecordsServices.getFolder(targetFolderRecordVO.getId());
+					targetFolder.addExternalLink(droppedRecordVO.getId());
+					transaction.addAll(currentFolder, targetFolder);
+				}
+			}
 			try {
-				recordServices().execute(new Transaction(getCurrentUser()).addAll(currentFolder, targetFolder));
+				recordServices().execute(transaction);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			folderContentDataProvider.fireDataRefreshEvent();
+			view.refreshFolderContentTab();
+			view.closeViewerPanel();
 		}
-		folderContentDataProvider.fireDataRefreshEvent();
 	}
 }

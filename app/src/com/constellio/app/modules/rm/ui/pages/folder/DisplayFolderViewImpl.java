@@ -496,13 +496,14 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 				@Override
 				public boolean isRowDragSupported() {
-					return true;
+					return !isNested();
 				}
 
 				@Override
-				protected void recordDroppedOn(RecordVO sourceRecordVO, RecordVO targetRecordVO, Boolean above) {
+				protected void recordsDroppedOn(List<RecordVO> sourceRecordVOs, RecordVO targetRecordVO,
+												Boolean above) {
 					if (dragNDropAllowed) {
-						presenter.recordDroppedOn(sourceRecordVO, targetRecordVO);
+						presenter.recordsDroppedOn(sourceRecordVOs, targetRecordVO);
 					}
 				}
 
@@ -932,13 +933,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void refreshFolderContentAndFacets() {
-
 	}
 
 	@Override
 	public void refreshFolderContent() {
 	}
-
 
 	//	@Override
 	public void refreshFacets(RecordVODataProvider dataProvider) {
@@ -1088,6 +1087,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			nestedDisplayFolderView = null;
 		}
 		return nestedDisplayFolderView;
+	}
+
+	@Override
+	public void closeViewerPanel() {
+		if (viewerPanel != null) {
+			viewerPanel.closePanel();
+		}
 	}
 	
 }

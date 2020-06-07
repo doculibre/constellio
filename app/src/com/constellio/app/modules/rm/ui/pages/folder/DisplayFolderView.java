@@ -79,5 +79,7 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 	RecordVODataProvider getFolderContentDataProvider();
 
 	DisplayFolderView getNestedDisplayFolderView();
+
+	void closeViewerPanel();
 	
 }

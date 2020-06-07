@@ -52,6 +52,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -394,7 +395,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		Record record = recordServices.getDocumentById(subDocument.getId());
 		DocumentVO documentVO = new DocumentToVOBuilder(getModelLayerFactory()).build(record, VIEW_MODE.TABLE, sessionContext);
 		FolderVO subFolderVO = new FolderToVOBuilder().build(subFolder.getWrappedRecord(), VIEW_MODE.TABLE, sessionContext);
-		presenter.recordDroppedOn(documentVO, subFolderVO);
+		presenter.recordsDroppedOn(Arrays.asList(documentVO), subFolderVO);
 		waitForBatchProcess();
 
 		record = recordServices.getDocumentById(subDocument.getId());
@@ -411,7 +412,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		FolderVO folderVO = new FolderToVOBuilder().build(subFolder1.getWrappedRecord(), VIEW_MODE.TABLE, sessionContext);
 		FolderVO targetFolderVO = new FolderToVOBuilder().build(subFolder2.getWrappedRecord(), VIEW_MODE.TABLE, sessionContext);
-		presenter.recordDroppedOn(folderVO, targetFolderVO);
+		presenter.recordsDroppedOn(Arrays.asList(folderVO), targetFolderVO);
 		waitForBatchProcess();
 
 		Record record = recordServices.getDocumentById(subFolder1.getId());
@@ -432,11 +433,11 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		FolderVO folderVO = new FolderToVOBuilder().build(subFolder1.getWrappedRecord(), VIEW_MODE.TABLE, sessionContext);
 		FolderVO targetFolderVO = new FolderToVOBuilder().build(subFolder2.getWrappedRecord(), VIEW_MODE.TABLE, sessionContext);
-		presenter.recordDroppedOn(folderVO, targetFolderVO);
+		presenter.recordsDroppedOn(Arrays.asList(folderVO), targetFolderVO);
 		waitForBatchProcess();
 
 		Record record = recordServices.getDocumentById(subFolder1.getId());
-		assertThat(record.getParentId()).isEqualTo(rmRecords.folder_A01);
+		assertThat(record.getParentId()).isEqualTo("abeille2");
 	}
 
 	@Test
@@ -452,7 +453,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		RecordVO externalLinkVO = new ExternalLinkToVOBuilder(getAppLayerFactory()).build(externalLink.getWrappedRecord(), VIEW_MODE.TABLE, sessionContext);
 		FolderVO targetFolderVO = new FolderToVOBuilder().build(subFolder.getWrappedRecord(), VIEW_MODE.TABLE, sessionContext);
-		presenter.recordDroppedOn(externalLinkVO, targetFolderVO);
+		presenter.recordsDroppedOn(Arrays.asList(externalLinkVO), targetFolderVO);
 		waitForBatchProcess();
 
 		subFolder = rmSchemasRecordsServices.getFolder(subFolder.getId());

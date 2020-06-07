@@ -503,7 +503,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					if (!closeButtonViewerMetadataLayout.isVisible()) {
 						int compressedWidth = computeCompressedWidth();
 						if (table != null) {
-							int searchResultPropertyWidth = compressedWidth - BaseTable.SELECT_PROPERTY_WIDTH - (isShowThumbnailCol() ? ViewableRecordVOContainer.THUMBNAIL_WIDTH : 0) - 3;
+							int searchResultPropertyWidth = compressedWidth - BaseTable.SELECT_PROPERTY_WIDTH - 3;
+							if (isShowThumbnailCol()) {
+								searchResultPropertyWidth -= ViewableRecordVOContainer.THUMBNAIL_WIDTH;
+							}
 							table.setColumnWidth(ViewableRecordVOContainer.SEARCH_RESULT_PROPERTY, searchResultPropertyWidth);
 							table.addStyleName(compressedStyleName);
 						}
@@ -609,6 +612,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				@Override
 				public boolean isSelectColumn() {
 					return ViewableRecordVOTablePanel.this.isSelectColumn();
+				}
+
+				@Override
+				public boolean isDragColumn() {
+					return ViewableRecordVOTablePanel.this.isRowDragSupported();
 				}
 
 				@Override
@@ -871,7 +879,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			this.tableMode = tableMode;
 			if (table != null) {
 				if (tableMode == TableMode.TABLE) {
-					closeViewer();
+					closePanel();
 				}
 
 				BaseTable tableBefore = table;
@@ -1071,7 +1079,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		}
 	}
 
-	private void closeViewer() {
+	public void closePanel() {
 		selectedItemId = null;
 
 		TableCompressEvent tableCompressEvent = new TableCompressEvent(null, false);
@@ -1163,7 +1171,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		BaseButton closeViewerButton = new IconButton(FontAwesome.TIMES, $("ViewableRecordVOTablePanel.closeViewer")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				closeViewer();
+				closePanel();
 			}
 		};
 		closeViewerButton.setId("close-viewer-button");
@@ -1382,7 +1390,13 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			}
 			RecordVO sourceRecordVO = recordVOContainer.getRecordVO(sourceItemId);
 			RecordVO targetRecordVO = recordVOContainer.getRecordVO(targetItemId);
-			recordDroppedOn(sourceRecordVO, targetRecordVO, above);
+
+			List<RecordVO> droppedRecordVOs = new ArrayList<>(getSelectedRecordVOs());
+			if (!droppedRecordVOs.contains(sourceRecordVO)) {
+				droppedRecordVOs.add(0, sourceRecordVO);
+			}
+			droppedRecordVOs.remove(targetRecordVO);
+			recordsDroppedOn(droppedRecordVOs, targetRecordVO, above);
 		} else {
 			Component panelContent = viewerMetadataPanel.getPanelContent();
 			if (panelContent instanceof DropHandler) {
@@ -1391,7 +1405,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		}
 	}
 
-	protected void recordDroppedOn(RecordVO sourceRecordVO, RecordVO targetRecordVO, Boolean above) {
+	protected void recordsDroppedOn(List<RecordVO> sourceRecordVOs, RecordVO targetRecordVO, Boolean above) {
 	}
 
 	@Override
