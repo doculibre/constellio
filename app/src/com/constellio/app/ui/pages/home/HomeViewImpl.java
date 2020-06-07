@@ -461,7 +461,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefre
 					}
 				}
 			});
-			setVisibleColumns();
+			//setVisibleColumns();
 			setSelectionActionButtons();
 		}
 	}
