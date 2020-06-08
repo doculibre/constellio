@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public class RecordVOLazyContainer extends LazyQueryContainer implements RecordVOContainer {
@@ -94,6 +95,13 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements RecordV
 			schemas.addAll(dataProvider.getExtraSchemas());
 		}
 		return schemas;
+	}
+
+	@Override
+	public Map<String, List<String>> getHighlights(Object itemId) {
+		Integer index = (Integer) itemId;
+		RecordVODataProviderAndRecordIndex dataProviderAndRecordIndex = forRecordIndex(dataProviders, index);
+		return dataProviderAndRecordIndex.dataProvider.getHighlighting(index);
 	}
 
 	private static RecordVODataProviderAndRecordIndex forRecordIndex(List<RecordVODataProvider> dataProviders,
@@ -273,8 +281,10 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements RecordV
 			if (sortPropertyIds != null && sortPropertyIds.length > 0) {
 				List<MetadataVO> sortMetadatas = new ArrayList<MetadataVO>();
 				for (int i = 0; i < sortPropertyIds.length; i++) {
-					MetadataVO sortMetadata = (MetadataVO) sortPropertyIds[i];
-					sortMetadatas.add(sortMetadata);
+					if (sortPropertyIds[i] instanceof MetadataVO) {
+						MetadataVO sortMetadata = (MetadataVO) sortPropertyIds[i];
+						sortMetadatas.add(sortMetadata);
+					}
 				}
 				for (RecordVODataProvider dataProvider : dataProviders) {
 					dataProvider.sort(sortMetadatas.toArray(new MetadataVO[0]), queryDefinition.getSortPropertyAscendingStates());

@@ -24,7 +24,7 @@ public abstract class ConfirmDialogButton extends IconButton {
 	}
 
 	public ConfirmDialogButton(Resource iconResource, String caption, boolean iconOnly) {
-		super(iconResource, caption, iconOnly);
+		super(iconResource, caption, iconOnly, iconResource != null);
 	}
 
 	public DialogMode getDialogMode() {
@@ -83,7 +83,7 @@ public abstract class ConfirmDialogButton extends IconButton {
 
 		if (iconName != null) {
 			StringBuilder html = new StringBuilder();
-			html.append("<span style=\"height: 60px;\" class=\"confirm-dialog-" + iconName + "\">");
+			html.append("<span style=\"height: 100%;\" class=\"confirm-dialog-" + iconName + "\">");
 			html.append("<span class=\"confirm-dialog-message\">");
 			html.append(message);
 			html.append("</span>");

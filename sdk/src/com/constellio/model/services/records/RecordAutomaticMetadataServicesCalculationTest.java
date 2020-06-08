@@ -289,6 +289,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		doReturn(theReferencedMetadata).when(services).getDependentMetadataFromDependency(any(ReferenceDependency.class),
 				eq(otherRecord));
 		when(aReferenceDependency.isRequired()).thenReturn(true);
+		when(aReferenceDependency.getLocalMetadataCode()).thenReturn("meta");
 		doReturn(aReferenceMetadata).when(services).getMetadataFromDependency(record, aReferenceDependency);
 		doReturn("otherRecordId").when(record).get(aReferenceMetadata);
 		when(recordProvider.getRecord("otherRecordId")).thenReturn(otherRecord);
@@ -299,24 +300,6 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		verify(aMap, never()).put(any(Dependency.class), anyObject());
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
-	@Test
-	public void givenReferenceDependencyRequiredAndNotNullWhenGettingValueThenReturnTrueAndAddValue() {
-		Map aMap = mock(Map.class);
-		Metadata aReferenceMetadata = mock(Metadata.class);
-		Metadata theReferencedMetadata = mock(Metadata.class);
-		when(aReferenceDependency.isRequired()).thenReturn(true);
-		doReturn(aReferenceMetadata).when(services).getMetadataFromDependency(record, aReferenceDependency);
-		doReturn(theReferencedMetadata).when(services).getDependentMetadataFromDependency(any(ReferenceDependency.class),
-				eq(otherRecord));
-		doReturn("otherRecordId").when(record).get(aReferenceMetadata, Locale.FRENCH, STRICT);
-		when(recordProvider.getRecord("otherRecordId")).thenReturn(otherRecord);
-		doReturn("aValue").when(otherRecord).get(theReferencedMetadata, Locale.FRENCH, STRICT);
-
-		assertThat(services.addValueForReferenceDependency(record, recordProvider, aMap, aReferenceDependency, options,
-				Locale.FRENCH, STRICT)).isTrue();
-		verify(aMap).put(aReferenceDependency, "aValue");
-	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	private void configureCalculatorDependencies() {

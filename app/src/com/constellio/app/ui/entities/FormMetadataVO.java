@@ -2,6 +2,7 @@ package com.constellio.app.ui.entities;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -34,6 +35,7 @@ public class FormMetadataVO implements Serializable {
 	String metadataGroup;
 	MetadataInputType input;
 	MetadataDisplayType displayType;
+	MetadataSortingType sortingType;
 	Object defaultValue;
 	String inputMask;
 	String currentLanguageCode;
@@ -49,7 +51,8 @@ public class FormMetadataVO implements Serializable {
 						  Map<String, String> labels, boolean searchable, boolean multivalue, boolean sortable,
 						  boolean advancedSearch,
 						  boolean facet,
-						  MetadataInputType input, MetadataDisplayType displayType, boolean highlight,
+						  MetadataInputType input, MetadataDisplayType displayType, MetadataSortingType sortingType,
+						  boolean highlight,
 						  boolean autocomplete, boolean enabled,
 						  String metadataGroup,
 						  Object defaultValue, String inputMask, boolean duplicable, boolean uniqueValue,
@@ -78,6 +81,7 @@ public class FormMetadataVO implements Serializable {
 		this.enabled = enabled;
 		this.metadataGroup = metadataGroup;
 		this.defaultValue = defaultValue;
+		this.sortingType = sortingType;
 		this.inputMask = inputMask;
 		this.currentLanguageCode = sessionContext.getCurrentLocale().getLanguage();
 		this.duplicable = duplicable;
@@ -104,6 +108,7 @@ public class FormMetadataVO implements Serializable {
 		this.reference = null;
 		this.input = null;
 		this.displayType = null;
+		this.sortingType = null;
 		this.highlight = false;
 		this.autocomplete = false;
 		this.enabled = true;
@@ -186,8 +191,16 @@ public class FormMetadataVO implements Serializable {
 		return displayType;
 	}
 
+	public MetadataSortingType getSortingType() {
+		return sortingType;
+	}
+
 	public MetadataValueType getValueType() {
 		return valueType;
+	}
+
+	public void setSortingType(MetadataSortingType sortingType) {
+		this.sortingType = sortingType;
 	}
 
 	public MetadataSchemaVO getSchema() {

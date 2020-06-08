@@ -12,6 +12,7 @@ import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrai
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.decorators.base.ActionMenuButtonsDecorator;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
+import com.constellio.app.ui.pages.home.PartialRefresh;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import com.vaadin.event.UIEvents.PollEvent;
@@ -76,7 +77,9 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	private Component mainComponent;
 	private Component actionMenu;
+	private Component menuBar;
 	private List<Button> actionMenuButtons;
+	private List<Button> quickActionButtons = new ArrayList<>();
 	private Map<Button, MenuItem> actionMenuButtonsAndItems = new HashMap<>();
 	protected I18NHorizontalLayout actionMenuBarLayout;
 
@@ -163,7 +166,9 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			if (isBreadcrumbsVisible()) {
 				if (breadcrumbTrail == null && title != null) {
 					breadcrumbTrail = new TitleBreadcrumbTrail(this, title);
-				} else if (title != null && breadcrumbTrail == null) {
+				}
+				//TODO fix me. Else if should be on the first if?
+				else if (title != null && breadcrumbTrail == null) {
 					titleLabel = new Label(title);
 					titleLabel.addStyleName(ValoTheme.LABEL_H1);
 				}
@@ -192,6 +197,10 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				breadcrumbTrail.setWidth(null);
 				breadcrumbTrailLayout.addComponent(breadcrumbTrail);
 				breadcrumbTrailLayout.setComponentAlignment(breadcrumbTrail, Alignment.MIDDLE_LEFT);
+			} else if (titleLabel != null) {
+				titleLabel.setWidth(null);
+				breadcrumbTrailLayout.addComponent(titleLabel);
+				breadcrumbTrailLayout.setComponentAlignment(titleLabel, Alignment.TOP_LEFT);
 			}
 
 			if (breadcrumbTrailLayout.getComponentCount() != 0) {
@@ -421,8 +430,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			result = null;
 		} else {
 			if (isActionMenuBar()) {
-				MenuBar menuBar = newActionMenuBar();
-				List<Button> quickActionButtons = getQuickActionMenuButtons();
+				menuBar = newActionMenuBar();
+				quickActionButtons = getQuickActionMenuButtons();
 				if (quickActionButtons != null && !quickActionButtons.isEmpty()) {
 					actionMenuBarLayout = new I18NHorizontalLayout();
 					actionMenuBarLayout.addStyleName("action-menu-bar-layout");
@@ -480,6 +489,17 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
         return result;
     }
 
+	public void setQuickActionButtonsVisible(boolean visible) {
+		if (actionMenuBarLayout != null) {
+			for (int i = 0; i < actionMenuBarLayout.getComponentCount(); i++) {
+				Component actionButtonComponent = actionMenuBarLayout.getComponent(i);
+				if (actionButtonComponent.getStyleName() != null && actionButtonComponent.getStyleName().contains("action-menu-bar-button")) {
+					actionButtonComponent.setVisible(visible);
+				}
+			}
+		}
+	}
+
 	protected void actionButtonStateChanged(Button actionMenuButton) {
 		if (isActionMenuBar()) {
 			MenuItem actionMenuItem = actionMenuButtonsAndItems.get(actionMenuButton);
@@ -490,9 +510,16 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	}
 
 	protected void updateActionMenuItems() {
+		boolean hasAtLeastOneActionAvailable = false;
 		for (Button actionMenuButton : actionMenuButtonsAndItems.keySet()) {
 			MenuItem actionMenuItem = actionMenuButtonsAndItems.get(actionMenuButton);
-			actionMenuItem.setVisible(actionMenuButton.isVisible() && actionMenuButton.isEnabled());
+			boolean isButtonVisible = actionMenuButton.isVisible() && actionMenuButton.isEnabled() && !quickActionButtons.contains(actionMenuButton);
+			actionMenuItem.setVisible(isButtonVisible);
+			hasAtLeastOneActionAvailable = hasAtLeastOneActionAvailable || isButtonVisible;
+		}
+
+		if (menuBar != null) {
+			menuBar.setVisible(hasAtLeastOneActionAvailable);
 		}
 	}
 
@@ -522,6 +549,13 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	}
 
 	@Override
+	public void partialRefresh() {
+		if (this instanceof PartialRefresh) {
+			((PartialRefresh) this).doPartialRefresh();
+		}
+	}
+
+	@Override
 	public void showMessage(String message) {
 		Notification notification = new Notification(message, Type.WARNING_MESSAGE);
 		notification.setHtmlContentAllowed(true);
@@ -539,7 +573,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	@Override
 	public void showErrorMessage(String errorMessage) {
-		Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"), Type.WARNING_MESSAGE);
+		Notification notification = new Notification(errorMessage.replace("\n", "<br/>") +
+													 "<br/><br/>" + $("clickToClose"), Type.WARNING_MESSAGE);
 		notification.setHtmlContentAllowed(true);
 		notification.show(Page.getCurrent());
 	}

@@ -39,6 +39,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -65,6 +66,32 @@ public class CollectionUserRolesViewImpl extends BaseViewImpl implements Collect
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		presenter.forRequestParams(event.getParameters());
 		user = presenter.getUser();
+	}
+
+	@Override
+	protected boolean isActionMenuBar() {
+		return true;
+	}
+
+	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		List<Button> quickActionMenuButtons = new ArrayList<>();
+		List<Button> actionMenuButtons = getActionMenuButtons();
+		if (actionMenuButtons != null) {
+			List<Button> visibleButtons = actionMenuButtons.stream().filter(button -> button.isVisible() && button.isEnabled()).collect(Collectors.toList());
+			int remainingSpaceForQuickActions = 2;
+			for (Button button : visibleButtons) {
+				if (remainingSpaceForQuickActions > 0) {
+					remainingSpaceForQuickActions--;
+					quickActionMenuButtons.add(button);
+				} else {
+					break;
+				}
+			}
+			actionMenuButtons.stream().forEach(quickActionMenuButtons::add);
+		}
+
+		return quickActionMenuButtons;
 	}
 
 	@Override
@@ -95,7 +122,9 @@ public class CollectionUserRolesViewImpl extends BaseViewImpl implements Collect
 			availableRolesField.setItemCaption(role.getCode(), role.getTitle());
 		}
 
-		layout = new VerticalLayout(inheritedRolesTable, specificRolesTable);
+		//TODO Vincent fix me with CSS
+		Label emptyRow = new Label("");
+		layout = new VerticalLayout(emptyRow, inheritedRolesTable, specificRolesTable);
 		layout.setSpacing(true);
 
 		return layout;

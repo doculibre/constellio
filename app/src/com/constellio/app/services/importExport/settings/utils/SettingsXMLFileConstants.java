@@ -53,6 +53,7 @@ public interface SettingsXMLFileConstants {
 	String ENABLED_IN = "enabledIn";
 	String ENABLED = "enabled";
 	String UNIQUE = "unique";
+	String SORTING_TYPE = "sortingType";
 	String ENCRYPTED = "encrypted";
 	String ESSENTIAL = "essential";
 	String ESSENTIAL_IN_SUMMARY = "essentialInSummary";

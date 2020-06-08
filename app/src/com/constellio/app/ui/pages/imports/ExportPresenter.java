@@ -423,10 +423,12 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		return new PartialSystemStateExporter(appLayerFactory);
 	}
 
+	//todo: Could be rewritten so it would be reusable for both SDKPAnel and ExportPresenter, modelLayerFactory and view
+	//	are the two differences that are obstructing this modification
 	public void exportLogs() {
 		ZipService zipService = modelLayerFactory.getIOServicesFactory().newZipService();
 
-		String filename = "logs-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
+		String filename = "logs-" + new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date()) + ".zip";
 		File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
 				.newTemporaryFolder(EXPORT_FOLDER_RESOURCE);
 		File zipFile = new File(folder, filename);
@@ -440,6 +442,14 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 			if (logFile.exists()) {
 				logFiles.add(logFile);
 			}
+
+		}
+		File logsFolder = modelLayerFactory.getFoldersLocator().getLogsFolder();
+		if (logsFolder.exists()) {
+			File[] logsFolderFiles = logsFolder.listFiles();
+			if (logsFolderFiles != null) {
+				logFiles.add(logsFolder);
+			}
 		}
 
 		if (logFiles.isEmpty()) {
@@ -450,7 +460,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				zipService.zip(zipFile, logFiles);
 				view.startDownload(filename, new FileInputStream(zipFile), "application/zip");
 			} catch (Throwable t) {
-				LOGGER.error("Error while generating zip of logss", t);
+				LOGGER.error("Error while generating zip of logs", t);
 				view.showErrorMessage($("ExportView.error"));
 			}
 		}

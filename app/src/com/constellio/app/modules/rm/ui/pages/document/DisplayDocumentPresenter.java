@@ -22,10 +22,12 @@ import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.builders.AuthorizationToVOBuilder;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
 import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
@@ -38,11 +40,13 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
@@ -53,6 +57,7 @@ import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQ
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.trash.TrashServices;
 import com.vaadin.ui.Button;
 import org.apache.commons.lang3.ObjectUtils;
@@ -65,7 +70,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS;
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.VIEW_DOCUMENT_AUTHORIZATIONS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -92,6 +101,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private Map<String, String> params = null;
 	private boolean nestedView;
 	private boolean inWindow;
+	private AuthorizationsServices authorizationsServices;
 
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, final boolean nestedView,
@@ -128,6 +138,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			}
 		};
 		trashServices = new TrashServices(appLayerFactory.getModelLayerFactory(), collection);
+		authorizationsServices = new AuthorizationsServices(appLayerFactory.getModelLayerFactory());
 		contentVersionVOBuilder = new ContentVersionToVOBuilder(modelLayerFactory);
 		voBuilder = new DocumentToVOBuilder(modelLayerFactory);
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -546,5 +557,77 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public void eventsTabSelected() {
 		view.setEvents(getEventsDataProvider());
+	}
+
+	public List<AuthorizationVO> getSharedAuthorizations() {
+		AuthorizationToVOBuilder builder = newAuthorizationToVOBuilder();
+
+		List<AuthorizationVO> results = new ArrayList<>();
+		for (Authorization authorization : getAllAuthorizations()) {
+			if (isOwnAuthorization(authorization) && authorization.getSharedBy() != null &&
+				(isSharedByCurrentUser(authorization) || getCurrentUser().hasAny(RMPermissionsTo.MANAGE_SHARE, VIEW_DOCUMENT_AUTHORIZATIONS, MANAGE_DOCUMENT_AUTHORIZATIONS).on(getDocument()))) {
+				results.add(builder.build(authorization));
+			}
+		}
+		return results;
+	}
+
+	protected boolean isOwnAuthorization(Authorization authorization) {
+		return authorization.getTarget().equals(getDocument().getId());
+	}
+
+	private boolean isSharedByCurrentUser(Authorization authorization) {
+		return getCurrentUser().getId().equals(authorization.getSharedBy());
+	}
+
+	private List<Authorization> getAllAuthorizations() {
+		Record record = presenterService().getRecord(getDocument().getId());
+		return authorizationsServices.getRecordAuthorizations(record);
+	}
+
+	private AuthorizationToVOBuilder newAuthorizationToVOBuilder() {
+		return new AuthorizationToVOBuilder(modelLayerFactory);
+	}
+
+	public void onAutorizationModified(AuthorizationVO authorizationVO) {
+		AuthorizationModificationRequest request = toAuthorizationModificationRequest(authorizationVO);
+		authorizationsServices.execute(request);
+		view.sharesTabSelected();
+	}
+
+	private AuthorizationModificationRequest toAuthorizationModificationRequest(AuthorizationVO authorizationVO) {
+		String authId = authorizationVO.getAuthId();
+
+		AuthorizationModificationRequest request = modifyAuthorizationOnRecord(authId, collection, getDocument().getId());
+		request = request.withNewAccessAndRoles(authorizationVO.getAccessRoles());
+		request = request.withNewStartDate(authorizationVO.getStartDate());
+		request = request.withNewEndDate(authorizationVO.getEndDate());
+
+		List<String> principals = new ArrayList<>();
+		principals.addAll(authorizationVO.getUsers());
+		principals.addAll(authorizationVO.getGroups());
+		request = request.withNewPrincipalIds(principals);
+		request = request.setExecutedBy(getCurrentUser());
+
+		return request;
+
+	}
+
+	public void deleteAutorizationButtonClicked(AuthorizationVO authorizationVO) {
+		Authorization authorization = authorizationsServices.getAuthorization(
+				view.getCollection(), authorizationVO.getAuthId());
+		authorizationsServices.execute(authorizationDeleteRequest(authorization).setExecutedBy(getCurrentUser()));
+		view.removeAuthorization(authorizationVO);
+	}
+
+	public User getUser() {
+		return getCurrentUser();
+	}
+
+	public void refreshActionMenuRequested() {
+		Record record = getRecord(documentVO.getId());
+		document = rm.wrapDocument(record);
+		documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
+		view.setRecordVO(documentVO);
 	}
 }

@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.services.menu.behaviors;
 
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -16,10 +17,12 @@ import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentView;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -30,19 +33,25 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
+import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.management.authorizations.PublishDocumentViewImpl;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
@@ -50,9 +59,13 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentConversionManager;
@@ -63,17 +76,21 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.io.FilenameUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,6 +99,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
 import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
@@ -97,6 +115,7 @@ public class DocumentMenuItemActionBehaviors {
 	private LoggingServices loggingServices;
 	private DecommissioningLoggingService decommissioningLoggingService;
 	private DocumentRecordActionsServices documentRecordActionsServices;
+	private AuthorizationsServices authorizationsServices;
 
 	public DocumentMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
@@ -109,6 +128,7 @@ public class DocumentMenuItemActionBehaviors {
 		decommissioningLoggingService = new DecommissioningLoggingService(appLayerFactory.getModelLayerFactory());
 		extensions = modelLayerFactory.getExtensions().forCollection(collection);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
+		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 	}
 
 	public void getConsultationLink(Document document, MenuItemActionBehaviorParams params) {
@@ -151,6 +171,63 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
+	public void renameContent(final Document document, final MenuItemActionBehaviorParams params) {
+		//		BaseView view = params.getView();
+		//		Map<String, String> formParams = params.getFormParams();
+		//		String documentId = document.getId();
+		//
+		//		boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(formParams);
+		//		if (areSearchTypeAndSearchIdPresent) {
+		//			view.navigate().to(RMViews.class).addDocumentWithContentFromDecommission(documentId,
+		//					DecommissionNavUtil.getSearchId(formParams), DecommissionNavUtil.getSearchType(formParams));
+		//		} else if (formParams != null && formParams.get(RMViews.FAV_GROUP_ID_KEY) != null) {
+		//			view.navigate().to(RMViews.class)
+		//					.addDocumentWithContentFromFavorites(documentId, formParams.get(RMViews.FAV_GROUP_ID_KEY));
+		//		} else if (rmModuleExtensions.navigateToAddDocumentWhileKeepingTraceOfPreviousView(
+		//				new NavigateToFromAPageParams(formParams, documentId))) {
+		//		} else {
+		//			view.navigate().to(RMViews.class).addDocumentWithContent(documentId);
+		//		}
+		WindowButton renameContentButton = new WindowButton($("DocumentContextMenu.renameContent"), $("DocumentContextMenu.renameContent"),
+				WindowConfiguration.modalDialog("40%", "100px")) {
+			@Override
+			protected Component buildWindowContent() {
+				final TextField title = new BaseTextField();
+				String contentTitle = document.getContent().getCurrentVersion().getFilename();
+				title.setValue(contentTitle);
+				title.setWidth("100%");
+
+				Button save = new BaseButton($("DisplayDocumentView.renameContentConfirm")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						renameContentButtonClicked(document, params, title.getValue());
+						getWindow().close();
+					}
+				};
+				save.addStyleName(ValoTheme.BUTTON_PRIMARY);
+				save.addStyleName(BaseForm.SAVE_BUTTON);
+
+				Button cancel = new BaseButton($("DisplayDocumentView.renameContentCancel")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						getWindow().close();
+					}
+				};
+
+				HorizontalLayout form = new HorizontalLayout(title, save, cancel);
+				form.setExpandRatio(title, 1);
+				form.setSpacing(true);
+				form.setWidth("95%");
+
+				VerticalLayout layout = new VerticalLayout(form);
+				layout.setSizeFull();
+
+				return layout;
+			}
+		};
+		renameContentButton.click();
+	}
+
 	public void edit(Document document, MenuItemActionBehaviorParams params) {
 		params.getView().navigate().to(RMViews.class).editDocument(document.getId());
 		updateSearchResultClicked(document.getWrappedRecord());
@@ -187,6 +264,36 @@ public class DocumentMenuItemActionBehaviors {
 
 	}
 
+	private void renameContentButtonClicked(Document document, MenuItemActionBehaviorParams params,
+											String newContentTitle) {
+		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA,
+				params.getView().getConstellioFactories(), params.getView().getSessionContext());
+		if (document != null) {
+			document = renameContentButtonClicked(document, newContentTitle);
+			presenterUtils.addOrUpdate(document.getWrappedRecord());
+			params.getView().updateUI();
+			//			navigateToDisplayDocument(document.getId(), params.getFormParams());
+		}
+	}
+
+	private Document renameContentButtonClicked(Document document, String newName) {
+		boolean isManualEntry = rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL;
+		if (document.getContent().getCurrentVersion().getFilename().equals(document.getTitle())) {
+			if (isManualEntry && !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
+					.getPopulateConfigs().isAddOnly()) {
+				document.setTitle(newName);
+			}
+		} else if (FilenameUtils.removeExtension(document.getContent().getCurrentVersion().getFilename())
+				.equals(document.getTitle())) {
+			if (isManualEntry && !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
+					.getPopulateConfigs().isAddOnly()) {
+				document.setTitle(FilenameUtils.removeExtension(newName));
+			}
+		}
+
+		document.getContent().renameCurrentVersion(newName);
+		return document;
+	}
 
 	private void deleteConfirmationDocumentButtonClicked(Document document, MenuItemActionBehaviorParams params) {
 		if (validateDeleteDocumentPossibleExtensively(document.getWrappedRecord(), params.getUser()).isEmpty()) {
@@ -213,10 +320,11 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void finalize(Document document, MenuItemActionBehaviorParams params) {
+		document = rm.getDocument(document.getId());
 		Content content = document.getContent();
 		content.finalizeVersion();
 		try {
-			recordServices.update(document.getWrappedRecord());
+			recordServices.update(document.getWrappedRecord(), params.getUser());
 
 			String newMajorVersion = content.getCurrentVersion().getVersion();
 			loggingServices.finalizeDocument(document.getWrappedRecord(), params.getUser());
@@ -245,16 +353,23 @@ public class DocumentMenuItemActionBehaviors {
 		publicLinkButton.click();
 	}
 
-
 	public void publish(Document document, MenuItemActionBehaviorParams params) {
+
 		document.setPublished(true);
-		try {
-			recordServices.update(document);
-			linkToDocument(document, params);
-			params.getView().refreshActionMenu();
-		} catch (RecordServicesException e) {
-			params.getView().showErrorMessage(MessageUtils.toMessage(e));
-		}
+		Button publishButton = new WindowButton($("DisplayDocumentView.publish"),
+				$("DisplayDocumentView.publish"), new WindowConfiguration(true, true, "30%", "300px")) {
+			@Override
+			protected Component buildWindowContent() {
+				return new PublishDocumentViewImpl(params.getRecordVO()) {
+					@Override
+					protected boolean isBreadcrumbsVisible() {
+						return false;
+					}
+				};
+			}
+		};
+		publishButton.click();
+		updateSearchResultClicked(document.getWrappedRecord());
 	}
 
 	public void createPdf(Document document, MenuItemActionBehaviorParams params) {
@@ -286,12 +401,14 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
-
 	public void unPublish(Document document, MenuItemActionBehaviorParams params) {
 		document.setPublished(false);
+		document.setPublishingEndDate(null);
+		document.setPublishingStartDate(null);
 		try {
 			recordServices.update(document);
 			params.getView().refreshActionMenu();
+			params.getView().partialRefresh();
 		} catch (RecordServicesException e) {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}
@@ -331,28 +448,50 @@ public class DocumentMenuItemActionBehaviors {
 		labels.click();
 	}
 
-	public void checkIn(Document document, MenuItemActionBehaviorParams params) {
+	public void checkIn(Document document, final MenuItemActionBehaviorParams params) {
+		document = rm.getDocument(document.getId());
+		DocumentVO documentVO = getDocumentVO(params, document);
 		if (documentRecordActionsServices.isCheckInActionPossible(document.getWrappedRecord(), params.getUser())) {
 			UpdateContentVersionWindowImpl uploadWindow =
-					createUpdateContentVersionWindow(getDocumentVO(params, document), params.getView());
-			uploadWindow.open(false);
+					createUpdateContentVersionWindow(documentVO, params.getView(), new UpdateWindowCloseCallback() {
+						@Override
+						public void windowClosed() {
+							BaseView view = params.getView();
+							if (view instanceof DisplayDocumentView) {
+								view.refreshActionMenu();
+								view.partialRefresh();
+							} else {
+								view.updateUI();
+							}
+						}
+					});
+			if (!isSameVersion(document)) {
+				uploadWindow.open(false);
+			} else {
+				uploadWindow.saveWithSameVersion();
+			}
+			params.getView().refreshActionMenu();
+			params.getView().partialRefresh();
 		} else if (documentRecordActionsServices.isCancelCheckOutPossible(document)) {
 			Content content = document.getContent();
 			content.checkIn();
 			modelLayerFactory.newLoggingServices().returnRecord(document.getWrappedRecord(), params.getUser());
 			try {
 				recordServices.update(document, new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
-				DocumentVO documentVO = getDocumentVO(params, document);
 				ContentVersionVO currentVersionVO = new ContentVersionToVOBuilder(modelLayerFactory)
 						.build(content, params.getView().getSessionContext());
 				documentVO.setContent(currentVersionVO);
-
 				params.getView().updateUI();
 				params.getView().showMessage($("DocumentActionsComponent.canceledCheckOut"));
 			} catch (RecordServicesException e) {
 				params.getView().showErrorMessage(MessageUtils.toMessage(e));
 			}
 		}
+	}
+
+	private boolean isSameVersion(Document document) {
+		Content content = document.getContent();
+		return content != null && content.getCurrentVersion().getHash().equals(content.getCurrentCheckedOutVersion().getHash());
 	}
 
 	public void checkOut(Document document, MenuItemActionBehaviorParams params) {
@@ -386,10 +525,78 @@ public class DocumentMenuItemActionBehaviors {
 	public void addAuthorization(Document document, MenuItemActionBehaviorParams params) {
 		params.getView().navigate().to().shareContent(document.getId());
 		updateSearchResultClicked(document.getWrappedRecord());
+		params.getView().partialRefresh();
 	}
 
+	public void modifyShare(Document document, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to().shareContent(document.getId());
+		updateSearchResultClicked(document.getWrappedRecord());
+	}
+
+	public void unshare(Document document, MenuItemActionBehaviorParams params) {
+
+		Button unshareDocumentButton = new DeleteButton($("DisplayDocumentView.deleteDocument")) {
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("ConfirmDialog.confirmUnshare");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				unshareDocumentButtonClicked(ParamUtils.getCurrentParams(), document, params.getUser());
+				params.getView().partialRefresh();
+			}
+		};
+
+		unshareDocumentButton.click();
+	}
+
+	public void unshareDocumentButtonClicked(Map<String, String> params, Document document, User user) {
+
+		boolean removeAllSharedAuthorizations = user.hasAny(RMPermissionsTo.MANAGE_SHARE, RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(document);
+
+		if (removeAllSharedAuthorizations) {
+			List<AuthorizationDeleteRequest> authorizationDeleteRequests = authorizationsServices.buildDeleteRequestsForAllSharedAutorizationsOnRecord(document.getWrappedRecord(), user);
+			authorizationDeleteRequests.stream().forEach(authorization -> authorizationsServices.execute(authorization));
+		} else {
+			Authorization authorization = rm.getSolrAuthorizationDetails(user, document.getId());
+			rm.getModelLayerFactory()
+					.newAuthorizationsServices().execute(toAuthorizationDeleteRequest(authorization, user));
+		}
+	}
+
+	private AuthorizationModificationRequest toAuthorizationModificationRequest(Authorization authorization,
+																				String recordId, User user) {
+		String authId = authorization.getId();
+
+		AuthorizationModificationRequest request = modifyAuthorizationOnRecord(authId, user.getCollection(), recordId);
+		request = request.withNewAccessAndRoles(authorization.getRoles());
+		request = request.withNewStartDate(authorization.getStartDate());
+		request = request.withNewEndDate(authorization.getEndDate());
+
+		List<String> principals = new ArrayList<>();
+		principals.addAll(authorization.getPrincipals());
+		request = request.withNewPrincipalIds(principals);
+		request = request.setExecutedBy(user);
+
+		return request;
+
+	}
+
+	private AuthorizationDeleteRequest toAuthorizationDeleteRequest(Authorization authorization, User user) {
+		String authId = authorization.getId();
+
+		AuthorizationDeleteRequest request = AuthorizationDeleteRequest.authorizationDeleteRequest(authId, user.getCollection());
+
+		return request;
+
+	}
 
 	public void manageAuthorizations(Document document, MenuItemActionBehaviorParams params) {
+		Map<String, String> paramsMap = ParamUtils.getParamsMap();
+		String favGroupId = paramsMap.get(RMViews.FAV_GROUP_ID_KEY);
+		params.getView().getUIContext().setAttribute(BaseBreadcrumbTrail.FAV_GROUP_ID, favGroupId);
+		params.getView().getUIContext().setAttribute(BaseBreadcrumbTrail.RECORD_AUTHORIZATIONS_TYPE, Document.SCHEMA_TYPE);
 		params.getView().navigate().to().listObjectAccessAndRoleAuthorizations(document.getId());
 		updateSearchResultClicked(document.getWrappedRecord());
 	}
@@ -418,11 +625,26 @@ public class DocumentMenuItemActionBehaviors {
 		reportGeneratorButton.click();
 	}
 
-	public void upload(Document document, MenuItemActionBehaviorParams params) {
+	public void upload(Document document, final MenuItemActionBehaviorParams params) {
 		DocumentVO documentVO = getDocumentVO(params, document);
-		UpdateContentVersionWindowImpl uploadWindow = createUpdateContentVersionWindow(documentVO, params.getView());
+		UpdateContentVersionWindowImpl uploadWindow = createUpdateContentVersionWindow(documentVO, params.getView(), new UpdateWindowCloseCallback() {
+			@Override
+			public void windowClosed() {
+				BaseView view = params.getView();
+				if (view instanceof DisplayDocumentView) {
+					view.refreshActionMenu();
+					view.partialRefresh();
+				} else {
+					view.updateUI();
+				}
+			}
+		});
 
 		uploadWindow.open(false);
+	}
+
+	public void createTask(Document document, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(document.getId()));
 	}
 
 	public void alertAvailable(Document document, MenuItemActionBehaviorParams params) {
@@ -453,7 +675,8 @@ public class DocumentMenuItemActionBehaviors {
 				VIEW_MODE.DISPLAY, params.getView().getSessionContext());
 	}
 
-	private UpdateContentVersionWindowImpl createUpdateContentVersionWindow(RecordVO recordVO, BaseView view) {
+	private UpdateContentVersionWindowImpl createUpdateContentVersionWindow(RecordVO recordVO, BaseView view,
+																			final UpdateWindowCloseCallback callback) {
 		final Map<RecordVO, MetadataVO> recordMap = new HashMap<>();
 		recordMap.put(recordVO, recordVO.getMetadata(Document.CONTENT));
 
@@ -461,7 +684,7 @@ public class DocumentMenuItemActionBehaviors {
 			@Override
 			public void close() {
 				super.close();
-				view.updateUI();
+				callback.windowClosed();
 			}
 		};
 	}
@@ -513,5 +736,11 @@ public class DocumentMenuItemActionBehaviors {
 
 	private void navigateToDisplayFolder(String folderId, Map<String, String> params) {
 		RMNavigationUtils.navigateToDisplayFolder(folderId, params, appLayerFactory, collection);
+	}
+
+	private static interface UpdateWindowCloseCallback {
+
+		void windowClosed();
+
 	}
 }

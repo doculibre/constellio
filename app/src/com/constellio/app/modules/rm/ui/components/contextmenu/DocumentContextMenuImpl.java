@@ -116,10 +116,6 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	public void buildMenuItems() {
 		removeAllItems();
 
-		if (StringUtils.isNotBlank(borrowedMessage)) {
-			addItem(borrowedMessage);
-		}
-
 		// FIXME quick test only
 		RecordServices recordServices = getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newRecordServices();
 		Record record = recordServices.getDocumentById(recordVO.getId());
@@ -268,6 +264,11 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 	@Override
 	public void setShareDocumentButtonState(ComponentState state) {
+		shareDocumentButtonVisible = state.isEnabled();
+	}
+
+	@Override
+	public void setUnshareDocumentButtonState(ComponentState state) {
 		shareDocumentButtonVisible = state.isEnabled();
 	}
 

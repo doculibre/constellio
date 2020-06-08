@@ -108,13 +108,13 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 		decommissioningEventsLink.addStyleName(DECOMMISSIONING_EVENTS_LINK_BUTTON);
 		layout.addComponent(decommissioningEventsLink);
 
-		//		Button importExportEventsLink = newImportExportLink();
-		//		importExportEventsLink.addStyleName(CURRENTLY_BORROWED_DOCUMENTS_LINK_BUTTON);
-		//		layout.addComponent(importExportEventsLink);
-
 		Button reindexAndRestartEventLink = newReIndexAndRestartLink();
 		reindexAndRestartEventLink.addStyleName(REINDEX_AND_RESTART_BUTTON);
 		layout.addComponents(reindexAndRestartEventLink);
+
+		Button batchProcessEventLink = newBatchProcessLink();
+		batchProcessEventLink.addStyleName(AGENT_EVENTS_LINK_BUTTON);
+		layout.addComponents(batchProcessEventLink);
 
 		if (agentEventsVisible) {
 			Button agentEventsLink = newAgentEventsLink();
@@ -232,6 +232,10 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 
 	private Button newDocumentRequestLink() {
 		return createLink($("ListEventsView.requestTask"), EventCategory.REQUEST_TASKS, "borrowing-audit");
+	}
+
+	private Button newBatchProcessLink() {
+		return createLink($("ListEventsView.batchProcessEvents"), EventCategory.BATCH_PROCESS_EVENTS, "traitementenlot");
 	}
 
 	private Button createLink(String caption, final EventCategory eventCategory, String iconName) {

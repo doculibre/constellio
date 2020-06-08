@@ -117,4 +117,8 @@ public interface DataLayerConfiguration {
 
 	int getMicrosoftSqlServerloginTimeout();
 
+	boolean areTiffFilesConvertedForPreview();
+
+	int getSolrMinimalReplicationFactor();
+
 }

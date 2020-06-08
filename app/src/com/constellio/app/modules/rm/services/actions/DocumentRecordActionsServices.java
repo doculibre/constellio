@@ -9,18 +9,25 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.util.DateFormatUtils;
+import com.constellio.data.io.ConversionManager;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.security.AuthorizationsServices;
+import org.apache.commons.io.FilenameUtils;
 
 import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentRecordActionsServices {
 
 	private RMSchemasRecordsServices rm;
 	private RMModuleExtensions rmModuleExtensions;
+	private AuthorizationsServices authorizationService;
 	private String collection;
 	private RecordServices recordServices;
 	private transient ModelLayerCollectionExtensions modelLayerCollectionExtensions;
@@ -29,8 +36,30 @@ public class DocumentRecordActionsServices {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.collection = collection;
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		this.authorizationService = appLayerFactory.getModelLayerFactory().newAuthorizationsServices();
 		this.modelLayerCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
 		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
+	}
+
+	public String getBorrowedMessage(Record record, User user) {
+		String borrowedMessage;
+		Document document = rm.wrapDocument(record);
+		Content content = document.getContent();
+		if (content != null && content.getCheckoutUserId() != null) {
+			String borrowDate = DateFormatUtils.format(content.getCheckoutDateTime());
+			String checkoutUserId = content.getCheckoutUserId();
+			if (!user.getId().equals(checkoutUserId)) {
+				String borrowerCaption = rm.getUser(checkoutUserId).getTitle();
+				String borrowedMessageKey = "DocumentActionsComponent.borrowedByOtherUser";
+				borrowedMessage = $(borrowedMessageKey, borrowerCaption, borrowDate);
+			} else {
+				String borrowedMessageKey = "DocumentActionsComponent.borrowedByCurrentUser";
+				borrowedMessage = $(borrowedMessageKey, borrowDate);
+			}
+		} else {
+			borrowedMessage = null;
+		}
+		return borrowedMessage;
 	}
 
 	public boolean isMoveActionPossible(Record record, User user) {
@@ -54,6 +83,12 @@ public class DocumentRecordActionsServices {
 		return hasUserWriteAccess(record, user) &&
 			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isEditActionPossibleOnDocument(rm.wrapDocument(record), user);
+	}
+
+	public boolean isRenameContentActionPossible(Record record, User user) {
+		return user.hasReadAccess().on(record) &&
+			   !record.isLogicallyDeleted() &&
+			   rmModuleExtensions.isRenameContentActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isDownloadActionPossible(Record record, User user) {
@@ -101,8 +136,10 @@ public class DocumentRecordActionsServices {
 		return user.has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)
 					   .on(record) && rmModuleExtensions.isPublishActionPossibleOnDocument(document, user) &&
 			   !record.isLogicallyDeleted() &&
+			   document.hasContent() &&
 			   !document.isPublished();
 	}
+
 
 	public boolean isPrintLabelActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);
@@ -164,7 +201,7 @@ public class DocumentRecordActionsServices {
 	public boolean isCreatePdfActionPossible(Record record, User user) {
 		Document document = rm.getDocument(record.getId());
 
-		if (!isCheckOutPossible(document) ||
+		if ((!isCheckOutPossible(document) && !isEmailConvertibleToPDF(document)) ||
 			document.getContent() == null ||
 			!isEditActionPossible(record, user) ||
 			record.isLogicallyDeleted()) {
@@ -172,6 +209,18 @@ public class DocumentRecordActionsServices {
 		}
 
 		return rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rm.wrapDocument(record), user);
+	}
+
+	private boolean isEmailConvertibleToPDF(Document document) {
+		boolean emailConvertibleToPDF;
+		if (isEmail(document)) {
+			String extension = FilenameUtils.getExtension(document.getContent().getCurrentVersion().getFilename()).toLowerCase();
+			ConversionManager conversionManager = rm.getModelLayerFactory().getDataLayerFactory().getConversionManager();
+			emailConvertibleToPDF = conversionManager.isSupportedExtension(extension);
+		} else {
+			emailConvertibleToPDF = false;
+		}
+		return emailConvertibleToPDF;
 	}
 
 	public boolean isAddToCartActionPossible(Record record, User user) {
@@ -297,9 +346,15 @@ public class DocumentRecordActionsServices {
 			   rmModuleExtensions.isAddAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
+	public boolean isUnshareActionPossible(Record record, User user) {
+		return (authorizationService.itemIsSharedByUser(record, user) ||
+				(user.hasAny(RMPermissionsTo.MANAGE_SHARE, RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record) && authorizationService.isRecordShared(record)))
+			   && !record.isLogicallyDeleted();
+	}
 
 	public boolean isManageAuthorizationActionPossible(Record record, User user) {
 		return user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record) &&
+			   user.hasWriteAndDeleteAccess().on(record) &&
 			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isManageAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
@@ -342,6 +397,13 @@ public class DocumentRecordActionsServices {
 			   !isDocumentLogicallyDeleted(document);
 	}
 
+	public boolean isCurrentBorrower(Record record, User user) {
+		Document document = rm.wrapDocument(record);
+		Content content = document.getContent();
+		return isContentCheckedOut(document.getContent()) &&
+			   content.getCheckoutUserId() != null && user.getId().equals(content.getCheckoutUserId());
+	}
+
 	private boolean isCheckOutNotPossibleDocumentDeleted(Document document) {
 		boolean email = isEmail(document);
 		return document.getContent() != null &&
@@ -371,6 +433,7 @@ public class DocumentRecordActionsServices {
 		return !email && (document.getContent() != null && isContentCheckedOut(document));
 	}
 
+
 	private boolean isEmail(Document document) {
 		boolean email;
 		if (document.getContent() != null && document.getContent().getCurrentVersion() != null) {
@@ -387,5 +450,9 @@ public class DocumentRecordActionsServices {
 
 	private boolean hasUserReadAccess(Record record, User user) {
 		return user.hasReadAccess().on(record);
+	}
+
+	public boolean isCreateTaskActionPossible(Record record, User user) {
+		return hasUserReadAccess(record, user);
 	}
 }

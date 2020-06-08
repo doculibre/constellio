@@ -606,22 +606,29 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 			RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 			for (String id : recordIds) {
 				Record record = recordServices.getDocumentById(id);
+				boolean isMovePossible = true;
 				try {
 					switch (record.getTypeCode()) {
 						case Folder.SCHEMA_TYPE:
 							Folder folder = rmSchemas.getFolder(id);
 							if (!rmModuleExtensions.isMoveActionPossibleOnFolder(folder, param.getUser())) {
+								isMovePossible = false;
 								couldNotMove.add(record.getTitle());
 								break;
 							}
-							recordServices.update(folder.setParentFolder(parentId));
+							if (isMovePossible) {
+								recordServices.update(folder.setParentFolder(parentId), param.getUser());
+							}
 							break;
 						case Document.SCHEMA_TYPE:
 							if (!rmModuleExtensions.isMoveActionPossibleOnDocument(rm.wrapDocument(record), param.getUser())) {
+								isMovePossible = false;
 								couldNotMove.add(record.getTitle());
 								break;
 							}
-							recordServices.update(rmSchemas.getDocument(id).setFolder(parentId));
+							if (isMovePossible) {
+								recordServices.update(rmSchemas.getDocument(id).setFolder(parentId), param.getUser());
+							}
 							break;
 						default:
 							couldNotMove.add(record.getTitle());
@@ -666,7 +673,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 							Folder oldFolder = rmSchemas.wrapFolder(record);
 							Folder newFolder = decommissioningService(param).duplicateStructureAndDocuments(oldFolder, param.getUser(), false);
 							newFolder.setParentFolder(parentId);
-							recordServices.add(newFolder);
+							recordServices.add(newFolder, param.getUser());
 							break;
 						case Document.SCHEMA_TYPE:
 							if (!rmModuleExtensions.isCopyActionPossibleOnDocument(rm.wrapDocument(record), param.getUser())) {
@@ -704,7 +711,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 							String title = record.getTitle() + " (" + $("AddEditDocumentViewImpl.copy") + ")";
 							newDocument.setTitle(title);
 							newDocument.setFolder(parentId);
-							recordServices.add(newDocument);
+							recordServices.add(newDocument, param.getUser());
 							break;
 						default:
 							couldNotDuplicate.add(record.getTitle());
@@ -747,7 +754,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 							if (isClassifiedInFolder) {
 								newFolder.setParentFolder(parentId);
 							}
-							recordServices.add(newFolder);
+							recordServices.add(newFolder, param.getUser());
 							decommissioningService(param).duplicateSubStructureAndSave(newFolder, userFolder, param.getUser());
 							deleteUserFolder(param, userFolder, param.getUser());
 							break;
@@ -756,7 +763,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 							UserDocument userDocument = rm.wrapUserDocument(record);
 							decommissioningService(param).populateDocumentFromUserDocument(newDocument, userDocument, param.getUser());
 							newDocument.setFolder(parentId);
-							recordServices.add(newDocument);
+							recordServices.add(newDocument, param.getUser());
 							deleteUserDocument(param, rm.wrapUserDocument(record), param.getUser());
 							break;
 						default:

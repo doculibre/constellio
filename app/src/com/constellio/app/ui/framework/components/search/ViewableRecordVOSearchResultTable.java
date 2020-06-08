@@ -30,7 +30,7 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 
 	private Set<Object> selectedItemIds = new HashSet<>();
 	// Optimisation parce que sinon sa prend beaucoup de temps quand on a beaucoup d'élément de sélectionner.
-	private Set<String> selectedItemRecordId = new HashSet<>();
+	private Set<String> selectedRecordIds = new HashSet<>();
 	private Set<Object> deselectedItemIds = new HashSet<>();
 	private boolean allItemsSelected;
 
@@ -73,8 +73,13 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 					for (Object selectedItemId : selectedItemIds) {
 						ViewableRecordVOSearchResultTable.this.selectedItemIds.add(selectedItemId);
 						ViewableRecordVOSearchResultTable.this.deselectedItemIds.remove(selectedItemId);
-						ViewableRecordVOSearchResultTable.this.selectedItemRecordId.add(getRecordVO(selectedItemId).getId());
+						ViewableRecordVOSearchResultTable.this.selectedRecordIds.add(getRecordVO(selectedItemId).getId());
 					}
+
+					if (recordVOContainer.size() == ViewableRecordVOSearchResultTable.this.selectedItemIds.size()) {
+						allItemsSelected = true;
+					}
+
 					presenter.fireSomeRecordsSelected();
 				} else if (event.getDeselectedItemIds() != null) {
 					List<Object> deselectedItemIds = event.getDeselectedItemIds();
@@ -85,7 +90,7 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 
 					for (Object deselectedItemId : deselectedItemIds) {
 						ViewableRecordVOSearchResultTable.this.selectedItemIds.remove(deselectedItemId);
-						ViewableRecordVOSearchResultTable.this.selectedItemRecordId.remove(getRecordVO(deselectedItemId).getId());
+						ViewableRecordVOSearchResultTable.this.selectedRecordIds.remove(getRecordVO(deselectedItemId).getId());
 						ViewableRecordVOSearchResultTable.this.deselectedItemIds.add(deselectedItemId);
 					}
 					if (selectedItemIds.isEmpty()) {
@@ -94,17 +99,17 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 						presenter.fireSomeRecordsSelected();
 					}
 				} else if (event.isAllItemsSelected()) {
-
-					List lRecordIdList = recordVOContainer.getItemIds().stream().map(itemId -> getRecordVO(itemId).getId()).collect(Collectors.toList());
+					List<String> recordIdList = recordVOContainer.getItemIds().stream().map(itemId -> getRecordVO(itemId).getId()).collect(Collectors.toList());
 
 					ViewableRecordVOSearchResultTable.this.allItemsSelected = true;
 					ViewableRecordVOSearchResultTable.this.selectedItemIds.addAll(recordVOContainer.getItemIds());
-					ViewableRecordVOSearchResultTable.this.selectedItemRecordId.addAll(lRecordIdList);
+					ViewableRecordVOSearchResultTable.this.selectedRecordIds.addAll(recordIdList);
 					ViewableRecordVOSearchResultTable.this.deselectedItemIds.clear();
 					presenter.fireSomeRecordsSelected();
 				} else if (event.isAllItemsDeselected()) {
 					ViewableRecordVOSearchResultTable.this.allItemsSelected = false;
 					ViewableRecordVOSearchResultTable.this.selectedItemIds.clear();
+					ViewableRecordVOSearchResultTable.this.selectedRecordIds.clear();
 					ViewableRecordVOSearchResultTable.this.deselectedItemIds.clear();
 					presenter.fireNoRecordSelected();
 				}
@@ -136,7 +141,7 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 			public boolean isSelected(Object itemId) {
 				RecordVO recordVO = getRecordVO(itemId);
 				String recordId = recordVO.getId();
-				return ViewableRecordVOSearchResultTable.this.isSelectAll() || selectedItemRecordId.contains(recordId);
+				return ViewableRecordVOSearchResultTable.this.isSelectAll() || selectedRecordIds.contains(recordId);
 			}
 		};
 	}

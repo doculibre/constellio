@@ -1,5 +1,6 @@
 package com.constellio.data.io;
 
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
@@ -225,18 +226,17 @@ public class ConversionManager implements StatefulService {
 	private OfficeManager officeManager;
 	private AbstractConverter delegate;
 	private ExecutorService executor;
-	private static DataLayerSystemExtensions extensions;
+	private DataLayerSystemExtensions extensions;
+
+	private boolean tiffFilesSupported;
 
 	public ConversionManager(IOServices ioServices, int numberOfProcesses, String onlineConversionUrl,
-							 DataLayerSystemExtensions extensions) {
+							 DataLayerSystemExtensions extensions, DataLayerConfiguration dataLayerConfiguration) {
 		this.ioServices = ioServices;
 		this.numberOfProcesses = numberOfProcesses;
 		this.onlineConversionUrl = onlineConversionUrl;
 		this.extensions = extensions;
-	}
-
-	public static String[] getSupportedExtensions() {
-		return (String[]) ArrayUtils.addAll(SUPPORTED_EXTENSIONS, extensions.getSupportedExtensionExtensions());
+		this.tiffFilesSupported = dataLayerConfiguration.areTiffFilesConvertedForPreview();
 	}
 
 	public boolean isOpenOfficeOrLibreOfficeInstalled() {
@@ -330,18 +330,15 @@ public class ConversionManager implements StatefulService {
 
 	public File convertToJPEG(InputStream inputStream, Dimension dimension, String mimetype, String originalName,
 							  File workingFolder) throws Exception {
-		BufferedImage bufferedImage = ImageIO.read(inputStream);
+		File outputfile = createTempFile("jpegConversion", originalName + ".jpg", workingFolder);
 		if (dimension != null && ImageUtils.isImageOversized(dimension.getHeight())) {
-			String ext = FilenameUtils.getExtension(originalName);
-			File outputfile = createTempFile("jpegConversion", originalName + "." + ext, workingFolder);
-			BufferedImage resizedImage = ImageUtils.resize(bufferedImage);
-			ImageIO.write(resizedImage, ext, outputfile);
-			return outputfile;
+			BufferedImage resizedImage = ImageUtils.resizeWithSubSampling(inputStream);
+			ImageIO.write(resizedImage, "jpg", outputfile);
 		} else {
-			File outputfile = createTempFile("jpegConversion", originalName + ".jpg", workingFolder);
+			BufferedImage bufferedImage = ImageIO.read(inputStream);
 			ImageIO.write(bufferedImage, "jpg", outputfile);
-			return outputfile;
 		}
+		return outputfile;
 	}
 
 	@Override
@@ -379,7 +376,10 @@ public class ConversionManager implements StatefulService {
 		if (openOfficeOrLibreOfficeInstalled) {
 			ensureInitialized();
 			String fileExtension = FilenameUtils.getExtension(input.getName());
-			if (Arrays.asList(extensions.getSupportedExtensionExtensions()).contains(fileExtension)) {
+			if (fileExtension.equalsIgnoreCase("tif") || fileExtension.equalsIgnoreCase("tiff")) {
+				// Special case, ignore
+				throw new RuntimeException("PDF conversion is not supported for tiff");
+			} else if (Arrays.asList(extensions.getSupportedExtensionExtensions()).contains(fileExtension)) {
 				ExtensionConverter converter = extensions.getConverterForSupportedExtension(fileExtension);
 				if (converter != null) {
 					FileInputStream inputStream = null;
@@ -510,13 +510,23 @@ public class ConversionManager implements StatefulService {
 		return pdfaFormat;
 	}
 
-	public static boolean isSupportedExtension(String ext) {
+	public String[] getSupportedExtensions() {
+		List<String> supportedExtensions = new ArrayList<>();
+		String[] potentiallySupportedExtensions = (String[]) ArrayUtils.addAll(SUPPORTED_EXTENSIONS, extensions.getSupportedExtensionExtensions());
+		supportedExtensions.addAll(Arrays.asList(potentiallySupportedExtensions));
+		if (!tiffFilesSupported) {
+			supportedExtensions.remove("tif");
+			supportedExtensions.remove("tiff");
+		}
+		return supportedExtensions.toArray(new String[0]);
+	}
+
+	public boolean isSupportedExtension(String ext) {
 		for (String aSupportedExtension : getSupportedExtensions()) {
 			if (aSupportedExtension.equalsIgnoreCase(ext)) {
 				return true;
 			}
 		}
-
 		return false;
 	}
 }

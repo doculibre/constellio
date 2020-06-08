@@ -393,7 +393,7 @@ public class MetadataSchemaBuilder {
 		MetadataSchema metadataSchema = new MetadataSchema(id, this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(),
 				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators),
-				schemaTypeBuilder.getDataStore(), this.isActive());
+				schemaTypeBuilder.getDataStore(), this.isActive(), modelLayerFactory.getSystemConfigs());
 		return metadataSchema;
 	}
 
@@ -613,7 +613,7 @@ public class MetadataSchemaBuilder {
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
 		MetadataSchema metadataSchema = new MetadataSchema(this.getId(), this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(), inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators)
-				, schemaTypeBuilder.getDataStore(), this.isActive());
+				, schemaTypeBuilder.getDataStore(), this.isActive(), modelLayerFactory.getSystemConfigs());
 		return metadataSchema;
 	}
 

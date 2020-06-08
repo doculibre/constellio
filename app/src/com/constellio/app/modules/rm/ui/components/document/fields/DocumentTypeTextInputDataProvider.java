@@ -74,7 +74,11 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 				newDocumentTypes = getDocumentTypesFilteredByRetentionRule();
 			}
 
-			if (!newDocumentTypes.isEmpty()) {
+			if (!newDocumentTypes.isEmpty()
+				|| rmConfigs.getDocumentsTypesChoice()
+				   == DocumentsTypeChoice.FORCE_LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES
+				|| rmConfigs.getDocumentsTypesChoice()
+				   == DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES) {
 				condition = condition.andWhere(Schemas.IDENTIFIER).isIn(newDocumentTypes);
 			}
 		}

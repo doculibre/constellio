@@ -1,7 +1,10 @@
 package com.constellio.app.modules.rm.reports.model.search;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.modules.rm.reports.model.excel.BaseExcelReportPresenter;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Report;
@@ -43,6 +46,7 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 	private final String username;
 	private final String reportTitle;
 	private final LogicalSearchQuery searchQuery;
+	private final SchemasDisplayManager displayManager;
 	private final User userInCollection;
 
 	public SearchResultReportPresenter(AppLayerFactory appLayerFactory, List<String> selectedRecords, String schemaType,
@@ -54,7 +58,8 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 		this.collection = collection;
 		this.username = username;
 		this.reportTitle = reportTitle;
-		this.searchQuery = searchQuery;
+		this.searchQuery = searchQuery != null ? new LogicalSearchQuery(searchQuery) : null;
+		this.displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		userInCollection = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(username, collection);
 	}
 
@@ -67,7 +72,19 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 			resultReportModel.addTitle(metadata.getLabel(Language.withCode(locale.getLanguage())));
 		}
 		Iterator<Record> recordsIterator;
-		if (searchQuery != null) {
+		if (selectedRecords != null && !selectedRecords.isEmpty()) {
+			List<Record> selectedRecordObjects = new ArrayList<>(modelLayerFactory.newRecordServices().getRecordsById(collection, selectedRecords));
+			Collections.sort(selectedRecordObjects, new Comparator<Record>() {
+				@Override
+				public int compare(Record o1, Record o2) {
+					Integer indexOfO1 = new Integer(selectedRecords.indexOf(o1.getId()));
+					Integer indexOfO2 = new Integer(selectedRecords.indexOf(o2.getId()));
+					return indexOfO1.compareTo(indexOfO2);
+				}
+			});
+			recordsIterator = selectedRecordObjects.iterator();
+		} else if (searchQuery != null) {
+			searchQuery.setReturnedMetadatas(ReturnedMetadatasFilter.all());
 			recordsIterator = modelLayerFactory.newSearchServices().recordsIteratorKeepingOrder(searchQuery, 200);
 		}
 		//TODO DO Not use searchQuery
@@ -153,6 +170,17 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 			for (Object item : items) {
 				convertedValue.add(getConvertedScalarValue(metadata, item));
 			}
+
+			if (metadata.getType() == MetadataValueType.REFERENCE &&
+				displayManager.getMetadata(collection, metadata.getCode()).getSortingType() == MetadataSortingType.ALPHANUMERICAL_ORDER) {
+				Collections.sort(convertedValue, new Comparator<Object>() {
+					@Override
+					public int compare(Object o1, Object o2) {
+						return LangUtils.compareStrings(o1.toString(), o2.toString());
+					}
+				});
+			}
+
 			if (convertedValue.isEmpty()) {
 				return "";
 			}

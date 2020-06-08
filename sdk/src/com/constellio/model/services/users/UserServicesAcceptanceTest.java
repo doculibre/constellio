@@ -17,7 +17,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
@@ -1188,7 +1187,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void TryingToSafePhysicalDeleteAllUnusedUsers()
+	public void tryingToSafePhysicalDeleteAllUnusedUsers()
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers());
 
@@ -1218,7 +1217,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void TryingToPhysicallyRemoveUser()
+	public void tryingToPhysicallyRemoveUser()
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers());
 
@@ -1257,7 +1256,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void TryingToRestoreDeletedGroup()
+	public void tryingToRestoreDeletedGroup()
 			throws Exception {
 		RMTestRecords records = new RMTestRecords(zeCollection);
 		prepareSystem(
@@ -1287,7 +1286,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void TryingToSetAndGetNewMetadata()
+	public void tryingToSetAndGetNewMetadata()
 			throws Exception {
 		RMTestRecords records = new RMTestRecords(zeCollection);
 		prepareSystem(
@@ -1464,4 +1463,52 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 		userServices.addUpdateUserCredential(thirdUser);
 	}
+
+	@Test
+	public void givenUserWithoutLinkedRecordWhenPhysicallyRemovingUserCredentialsThenDeleted()
+			throws Exception {
+		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers());
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		userServices = getModelLayerFactory().newUserServices();
+		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
+		Users users = new Users();
+		users.setUp(getModelLayerFactory().newUserServices());
+		User chuck = users.chuckNorrisIn(zeCollection);
+
+		UserCredential chuckUserCredential = userCredentialsManager.getUserCredential(chuck.getUsername());
+		userServices.physicallyRemoveUserCredentialAndUsers(chuckUserCredential);
+		//OK !
+	}
+
+	@Test
+	public void givenUserWithLinkedRecordWhenPhysicallyRemovingUserCredentialsThenException()
+			throws Exception {
+		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers());
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		userServices = getModelLayerFactory().newUserServices();
+		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
+		Users users = new Users();
+		users.setUp(getModelLayerFactory().newUserServices());
+		User chuck = users.chuckNorrisIn(zeCollection);
+		Cart c = rm.getOrCreateUserCart(chuck);
+		Transaction t = new Transaction();
+		c.setTitle("Ze cart");
+		t.add(c);
+		recordServices.execute(t);
+
+		UserCredential chuckUserCredential = userCredentialsManager.getUserCredential(chuck.getUsername());
+
+		try {
+			userServices.physicallyRemoveUserCredentialAndUsers(chuckUserCredential);
+			fail();
+		} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
+			System.out.println(e.getMessage());
+			//OK !
+		}
+	}
+	
 }

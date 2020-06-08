@@ -20,6 +20,11 @@ public class ImportSchemaTypesFilePresenter extends ImportFilePresenter {
 	}
 
 	@Override
+	public boolean isLegacyIdIndexDisabledWarningVisible() {
+		return false;
+	}
+
+	@Override
 	protected ImportDataProvider getXMLImportDataProviderForSingleXMLFile(ModelLayerFactory modelLayerFactory,
 																		  File file,
 																		  String fileName) {
@@ -32,7 +37,12 @@ public class ImportSchemaTypesFilePresenter extends ImportFilePresenter {
 	}
 
 	@Override
-	protected ImportDataProvider getExcelImportDataProviderFromFile(File file) {
+	protected ImportDataProvider getExcel2003ImportDataProviderFromFile(File file) {
+		return null;
+	}
+
+	@Override
+	protected ImportDataProvider getExcel2007ImportDataProviderFromFile(File file) {
 		return null;
 	}
 }

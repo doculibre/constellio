@@ -3,6 +3,7 @@ package com.constellio.app.modules.restapi.folder.dao;
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
 import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
 import com.constellio.app.modules.restapi.core.exception.RecordCopyNotPermittedException;
+import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
 import com.constellio.app.modules.restapi.core.exception.UnresolvableOptimisticLockException;
 import com.constellio.app.modules.restapi.folder.dto.FolderDto;
 import com.constellio.app.modules.restapi.resource.dao.ResourceDao;
@@ -20,6 +21,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 
 import java.util.ArrayList;
@@ -73,6 +75,22 @@ public class FolderDao extends ResourceDao {
 		recordServices.execute(transaction);
 
 		return copyFolder.getWrappedRecord();
+	}
+
+	public void deleteFolder(User user, Record folderRecord, boolean physical) {
+		Boolean logicallyDeleted = folderRecord.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS);
+
+		if (physical) {
+			if (!Boolean.TRUE.equals(logicallyDeleted)) {
+				recordServices.logicallyDelete(folderRecord, user);
+			}
+			recordServices.physicallyDelete(folderRecord, user);
+		} else {
+			if (Boolean.TRUE.equals(logicallyDeleted)) {
+				throw new RecordLogicallyDeletedException(folderRecord.getId());
+			}
+			recordServices.logicallyDelete(folderRecord, user);
+		}
 	}
 
 	public Record updateFolder(User user, Record folderRecord, MetadataSchema folderSchema, FolderDto folder,

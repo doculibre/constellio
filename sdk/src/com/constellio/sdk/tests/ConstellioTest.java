@@ -3,13 +3,17 @@ package com.constellio.sdk.tests;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.dev.Toggle.AvailableToggle;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.sdk.tests.annotations.PreserveState;
+import com.constellio.sdk.tests.setups.SchemaShortcuts;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.junit.After;
@@ -60,10 +64,11 @@ public class ConstellioTest extends AbstractConstellioTest {
 		///Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.enable();
 		Toggle.USE_FILESYSTEM_DB_FOR_LARGE_METADATAS_CACHE.disable();
 		if (SystemUtils.IS_OS_WINDOWS) {
-			Toggle.USE_MMAP_WITHMAP_DB.disable();
+			Toggle.USE_MMAP_WITHMAP_DB_FOR_RUNTIME.disable();
+			Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.disable();
 		}
 		Toggle.ROLES_WITH_NEW_7_2_PERMISSIONS.enable();
-
+		Toggle.STRUCTURE_CACHE_BASED_ON_EXISTING_IDS.disable();
 		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 		if (!isKeepingPreviousState() && testSession.getFactoriesTestFeatures() != null && IS_FIRST_EXECUTED_TEST) {
 
@@ -101,6 +106,29 @@ public class ConstellioTest extends AbstractConstellioTest {
 			}
 		}
 		currentInstance = this;
+	}
+
+	protected void execute(Transaction tx) throws RecordServicesException {
+		getModelLayerFactory().newRecordServices().execute(tx);
+	}
+
+	protected Record newRecord(SchemaShortcuts schemaShortcuts) {
+		return getModelLayerFactory().newRecordServices().newRecordWithSchema(schemaShortcuts.instance());
+	}
+
+
+	protected Record newRecord(SchemaShortcuts schemaShortcuts, String id) {
+		return getModelLayerFactory().newRecordServices().newRecordWithSchema(schemaShortcuts.instance(), id);
+	}
+
+
+	protected Record newRecord(MetadataSchema schema) {
+		return getModelLayerFactory().newRecordServices().newRecordWithSchema(schema);
+	}
+
+
+	protected Record newRecord(MetadataSchema schema, String id) {
+		return getModelLayerFactory().newRecordServices().newRecordWithSchema(schema, id);
 	}
 
 	public static ConstellioTest getInstance() {

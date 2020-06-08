@@ -9,8 +9,10 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.exceptions.CollectionIdNotSetRuntimeException;
+import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO;
+import com.constellio.model.services.records.cache.ByteArrayRecordDTOUtilsAcceptanceTest;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -116,7 +118,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenPreloadingCacheWithSpacedIdsThenNoSpaceReservedForIdsBetween() throws Exception {
+	public void whenInsertWithoutReservingSpaceThenNoSpaceReservedForIdsBetween() throws Exception {
 		defineSchemasManager().using(setup.withABooleanMetadata(whichIsEssentialInSummary));
 
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
@@ -146,6 +148,57 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 
 		assertThat(dataStore.intIdsDataStore.schema.stream().collect(toList()))
 				.containsExactly(zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, (short) 0, zeSchemaDefaultId);
+
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
+				.containsExactly(dto1, dto3, dto6, dto8);
+
+
+	}
+
+
+	@Test
+	public void whenPreloadingUsingListOfIdsBeforeNormalInsertsThenNoSpaceReservedForIdsSmallerThanTheListBetween()
+			throws Exception {
+		defineSchemasManager().using(setup.withABooleanMetadata(whichIsEssentialInSummary));
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(zeSchema.typeCode()).setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE);
+			}
+		});
+		initTestVariables();
+
+		dataStore.structureCacheUsingExistingIds(asList(RecordId.toId(1), RecordId.toId(2), RecordId.toId(3), RecordId.toId(6)).iterator());
+
+		assertThat(dataStore.getIntIdsDataStore().ids.stream().collect(toList()))
+				.containsExactly(1, 2, 3, 6);
+
+		assertThat(dataStore.intIdsDataStore.versions.stream().collect(toList()))
+				.containsExactly(0L, 0L, 0L, 0L);
+
+		assertThat(dataStore.intIdsDataStore.schema.stream().collect(toList()))
+				.containsExactly((short) 0, (short) 0, (short) 0, (short) 0);
+
+		ByteArrayRecordDTO dto1, dto2, dto3, dto6, dto7, dto8;
+		dto1 = create(new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto3 = create(new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto6 = create(new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto8 = create(new SolrRecordDTO(zeroPadded(8), 45L, fields("zeCollection", zeSchema.code()), SUMMARY));
+
+		dataStore.insert(dto1);
+		dataStore.insert(dto3);
+		dataStore.insert(dto6);
+		dataStore.insert(dto8);
+
+		assertThat(dataStore.getIntIdsDataStore().ids.stream().collect(toList()))
+				.containsExactly(1, 2, 3, 6, 7, 8);
+
+		assertThat(dataStore.intIdsDataStore.versions.stream().collect(toList()))
+				.containsExactly(12L, 0L, 23L, 34L, 0L, 45L);
+
+		assertThat(dataStore.intIdsDataStore.schema.stream().collect(toList()))
+				.containsExactly(zeSchemaDefaultId, (short) 0, zeSchemaDefaultId, zeSchemaDefaultId, (short) 0, zeSchemaDefaultId);
 
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsExactly(dto1, dto3, dto6, dto8);
@@ -457,6 +510,8 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 			}
 		});
 		initTestVariables();
+
+		assertThat(dataStore.intIdsDataStore.ids.stream().collect(toList())).isEmpty();
 
 		ByteArrayRecordDTO dto1, dto2, dto3, dto6, dto8;
 		dto1 = create(new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), SUMMARY));
@@ -1044,7 +1099,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 	}
 
 	private ByteArrayRecordDTO create(SolrRecordDTO solrRecordDTO) {
-		return ByteArrayRecordDTO.create(getModelLayerFactory(), solrRecordDTO);
+		return ByteArrayRecordDTOUtilsAcceptanceTest.create(getModelLayerFactory(), solrRecordDTO);
 	}
 
 	private String zeroPadded(int i) {

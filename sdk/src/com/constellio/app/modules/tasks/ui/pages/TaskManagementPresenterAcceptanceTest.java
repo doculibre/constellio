@@ -6,6 +6,8 @@ import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.pages.base.ConstellioMenuImpl;
+import com.constellio.app.ui.pages.base.MainLayoutImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
@@ -19,7 +21,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import java.util.List;
 import java.util.Locale;
@@ -27,12 +28,13 @@ import java.util.Locale;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 	Users users = new Users();
 	@Mock TaskManagementView view;
+	@Mock ConstellioMenuImpl menu;
+	@Mock MainLayoutImpl mainLayout;
 	MockedNavigation navigator;
 	SessionContext sessionContext;
 	private RecordServices recordServices;
@@ -62,6 +64,8 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.navigate()).thenReturn(navigator);
 		when(view.getTimestamp()).thenReturn(TaskManagementViewImpl.Timestamp.ALL);
+		when(view.getMainLayout()).thenReturn(mainLayout);
+		when(mainLayout.getMenu()).thenReturn(menu);
 
 		bobHasReadAccessOnTask = users.bobIn(zeCollection);
 		aliceHasWriteAccessOnZeTask = users.aliceIn(zeCollection);
@@ -87,6 +91,66 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenUserCreatedFinishedTaskThenVisibleInRecentlyClosedTask()
+			throws Exception {
+		ArgumentCaptor<RecordVODataProvider> argumentCaptor = ArgumentCaptor.forClass(RecordVODataProvider.class);
+		doNothing().when(view).displayTasks(argumentCaptor.capture());
+
+		recordServices.add(zeTask.setStatus(COMPLETED()).setAssignee(null).setAssignationDate(null)
+				.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
+
+		presenter.tabSelected(view.TASKS_RECENTLY_COMPLETED);
+
+		RecordVODataProvider recordVODataProvider = argumentCaptor.getValue();
+		List<RecordVO> recordVOList = recordVODataProvider.listRecordVOs(0, recordVODataProvider.size());
+
+		assertThat(recordVOList).hasSize(1);
+		assertThat(recordVOList.get(0).getId()).isEqualTo(zeTask.getId());
+	}
+
+	@Test
+	public void givenUserAssignedToFinishedTaskThenVisibleInRecentlyClosedTask()
+			throws Exception {
+		sessionContext = FakeSessionContext.aliceInCollection(zeCollection);
+		sessionContext.setCurrentLocale(Locale.FRENCH);
+
+		ArgumentCaptor<RecordVODataProvider> argumentCaptor = ArgumentCaptor.forClass(RecordVODataProvider.class);
+		doNothing().when(view).displayTasks(argumentCaptor.capture());
+
+		recordServices.add(zeTask.setStatus(COMPLETED()).setAssignee(null).setAssignationDate(null)
+				.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
+
+		presenter.tabSelected(view.TASKS_RECENTLY_COMPLETED);
+
+		RecordVODataProvider recordVODataProvider = argumentCaptor.getValue();
+		List<RecordVO> recordVOList = recordVODataProvider.listRecordVOs(0, recordVODataProvider.size());
+
+		assertThat(recordVOList).hasSize(1);
+		assertThat(recordVOList.get(0).getId()).isEqualTo(zeTask.getId());
+	}
+
+	@Test
+	public void givenUserNotAssignedToFinishedTaskAndIsNotTheCreatorThenInvisibleInRecentlyClosedTask()
+			throws Exception {
+		sessionContext = FakeSessionContext.chuckNorrisInCollection(zeCollection);
+		sessionContext.setCurrentLocale(Locale.FRENCH);
+
+		ArgumentCaptor<RecordVODataProvider> argumentCaptor = ArgumentCaptor.forClass(RecordVODataProvider.class);
+		doNothing().when(view).displayTasks(argumentCaptor.capture());
+
+		recordServices.add(zeTask.setStatus(COMPLETED()).setAssignee(null).setAssignationDate(null)
+				.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
+
+		presenter.tabSelected(view.TASKS_RECENTLY_COMPLETED);
+
+		RecordVODataProvider recordVODataProvider = argumentCaptor.getValue();
+		List<RecordVO> recordVOList = recordVODataProvider.listRecordVOs(0, recordVODataProvider.size());
+
+		assertThat(recordVOList).hasSize(1);
+		assertThat(recordVOList.get(0).getId()).isEqualTo(zeTask.getId());
+	}
+
+	@Test
 	public void givenUserCreatedClosedTaskThenVisibleInRecentlyClosedTask()
 			throws Exception {
 		ArgumentCaptor<RecordVODataProvider> argumentCaptor = ArgumentCaptor.forClass(RecordVODataProvider.class);
@@ -95,7 +159,7 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.add(zeTask.setStatus(CLOSED()).setAssignee(null).setAssignationDate(null)
 				.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
 
-		presenter.tabSelected(view.TASKS_RECENTLY_COMPLETED);
+		presenter.tabSelected(view.TASKS_RECENTLY_CLOSED);
 
 		RecordVODataProvider recordVODataProvider = argumentCaptor.getValue();
 		List<RecordVO> recordVOList = recordVODataProvider.listRecordVOs(0, recordVODataProvider.size());
@@ -116,7 +180,7 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.add(zeTask.setStatus(CLOSED()).setAssignee(null).setAssignationDate(null)
 				.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
 
-		presenter.tabSelected(view.TASKS_RECENTLY_COMPLETED);
+		presenter.tabSelected(view.TASKS_RECENTLY_CLOSED);
 
 		RecordVODataProvider recordVODataProvider = argumentCaptor.getValue();
 		List<RecordVO> recordVOList = recordVODataProvider.listRecordVOs(0, recordVODataProvider.size());
@@ -137,7 +201,7 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.add(zeTask.setStatus(CLOSED()).setAssignee(null).setAssignationDate(null)
 				.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
 
-		presenter.tabSelected(view.TASKS_RECENTLY_COMPLETED);
+		presenter.tabSelected(view.TASKS_RECENTLY_CLOSED);
 
 		RecordVODataProvider recordVODataProvider = argumentCaptor.getValue();
 		List<RecordVO> recordVOList = recordVODataProvider.listRecordVOs(0, recordVODataProvider.size());
@@ -146,9 +210,16 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(recordVOList.get(0).getId()).isEqualTo(zeTask.getId());
 	}
 
+
 	public String CLOSED() {
 		TaskStatus frenchType = tasksSchemas.getTaskStatusWithCode(TaskStatus.CLOSED_CODE);
 		assertThat(frenchType.isAfterFinished()).isTrue();
+		return frenchType.getId();
+	}
+
+	public String COMPLETED() {
+		TaskStatus frenchType = tasksSchemas.getTaskStatusWithCode("TER");
+		assertThat(frenchType.isFinished()).isTrue();
 		return frenchType.getId();
 	}
 }

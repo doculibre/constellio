@@ -194,7 +194,6 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 				}
 			}
 
-			modelLayerFactory().newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
 			if (physically && !putFirstInTrash) {
 				recordServices().physicallyDeleteNoMatterTheStatus(record, user, new RecordPhysicalDeleteOptions());
 			}

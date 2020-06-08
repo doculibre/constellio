@@ -13,15 +13,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class DTOUtilsByteArrayDataOutputStream implements Closeable {
+import static org.apache.commons.lang.CharEncoding.UTF_8;
+
+public class DTOUtilsByteArrayDataOutputStream implements Closeable {
 	ByteArrayOutputStream byteArrayOutputStream;
 	DataOutputStream dataOutputStream;
 	boolean persisted;
 
-	long length;
+	int length;
 	List<List<Object>> debugInfos;
 
 	CompiledDTOStatsBuilder statsBuilder;
+
 
 	public DTOUtilsByteArrayDataOutputStream(boolean persisted, CompiledDTOStatsBuilder statsBuilder) {
 		this.byteArrayOutputStream = new ByteArrayOutputStream();
@@ -83,7 +86,11 @@ class DTOUtilsByteArrayDataOutputStream implements Closeable {
 		}
 	}
 
-	public void writeShort(Metadata relatedMetadata, int v) throws IOException {
+	public void writeShort(Metadata relatedMetadata, int v)
+			throws IOException {
+		if (v > Short.MAX_VALUE || v < Short.MIN_VALUE) {
+			throw new IllegalArgumentException("Cannot write that int as a short value : " + v);
+		}
 		logLength(relatedMetadata, Short.BYTES);
 		dataOutputStream.writeShort(v);
 
@@ -91,6 +98,67 @@ class DTOUtilsByteArrayDataOutputStream implements Closeable {
 			logDebugInfo(relatedMetadata, Short.BYTES, "short", "" + v);
 		}
 	}
+
+
+	/**
+	 * Value ranging from -1 to 65533 are written on 2 bytes
+	 * Value ranging from 65534 to 131068 are written on 4 byte
+	 * Value ranging from 131069 to Max int are written on 8 byte
+	 * etc
+	 */
+	public void writeCompactedIntFromByteArray_2_4_8(Metadata relatedMetadata, int value) throws IOException {
+
+		int length;
+		if (value < 65534) {
+			logLength(relatedMetadata, length = 2);
+			dataOutputStream.writeShort((short) (value - Short.MAX_VALUE + 1));
+
+		} else {
+			writeShort(relatedMetadata, Short.MIN_VALUE);
+
+			if (value < 131069) {
+				logLength(relatedMetadata, length = 4);
+				dataOutputStream.writeShort((short) (value - 65535 - Short.MAX_VALUE + 1));
+			} else {
+				logLength(relatedMetadata, length = 8);
+				dataOutputStream.writeShort(Short.MIN_VALUE);
+				dataOutputStream.writeInt(value);
+			}
+
+		}
+
+		if (Toggle.DEBUG_DTOS.isEnabled()) {
+			logDebugInfo(relatedMetadata, length, "CompactInt", "" + value);
+		}
+	}
+
+	/**
+	 * Value ranging from -127 to 127 are written on 1 bytes
+	 * Value ranging from -254 to 254 are written on 2 bytes
+	 * Value ranging from -32768 to 32767 are written on 4 bytes
+	 * etc
+	 */
+	public void writeCompactedShortFromByteArray_1_2_4(Metadata relatedMetadata, short value) throws IOException {
+		if (value >= -127 && value <= 127) {
+			writeByte(relatedMetadata, (byte) value);
+
+		} else {
+			writeByte(relatedMetadata, Byte.MIN_VALUE);
+			if (value >= -254 && value <= 254) {
+				if (value < 0) {
+					writeByte(relatedMetadata, (byte) (value + Byte.MAX_VALUE));
+				} else {
+					writeByte(relatedMetadata, (byte) (value - Byte.MAX_VALUE));
+				}
+			} else {
+				writeByte(relatedMetadata, Byte.MIN_VALUE);
+				writeShort(relatedMetadata, value);
+			}
+
+		}
+
+	}
+
 
 	public void writeChar(Metadata relatedMetadata, int v) throws IOException {
 		logLength(relatedMetadata, Character.BYTES);
@@ -139,12 +207,24 @@ class DTOUtilsByteArrayDataOutputStream implements Closeable {
 		}
 	}
 
-	public void writeBytes(Metadata relatedMetadata, String s) throws IOException {
-		logLength(relatedMetadata, s.length() * Byte.BYTES);
-		dataOutputStream.writeBytes(s);
+	public void writeBytes(Metadata relatedMetadata, String s, boolean utf8) throws IOException {
+		if (utf8) {
+			byte[] bytes = s.getBytes(UTF_8);
+			int size = bytes.length;
 
-		if (Toggle.DEBUG_DTOS.isEnabled()) {
-			logDebugInfo(relatedMetadata, s.length() * Byte.BYTES, "String as bytes", s);
+			logLength(relatedMetadata, size);
+			dataOutputStream.write(bytes);
+
+			if (Toggle.DEBUG_DTOS.isEnabled()) {
+				logDebugInfo(relatedMetadata, size, "String as UTF-8 bytes", s);
+			}
+		} else {
+			logLength(relatedMetadata, s.length() * Byte.BYTES);
+			dataOutputStream.writeBytes(s);
+
+			if (Toggle.DEBUG_DTOS.isEnabled()) {
+				logDebugInfo(relatedMetadata, s.length() * Byte.BYTES, "String as bytes", s);
+			}
 		}
 	}
 

@@ -320,7 +320,9 @@ public class TaskRecordExtension extends RecordExtension {
 	}
 
 	public void taskInCreation(Task task, RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event) {
-		sendEmailToAssignee(task);
+		if (StringUtils.isBlank(task.getLegacyId())) {
+			sendEmailToAssignee(task);
+		}
 		TaskStatus currentStatus = (task.getStatus() == null) ? null : tasksSchema.getTaskStatus(task.getStatus());
 		updateEndDateAndStartDateIfNecessary(task, currentStatus);
 	}
@@ -459,10 +461,11 @@ public class TaskRecordExtension extends RecordExtension {
 		if (event.hasModifiedMetadata(Task.STATUS)) {
 			TaskStatus currentStatus = (task.getStatus() == null) ? null : tasksSchema.getTaskStatus(task.getStatus());
 			if (currentStatus != null && currentStatus.isFinished()) {
-				sendTaskCompletedEmail(task, event);////////////////////////////////
+				sendTaskCompletedEmail(task, event);
 			} else {
-				sendStatusModificationToFollowers(task, event);////////////////////////////////
+				sendStatusModificationToFollowers(task, event);
 			}
+			task.setReadByUser(true);
 		}
 		//FIXME Francis plusieurs courriels envoyés si plusieurs sous taches modifiees
 		if (event.hasModifiedMetadata(Task.PARENT_TASK)) {

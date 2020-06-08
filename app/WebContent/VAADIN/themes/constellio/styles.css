@@ -12286,6 +12286,14 @@ div.v-layout.v-horizontal.v-widget {
 	cursor: pointer;
 }
 
+.constellio .action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
+	content: "";
+	position: relative;
+	top: 5px;
+	margin-left: -2px;
+	opacity: 1;
+}
+
 .constellio .v-slot-modify-profile-image .v-widget {
 	text-align: center;
 }
@@ -14345,6 +14353,16 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-y: hidden;
 }
 
+.constellio .search-button-icon-only .v-button-caption {
+	display: none;
+}
+
+.constellio .search-button-icon-only:before {
+	content: "\f002";
+	margin-top: 5px;
+	margin-left: -14px;
+}
+
 .constellio .viewable-record-window {
 	width: 100%;
 }
@@ -14436,6 +14454,10 @@ div.v-layout.v-horizontal.v-widget {
 	border-color: #ed473b !important;
 	background: #fffbfb;
 	color: #6c2621;
+}
+
+.constellio .list-add-remove-table-sortable .v-table-table .v-table-row, .constellio .list-add-remove-table-sortable .v-table-table .v-table-row-odd, .constellio .metadata-groups .v-table-table .v-table-row, .constellio .metadata-groups .v-table-table .v-table-row-odd {
+	cursor: all-scroll;
 }
 
 .constellio .list-add-remove-error {
@@ -15329,6 +15351,19 @@ div.v-layout.v-horizontal.v-widget {
 	top: 40px;
 }
 
+.constellio .display-folder-view .search-in-folder-button {
+	padding-left: 10px;
+}
+
+.constellio .display-folder-view .folder-search-layout {
+	padding-left: 10px;
+}
+
+.constellio .display-folder-view .folder-search-layout .v-slot-folder-search-include-tree {
+	position: relative;
+	top: 8px;
+}
+
 .constellio .-facets-sliderpanel .v-sliderpanel-wrapper .v-sliderpanel-content {
 	position: relative;
 	background-color: #414B56;
@@ -15348,6 +15383,13 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .-facets-sliderpanel .v-radiobutton label {
 	color: #000000;
+}
+
+.constellio .-facets-sliderpanel .facet-apply {
+	left: 14px;
+	color: #fafafa;
+	background-color: #414B56;
+	background-image: none;
 }
 
 .constellio .viewable-record-table-panel .v-slot-main-component {
@@ -15415,7 +15457,7 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .viewable-record-table-panel .close-viewer-button {
 	position: relative;
 	top: -2px;
-	z-index: 2;
+	z-index: 12;
 	color: #197de1;
 	font-size: 24px;
 }
@@ -15486,6 +15528,10 @@ div.v-layout.v-horizontal.v-widget {
 	top: 2px;
 	font-size: 14px;
 	font-weight: 700;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .v-button {
+	white-space: initial;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-title {
@@ -15603,6 +15649,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .viewable-record-table-panel .viewable-record-table-table-mode .v-table-cell-content {
 	vertical-align: middle;
+}
+
+.constellio .viewable-record-table-panel-with-index .viewable-record-table .v-slot-search-result-index {
+	display: block;
 }
 
 .constellio .collapsible-horizontal-splitpanel {
@@ -15774,127 +15824,123 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-y: auto;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .v-panel-content-content-view-wrapper {
-	overflow-x: hidden;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component {
 	top: -10px;
 	padding-left: 5px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .v-caption-list-add-remove {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .v-caption-list-add-remove {
 	padding-left: 0px;
 	font-weight: bold;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .list-add-remove {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .list-add-remove {
 	border: 1px solid lightgray;
 	padding: 2px;
 	text-align: center;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .list-add-remove .v-slot-list-add-remove-table {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .list-add-remove .v-slot-list-add-remove-table {
 	width: 100%;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .list-add-remove .v-slot-list-add-remove-table .reference-display {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .list-add-remove .v-slot-list-add-remove-table .reference-display {
 	padding-right: 0px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .record-comments-layout {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .record-comments-layout {
 	width: 100%;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .v-has-caption {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .v-has-caption {
 	width: 100%;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .v-has-caption .list-add-remove-comment {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .v-has-caption .list-add-remove-comment {
 	width: 100%;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .reference-display {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .reference-display {
 	white-space: normal;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .visited-link {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .visited-link {
 	color: #551A8B;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .agent-action-link {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .agent-action-link {
 	white-space: normal;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .download-content-version-link {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .download-content-version-link {
 	white-space: normal;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .copy-retention-rule-table-medium-types-field {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .copy-retention-rule-table-medium-types-field {
 	border: none;
 	padding: 0;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .v-caption-display-value-retentionRule_default_copyRetentionRules {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .v-caption-display-value-retentionRule_default_copyRetentionRules {
 	padding-left: 0px;
 	font-weight: bold;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .display-value-retentionRule_default_copyRetentionRules {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .display-value-retentionRule_default_copyRetentionRules {
 	padding-left: 0px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .spell-checker .spell-checker-suggestion {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .spell-checker .spell-checker-suggestion {
 	padding-left: 5px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-detailed-table * {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .search-result-detailed-table * {
 	border: none;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-detailed-table .v-table-table {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .search-result-detailed-table .v-table-table {
 	box-shadow: none;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-detailed-table .v-table-row-odd {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .search-result-detailed-table .v-table-row-odd {
 	background-color: #fff;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-search-result-table-panel {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .viewable-record-search-result-table-panel {
 	border-top: 1px solid #d5d5d5;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .task-table .reference-display-link {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .main-component .task-table .reference-display-link {
 	color: inherit;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .facet-box {
 	border: 1px solid #3a434d;
 	border-radius: 4px;
 	background-color: #414B56;
 	background-image: linear, to left, #38414a 0%, #414B56 9px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box .facet-title {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .facet-box .facet-title {
 	color: #fff;
 	font-size: 0.9em;
 	padding-left: 13px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box table * {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .facet-box table * {
 	border: none;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box .v-table-cell-content {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .facet-box .v-table-cell-content {
 	height: auto;
 	padding-top: 2px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box .v-table-row-odd {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .facet-box .v-table-row-odd {
 	background-color: #fff;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box .v-checkbox > label {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .facet-box .v-checkbox > label {
 	max-width: 260px;
 	word-break: break-word;
 	white-space: normal;
@@ -15904,40 +15950,40 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 10px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box .v-checkbox > label:hover {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .facet-box .v-checkbox > label:hover {
 	text-decoration: underline;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .facet-box-viewer {
 	border: 1px solid #d5d5d5;
 	background-color: #fafafa;
 	background-image: -webkit-linear-gradient(top, #fafafa 2%, #f6f6f6 98%);
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .facet-title {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .facet-box-viewer .facet-title {
 	font-size: 0.9em;
 	padding-left: 13px;
 	border-bottom: 1px solid #d5d5d5;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer table * {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .facet-box-viewer table * {
 	border: none;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .v-table-body {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .facet-box-viewer .v-table-body {
 	border: none;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .v-table-cell-content {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .facet-box-viewer .v-table-cell-content {
 	height: auto;
 	padding-top: 2px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .v-table-row-odd {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .facet-box-viewer .v-table-row-odd {
 	background-color: #fff;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .v-checkbox > label {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .facet-box-viewer .v-checkbox > label {
 	max-width: 260px;
 	word-break: break-word;
 	white-space: normal;
@@ -15947,24 +15993,24 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 10px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .v-checkbox > label:hover {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .facet-box-viewer .v-checkbox > label:hover {
 	text-decoration: underline;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .sort-box {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .sort-box {
 	border: 1px solid #3a434d;
 	border-radius: 4px;
 	background-color: #414B56;
 	background-image: linear, to left, #38414a 0%, #414B56 9px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .sort-box .sort-title {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .sort-box .sort-title {
 	color: #fff;
 	font-size: 0.9em;
 	padding-left: 13px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .sort-box .sort-box-content {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .sort-box .sort-box-content {
 	font-size: 0.8em;
 	background: #fff;
 	padding-left: 13px;
@@ -15973,19 +16019,19 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 13px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .sort-box-viewer {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .sort-box-viewer {
 	border: 1px solid #d5d5d5;
 	background-color: #fafafa;
 	background-image: -webkit-linear-gradient(top, #fafafa 2%, #f6f6f6 98%);
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .sort-box-viewer .sort-title {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .sort-box-viewer .sort-title {
 	font-size: 0.9em;
 	padding-left: 13px;
 	border-bottom: 1px solid #d5d5d5;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .sort-box-viewer .sort-box-content {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .sort-box-viewer .sort-box-content {
 	font-size: 0.8em;
 	background: #fff;
 	padding-left: 13px;
@@ -15994,34 +16040,34 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 13px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .records-management .v-tree-node-caption:hover, .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .display-folder .v-tree-node-caption:hover {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .records-management .v-tree-node-caption:hover, .constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .display-folder .v-tree-node-caption:hover {
 	color: white;
 	background-color: #197de1;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .display-folder-upload-field {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .display-folder-upload-field {
 	margin-bottom: -20px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .display-folder-upload-field .v-multifileupload-dropzone {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .display-folder-upload-field .v-multifileupload-dropzone {
 	display: none;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .display-folder-upload-field .v-button {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .display-folder-upload-field .v-button {
 	display: none;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .display-folder-upload-field .base-upload-field-table {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .display-folder-upload-field .base-upload-field-table {
 	display: none;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-layout {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .action-menu-layout {
 	width: 225px;
 	border: 1px solid #3a434d;
 	border-radius: 4px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-layout .v-button {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .action-menu-layout .v-button {
 	padding-left: 8px;
 	color: white;
 	font-weight: normal;
@@ -16035,32 +16081,32 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: linear, to left, #38414a 0%, #414B56 9px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-layout .v-button:hover {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .action-menu-layout .v-button:hover {
 	color: #197de1;
 	background-color: #3a434d;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-layout .v-button:after {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .action-menu-layout .v-button:after {
 	box-shadow: none;
 	border: none;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-layout .v-disabled:hover {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .action-menu-layout .v-disabled:hover {
 	color: white;
 	background-color: #414B56;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .v-caption-action-menu-bar {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .v-caption-action-menu-bar {
 	display: none;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .action-menu-bar {
 	z-index: 2000;
 	position: absolute;
-	right: 30px;
+	right: -20px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
 	content: "";
 	position: relative;
 	top: 5px;
@@ -16068,47 +16114,50 @@ div.v-layout.v-horizontal.v-widget {
 	opacity: 1;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar .v-menubar-menuitem {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .action-menu-bar .v-menubar-menuitem {
 	direction: rtl;
 	padding-left: 6px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar .v-menubar-menuitem .v-icon {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .action-menu-bar .v-menubar-menuitem .v-icon {
 	margin: 0 0px 0 6px;
 	position: relative;
 	padding-left: 6px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .v-slot-main-action-menu-buttons-layout {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .v-slot-main-action-menu-buttons-layout {
 	position: relative;
 	right: 64px;
 	margin-top: -17px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .v-slot-main-action-menu-buttons-layout .download-document-link {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .v-slot-main-action-menu-buttons-layout .download-document-link {
 	padding-top: 7px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .viewer-metadata-panel {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .viewer-metadata-panel {
 	position: relative;
 	top: -48px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .viewer-metadata-panel .action-menu-bar {
-	top: -58px;
-	right: 28px;
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .viewer-metadata-panel .action-menu-bar {
+	right: -20px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .viewer-metadata-panel .v-slot-main-component {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .viewer-metadata-panel .v-slot-main-component {
 	position: relative;
 	top: 44px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .nested-view.viewer-metadata-panel {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .viewer-metadata-panel .v-ddwrapper {
+	z-index: 11;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .nested-view.viewer-metadata-panel {
 	top: 0px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .no-caption-action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .no-caption-action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
 	display: none;
 }
 
@@ -16175,10 +16224,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .search-view .viewable-record-table-panel .viewable-record-table .search-result-with-elevation-buttons .search-result-title {
 	padding-right: 30px;
-}
-
-.constellio .search-view .viewable-record-table-panel-with-index .viewable-record-table .v-slot-search-result-index {
-	display: block;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .v-menubar-user-menu {
@@ -16981,6 +17026,11 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .v-slot-search-result-facets .facet-box .facet-value > label {
 	margin-right: 25px;
+}
+
+.constellio .right-to-left .v-slot-search-result-facets .facet-box .facet-apply {
+	padding-left: 20px;
+	background-color: #474747;
 }
 
 .constellio .right-to-left .header .header-search {

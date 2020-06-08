@@ -6,6 +6,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -137,6 +138,10 @@ public class BasePresenterUtils implements Serializable {
 			schemasDisplayManager = appLayerFactory().getMetadataSchemasDisplayManager();
 		}
 		return schemasDisplayManager;
+	}
+
+	public final ConfigProvider configProvider() {
+		return modelLayerFactory().newConfigProvider();
 	}
 
 	public final String buildString(List<String> list) {

@@ -118,13 +118,17 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public static final String DEFAULT_VIEW_MODE = Toggle.SEARCH_RESULTS_VIEWER.isEnabled() ? SearchResultsViewMode.TABLE : SearchResultsViewMode.DETAILED;
 
+	private Locale currentLocale;
+
 	public int getDefaultPageLength() {
 		SearchPageLength defaultPageLength = getCurrentUser().getDefaultPageLength();
 		return defaultPageLength != null ? defaultPageLength.getValue() : 10;
 	}
 
 	public boolean isShowNumberingColumn(SearchResultVODataProvider dataProvider) {
-		return modelLayerFactory.getSystemConfigs().isShowResultsNumberingInListView() || dataProvider.size() > getMaxSelectableResults();
+		boolean showResultsNumberingInListView = modelLayerFactory.getSystemConfigs().isShowResultsNumberingInListView();
+		boolean alwaysSelectIntervals = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.ALWAYS_SELECT_INTERVALS);
+		return showResultsNumberingInListView || alwaysSelectIntervals || dataProvider.size() > getMaxSelectableResults();
 	}
 
 	private int getMaxSelectableResults() {
@@ -291,6 +295,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	void init(ConstellioFactories constellioFactories, SessionContext sessionContext) {
 		collection = sessionContext.getCurrentCollection();
+		currentLocale = sessionContext.getCurrentLocale();
 
 		User user = view.getConstellioFactories().getAppLayerFactory()
 				.getModelLayerFactory().newUserServices().getUserInCollection(
@@ -307,6 +312,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 		view.setLazyLoadedSearchResults(configs.isLazyLoadedSearchResults());
+		view.setApplyMultipleFacets(getCurrentUser().isApplyFacetsEnabled());
 	}
 
 	public void resetFacetAndOrder() {
@@ -358,7 +364,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public Capsule getCapsuleForCurrentSearch() {
-		Locale currentLocale = view.getSessionContext().getCurrentLocale();
 
 		Capsule match = null;
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
@@ -448,7 +453,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	private void logSearchEvent(final SearchResultVODataProvider dataProvider, final SPEQueryResponse response) {
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
-			new Thread() {
+			view.runAsync(new Runnable() {
 				@Override
 				public void run() {
 					LogicalSearchQuery query = dataProvider.getQuery();
@@ -513,7 +518,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 						checkAndUpdateDwellTime(oldSearchEvent);
 					}
 				}
-			}.start();
+			});
 		}
 	}
 
@@ -572,6 +577,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public void facetValueSelected(String facetId, String facetValue) {
 		facetSelections.get(facetId).add(facetValue);
+		view.refreshSearchResultsAndFacets();
+	}
+
+	public void facetValuesChanged(KeySetMap<String, String> facetValues) {
+		facetSelections.clear();
+		facetSelections.addAll(facetValues);
 		view.refreshSearchResultsAndFacets();
 	}
 
@@ -682,10 +693,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	protected abstract LogicalSearchCondition getSearchCondition();
 
 	protected LogicalSearchQuery getSearchQuery() {
-		String userSearchExpression = filterSolrOperators();
 		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition())
 				.setOverridedQueryParams(extraSolrParams)
-				.setFreeTextQuery(userSearchExpression)
+				.setFreeTextQuery(filteredSolrOperatorsInUserSearchExpression())
 				.filteredWithUser(getCurrentUser())
 				.filteredByStatus(StatusFilter.ACTIVES)
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
@@ -730,10 +740,11 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
 	}
 
-	protected String filterSolrOperators() {
+	protected String filteredSolrOperatorsInUserSearchExpression() {
 		String userSearchExpression = getUserSearchExpression();
 
 		if (StringUtils.isNotBlank(userSearchExpression) && userSearchExpression.startsWith("\"") && userSearchExpression.endsWith("\"")) {
+			userSearchExpression = userSearchExpression.substring(1, userSearchExpression.length() - 1);
 			userSearchExpression = ClientUtils.escapeQueryChars(userSearchExpression);
 			userSearchExpression = "\"" + userSearchExpression + "\"";
 		}
@@ -771,24 +782,18 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
 				.getFieldFacetValues("schema_s");
 		Set<String> metadataCodes = new HashSet<>();
-		if (Toggle.RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS.isEnabled()) {
-			if (schema_s != null) {
-				for (FacetValue facetValue : schema_s) {
-					if (facetValue.getQuantity() > 0) {
-						String schema = facetValue.getValue();
-						for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
-							if (metadata.getInheritance() != null && metadata.isEnabled()) {
-								metadataCodes.add(metadata.getInheritance().getCode());
-							} else if (metadata.getInheritance() == null && metadata.isEnabled()) {
-								metadataCodes.add(metadata.getCode());
-							}
+		if (schema_s != null) {
+			for (FacetValue facetValue : schema_s) {
+				if (facetValue.getQuantity() > 0) {
+					String schema = facetValue.getValue();
+					for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
+						if (metadata.getInheritance() != null && metadata.isEnabled()) {
+							metadataCodes.add(metadata.getInheritance().getCode());
+						} else if (metadata.getInheritance() == null && metadata.isEnabled()) {
+							metadataCodes.add(metadata.getCode());
 						}
 					}
 				}
-			}
-		} else {
-			for (Metadata metadata : schemaType.getAllMetadatas()) {
-				metadataCodes.add(metadata.getCode());
 			}
 		}
 

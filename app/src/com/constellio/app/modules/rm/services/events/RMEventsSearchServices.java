@@ -199,6 +199,11 @@ public class RMEventsSearchServices {
 		return newFindEventByDateRangeAndByUserQuery(currentUser, EventType.CREATE_DOCUMENT, startDate, endDate, username);
 	}
 
+	public LogicalSearchQuery newFindCreatedBatchProcessesByDateRangeQuery(User currentUser, LocalDateTime startDate,
+																		   LocalDateTime endDate) {
+		return newFindEventsByDateRangeQuery(currentUser, startDate, endDate, EventType.BATCH_PROCESS_CREATED);
+	}
+
 	private LogicalSearchQuery newFindEventQuery(User currentUser, String eventType) {
 		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
 		Metadata timestamp = Schemas.CREATED_ON;

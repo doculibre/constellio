@@ -7,4 +7,6 @@ public interface TrashView extends BaseView, TrashViewGroup {
 	String getSelectedType();
 
 	void enableOrDisableActionButtons();
+
+	void updateSelectDeselectAllToggle(boolean allItemsSelected);
 }

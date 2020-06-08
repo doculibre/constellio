@@ -415,7 +415,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 				if (metadata.getType() == MetadataValueType.REFERENCE && metadata.isTaxonomyRelationship()) {
 					String referenceTypeCode = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
 					Taxonomy taxonomy = getTaxonomyFor(user.getCollection(), referenceTypeCode);
-					if (hasCurrentUserRightsOnTaxonomy(taxonomy, user)) {
+					if (taxonomy != null && hasCurrentUserRightsOnTaxonomy(taxonomy, user)) {
 						if (taxonomyCodes.add(taxonomy.getCode())) {
 							taxonomies.add(taxonomy);
 						}

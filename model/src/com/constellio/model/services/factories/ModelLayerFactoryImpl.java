@@ -7,6 +7,7 @@ import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.factories.LayerFactoryImpl;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.extensions.ModelReplicationFactorManagerExtension;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.Factory;
@@ -22,6 +23,7 @@ import com.constellio.model.services.batch.state.StoredBatchProcessProgressionSe
 import com.constellio.model.services.caches.ModelLayerCachesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.configs.UserConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.emails.EmailQueueManager;
 import com.constellio.model.services.emails.EmailServices;
@@ -100,6 +102,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private final CollectionsListManager collectionsListManager;
 	private final SolrGlobalGroupsManager globalGroupsManager;
 	private final SystemConfigurationsManager systemConfigurationsManager;
+	private final UserConfigurationsManager userConfigurationsManager;
 	private final LanguageDetectionManager languageDetectionManager;
 	private final ModelLayerConfiguration modelLayerConfiguration;
 	private final ContentManager contentsManager;
@@ -133,15 +136,19 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	private final ModelLayerCachesManager modelLayerCachesManager;
 
+	private final Runnable markForReindexingRunnable;
+
 	public ModelLayerFactoryImpl(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 								 ModelLayerConfiguration modelLayerConfiguration,
 								 StatefullServiceDecorator statefullServiceDecorator,
 								 Delayed<ConstellioModulesManager> modulesManagerDelayed, String instanceName,
 								 short instanceId,
-								 Factory<ModelLayerFactory> modelLayerFactoryFactory) {
+								 Factory<ModelLayerFactory> modelLayerFactoryFactory,
+								 Runnable markForReindexingRunnable) {
 
 		super(dataLayerFactory, statefullServiceDecorator, instanceName, instanceId);
 
+		this.markForReindexingRunnable = markForReindexingRunnable;
 		dataLayerFactory.getEventBusManager().getEventDataSerializer().register(new RecordEventDataSerializerExtension(this));
 
 		this.modelLayerCachesManager = new ModelLayerCachesManager();
@@ -165,6 +172,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.systemConfigurationsManager = add(
 				new SystemConfigurationsManager(this, configManager, modulesManagerDelayed,
 						dataLayerFactory.getDistributedCacheManager()));
+		this.userConfigurationsManager = add(new UserConfigurationsManager(configManager));
 		this.ioServicesFactory = dataLayerFactory.getIOServicesFactory();
 
 		this.forkParsers = add(new ForkParsers(modelLayerConfiguration.getForkParsersPoolSize()));
@@ -180,7 +188,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		File workFolder = new FoldersLocator().getWorkFolder();
 		workFolder.mkdirs();
-		File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), instanceName + "-cache.db");
+
+		File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), (instanceName == null ? "constellio" : instanceName) + "-cache.db");
 		FileUtils.deleteQuietly(fileSystemCacheFolder);
 		FileSystemRecordsValuesCacheDataStore fileSystemRecordsValuesCacheDataStore
 				= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder);
@@ -225,6 +234,9 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 				dataLayerFactory.getEventBusManager());
 
 		this.synonymsConfigurationsManager = add(new SynonymsConfigurationsManager(configManager, collectionsListManager, cacheManager));
+
+		dataLayerFactory.getExtensions().getSystemWideExtensions().replicationFactorManagerExtensions
+				.add(new ModelReplicationFactorManagerExtension(this));
 
 	}
 
@@ -363,6 +375,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		return new ConstellioEIMConfigs(getSystemConfigurationsManager());
 	}
 
+	public UserConfigurationsManager getUserConfigurationsManager() {
+		return userConfigurationsManager;
+	}
+
 	public LoggingServices newLoggingServices() {
 		return new LoggingServices(this);
 	}
@@ -490,4 +506,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		return taxonomiesSearchServicesCache;
 	}
 
+	@Override
+	public void markForReindexing() {
+		markForReindexingRunnable.run();
+	}
 }

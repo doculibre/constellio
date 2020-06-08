@@ -11,6 +11,7 @@ import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManag
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.Octets;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.data.utils.systemLogger.SystemLogger;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
@@ -125,18 +126,37 @@ public class ReindexingServices {
 
 	public void reindexCollections(ReindexationParams params) {
 
-		modelLayerFactory.getRecordsCaches().disableVolatileCache();
-		dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(false);
-		try {
-			if (params.isBackground()) {
+
+		if (params.isBackground()) {
+			try {
 				BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
 				for (MetadataSchemaType schemaType : params.getReindexedSchemaTypes()) {
 					BatchProcessAction action = ReindexMetadatasBatchProcessAction.allMetadatas();
 					batchProcessesManager.addPendingBatchProcess(from(schemaType).returnAll(), action, "reindexing");
 				}
 
-			} else {
+			} finally {
+				REINDEXING_INFOS = null;
+			}
 
+		} else {
+			try {
+				modelLayerFactory.getRecordsCaches().disableVolatileCache();
+				dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(false);
+				int waitedCounter = 0;
+				while (!modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()
+					   && modelLayerFactory.getConfiguration().isSummaryCacheEnabled()) {
+					if (waitedCounter++ % 6 == 0) {
+						LOGGER.info("Waiting end of cache loading to start reindexing");
+					}
+					try {
+						Thread.sleep(10000);
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+				}
+
+				SystemLogger.info("Reindexing started");
 				if (logManager != null && params.getReindexationMode().isFullRewrite()) {
 					logManager.regroupAndMoveInVault();
 					logManager.moveTLOGToBackup();
@@ -191,14 +211,15 @@ public class ReindexingServices {
 						}
 					}
 				}
+				SystemLogger.info("Reindexing finished");
 
+			} finally {
+
+				REINDEXING_INFOS = null;
+
+				dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(true);
+				modelLayerFactory.getRecordsCaches().enableVolatileCache();
 			}
-
-		} finally {
-			REINDEXING_INFOS = null;
-
-			dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(true);
-			modelLayerFactory.getRecordsCaches().enableVolatileCache();
 		}
 
 
@@ -245,29 +266,35 @@ public class ReindexingServices {
 	}
 
 	public void reindexCollection(String collection, ReindexationMode reindexationMode) {
+
 		reindexCollection(collection, new ReindexationParams(reindexationMode));
 	}
 
 	public void reindexCollection(String collection, ReindexationParams params) {
 
-		if (!params.getReindexedSchemaTypes().isEmpty()) {
-			long count = getRecordCountOfType(collection, params.getReindexedSchemaTypes());
-			if (count == 0) {
-				return;
+		try {
+			if (!params.getReindexedSchemaTypes().isEmpty()) {
+				long count = getRecordCountOfType(collection, params.getReindexedSchemaTypes());
+				if (count == 0) {
+					return;
+				}
 			}
-		}
 
-		RecordUpdateOptions transactionOptions = new RecordUpdateOptions().setUpdateModificationInfos(false);
-		transactionOptions.setValidationsEnabled(false).setCatchExtensionsValidationsErrors(true)
-				.setCatchExtensionsExceptions(true).setCatchBrokenReferenceErrors(true)
-				.setUpdateAggregatedMetadatas(false).setOverwriteModificationDateAndUser(false)
-				.setRepopulate(params.isRepopulate());
-		if (params.getReindexationMode().isFullRecalculation()) {
-			transactionOptions.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
-		}
-		transactionOptions.setFullRewrite(params.getReindexationMode().isFullRewrite());
+			RecordUpdateOptions transactionOptions = new RecordUpdateOptions().setUpdateModificationInfos(false);
+			transactionOptions.setValidationsEnabled(false).setCatchExtensionsValidationsErrors(true)
+					.setCatchExtensionsExceptions(true).setCatchBrokenReferenceErrors(true)
+					.setUpdateAggregatedMetadatas(false).setOverwriteModificationDateAndUser(false)
+					.setRepopulate(params.isRepopulate());
+			if (params.getReindexationMode().isFullRecalculation()) {
+				transactionOptions.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
+			}
+			transactionOptions.setFullRewrite(params.getReindexationMode().isFullRewrite());
 
-		reindexCollection(collection, params, transactionOptions);
+			reindexCollection(collection, params, transactionOptions);
+
+		} finally {
+			REINDEXING_INFOS = null;
+		}
 
 	}
 
@@ -317,6 +344,10 @@ public class ReindexingServices {
 
 				}
 				options.withRecordsPerBatch(batchSize);
+				int countOfBatchesFilledByASingleQuery = mainThreadQueryRows / batchSize;
+
+				//The reader thread must have enough space in the queue to store the entire query result
+				options.setQueueSize(countOfBatchesFilledByASingleQuery + 1);
 			}
 
 			BulkRecordTransactionHandler bulkTransactionHandler = new BulkRecordTransactionHandler(
@@ -357,7 +388,11 @@ public class ReindexingServices {
 				}
 
 			} finally {
-				bulkTransactionHandler.closeAndJoin();
+				try {
+					bulkTransactionHandler.closeAndJoin();
+				} catch (Throwable t) {
+					SystemLogger.error("An error occured during the reindexing : ", t);
+				}
 			}
 			modelLayerFactory.getDataLayerFactory().newRecordDao().removeOldLocks();
 			level++;

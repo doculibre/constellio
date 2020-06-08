@@ -21,9 +21,12 @@ import com.constellio.model.services.batch.xml.detail.BatchProcessReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListWriter;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.VisibilityStatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -501,6 +504,8 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	}
 
 	public void waitUntilAllFinished() {
+
+
 		for (int i = 0; i < 10; i++) {
 			for (BatchProcess batchProcess : getAllNonFinishedBatchProcesses()) {
 				waitUntilFinished(batchProcess);
@@ -513,13 +518,20 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 			if (recordsReindexingBackgroundAction != null
 				&& ReindexingServices.getReindexingInfos() == null) {
 
-				while (searchServices.hasResults(fromEveryTypesOfEveryCollection().where(MARKED_FOR_REINDEXING).isTrue())
-					   && modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+				LogicalSearchQuery query = new LogicalSearchQuery(fromEveryTypesOfEveryCollection().where(MARKED_FOR_REINDEXING).isTrue());
+				query.filteredByStatus(StatusFilter.ALL);
+				query.filteredByVisibilityStatus(VisibilityStatusFilter.ALL);
+				query.setName("*SDK* BatchProcessesManager.waitUntilAllFinished()");
+
+				while (searchServices.hasResults(query) &&
+					   (modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized() ||
+						!modelLayerFactory.getConfiguration().isSummaryCacheEnabled())) {
 					recordsReindexingBackgroundAction.run(false);
 				}
 			}
 		}
 	}
+
 
 	public void waitUntilFinished(BatchProcess batchProcess) {
 
@@ -539,6 +551,9 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 				new BatchProcessListWriter(document).markBatchProcessAsFinished(batchProcess, errorsCount);
 			}
 		});
+
+		LoggingServices loggingServices = modelLayerFactory.newLoggingServices();
+		loggingServices.updateBatchProcess(batchProcess);
 
 		addFinishedBatchProcessIdToHistoryList(batchProcess.getId());
 	}

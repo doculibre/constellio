@@ -28,6 +28,7 @@ public class CorePermissions {
 	public static final String MODIFY_PUBLIC_SAVED_SEARCH = permission(SYSTEM, "modifyPublicSavedSearch");
 	public static final String DELETE_PUBLIC_SAVED_SEARCH = permission(SYSTEM, "deletePublicSavedSearch");
 	public static final String MODIFY_RECORDS_USING_BATCH_PROCESS = permission(SYSTEM, "batchProcess");
+	public static final String MODIFY_UNLIMITED_RECORDS_USING_BATCH_PROCESS = permission(SYSTEM, "unlimitedBatchProcess");
 	public static final String VIEW_LOGIN_NOTIFICATION_ALERT = permission(SYSTEM, "viewLoginNotificationAlert");
 	// Collection management
 	public static final String COLLECTION_MANAGEMENT = "management.collection";
@@ -36,6 +37,7 @@ public class CorePermissions {
 	public static final String MANAGE_TAXONOMIES = permission(COLLECTION_MANAGEMENT, "manageTaxonomies");
 	public static final String MANAGE_VALUELIST = permission(COLLECTION_MANAGEMENT, "manageValueList");
 	public static final String MANAGE_METADATASCHEMAS = permission(COLLECTION_MANAGEMENT, "manageMetadataSchemas");
+	public static final String MANAGE_GLOBAL_LINKS = permission(COLLECTION_MANAGEMENT, "manageGlobalLinks");
 	public static final String MANAGE_SECURITY = permission(COLLECTION_MANAGEMENT, "manageSecurity");
 	public static final String MANAGE_SEARCH_BOOST = permission(COLLECTION_MANAGEMENT, "manageSearchBoost");
 	public static final String MANAGE_METADATAEXTRACTOR = permission(COLLECTION_MANAGEMENT, "manageMetadataExtractor");

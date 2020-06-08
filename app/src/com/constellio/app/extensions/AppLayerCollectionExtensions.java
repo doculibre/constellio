@@ -66,6 +66,8 @@ import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.api.extensions.taxonomies.ValidateTaxonomyDeletableParams;
+import com.constellio.app.extensions.api.SchemaMetadataExtension;
+import com.constellio.app.extensions.api.SchemaMetadataExtension.SchemaMetadataExtensionParams;
 import com.constellio.app.extensions.api.SchemaRecordExtention;
 import com.constellio.app.extensions.api.SchemaRecordExtention.SchemaRecordExtensionActionPossibleParams;
 import com.constellio.app.extensions.api.UserDocumentExtension;
@@ -78,7 +80,6 @@ import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstell
 import com.constellio.app.extensions.api.cmis.params.BuildConstellioRecordFromCmisObjectParams;
 import com.constellio.app.extensions.api.cmis.params.CheckInParams;
 import com.constellio.app.extensions.api.cmis.params.CheckOutParams;
-import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
 import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
 import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
 import com.constellio.app.extensions.menu.MenuItemActionsExtension;
@@ -221,6 +222,8 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<UserDocumentExtension> userDocumentExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<TabSheetInDisplayAndFormExtention> tabSheetCaptionToHide = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<SchemaMetadataExtension> schemaMetadataExtensions = new VaultBehaviorsList<>();
 
 
 	//Key : schema type code
@@ -377,12 +380,6 @@ public class AppLayerCollectionExtensions {
 	public void onCheckOut(CheckOutParams params) {
 		for (CmisExtension extension : cmisExtensions) {
 			extension.onCheckOut(params);
-		}
-	}
-
-	public void onDeleteTree(DeleteTreeParams params) {
-		for (CmisExtension extension : cmisExtensions) {
-			extension.onDeleteTree(params);
 		}
 	}
 
@@ -963,6 +960,20 @@ public class AppLayerCollectionExtensions {
 		return schemaRecordExtentions.getBooleanValue(true,
 				(behavior) -> behavior.isDeleteActionPossible(
 						new SchemaRecordExtensionActionPossibleParams(record, user)));
+	}
+
+	public void metadataSavedFromView(Metadata metadata, User user) {
+		SchemaMetadataExtensionParams params = new SchemaMetadataExtensionParams(metadata, user);
+		for (SchemaMetadataExtension extension : schemaMetadataExtensions) {
+			extension.metadataSavedFromView(params);
+		}
+	}
+
+	public void metadataDeletedFromView(Metadata metadata, User user) {
+		SchemaMetadataExtensionParams params = new SchemaMetadataExtensionParams(metadata, user);
+		for (SchemaMetadataExtension extension : schemaMetadataExtensions) {
+			extension.metadataDeletedFromView(params);
+		}
 	}
 
 	public boolean isClassifyActionPossibleOnUserDocument(final UserDocument userDocument, User user) {

@@ -15,6 +15,7 @@ import com.constellio.model.services.batch.state.StoredBatchProcessProgressionSe
 import com.constellio.model.services.caches.ModelLayerCachesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.configs.UserConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.emails.EmailQueueManager;
 import com.constellio.model.services.emails.EmailTemplatesManager;
@@ -197,6 +198,11 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	}
 
 	@Override
+	public UserConfigurationsManager getUserConfigurationsManager() {
+		return modelLayerFactory.getUserConfigurationsManager();
+	}
+
+	@Override
 	public LoggingServices newLoggingServices() {
 		return modelLayerFactory.newLoggingServices();
 	}
@@ -340,6 +346,11 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	@Override
 	public void postInitialization() {
 		modelLayerFactory.postInitialization();
+	}
+
+	@Override
+	public void markForReindexing() {
+		modelLayerFactory.markForReindexing();
 	}
 
 	@Override

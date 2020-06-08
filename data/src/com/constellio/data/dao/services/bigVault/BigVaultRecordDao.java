@@ -27,6 +27,7 @@ import com.constellio.data.utils.LangUtils;
 import com.google.common.base.Joiner;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.FieldStatsInfo;
@@ -143,7 +144,7 @@ public class BigVaultRecordDao implements RecordDao {
 				if (secondTransactionLogManager != null) {
 					secondTransactionLogManager.cancel(transaction.getTransactionId());
 				}
-				throw new RecordDaoException.OptimisticLocking(e.getId(), e.getVersion(), e);
+				throw new RecordDaoException.OptimisticLocking(e.getId(), e.getVersion(), e.getRecordsWithNewVersion(), e);
 			} catch (BigVaultException e) {
 				if (secondTransactionLogManager != null) {
 					secondTransactionLogManager.cancel(transaction.getTransactionId());
@@ -910,11 +911,11 @@ public class BigVaultRecordDao implements RecordDao {
 		boolean hasNonNullValues = false;
 		for (int i = 0; i < strings.size(); i++) {
 			String aString = strings.get(i);
-			if ("__TRUE__".equals(aString) || "true".equals(aString)) {
+			if ("__TRUE__".equals(aString)) {
 				booleans.add(Boolean.TRUE);
 				hasBooleanValues = true;
 				hasNonNullValues = true;
-			} else if ("__FALSE__".equals(aString) || "false".equals(aString)) {
+			} else if ("__FALSE__".equals(aString)) {
 				booleans.add(Boolean.FALSE);
 				hasBooleanValues = true;
 				hasNonNullValues = true;
@@ -1016,6 +1017,12 @@ public class BigVaultRecordDao implements RecordDao {
 	@Override
 	public void expungeDeletes() {
 		bigVaultServer.expungeDeletes();
+	}
+
+	@Override
+	public TupleStream tupleStream(Map<String, String> props) {
+		return bigVaultServer.tupleStream(props);
+
 	}
 
 	@Override

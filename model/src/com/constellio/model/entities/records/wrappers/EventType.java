@@ -122,6 +122,24 @@ public class EventType {
 
 	public static final String DELETE_PERMISSION = "delete_permission";
 
+	public static final String CREATE_SHARE = "create_share";
+
+	public static final String MODIFY_SHARE = "modify_share";
+
+	public static final String DELETE_SHARE = "delete_share";
+
+	public static final String CREATE_SHARE_FOLDER = "create_share_folder";
+
+	public static final String MODIFY_SHARE_FOLDER = "modify_share_folder";
+
+	public static final String DELETE_SHARE_FOLDER = "delete_share_folder";
+
+	public static final String CREATE_SHARE_DOCUMENT = "create_share_document";
+
+	public static final String MODIFY_SHARE_DOCUMENT = "modify_share_document";
+
+	public static final String DELETE_SHARE_DOCUMENT = "delete_share_document";
+
 	public static final String GRANT_PERMISSION_FOLDER = "grant_permission_folder";
 
 	public static final String MODIFY_PERMISSION_FOLDER = "modify_permission_folder";
@@ -165,4 +183,7 @@ public class EventType {
 	public static final String REINDEXING = "reindexing";
 
 	public static final String RESTARTING = "restarting";
+
+	//batch process
+	public static final String BATCH_PROCESS_CREATED = "created_batch_process";
 }

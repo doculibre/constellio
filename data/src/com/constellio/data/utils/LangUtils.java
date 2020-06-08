@@ -22,12 +22,14 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Spliterators;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -397,6 +399,33 @@ public class LangUtils {
 
 	}
 
+	public static long estimatedizeOfMapStructureBasedOnSize(Map aMap) {
+		if (aMap instanceof HashMap) {
+
+			int capacity = aMap.size();
+			//			try {
+			//				HashMap m = (HashMap) aMap;
+			//				Field tableField = HashMap.class.getDeclaredField("table");
+			//				tableField.setAccessible(true);
+			//				Object[] table = (Object[]) tableField.get(m);
+			//				capacity = table == null ? 0 : table.length;
+			//			} catch (Throwable t) {
+			//				t.printStackTrace();
+			//			}
+
+			return 32 * aMap.size() + 4 * capacity;
+
+
+		} else if (aMap instanceof TreeMap) {
+			return 40 * aMap.size();
+
+		} else {
+			//Unsupported, averaging to 40
+			return 40 * aMap.size();
+		}
+
+	}
+
 	public static class StringReplacer {
 
 		List<StringReplacement> stringReplacements = new ArrayList<>();
@@ -696,4 +725,68 @@ public class LangUtils {
 		String pre = (si ? "kMGTPE" : "KMGTPE").charAt(exp - 1) + (si ? "" : "i");
 		return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
 	}
+
+	/**
+	 * This method is far, very far from being complete!
+	 * Since the most important part of the data are strings
+	 *
+	 * @param object
+	 * @return
+	 */
+	public static long sizeOf(Object object) {
+
+		if (object == null) {
+			return 0;
+
+		} else if (object instanceof Integer) {
+			return 8;
+
+		} else if (object instanceof Float) {
+			return 8;
+
+		} else if (object instanceof Double) {
+			return 8;
+
+		} else if (object instanceof String) {
+			return 16 + 2 * ((String) object).length();
+
+		} else if (object instanceof List) {
+			int size = 4;
+			for (Object element : ((List) object)) {
+				size += sizeOf(element);
+			}
+			return size;
+
+		} else if (object instanceof Map) {
+			long size = estimatedizeOfMapStructureBasedOnSize((Map) object);
+			for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) object).entrySet()) {
+				size += sizeOf(entry.getKey());
+				size += sizeOf(entry.getValue());
+			}
+			return size;
+
+
+		}
+
+		return 0;
+	}
+
+
+	public static IntStream forEachInRandomOrder(int nbValues) {
+		List<Integer> integers = getIntValuesInRandomOrder(nbValues);
+
+		return integers.stream().mapToInt((i) -> i);
+	}
+
+	public static List<Integer> getIntValuesInRandomOrder(int nbValues) {
+		List<Integer> integers = new ArrayList<>();
+
+		for (int i = 0; i < nbValues; i++) {
+			integers.add(i);
+		}
+
+		Collections.shuffle(integers);
+		return integers;
+	}
+
 }

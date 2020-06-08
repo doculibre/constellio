@@ -3,6 +3,7 @@ package com.constellio.app.services.importExport.records.writers;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.XmlUtils;
 import com.constellio.model.services.records.ContentImportVersion;
 import com.constellio.model.services.records.ImportContent;
 import com.constellio.model.services.records.SimpleImportContent;
@@ -156,15 +157,20 @@ public class ImportRecordOfSameTypeWriter {
 		if (value instanceof Map) {
 			Map<String, Object> mapValue = (Map<String, Object>) value;
 			for (Map.Entry<String, Object> entry : mapValue.entrySet()) {
-				if (entry.getValue() != null && entry.getValue() instanceof String) {
-					writer.writeAttribute(entry.getKey(), (String) entry.getValue());
+				String escapedAttributeName = XmlUtils.escapeAttributeName(entry.getKey());
+				/*
+					!escapedAttributeName.isEmpty() because old records from schema ddvExternalSystemList_default
+					may contain empty attribute (ex: AG with code R0901COM)
+				*/
+				if (entry.getValue() != null && !escapedAttributeName.isEmpty() && entry.getValue() instanceof String) {
+					writer.writeAttribute(escapedAttributeName, (String) entry.getValue());
 				} else if (entry.getValue() != null && entry.getValue() instanceof Collection) {
 					String valueToWrite = "";
 					for (Object collectionElement : (Collection) entry.getValue()) {
 						valueToWrite += collectionElement + ",";
 					}
 					if (StringUtils.isNotBlank(valueToWrite)) {
-						writer.writeAttribute(entry.getKey(), valueToWrite.substring(0, valueToWrite.length() - 1));
+						writer.writeAttribute(escapedAttributeName, valueToWrite.substring(0, valueToWrite.length() - 1));
 					}
 				}
 			}

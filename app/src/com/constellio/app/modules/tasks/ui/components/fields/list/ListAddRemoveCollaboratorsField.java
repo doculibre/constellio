@@ -31,7 +31,7 @@ public class ListAddRemoveCollaboratorsField extends ListAddRemoveField<TaskColl
 
 	private List<TaskCollaboratorItem> taskCollaboratorItem;
 
-	private boolean currentUserIsCollaborator = false;
+	private boolean currentUserCanModifyDelete = false;
 
 	private boolean writeButtonVisible = true;
 
@@ -136,11 +136,10 @@ public class ListAddRemoveCollaboratorsField extends ListAddRemoveField<TaskColl
 	private class CollaboratorValuesContainer extends ValuesContainer {
 
 		public CollaboratorValuesContainer(List<TaskCollaboratorItem> values) {
-			super(values);
+			super(values, null);
 			addContainerProperty(AUTHORIZATIONS_PROPERTY_ID, getCaptionComponentClass(), null);
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		public Property<?> getContainerProperty(final Object itemId, Object propertyId) {
 			if (itemId != null) {
@@ -163,8 +162,8 @@ public class ListAddRemoveCollaboratorsField extends ListAddRemoveField<TaskColl
 		}
 	}
 
-	public void setCurrentUserIsCollaborator(boolean currentUserIsCollaborator) {
-		this.currentUserIsCollaborator = currentUserIsCollaborator;
+	public void setCurrentUserCanModifyDelete(boolean currentUserCanModifyDelete) {
+		this.currentUserCanModifyDelete = currentUserCanModifyDelete;
 	}
 
 	public void writeButtonIsVisible(boolean writeButtonIsVisible) {
@@ -173,7 +172,7 @@ public class ListAddRemoveCollaboratorsField extends ListAddRemoveField<TaskColl
 
 	@Override
 	protected boolean isEditButtonVisible(TaskCollaboratorItem item) {
-		if (currentUserIsCollaborator) {
+		if (!currentUserCanModifyDelete) {
 			return false;
 		} else {
 			return super.isEditButtonVisible(item);
@@ -182,7 +181,7 @@ public class ListAddRemoveCollaboratorsField extends ListAddRemoveField<TaskColl
 
 	@Override
 	protected boolean isDeleteButtonVisible(TaskCollaboratorItem item) {
-		if (currentUserIsCollaborator) {
+		if (!currentUserCanModifyDelete) {
 			return false;
 		} else {
 			return super.isDeleteButtonVisible(item);

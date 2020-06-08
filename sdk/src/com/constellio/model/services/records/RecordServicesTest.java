@@ -657,7 +657,7 @@ public class RecordServicesTest extends ConstellioTest {
 		doNothing().when(recordServices).refreshRecordsAndCaches(anyString(), anyList(), anySet(), anyList(),
 				any(TransactionResponseDTO.class), any(MetadataSchemaTypes.class), any(RecordProvider.class));
 
-		doNothing().when(recordServices).mergeRecords(eq(transaction), anyString());
+		doNothing().when(recordServices).mergeRecords(eq(transaction), any(OptimisticLocking.class));
 		doNothing().when(recordServices).executeWithImpactHandler(any(Transaction.class),
 				any(RecordModificationImpactHandler.class));
 
@@ -665,7 +665,7 @@ public class RecordServicesTest extends ConstellioTest {
 				optimisticLockingException, 3);
 
 		InOrder inOrder = inOrder(recordServices);
-		inOrder.verify(recordServices).mergeRecords(eq(transaction), anyString());
+		inOrder.verify(recordServices).mergeRecords(eq(transaction), any(OptimisticLocking.class));
 		inOrder.verify(recordServices).executeWithImpactHandler(transaction, recordModificationImpactHandler, false, 4);
 	}
 
@@ -679,7 +679,7 @@ public class RecordServicesTest extends ConstellioTest {
 		doNothing().when(recordServices).refreshRecordsAndCaches(anyString(), anyList(), anySet(), anyList(),
 				any(TransactionResponseDTO.class), any(MetadataSchemaTypes.class), any(RecordProvider.class));
 
-		doNothing().when(recordServices).mergeRecords(any(Transaction.class), anyString());
+		doNothing().when(recordServices).mergeRecords(any(Transaction.class), any(OptimisticLocking.class));
 
 		doNothing().when(recordServices).execute(any(Transaction.class));
 
@@ -687,7 +687,7 @@ public class RecordServicesTest extends ConstellioTest {
 				.handleOptimisticLocking(mock(TransactionDTO.class), transaction, null, optimisticLockingException, 2);
 
 		InOrder inOrder = inOrder(recordServices);
-		inOrder.verify(recordServices).mergeRecords(eq(transaction), anyString());
+		inOrder.verify(recordServices).mergeRecords(eq(transaction), any(OptimisticLocking.class));
 		inOrder.verify(recordServices).execute(transaction, 3);
 	}
 
@@ -708,7 +708,9 @@ public class RecordServicesTest extends ConstellioTest {
 
 		when(searchServices.search(query.capture())).thenReturn(modifiedRecords);
 
-		recordServices.mergeRecords(transaction, "zeId");
+		OptimisticLocking optimisticLocking = mock(OptimisticLocking.class);
+		when(optimisticLocking.getId()).thenReturn("zeId");
+		recordServices.mergeRecords(transaction, optimisticLocking);
 
 		verify(firstRecord).merge(eq(newFirstRecordVersion), any(MetadataSchema.class));
 		verify(secondRecord).merge(eq(newSecondRecordVersion), any(MetadataSchema.class));
@@ -746,7 +748,9 @@ public class RecordServicesTest extends ConstellioTest {
 				eq(newSecondRecordVersion), any(MetadataSchema.class));
 		when(searchServices.search(any(LogicalSearchQuery.class))).thenReturn(modifiedRecords);
 
-		recordServices.mergeRecords(transaction, "zeId");
+		OptimisticLocking optimisticLocking = mock(OptimisticLocking.class);
+		when(optimisticLocking.getId()).thenReturn("zeId");
+		recordServices.mergeRecords(transaction, optimisticLocking);
 	}
 
 	@Test
@@ -1012,7 +1016,7 @@ public class RecordServicesTest extends ConstellioTest {
 		when(zeRecord.isDirty()).thenReturn(true);
 		when(zeRecord.getSchemaCode()).thenReturn("zeSchemaType_default");
 		Transaction transaction = new Transaction(zeRecord);
-		doNothing().when(recordServices).mergeRecords(any(Transaction.class), anyString());
+		doNothing().when(recordServices).mergeRecords(any(Transaction.class), any(OptimisticLocking.class));
 		when(schemaManager.getSchemaTypeOf(any(Record.class))).thenReturn(metadataSchemaType);
 		doThrow(RecordDaoException.OptimisticLocking.class).when(recordDao).execute(any(TransactionDTO.class));
 
@@ -1037,7 +1041,7 @@ public class RecordServicesTest extends ConstellioTest {
 		when(zeRecord.getId()).thenReturn("anId");
 		when(zeRecord.isDirty()).thenReturn(true);
 		Transaction transaction = new Transaction(zeRecord);
-		doNothing().when(recordServices).mergeRecords(any(Transaction.class), anyString());
+		doNothing().when(recordServices).mergeRecords(any(Transaction.class), any(OptimisticLocking.class));
 
 		doThrow(RecordDaoException.OptimisticLocking.class).when(recordDao).execute(any(TransactionDTO.class));
 

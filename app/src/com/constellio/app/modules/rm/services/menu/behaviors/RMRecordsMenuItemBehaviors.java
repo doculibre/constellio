@@ -13,20 +13,25 @@ import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeExcept
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMMessageUtil;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
+import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
+import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.menu.behaviors.util.TaskUrlUtil;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
@@ -39,6 +44,9 @@ import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.BaseWindow;
+import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
+import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -47,13 +55,16 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
@@ -66,6 +77,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.zipContents.ZipContentsService;
 import com.constellio.model.services.search.zipContents.ZipContentsService.NoContentToZipRuntimeException;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
@@ -90,7 +102,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.framework.clipboard.CopyToClipBoard.copyConsultationLinkToClipBoard;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -104,6 +118,7 @@ public class RMRecordsMenuItemBehaviors {
 	private String collection;
 	private AppLayerFactory appLayerFactory;
 	private RecordServices recordServices;
+	private RMSchemasRecordsServices rm;
 	private DecommissioningService decommissioningService;
 	private IOServices ioServices;
 
@@ -118,6 +133,7 @@ public class RMRecordsMenuItemBehaviors {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		decommissioningService = new DecommissioningService(collection, appLayerFactory);
 		ioServices = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().newIOServices();
 		this.modelCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
@@ -125,6 +141,8 @@ public class RMRecordsMenuItemBehaviors {
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
 		containerRecordActionsServices = new ContainerRecordActionsServices(collection, appLayerFactory);
+
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	public void addToCart(List<String> recordIds, MenuItemActionBehaviorParams params) {
@@ -245,6 +263,132 @@ public class RMRecordsMenuItemBehaviors {
 		pdfButton.click();
 	}
 
+	public void checkoutDocuments(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		Button button = new Button($("DocumentContextMenu.checkOut"), FontAwesome.LOCK);
+		button.addClickListener((event) -> {
+			List<Record> records = recordServices.getRecordsById(collection, recordIds);
+			for (Record record : records) {
+				if (!documentRecordActionsServices.isCheckOutActionPossible(record, params.getUser())) {
+					if (documentRecordActionsServices.isCurrentBorrower(record, params.getUser())) {
+						recordIds.remove(record.getId());
+					} else {
+						params.getView().showMessage($("DocumentActionsComponent.checkoutOfDocumentsImpossible", record.getId()));
+						return;
+					}
+				}
+			}
+			checkOut(recordIds, params);
+		});
+		button.click();
+	}
+
+	private void checkOut(List<String> documentIds, MenuItemActionBehaviorParams params) {
+		RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
+		List<Record> checkedOutDocuments = new ArrayList<>();
+		for (String documentId : documentIds) {
+			Document document = rmSchemas.getDocument(documentId);
+			Content content = document.getContent();
+			content.checkOut(params.getUser());
+			appLayerFactory.getModelLayerFactory().newLoggingServices().borrowRecord(document.getWrappedRecord(), params.getUser(), TimeProvider.getLocalDateTime());
+			checkedOutDocuments.add(document.getWrappedRecord());
+		}
+		try {
+			Transaction transaction = new Transaction();
+			transaction.setOptions(new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
+			transaction.update(checkedOutDocuments);
+			recordServices.execute(transaction);
+			params.getView().refreshActionMenu();
+			params.getView().showMessage($("DocumentActionsComponent.checkedOutDocuments", checkedOutDocuments.size()));
+		} catch (RecordServicesException e) {
+			params.getView().showErrorMessage(MessageUtils.toMessage(e));
+		}
+	}
+
+	public void checkInDocuments(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		List<Document> documents = rm.getDocuments(recordIds);
+		UpdateContentVersionWindowImpl uploadWindow =
+				createUpdateContentVersionWindow(documents, params);
+
+		boolean hasUpdate = false;
+		for (Document document : documents) {
+			if (!isSameVersion(document)) {
+				hasUpdate = true;
+				break;
+			}
+		}
+
+		if (hasUpdate) {
+			uploadWindow.open(false);
+		} else {
+			uploadWindow.saveWithSameVersion();
+			params.getView().updateUI();
+		}
+	}
+
+	private boolean isSameVersion(Document document) {
+		Content content = document.getContent();
+		return content != null && content.getCurrentVersion().getHash().equals(content.getCurrentCheckedOutVersion().getHash());
+	}
+
+	private UpdateContentVersionWindowImpl createUpdateContentVersionWindow(List<Document> documents,
+																			MenuItemActionBehaviorParams params) {
+		final Map<RecordVO, MetadataVO> recordMap = new HashMap<>();
+		for (Document document : documents) {
+			RecordVO recordVO = getDocumentVO(params, document);
+			recordMap.put(recordVO, recordVO.getMetadata(Document.CONTENT));
+		}
+
+		return new UpdateContentVersionWindowImpl(recordMap) {
+			@Override
+			public void close() {
+				super.close();
+				params.getView().updateUI();
+			}
+
+			@Override
+			public void showMessage(String message) {
+				params.getView().showMessage(message);
+			}
+		};
+	}
+
+	private DocumentVO getDocumentVO(MenuItemActionBehaviorParams params, Document document) {
+		return new DocumentToVOBuilder(appLayerFactory.getModelLayerFactory()).build(document.getWrappedRecord(),
+				VIEW_MODE.DISPLAY, params.getView().getSessionContext());
+	}
+
+	public void generateReport(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		if (recordIds.isEmpty()) {
+			return;
+		}
+
+		String schemaType = recordServices.getDocumentById(recordIds.get(0)).getSchemaCode().split("_")[0];
+
+		RMSelectionPanelReportPresenter rmSelectionPanelReportPresenter = new RMSelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
+			@Override
+			public String getSelectedSchemaType() {
+				return schemaType;
+			}
+
+			@Override
+			public List<String> getSelectedRecordIds() {
+				return recordIds;
+			}
+
+
+		};
+
+		ReportTabButton reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"),
+				$("SearchView.metadataReportTitle"),
+				appLayerFactory, collection, false, false,
+				rmSelectionPanelReportPresenter, params.getView().getSessionContext()) {
+
+		};
+		List<RecordVO> recordVOList = getRecordVOList(recordIds, params.getView());
+		reportGeneratorButton.setRecordVoList(recordVOList.toArray(new RecordVO[0]));
+		reportGeneratorButton.click();
+	}
+
 	public void printLabels(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		if (recordIds.isEmpty()) {
 			return;
@@ -291,6 +435,26 @@ public class RMRecordsMenuItemBehaviors {
 
 		if (someElementsNotAdded) {
 			view.showErrorMessage($("ConstellioHeader.selection.cannotAddRecords"));
+		}
+	}
+
+	public void removeFromSelection(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		BaseView view = params.getView();
+
+		SessionContext sessionContext = view.getSessionContext();
+		boolean someElementsNotRemoved = false;
+		for (String selectedRecordId : recordIds) {
+			Record record = recordServices.getDocumentById(selectedRecordId);
+
+			if (asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE).contains(record.getTypeCode())) {
+				sessionContext.removeSelectedRecordId(selectedRecordId, record.getTypeCode());
+			} else {
+				someElementsNotRemoved = true;
+			}
+		}
+
+		if (someElementsNotRemoved) {
+			view.showErrorMessage($("ConstellioHeader.selection.cannotRemoveRecords"));
 		}
 	}
 
@@ -360,6 +524,9 @@ public class RMRecordsMenuItemBehaviors {
 			} else if (currentRecord.getSchemaCode().startsWith(RMTask.SCHEMA_TYPE)) {
 				linkList.add(new ConsultLinkParams(constellioURL + TaskUrlUtil.getPathToConsultLinkForTask(currentRecord.getId()),
 						currentRecord.getTitle()));
+			} else if (currentRecord.getSchemaCode().startsWith(StorageSpace.SCHEMA_TYPE)) {
+				linkList.add(new ConsultLinkParams(constellioURL + RMUrlUtil.getPathToConsultLinkForStorageSpace(currentRecord.getId()),
+						currentRecord.getTitle()));
 			}
 		}
 
@@ -412,6 +579,85 @@ public class RMRecordsMenuItemBehaviors {
 		button.click();
 	}
 
+	public void createTask(List<String> ids, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(ids);
+	}
+
+	public void batchUnPublishDocument(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		Button button = new DeleteButton(false) {
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				batchUnPublishDocumentConfirmed(recordIds, params.getUser(), params.getView());
+			}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("DocumentContextMenu.batchUnPublishConfirmationMsg");
+			}
+		};
+
+		button.click();
+	}
+
+	public void batchUnPublishDocumentConfirmed(List<String> recordIds, User user, BaseView baseView) {
+		List<Document> documentToUnPublish = rm.getDocuments(recordIds);
+
+		for (Document document : documentToUnPublish) {
+			document.setPublished(false);
+			document.setPublishingEndDate(null);
+			document.setPublishingStartDate(null);
+		}
+
+		try {
+			recordServices.update(documentToUnPublish, user);
+			baseView.refreshActionMenu();
+			baseView.partialRefresh();
+		} catch (RecordServicesException e) {
+			baseView.showErrorMessage(MessageUtils.toMessage(e));
+		}
+	}
+
+	public void batchUnshare(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		Button button = new DeleteButton(false) {
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				unshareFolderButtonClicked(recordIds, params.getUser());
+				params.getView().refreshActionMenu();
+				params.getView().partialRefresh();
+			}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("DocumentContextMenu.batchUnshareConfirmationMsg");
+			}
+		};
+
+		button.click();
+	}
+
+	public void unshareFolderButtonClicked(List<String> ids, User user) {
+
+		List<Authorization> authorizations = rm.getMultipleSolrAuthorizationDetails(user, ids);
+
+		for (Authorization authorization : authorizations) {
+			try {
+				rm.getModelLayerFactory()
+						.newAuthorizationsServices().execute(toAuthorizationDeleteRequest(authorization, user));
+
+			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
+				return;
+			}
+		}
+	}
+
+	private AuthorizationDeleteRequest toAuthorizationDeleteRequest(Authorization authorization, User user) {
+		String authId = authorization.getId();
+
+		AuthorizationDeleteRequest request = AuthorizationDeleteRequest.authorizationDeleteRequest(authId, user.getCollection());
+
+		return request;
+
+	}
 
 	private boolean isBatchDeletePossible(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		return documentRecordActionsServices.canDeleteDocuments(recordIds, params.getUser())

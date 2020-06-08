@@ -1,5 +1,7 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
+import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.SolrServerType;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
@@ -23,6 +25,9 @@ import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException;
+import org.apache.solr.client.solrj.io.SolrClientCache;
+import org.apache.solr.client.solrj.io.stream.StreamContext;
+import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.client.solrj.request.GenericSolrRequest;
 import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -67,6 +72,7 @@ public class BigVaultServer implements Cloneable {
 	private final int waitedMillisecondsBetweenAttempts = 500;
 	private BigVaultLogger bigVaultLogger;
 	private DataLayerSystemExtensions extensions;
+	private DataLayerConfiguration configurations;
 
 	private final String name;
 	private final SolrServerFactory solrServerFactory;
@@ -78,19 +84,21 @@ public class BigVaultServer implements Cloneable {
 	private long lastCommit;
 	private Semaphore commitSemaphore = new Semaphore(1);
 
-	public BigVaultServer(String name, BigVaultLogger bigVaultLogger, SolrServerFactory solrServerFactory
-			, DataLayerSystemExtensions extensions) {
-		this(name, bigVaultLogger, solrServerFactory, extensions, new ArrayList<BigVaultServerListener>());
+	public BigVaultServer(String name, BigVaultLogger bigVaultLogger, SolrServerFactory solrServerFactory,
+						  DataLayerSystemExtensions extensions, DataLayerConfiguration configurations) {
+		this(name, bigVaultLogger, solrServerFactory, extensions, configurations, new ArrayList<BigVaultServerListener>());
 	}
 
 	public BigVaultServer(String name, BigVaultLogger bigVaultLogger, SolrServerFactory solrServerFactory,
-						  DataLayerSystemExtensions extensions, List<BigVaultServerListener> listeners) {
+						  DataLayerSystemExtensions extensions, DataLayerConfiguration configurations,
+						  List<BigVaultServerListener> listeners) {
 		this.solrServerFactory = solrServerFactory;
 		this.server = solrServerFactory.newSolrServer(name);
 		this.fileSystem = solrServerFactory.getConfigFileSystem(name);
 		this.bigVaultLogger = bigVaultLogger;
 		this.name = name;
 		this.extensions = extensions;
+		this.configurations = configurations;
 		this.listeners = listeners;
 	}
 
@@ -355,14 +363,14 @@ public class BigVaultServer implements Cloneable {
 																			   int code)
 			throws BigVaultException.OptimisticLocking, BigVaultException.CouldNotExecuteQuery {
 		if (code == HTTP_ERROR_409_CONFLICT) {
-			return handleOptimisticLockingException(exception);
+			return handleOptimisticLockingException(transaction, exception);
 
 		} else if (code == HTTP_ERROR_400_BAD_REQUEST) {
 			throw new BigVaultRuntimeException.BadRequest(transaction, exception);
 
 			//Solrcloud return an error 500 for updates with conflicts
 		} else if (code == HTTP_ERROR_500_INTERNAL && isRouteExceptionVersionConflict(exception)) {
-			return handleOptimisticLockingException(exception);
+			return handleOptimisticLockingException(transaction, exception);
 
 		} else if (code == HTTP_ERROR_500_INTERNAL) {
 			throw new SolrInternalError(transaction, exception);
@@ -391,7 +399,8 @@ public class BigVaultServer implements Cloneable {
 		}
 	}
 
-	private TransactionResponseDTO handleOptimisticLockingException(Exception optimisticLockingException)
+	private TransactionResponseDTO handleOptimisticLockingException(BigVaultServerTransaction transaction,
+																	Exception optimisticLockingException)
 			throws BigVaultException.OptimisticLocking {
 		//		try {
 		//			softCommit();
@@ -401,7 +410,22 @@ public class BigVaultServer implements Cloneable {
 		//			throw new BigVaultRuntimeException("" + maxFailAttempt + " errors occured while committing records",
 		//					solrServerException);
 		//		}
-		throw new BigVaultException.OptimisticLocking(optimisticLockingException);
+
+		Map map = null;
+		String id = BigVaultException.OptimisticLocking.retreiveId(optimisticLockingException.getMessage());
+		Long version = BigVaultException.OptimisticLocking.retreiveVersion(optimisticLockingException.getMessage());
+		List<String> recordsWithNewVersion = new ArrayList<>();
+
+		for (SolrInputDocument updatedDoc : transaction.getUpdatedDocuments()) {
+			String updatedDocId = (String) updatedDoc.getFieldValue("id");
+			if (id.equals(updatedDocId)) {
+				break;
+			} else {
+				recordsWithNewVersion.add(updatedDocId);
+			}
+		}
+
+		throw new BigVaultException.OptimisticLocking(id, version, recordsWithNewVersion, optimisticLockingException);
 	}
 
 	TransactionResponseDTO addAndCommit(BigVaultServerTransaction transaction)
@@ -455,24 +479,13 @@ public class BigVaultServer implements Cloneable {
 	TransactionResponseDTO add(BigVaultServerTransaction transaction)
 			throws SolrServerException, IOException {
 
-		for (BigVaultServerListener listener : this.listeners) {
-			if (listener instanceof BigVaultServerAddEditListener) {
-				((BigVaultServerAddEditListener) listener).beforeAdd(transaction);
-			}
-		}
 		int commitWithin = transaction.getRecordsFlushing().getWithinMilliseconds();
 		if (transaction.isRequiringLock()) {
 			String transactionId = UUIDV1Generator.newRandomId();
 			verifyTransactionOptimisticLocking(commitWithin, transactionId, transaction.getUpdatedDocuments());
 			transaction.setTransactionId(transactionId);
 		}
-		TransactionResponseDTO response = processChanges(transaction);
-		for (BigVaultServerListener listener : this.listeners) {
-			if (listener instanceof BigVaultServerAddEditListener) {
-				((BigVaultServerAddEditListener) listener).afterAdd(transaction, response);
-			}
-		}
-		return response;
+		return processChanges(transaction);
 	}
 
 	void verifyTransactionOptimisticLocking(int commitWithin, String transactionId,
@@ -555,6 +568,10 @@ public class BigVaultServer implements Cloneable {
 		}
 		req.setCommitWithin(commitWithin);
 		req.setParam(UpdateParams.VERSIONS, "true");
+		// FIXME can be removed once we support solr 8+
+		if (configurations.getRecordsDaoSolrServerType() == SolrServerType.CLOUD) {
+			req.setParam("min_rf", String.valueOf(configurations.getSolrMinimalReplicationFactor()));
+		}
 		req.add(transaction.getNewDocuments());
 		req.deleteById(transaction.getDeletedRecords());
 		req.setDeleteQuery(deletedQueriesAndLocks);
@@ -719,7 +736,7 @@ public class BigVaultServer implements Cloneable {
 
 	@Override
 	public BigVaultServer clone() {
-		return new BigVaultServer(name, bigVaultLogger, solrServerFactory, extensions, this.listeners);
+		return new BigVaultServer(name, bigVaultLogger, solrServerFactory, extensions, configurations, this.listeners);
 	}
 
 	public void disableLogger() {
@@ -771,5 +788,15 @@ public class BigVaultServer implements Cloneable {
 			t.printStackTrace();
 			return false;
 		}
+	}
+
+	public TupleStream tupleStream(Map<String, String> props) {
+
+		StreamContext streamContext = new StreamContext();
+		SolrClientCache solrClientCache = new SolrClientCache();
+		streamContext.setSolrClientCache(solrClientCache);
+		TupleStream tupleStream = solrServerFactory.newTupleStream(name, props);
+		tupleStream.setStreamContext(streamContext);
+		return tupleStream;
 	}
 }

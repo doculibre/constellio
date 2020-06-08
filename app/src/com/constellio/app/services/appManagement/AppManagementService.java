@@ -525,15 +525,12 @@ public class AppManagementService {
 	String sendPost(String url, String infoSent)
 			throws IOException {
 		StringBuilder response = new StringBuilder();
-
-		BufferedReader in = new BufferedReader(new InputStreamReader(getInputForPost(url, infoSent)));
-		String inputLine;
-
-		while ((inputLine = in.readLine()) != null) {
-			response.append(inputLine);
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(getInputForPost(url, infoSent)))) {
+			String inputLine;
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
 		}
-		in.close();
-
 		return response.toString();
 	}
 
@@ -546,10 +543,12 @@ public class AppManagementService {
 		con.setDoOutput(true);
 		con.setConnectTimeout(10000);
 
-		DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-		wr.writeBytes(infoSent);
-		wr.flush();
-		wr.close();
+		if (infoSent != null) {
+			try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
+				wr.writeBytes(infoSent);
+				wr.flush();
+			}
+		}
 
 		return con.getInputStream();
 	}
@@ -559,15 +558,12 @@ public class AppManagementService {
 		String URL_CHANGELOG = getChangelogURLFromServer();
 
 		String changelog = "";
-		try {
-			InputStream stream = getInputForPost(URL_CHANGELOG, getLicenseInfo().getSignature());
-
+		try (InputStream stream = getInputForPost(URL_CHANGELOG, getLicenseInfo().getSignature())) {
 			if (stream == null) {
 				throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_CHANGELOG);
 			}
 
-			BufferedReader in = new BufferedReader(new InputStreamReader(stream));
-			try {
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(stream))) {
 				String inputLine;
 				while ((inputLine = in.readLine()) != null) {
 					changelog += inputLine;
@@ -576,8 +572,6 @@ public class AppManagementService {
 				if (this.isProxyPage(changelog)) {
 					throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_CHANGELOG);
 				}
-			} finally {
-				IOUtils.closeQuietly(in);
 			}
 
 		} catch (IOException | RuntimeException io) {
@@ -620,12 +614,13 @@ public class AppManagementService {
 			if (input == null) {
 				throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_WAR);
 			}
-			CountingInputStream countingInputStream = new CountingInputStream(input);
 
 			progressInfo.setProgressMessage("Creating WAR file");
-			OutputStream warFileOutput = getWarFileDestination().create("war upload");
 
-			try {
+			try (
+					CountingInputStream countingInputStream = new CountingInputStream(input);
+					OutputStream warFileOutput = getWarFileDestination().create("war upload");
+			) {
 				progressInfo.setProgressMessage("Copying downloaded WAR");
 
 				byte[] buffer = new byte[8 * 1024];
@@ -636,9 +631,6 @@ public class AppManagementService {
 					String progressMessage = FileUtils.byteCountToDisplaySize(totalBytesRead);
 					progressInfo.setProgressMessage(progressMessage);
 				}
-			} finally {
-				IOUtils.closeQuietly(countingInputStream);
-				IOUtils.closeQuietly(warFileOutput);
 			}
 			progressInfo.setCurrentState(1);
 
@@ -647,14 +639,15 @@ public class AppManagementService {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public File getLastAlertFromServer() throws CannotConnectToServer {
 		String URL_LAST_ALERT = getLastAlertURLFromServer();
 
 		InputStream lastAlertFileInput = null;
 		OutputStream lastAlertFileOutput = null;
-
 		try {
-			lastAlertFileInput = getInputForPost(URL_LAST_ALERT, getLicenseInfo().getSignature());
+			String infoSent = getLicenseInfo() != null ? getLicenseInfo().getSignature() : null;
+			lastAlertFileInput = getInputForPost(URL_LAST_ALERT, infoSent);
 
 			if (lastAlertFileInput == null) {
 				throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_LAST_ALERT);

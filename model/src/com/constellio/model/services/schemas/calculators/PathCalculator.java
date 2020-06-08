@@ -12,6 +12,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
@@ -46,7 +47,12 @@ public class PathCalculator extends AbstractMetadataValueCalculator<List<String>
 		List<String> calculatedValue = new ArrayList<>();
 		HierarchyDependencyValue paramValue = parameters.get(taxonomiesParam);
 
-		List<String> paramValuePaths = paramValue.getPaths();
+		List<String> paramValuePaths = new ArrayList<>(paramValue.getPaths());
+		for (Iterator<String> it = paramValuePaths.iterator(); it.hasNext(); ) {
+			if (it.next() == null) {
+				it.remove();
+			}
+		}
 		if (paramValuePaths != null && !paramValuePaths.isEmpty()) {
 			calculatedValue = paramValuePaths;
 		} else if (paramValue.getTaxonomy() != null) {

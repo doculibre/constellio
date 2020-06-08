@@ -23,7 +23,6 @@ import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
 import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.SessionContext.SelectedRecordIdsChangeListener;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
@@ -69,7 +68,6 @@ import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.PopupView.PopupVisibilityEvent;
 import com.vaadin.ui.PopupView.PopupVisibilityListener;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
@@ -118,9 +116,9 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	private Component selectionPanel;
 	private RecordListMenuBar selectionActionMenuBar;
-	private Table selectionTable;
-	private SelectionTableAdapter selectionTableAdapter;
+	private BaseTable selectionTable;
 	private int selectionCount;
+	private BaseButton clearSelectionButton;
 
 	private Boolean delayedSelectionButtonEnabled;
 	private BaseView currentView;
@@ -574,7 +572,80 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		selectionPanel.addStyleName("header-selection-panel");
 		selectionPanel.addStyleName("no-scroll");
 
-		selectionTable = new BaseTable("selection-table");
+		selectionTable = new BaseTable("selection-table") {
+			@Override
+			public boolean isSelectColumn() {
+				return true;
+			}
+
+			@Override
+			protected SelectionManager newSelectionManager() {
+				return new SelectionManager() {
+					@Override
+					public void selectionChanged(SelectionChangeEvent event) {
+						if (event.isAllItemsSelected()) {
+							presenter.selectAllClicked();
+						} else if (event.isAllItemsDeselected()) {
+							presenter.deselectAllClicked();
+						} else {
+							List<Object> selectedItemIds = event.getSelectedItemIds();
+							List<Object> deselectedItemIds = event.getDeselectedItemIds();
+							if (selectedItemIds != null) {
+								for (Object selectedItemId : selectedItemIds) {
+									String recordId = (String) selectedItemId;
+									presenter.selectionChanged(recordId, true);
+								}
+							} else if (deselectedItemIds != null) {
+								for (Object deselectedItemId : deselectedItemIds) {
+									String recordId = (String) deselectedItemId;
+									presenter.selectionChanged(recordId, false);
+								}
+							}
+						}
+					}
+
+					@Override
+					public List<Object> getAllSelectedItemIds() {
+						List<Object> allSelectedItemIds;
+						if (isAllItemsSelected()) {
+							allSelectedItemIds = new ArrayList<>(getItemIds());
+						} else {
+							allSelectedItemIds = ensureListValue();
+						}
+						return allSelectedItemIds;
+					}
+
+					@Override
+					public boolean isAllItemsSelected() {
+						return presenter.isAllItemsSelected();
+					}
+
+					@Override
+					public boolean isAllItemsDeselected() {
+						return presenter.isAllItemsDeselected();
+					}
+
+					@Override
+					public boolean isSelected(Object itemId) {
+						String recordId = (String) itemId;
+						return presenter.isSelected(recordId);
+					}
+
+					@SuppressWarnings({"rawtypes"})
+					private List<Object> ensureListValue() {
+						List<Object> listValue;
+						Object objectValue = getValue();
+						if (objectValue instanceof List) {
+							listValue = (List) objectValue;
+						} else {
+							listValue = new ArrayList<>();
+						}
+						return listValue;
+					}
+				};
+			}
+
+		};
 		selectionTable.addContainerProperty("recordId", ReferenceDisplay.class, null);
 		selectionTable.setWidth("100%");
 		selectionTable.setColumnExpandRatio("recordId", 1);
@@ -587,58 +658,23 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			item.getItemProperty("recordId").setValue(referenceDisplay);
 		}
 
-		BaseButton clearSelectionButton = new BaseButton($("ConstellioHeader.clearSelection"), FontAwesome.TRASH_O) {
+		clearSelectionButton = new BaseButton($("ConstellioHeader.clearSelection"), FontAwesome.TRASH_O) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.clearSelectionButtonClicked();
 			}
 		};
-		clearSelectionButton.setCaptionVisibleOnMobile(false);
+		clearSelectionButton.setCaptionVisibleOnPhone(false);
+		clearSelectionButton.setCaptionVisibleOnTablet(true);
 		clearSelectionButton.addStyleName(ValoTheme.BUTTON_LINK);
 
-		selectionTableAdapter = new SelectionTableAdapter(selectionTable) {
-			@Override
-			public void selectAll() {
-				presenter.selectAllClicked();
-			}
-
-			@Override
-			public void deselectAll() {
-				presenter.deselectAllClicked();
-			}
-
-			@Override
-			public boolean isAllItemsSelected() {
-				return presenter.isAllItemsSelected();
-			}
-
-			@Override
-			public boolean isAllItemsDeselected() {
-				return presenter.isAllItemsDeselected();
-			}
-
-			@Override
-			public boolean isSelected(Object itemId) {
-				String recordId = (String) itemId;
-				return presenter.isSelected(recordId);
-			}
-
-			@Override
-			public void setSelected(Object itemId, boolean selected) {
-				String recordId = (String) itemId;
-				presenter.selectionChanged(recordId, selected);
-				refreshActionButtons();
-				adjustSelectAllButton(selected);
-			}
-		};
-
-		Component selectDeselectAllToggleButton = selectionTableAdapter.getComponent(0);
+		Component selectDeselectAllToggleButton = selectionTable.newSelectDeselectAllToggleButton();
+		selectDeselectAllToggleButton.addStyleName(ValoTheme.BUTTON_LINK);
+		
 		I18NHorizontalLayout selectionPanelTopLayout = new I18NHorizontalLayout();
 		selectionPanelTopLayout.addStyleName("selection-panel-top-layout");
 		selectionPanelTopLayout.setWidth("100%");
 		selectionPanelTopLayout.setSpacing(true);
-		selectionTableAdapter.addComponent(selectionPanelTopLayout, 0);
-		selectionTableAdapter.removeComponent(selectDeselectAllToggleButton);
 
 		selectionActionMenuBar = buildSelectionPanelMenuBar();
 		selectionPanelTopLayout.addComponents(selectDeselectAllToggleButton, clearSelectionButton, selectionActionMenuBar);
@@ -659,10 +695,11 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		buttonsLayout.setDefaultComponentAlignment(Alignment.TOP_CENTER);
 		buttonsLayout.setSpacing(true);
 
-		selectionPanel.addComponent(selectionTableAdapter);
+		selectionPanel.addComponent(selectionPanelTopLayout);
+		selectionPanel.addComponent(selectionTable);
 		selectionPanel.addComponent(buttonsLayout);
 		selectionPanel.setComponentAlignment(buttonsLayout, Alignment.TOP_CENTER);
-		selectionPanel.setExpandRatio(selectionTableAdapter, 1);
+		selectionPanel.setExpandRatio(selectionTable, 1);
 
 		return selectionPanel;
 	}
@@ -976,10 +1013,11 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	@Override
 	public void refreshActionButtons() {
 		selectionActionMenuBar.buildMenuItems();
+		clearSelectionButton.setVisible(!presenter.getSelectedRecords().isEmpty());
 	}
 
 	public void updateRecords() {
-		selectionTableAdapter.refreshUI();
+		selectionTable.refreshRenderedCells();
 	}
 
 	@Override

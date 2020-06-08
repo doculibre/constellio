@@ -9,8 +9,10 @@ import com.constellio.app.services.systemInformations.SystemInformationsService;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
+import com.constellio.model.conf.FoldersLocatorRuntimeException;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+@Slf4j
 public class SystemInfo {
 
 	private static final String MISSING_INFORMATION_ON_CONSTELLIO_MEMORY_CONFIGURATION = "missingInformationOnConstellioMemoryConfiguration";
@@ -40,7 +43,12 @@ public class SystemInfo {
 	private static final String CONSTELLIO_MEMORY_CONSUMPTION_HIGH = "constellioMemoryConsumptionHigh";
 	private static final String CONSTELLIO_MEMORY_CONSUMPTION_LOW = "constellioMemoryConsumptionLow";
 	private static final String PRIVATE_REPOSITORY_IS_NOT_INSTALLED = "privateRepositoryIsNotInstalled";
-
+	private static final String SYSTEM_ERROR_WARNING = "systemErrorWarning";
+	private static final String SYSTEM_ERROR_ERROR = "systemErrorError";
+	private static final String FILE_READING_FAILED = "fileReadingFailed";
+	private static final String FILE_NOT_FOUND = "fileNotFound";
+	private static final String SYSTEM_LOG_FILE_NAME = "system.log";
+	private static final String fileNameParameterKey = "fileName";
 	private static SystemInfo instance;
 
 	LocalDateTime lastTimeUpdated;
@@ -194,8 +202,7 @@ public class SystemInfo {
 		return validationErrors;
 	}
 
-	private void analyzeSystemAndFindValidationErrors(
-			ConstellioEIMConfigs configs) {
+	private void analyzeSystemAndFindValidationErrors(ConstellioEIMConfigs configs) {
 		validationErrors.clearAll();
 
 		//		FOR TEST PURPOSE
@@ -212,10 +219,55 @@ public class SystemInfo {
 		}
 
 		validateDiskUsage(configs);
+		validateSystemErrors();
 
 
 		//		validateMemoryConsumption();
 		//		validateRepository();
+	}
+
+	private void validateSystemErrors() {
+
+		if (isLogContainingSystemError("ERROR")) {
+			validationErrors.add(SystemInfo.class, SYSTEM_ERROR_ERROR);
+		}
+		if (isLogContainingSystemError("WARN")) {
+			validationErrors.addWarning(SystemInfo.class, SYSTEM_ERROR_WARNING);
+		}
+	}
+
+	private boolean isLogContainingSystemError(String errorType) {
+
+		boolean isLogContainingSystemError = false;
+
+		try {
+			File systemLogFile = getSystemLogFile();
+			if (systemLogFile.exists()) {
+				List<String> systemLogLines = FileUtils.readLines(systemLogFile, "UTF-8");
+				isLogContainingSystemError = systemLogLines.stream().anyMatch(line -> line.contains(errorType));
+			}
+		} catch (FoldersLocatorRuntimeException | IOException e) {
+			HashMap<String, Object> i18nParameters = buildSingleValueParameters(fileNameParameterKey, SYSTEM_LOG_FILE_NAME);
+			validationErrors.addWarning(SystemInfo.class, FILE_READING_FAILED, i18nParameters);
+			log.warn("Exception while checking for system errors", e);
+		}
+
+		return isLogContainingSystemError;
+	}
+
+	private File getSystemLogFile() {
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		File systemLogFile = null;
+
+		File logsFolder = appLayerFactory.getModelLayerFactory().getFoldersLocator().getLogsFolder();
+		if (logsFolder.exists()) {
+			systemLogFile = new File(logsFolder, SYSTEM_LOG_FILE_NAME);
+		} else {
+			HashMap<String, Object> i18nParameters = buildSingleValueParameters(fileNameParameterKey, "logsFolder");
+			validationErrors.addWarning(SystemInfo.class, FILE_NOT_FOUND, i18nParameters);
+		}
+
+		return systemLogFile;
 	}
 
 	private void validateMemoryAllocation() {

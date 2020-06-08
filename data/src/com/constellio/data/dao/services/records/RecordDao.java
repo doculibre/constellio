@@ -7,10 +7,12 @@ import com.constellio.data.dao.dto.records.TransactionResponseDTO;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
+import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.SolrParams;
 
 import java.util.List;
+import java.util.Map;
 
 public interface RecordDao {
 
@@ -66,4 +68,6 @@ public interface RecordDao {
 	BigVaultServer getBigVaultServer();
 
 	void expungeDeletes();
+
+	TupleStream tupleStream(Map<String, String> props);
 }

@@ -228,7 +228,7 @@ public class MetadataNetworkBuilder {
 
 		if (metadata.getType() == MetadataValueType.REFERENCE) {
 
-			Metadata toMetadata = builder.idMetadataOfType(metadata.getReferencedSchemaType());
+			Metadata toMetadata = builder.idMetadataOfType(metadata.getReferencedSchemaTypeCode());
 
 			int level = builder.getDependencyLevelRequiredFor(metadata, asList(toMetadata), false, false);
 			builder.addNetworkLink(metadata, asList(toMetadata), null, level, REFERENCE, false, false);
@@ -264,7 +264,7 @@ public class MetadataNetworkBuilder {
 					try {
 						ReferenceDependency dependency = (ReferenceDependency) aDependency;
 						Metadata refMetadata = schema.getMetadata(dependency.getLocalMetadataCode());
-						MetadataSchemaType referencedType = builder.type(refMetadata.getReferencedSchemaType());
+						MetadataSchemaType referencedType = builder.type(refMetadata.getReferencedSchemaTypeCode());
 						Metadata dependentMetadata = referencedType.getDefaultSchema()
 								.getMetadata(dependency.getDependentMetadataCode());
 
@@ -293,7 +293,7 @@ public class MetadataNetworkBuilder {
 					try {
 						ReferenceDependency dependency = (ReferenceDependency) aDependency;
 						Metadata refMetadata = schema.getMetadata(dependency.getLocalMetadataCode());
-						MetadataSchemaType referencedType = builder.type(refMetadata.getReferencedSchemaType());
+						MetadataSchemaType referencedType = builder.type(refMetadata.getReferencedSchemaTypeCode());
 						Metadata dependentMetadata = referencedType.getDefaultSchema()
 								.getMetadata(dependency.getDependentMetadataCode());
 
@@ -327,7 +327,7 @@ public class MetadataNetworkBuilder {
 			//					try {
 			//						ReferenceDependency dependency = (ReferenceDependency) aDependency;
 			//						Metadata refMetadata = schema.getMetadata(dependency.getLocalMetadataCode());
-			//						MetadataSchemaType referencedType = builder.type(refMetadata.getReferencedSchemaType());
+			//						MetadataSchemaType referencedType = builder.type(refMetadata.getReferencedSchemaTypeCode());
 			//						Metadata dependentMetadata = referencedType.getDefaultSchema()
 			//								.getMetadata(dependency.getDependentMetadataCode());
 			//
@@ -354,7 +354,7 @@ public class MetadataNetworkBuilder {
 				if (dataEntry.getMetadataProvidingSequenceCode().contains(".")) {
 					String[] splittedCode = dataEntry.getMetadataProvidingSequenceCode().split("\\.");
 					Metadata firstMetadata = schema.getMetadata(splittedCode[0]);
-					Metadata secondMetadata = builder.type(firstMetadata.getReferencedSchemaType()).getDefaultSchema()
+					Metadata secondMetadata = builder.type(firstMetadata.getReferencedSchemaTypeCode()).getDefaultSchema()
 							.getMetadata(splittedCode[1]);
 					metadatas.add(firstMetadata);
 					metadatas.add(secondMetadata);

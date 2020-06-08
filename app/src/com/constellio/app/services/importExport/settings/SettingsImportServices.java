@@ -3,6 +3,7 @@ package com.constellio.app.services.importExport.settings;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
@@ -50,6 +51,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
@@ -373,6 +375,10 @@ public class SettingsImportServices {
 		}
 		if (importedMetadata.getAdvanceSearchable() != null) {
 			displayConfig = displayConfig.withVisibleInAdvancedSearchStatus(importedMetadata.getAdvanceSearchable());
+		}
+		if (StringUtils.isNotBlank(importedMetadata.getSortingType())) {
+			displayConfig = displayConfig.withSortingType((MetadataSortingType)
+					EnumWithSmallCodeUtils.toEnumWithSmallCode(MetadataSortingType.class, importedMetadata.getSortingType()));
 		}
 		transactionBuilder.addReplacing(displayConfig);
 	}

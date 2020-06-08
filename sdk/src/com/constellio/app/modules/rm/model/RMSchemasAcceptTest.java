@@ -7,7 +7,6 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -31,20 +30,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RMSchemasAcceptTest extends ConstellioTest {
 
 	@Test
-	public void whenCallLogicallyThenPhysicallyDeletableCheckOnCategoriesThenGoodBehavior() {
-		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTestUsers()
-		);
-		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
-
-		assertThat(schemasDisplayManager.getReturnedFieldsForSearch(zeCollection)).containsOnly(
-				"archivisticStatus_s", "title_s", "assigneeId_s", "code_s", "content_s", "mediaType_s", "modifiedOn_dt", "dueDate_da",
-				"statusId_s", "description_s", "description_t", "mimetype_s", "migrationDataVersion_d", "deleted_s", "question_s",
-				"tokensHierarchy_ss", "documentsTokens_ss", "subFoldersTokens_ss"
-		);
-	}
-
-	@Test
 	public void givenASchemaTypeThenRetrieveSchemaTypesInItsHierarchy() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
@@ -56,7 +41,7 @@ public class RMSchemasAcceptTest extends ConstellioTest {
 				Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, Category.SCHEMA_TYPE
 		);
 		assertThat(SchemaUtils.getSchemaTypesInHierarchyOf(Document.SCHEMA_TYPE, schemaTypes)).containsOnly(
-				Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, Category.SCHEMA_TYPE
+				Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, Document.SCHEMA_TYPE, Category.SCHEMA_TYPE
 		);
 		assertThat(SchemaUtils.getSchemaTypesInHierarchyOf(ContainerRecord.SCHEMA_TYPE, schemaTypes)).containsOnly(
 				ContainerRecord.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE
@@ -80,26 +65,26 @@ public class RMSchemasAcceptTest extends ConstellioTest {
 	}
 
 	private String[] EXPECTED_MULTILINGUAL_METADATAS = new String[]{
-			"administrativeUnit_default_description", "administrativeUnit_default_title",
-			"category_default_description", "category_default_keywords", "category_default_title",
-			"ddvContainerRecordType_default_description", "ddvContainerRecordType_default_title",
-			"ddvDocumentType_default_description", "ddvDocumentType_default_title",
-			"ddvFolderType_default_description", "ddvFolderType_default_title",
-			"ddvMediumType_default_description", "ddvMediumType_default_title",
-			"ddvStorageSpaceType_default_description", "ddvStorageSpaceType_default_title",
-			"ddvTaskStatus_default_description", "ddvTaskStatus_default_title",
-			"ddvTaskType_default_description", "ddvTaskType_default_title",
-			"ddvVariablePeriod_default_description", "ddvVariablePeriod_default_title",
-			"ddvYearType_default_description", "ddvYearType_default_title",
+			"administrativeUnit_default_description", "administrativeUnit_default_title", /*"administrativeUnit_default_abbreviation",*/
+			"category_default_description", "category_default_keywords", "category_default_title", /*"category_default_abbreviation",*/
+			"ddvContainerRecordType_default_description", "ddvContainerRecordType_default_title", "ddvContainerRecordType_default_abbreviation",
+			"ddvDocumentType_default_description", "ddvDocumentType_default_title", "ddvDocumentType_default_abbreviation",
+			"ddvFolderType_default_description", "ddvFolderType_default_title", "ddvFolderType_default_abbreviation",
+			"ddvMediumType_default_description", "ddvMediumType_default_title", "ddvMediumType_default_abbreviation",
+			"ddvStorageSpaceType_default_description", "ddvStorageSpaceType_default_title", "ddvStorageSpaceType_default_abbreviation",
+			"ddvTaskStatus_default_description", "ddvTaskStatus_default_title", "ddvTaskStatus_default_abbreviation",
+			"ddvTaskType_default_description", "ddvTaskType_default_title", "ddvTaskType_default_abbreviation",
+			"ddvVariablePeriod_default_description", "ddvVariablePeriod_default_title", "ddvVariablePeriod_default_abbreviation",
+			"ddvYearType_default_description", "ddvYearType_default_title", "ddvYearType_default_abbreviation",
 			"facet_default_title",
 			"retentionRule_default_title", "retentionRule_default_juridicReference", "retentionRule_default_generalComment",
-			"retentionRule_default_keywords", "retentionRule_default_copyRulesComment", "retentionRule_default_description",
+			"retentionRule_default_keywords", "retentionRule_default_copyRulesComment", "retentionRule_default_description", /*"retentionRule_default_abbreviation",*/
 			"report_default_title",
 			"uniformSubdivision_default_title",
 			"printable_default_title",
-			"ddvCapsuleLanguage_default_description",
+			"ddvCapsuleLanguage_default_description", "ddvCapsuleLanguage_default_abbreviation",
 			"ddvCapsuleLanguage_default_title",
-			"ddvUserFunction_default_description",
+			"ddvUserFunction_default_description", "ddvUserFunction_default_abbreviation",
 			"ddvUserFunction_default_title"
 
 	};

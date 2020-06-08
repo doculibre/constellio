@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.document;
 
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsComponent;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.RecordsManagementViewGroup;
+import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
@@ -31,4 +32,7 @@ public interface DisplayDocumentView extends BaseView, RecordsManagementViewGrou
 
 	void setTaxonomyCode(String taxonomyCode);
 
+	void sharesTabSelected();
+
+	void removeAuthorization(AuthorizationVO authorizationVO);
 }

@@ -242,7 +242,7 @@ public class MetadataList implements List<Metadata>, Serializable {
 	public MetadataList onlyReferencesToType(String schemaTypeCode) {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
-			if (metadata.getType() == MetadataValueType.REFERENCE && metadata.getReferencedSchemaType().equals(schemaTypeCode)) {
+			if (metadata.getType() == MetadataValueType.REFERENCE && metadata.getReferencedSchemaTypeCode().equals(schemaTypeCode)) {
 				filteredMetadatasList.add(metadata);
 			}
 		}
@@ -450,16 +450,6 @@ public class MetadataList implements List<Metadata>, Serializable {
 		return this;
 	}
 
-	public MetadataList onlyEssentialInSummary() {
-
-		List<Metadata> filteredMetadatasList = new ArrayList<>();
-		for (Metadata metadata : nestedList) {
-			if (metadata.isEssentialInSummary()) {
-				filteredMetadatasList.add(metadata);
-			}
-		}
-		return new MetadataList(filteredMetadatasList).unModifiable();
-	}
 
 	public MetadataList onlyEssentialMetadatasAndCodeTitle() {
 

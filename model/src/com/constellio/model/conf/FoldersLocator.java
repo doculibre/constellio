@@ -32,7 +32,7 @@ public class FoldersLocator {
 		if (fullPath.contains("file:") && fullPath.contains("!")) {
 			String path = fullPath.split("!")[0];
 
-			if (path.contains("constellio-plugins/sdk")) {
+			if (path.contains("constellio-plugins" + File.separator + "sdk")) {
 				// is the plugin sdk test
 				path = path.split("file:")[0];
 
@@ -184,15 +184,19 @@ public class FoldersLocator {
 		return new File(getWrapperInstallationFolder(), "bin");
 	}
 
+	public File getLogsFolder() {
+		return new File(getWrapperInstallationFolder(), "logs");
+	}
+
 	public File getBatFolder() {
 		return new File(getWrapperInstallationFolder(), "bat");
 	}
 
 	public File getSolrHomeConfFolder(double solrVersion) {
-		if (solrVersion < 6) {
+		if (solrVersion < 8) {
 			return new File(getConstellioWebappFolder(), "solrHome5");
 		}
-		return new File(getConstellioWebappFolder(), "solrHome7");
+		return new File(getConstellioWebappFolder(), "solrHome8");
 	}
 
 	public File getWrapperCommandFolder() {

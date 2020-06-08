@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.management.schemas.metadata;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RoleVO;
@@ -55,6 +56,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	private ComboBox inputType;
 	@PropertyId("displayType")
 	private ComboBox displayType;
+	@PropertyId("sortingType")
+	private ComboBox sortingType;
 	@PropertyId("reference")
 	private ComboBox refType;
 	@PropertyId("required")
@@ -221,6 +224,24 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				displayType.setVisible(true);
 			}
 
+			sortingType.setEnabled(false);
+			sortingType.removeAllItems();
+			sortingType.setEnabled(true);
+			List<MetadataSortingType> sortingTypes = MetadataSortingType
+					.getAvailableMetadataSortingTypesFor(value, Boolean.TRUE.equals(multivalue));
+			for (MetadataSortingType type : sortingTypes) {
+				sortingType.addItem(type);
+				sortingType.setItemCaption(type, $(MetadataSortingType.getCaptionFor(type)));
+			}
+			if (sortingTypes.size() < 2) {
+				sortingType.setEnabled(false);
+				sortingType.setVisible(false);
+				sortingType.setValue(sortingType.getItemIds().iterator().next());
+			} else {
+				sortingType.setEnabled(true);
+				sortingType.setVisible(true);
+			}
+
 			if (!inherited) {
 				this.enableCorrectFields(value, inherited, editMode, multivalue);
 			}
@@ -238,9 +259,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		switch (value) {
 			case BOOLEAN:
-				if (multivalueType.getValue()) {
-					multivalueType.setValue(false);
-				}
 				multivalueType.setEnabled(false);
 				sortableField.setEnabled(false);
 				searchableField.setValue(false);
@@ -416,6 +434,14 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		displayType.addStyleName("displayType");
 		displayType.setEnabled(false);
 		displayType.setNullSelectionAllowed(false);
+
+		sortingType = new ComboBox();
+		sortingType.setCaption($("AddEditMetadataView.sortingType"));
+		sortingType.setRequired(true);
+		sortingType.setId("sortingType");
+		sortingType.addStyleName("sortingType");
+		sortingType.setEnabled(false);
+		sortingType.setNullSelectionAllowed(false);
 
 		metadataGroup = new OptionGroup($("AddEditMetadataView.metadataGroup"), presenter.getMetadataGroupList());
 		metadataGroup.setRequired(true);
@@ -596,6 +622,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		fields.add(defaultValueField);
 		fields.add(displayType);
+		fields.add(sortingType);
 
 		if (parentMetadataLabel != null) {
 			fields.add(2, parentMetadataLabel);

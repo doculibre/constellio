@@ -541,7 +541,7 @@ public class ModificationImpactCalculator_HierarchiesTest extends ConstellioTest
 		AllowedReferences allowedReferences = new AllowedReferences(type, null);
 		when(metadata.getAllowedReferences()).thenReturn(allowedReferences);
 		when(types.getMetadata(code)).thenReturn(metadata);
-		when(metadata.getReferencedSchemaType()).thenCallRealMethod();
+		when(metadata.getReferencedSchemaTypeCode()).thenCallRealMethod();
 		return metadata;
 	}
 
@@ -555,7 +555,7 @@ public class ModificationImpactCalculator_HierarchiesTest extends ConstellioTest
 		AllowedReferences allowedReferences = new AllowedReferences(null, asSet(schemas));
 		when(metadata.getAllowedReferences()).thenReturn(allowedReferences);
 		when(types.getMetadata(code)).thenReturn(metadata);
-		when(metadata.getReferencedSchemaType()).thenCallRealMethod();
+		when(metadata.getReferencedSchemaTypeCode()).thenCallRealMethod();
 		return metadata;
 	}
 

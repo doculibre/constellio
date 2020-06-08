@@ -5,6 +5,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.model.entities.Language;
 import org.apache.commons.lang.StringUtils;
 import org.jdom2.Document;
@@ -38,6 +39,7 @@ public class SchemasDisplayWriter {
 	private static final String METADATA_DISPLAY_CONFIGS = "MetadataDisplayConfigs";
 	private static final String INPUT_TYPE = "InputType";
 	private static final String DISPLAY_TYPE = "DisplayType";
+	private static final String SORTING_TYPE = "SortingType";
 	private static final String VISIBLE_IN_ADVANCED_SEARCH = "VisibleInAdvancedSearch";
 	private static final String HIGHLIGHT = "Highlight";
 	private static final String METADATA_GROUP_LABEL = "MetadataGroupLabel";
@@ -240,10 +242,17 @@ public class SchemasDisplayWriter {
 		Element metadata = getOrCreateElementFromParent(metadataDisplayConfigs, config.getMetadataCode());
 		metadata.setAttribute(VISIBLE_IN_ADVANCED_SEARCH, config.isVisibleInAdvancedSearch() ? TRUE : FALSE);
 		metadata.setAttribute(INPUT_TYPE, config.getInputType().name());
+
 		if (config.getDisplayType() != null && config.getDisplayType() != MetadataDisplayType.VERTICAL) {
 			metadata.setAttribute(DISPLAY_TYPE, config.getDisplayType().name());
 		} else {
 			metadata.removeAttribute(DISPLAY_TYPE);
+		}
+
+		if (config.getSortingType() != null && config.getSortingType() != MetadataSortingType.ENTRY_ORDER) {
+			metadata.setAttribute(SORTING_TYPE, config.getSortingType().name());
+		} else {
+			metadata.removeAttribute(SORTING_TYPE);
 		}
 		metadata.setAttribute(HIGHLIGHT, config.isHighlight() ? TRUE : FALSE);
 		metadata.setAttribute(METADATA_GROUP,

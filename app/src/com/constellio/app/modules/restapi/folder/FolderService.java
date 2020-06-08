@@ -43,8 +43,16 @@ public class FolderService extends ResourceService {
 			validateETag(id, folder.getETag(), folderRecord.getVersion());
 		}
 
+		Record parentRecord = null;
+		if (folder.getParentFolderId() != null) {
+			parentRecord = getRecord(folder.getParentFolderId(), true);
+		}
+
 		User user = getUser(serviceKey, folderRecord.getCollection());
 		validateUserAccess(user, folderRecord, method);
+		if (parentRecord != null) {
+			validateUserAccess(user, parentRecord, method);
+		}
 
 		MetadataSchema folderSchema;
 		if (partial && folder.getType() == null) {
@@ -121,6 +129,18 @@ public class FolderService extends ResourceService {
 			acesModified = true;
 		}
 		return getAdaptor().adapt(folderDto, copiedFolderRecord, folderSchema, acesModified, filters);
+	}
+
+	public void delete(String host, String id, String serviceKey, String method, String date, int expiration,
+					   Boolean physical, String signature) throws Exception {
+		validateParameters(host, id, serviceKey, method, date, expiration, null, physical, null, signature);
+
+		Record folder = getRecord(id, false);
+		User user = getUser(serviceKey, folder.getCollection());
+		validateUserAccess(user, folder, method);
+		validateUserDeleteAccessOnHierarchy(user, folder);
+
+		folderDao.deleteFolder(user, folder, Boolean.TRUE.equals(physical));
 	}
 
 	@Override

@@ -33,7 +33,6 @@ import com.constellio.data.dao.services.cache.map.ConstellioMapCacheManager;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCacheManager;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
-import com.constellio.data.dao.services.contents.HadoopContentDao;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
@@ -44,6 +43,7 @@ import com.constellio.data.dao.services.leaderElection.StandaloneLeaderElectionM
 import com.constellio.data.dao.services.leaderElection.ZookeeperLeaderElectionManager;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
+import com.constellio.data.dao.services.replicationFactor.TransactionLogReplicationFactorManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.dao.services.sequence.SolrSequencesManager;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
@@ -116,6 +116,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private final DataLayerLogger dataLayerLogger;
 	private final DataLayerExtensions dataLayerExtensions;
 	final TransactionLogRecoveryManager transactionLogRecoveryManager;
+	private TransactionLogReplicationFactorManager transactionLogReplicationFactorManager;
 	private String constellioVersion;
 	private final ConversionManager conversionManager;
 	private final EventBusManager eventBusManager;
@@ -139,7 +140,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		// TODO Possibility to configure the logger
 		this.bigVaultLogger = BigVaultLogger.disabled();
 		this.ioServicesFactory = ioServicesFactory;
-		this.solrServers = new SolrServers(newSolrServerFactory(), bigVaultLogger, dataLayerExtensions);
+		this.solrServers = new SolrServers(newSolrServerFactory(), bigVaultLogger, dataLayerExtensions, dataLayerConfiguration);
 		this.dataLayerLogger = new DataLayerLogger();
 		this.sqlConnector = new SqlServerConnector();
 
@@ -266,9 +267,17 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			secondTransactionLogManager = null;
 		}
 
+		if (dataLayerConfiguration.getRecordsDaoSolrServerType() == SolrServerType.CLOUD) {
+			transactionLogReplicationFactorManager =
+					new TransactionLogReplicationFactorManager(this, getExtensions().getSystemWideExtensions());
+			add(transactionLogReplicationFactorManager);
+		} else {
+			transactionLogReplicationFactorManager = null;
+		}
+
 		IOServices ioServices = ioServicesFactory.newIOServices();
 		conversionManager = add(new ConversionManager(ioServices, dataLayerConfiguration.getConversionProcesses(),
-				dataLayerConfiguration.getOnlineConversionUrl(), this.getExtensions().getSystemWideExtensions()));
+				dataLayerConfiguration.getOnlineConversionUrl(), this.getExtensions().getSystemWideExtensions(), dataLayerConfiguration));
 		lastCreatedInstance = this;
 
 		dataLayerBackgroundThreadsManager = new DataLayerBackgroundThreadsManager(this);
@@ -472,10 +481,6 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	public void updateContentDao() {
 		if (ContentDaoType.FILESYSTEM == dataLayerConfiguration.getContentDaoType()) {
 			contentDao = add(new FileSystemContentDao(this));
-		} else if (ContentDaoType.HADOOP == dataLayerConfiguration.getContentDaoType()) {
-			String hadoopUrl = dataLayerConfiguration.getContentDaoHadoopUrl();
-			String hadoopUser = dataLayerConfiguration.getContentDaoHadoopUser();
-			contentDao = new HadoopContentDao(hadoopUrl, hadoopUser);
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ContentDaoType");
@@ -500,6 +505,10 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 	public boolean isDistributed() {
 		return !(leaderElectionManager.getNestedLeaderElectionManager() instanceof StandaloneLeaderElectionManager);
+	}
+
+	public TransactionLogReplicationFactorManager getTransactionLogReplicationFactorManager() {
+		return transactionLogReplicationFactorManager;
 	}
 
 }

@@ -1,9 +1,12 @@
 package com.constellio.app.modules.rm.constants;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Permissions;
 
 import java.util.List;
+
+import static com.constellio.model.entities.CorePermissions.COLLECTION_MANAGEMENT;
 
 public class RMPermissionsTo {
 	public static Permissions PERMISSIONS = new Permissions(ConstellioRMModule.ID);
@@ -20,6 +23,7 @@ public class RMPermissionsTo {
 	public static final String MANAGE_FOLDER_AUTHORIZATIONS = permission(FOLDER_GROUP, "manageFolderAuthorizations");
 	public static final String VIEW_FOLDER_AUTHORIZATIONS = permission(FOLDER_GROUP, "viewFolderAuthorizations");
 
+	public static final String MANAGE_SHARE = CorePermissions.PERMISSIONS.add(COLLECTION_MANAGEMENT, "manageShare");
 	public static final String SHARE_FOLDER = permission(FOLDER_GROUP, "shareFolders");
 	public static final String SHARE_A_SEMIACTIVE_FOLDER = permission(FOLDER_GROUP, "shareSemiActiveFolders");
 	public static final String SHARE_A_INACTIVE_FOLDER = permission(FOLDER_GROUP, "shareInactiveFolders");

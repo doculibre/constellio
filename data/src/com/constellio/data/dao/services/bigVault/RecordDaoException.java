@@ -1,5 +1,7 @@
 package com.constellio.data.dao.services.bigVault;
 
+import java.util.List;
+
 @SuppressWarnings("serial")
 public class RecordDaoException extends Exception {
 
@@ -29,14 +31,21 @@ public class RecordDaoException extends Exception {
 
 		private final Long version;
 
-		public OptimisticLocking(String id, Long version, Throwable t) {
+		private List<String> recordsWithNewVersion;
+
+		public OptimisticLocking(String id, Long version, List<String> recordsWithNewVersion, Throwable t) {
 			super(getMessage(id, version), t);
 			this.id = id;
 			this.version = version;
+			this.recordsWithNewVersion = recordsWithNewVersion;
 		}
 
 		private static String getMessage(String id, Long version) {
 			return "Optimistic locking while saving solr document with id '" + id + "' in version '" + version + "'";
+		}
+
+		public List<String> getRecordsWithNewVersion() {
+			return recordsWithNewVersion;
 		}
 
 		public String getId() {

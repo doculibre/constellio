@@ -64,7 +64,7 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenRecordsMarkedForReindexingThenEventuallyReindexed()
+	public void givenRecordsMarkedForReindexingOutsideOfOfficeHoursThenEventuallyReindexed()
 			throws Exception {
 
 		List<String> idsMarkedForReindexing = new ArrayList<>();
@@ -88,9 +88,17 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 
 		new RecordsCache2IntegrityDiagnosticService(getModelLayerFactory()).validateIntegrity(false, false);
 
-		RecordsReindexingBackgroundAction command = new RecordsReindexingBackgroundAction(getModelLayerFactory());
+		RecordsReindexingBackgroundAction command = new RecordsReindexingBackgroundAction(getModelLayerFactory()) {
+			@Override
+			protected boolean isOfficeHours() {
+				return false;
+			}
+		};
+
+		recordServices.flushRecords();
 
 		command.run();
+		recordServices.flushRecords();
 		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(100);
 
 		command.run();
@@ -104,6 +112,52 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 
 		command.run();
 		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(399);
+	}
+
+
+	@Test
+	public void givenRecordsMarkedForReindexingDuringOfficeHoursThenEventuallyReindexed()
+			throws Exception {
+
+		List<String> idsMarkedForReindexing = new ArrayList<>();
+		Transaction transaction = new Transaction().setOptimisticLockingResolution(EXCEPTION);
+		for (int i = 0; i < 400; i++) {
+			Record record = new TestRecord(zeSchema).set(zeSchema.stringMetadata(), "pomme");
+			transaction.add(record);
+			if (i != 17) {
+				idsMarkedForReindexing.add(record.getId());
+			}
+		}
+		recordServices.execute(transaction);
+
+
+		checkCache();
+		setNumberMetadataToABadValueTo(transaction.getRecords());
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).invalidateVolatileReloadPermanent(asList("zeSchemaType"));
+		markForReindexing(idsMarkedForReindexing);
+		checkCache();
+		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(0);
+
+		new RecordsCache2IntegrityDiagnosticService(getModelLayerFactory()).validateIntegrity(false, false);
+
+		RecordsReindexingBackgroundAction command = new RecordsReindexingBackgroundAction(getModelLayerFactory()) {
+			@Override
+			protected boolean isOfficeHours() {
+				return true;
+			}
+		};
+
+		recordServices.flushRecords();
+
+		command.run();
+		recordServices.flushRecords();
+		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(10);
+
+		command.run();
+		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(20);
+
+		command.run();
+		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(30);
 	}
 
 	@Test

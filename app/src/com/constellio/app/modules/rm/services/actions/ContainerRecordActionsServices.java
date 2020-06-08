@@ -91,6 +91,10 @@ public class ContainerRecordActionsServices {
 		return user.has(RMPermissionsTo.USE_MY_CART).globally();
 	}
 
+	private boolean hasUserWriteAccess(Record record, User user) {
+		return user.hasWriteAccess().on(record);
+	}
+
 	public boolean isPrintLabelActionPossible(Record record, User user) {
 		return user.hasReadAccess().on(record)
 			   && rmModuleExtensions.isLabelsActionPossibleOnContainerRecord(rm.wrapContainerRecord(record), user)
@@ -187,5 +191,22 @@ public class ContainerRecordActionsServices {
 
 	private boolean isContainerRecyclingAllowed() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isContainerRecyclingAllowed();
+	}
+
+	public boolean isGenerateReportActionPossible(Record record, User user) {
+		return hasUserWriteAccess(record, user) &&
+			   !record.isLogicallyDeleted() &&
+			   rmModuleExtensions.isGenerateReportActionPossibleOnContainer(rm.wrapContainerRecord(record), user);
+	}
+
+	public boolean isAddToSelectionActionPossible(Record record, User user) {
+		return user.hasReadAccess().on(record) &&
+			   !record.isLogicallyDeleted() &&
+			   rmModuleExtensions.isAddRemoveToSelectionActionPossibleOnContainerRecord(rm.wrapContainerRecord(record), user);
+	}
+
+	public boolean isRemoveToSelectionActionPossible(Record record, User user) {
+		return user.hasReadAccess().on(record) &&
+			   rmModuleExtensions.isAddRemoveToSelectionActionPossibleOnContainerRecord(rm.wrapContainerRecord(record), user);
 	}
 }

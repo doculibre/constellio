@@ -34,8 +34,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
@@ -154,7 +156,7 @@ public class RecordUtils {
 	 * @param object
 	 * @return
 	 */
-	private static long sizeOf(Object object) {
+	public static long sizeOf(Object object) {
 
 		if (object == null) {
 			return 0;
@@ -213,6 +215,15 @@ public class RecordUtils {
 		Set<String> idList = new HashSet<>();
 
 		for (RecordWrapper record : records) {
+			idList.add(record.getId());
+		}
+		return idList;
+	}
+
+	public static Set<String> toRecordIdsSet(List<Record> records) {
+		Set<String> idList = new HashSet<>();
+
+		for (Record record : records) {
 			idList.add(record.getId());
 		}
 		return idList;
@@ -478,7 +489,7 @@ public class RecordUtils {
 	public static String getSchemaAccordingToTypeLinkedSchema(Record record, MetadataSchemaTypes schemaTypes,
 															  RecordProvider recordProvider, Metadata typeMetadata) {
 		MetadataSchema recordSchema = schemaTypes.getSchemaOf(record);
-		MetadataSchema referencedSchema = schemaTypes.getDefaultSchema(typeMetadata.getReferencedSchemaType());
+		MetadataSchema referencedSchema = schemaTypes.getDefaultSchema(typeMetadata.getReferencedSchemaTypeCode());
 		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		String typeId = record.get(typeMetadata);
 		String customSchema = null;
@@ -664,24 +675,34 @@ public class RecordUtils {
 
 	private static List<String> getHierarchyIdsTo(String newReference, MetadataSchemaTypes types,
 												  RecordProvider recordProvider) {
+		List<String> collectedIds = new ArrayList<>();
+		return getHierarchyIdsTo(newReference, types, recordProvider, collectedIds);
+	}
+
+	private static List<String> getHierarchyIdsTo(String newReference, MetadataSchemaTypes types,
+												  RecordProvider recordProvider, List<String> collectedIds) {
 		List<String> ids = new ArrayList<>();
 
-		Record record = recordProvider.getRecord(newReference);
+		Record record = recordProvider.getRecordSummary(newReference);
 		if (record.isSaved()) {
-			ids.add(record.getId());
-			List<Metadata> metadatas = types.getSchemaOf(record).getMetadatas().only(new MetadataListFilter() {
-				@Override
-				public boolean isReturned(Metadata metadata) {
-					return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
-				}
-			});
+			if (!collectedIds.contains(record.getId())) {
+				ids.add(record.getId());
+				collectedIds.add(record.getId());
+				List<Metadata> metadatas = types.getSchemaOf(record).getMetadatas().only(new MetadataListFilter() {
+					@Override
+					public boolean isReturned(Metadata metadata) {
+						return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
+					}
+				});
 
-			for (Metadata metadata : metadatas) {
-				for (String aReference : record.<String>getValues(metadata)) {
-					ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider));
+				for (Metadata metadata : metadatas) {
+					for (String aReference : record.<String>getValues(metadata)) {
+						if (!ids.contains(aReference)) {
+							ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider, collectedIds));
+						}
+					}
 				}
 			}
-
 		}
 		return ids;
 	}
@@ -818,6 +839,26 @@ public class RecordUtils {
 			}
 		}
 
+	}
+
+	public static List<Record> compareRecords(List<Record> records, List<Metadata> comparedMetadatas) {
+		Record baseRecord = records.get(0);
+
+		Iterator currentTestedRecordIterator = records.iterator();
+		currentTestedRecordIterator.next();
+
+		while (currentTestedRecordIterator.hasNext()) {
+			Record currentRecord = (Record) currentTestedRecordIterator.next();
+			for (Metadata metadata : comparedMetadatas) {
+				if (!metadata.isSystemReserved()) {
+					if (!Objects.equals(baseRecord.get(metadata), currentRecord.get(metadata))) {
+						return records;
+					}
+				}
+			}
+		}
+
+		return Collections.emptyList();
 	}
 
 }

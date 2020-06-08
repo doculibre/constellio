@@ -127,7 +127,7 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void testGetUrlDocumentPutMethod() throws Exception {
 		method = HttpMethods.PUT;
-		String expectedUrl = webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.DOCUMENT.getResource())
+		String expectedUrl = trimPort(webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.DOCUMENT.getResource()))
 				.concat(String.format("?id=%s&serviceKey=%s&method=%s&date=%s&expiration=%s&signature=%s",
 						id, serviceKey, method, date, expiration, calculateSignature(id)));
 
@@ -139,13 +139,13 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
 		String url = response.readEntity(String.class);
 
 		assertThat(url).isNotEmpty();
-		assertThat(url).isEqualTo(expectedUrl);
+		assertThat(trimPort(url)).isEqualTo(expectedUrl);
 	}
 
 	@Test
 	public void testGetUrlDocumentPatchMethod() throws Exception {
 		method = HttpMethods.PATCH;
-		String expectedUrl = webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.DOCUMENT.getResource())
+		String expectedUrl = trimPort(webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.DOCUMENT.getResource()))
 				.concat(String.format("?id=%s&serviceKey=%s&method=%s&date=%s&expiration=%s&signature=%s",
 						id, serviceKey, method, date, expiration, calculateSignature(id)));
 
@@ -157,7 +157,7 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
 		String url = response.readEntity(String.class);
 
 		assertThat(url).isNotEmpty();
-		assertThat(url).isEqualTo(expectedUrl);
+		assertThat(trimPort(url)).isEqualTo(expectedUrl);
 	}
 
 	@Test

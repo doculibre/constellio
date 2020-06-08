@@ -37,7 +37,12 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.GetByIdCounter;
+import com.constellio.sdk.tests.QueryCounter;
 import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -61,6 +66,7 @@ import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE
 import static com.constellio.app.modules.rm.model.validators.FolderValidator.CATEGORY_CODE;
 import static com.constellio.app.modules.rm.model.validators.FolderValidator.RULE_CODE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static com.constellio.sdk.tests.TestUtils.frenchMessages;
@@ -155,6 +161,32 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 	}
 
+
+	@Test
+	public void whenSearchingUsingCacheAndLegacyIdThenOK() throws Exception {
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+
+		Folder folder = rm.newFolder().setAdministrativeUnitEntered(records.unitId_10a).setTitle("iamZeFolder")
+				.setCategoryEntered(records.categoryId_X110).setRetentionRuleEntered(records.ruleId_1)
+				.setCopyStatusEntered(PRINCIPAL).setOpenDate(LocalDate.now());
+		folder.setLegacyId("iamZeFolder");
+		recordServices.add(folder);
+
+
+		assertThat(recordServices.getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(rm.folder.legacyId())).isTrue();
+		asList(rm.folder.legacyId(), Schemas.LEGACY_ID).forEach((metadata) -> {
+			LogicalSearchCondition condition = from(rm.folderSchemaType())
+					.where(rm.folder.category()).isEqualTo(records.categoryId_X110)
+					.andWhere(metadata).isNotNull();
+			assertThat(rm.searchFolders(new LogicalSearchQuery(condition))).extracting("title").containsOnly("iamZeFolder");
+			assertThat(rm.wrapFolder(searchServices.searchSingleResult(condition))).isNotNull();
+		});
+		assertThat(recordServices.realtimeGetRecordSummaryById(folder.getId()).<String>get(rm.folder.legacyId())).isNull();
+
+	}
+
+
 	@Test
 	public void givenEnforcedWhenCreateFolderWithIncompatibleRuleAndCategoryThenValidationException()
 			throws Exception {
@@ -210,7 +242,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 			);
 
 			assertThat(frenchMessages(e)).containsOnly(
-					"La subdivision uniforme d''un dossier doit être liée à sa règle");
+					"La subdivision uniforme d'un dossier doit être liée à sa règle");
 		}
 
 		givenConfig(RMConfigs.UNIFORM_SUBDIVISION_ENABLED, false);
@@ -293,6 +325,71 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenSaveFolderThenNoQueries()
+			throws Exception {
+
+		getModelLayerFactory().getRecordsCaches().disableVolatileCache();
+		GetByIdCounter getByIdCounter = new GetByIdCounter(getDataLayerFactory(), FolderAcceptanceTest.class);
+		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), FolderAcceptanceTest.class);
+
+		Comment comment1 = new Comment("Ze message", records.getDakota_managerInA_userInB(), new LocalDateTime().minusWeeks(4));
+		Comment comment2 = new Comment("An other message", records.getEdouard_managerInB_userInC(),
+				new LocalDateTime().minusWeeks(1));
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_11b);
+		folder.setDescription("Ze description");
+		folder.setCategoryEntered(records.categoryId_X110);
+		folder.setRetentionRuleEntered(records.ruleId_2);
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder.setTitle("Ze folder");
+		folder.setMediumTypes(Arrays.asList(PA, MV));
+		folder.setUniformSubdivisionEntered(records.subdivId_2);
+		folder.setOpenDate(november4_2009);
+		folder.setCloseDateEntered(december12_2009);
+		folder.setComments(asList(comment1, comment2));
+
+		FolderStatus manualArchivisticStatus = FolderStatus.INACTIVE_DEPOSITED;
+		LocalDate manualDepositDate = january1_2015, manualTransferDate = march31_2005, manualDestructionDate = march31_2016;
+		folder.setManualArchivisticStatus(manualArchivisticStatus);
+		folder.setManualExpectedDepositDate(manualDepositDate);
+		folder.setManualExpectedTransferDate(manualTransferDate);
+		folder.setManualExpectedDestructionDate(manualDestructionDate);
+
+		recordServices.add(folder.getWrappedRecord());
+
+		assertThat(folder.getAdministrativeUnitEntered()).isEqualTo(records.unitId_11b);
+		assertThat(folder.getDescription()).isEqualTo("Ze description");
+		assertThat(folder.getUniformSubdivisionEntered()).isEqualTo(records.subdivId_2);
+		assertThat(folder.getCategoryEntered()).isEqualTo(records.categoryId_X110);
+		assertThat(folder.getCategoryCode()).isEqualTo(records.getCategory_X110().getCode());
+		assertThat(folder.getRetentionRuleEntered()).isEqualTo(records.ruleId_2);
+		assertThat(folder.getActiveRetentionCode()).isNull();
+		assertThat(folder.getSemiActiveRetentionCode()).isNull();
+		assertThat(folder.getRetentionRuleEntered()).isEqualTo(records.ruleId_2);
+
+		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folder.getTitle()).isEqualTo("Ze folder");
+		assertThat(folder.getMediumTypes()).isEqualTo(Arrays.asList(PA, MV));
+		assertThat(folder.getOpenDate()).isEqualTo(november4_2009);
+		assertThat(folder.getComments()).isEqualTo(asList(comment1, comment2));
+		assertThat(folder.hasAnalogicalMedium()).isTrue();
+		assertThat(folder.hasElectronicMedium()).isFalse();
+		assertThat(folder.getCloseDateEntered()).isEqualTo(december12_2009);
+
+		assertThat(folder.getManualArchivisticStatus()).isEqualTo(manualArchivisticStatus);
+		assertThat(folder.getManualExpecteTransferdDate()).isEqualTo(manualTransferDate);
+		assertThat(folder.getManualExpectedDepositDate()).isEqualTo(manualDepositDate);
+		assertThat(folder.getManualExpectedDestructionDate()).isEqualTo(manualDestructionDate);
+
+		recordServices.add(folder.setDescription("new description").getWrappedRecord());
+
+		getByIdCounter.assertCalledIds().isEmpty();
+		assertThat(queryCounter.newQueryCalls()).isZero();
+
+	}
+
+	@Test
 	public void givenChildFolderWhenChangingEnteredValuesThenSetBackToNullBeforeSave()
 			throws Exception {
 
@@ -328,7 +425,52 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(childFolder.getCategoryEntered()).isNull();
 		assertThat(childFolder.getRetentionRuleEntered()).isNull();
 		assertThat(childFolder.getCopyStatusEntered()).isNull();
+	}
 
+
+	@Test
+	public void givenChildFolderWhenChangingEnteredValuesThenNoQueries()
+			throws Exception {
+
+		getModelLayerFactory().getRecordsCaches().disableVolatileCache();
+		GetByIdCounter getByIdCounter = new GetByIdCounter(getDataLayerFactory(), FolderAcceptanceTest.class);
+		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), FolderAcceptanceTest.class);
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_11b);
+		folder.setDescription("Ze description");
+		folder.setCategoryEntered(records.categoryId_X110);
+		folder.setRetentionRuleEntered(records.ruleId_2);
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder.setTitle("Ze folder");
+		folder.setMediumTypes(Arrays.asList(PA, MV));
+		folder.setUniformSubdivisionEntered(records.subdivId_2);
+		folder.setOpenDate(november4_2009);
+		folder.setCloseDateEntered(december12_2009);
+
+		recordServices.add(folder.getWrappedRecord());
+
+		Folder childFolder = rm.newFolder();
+		childFolder.setParentFolder(folder);
+		childFolder.setOpenDate(november4_2009);
+		childFolder.setTitle("Ze child folder");
+
+		recordServices.add(childFolder.getWrappedRecord());
+
+		childFolder.setAdministrativeUnitEntered(records.unitId_10);
+		childFolder.setCategoryEntered(records.categoryId_X);
+		childFolder.setRetentionRuleEntered(records.ruleId_3);
+		childFolder.setCopyStatusEntered(CopyType.SECONDARY);
+
+		recordServices.update(childFolder.getWrappedRecord());
+
+		assertThat(childFolder.getAdministrativeUnitEntered()).isNull();
+		assertThat(childFolder.getCategoryEntered()).isNull();
+		assertThat(childFolder.getRetentionRuleEntered()).isNull();
+		assertThat(childFolder.getCopyStatusEntered()).isNull();
+
+		getByIdCounter.assertCalledIds().isEmpty();
+		assertThat(queryCounter.newQueryCalls()).isZero();
 	}
 
 	@Test

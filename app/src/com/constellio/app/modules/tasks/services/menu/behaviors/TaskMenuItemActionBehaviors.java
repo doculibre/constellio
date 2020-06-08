@@ -2,7 +2,6 @@ package com.constellio.app.modules.tasks.services.menu.behaviors;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtension;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
@@ -157,7 +156,7 @@ public class TaskMenuItemActionBehaviors {
 				new RMSelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
 					@Override
 					public String getSelectedSchemaType() {
-						return Folder.SCHEMA_TYPE;
+						return Task.SCHEMA_TYPE;
 					}
 
 					@Override
@@ -222,7 +221,7 @@ public class TaskMenuItemActionBehaviors {
 		boolean userHasWriteAuthorization = params.getUser().hasWriteAccess().on(task);
 		ListAddRemoveCollaboratorsGroupsField collaboratorsGroupField = new ListAddRemoveCollaboratorsGroupsField(params.getRecordVO());
 		collaboratorsGroupField.writeButtonIsVisible(userHasWriteAuthorization);
-		collaboratorsGroupField.setCurrentUserIsCollaborator(taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()));
+		collaboratorsGroupField.setCurrentUserCanModifyDelete(taskPresenterServices.currentUserHasWriteAuthorisationWithoutBeingCollaborator(params.getRecordVO(), params.getUser().getId()));
 		return collaboratorsGroupField;
 	}
 
@@ -230,7 +229,7 @@ public class TaskMenuItemActionBehaviors {
 		boolean userHasWriteAuthorization = params.getUser().hasWriteAccess().on(task);
 		ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(params.getRecordVO());
 		collaboratorsField.writeButtonIsVisible(userHasWriteAuthorization);
-		collaboratorsField.setCurrentUserIsCollaborator(taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()));
+		collaboratorsField.setCurrentUserCanModifyDelete(taskPresenterServices.currentUserHasWriteAuthorisationWithoutBeingCollaborator(params.getRecordVO(), params.getUser().getId()));
 		return collaboratorsField;
 	}
 

@@ -149,6 +149,16 @@ public class TasksSearchServices {
 
 	public LogicalSearchQuery getRecentlyCompletedTasks(User user) {
 		List<TaskStatus> taskStatusList = getFinishedStatuses();
+		return new LogicalSearchQuery(
+				from(tasksSchemas.userTask.schemaType())
+						.where(tasksSchemas.userTask.status()).isIn(taskStatusList)
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
+				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
+	}
+
+	public LogicalSearchQuery getRecentlyClosedTasks(User user) {
+		List<TaskStatus> taskStatusList = getClosedStatuses();
 		taskStatusList.addAll(getClosedStatuses());
 		return new LogicalSearchQuery(
 				from(tasksSchemas.userTask.schemaType())

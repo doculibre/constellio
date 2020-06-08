@@ -1118,7 +1118,6 @@ public class DecommissioningService {
 		boolean putFirstInTrash = putFirstInTrash(record);
 		if (recordServices.validateLogicallyThenPhysicallyDeletable(record, user).isEmpty() || putFirstInTrash) {
 			recordServices.logicallyDelete(record, user);
-			modelLayerFactory.newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
 			if (physically && !putFirstInTrash) {
 				recordServices.physicallyDelete(record, user);
 			}
@@ -1143,7 +1142,7 @@ public class DecommissioningService {
 		if (getRMConfigs().isPopulateBordereauxWithLesserDispositionDate()) {
 			for (Record record : records) {
 				LocalDate minDate = LangUtils.min(comparedDate, getMinimumLocalDateForRecord(record, false));
-				if (!minDate.equals(comparedDate)) {
+				if (!Objects.equals(minDate, comparedDate)) {
 					yearType = getYearType(rm.wrapFolder(record), minDate);
 				}
 				comparedDate = minDate;

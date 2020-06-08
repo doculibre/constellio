@@ -5,6 +5,7 @@ import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
@@ -24,6 +25,7 @@ import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -43,6 +45,7 @@ import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
@@ -52,15 +55,19 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -74,6 +81,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.Roles;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -97,10 +105,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.framework.components.ErrorDisplayUtil.showErrorMessage;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -123,6 +133,7 @@ public class FolderMenuItemActionBehaviors {
 	private MetadataSchemaTypes schemaTypes;
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private DocumentRecordActionsServices documentRecordActionsServices;
+	private AuthorizationsServices authorizationsServices;
 
 	public static final String USER_LOOKUP = "user-lookup";
 
@@ -142,6 +153,7 @@ public class FolderMenuItemActionBehaviors {
 		schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
+		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 	}
 
 	public void getConsultationLink(Folder folder, MenuItemActionBehaviorParams params) {
@@ -462,6 +474,10 @@ public class FolderMenuItemActionBehaviors {
 		Button addAuthorizationButton = new LinkButton($("DisplayFolderView.addAuthorization")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
+				Map<String, String> paramsMap = ParamUtils.getParamsMap();
+				String favGroupId = paramsMap.get(RMViews.FAV_GROUP_ID_KEY);
+				params.getView().getUIContext().setAttribute(BaseBreadcrumbTrail.FAV_GROUP_ID, favGroupId);
+				params.getView().getUIContext().setAttribute(BaseBreadcrumbTrail.RECORD_AUTHORIZATIONS_TYPE, Folder.SCHEMA_TYPE);
 				params.getView().navigate().to().listObjectAccessAndRoleAuthorizations(folder.getId());
 			}
 		};
@@ -479,6 +495,63 @@ public class FolderMenuItemActionBehaviors {
 			}
 		};
 		shareFolderButton.click();
+	}
+
+	public void unshare(Folder folder, MenuItemActionBehaviorParams params) {
+		Button unshareDocumentButton = new DeleteButton($("DisplayDocumentView.deleteDocument")) {
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("ConfirmDialog.confirmUnshare");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				unshareFolderButtonClicked(ParamUtils.getCurrentParams(), folder, params.getUser());
+				params.getView().partialRefresh();
+			}
+		};
+
+		unshareDocumentButton.click();
+	}
+
+	public void unshareFolderButtonClicked(Map<String, String> params, Folder folder, User user) {
+		boolean removeAllSharedAuthorizations = user.hasAny(RMPermissionsTo.MANAGE_SHARE, RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(folder);
+
+		if (removeAllSharedAuthorizations) {
+			List<AuthorizationDeleteRequest> authorizationDeleteRequests = authorizationsServices.buildDeleteRequestsForAllSharedAutorizationsOnRecord(folder.getWrappedRecord(), user);
+			authorizationDeleteRequests.stream().forEach(authorization -> authorizationsServices.execute(authorization));
+		} else {
+			Authorization authorization = rm.getSolrAuthorizationDetails(user, folder.getId());
+			rm.getModelLayerFactory()
+					.newAuthorizationsServices().execute(toAuthorizationDeleteRequest(authorization, user));
+		}
+	}
+
+	private AuthorizationDeleteRequest toAuthorizationDeleteRequest(Authorization authorization, User user) {
+		String authId = authorization.getId();
+
+		AuthorizationDeleteRequest request = AuthorizationDeleteRequest.authorizationDeleteRequest(authId, user.getCollection());
+
+		return request;
+
+	}
+
+	private AuthorizationModificationRequest toAuthorizationModificationRequest(Authorization authorization,
+																				String recordId, User user) {
+		String authId = authorization.getId();
+
+		AuthorizationModificationRequest request = modifyAuthorizationOnRecord(authId, user.getCollection(), recordId);
+		request = request.withNewAccessAndRoles(authorization.getRoles());
+		request = request.withNewStartDate(authorization.getStartDate());
+		request = request.withNewEndDate(authorization.getEndDate());
+
+		List<String> principals = new ArrayList<>();
+		principals.addAll(authorization.getPrincipals());
+		request = request.withNewPrincipalIds(principals);
+		request = request.setExecutedBy(user);
+
+		return request;
+
 	}
 
 	public void addToCart(Folder folder, MenuItemActionBehaviorParams params) {
@@ -916,6 +989,10 @@ public class FolderMenuItemActionBehaviors {
 		return returnFolder(folder, returnDate, borrowDate, params);
 	}
 
+	public void createTask(Folder folder, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(folder.getId()));
+	}
+
 	private User wrapUser(Record record) {
 		return new User(record, schemaTypes, getCollectionRoles());
 	}
@@ -929,4 +1006,6 @@ public class FolderMenuItemActionBehaviors {
 		Record emailToSendRecord = recordServices.newRecordWithSchema(schema);
 		return new EmailToSend(emailToSendRecord, schemaTypes);
 	}
+
+
 }

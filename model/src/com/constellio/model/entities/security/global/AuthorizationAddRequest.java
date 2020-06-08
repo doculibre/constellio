@@ -24,6 +24,7 @@ public class AuthorizationAddRequest {
 	private Authorization existingAuthorization;
 	private LocalDate start, end;
 	private User executedBy;
+	private String sharedBy;
 	private boolean negative;
 	private boolean overridingInheritedAuths;
 
@@ -59,6 +60,16 @@ public class AuthorizationAddRequest {
 
 	public AuthorizationAddRequest forPrincipalsIds(String... principals) {
 		this.principals = asList(principals);
+		return this;
+	}
+
+	public AuthorizationAddRequest sharedBy(String userId) {
+		this.sharedBy = userId;
+		return this;
+	}
+
+	public AuthorizationAddRequest sharedBy(User user) {
+		this.sharedBy = user.getId();
 		return this;
 	}
 
@@ -163,6 +174,10 @@ public class AuthorizationAddRequest {
 		return withRoles(asList(Role.READ, Role.WRITE)).setNegative(true);
 	}
 
+	public AuthorizationAddRequest givingUserWhoShared(User user) {
+		return withRoles(asList(Role.READ, Role.WRITE)).setSharedBy(user.getId());
+	}
+
 	public AuthorizationAddRequest givingNegativeReadWriteDeleteAccess() {
 		return withRoles(asList(Role.READ, Role.WRITE, Role.DELETE)).setNegative(true);
 	}
@@ -203,6 +218,10 @@ public class AuthorizationAddRequest {
 		return new AuthorizationAddRequest(collection);
 	}
 
+	public static AuthorizationAddRequest authorizationInCollectionSharedBy(String collection, User user) {
+		return new AuthorizationAddRequest(collection).setSharedBy(user.getId());
+	}
+
 	public static AuthorizationAddRequest authorizationInCollectionWithId(String collection, String id) {
 		return new AuthorizationAddRequest(collection, id);
 	}
@@ -241,6 +260,15 @@ public class AuthorizationAddRequest {
 
 	public User getExecutedBy() {
 		return executedBy;
+	}
+
+	public String getSharedBy() {
+		return sharedBy;
+	}
+
+	public AuthorizationAddRequest setSharedBy(String sharedBy) {
+		this.sharedBy = sharedBy;
+		return this;
 	}
 
 	public AuthorizationAddRequest setExecutedBy(User executedBy) {

@@ -13,6 +13,7 @@ import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.PerformanceTest;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
@@ -27,6 +28,7 @@ import static com.constellio.model.services.records.RecordUtils.toIntKey;
 import static com.constellio.sdk.tests.TestUtils.calculateOpsPerSecondsOver;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@PerformanceTest
 public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioTest {
 
 	RecordsCachesDataStore dataStore;
@@ -85,7 +87,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 			fields.put("boolean1_s", createdRecord % 3 == 0);
 
 			SolrRecordDTO dto = new SolrRecordDTO(strId, fields, RecordDTOMode.SUMMARY);
-			ByteArrayRecordDTO byteArrayRecordDTO = ByteArrayRecordDTO.create(modelLayerFactory, dto);
+			ByteArrayRecordDTO byteArrayRecordDTO = ByteArrayRecordDTOUtilsAcceptanceTest.create(modelLayerFactory, dto);
 			structureBytes += 8;
 			structureBytes += 8; //version
 			structureBytes += 2; //byte array length
@@ -105,7 +107,8 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 	public void given4MRecordsSplittedOn10CollectionsAnd30TypesThenLookupByCollectionsAndTypesVeryFast()
 			throws Exception {
 
-		Toggle.USE_MMAP_WITHMAP_DB.enable();
+		Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.enable();
+		Toggle.USE_MMAP_WITHMAP_DB_FOR_RUNTIME.enable();
 		prepareSystem(withZeCollection(), withCollection("collection2"), withCollection("collection3"), withCollection("collection4"));
 		String[] collections = new String[]{"zeCollection", "collection2", "collection3", "collection4",};
 
@@ -152,7 +155,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 			fields.put("boolean1_s", createdRecord % 3 == 0);
 
 			SolrRecordDTO dto = new SolrRecordDTO(strId, fields, RecordDTOMode.SUMMARY);
-			ByteArrayRecordDTO byteArrayRecordDTO = ByteArrayRecordDTO.create(modelLayerFactory, dto);
+			ByteArrayRecordDTO byteArrayRecordDTO = ByteArrayRecordDTOUtilsAcceptanceTest.create(modelLayerFactory, dto);
 			structureBytes += 8;
 			structureBytes += 8; //version
 			structureBytes += 2; //byte array length
@@ -240,7 +243,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 			fields.put("boolean1_s", createdRecord % 3 == 0);
 
 			SolrRecordDTO dto = new SolrRecordDTO(strId, fields, RecordDTOMode.SUMMARY);
-			ByteArrayRecordDTO byteArrayRecordDTO = ByteArrayRecordDTO.create(modelLayerFactory, dto);
+			ByteArrayRecordDTO byteArrayRecordDTO = ByteArrayRecordDTOUtilsAcceptanceTest.create(modelLayerFactory, dto);
 			structureBytes += 8;
 			structureBytes += 8; //version
 			structureBytes += 2; //byte array length
@@ -345,7 +348,6 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 
 		System.out.println("Streams/sec when supplying type : " + (int) streamsBySecondSupplyingType);
 	}
-
 
 
 }

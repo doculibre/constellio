@@ -59,7 +59,6 @@ import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
-import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
@@ -379,24 +378,18 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 					.addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
 					.getFieldFacetValues("schema_s");
 
-			if (Toggle.RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS.isEnabled()) {
-				if (schema_s != null) {
-					for (FacetValue facetValue : schema_s) {
-						if (facetValue.getQuantity() > 0) {
-							String schema = facetValue.getValue();
-							for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
-								if (!metadata.getLocalCode().equals(SCHEMA.getLocalCode())) {
-									if (showDeactivatedMetadatas || metadata.isEnabled()) {
-										metadataCodes.add(metadata.getCode());
-									}
+			if (schema_s != null) {
+				for (FacetValue facetValue : schema_s) {
+					if (facetValue.getQuantity() > 0) {
+						String schema = facetValue.getValue();
+						for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
+							if (!metadata.getLocalCode().equals(SCHEMA.getLocalCode())) {
+								if (showDeactivatedMetadatas || metadata.isEnabled()) {
+									metadataCodes.add(metadata.getLocalCode());
 								}
 							}
 						}
 					}
-				}
-			} else {
-				for (Metadata metadata : schemaType.getAllMetadatas()) {
-					metadataCodes.add(metadata.getCode());
 				}
 			}
 		}
@@ -405,15 +398,15 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 		List<MetadataVO> result = new ArrayList<>();
 		//		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), header.getSessionContext()));
-		MetadataList allMetadatas;
+		List<Metadata> allMetadatas;
 		if (StringUtils.isBlank(schemaCode)) {
-			allMetadatas = schemaType.getAllMetadatas();
+			allMetadatas = schemaType.getAllMetadataIncludingInheritedOnes();
 		} else {
 			allMetadatas = schemaType.getSchema(schemaCode).getMetadatas();
 		}
+		List<String> metadatasAddedToResults = new ArrayList<>();
 		for (Metadata metadata : allMetadatas) {
-			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
-
+			if ((!schemaType.hasSecurity() || metadataCodes.contains(metadata.getLocalCode())) && !metadatasAddedToResults.contains(metadata.getLocalCode())) {
 				boolean isTextOrString =
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(header.getCollection(), metadata.getCode());
@@ -425,6 +418,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 									ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
 									ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode());
 				if ((visibleForUserAndInAdvancedSearch && condition) || SCHEMA.getLocalCode().equals(metadata.getLocalCode())) {
+					metadatasAddedToResults.add(metadata.getLocalCode());
 					MetadataVO metadataVO = builder.build(metadata, header.getSessionContext());
 					result.add(metadataVO);
 				}
@@ -722,6 +716,13 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		} else {
 			deselectedRecordsWithSchema.put(recordId, schemaTypeCode);
 		}
+		List<String> selectedRecordIds = sessionContext.getSelectedRecordIds();
+		if (!selectedRecordIds.isEmpty() && deselectedRecordsWithSchema.isEmpty()) {
+			allItemsSelected = true;
+		} else if (!selectedRecordIds.isEmpty() && deselectedRecordsWithSchema.size() == selectedRecordIds.size()) {
+			allItemsDeselected = true;
+		}
+		header.refreshActionButtons();
 	}
 
 	public List<Record> getSelectedRecords() {

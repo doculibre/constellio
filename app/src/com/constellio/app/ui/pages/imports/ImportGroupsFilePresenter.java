@@ -28,6 +28,11 @@ public class ImportGroupsFilePresenter extends BasePresenter<ImportFileView> imp
 	}
 
 	@Override
+	public boolean isLegacyIdIndexDisabledWarningVisible() {
+		return false;
+	}
+
+	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return user.has(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS).globally();
 	}

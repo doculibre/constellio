@@ -69,17 +69,6 @@ public class CacheConfig {
 		return invalidationMethod;
 	}
 
-	public static CacheConfig permanentEssentialMetadatasCache(MetadataSchemaType schemaType) {
-		return new CacheConfig(schemaType.getCode(), true, schemaType.getAllMetadatas().onlyEssentialInSummary(),
-				0, schemaType.getAllMetadatas().onlyUniques(), true, null);
-
-	}
-
-	public static CacheConfig permanentEssentialMetadatasCacheNotLoadedInitially(MetadataSchemaType schemaType) {
-		return new CacheConfig(schemaType.getCode(), true, schemaType.getAllMetadatas().onlyEssentialInSummary(),
-				0, schemaType.getAllMetadatas().onlyUniques(), false, null);
-	}
-
 	public static CacheConfig permanentCache(MetadataSchemaType schemaType) {
 		return permanentCache(schemaType.getCode(), schemaType.getDefaultSchema().getMetadatas().onlyUniques());
 	}

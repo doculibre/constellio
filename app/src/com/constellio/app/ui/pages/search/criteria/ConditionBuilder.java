@@ -109,7 +109,7 @@ public class ConditionBuilder {
 					return generateFrom().where(metadata).isEqualTo(value);
 				}
 			case CONTAINS_TEXT:
-				String stringValue = (String) criterion.getValue();
+				String stringValue = getCriterionStringValueWithEscapedSolrOperators(criterion);
 
 				if (metadata.getType() == MetadataValueType.STRING && !metadata.isSearchable()) {
 					return generateFrom().where(metadata).isContainingText(stringValue);
@@ -161,6 +161,22 @@ public class ConditionBuilder {
 				value = criterion.getValue();
 			}
 		}
+		return value;
+	}
+
+	private String getCriterionStringValueWithEscapedSolrOperators(Criterion criterion) {
+		String value = (String) criterion.getValue();
+		if (value.contains("~")) {
+			/*
+			To keep support  for fuzzy search.
+			See: https://lucene.apache.org/solr/guide/7_5/the-standard-query-parser.html#fuzzy-searches
+
+			RegEx: escapes '~' if it's not at the end followed with a fraction (ex: 0.2), a whole number or nothing.
+					If it's a invalid fraction or distance's value it is also escaped.
+			 */
+			value = value.replaceAll("(?!~(0.[0-9]+|[0-9]+)$)~\\b", "\\\\~");
+		}
+
 		return value;
 	}
 

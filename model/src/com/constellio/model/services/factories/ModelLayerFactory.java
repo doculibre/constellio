@@ -8,6 +8,8 @@ import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
+import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.services.background.ModelLayerBackgroundThreadsManager;
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
@@ -15,6 +17,7 @@ import com.constellio.model.services.batch.state.StoredBatchProcessProgressionSe
 import com.constellio.model.services.caches.ModelLayerCachesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.configs.UserConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.emails.EmailQueueManager;
 import com.constellio.model.services.emails.EmailTemplatesManager;
@@ -111,6 +114,8 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	ConstellioEIMConfigs getSystemConfigs();
 
+	UserConfigurationsManager getUserConfigurationsManager();
+
 	LoggingServices newLoggingServices();
 
 	IOServicesFactory getIOServicesFactory();
@@ -173,4 +178,14 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	void postInitialization();
 
+	void markForReindexing();
+
+	default ConfigProvider newConfigProvider() {
+		return new ConfigProvider() {
+			@Override
+			public <T> T get(SystemConfiguration config) {
+				return getSystemConfigurationsManager().getValue(config);
+			}
+		};
+	}
 }

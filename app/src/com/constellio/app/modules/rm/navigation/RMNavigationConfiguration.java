@@ -6,6 +6,7 @@ import com.constellio.app.entities.navigation.NavigationItem.Active;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
+import com.constellio.app.entities.navigation.PageItem.SharedItemsTables;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
@@ -36,6 +37,7 @@ import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.home.CheckedOutDocumentsTable;
+import com.constellio.app.modules.rm.ui.pages.home.SharedDocumentsAndFoldersProvider;
 import com.constellio.app.modules.rm.ui.pages.management.ArchiveManagementViewImpl;
 import com.constellio.app.modules.rm.ui.pages.personalspace.PersonnalSpaceView;
 import com.constellio.app.modules.rm.ui.pages.reports.RMReportsViewImpl;
@@ -43,6 +45,7 @@ import com.constellio.app.modules.rm.ui.pages.retentionRule.AddEditRetentionRule
 import com.constellio.app.modules.rm.ui.pages.retentionRule.DisplayRetentionRuleViewImpl;
 import com.constellio.app.modules.rm.ui.pages.retentionRule.ListRetentionRulesViewImpl;
 import com.constellio.app.modules.rm.ui.pages.retentionRule.SearchRetentionRulesViewImpl;
+import com.constellio.app.modules.rm.ui.pages.shareManagement.ShareContentListViewImpl;
 import com.constellio.app.modules.rm.ui.pages.userDocuments.ListUserDocumentsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.AgentViewGroup;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewGroup;
@@ -88,6 +91,7 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTreeItemEvent
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
 import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
@@ -103,6 +107,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String LAST_VIEWED_FOLDERS = "lastViewedFolders";
 	public static final String LAST_VIEWED_DOCUMENTS = "lastViewedDocuments";
 	public static final String CHECKED_OUT_DOCUMENTS = "checkedOutDocuments";
+	public static final String SHARED_ITEMS = "sharedDocuments";
 	public static final String TAXONOMIES = "taxonomies";
 
 	public static final String UNIFORM_SUBDIVISIONS = "uniformSubdivisions";
@@ -152,6 +157,9 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String RETENTION_RULES_SEARCH = "retentionRuleSearch";
 	public static final String LIST_USER_DOCUMENTS = "listUserDocuments";
 	public static final String LIST_USER_DOCUMENTS_ICON = "images/icons/config/briefcase.png";
+	public static final String SHARE_MANAGEMENT = "shareManagement";
+	public static final String SHARES = "shares";
+	public static final String SHARES_ICON = "images/icons/config/paper_jet2.png";
 
 
 	public static void configureNavigation(NavigationConfig config) {
@@ -198,6 +206,7 @@ public class RMNavigationConfiguration implements Serializable {
 		service.register(LIST_RETENTION_RULES, ListRetentionRulesViewImpl.class);
 		service.register(RETENTION_RULES_SEARCH, SearchRetentionRulesViewImpl.class);
 		service.register(LIST_USER_DOCUMENTS, ListUserDocumentsViewImpl.class);
+		service.register(SHARE_MANAGEMENT, ShareContentListViewImpl.class);
 
 	}
 
@@ -341,11 +350,18 @@ public class RMNavigationConfiguration implements Serializable {
 						.getItems();
 			}
 		});
-		config.add(HomeView.TABS, new RecordTable(CHECKED_OUT_DOCUMENTS) {
+		config.addRefreshablePageItem(HomeView.TABS, new RecordTable(CHECKED_OUT_DOCUMENTS) {
 			@Override
 			public RecordVODataProvider getDataProvider(AppLayerFactory appLayerFactory,
 														SessionContext sessionContext) {
 				return new CheckedOutDocumentsTable(appLayerFactory, sessionContext).getDataProvider();
+			}
+		});
+		config.add(HomeView.TABS, new SharedItemsTables(SHARED_ITEMS) {
+			@Override
+			public Map<String, RecordVODataProvider> getDataProvider(AppLayerFactory appLayerFactory,
+																	 SessionContext sessionContext) {
+				return new SharedDocumentsAndFoldersProvider(appLayerFactory, sessionContext).getDataProviders();
 			}
 		});
 	}
@@ -438,6 +454,17 @@ public class RMNavigationConfiguration implements Serializable {
 					}
 				}
 		);
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(SHARES, SHARES_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to(RMViews.class).shareManagement();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
+			}
+		});
 	}
 
 	private static void configureMainLayoutNavigation(NavigationConfig config) {

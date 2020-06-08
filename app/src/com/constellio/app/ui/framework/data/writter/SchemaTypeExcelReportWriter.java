@@ -151,7 +151,7 @@ public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 
 	private boolean isTaxonomy(Metadata metadata) {
 		if (metadata.getType() == MetadataValueType.REFERENCE) {
-			String referencedSchemaType = metadata.getReferencedSchemaType();
+			String referencedSchemaType = metadata.getReferencedSchemaTypeCode();
 			return referencedSchemaType.startsWith("taxo");
 		} else {
 			return false;
@@ -160,7 +160,7 @@ public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 
 	private boolean isDDV(Metadata metadata) {
 		if (metadata.getType() == MetadataValueType.REFERENCE) {
-			String referencedSchemaType = metadata.getReferencedSchemaType();
+			String referencedSchemaType = metadata.getReferencedSchemaTypeCode();
 			return (metadata.getLocalCode().startsWith("USR") && referencedSchemaType.startsWith("ddv"));
 		} else {
 			return false;

@@ -124,6 +124,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private List<SaveSearchListener> saveSearchListenerList = new ArrayList<>();
 	private Map<String, String> extraParameters = null;
 	private boolean lazyLoadedSearchResults;
+	private boolean applyButtonEnabled;
 	private List<SelectionChangeListener> selectionChangeListenerStorage = new ArrayList<>();
 	private boolean facetsOpened;
 
@@ -354,6 +355,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		this.lazyLoadedSearchResults = lazyLoadedSearchResults;
 	}
 
+	@Override
+	public void setApplyMultipleFacets(boolean applyButtonEnabled) {
+		this.applyButtonEnabled = applyButtonEnabled;
+	}
+
 	private boolean isDetailedView() {
 		return !SearchResultsViewMode.TABLE.equals(presenter.getResultsViewMode());
 	}
@@ -414,7 +420,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		//		resultsArea.setWidth("100%");
 		resultsArea.setSpacing(true);
 
-		facetsArea = new FacetsPanel() {
+		facetsArea = new FacetsPanel(applyButtonEnabled) {
 			@Override
 			protected void sortCriterionSelected(String sortCriterion, SortOrder sortOrder) {
 				presenter.sortCriterionSelected(sortCriterion, sortOrder);
@@ -428,6 +434,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			@Override
 			protected void facetValueSelected(String facetId, String value) {
 				presenter.facetValueSelected(facetId, value);
+			}
+
+			@Override
+			protected void facetValuesChanged(KeySetMap<String, String> facets) {
+
+				presenter.facetValuesChanged(facets);
 			}
 
 			@Override
@@ -531,7 +543,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser(), extraParameters);
 
-		final boolean indexVisible = presenter.isShowNumberingColumn(dataProvider);
 		ViewableRecordVOSearchResultTable.TableMode tableMode;
 		if (this.resultsTable != null) {
 			tableMode = ((ViewableRecordVOSearchResultTable) this.resultsTable).getTableMode();
@@ -539,11 +550,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			tableMode = null;
 		}
 		ViewableRecordVOSearchResultTable viewerPanel = new ViewableRecordVOSearchResultTable(container, tableMode, presenter, getRecordListMenuBar()) {
-			@Override
-			public boolean isIndexVisible() {
-				return indexVisible;
-			}
-
 			@Override
 			protected boolean isPagedInListMode() {
 				return true;
@@ -613,7 +619,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 		});
 
-		viewerPanel.setQuickActionButton(getQuickActionMenuButtons());
+		viewerPanel.setQuickActionButtons(getQuickActionMenuButtons());
 		selectionChangeListenerStorage.forEach(viewerPanel::addSelectionChangeListener);
 
 

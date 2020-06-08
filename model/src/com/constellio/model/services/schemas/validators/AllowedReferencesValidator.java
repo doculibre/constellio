@@ -82,7 +82,7 @@ public class AllowedReferencesValidator implements Validator<Record> {
 				} else {
 					String referenceValue = record.get(metadata);
 					String wasValue = wasRecord == null ? null : wasRecord.<String>get(metadata);
-					Record referencedRecord = recordProvider.getRecord(referenceValue);
+					Record referencedRecord = recordProvider.getRecordSummary(referenceValue);
 					MetadataSchema schema = getSchema(referencedRecord);
 					if (!(metadata.getAllowedReferences().isAllowed(schema))) {
 						addValidationErrors(validationErrors, UNALLOWED_REFERENCE_FOR_METADATA, metadata,

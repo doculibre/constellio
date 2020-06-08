@@ -2,6 +2,8 @@ package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
@@ -30,6 +32,8 @@ import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
 import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationEnumField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationListCollaboratorsField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationListCollaboratorsGoupsField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationListRecordLookupField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskForm;
@@ -42,6 +46,8 @@ import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveC
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskFollowerField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -52,6 +58,7 @@ import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordFiel
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.TimedCache;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -64,7 +71,6 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.logging.LoggingServices;
-import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -73,22 +79,23 @@ import com.jgoodies.common.base.Strings;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.OptionGroup;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS_GROUPS;
 import static com.constellio.app.modules.tasks.ui.components.fields.AuthorizationFieldItem.READ;
 import static com.constellio.app.modules.tasks.ui.components.fields.AuthorizationFieldItem.WRITE;
 import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
@@ -113,6 +120,11 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private static Logger LOGGER = LoggerFactory.getLogger(AddEditTaskPresenter.class);
 	List<String> finishedOrClosedStatuses;
 	private RMModuleExtensions rmModuleExtensions;
+	private String previousPage;
+
+	public static final String LINKED_RECORDS_PARAM = "linkedRecords";
+	public static final String PREVIOUS_PAGE_PARAM = "previousPage";
+	public static final String TEMP_PARAMS_ID = "tempParams";
 
 	boolean inclusideDecision = false;
 	boolean exclusiveDecision = false;
@@ -196,7 +208,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	public void cancelButtonClicked() {
-		if (StringUtils.isNotBlank(workflowId)) {
+		if (previousPage != null) {
+			navigateToPreviousPage();
+		} else if (StringUtils.isNotBlank(workflowId)) {
 			view.navigateToWorkflow(workflowId);
 		} else {
 			view.navigate().to(TaskViews.class).taskManagement();
@@ -290,52 +304,56 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			if (taskModuleExtensions != null) {
 				TaskFormRetValue taskFormRetValue = taskModuleExtensions.taskFormExtentions(new TaskFormParams(this, task));
 				for (Record currentRecord : taskFormRetValue.getRecords()) {
-					saveRecord(task, currentRecord, taskFormRetValue.isSaveWithValidation(currentRecord));
+					RecordUpdateOptions taskUpdateOptions = getTaskUpdateOptions(task, taskFormRetValue.isSaveWithValidation(currentRecord));
+					saveRecord(currentRecord, taskUpdateOptions);
 				}
 			}
 			boolean isPromptUser = false;
 
-			// this is in case of special validation that would only occur when saving the task.
 			Transaction transaction = new Transaction();
+			RecordUpdateOptions taskUpdateOptions = getTaskUpdateOptions(task, true);
+			transaction.setOptions(taskUpdateOptions);
 			transaction.addUpdate(task.getWrappedRecord());
-			recordServices().prepareRecords(transaction);
 
 			if (!isCompletedOrClosedOnInitialization && isCompleted(recordVO)) {
 				isPromptUser = rmModuleExtensions.isPromptUser(new PromptUserParam(task, new Action() {
 					@Override
 					public void doAction() {
-						saveAndNavigate(task);
+						saveAndNavigate(task, taskUpdateOptions);
 					}
 				}));
 			}
 			if (!isPromptUser) {
-				saveAndNavigate(task);
+				saveAndNavigate(task, taskUpdateOptions);
 			}
 
 		} catch (final IcapException e) {
 			view.showErrorMessage(e.getMessage());
 		} catch (ValidationException e) {
 			ErrorDisplayUtil.showBackendValidationException(e.getValidationErrors());
-		} catch (RecordServicesException.ValidationException e) {
-			ErrorDisplayUtil.showBackendValidationException(e.getErrors());
 		}
 	}
 
-	private void saveAndNavigate(Task task) {
-		saveRecord(task, task.getWrappedRecord(), true);
-
+	private void saveAndNavigate(Task task, RecordUpdateOptions taskUpdateOptions) {
+		saveRecord(task.getWrappedRecord(), taskUpdateOptions);
 
 		if (StringUtils.isNotBlank(workflowId)) {
 			view.navigateToWorkflow(workflowId);
 		} else if (StringUtils.isNotBlank(parentId)) {
 			view.navigate().to(TaskViews.class).displayTask(parentId);
+		} else if (previousPage != null) {
+			navigateToPreviousPage();
 		} else {
 			view.navigate().to(TaskViews.class).taskManagement();
 		}
 	}
 
-	private void saveRecord(Task task, Record record, boolean withRequiredValidation) {
-		RecordUpdateOptions recordUpdateOptions = null;
+	private void saveRecord(Record record, RecordUpdateOptions recordUpdateOptions) {
+		addOrUpdate(record, recordUpdateOptions);
+	}
+
+	private RecordUpdateOptions getTaskUpdateOptions(Task task, boolean withRequiredValidation) {
+		RecordUpdateOptions recordUpdateOptions = new RecordUpdateOptions();
 
 		if (rmModuleExtensions != null) {
 			for (TaskAddEditTaskPresenterExtension extension : rmModuleExtensions.getTaskAddEditTaskPresenterExtension()) {
@@ -348,15 +366,11 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 
 		if (withRequiredValidation) {
-			addOrUpdate(record, recordUpdateOptions);
+			return recordUpdateOptions;
 		} else {
-			if (recordUpdateOptions == null) {
-				recordUpdateOptions = new RecordUpdateOptions();
-			}
-			addOrUpdate(record, recordUpdateOptions.setSkippingRequiredValuesValidation(true));
+			return recordUpdateOptions.setSkippingRequiredValuesValidation(true);
 		}
 	}
-
 
 	private Field getAssignerField() {
 		TaskForm form = view.getForm();
@@ -379,7 +393,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			task = tasksSchemas.newTask();
 			TaskUser taskUser = new TaskUser(getCurrentUser().getWrappedRecord(), types(),
 					modelLayerFactory.getRolesManager().getCollectionRoles(collection, modelLayerFactory));
-			if(!Boolean.FALSE.equals(taskUser.getAssignTaskAutomatically())) {
+			if (!Boolean.FALSE.equals(taskUser.getAssignTaskAutomatically())) {
 				task.setAssignee(getCurrentUser().getId());
 			}
 
@@ -387,34 +401,77 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			parentId = paramsMap.get("parentId");
 			task.setParentTask(parentId);
 
-			String folderId = paramsMap.get("folderId");
-			if (folderId != null) {
-				new RMTask(task).setLinkedFolders(asList(folderId));
-			}
-			String documentId = paramsMap.get("documentId");
-			if (documentId != null) {
-				new RMTask(task).setLinkedDocuments(asList(documentId));
+			String tempParamKey = paramsMap.get(TEMP_PARAMS_ID);
+			if (tempParamKey != null) {
+				TimedCache timedCache = getCachedAttributes(tempParamKey);
+				if (timedCache != null) {
+					setLinkedRecords(timedCache.get(LINKED_RECORDS_PARAM), task);
+					setPreviousPage(timedCache.get(PREVIOUS_PAGE_PARAM));
+				}
 			}
 		}
+
 		completeMode = "true".equals(paramsMap.get("completeTask"));
 		if (completeMode) {
-			TaskStatus finishedStatus = tasksSearchServices
-					.getFirstFinishedStatus();
+			TaskStatus finishedStatus = tasksSearchServices.getFirstFinishedStatus();
 			if (finishedStatus != null) {
 				task.setStatus(finishedStatus.getId());
 			}
 		}
-		workflowId = paramsMap.get("workflowId");
 
-		taskVO = new TaskVO(new TaskToVOBuilder().build(task.getWrappedRecord(), FORM, view.getSessionContext()));
+		workflowId = paramsMap.get("workflowId");
+		taskVO = new TaskVO(new TaskToVOBuilder()
+				.build(task.getWrappedRecord(), FORM, view.getSessionContext()));
 		isCompletedOrClosedOnInitialization = isCompletedOrClosedStatus(taskVO);
 		view.setRecord(taskVO);
-		if(taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + ASSIGNEE)) {
+		if (taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + ASSIGNEE)) {
 			originalAssignedTo = taskVO.getAssignee();
 		}
-		if(taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNER)) {
+		if (taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNER)) {
 			originalAssigner = taskVO.get(Task.ASSIGNER);
 		}
+
+	}
+
+	private void setPreviousPage(Object previousPage) {
+		if (previousPage instanceof String) {
+			this.previousPage = (String) previousPage;
+		}
+	}
+
+	private TimedCache getCachedAttributes(String key) {
+		Object cachedParam = this.getView().getSessionContext().getAttribute(key);
+		if (cachedParam instanceof TimedCache) {
+			return (TimedCache) cachedParam;
+		}
+		return null;
+	}
+
+	private void setLinkedRecords(Object linkedRecordIds, Task task) {
+		if (linkedRecordIds instanceof List) {
+			HashMap<String, List<String>> schemasMap = filterSchemaType((List<String>) linkedRecordIds);
+			new RMTask(task).setLinkedFolders(schemasMap.get(Folder.SCHEMA_TYPE));
+			new RMTask(task).setLinkedDocuments(schemasMap.get(Document.SCHEMA_TYPE));
+		}
+	}
+
+	private HashMap<String, List<String>> filterSchemaType(List<String> recordIds) {
+		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		HashMap<String, List<String>> recordsMap = new HashMap<>();
+		List<Record> records = recordIds
+				.stream()
+				.map(i -> recordServices().realtimeGetRecordSummaryById(i))
+				.collect(Collectors.toList());
+		for (Record record : records) {
+			String schemaType = schemasManager.getSchemaTypeOf(record).getCode();
+			List<String> schemaTypeList = recordsMap.get(schemaType);
+			if (schemaTypeList == null) {
+				schemaTypeList = new ArrayList<>();
+			}
+			schemaTypeList.add(record.getId());
+			recordsMap.put(schemaType, schemaTypeList);
+		}
+		return recordsMap;
 	}
 
 	public String getViewTitle() {
@@ -504,8 +561,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustAssignerField() {
 		Field assignerField = getAssignerField();
-		if (assignerField != null && taskVO != null &&  taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNEE)
-				&& !Objects.equals(originalAssignedTo, taskVO.getAssignee())) {
+		if (assignerField != null && taskVO != null && taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNEE)
+			&& !Objects.equals(originalAssignedTo, taskVO.getAssignee())) {
 			assignerField.setValue(getCurrentUser().getId());
 		}
 	}
@@ -644,7 +701,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		TaskUser taskUser = new TaskUser(getCurrentUser().getWrappedRecord(), types(),
 				modelLayerFactory.getRolesManager().getCollectionRoles(collection, modelLayerFactory));
 		TaskFollower defaultFollower = taskUser.getDefaultFollowerWhenCreatingTask();
-		if(!editMode && field != null && defaultFollower != null) {
+		if (!editMode && field != null && defaultFollower != null) {
 			field.addTaskFollower(defaultFollower);
 		}
 	}
@@ -811,72 +868,88 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 						.isIn(asList(BorrowRequest.SCHEMA_NAME, ReturnRequest.SCHEMA_NAME, ExtensionRequest.SCHEMA_NAME, ReactivationRequest.SCHEMA_NAME))) : null;
 	}
 
-	private boolean currentUserIsCollaborator() {
-		if (((List) taskVO.get(TASK_COLLABORATORS)).contains(getCurrentUser().getId())) {
-			return true;
-		} else {
-			return !Collections.disjoint(getCurrentUser().getUserGroups(), taskVO.get(TASK_COLLABORATORS_GROUPS));
+	public boolean currentUserHasWriteAuthorizationWithoutBeingCollaborator(TaskVO taskVO) {
+		boolean isModel = false;
+		if (taskVO.get(RMTask.IS_MODEL) != null) {
+			isModel = taskVO.get(RMTask.IS_MODEL);
 		}
+		String currentUserId = getCurrentUser().getId();
+		List<String> assigneeGroupsCandidatesIds = taskVO.get(Task.ASSIGNEE_GROUPS_CANDIDATES);
+		List<String> assigneeCandidates = taskVO.get(Task.ASSIGNEE_USERS_CANDIDATES);
+		List<String> userGroups = getCurrentUser().getUserGroups();
+		boolean userIsCandidate = !ListUtils.intersection(assigneeGroupsCandidatesIds, userGroups).isEmpty() || assigneeCandidates.contains(currentUserId);
+		return userIsCandidate || isModel || !isEditMode() || currentUserId.equals(taskVO.get(Task.ASSIGNEE)) || currentUserId.equals(taskVO.get(Task.ASSIGNER));
 	}
 
 	private boolean currentUserHasWriteAuthorisation() {
-		return getCurrentUser().hasWriteAccess().on(toRecord(taskVO));
+		return getCurrentUser().hasWriteAccess().on(toRecord(taskVO)) || !isEditMode();
 	}
 
 	private void adjustFieldsForCollaborators() {
-		boolean currentUserIsCollaborator = currentUserIsCollaborator();
+		boolean currentUserHasWriteAuthorizationWithoutBeingCollaborator = currentUserHasWriteAuthorizationWithoutBeingCollaborator(taskVO);
 
 		TaskAssignationListRecordLookupField assigneeGroupCandidatesField = (TaskAssignationListRecordLookupField) view.getForm().getField(Task.ASSIGNEE_GROUPS_CANDIDATES);
 		if (assigneeGroupCandidatesField != null) {
-			assigneeGroupCandidatesField.setVisible(!currentUserIsCollaborator);
+			assigneeGroupCandidatesField.setVisible(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 		}
 
 		TaskAssignationListRecordLookupField assigneeUserCandidatesField = (TaskAssignationListRecordLookupField) view.getForm().getField(Task.ASSIGNEE_USERS_CANDIDATES);
 		if (assigneeUserCandidatesField != null) {
-			assigneeUserCandidatesField.setVisible(!currentUserIsCollaborator);
+			assigneeUserCandidatesField.setVisible(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 		}
 
 		LookupRecordField assignerField = (LookupRecordField) view.getForm().getField(Task.ASSIGNER);
 		if (assignerField != null) {
-			assignerField.setVisible(!currentUserIsCollaborator);
+			assignerField.setVisible(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 		}
 
 		LookupRecordField assigneeField = (LookupRecordField) view.getForm().getField(Task.ASSIGNEE);
 		if (assigneeField != null) {
-			assigneeField.setVisible(!currentUserIsCollaborator);
+			assigneeField.setVisible(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 		}
 
 		TaskAssignationEnumField assignationModesField = (TaskAssignationEnumField) view.getForm().getField(ASSIGNATION_MODES);
 		if (assignationModesField != null) {
-			assignationModesField.setVisible(!currentUserIsCollaborator);
+			assignationModesField.setVisible(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 		}
 
 		Field<?> statusField = view.getForm().getField(STATUS);
 		if (statusField != null) {
-			statusField.setVisible(!currentUserIsCollaborator);
+			statusField.setVisible(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
 		}
 
 		boolean currentUserHasWriteAuthorisation = currentUserHasWriteAuthorisation();
 		ListAddRemoveCollaboratorsField taskCollaboratorsField = (ListAddRemoveCollaboratorsField) view.getForm().getField(Task.TASK_COLLABORATORS);
 		if (taskCollaboratorsField != null) {
 			taskCollaboratorsField.writeButtonIsVisible(currentUserHasWriteAuthorisation);
-			taskCollaboratorsField.setCurrentUserIsCollaborator(currentUserIsCollaborator());
-			OptionGroup authorizationField = taskCollaboratorsField.getAddEditField().getAuthorizationField();
-			if (authorizationField != null && !currentUserHasWriteAuthorisation) {
-				authorizationField.removeItem(WRITE);
-				authorizationField.setValue(READ);
+			taskCollaboratorsField.setCurrentUserCanModifyDelete(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
+			TaskAssignationListCollaboratorsField addEditField = taskCollaboratorsField.getAddEditField();
+			if (addEditField != null) {
+				OptionGroup authorizationField = addEditField.getAuthorizationField();
+				if (authorizationField != null && !currentUserHasWriteAuthorisation) {
+					authorizationField.removeItem(WRITE);
+					authorizationField.setValue(READ);
+				}
 			}
 		}
 
 		ListAddRemoveCollaboratorsGroupsField taskCollaboratorGroupsField = (ListAddRemoveCollaboratorsGroupsField) view.getForm().getField(Task.TASK_COLLABORATORS_GROUPS);
 		if (taskCollaboratorGroupsField != null) {
 			taskCollaboratorGroupsField.writeButtonIsVisible(currentUserHasWriteAuthorisation);
-			taskCollaboratorGroupsField.setCurrentUserIsCollaborator(currentUserIsCollaborator);
-			OptionGroup authorizationField = taskCollaboratorGroupsField.getAddEditField().getAuthorizationField();
-			if (authorizationField != null && !currentUserHasWriteAuthorisation) {
-				authorizationField.removeItem(WRITE);
-				authorizationField.setValue(READ);
+			taskCollaboratorGroupsField.setCurrentUserCanModifyDelete(currentUserHasWriteAuthorizationWithoutBeingCollaborator);
+			TaskAssignationListCollaboratorsGoupsField addEditField = taskCollaboratorGroupsField.getAddEditField();
+			if (addEditField != null) {
+				OptionGroup authorizationField = addEditField.getAuthorizationField();
+				if (authorizationField != null && !currentUserHasWriteAuthorisation) {
+					authorizationField.removeItem(WRITE);
+					authorizationField.setValue(READ);
+				}
 			}
 		}
+	}
+
+	private void navigateToPreviousPage() {
+		URI location = ConstellioUI.getCurrent().getPage().getLocation();
+		view.navigate().to(CoreViews.class).navigateTo(location.getPath(), previousPage, false);
 	}
 }

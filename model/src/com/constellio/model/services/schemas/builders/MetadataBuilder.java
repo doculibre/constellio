@@ -967,7 +967,7 @@ public class MetadataBuilder {
 			throw new EssentialMetadataCannotBeDisabled(code);
 		}
 
-		if (Boolean.FALSE == builder.getEnabled() && inheritance.isEssentialInSummary()) {
+		if (Boolean.FALSE == builder.getEnabled() && inheritance.isEssentialInSummary() && !localCode.startsWith("USR")) {
 			throw new EssentialMetadataInSummaryCannotBeDisabled(code);
 		}
 	}
@@ -1006,7 +1006,7 @@ public class MetadataBuilder {
 		if (Boolean.FALSE == builder.getEnabled() && builder.isEssential()) {
 			throw new EssentialMetadataCannotBeDisabled(code);
 		}
-		if (Boolean.FALSE == builder.getEnabled() && builder.isEssentialInSummary()) {
+		if (Boolean.FALSE == builder.getEnabled() && builder.isEssentialInSummary() && !builder.localCode.startsWith("USR")) {
 			throw new EssentialMetadataInSummaryCannotBeDisabled(code);
 		}
 
