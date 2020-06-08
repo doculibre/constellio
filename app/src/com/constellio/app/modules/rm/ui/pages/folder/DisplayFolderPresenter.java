@@ -1480,12 +1480,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			}
 			try {
 				recordServices().execute(transaction);
+				folderContentDataProvider.fireDataRefreshEvent();
+				view.refreshFolderContentTab();
+				view.closeViewerPanel();
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.warn("Error while dropping record(s) " + droppedRecordVOs + " on folder " + targetFolderRecordVO.getId(), e);
+				view.showErrorMessage(e.getMessage());
 			}
-			folderContentDataProvider.fireDataRefreshEvent();
-			view.refreshFolderContentTab();
-			view.closeViewerPanel();
 		}
 	}
 }
