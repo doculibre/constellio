@@ -231,7 +231,6 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 		SessionContext sessionContext = sessionContextProvider.getSessionContext();
 
-		AppLayerFactory appLayerFactory = sessionContextProvider.getConstellioFactories().getAppLayerFactory();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
 		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 		MetadataSchemaVO rulesSchemaVO = schemaVOBuilder.build(rm.retentionRule.schema(), VIEW_MODE.TABLE, sessionContext);
@@ -244,7 +243,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	}
 
 	private RecordVODataProvider newFolderDataProvider(final Factory<LogicalSearchQuery> logicalSearchQueryFactory,
-													   SessionContextProvider sessionContextProvider) {
+													   final SessionContextProvider sessionContextProvider) {
 
 		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 		SessionContext sessionContext = sessionContextProvider.getSessionContext();
@@ -254,7 +253,10 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 		return new RecordVODataProvider(foldersSchemaVO, voBuilder, sessionContextProvider) {
 			@Override
 			public LogicalSearchQuery getQuery() {
-				return logicalSearchQueryFactory.get();
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
+				SessionContext sessionContext = sessionContextProvider.getSessionContext();
+				User currentUser = rm.getUser(sessionContext.getCurrentUser().getId());
+				return logicalSearchQueryFactory.get().filteredWithUser(currentUser);
 			}
 		};
 	}
@@ -278,9 +280,11 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 			@Override
 			public LogicalSearchQuery get() {
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
+				SessionContext sessionContext = sessionContextProvider.getSessionContext();
+				User currentUser = rm.getUser(sessionContext.getCurrentUser().getId());
 				return new LogicalSearchQuery()
 						.setCondition(from(rm.folder.schemaType()).where(rm.folder.administrativeUnit()).isEqualTo(conceptId))
-						.sortAsc(Schemas.TITLE);
+						.sortAsc(Schemas.TITLE).filteredWithUser(currentUser);
 			}
 		};
 	}
@@ -307,9 +311,11 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 			@Override
 			public LogicalSearchQuery get() {
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
+				SessionContext sessionContext = sessionContextProvider.getSessionContext();
+				User currentUser = rm.getUser(sessionContext.getCurrentUser().getId());
 				return new LogicalSearchQuery()
 						.setCondition(from(rm.folder.schemaType()).where(rm.folder.category()).isEqualTo(conceptId))
-						.sortAsc(Schemas.TITLE);
+						.sortAsc(Schemas.TITLE).filteredWithUser(currentUser);
 			}
 		};
 	}
