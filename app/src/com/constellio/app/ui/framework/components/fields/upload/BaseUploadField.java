@@ -93,6 +93,7 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 						newConvertedValue = newTempFileUpload;
 					}
 					if (!isMultiValue()) {
+						closeUploadWindow();
 						if (!newConvertedValue.equals(getConvertedValue())) {
 							deleteTempFiles();
 							BaseUploadField.this.setValue(newConvertedValue);
