@@ -60,7 +60,6 @@ public interface ContentDao {
 	}
 
 
-
 	/**
 	 * Call the consumer's consume method with a file containing the desired content.
 	 * <p>
@@ -170,8 +169,6 @@ public interface ContentDao {
 	void add(String id, InputStream newInputStream);
 
 	void delete(List<String> ids);
-
-	LocalDateTime getLastModification(String ids);
 
 	InputStream getContentInputStream(String id, String streamName)
 			throws ContentDaoException_NoSuchContent;

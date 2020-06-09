@@ -620,17 +620,21 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 				name.append(toCaseInsensitive(contentId));
 				File file = new File(rootFolder, name.toString());
+				String relativePath = name.toString();
 
 				if (!subvaults.isEmpty() && !file.exists()) {
 					for (String subvault : subvaults) {
-						File subVaultFile = new File(rootFolder, subvault + File.separator + name.toString());
+						String subVauleRelativePath = subvault + File.separator + name.toString();
+						File subVaultFile = new File(rootFolder, subVauleRelativePath);
+
 						if (subVaultFile.exists()) {
 							file = subVaultFile;
+							relativePath = subVauleRelativePath;
 						}
 					}
 				}
 
-				return file;
+				return relativePath;
 
 			} else {
 				String folderName = contentId.substring(0, 2);
