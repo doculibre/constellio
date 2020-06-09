@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.application.CoreViews;
@@ -14,7 +15,6 @@ import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -107,5 +107,10 @@ public class PublishDocumentPresenter extends BasePresenter<PublishDocumentView>
 		recordServices().update(document);
 
 		return document;
+	}
+
+	protected boolean isDateFieldValuesRequired() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager())
+				.isDateFieldValuesRequiredInPublishDocument();
 	}
 }
