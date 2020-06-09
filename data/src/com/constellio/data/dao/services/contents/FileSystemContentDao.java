@@ -105,7 +105,8 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		}
 
 		try {
-			if (!new File(filePath).exists()) {
+			File file = new File(filePath);
+			if (!file.exists() || file.lastModified() <= fileToCopy.lastModified()) {
 				FileUtils.copyFile(fileToCopy, new File(filePath));
 			}
 			isFileToCoped = true;
@@ -125,7 +126,12 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		}
 
 		try {
-			FileUtils.moveFile(fileToBeMoved, target);
+			if (target.exists()) {
+				FileUtils.copyFile(fileToBeMoved, target);
+				FileUtils.deleteQuietly(fileToBeMoved);
+			} else {
+				FileUtils.moveFile(fileToBeMoved, target);
+			}
 			isFileMoved = true;
 		} catch (FileExistsException e) {
 			isFileMoved = true;
@@ -172,19 +178,25 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	}
 
 	@Override
-	public void moveFileToVault(File file, String newContentId) {
-		File target = getFileOf(newContentId);
+	public void moveFileToVault(String relativePath, File file, MoveToVaultOption... options) {
+		File target = getFileOf(relativePath);
 		boolean isFileMovedInTheVault;
 		boolean isFileReplicated = false;
 
 		boolean isExecutedReplication = false;
 
-		if (!target.exists()) {
+		boolean onlyIfInexsting = false;
+		for (MoveToVaultOption option : options) {
+			onlyIfInexsting |= option == MoveToVaultOption.ONLY_IF_INEXISTING;
+		}
+
+		boolean targetWasExisting = target.exists();
+		if (!targetWasExisting || !onlyIfInexsting) {
 			isFileMovedInTheVault = moveFile(file, target);
 
 			if (!(replicatedRootFolder == null || target.equals(getReplicatedVaultFile(target)))) {
 				isExecutedReplication = true;
-				if (!getReplicatedVaultFile(target).exists()) {
+				if (!getReplicatedVaultFile(target).exists() || targetWasExisting) {
 					if (isFileMovedInTheVault) {
 						isFileReplicated = fileCopy(target, getReplicatedVaultFile(target).getAbsolutePath());
 					} else {
@@ -200,12 +212,17 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 			} else if (!isFileMovedInTheVault && !isExecutedReplication) {
 				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVault(file);
 			} else if (!isFileMovedInTheVault) {
-				addFileNotMovedInTheVault(newContentId);
+				addFileNotMovedInTheVault(relativePath);
 			} else if (!isFileReplicated && isExecutedReplication) {
-				addFileNotReplicated(newContentId);
+				addFileNotReplicated(relativePath);
 			}
-			extensions.onVaultUpload(new ContentDaoUploadParams(newContentId, file.length(), true));
+			extensions.onVaultUpload(new ContentDaoUploadParams(relativePath, file.length(), true));
 		}
+	}
+
+	@Override
+	public IOServices getIOServices() {
+		return ioServices;
 	}
 
 	public void addFileNotMovedInTheVault(String id) {
@@ -464,7 +481,6 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 			if (replicatedRootFolder != null) {
 				return getContentInputStreamFactory(id, getReplicatedVaultFile(file));
 			}
-
 			throw e;
 		}
 	}
@@ -581,9 +597,9 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		}
 	}
 
-	public File getFileOf(String contentId) {
+	public String getLocalRelativePath(String contentId) {
 		if (contentId.contains("/")) {
-			return new File(rootFolder, contentId.replace("/", File.separator));
+			return contentId.replace("/", File.separator);
 
 		} else {
 			if (configuration.getContentDaoFileSystemDigitsSeparatorMode() == DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS) {
@@ -618,11 +634,13 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 			} else {
 				String folderName = contentId.substring(0, 2);
-				File folder = new File(rootFolder, folderName);
-				return new File(folder, contentId);
+				return folderName + File.separator + contentId;
 			}
 		}
+	}
 
+	public File getFileOf(String contentId) {
+		return new File(rootFolder, getLocalRelativePath(contentId));
 	}
 
 	private String toCaseInsensitive(char character) {

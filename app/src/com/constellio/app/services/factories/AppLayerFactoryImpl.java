@@ -496,4 +496,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		return correctorExcluderManager;
 	}
 
+	public AppLayerBackgroundThreadsManager getAppLayerBackgroundThreadsManager() {
+		return appLayerBackgroundThreadsManager;
+	}
 }
