@@ -1168,8 +1168,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			preparation.prepare();
 
 			if (mode.isEnabled()) {
-				SystemStateExportParams params = new SystemStateExportParams().setExportAllContent();
-				new SystemStateExporter(getAppLayerFactory()).exportSystemToFolder(stateFolder, params);
+				SystemStateExportParams params = new SystemStateExportParams().setExportAllContent().setUseWeeklyExport(true);
+				SystemStateExporter exporter = new SystemStateExporter(getAppLayerFactory());
+				exporter.regroupAndMoveInVault();
+				exporter.createSavestateBaseFileInVault();
+				exporter.exportSystemToFolder(stateFolder, params);
 			}
 
 		}
@@ -1334,8 +1337,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				//Reindexing doesn't improve test performance, but maybe one day it will
 				//getModelLayerFactory().newReindexingServices().reindexCollections(ReindexationMode.REWRITE);
 
-				SystemStateExportParams params = new SystemStateExportParams().setExportAllContent();
-				new SystemStateExporter(getAppLayerFactory()).exportSystemToFolder(stateFolder, params);
+				SystemStateExportParams params = new SystemStateExportParams().setExportAllContent().setUseWeeklyExport(true);
+				SystemStateExporter exporter = new SystemStateExporter(getAppLayerFactory());
+				exporter.regroupAndMoveInVault();
+				exporter.createSavestateBaseFileInVault();
+				exporter.exportSystemToFolder(stateFolder, params);
 			}
 		}
 		long end = new Date().getTime();

@@ -61,6 +61,11 @@ public class SavestateFileWriter {
 			recordDTOs.add(((RecordImpl) record).toDocumentDTO(schema, populators));
 		}
 
+		writeDTOs(recordDTOs);
+
+	}
+
+	public void writeDTOs(List<RecordDTO> recordDTOs) {
 		BigVaultServerTransaction bigVaultServerTransaction = recordDao.prepare(new TransactionDTO(NOW())
 				.withFullRewrite(true).withNewRecords(recordDTOs));
 
@@ -69,7 +74,6 @@ public class SavestateFileWriter {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-
 	}
 
 	public void close() {

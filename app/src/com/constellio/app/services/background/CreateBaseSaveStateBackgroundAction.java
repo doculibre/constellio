@@ -4,13 +4,13 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporter;
 import com.constellio.data.io.IOServicesFactory;
 
-public class BaseSaveStateExportBackgroundAction implements Runnable {
+public class CreateBaseSaveStateBackgroundAction implements Runnable {
 
 
 	private AppLayerFactory appLayerFactory;
 	private IOServicesFactory ioServicesFactory;
 
-	public BaseSaveStateExportBackgroundAction(AppLayerFactory appLayerFactory) {
+	public CreateBaseSaveStateBackgroundAction(AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
 		this.ioServicesFactory = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getIOServicesFactory();
 	}

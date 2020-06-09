@@ -6,6 +6,7 @@ import com.constellio.app.extensions.AppLayerExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.services.appManagement.AppManagementService;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
+import com.constellio.app.services.background.AppLayerBackgroundThreadsManager;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.corrector.CorrectorExcluderManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
@@ -91,4 +92,6 @@ public interface AppLayerFactory extends LayerFactory {
 	CorrectorExcluderManager getCorrectorExcluderManager();
 
 	boolean isInitializationFinished();
+
+	AppLayerBackgroundThreadsManager getAppLayerBackgroundThreadsManager();
 }

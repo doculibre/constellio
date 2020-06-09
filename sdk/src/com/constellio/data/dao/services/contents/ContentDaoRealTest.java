@@ -1,6 +1,7 @@
 package com.constellio.data.dao.services.contents;
 
 import com.constellio.data.conf.DigitSeparatorMode;
+import com.constellio.data.dao.services.contents.ContentDao.MoveToVaultOption;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.io.services.facades.FileService;
@@ -29,6 +30,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.sdk.tests.TestUtils.frenchPangram;
@@ -358,13 +361,176 @@ public class ContentDaoRealTest extends ConstellioTest {
 		File fileToMove = newTempFileWithContent("fileToMove.txt", theContent);
 
 		//When
-		vaultDao.moveFileToVault(fileToMove, theId);
+		vaultDao.moveFileToVault(theId, fileToMove, MoveToVaultOption.ONLY_IF_INEXISTING);
 
 		// Then
 		assertThat(listFilesRecursively(((FileSystemContentDao) vaultDao).rootFolder.toPath())).isNotEmpty();
 		if (((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
 			assertThat(listFilesRecursively(((FileSystemContentDao) vaultDao).replicatedRootFolder.toPath())).isNotEmpty();
 		}
+	}
+
+	@Test
+	public void whenCopyFileToVaultThenCopyNoMatterIfTheFileExistOrNotInTheVault() throws Exception {
+		File version1 = newTempFileWithContent("fileToMoveV1.txt", "v1");
+		File version2 = newTempFileWithContent("fileToMoveV2.txt", "v2");
+
+		File expectedLocationInVault = new File(((FileSystemContentDao) vaultDao).rootFolder, "A/AB/ABC/ABC123456789".replace("/", separator));
+		File expectedLocationInReplicatedVault = new File(((FileSystemContentDao) vaultDao).replicatedRootFolder, "A/AB/ABC/ABC123456789".replace("/", separator));
+		assertThat(expectedLocationInVault).doesNotExist();
+		assertThat(expectedLocationInReplicatedVault).doesNotExist();
+
+		vaultDao.copyFileToVault("ABC123456789", version1);
+		assertThat(expectedLocationInVault).hasContentEqualTo(version1);
+		if (((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
+			assertThat(expectedLocationInReplicatedVault).hasContentEqualTo(version1);
+		}
+
+		vaultDao.copyFileToVault("ABC123456789", version2);
+		assertThat(expectedLocationInVault).hasContentEqualTo(version2);
+		if (((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
+			assertThat(expectedLocationInReplicatedVault).hasContentEqualTo(version2);
+		}
+
+	}
+
+	@Test
+	public void whenCopyFileFromVaultThenObtainContent() throws Exception {
+		File tempFile = new File(newTempFolder(), "file.txt");
+
+		File expectedLocationInVault = new File(((FileSystemContentDao) vaultDao).rootFolder, "A/AB/ABC/ABC123456789".replace("/", separator));
+
+		vaultDao.produceAtVaultLocation("ABC123456789", (f) -> {
+			FileUtils.write(f, "This is the content", "UTF-8");
+		});
+
+		vaultDao.copyFileFromVault("ABC123456789", tempFile);
+
+		assertThat(tempFile).hasContent("This is the content");
+
+	}
+
+	@Test
+	public void whenReadonlyConsumingThenObtainContent() throws Exception {
+
+		vaultDao.produceAtVaultLocation("ABC123456789", (f) -> {
+			FileUtils.write(f, "This is the content", "UTF-8");
+		});
+
+		AtomicReference<String> obtainedFileContent = new AtomicReference<>();
+		vaultDao.readonlyConsume("ABC123456789", new Consumer<File>() {
+			@Override
+			public void accept(File file) {
+				try {
+					obtainedFileContent.set(FileUtils.readFileToString(file, "UTF-8"));
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		});
+
+		assertThat(obtainedFileContent.get()).isEqualTo("This is the content");
+
+	}
+
+
+	@Test(expected = Error.class)
+	public void whenDeletingDuringReadonlyConsumingThenErrorThrown() throws Exception {
+		File version1 = newTempFileWithContent("fileToMoveV1.txt", "v1");
+		File version2 = newTempFileWithContent("fileToMoveV2.txt", "v2");
+
+		File expectedLocationInVault = new File(((FileSystemContentDao) vaultDao).rootFolder, "A/AB/ABC/ABC123456789".replace("/", separator));
+
+		vaultDao.produceAtVaultLocation("ABC123456789", (f) -> {
+			FileUtils.write(f, "This is the content", "UTF-8");
+		});
+
+		vaultDao.readonlyConsume("ABC123456789", new Consumer<File>() {
+			@Override
+			public void accept(File file) {
+				file.delete();
+			}
+		});
+
+	}
+
+	@Test(expected = Error.class)
+	public void whenReplacingFileWithExactContentDuringReadonlyConsumingThenErrorThrown() throws Exception {
+
+		vaultDao.produceAtVaultLocation("ABC123456789", (f) -> {
+			FileUtils.write(f, "This is the content", "UTF-8");
+		});
+
+		Thread.sleep(20);
+
+		vaultDao.readonlyConsume("ABC123456789", new Consumer<File>() {
+			@Override
+			public void accept(File file) {
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+				try {
+					FileUtils.write(file, "This is the content 2 dfsdfsdf ", "UTF-8");
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		});
+
+	}
+
+
+	@Test
+	public void whenCopyFileToVaultUsingPathThenCopyNoMatterIfTheFileExistOrNotInTheVault() throws Exception {
+		File version1 = newTempFileWithContent("fileToMoveV1.txt", "v1");
+		File version2 = newTempFileWithContent("fileToMoveV2.txt", "v2");
+
+		File expectedLocationInVault = new File(((FileSystemContentDao) vaultDao).rootFolder, "misc/myFile.test".replace("/", separator));
+		File expectedLocationInReplicatedVault = new File(((FileSystemContentDao) vaultDao).replicatedRootFolder, "misc/myFile.test".replace("/", separator));
+		assertThat(expectedLocationInVault).doesNotExist();
+		assertThat(expectedLocationInReplicatedVault).doesNotExist();
+
+		vaultDao.copyFileToVault("misc/myFile.test", version1);
+		assertThat(expectedLocationInVault).hasContentEqualTo(version1);
+		if (((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
+			assertThat(expectedLocationInReplicatedVault).hasContentEqualTo(version1);
+		}
+
+		vaultDao.copyFileToVault("misc/myFile.test", version2);
+		assertThat(expectedLocationInVault).hasContentEqualTo(version2);
+		if (((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
+			assertThat(expectedLocationInReplicatedVault).hasContentEqualTo(version2);
+		}
+
+	}
+
+
+	@Test
+	public void whenProduceAtVaultLocationThenWrittenNoMatterIfTheFileExistOrNotInTheVault() throws Exception {
+
+		File expectedLocationInVault = new File(((FileSystemContentDao) vaultDao).rootFolder, "misc/myFile.test".replace("/", separator));
+		File expectedLocationInReplicatedVault = new File(((FileSystemContentDao) vaultDao).replicatedRootFolder, "misc/myFile.test".replace("/", separator));
+		assertThat(expectedLocationInVault).doesNotExist();
+		assertThat(expectedLocationInReplicatedVault).doesNotExist();
+
+		vaultDao.produceAtVaultLocation("misc/myFile.test", (f) -> {
+			FileUtils.write(f, "This is version 1", "UTF-8");
+		});
+		assertThat(expectedLocationInVault).hasContent("This is version 1");
+		if (((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
+			assertThat(expectedLocationInReplicatedVault).hasContent("This is version 1");
+		}
+
+		vaultDao.produceAtVaultLocation("misc/myFile.test", (f) -> {
+			FileUtils.write(f, "This is version 2", "UTF-8");
+		});
+		assertThat(expectedLocationInVault).hasContent("This is version 2");
+		if (((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
+			assertThat(expectedLocationInReplicatedVault).hasContent("This is version 2");
+		}
+
 	}
 
 	@Test
@@ -376,7 +542,7 @@ public class ContentDaoRealTest extends ConstellioTest {
 
 		try {
 			//When
-			vaultDao.moveFileToVault(fileToMove, theId);
+			vaultDao.moveFileToVault(theId, fileToMove, MoveToVaultOption.ONLY_IF_INEXISTING);
 			// Then
 			fail("FileSystemContentDaoRuntimeException_DatastoreFailure expected but not thrown !");
 		} catch (Exception e) {
