@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 
 import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.sdk.tests.TestUtils.frenchPangram;
@@ -424,14 +423,11 @@ public class ContentDaoRealTest extends ConstellioTest {
 		});
 
 		AtomicReference<String> obtainedFileContent = new AtomicReference<>();
-		vaultDao.readonlyConsume("ABC123456789", new Consumer<File>() {
-			@Override
-			public void accept(File file) {
-				try {
-					obtainedFileContent.set(FileUtils.readFileToString(file, "UTF-8"));
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
+		vaultDao.readonlyConsume("ABC123456789", file -> {
+			try {
+				obtainedFileContent.set(FileUtils.readFileToString(file, "UTF-8"));
+			} catch (IOException e) {
+				throw new RuntimeException(e);
 			}
 		});
 
@@ -451,12 +447,7 @@ public class ContentDaoRealTest extends ConstellioTest {
 			FileUtils.write(f, "This is the content", "UTF-8");
 		});
 
-		vaultDao.readonlyConsume("ABC123456789", new Consumer<File>() {
-			@Override
-			public void accept(File file) {
-				file.delete();
-			}
-		});
+		vaultDao.readonlyConsume("ABC123456789", File::delete);
 
 	}
 
@@ -469,19 +460,16 @@ public class ContentDaoRealTest extends ConstellioTest {
 
 		Thread.sleep(20);
 
-		vaultDao.readonlyConsume("ABC123456789", new Consumer<File>() {
-			@Override
-			public void accept(File file) {
-				try {
-					Thread.sleep(5000);
-				} catch (InterruptedException e) {
-					throw new RuntimeException(e);
-				}
-				try {
-					FileUtils.write(file, "This is the content 2 dfsdfsdf ", "UTF-8");
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
+		vaultDao.readonlyConsume("ABC123456789", file -> {
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+			try {
+				FileUtils.write(file, "This is the content 2 dfsdfsdf ", "UTF-8");
+			} catch (IOException e) {
+				throw new RuntimeException(e);
 			}
 		});
 

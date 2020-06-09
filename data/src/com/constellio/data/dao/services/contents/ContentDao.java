@@ -17,7 +17,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -25,6 +25,14 @@ public interface ContentDao {
 
 	interface VaultProducer {
 		void produce(File file) throws IOException;
+	}
+
+	interface DaoFileFunction<T> {
+		T apply(File file) throws IOException;
+	}
+
+	interface DaoFileConsumer {
+		void accept(File file) throws IOException;
 	}
 
 	enum MoveToVaultOption {
@@ -66,11 +74,32 @@ public interface ContentDao {
 	 * The consumer is expected to not altering the file during the consuming. An error will be thrown if the file
 	 * is modified, since the file could be directly the file in the vault, all changes made to the file won't be
 	 * cancellable. Also, the file could be temporary and deleted after consumption.
+	 * <p>
+	 * The consumer will only be called if the file exists
 	 *
 	 * @param id
 	 * @param consumer
 	 */
-	default void readonlyConsume(String id, Consumer<File> consumer)
+	default void readonlyConsumeIfExists(String id, DaoFileConsumer consumer) {
+		try {
+			readonlyConsume(id, consumer);
+		} catch (ContentDaoException_NoSuchContent ignored) {
+		}
+	}
+
+	/**
+	 * Call the consumer's consume method with a file containing the desired content.
+	 * <p>
+	 * The consumer is expected to not altering the file during the consuming. An error will be thrown if the file
+	 * is modified, since the file could be directly the file in the vault, all changes made to the file won't be
+	 * cancellable. Also, the file could be temporary and deleted after consumption.
+	 * <p>
+	 * The consumer will only be called if the file exists, otherwise an ContentDaoException_NoSuchContent is thrown
+	 *
+	 * @param id
+	 * @param consumer
+	 */
+	default void readonlyConsume(String id, DaoFileConsumer consumer)
 			throws ContentDaoException.ContentDaoException_NoSuchContent {
 		InputStream in = getContentInputStream(id, "ContentDao.readonlyConsume.inputstream");
 
@@ -107,6 +136,12 @@ public interface ContentDao {
 			getIOServices().deleteQuietly(tempFile);
 			getIOServices().closeQuietly(in);
 		}
+	}
+
+	default <T> T readonlyFunction(String id, DaoFileFunction<T> function) throws ContentDaoException_NoSuchContent {
+		AtomicReference<T> methodReturn = new AtomicReference<>();
+		readonlyConsume(id, (f) -> methodReturn.set(function.apply(f)));
+		return methodReturn.get();
 	}
 
 	/**
@@ -189,7 +224,10 @@ public interface ContentDao {
 			throws ContentDaoException_NoSuchContent;
 
 
+	@Deprecated
 	File getFileOf(String id);
+
+	DaoFile getFile(String id);
 
 	void readLogsAndRepairs();
 

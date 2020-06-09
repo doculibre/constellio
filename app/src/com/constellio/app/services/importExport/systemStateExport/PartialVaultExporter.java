@@ -2,7 +2,6 @@ package com.constellio.app.services.importExport.systemStateExport;
 
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporterRuntimeException.SystemStateExporterRuntimeException_InvalidRecordId;
-import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -13,7 +12,6 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -63,19 +61,11 @@ public class PartialVaultExporter {
 
 		for (String hash : hashes) {
 			for (String filename : asList(hash, hash + "__parsed", hash + ".preview")) {
-				try {
-					contentDao.readonlyConsume(filename, (f) -> {
-						String relativeFilePath = contentDao.getLocalRelativePath(filename);
-						File destFile = new File(exportedPartialFolder, relativeFilePath);
-						destFile.getParentFile().mkdirs();
-						try {
-							FileUtils.copyFile(f, destFile);
-						} catch (IOException e) {
-							throw new RuntimeException(e);
-						}
-					});
-				} catch (ContentDaoException_NoSuchContent ignored) {
-				}
+				contentDao.readonlyConsumeIfExists(filename, (f) -> {
+					File destFile = new File(exportedPartialFolder, contentDao.getLocalRelativePath(filename));
+					destFile.getParentFile().mkdirs();
+					FileUtils.copyFile(f, destFile);
+				});
 			}
 		}
 

@@ -647,6 +647,12 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		return new File(rootFolder, getLocalRelativePath(contentId));
 	}
 
+	@Override
+	public DaoFile getFile(String id) {
+		File file = getFileOf(id);
+		return new DaoFile(id, file.getName(), file.length(), file.lastModified(), this);
+	}
+
 	private String toCaseInsensitive(char character) {
 		String str = "" + character;
 		return str;
