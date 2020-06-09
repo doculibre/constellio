@@ -7,7 +7,6 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.contents.ContentDao;
-import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
@@ -102,10 +101,7 @@ public class SystemStateExporter {
 	 */
 	private Map<String, String> readWeeklyExportInfos() {
 		Map<String, String> params = new HashMap<>();
-		try {
-			contentDao.readonlyConsume(PATH_TO_BASE_FILE_INFO, (f) -> params.putAll(loadKeyValues(f)));
-		} catch (ContentDaoException_NoSuchContent ignored) {
-		}
+		contentDao.readonlyConsumeIfExists(PATH_TO_BASE_FILE_INFO, (f) -> params.putAll(loadKeyValues(f)));
 		return params;
 	}
 
