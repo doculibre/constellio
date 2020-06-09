@@ -32,6 +32,7 @@ public class SystemStateExporterAcceptTest extends ConstellioTest {
 
 		//Second tlog file is containing the dark lord
 		getModelLayerFactory().newRecordServices().add(rm.newFolderType().setCode("darthvader").setTitle("darthvader"));
+		getModelLayerFactory().newRecordServices().flushRecords();
 		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMoveInVault();
 
 		getAppLayerFactory().getAppLayerBackgroundThreadsManager().getCreateBaseSaveStateBackgroundAction().run();

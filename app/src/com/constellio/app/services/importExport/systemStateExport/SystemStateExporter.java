@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-import static com.constellio.data.dao.services.contents.ContentDao.MoveToVaultOption.ONLY_IF_INEXISTING;
 import static com.constellio.data.utils.PropertyFileUtils.loadKeyValues;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
@@ -135,7 +135,7 @@ public class SystemStateExporter {
 		copySettingsTo(tempFolderSettingsFolder);
 
 		if (params.isExportAllContent()) {
-			copyTLogsToUsingWeeklyExport(tempFolderContentFolder, params.isUseWeeklyExport());
+			copyContentsExceptTLog(tempFolderContentFolder);
 
 		} else {
 			new PartialVaultExporter(tempFolderContentFolder, appLayerFactory)
@@ -143,6 +143,7 @@ public class SystemStateExporter {
 
 		}
 
+		copyTLogsToUsingWeeklyExport(tempFolderContentFolder, params.isUseWeeklyExport());
 	}
 
 	public void exportSystemToFile(File file, SystemStateExportParams params) {
@@ -208,6 +209,27 @@ public class SystemStateExporter {
 	//		return exportedHashes;
 	//	}
 
+	private void copyContentsExceptTLog(File tempFolderContentsFolder) {
+		final File contentsFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
+		final File tlogsFolder = new File(contentsFolder, "tlogs");
+		final File tlogsBckFolder = new File(contentsFolder, "tlogs_bck");
+		try {
+			FileUtils.copyDirectory(contentsFolder, tempFolderContentsFolder, new FileFilter() {
+				@Override
+				public boolean accept(File pathname) {
+
+					return pathname.equals(contentsFolder)
+						   || (
+								   !pathname.getAbsolutePath().contains(tlogsFolder.getAbsolutePath())
+								   && !pathname.getAbsolutePath().contains(tlogsBckFolder.getAbsolutePath()));
+
+				}
+			});
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	private void copyTLogsToUsingWeeklyExport(File tempFolderContentsFolder, boolean tryUseBaseFile) {
 
 		LocalDateTime lastFullExportToUse = tryUseBaseFile ? getLastWeeklyExportBeginningTimeStamp() : null;
@@ -252,21 +274,7 @@ public class SystemStateExporter {
 
 		}
 
-		//		try {
-		//			FileUtils.copyDirectory(contentsFolder, tempFolderContentsFolder, new FileFilter() {
-		//				@Override
-		//				public boolean accept(File pathname) {
-		//
-		//					if (pathname.equals(contentsFolder) || pathname.getAbsolutePath().contains(tlogsFolder.getAbsolutePath())) {
-		//						return !pathname.getAbsolutePath().contains(tlogsBckFolder.getAbsolutePath());
-		//					}
-		//
-		//					return false;
-		//				}
-		//			});
-		//		} catch (IOException e) {
-		//			throw new RuntimeException(e);
-		//		}
+
 	}
 
 	private void copyContentsTo(File tempFolderContentsFolder) {
@@ -292,6 +300,7 @@ public class SystemStateExporter {
 	}
 
 	public void createSavestateBaseFileInVault() {
+		recordDao.flush();
 		final org.joda.time.LocalDateTime startTime = TimeProvider.getLocalDateTime();
 		File tempFolder = ioServices.newTemporaryFolder("SystemStateExporter.createSavestateBaseFileInVault.temp");
 		String now = TimeProvider.getLocalDateTime().toString().replace(".", "-").replace(":", "-");
@@ -300,7 +309,7 @@ public class SystemStateExporter {
 		try {
 			createSavestateBaseFile(tempFile);
 			zipService.zip(zipFile, asList(tempFile));
-			modelLayerFactory.getDataLayerFactory().getContentsDao().moveFileToVault(PATH_TO_BASE_FILE, zipFile, ONLY_IF_INEXISTING);
+			modelLayerFactory.getDataLayerFactory().getContentsDao().moveFileToVault(PATH_TO_BASE_FILE, zipFile);
 			markHasLastWeeklyExport(startTime);
 
 		} catch (ZipServiceException e) {
