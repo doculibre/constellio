@@ -272,9 +272,21 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 	@Override
 	protected void setInternalValue(Object newValue) {
 		super.setInternalValue(newValue);
-		if (!multiValue && autoCompleteField != null) {
+		if (autoCompleteField != null) {
 			autoCompleteField.removeValueChangeListener(autoCompleteChangeListener);
-			autoCompleteField.setValue(newValue);
+			if (!multiValue) {
+				autoCompleteField.setValue(newValue);
+			} else if (newValue instanceof List) {
+				List newListValue = (List) newValue;
+				boolean onlyOneElement = newListValue.size() == 1;
+				if (onlyOneElement) {
+					autoCompleteField.setValue(newListValue.get(0));
+				} else if (newListValue.isEmpty()) {
+					autoCompleteField.setValue(null);
+				}
+			} else if (newValue == null) {
+				autoCompleteField.setValue(null);
+			}
 			autoCompleteField.addValueChangeListener(autoCompleteChangeListener);
 		}
 	}
