@@ -20,10 +20,16 @@ import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.dd.VerticalDropLocation;
 import com.vaadin.ui.AbstractSelect.AbstractSelectTargetDetails;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.TableDragMode;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.LinkedHashMap;
@@ -191,7 +197,7 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 	}
 
 	private boolean isNotDefaultGroup(String group) {
-		return !presenter.getDefaultMetadataGroupCode().equals(group);
+		return !group.equals(presenter.getDefaultMetadataGroupCode());
 	}
 
     @SuppressWarnings("unchecked")

@@ -40,7 +40,7 @@ public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresen
 		Set<String> allMetadataGroups = typeConfig.getMetadataGroup().keySet();
 		for (String metadataGroup : allMetadataGroups) {
 			metadataGroups.add(metadataGroup);
-			if (metadataGroup.startsWith("default:")) {
+			if (StringUtils.isEmpty(defaultMetadataGroup) && metadataGroup.startsWith("default:")) {
 				defaultMetadataGroup = metadataGroup;
 			}
 		}
