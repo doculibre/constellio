@@ -43,6 +43,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.dao.services.contents.ContentDao.MoveToVaultOption.ONLY_IF_INEXISTING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConfigurationView> {
@@ -118,7 +119,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 			}
 
 			modelLayerFactory.getContentManager().getContentDao()
-					.moveFileToVault(tempFileUpload.getTempFile(), contentVersionDataSummary.getHash());
+					.moveFileToVault(contentVersionDataSummary.getHash(), tempFileUpload.getTempFile(), ONLY_IF_INEXISTING);
 			view.setSKOSSaveButtonEnabled(false);
 		} catch (IOException e) {
 			e.printStackTrace();

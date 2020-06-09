@@ -2,8 +2,11 @@ package com.constellio.app.services.sip.zip;
 
 import com.constellio.app.services.sip.mets.MetsContentFileReference;
 import com.constellio.app.services.sip.mets.MetsEADMetadataReference;
+import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
+import com.constellio.data.dao.services.contents.DaoFile;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
+import lombok.Getter;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -23,7 +26,11 @@ public class SIPZipWriterTransaction {
 
 	File tempFolder;
 
-	private LinkedHashMap<String, File> files = new LinkedHashMap<>();
+	@Getter
+	private Map<String, File> otherFiles = new LinkedHashMap<>();
+
+	@Getter
+	private Map<String, DaoFile> daoFiles = new LinkedHashMap<>();
 
 	private List<MetsContentFileReference> contentFileReferences = new ArrayList<>();
 
@@ -44,16 +51,17 @@ public class SIPZipWriterTransaction {
 	public long length() {
 		long length = 0;
 
-		for (File file : files.values()) {
+		for (DaoFile file : daoFiles.values()) {
+			length += file.length();
+		}
+
+		for (File file : otherFiles.values()) {
 			length += file.length();
 		}
 
 		return length;
 	}
 
-	public Map<String, File> getFiles() {
-		return files;
-	}
 
 	public void add(MetsContentFileReference contentFileReference) {
 		contentFileReferences.add(contentFileReference);
@@ -87,7 +95,7 @@ public class SIPZipWriterTransaction {
 		reference.setCheckSumType(sipFileHasher.getFunctionName());
 		reference.setPath(zipFilePath);
 
-		files.put(zipFilePath, newTempFile);
+		otherFiles.put(zipFilePath, newTempFile);
 		add(reference);
 		return reference;
 
@@ -99,7 +107,7 @@ public class SIPZipWriterTransaction {
 		tempFile.getParentFile().mkdirs();
 
 		file.renameTo(tempFile);
-		files.put(zipFilePath, tempFile);
+		otherFiles.put(zipFilePath, tempFile);
 		return tempFile;
 	}
 
@@ -125,18 +133,18 @@ public class SIPZipWriterTransaction {
 
 	}
 
-	public MetsContentFileReference addContentFileFromVaultFile(String zipFilePath, File vaultFile)
-			throws IOException {
+	public MetsContentFileReference addContentFileFromVaultFile(String zipFilePath, DaoFile vaultFile)
+			throws ContentDaoException_NoSuchContent {
 
 		MetsContentFileReference reference = new MetsContentFileReference();
 		reference.setSize(vaultFile.length());
-		String hash = sipFileHasher.computeHash(vaultFile, zipFilePath);
+		String hash = vaultFile.readonlyFunction(f -> sipFileHasher.computeHash(f, zipFilePath));
 		computedHashesCache.put(zipFilePath, hash);
 		reference.setCheckSum(hash);
 		reference.setCheckSumType(sipFileHasher.getFunctionName());
 		reference.setPath(zipFilePath);
 
-		files.put(zipFilePath, vaultFile);
+		daoFiles.put(zipFilePath, vaultFile);
 		add(reference);
 		return reference;
 
@@ -154,7 +162,7 @@ public class SIPZipWriterTransaction {
 		reference.setCheckSumType(sipFileHasher.getFunctionName());
 		reference.setPath(zipFilePath);
 
-		files.put(zipFilePath, file);
+		otherFiles.put(zipFilePath, file);
 		add(reference);
 		return reference;
 
@@ -168,7 +176,7 @@ public class SIPZipWriterTransaction {
 		OutputStream outputStream = ioServices.newBufferedFileOutputStream(tempFile, WRITE_TEMP_FILE_STREAM_NAME);
 		ioServices.copyAndClose(inputStream, outputStream);
 
-		files.put(zipFilePath, tempFile);
+		otherFiles.put(zipFilePath, tempFile);
 		return tempFile;
 	}
 
