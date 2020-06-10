@@ -406,7 +406,7 @@ public class SystemStateExporter {
 	}
 
 	public void regroupAndMoveInVault() {
-		this.secondTransactionLogManager.regroupAndMoveInVault();
+		this.secondTransactionLogManager.regroupAndMove();
 
 	}
 }
