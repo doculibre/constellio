@@ -17,7 +17,7 @@ public class CreateBaseSaveStateBackgroundAction implements Runnable {
 
 	@Override
 	public void run() {
-		new SystemStateExporter(appLayerFactory).createSavestateBaseFileInVault();
+		new SystemStateExporter(appLayerFactory).createSavestateBaseFileInVault(false);
 
 	}
 

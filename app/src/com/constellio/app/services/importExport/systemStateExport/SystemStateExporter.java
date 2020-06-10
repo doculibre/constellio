@@ -254,6 +254,8 @@ public class SystemStateExporter {
 					lastFullExportToUse = null;
 				}
 
+			} else {
+				lastFullExportToUse = null;
 			}
 
 			for (File tlogFile : tlogsFiles) {
@@ -295,7 +297,7 @@ public class SystemStateExporter {
 		dataLayerFactory.getConfigManager().exportTo(tempFolderSettingsFolder);
 	}
 
-	public void createSavestateBaseFileInVault() {
+	public void createSavestateBaseFileInVault(boolean includeParsedContent) {
 		recordDao.flush();
 		final org.joda.time.LocalDateTime startTime = TimeProvider.getLocalDateTime();
 		File tempFolder = ioServices.newTemporaryFolder("SystemStateExporter.createSavestateBaseFileInVault.temp");
@@ -303,7 +305,7 @@ public class SystemStateExporter {
 		File tempFile = new File(tempFolder, now + ".tlog");
 		File zipFile = new File(tempFolder, now + ".zip");
 		try {
-			createSavestateBaseFile(tempFile);
+			createSavestateBaseFile(tempFile, includeParsedContent);
 			zipService.zip(zipFile, asList(tempFile));
 			modelLayerFactory.getDataLayerFactory().getContentsDao().moveFileToVault(PATH_TO_BASE_FILE, zipFile);
 			markHasLastWeeklyExport(startTime);
@@ -318,10 +320,10 @@ public class SystemStateExporter {
 		}
 	}
 
-	public void createSavestateBaseFile(File file) {
+	public void createSavestateBaseFile(File file, boolean includeParsedContent) {
 		boolean writeZZRecords = modelLayerFactory.getSystemConfigs().isWriteZZRecordsInTlog();
 
-		SavestateFileWriter savestateFileWriter = new SavestateFileWriter(modelLayerFactory, file);
+		SavestateFileWriter savestateFileWriter = new SavestateFileWriter(modelLayerFactory, file, includeParsedContent);
 
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 
