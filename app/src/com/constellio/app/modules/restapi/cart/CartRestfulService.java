@@ -17,8 +17,8 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
-import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -81,20 +81,20 @@ public class CartRestfulService extends BaseRestfulService {
 		return Response.status(Response.Status.CREATED).entity(createdCart).build();
 	}
 
-	@PATCH
+	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Operation(summary = "Patch favorite group", description = "Update favorite group name")
+	@Operation(summary = "Update favorite group", description = "Rename favorite group")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Cart"))),
 			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
-	public Response updatePartial(@Parameter(required = true, description = "Cart Id") @QueryParam("id") String id,
-								  @Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
-								  @Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
-								  @Valid CartDto cart,
-								  @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
+	public Response update(@Parameter(required = true, description = "Cart Id") @QueryParam("id") String id,
+						   @Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
+						   @Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
+						   @Valid CartDto cart,
+						   @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
 		validateAuthentication(authentication);
 		validateRequiredParameter(serviceKey, "serviceKey");
