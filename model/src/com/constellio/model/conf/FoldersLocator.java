@@ -1,6 +1,7 @@
 package com.constellio.model.conf;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.utils.TenantUtils;
 
 import java.io.File;
 import java.util.Arrays;
@@ -104,11 +105,11 @@ public class FoldersLocator {
 	}
 
 	public File getKeystoreFile() {
-		return new File(getConfFolder(), "keystore.jks");
+		return new File(getConfFolder(false), "keystore.jks");
 	}
 
 	public File getWrapperConf() {
-		return new File(getConfFolder(), "wrapper.conf");
+		return new File(getConfFolder(false), "wrapper.conf");
 	}
 
 	public File getBPMNsFolder() {
@@ -120,15 +121,24 @@ public class FoldersLocator {
 	}
 
 	public File getConfFolder() {
+		return getConfFolder(true);
+	}
+
+	private File getConfFolder(boolean appendTenantFolder) {
+		String confFolder = appendTenantFolder ? concatTenantFolder("conf") : "conf";
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
-			return new File(getWrapperInstallationFolder(), "conf");
+			return new File(getWrapperInstallationFolder(), confFolder);
 
 		} else if (getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
-			return new File(getTomcatInstallationFolder(), "conf");
+			return new File(getTomcatInstallationFolder(), confFolder);
 
 		} else {
-			return new File(getConstellioWebappFolder(), "conf");
+			return new File(getConstellioWebappFolder(), confFolder);
 		}
+	}
+
+	public File getAllTenantsConfFolder() {
+		return getConfFolder(false);
 	}
 
 	public File getReindexingFolder() {
@@ -188,7 +198,7 @@ public class FoldersLocator {
 	}
 
 	public File getLogsFolder() {
-		return new File(getWrapperInstallationFolder(), "logs");
+		return new File(getWrapperInstallationFolder(), concatTenantFolder("logs"));
 	}
 
 	public File getBatFolder() {
@@ -222,18 +232,19 @@ public class FoldersLocator {
 	}*/
 
 	public File getDefaultTempFolder() {
+		String tempFolder = concatTenantFolder("temp");
 
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
-			File file = new File(getWrapperInstallationFolder().getParentFile(), CONSTELLIO_TMP);
+			File file = new File(getWrapperInstallationFolder().getParentFile(), concatTenantFolder(CONSTELLIO_TMP));
 			if (file.exists() && file.isDirectory()) {
 				return file;
 			} else {
-				return new File(getWrapperInstallationFolder(), "temp");
+				return new File(getWrapperInstallationFolder(), tempFolder);
 			}
 		} else if (getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
-			return new File(getTomcatInstallationFolder(), "temp");
+			return new File(getTomcatInstallationFolder(), tempFolder);
 		} else {
-			return new File(getConstellioProject(), "temp");
+			return new File(getConstellioProject(), tempFolder);
 		}
 	}
 
@@ -404,7 +415,7 @@ public class FoldersLocator {
 			return new File(getConfFolder(), "settings");
 
 		} else if (getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
-			return new File(getTomcatInstallationFolder(), "settings");
+			return new File(getTomcatInstallationFolder(), concatTenantFolder("settings"));
 
 		} else {
 			return new File(getConfFolder(), "settings");
@@ -435,7 +446,7 @@ public class FoldersLocator {
 	}
 
 	public File getPluginsRepository() {
-		return new File(getConstellioProject().getParentFile(), "constellio-plugins");
+		return new File(getConstellioProject().getParentFile(), concatTenantFolder("constellio-plugins"));
 	}
 
 	public File getPluginsSDKProject() {
@@ -495,38 +506,40 @@ public class FoldersLocator {
 	}
 
 	public File getPluginsResourcesFolder() {
+		String pluginResourcesFolder = concatTenantFolder("plugins-modules-resources");
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
-			return new File(getConstellioWebinfFolder(), "plugins-modules-resources");
+			return new File(getConstellioWebinfFolder(), pluginResourcesFolder);
 
 		} else if (getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
-			return new File(getConstellioWebinfFolder(), "plugins-modules-resources");
+			return new File(getConstellioWebinfFolder(), pluginResourcesFolder);
 
 		} else {
-			return new File(getConstellioWebappFolder(), "plugins-modules-resources");
+			return new File(getConstellioWebappFolder(), pluginResourcesFolder);
 		}
 	}
 
 	public File getReportsResourceFolder() {
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
-			return new File(getConstellioWebinfFolder(), "resources" + File.separator + "reports");
+			return new File(getResourcesFolder(), "reports");
 
 		} else if (getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
-			return new File(getConstellioWebinfFolder(), "resources" + File.separator + "reports");
+			return new File(getResourcesFolder(), "reports");
 
 		} else {
-			return new File(getConstellioWebappFolder(), "resources" + File.separator + "reports");
+			return new File(getResourcesFolder(), "reports");
 		}
 	}
 
 	public File getResourcesFolder() {
+		String resourcesFolder = concatTenantFolder("resources");
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
-			return new File(getConstellioWebinfFolder(), "resources");
+			return new File(getConstellioWebinfFolder(), resourcesFolder);
 
 		} else if (getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
-			return new File(getConstellioWebinfFolder(), "resources");
+			return new File(getConstellioWebinfFolder(), resourcesFolder);
 
 		} else {
-			return new File(getConstellioWebappFolder(), "resources");
+			return new File(getConstellioWebappFolder(), resourcesFolder);
 		}
 	}
 
@@ -549,32 +562,33 @@ public class FoldersLocator {
 	}
 
 	public File getPluginsJarsFolder() {
+		String pluginsJarsFolder = concatTenantFolder("plugins");
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER || getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
-			return new File(getConstellioWebinfFolder(), "plugins");
+			return new File(getConstellioWebinfFolder(), pluginsJarsFolder);
 
 		} else {
-			return new File(getConstellioWebappFolder(), "plugins");
+			return new File(getConstellioWebappFolder(), pluginsJarsFolder);
 		}
 	}
 
 	public File getPluginsToMoveOnStartupFile() {
 		File pluginManagementFolder;
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER || getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
-			pluginManagementFolder = new File(getConstellioWebinfFolder(), "pluginsManagement");
+			pluginManagementFolder = new File(getConstellioWebinfFolder(), concatTenantFolder("pluginsManagement"));
 
 		} else {
-			pluginManagementFolder = new File(getConstellioWebappFolder(), "pluginsManagement");
+			pluginManagementFolder = new File(getConstellioWebappFolder(), concatTenantFolder("pluginsManagement"));
 		}
 		return new File(pluginManagementFolder, "toMoveOnStartup");
 	}
 
 	public File getPluginsJarsFolder(File webAppFolder) {
-		File webInf = new File(webAppFolder, "WEB-INF");
+		File webInf = new File(webAppFolder, concatTenantFolder("WEB-INF"));
 		return new File(webInf, "plugins");
 	}
 
 	public File getPluginsToMoveOnStartupFile(File webAppFolder) {
-		File webInf = new File(webAppFolder, "WEB-INF");
+		File webInf = new File(webAppFolder, concatTenantFolder("WEB-INF"));
 		File pluginManagementFolder = new File(webInf, "pluginsManagement");
 		return new File(pluginManagementFolder, "toMoveOnStartup");
 	}
@@ -593,16 +607,16 @@ public class FoldersLocator {
 
 	public File getWorkFolder() {
 		if (customWorkFolder != null) {
-			return customWorkFolder;
+			return TenantUtils.getTenantId() != null ? new File(customWorkFolder, getTenantFolder()) : customWorkFolder;
 
 		} else if (getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
 			//File workFolder = new File("/raid/francis/work"); //new File(getSDKProject(), "work");
-			File workFolder = new File(getSDKProject(), "work");
+			File workFolder = new File(getSDKProject(), concatTenantFolder("work"));
 			workFolder.mkdirs();
 			return workFolder;
 
 		} else if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
-			File workFolder = new File(getWrapperInstallationFolder(), "work");
+			File workFolder = new File(getWrapperInstallationFolder(), concatTenantFolder("work"));
 			workFolder.mkdirs();
 			return workFolder;
 
@@ -620,4 +634,14 @@ public class FoldersLocator {
 		return new File(getConstellioWebappFolder(), "data.txt");
 	}
 	*/
+
+	protected String concatTenantFolder(String folder) {
+		String tenantFolder = getTenantFolder();
+		return !tenantFolder.isEmpty() ? folder.concat(File.separator).concat(getTenantFolder()) : folder;
+	}
+
+	protected String getTenantFolder() {
+		String tenantId = TenantUtils.getTenantId();
+		return tenantId != null ? "tenant".concat(tenantId) : "";
+	}
 }

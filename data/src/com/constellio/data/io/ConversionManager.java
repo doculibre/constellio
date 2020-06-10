@@ -33,9 +33,18 @@ import org.slf4j.LoggerFactory;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import java.util.*;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -161,6 +170,8 @@ public class ConversionManager implements StatefulService {
 
 	private static boolean openOfficeOrLibreOfficeInstalled = false;
 
+	private static OfficeManager officeManager;
+
 	static {
 		try {
 			//			OfficeManager officeManager = LocalOfficeManager.builder().maxTasksPerProcess(10).install().build();
@@ -214,7 +225,6 @@ public class ConversionManager implements StatefulService {
 	private final IOServices ioServices;
 	private int numberOfProcesses;
 	private String onlineConversionUrl;
-	private OfficeManager officeManager;
 	private AbstractConverter delegate;
 	private ExecutorService executor;
 	private DataLayerSystemExtensions extensions;
@@ -244,16 +254,22 @@ public class ConversionManager implements StatefulService {
 
 			DocumentFormatRegistry formatRegistry = DefaultDocumentFormatRegistry.getInstance();
 			if (onlineConversionUrl != null) {
-				officeManager = OnlineOfficeManager.builder().taskExecutionTimeout(CONVERSION_TIMEOUT).poolSize(numberOfProcesses).urlConnection(onlineConversionUrl)
-						.build();
+				if (officeManager == null) {
+					officeManager = OnlineOfficeManager.builder().taskExecutionTimeout(CONVERSION_TIMEOUT).poolSize(numberOfProcesses).urlConnection(onlineConversionUrl)
+							.build();
+					startOfficeManager();
+				}
 
 				delegate = OnlineConverter.builder()
 						.officeManager(officeManager)
 						.formatRegistry(formatRegistry)
 						.build();
 			} else {
-				int[] portNumbers = getPortNumbers();
-				officeManager = LocalOfficeManager.builder().taskExecutionTimeout(CONVERSION_TIMEOUT).install().portNumbers(portNumbers).build();
+				if (officeManager == null) {
+					int[] portNumbers = getPortNumbers();
+					officeManager = LocalOfficeManager.builder().taskExecutionTimeout(CONVERSION_TIMEOUT).install().portNumbers(portNumbers).build();
+					startOfficeManager();
+				}
 
 				delegate =
 						LocalConverter.builder()
@@ -261,11 +277,17 @@ public class ConversionManager implements StatefulService {
 								.formatRegistry(formatRegistry)
 								.build();
 			}
-			try {
+
+		}
+	}
+
+	private void startOfficeManager() {
+		try {
+			if (!officeManager.isRunning()) {
 				officeManager.start();
-			} catch (OfficeException e) {
-				throw new RuntimeException(e);
 			}
+		} catch (OfficeException e) {
+			throw new RuntimeException(e);
 		}
 	}
 

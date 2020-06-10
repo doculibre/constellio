@@ -57,7 +57,7 @@ public class ModulesAndMigrationsTestFeatures {
 			}
 		}
 
-		for (ConstellioFactories factories : instanceProvider.instances.values()) {
+		for (ConstellioFactories factories : instanceProvider.getAllInstances()) {
 
 			AppLayerFactory appFactory = factories.getAppLayerFactory();
 			ModelLayerFactory modelFactory = factories.getModelLayerFactory();

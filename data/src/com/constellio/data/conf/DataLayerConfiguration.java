@@ -134,4 +134,9 @@ public interface DataLayerConfiguration {
 
 	int getSolrMinimalReplicationFactor();
 
+	String getRecordsDaoCollection();
+
+	String getEventsDaoCollection();
+
+	String getNotificationsDaoCollection();
 }

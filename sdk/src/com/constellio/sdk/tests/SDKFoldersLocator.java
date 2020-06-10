@@ -27,7 +27,15 @@ public class SDKFoldersLocator extends FoldersLocator {
 	}
 
 	public File getSDKProperties() {
-		return new File(getSDKProject(), "sdk.properties");
+		return new File(getSDKProject(), concatTenantFolder("sdk.properties"));
+	}
+
+	@Override
+	protected String concatTenantFolder(String folder) {
+		String tenantFolder = getTenantFolder();
+		return !tenantFolder.isEmpty() ?
+			   "tenants".concat(File.separator).concat(getTenantFolder()).concat(File.separator).concat(folder) :
+			   folder;
 	}
 
 }

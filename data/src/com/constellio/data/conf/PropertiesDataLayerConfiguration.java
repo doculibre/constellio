@@ -142,6 +142,10 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 			setString("dao.records.http.url", url);
 		}
 
+		public void setRecordsDaoCollection(String value) {
+			setString("dao.records.collection", value);
+		}
+
 		public void setContentDaoType(ContentDaoType contentDaoType) {
 			setEnum("dao.contents.type", contentDaoType);
 		}
@@ -195,6 +199,18 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	public String getRecordsDaoHttpSolrServerUrl() {
 		return getRequiredString("dao.records.http.url");
+	}
+
+	public String getRecordsDaoCollection() {
+		return getString("dao.records.collection", null);
+	}
+
+	public String getEventsDaoCollection() {
+		return getString("dao.events.collection", null);
+	}
+
+	public String getNotificationsDaoCollection() {
+		return getString("dao.notifications.collection", null);
 	}
 
 	public String getRecordsDaoCloudSolrServerZKHost() {

@@ -7,6 +7,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
 import com.constellio.model.services.schemas.MetadataSchemaProvider;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.utils.TenantUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -87,7 +88,8 @@ public class ByteArrayRecordDTOSerializerService {
 			inputStream.read(persistedBytes);
 
 			MetadataSchemaProvider schemaProvider = modelLayerFactory.getMetadataSchemasManager();
-			short tenantId = modelLayerFactory.getInstanceId();
+			short tenantId = TenantUtils.isSupportingTenants() ?
+							 TenantUtils.getByteTenantId() : modelLayerFactory.getInstanceId();
 
 			String collectionCode = modelLayerFactory.getCollectionsListManager().getCollectionCode(collectionId);
 			MetadataSchemaType schemaType = ((MetadataSchemasManager) schemaProvider).getSchemaTypes(collectionId).getSchemaType(typeId);

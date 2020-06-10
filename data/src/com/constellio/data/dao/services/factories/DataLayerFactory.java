@@ -37,7 +37,11 @@ import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
-import com.constellio.data.dao.services.leaderElection.*;
+import com.constellio.data.dao.services.leaderElection.IgniteLeaderElectionManager;
+import com.constellio.data.dao.services.leaderElection.LeaderElectionManager;
+import com.constellio.data.dao.services.leaderElection.ObservableLeaderElectionManager;
+import com.constellio.data.dao.services.leaderElection.StandaloneLeaderElectionManager;
+import com.constellio.data.dao.services.leaderElection.ZookeeperLeaderElectionManager;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.recovery.TransactionLogRecovery;
 import com.constellio.data.dao.services.recovery.TransactionLogXmlRecoveryManager;
@@ -56,7 +60,11 @@ import com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManage
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.SqlServerTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.XMLSecondTransactionLogManager;
-import com.constellio.data.events.*;
+import com.constellio.data.events.EventBus;
+import com.constellio.data.events.EventBusManager;
+import com.constellio.data.events.EventBusSendingService;
+import com.constellio.data.events.SolrEventBusSendingService;
+import com.constellio.data.events.StandaloneEventBusSendingService;
 import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.IOServicesFactory;
@@ -332,11 +340,13 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	}
 
 	public BigVaultServer getRecordsVaultServer() {
-		return solrServers.getSolrServer(RECORDS_COLLECTION);
+		String recordsCollection = dataLayerConfiguration.getRecordsDaoCollection();
+		return solrServers.getSolrServer(recordsCollection != null ? recordsCollection : RECORDS_COLLECTION);
 	}
 
 	public BigVaultServer getEventsVaultServer() {
-		return solrServers.getSolrServer(EVENTS_COLLECTION);
+		String eventsCollection = dataLayerConfiguration.getEventsDaoCollection();
+		return solrServers.getSolrServer(eventsCollection != null ? eventsCollection : EVENTS_COLLECTION);
 	}
 
 	public BigVaultServer getSearchVaultServer() {
@@ -348,7 +358,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	}
 
 	public BigVaultServer getNotificationsVaultServer() {
-		return solrServers.getSolrServer(NOTIFICATIONS_COLLECTION);
+		String notificationsCollection = dataLayerConfiguration.getNotificationsDaoCollection();
+		return solrServers.getSolrServer(notificationsCollection != null ? notificationsCollection : NOTIFICATIONS_COLLECTION);
 	}
 
 	public DataStoreTypesFactory newTypesFactory() {

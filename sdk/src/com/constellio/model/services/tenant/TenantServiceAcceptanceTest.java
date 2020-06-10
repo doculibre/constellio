@@ -1,6 +1,5 @@
-package com.constellio.model.services.appManagement;
+package com.constellio.model.services.tenant;
 
-import com.constellio.model.entities.structures.TenantProperties;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,10 +7,10 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.constellio.model.services.appManagement.TenantService.CANNOT_LOAD_TENANT_PROPERTIES;
-import static com.constellio.model.services.appManagement.TenantService.DUPLICATE_CODE_EXCEPTION;
-import static com.constellio.model.services.appManagement.TenantService.DUPLICATE_HOSTNAME_EXCEPTION;
-import static com.constellio.model.services.appManagement.TenantService.DUPLICATE_ID_EXCEPTION;
+import static com.constellio.model.services.tenant.TenantService.CANNOT_LOAD_TENANT_PROPERTIES;
+import static com.constellio.model.services.tenant.TenantService.DUPLICATE_CODE_EXCEPTION;
+import static com.constellio.model.services.tenant.TenantService.DUPLICATE_HOSTNAME_EXCEPTION;
+import static com.constellio.model.services.tenant.TenantService.DUPLICATE_ID_EXCEPTION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 

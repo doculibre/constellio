@@ -220,6 +220,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		}
 	}
 
+	protected void givenTwoTenants() {
+		getCurrentTestSession().getFactoriesTestFeatures().addTenants();
+	}
+
 	@AfterClass
 	public static void afterClass() {
 		ConstellioTestSession.closeAfterTestClass();
@@ -583,6 +587,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected ConstellioFactories getConstellioFactories(String name) {
 		ensureNotUnitTest();
 		return getCurrentTestSession().getFactoriesTestFeatures().getConstellioFactories(name);
+	}
+
+	protected ConstellioFactories getConstellioFactories(byte tenantId) {
+		ensureNotUnitTest();
+		return getCurrentTestSession().getFactoriesTestFeatures().getConstellioFactories(tenantId);
 	}
 
 	public ModelLayerFactory getModelLayerFactory() {
