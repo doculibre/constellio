@@ -1172,7 +1172,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				SystemStateExportParams params = new SystemStateExportParams().setExportAllContent().setUseWeeklyExport(true);
 				SystemStateExporter exporter = new SystemStateExporter(getAppLayerFactory());
 				exporter.regroupAndMoveInVault();
-				exporter.createSavestateBaseFileInVault();
+				exporter.createSavestateBaseFileInVault(true);
 				exporter.exportSystemToFolder(stateFolder, params);
 			}
 
@@ -1374,7 +1374,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				SystemStateExportParams params = new SystemStateExportParams().setExportAllContent().setUseWeeklyExport(true);
 				SystemStateExporter exporter = new SystemStateExporter(getAppLayerFactory());
 				exporter.regroupAndMoveInVault();
-				exporter.createSavestateBaseFileInVault();
+				exporter.createSavestateBaseFileInVault(true);
 				exporter.exportSystemToFolder(stateFolder, params);
 			}
 		}

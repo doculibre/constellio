@@ -109,7 +109,7 @@ public class PartialSystemStateExporter {
 
 		SavestateFileWriter writer = null;
 		try {
-			writer = new SavestateFileWriter(modelLayerFactory, new File(tlogsFolder, "records.tlog"));
+			writer = new SavestateFileWriter(modelLayerFactory, new File(tlogsFolder, "records.tlog"), false);
 
 			for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
 				MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
