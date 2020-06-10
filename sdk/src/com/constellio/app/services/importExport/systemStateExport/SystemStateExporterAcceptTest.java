@@ -2,8 +2,6 @@ package com.constellio.app.services.importExport.systemStateExport;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.model.entities.enums.ParsingBehavior;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.FileUtils;
@@ -96,8 +94,6 @@ public class SystemStateExporterAcceptTest extends ConstellioTest {
 	public void whenExportingPartialSaveStateIncludingARecordWithContentThenAllContentVersionsIncluded()
 			throws Exception {
 		givenTransactionLogIsEnabled();
-		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
-
 		//First (and maybe more) tlog file(s) for system preparation records
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
