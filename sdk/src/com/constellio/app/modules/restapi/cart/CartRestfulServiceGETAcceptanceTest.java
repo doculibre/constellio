@@ -3,6 +3,7 @@ package com.constellio.app.modules.restapi.cart;
 import com.constellio.app.modules.restapi.BaseRestfulServiceAcceptanceTest;
 import com.constellio.app.modules.restapi.cart.dto.CartDto;
 import com.constellio.app.modules.restapi.core.exception.InvalidAuthenticationException;
+import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException;
 import com.constellio.app.modules.restapi.core.exception.mapper.RestApiErrorResponse;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredTokenException;
 import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
@@ -27,13 +28,13 @@ import static javax.ws.rs.client.Entity.entity;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CartRestfulServicePOSTAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
-
+public class CartRestfulServiceGETAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
 	private RolesManager rolesManager;
 
-	private CartDto cartToAdd, emptyCartToAdd;
+	private Cart cartToGet;
+	private CartDto cartToAdd;
 
-	private String roleWithPermission = "roleWithPermission";
+	private String roleWithPermissions = "roleWithPermissions";
 	private String roleWithoutPermission = "roleWithoutPermission";
 
 	@Before
@@ -45,17 +46,18 @@ public class CartRestfulServicePOSTAcceptanceTest extends BaseRestfulServiceAcce
 		webTarget = newWebTarget("v1/cart", new ObjectMapper());
 
 		cartToAdd = CartDto.builder().title("New cart").build();
-		emptyCartToAdd = CartDto.builder().build();
 
-		rolesManager.addRole(new Role(zeCollection, roleWithPermission, "Role with permission", new ArrayList<String>()));
+		rolesManager.addRole(new Role(zeCollection, roleWithPermissions, "Role with permissions", new ArrayList<String>()));
 		rolesManager.addRole(new Role(zeCollection, roleWithoutPermission, "Role without permission", new ArrayList<String>()));
 
-		Role role = rolesManager.getRole(zeCollection, roleWithPermission);
+		Role role = rolesManager.getRole(zeCollection, roleWithPermissions);
 		role = role.withPermissions(asList(RMPermissionsTo.USE_GROUP_CART));
 		rolesManager.updateRole(role);
 
 		recordServices.update(userServices.getUserRecordInCollection(bobGratton, zeCollection)
-				.setUserRoles(asList(roleWithPermission)));
+				.setUserRoles(asList(roleWithPermissions)));
+
+		cartToGet = createCart();
 
 		commitCounter.reset();
 		queryCounter.reset();
@@ -64,32 +66,26 @@ public class CartRestfulServicePOSTAcceptanceTest extends BaseRestfulServiceAcce
 	@Test
 	public void validateService() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("collection", zeCollection).request()
+				.queryParam("id", cartToGet.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
+				.get();
 
-		assertThat(response.getStatus()).isEqualTo(Status.CREATED.getStatusCode());
+		assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
-		assertThat(commitCounter.newCommitsCall()).hasSize(1);
+		assertThat(commitCounter.newCommitsCall()).hasSize(0);
 
 		CartDto cartDto = response.readEntity(CartDto.class);
-		assertThat(cartDto.getId()).isNotNull().isNotEmpty();
-		assertThat(cartDto.getOwner()).isEqualTo(users.bobIn(zeCollection).getId());
-		assertThat(cartDto.getTitle()).isEqualTo(cartToAdd.getTitle());
-
-		Cart cart = rm.getCart(cartDto.getId());
-		assertThat(cart).isNotNull();
-		assertThat(cart.getId()).isEqualTo(cartDto.getId());
-		assertThat(cart.getOwner()).isEqualTo(cartDto.getOwner());
-		assertThat(cart.getTitle()).isEqualTo(cartDto.getTitle());
+		assertThat(cartDto.getId()).isEqualTo(cartToGet.getId());
+		assertThat(cartDto.getOwner()).isEqualTo(cartToGet.getOwner());
+		assertThat(cartDto.getTitle()).isEqualTo(cartToGet.getTitle());
 	}
 
 	@Test
 	public void whenCallingServiceWithoutAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("collection", zeCollection).request()
+				.queryParam("id", cartToGet.getId()).request()
 				.header(HttpHeaders.HOST, host)
-				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
+				.get();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -103,9 +99,9 @@ public class CartRestfulServicePOSTAcceptanceTest extends BaseRestfulServiceAcce
 	@Test
 	public void whenCallingServiceWithEmptyAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("collection", zeCollection).request()
+				.queryParam("id", cartToGet.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "")
-				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
+				.get();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -119,9 +115,9 @@ public class CartRestfulServicePOSTAcceptanceTest extends BaseRestfulServiceAcce
 	@Test
 	public void whenCallingServiceWithInvalidSchemeInAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("collection", zeCollection).request()
+				.queryParam("id", cartToGet.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Basic ".concat(token))
-				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
+				.get();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -135,9 +131,9 @@ public class CartRestfulServicePOSTAcceptanceTest extends BaseRestfulServiceAcce
 	@Test
 	public void whenCallingServiceWithoutSchemeInAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("collection", zeCollection).request()
+				.queryParam("id", cartToGet.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, token)
-				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
+				.get();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -151,9 +147,9 @@ public class CartRestfulServicePOSTAcceptanceTest extends BaseRestfulServiceAcce
 	@Test
 	public void whenCallingServiceWithExpiredToken() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("collection", zeCollection).request()
+				.queryParam("id", cartToGet.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(expiredToken))
-				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
+				.get();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -166,9 +162,9 @@ public class CartRestfulServicePOSTAcceptanceTest extends BaseRestfulServiceAcce
 	@Test
 	public void whenCallingServiceWithInvalidToken() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("collection", zeCollection).request()
+				.queryParam("id", cartToGet.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(fakeToken))
-				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
+				.get();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -180,9 +176,9 @@ public class CartRestfulServicePOSTAcceptanceTest extends BaseRestfulServiceAcce
 
 	@Test
 	public void whenCallingServiceWithoutServiceKeyParam() {
-		Response response = webTarget.queryParam("collection", zeCollection).request()
+		Response response = webTarget.queryParam("id", cartToGet.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
+				.get();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -195,9 +191,9 @@ public class CartRestfulServicePOSTAcceptanceTest extends BaseRestfulServiceAcce
 	@Test
 	public void whenCallingServiceWithInvalidServiceKeyParam() {
 		Response response = webTarget.queryParam("serviceKey", fakeServiceKey)
-				.queryParam("collection", zeCollection).request()
+				.queryParam("id", cartToGet.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
+				.get();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -210,9 +206,9 @@ public class CartRestfulServicePOSTAcceptanceTest extends BaseRestfulServiceAcce
 	@Test
 	public void whenCallingServiceWithUnallowedHostHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("collection", zeCollection).request()
+				.queryParam("id", cartToGet.getId()).request()
 				.header(HttpHeaders.HOST, fakeHost).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
+				.get();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -223,54 +219,28 @@ public class CartRestfulServicePOSTAcceptanceTest extends BaseRestfulServiceAcce
 	}
 
 	@Test
-	public void whenCallingServiceWithMissingCollection() {
+	public void whenCallingServiceWithMissingId() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
+				.get();
 
 		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
-		assertThat(error.getMessage()).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "collection"));
+		assertThat(error.getMessage()).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "cartId"));
 	}
 
 	@Test
-	public void whenCallingServiceWithInvalidCollection() {
+	public void whenCallingServiceWithInvalidId() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("collection", "fakeCollection").request()
+				.queryParam("id", "fakeId").request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
+				.get();
 
-		assertThat(response.getStatus()).isEqualTo(Status.FORBIDDEN.getStatusCode());
+		assertThat(response.getStatus()).isEqualTo(Status.NOT_FOUND.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
-		assertThat(error.getMessage()).isEqualTo(i18n.$(new UnauthenticatedUserException().getValidationError()));
-	}
-
-	@Test
-	public void whenCallingServiceWithMissingCart() {
-		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("collection", zeCollection).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.post(entity(null, APPLICATION_JSON_TYPE));
-
-		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-
-		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
-		assertThat(error.getMessage()).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "cart"));
-	}
-
-	@Test
-	public void whenCallingServiceWithMissingTitle() {
-		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("collection", zeCollection).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.post(entity(emptyCartToAdd, APPLICATION_JSON_TYPE));
-
-		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-
-		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
-		assertThat(error.getMessage()).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "cart.title"));
+		assertThat(error.getMessage()).isEqualTo(i18n.$(new RecordNotFoundException("fakeId").getValidationError()));
 	}
 
 	@Test
@@ -279,13 +249,23 @@ public class CartRestfulServicePOSTAcceptanceTest extends BaseRestfulServiceAcce
 				.setUserRoles(asList(roleWithoutPermission)));
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("collection", zeCollection).request()
+				.queryParam("id", cartToGet.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
+				.get();
 
 		assertThat(response.getStatus()).isEqualTo(Status.FORBIDDEN.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).isEqualTo(i18n.$(new UnauthorizedAccessException().getValidationError()));
+	}
+
+	private Cart createCart() {
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("collection", zeCollection).request()
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
+
+		CartDto cart = response.readEntity(CartDto.class);
+		return rm.getCart(cart.getId());
 	}
 }

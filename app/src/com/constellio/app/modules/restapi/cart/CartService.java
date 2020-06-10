@@ -2,7 +2,6 @@ package com.constellio.app.modules.restapi.cart;
 
 import com.constellio.app.modules.restapi.cart.dao.CartDao;
 import com.constellio.app.modules.restapi.cart.dto.CartDto;
-import com.constellio.app.modules.restapi.cart.exception.CannotUpdateDefaultCartException;
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.service.BaseService;
@@ -38,11 +37,7 @@ public class CartService extends BaseService {
 
 		Record cartRecord = getRecord(id, true);
 		User user = getUserByServiceKey(serviceKey, cartRecord.getCollection());
-		if (id.equals(user.getId())) {
-			validateMyCartPermission(user);
-		} else {
-			validateCartGroupPermission(user);
-		}
+		validateCartGroupPermission(user);
 
 		return cartDao.getCart(user, cartRecord);
 	}
@@ -75,9 +70,6 @@ public class CartService extends BaseService {
 		Record cartRecord = getRecord(id, true);
 		User user = getUserByServiceKey(serviceKey, cartRecord.getCollection());
 		validateCartGroupPermission(user);
-		if (id.equals(user.getId())) {
-			throw new CannotUpdateDefaultCartException();
-		}
 
 		if (cartDto.getTitle() == null) {
 			throw new RequiredParameterException("cart.title");
@@ -93,9 +85,6 @@ public class CartService extends BaseService {
 		Record cartRecord = getRecord(id, true);
 		User user = getUserByServiceKey(serviceKey, cartRecord.getCollection());
 		validateCartGroupPermission(user);
-		if (id.equals(user.getId())) {
-			throw new CannotUpdateDefaultCartException();
-		}
 
 		cartDao.deleteCart(user, cartRecord);
 	}
@@ -107,19 +96,9 @@ public class CartService extends BaseService {
 
 		Record cartRecord = getRecord(id, true);
 		User user = getUserByServiceKey(serviceKey, cartRecord.getCollection());
-		if (id.equals(user.getId())) {
-			validateMyCartPermission(user);
-		} else {
-			validateCartGroupPermission(user);
-		}
+		validateCartGroupPermission(user);
 
 		cartDao.deleteCartContent(user, cartRecord);
-	}
-
-	private void validateMyCartPermission(User user) {
-		if (!user.has(RMPermissionsTo.USE_MY_CART).globally()) {
-			throw new UnauthorizedAccessException();
-		}
 	}
 
 	private void validateCartGroupPermission(User user) {
