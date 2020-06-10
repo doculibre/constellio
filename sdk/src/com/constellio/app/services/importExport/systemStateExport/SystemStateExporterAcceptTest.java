@@ -27,19 +27,19 @@ public class SystemStateExporterAcceptTest extends ConstellioTest {
 		//First (and maybe more) tlog file(s) for system preparation records
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus());
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMoveInVault();
+		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMove();
 		getDataLayerFactory().getSequencesManager().set("aNiceSequence", 42);
 
 		//Second tlog file is containing the dark lord
 		getModelLayerFactory().newRecordServices().add(rm.newFolderType().setCode("darthvader").setTitle("darthvader"));
 		getModelLayerFactory().newRecordServices().flushRecords();
-		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMoveInVault();
+		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMove();
 
 		getAppLayerFactory().getAppLayerBackgroundThreadsManager().getCreateBaseSaveStateBackgroundAction().run();
 
 		//Third tlog file is containing the dog
 		getModelLayerFactory().newRecordServices().add(rm.newFolderType().setCode("nemo").setTitle("nemo"));
-		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMoveInVault();
+		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMove();
 
 		//Fourth tlog file is containing the dark lord
 		getModelLayerFactory().newRecordServices().add(rm.newFolderType().setCode("PrivateRyan").setTitle("PrivateRyan"));
@@ -64,18 +64,18 @@ public class SystemStateExporterAcceptTest extends ConstellioTest {
 		//First (and maybe more) tlog file(s) for system preparation records
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus());
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMoveInVault();
+		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMove();
 		getDataLayerFactory().getSequencesManager().set("aNiceSequence", 42);
 
 		//Second tlog file is containing the dark lord
 		getModelLayerFactory().newRecordServices().add(rm.newFolderType().setCode("darthvader").setTitle("darthvader"));
-		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMoveInVault();
+		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMove();
 
 		getAppLayerFactory().getAppLayerBackgroundThreadsManager().getCreateBaseSaveStateBackgroundAction().run();
 
 		//Third tlog file is containing the dog
 		getModelLayerFactory().newRecordServices().add(rm.newFolderType().setCode("nemo").setTitle("nemo"));
-		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMoveInVault();
+		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMove();
 
 		//Fourth tlog file is containing the dark lord
 		getModelLayerFactory().newRecordServices().add(rm.newFolderType().setCode("PrivateRyan").setTitle("PrivateRyan"));
@@ -105,7 +105,7 @@ public class SystemStateExporterAcceptTest extends ConstellioTest {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		recordServices.update(records.getDocumentWithContent_A19().setTitle("PrivateRyanDocument"));
-		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMoveInVault();
+		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMove();
 		getDataLayerFactory().getSequencesManager().set("aNiceSequence", 42);
 
 		String exportedId = records.getDocumentWithContent_A19().getId();
