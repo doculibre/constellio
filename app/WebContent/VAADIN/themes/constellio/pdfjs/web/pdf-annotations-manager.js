@@ -38,7 +38,7 @@ PDFAnnotationsManager.prototype.getCurrentPage = function() {
 
 PDFAnnotationsManager.prototype.setCurrentPage = function(currentPage) {
     this.currentPage = currentPage;
-    var pageAnnotations = this.pdfAnnotations.getPageAnnotations(pageNumber);
+    var pageAnnotations = this.pdfAnnotations.getPageAnnotations(this.currentPage);
     if (pageAnnotations && pageAnnotations.length > 0 && !this.isDropZoneManager(currentPage)) {
         this.newDropZoneManager(currentPage);
     }

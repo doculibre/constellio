@@ -11,6 +11,14 @@ SignatureTextAnnotation.prototype.getType = function() {
 	return "signature-text-annotation";
 }
 
+SignatureTextAnnotation.prototype.isInitials = function() {
+	return this.initials;
+};
+
+SignatureTextAnnotation.prototype.setInitials = function(initials) {
+	this.initials = initials;
+};
+
 SignatureTextAnnotation.prototype.getBakeInfoI10nKey = function() {
 	return "annotation.signature.bakeInfo";
 };

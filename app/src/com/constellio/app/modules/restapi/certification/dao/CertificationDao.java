@@ -36,7 +36,7 @@ public class CertificationDao extends ResourceDao {
 					contentVersionVO, user);
 		}
 		PdfSignatureAnnotation certified = new PdfSignatureAnnotation(certification.getPage(), convertRectangle(certification.getPosition()),
-				certification.getUserId(), certification.getUsername(), certification.getImageData());
+				certification.getUserId(), certification.getUsername(), certification.getImageData(), certification.isInitials(), certification.isBaked());
 		List<PdfSignatureAnnotation> listSignature = new ArrayList<>();
 		listSignature.add(certified);
 		pdfService.certifyAndSign("", listSignature);

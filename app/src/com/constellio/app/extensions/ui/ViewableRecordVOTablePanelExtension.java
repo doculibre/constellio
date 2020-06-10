@@ -14,6 +14,14 @@ public class ViewableRecordVOTablePanelExtension {
 		return null;
 	}
 
+	public Boolean isViewerSelectionPossible(ViewableRecordVOTablePanelExtensionParams params) {
+		return null;
+	}
+
+	public boolean navigateFromViewerToRecordVO(ViewableRecordVOTablePanelExtensionParams params) {
+		return false;
+	}
+
 	public static class ViewableRecordVOTablePanelExtensionParams {
 
 		private RecordVO recordVO;

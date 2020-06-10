@@ -134,6 +134,10 @@ public class Toggle {
 
 	public static AvailableToggle ENABLE_OFFICE365_EXCLUSIVE = newToggle(false);
 
+	public static AvailableToggle ENABLE_SIGNATURE = newToggle(false);
+
+
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

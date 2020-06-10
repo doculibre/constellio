@@ -1370,6 +1370,11 @@ $popup-view-z-index: 3;
 				top: -2px;
 			}
 		}
+
+		.edit-record-comment-button,
+		.delete-record-comment-button {
+			width: initial;
+		}
 	}
 
 	.error-label {
@@ -2635,6 +2640,13 @@ $popup-view-z-index: 3;
 			}
 		}
 	}
+	
+	.cart-view {
+		.v-slot-action-menu-bar {
+			position: relative;
+			right: 20px;
+		}
+	}
 
 	.-facets-sliderpanel {
 		.v-sliderpanel-wrapper {
@@ -2767,6 +2779,28 @@ $popup-view-z-index: 3;
   				cursor: pointer;
   			}
   		}
+			
+		.viewable-record-table-drag .viewer-results-table-thumbnail .v-table-cell-wrapper {
+			position:relative;
+
+    		&:before {
+			    position:absolute;
+    			content: "\F0C9"; 
+			    font-family: FontAwesome;
+			    top: 24px;
+			    left: -8px;
+				width: 4px;
+    		}
+    		
+    		&:hover:before {
+    			cursor: move;
+    		}
+    		
+    		img {
+    			margin-left: 2px;
+    		}
+    		
+		}
 
   		.viewable-record-table {
 			.v-table-cell-content {

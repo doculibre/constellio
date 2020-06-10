@@ -38,15 +38,18 @@ PDFAnnotationsServices.prototype.parseAnnotationJSON = function(json) {
 	} else if (type == "signature-text-annotation") {
 		annotation = new SignatureTextAnnotation();
 		annotation.setText(json["text"]);
+		annotation.setInitials("" + json["initials"]);
 	} else if (type == "image-annotation") {
 		annotation = new ImageAnnotation();
 		annotation.setUrl(json["url"]);
 	} else if (type == "signature-image-annotation") {
 		annotation = new SignatureImageAnnotation();
 		annotation.setUrl("" + json["url"]);
+		annotation.setInitials("" + json["initials"]);
 	} else if (type == "signature-pad-annotation") {
 		annotation = new SignatureImageAnnotation();
 		annotation.setUrl(json["imageUrl"]);
+		annotation.setInitials("" + json["initials"]);
 	} else if (type == "sign-here-annotation") {
 		annotation = new SignHereAnnotation();
 		annotation.setText(json["text"]);

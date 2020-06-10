@@ -84,7 +84,7 @@ public class PdfJSAnnotations {
 					annotationJson.put("readOnly", true);
 					annotationJson.put("baked", true);
 					annotationJson.put("bakeUser", bakeUser);
-					annotationJson.put("bakeDate", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(bakeDate));
+					annotationJson.put("bakeDate", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(bakeDate));
 				}
 			}
 		}

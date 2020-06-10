@@ -70,6 +70,7 @@ import com.constellio.app.modules.rm.extensions.schema.RMExcelReportSchemaExtens
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
 import com.constellio.app.modules.rm.extensions.ui.RMConstellioUIExtention;
 import com.constellio.app.modules.rm.extensions.ui.RMDocumentPathCriterionExtension;
+import com.constellio.app.modules.rm.extensions.ui.RMViewableRecordVOTablePanelExtension;
 import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
@@ -269,6 +270,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo9_0_0_60_1());
 		scripts.add(new RMMigrationTo9_0_3_11());
 		scripts.add(new RMMigrationTo9_0_3_12());
+		scripts.add(new RMMigrationTo9_0_3_13());
+		//scripts.add(new RMMigrationTo9_0_666());
 		scripts.add(new RMMigrationTo9_1_0());
 		scripts.add(new RMMigrationTo9_1_0_14());
 		scripts.add(new RMMigrationTo9_1_0_20());
@@ -440,6 +443,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.pagesComponentsExtensions.add(new RMManageAuthorizationsPageExtension(collection, appLayerFactory));
 		extensions.sipExtensions.add(new RMSIPExtension(collection, appLayerFactory));
 		extensions.searchCriterionExtensions.add(new RMDocumentPathCriterionExtension(appLayerFactory, collection));
+		extensions.viewableRecordVOTablePanelExtensions.add(new RMViewableRecordVOTablePanelExtension(appLayerFactory, collection));
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);
