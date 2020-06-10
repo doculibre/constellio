@@ -71,4 +71,15 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 	RecordVO getReturnRecordVO();
 
 	void removeAuthorization(AuthorizationVO authorizationVO);
+
+	Integer getSelectedFolderContentIndex();
+
+	RecordVO getSelectedFolderContentRecordVO();
+
+	RecordVODataProvider getFolderContentDataProvider();
+
+	DisplayFolderView getNestedDisplayFolderView();
+
+	void closeViewerPanel();
+	
 }

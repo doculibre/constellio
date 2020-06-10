@@ -17,10 +17,12 @@ import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
 import com.vaadin.data.util.IndexedContainer;
+import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Image;
+import com.vaadin.ui.Label;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,7 +34,6 @@ import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 public class ViewableRecordVOContainer extends IndexedContainer implements ItemSetChangeNotifier, RecordVOContainer {
 
 	public final static String THUMBNAIL_PROPERTY = "thumbnail";
-
 	public final static String SEARCH_RESULT_PROPERTY = "searchResult";
 	public final static int THUMBNAIL_WIDTH = 80;
 	
@@ -112,6 +113,12 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 				return Image.class;
 			}
 		};
+	}
+
+	protected Property<Label> newDragProperty(final Object itemId) {
+		Label dragLabel = new Label("");
+		dragLabel.addStyleName("viewable-record-row-drag");
+		return new ObjectProperty<Label>(dragLabel);
 	}
 
 	private Property<Component> newSearchResultProperty(final Object itemId) {

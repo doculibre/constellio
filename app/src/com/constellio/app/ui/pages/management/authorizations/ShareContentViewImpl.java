@@ -113,13 +113,17 @@ public class ShareContentViewImpl extends BaseViewImpl implements ShareContentVi
 	}
 
 	private void buildDateFields() {
+		boolean fieldsRequired = presenter.isDateFieldValuesRequired();
+
 		startDate = new JodaDateField();
 		startDate.setCaption($("AuthorizationsView.startDate"));
 		startDate.setId("startDate");
+		startDate.setRequired(fieldsRequired);
 
 		endDate = new JodaDateField();
 		endDate.setCaption($("AuthorizationsView.endDate"));
 		endDate.setId("endDate");
+		endDate.setRequired(fieldsRequired);
 	}
 
 }

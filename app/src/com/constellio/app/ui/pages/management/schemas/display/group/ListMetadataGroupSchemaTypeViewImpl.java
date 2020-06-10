@@ -197,7 +197,7 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 	}
 
 	private boolean isNotDefaultGroup(String group) {
-		return !presenter.getDefaultMetadataGroupCode().equals(group);
+		return !group.equals(presenter.getDefaultMetadataGroupCode());
 	}
 
     @SuppressWarnings("unchecked")

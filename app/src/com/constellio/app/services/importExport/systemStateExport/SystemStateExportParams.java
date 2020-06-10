@@ -1,16 +1,26 @@
 package com.constellio.app.services.importExport.systemStateExport;
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class SystemStateExportParams {
 
 	List<String> onlyExportContentOfRecords = null;
-	boolean exportPluginJars = true;
+
+	@Getter
+	private boolean useWeeklyExport;
+
+	public SystemStateExportParams setUseWeeklyExport(boolean useWeeklyExport) {
+		this.useWeeklyExport = useWeeklyExport;
+		return this;
+	}
 
 	public boolean isExportAllContent() {
 		return onlyExportContentOfRecords == null;
 	}
+
 
 	public SystemStateExportParams setExportAllContent() {
 		this.onlyExportContentOfRecords = null;
@@ -31,12 +41,4 @@ public class SystemStateExportParams {
 		return this;
 	}
 
-	public boolean isExportPluginJars() {
-		return exportPluginJars;
-	}
-
-	public SystemStateExportParams setExportPluginJars(boolean exportPluginJars) {
-		this.exportPluginJars = exportPluginJars;
-		return this;
-	}
 }

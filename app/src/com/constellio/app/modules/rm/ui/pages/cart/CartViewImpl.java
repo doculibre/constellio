@@ -296,6 +296,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
+		addStyleName("cart-view");
+		
 		FireableTabSheet tabSheet = new FireableTabSheet();
 		folderTable = buildFolderTable("CartView.folders", presenter.getFolderRecords());
 		documentTable = buildTable("CartView.documents", presenter.getDocumentRecords());
