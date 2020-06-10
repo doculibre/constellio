@@ -8,6 +8,7 @@ import com.constellio.app.modules.restapi.core.exception.RequiredParameterExcept
 import com.constellio.app.modules.restapi.core.service.BaseService;
 import com.constellio.app.modules.restapi.validation.ValidationService;
 import com.constellio.app.modules.restapi.validation.dao.ValidationDao;
+import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthorizedAccessException;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.model.entities.records.Record;
@@ -51,7 +52,12 @@ public class CartService extends BaseService {
 		validationService.validateHost(host);
 		validationService.validateToken(token, serviceKey);
 
-		User user = getUserByServiceKey(serviceKey, collection);
+		User user;
+		try {
+			user = getUserByServiceKey(serviceKey, collection);
+		} catch (Exception e) {
+			throw new UnauthenticatedUserException();
+		}
 		validateCartGroupPermission(user);
 
 		if (cartDto.getTitle() == null) {

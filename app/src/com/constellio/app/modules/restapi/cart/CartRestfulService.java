@@ -65,7 +65,7 @@ public class CartRestfulService extends BaseRestfulService {
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
 	public Response create(
-			@Parameter(required = true, description = "Collection") @QueryParam("serviceKey") String collection,
+			@Parameter(required = true, description = "Collection") @QueryParam("collection") String collection,
 			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
 			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
 			@Valid CartDto cart,
