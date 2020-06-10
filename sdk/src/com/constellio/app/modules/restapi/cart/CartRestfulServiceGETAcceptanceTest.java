@@ -24,15 +24,12 @@ import javax.ws.rs.core.Response.Status;
 import java.util.ArrayList;
 
 import static java.util.Arrays.asList;
-import static javax.ws.rs.client.Entity.entity;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CartRestfulServiceGETAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
 	private RolesManager rolesManager;
 
-	private Cart cartToGet;
-	private CartDto cartToAdd;
+	private Cart cart;
 
 	private String roleWithPermissions = "roleWithPermissions";
 	private String roleWithoutPermission = "roleWithoutPermission";
@@ -45,8 +42,6 @@ public class CartRestfulServiceGETAcceptanceTest extends BaseRestfulServiceAccep
 
 		webTarget = newWebTarget("v1/cart", new ObjectMapper());
 
-		cartToAdd = CartDto.builder().title("New cart").build();
-
 		rolesManager.addRole(new Role(zeCollection, roleWithPermissions, "Role with permissions", new ArrayList<String>()));
 		rolesManager.addRole(new Role(zeCollection, roleWithoutPermission, "Role without permission", new ArrayList<String>()));
 
@@ -57,7 +52,7 @@ public class CartRestfulServiceGETAcceptanceTest extends BaseRestfulServiceAccep
 		recordServices.update(userServices.getUserRecordInCollection(bobGratton, zeCollection)
 				.setUserRoles(asList(roleWithPermissions)));
 
-		cartToGet = createCart();
+		cart = createCart();
 
 		commitCounter.reset();
 		queryCounter.reset();
@@ -66,7 +61,7 @@ public class CartRestfulServiceGETAcceptanceTest extends BaseRestfulServiceAccep
 	@Test
 	public void validateService() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToGet.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
 				.get();
 
@@ -75,15 +70,15 @@ public class CartRestfulServiceGETAcceptanceTest extends BaseRestfulServiceAccep
 		assertThat(commitCounter.newCommitsCall()).hasSize(0);
 
 		CartDto cartDto = response.readEntity(CartDto.class);
-		assertThat(cartDto.getId()).isEqualTo(cartToGet.getId());
-		assertThat(cartDto.getOwner()).isEqualTo(cartToGet.getOwner());
-		assertThat(cartDto.getTitle()).isEqualTo(cartToGet.getTitle());
+		assertThat(cartDto.getId()).isEqualTo(cart.getId());
+		assertThat(cartDto.getOwner()).isEqualTo(cart.getOwner());
+		assertThat(cartDto.getTitle()).isEqualTo(cart.getTitle());
 	}
 
 	@Test
 	public void whenCallingServiceWithoutAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToGet.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host)
 				.get();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
@@ -99,7 +94,7 @@ public class CartRestfulServiceGETAcceptanceTest extends BaseRestfulServiceAccep
 	@Test
 	public void whenCallingServiceWithEmptyAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToGet.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "")
 				.get();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
@@ -115,7 +110,7 @@ public class CartRestfulServiceGETAcceptanceTest extends BaseRestfulServiceAccep
 	@Test
 	public void whenCallingServiceWithInvalidSchemeInAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToGet.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Basic ".concat(token))
 				.get();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
@@ -131,7 +126,7 @@ public class CartRestfulServiceGETAcceptanceTest extends BaseRestfulServiceAccep
 	@Test
 	public void whenCallingServiceWithoutSchemeInAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToGet.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, token)
 				.get();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
@@ -147,7 +142,7 @@ public class CartRestfulServiceGETAcceptanceTest extends BaseRestfulServiceAccep
 	@Test
 	public void whenCallingServiceWithExpiredToken() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToGet.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(expiredToken))
 				.get();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
@@ -162,7 +157,7 @@ public class CartRestfulServiceGETAcceptanceTest extends BaseRestfulServiceAccep
 	@Test
 	public void whenCallingServiceWithInvalidToken() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToGet.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(fakeToken))
 				.get();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
@@ -176,7 +171,7 @@ public class CartRestfulServiceGETAcceptanceTest extends BaseRestfulServiceAccep
 
 	@Test
 	public void whenCallingServiceWithoutServiceKeyParam() {
-		Response response = webTarget.queryParam("id", cartToGet.getId()).request()
+		Response response = webTarget.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
 				.get();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
@@ -191,7 +186,7 @@ public class CartRestfulServiceGETAcceptanceTest extends BaseRestfulServiceAccep
 	@Test
 	public void whenCallingServiceWithInvalidServiceKeyParam() {
 		Response response = webTarget.queryParam("serviceKey", fakeServiceKey)
-				.queryParam("id", cartToGet.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
 				.get();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
@@ -206,7 +201,7 @@ public class CartRestfulServiceGETAcceptanceTest extends BaseRestfulServiceAccep
 	@Test
 	public void whenCallingServiceWithUnallowedHostHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToGet.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, fakeHost).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
 				.get();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
@@ -249,7 +244,7 @@ public class CartRestfulServiceGETAcceptanceTest extends BaseRestfulServiceAccep
 				.setUserRoles(asList(roleWithoutPermission)));
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToGet.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
 				.get();
 
@@ -259,13 +254,12 @@ public class CartRestfulServiceGETAcceptanceTest extends BaseRestfulServiceAccep
 		assertThat(error.getMessage()).isEqualTo(i18n.$(new UnauthorizedAccessException().getValidationError()));
 	}
 
-	private Cart createCart() {
-		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("collection", zeCollection).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
+	private Cart createCart() throws Exception {
+		Cart cart = rm.newCartWithId("cartId");
+		cart.setOwner(users.bobIn(zeCollection).getId());
+		cart.setTitle("new cart");
+		recordServices.add(cart);
 
-		CartDto cart = response.readEntity(CartDto.class);
-		return rm.getCart(cart.getId());
+		return cart;
 	}
 }

@@ -1,7 +1,6 @@
 package com.constellio.app.modules.restapi.cart;
 
 import com.constellio.app.modules.restapi.BaseRestfulServiceAcceptanceTest;
-import com.constellio.app.modules.restapi.cart.dto.CartDto;
 import com.constellio.app.modules.restapi.core.exception.InvalidAuthenticationException;
 import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException;
 import com.constellio.app.modules.restapi.core.exception.mapper.RestApiErrorResponse;
@@ -24,15 +23,12 @@ import javax.ws.rs.core.Response.Status;
 import java.util.ArrayList;
 
 import static java.util.Arrays.asList;
-import static javax.ws.rs.client.Entity.entity;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CartRestfulServicePUTAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
+public class CartRestfulServiceDELETEAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
 	private RolesManager rolesManager;
 
 	private Cart cart;
-	private CartDto cartToUpdate, emptyCartToUpdate;
 
 	private String roleWithPermissions = "roleWithPermissions";
 	private String roleWithoutPermission = "roleWithoutPermission";
@@ -56,8 +52,6 @@ public class CartRestfulServicePUTAcceptanceTest extends BaseRestfulServiceAccep
 				.setUserRoles(asList(roleWithPermissions)));
 
 		cart = createCart();
-		cartToUpdate = CartDto.builder().id(cart.getId()).owner(cart.getOwner()).title("Updated title").build();
-		emptyCartToUpdate = CartDto.builder().build();
 
 		commitCounter.reset();
 		queryCounter.reset();
@@ -65,30 +59,27 @@ public class CartRestfulServicePUTAcceptanceTest extends BaseRestfulServiceAccep
 
 	@Test
 	public void validateService() {
-		assertThat(cart).isNotNull();
-		assertThat(cart.getTitle()).isEqualTo("new cart");
+		assertThat(cart.isLogicallyDeletedStatus()).isFalse();
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToUpdate.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.put(entity(cartToUpdate, APPLICATION_JSON_TYPE));
+				.delete();
 
-		assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
+		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall()).hasSize(1);
 
-		CartDto cartDto = response.readEntity(CartDto.class);
-		assertThat(cartDto.getId()).isEqualTo(cartToUpdate.getId());
-		assertThat(cartDto.getOwner()).isEqualTo(cartToUpdate.getOwner());
-		assertThat(cartDto.getTitle()).isEqualTo(cartToUpdate.getTitle());
+		cart = rm.getCart(cart.getId());
+		assertThat(cart.isLogicallyDeletedStatus()).isTrue();
 	}
 
 	@Test
 	public void whenCallingServiceWithoutAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToUpdate.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host)
-				.put(entity(cartToUpdate, APPLICATION_JSON_TYPE));
+				.delete();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -102,9 +93,9 @@ public class CartRestfulServicePUTAcceptanceTest extends BaseRestfulServiceAccep
 	@Test
 	public void whenCallingServiceWithEmptyAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToUpdate.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "")
-				.put(entity(cartToUpdate, APPLICATION_JSON_TYPE));
+				.delete();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -118,9 +109,9 @@ public class CartRestfulServicePUTAcceptanceTest extends BaseRestfulServiceAccep
 	@Test
 	public void whenCallingServiceWithInvalidSchemeInAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToUpdate.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Basic ".concat(token))
-				.put(entity(cartToUpdate, APPLICATION_JSON_TYPE));
+				.delete();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -134,9 +125,9 @@ public class CartRestfulServicePUTAcceptanceTest extends BaseRestfulServiceAccep
 	@Test
 	public void whenCallingServiceWithoutSchemeInAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToUpdate.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, token)
-				.put(entity(cartToUpdate, APPLICATION_JSON_TYPE));
+				.delete();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -150,9 +141,9 @@ public class CartRestfulServicePUTAcceptanceTest extends BaseRestfulServiceAccep
 	@Test
 	public void whenCallingServiceWithExpiredToken() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToUpdate.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(expiredToken))
-				.put(entity(cartToUpdate, APPLICATION_JSON_TYPE));
+				.delete();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -165,9 +156,9 @@ public class CartRestfulServicePUTAcceptanceTest extends BaseRestfulServiceAccep
 	@Test
 	public void whenCallingServiceWithInvalidToken() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToUpdate.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(fakeToken))
-				.put(entity(cartToUpdate, APPLICATION_JSON_TYPE));
+				.delete();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -179,9 +170,9 @@ public class CartRestfulServicePUTAcceptanceTest extends BaseRestfulServiceAccep
 
 	@Test
 	public void whenCallingServiceWithoutServiceKeyParam() {
-		Response response = webTarget.queryParam("id", cartToUpdate.getId()).request()
+		Response response = webTarget.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.put(entity(cartToUpdate, APPLICATION_JSON_TYPE));
+				.delete();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -194,9 +185,9 @@ public class CartRestfulServicePUTAcceptanceTest extends BaseRestfulServiceAccep
 	@Test
 	public void whenCallingServiceWithInvalidServiceKeyParam() {
 		Response response = webTarget.queryParam("serviceKey", fakeServiceKey)
-				.queryParam("id", cartToUpdate.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.put(entity(cartToUpdate, APPLICATION_JSON_TYPE));
+				.delete();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -209,9 +200,9 @@ public class CartRestfulServicePUTAcceptanceTest extends BaseRestfulServiceAccep
 	@Test
 	public void whenCallingServiceWithUnallowedHostHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToUpdate.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, fakeHost).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.put(entity(cartToUpdate, APPLICATION_JSON_TYPE));
+				.delete();
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -225,7 +216,7 @@ public class CartRestfulServicePUTAcceptanceTest extends BaseRestfulServiceAccep
 	public void whenCallingServiceWithMissingId() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.put(entity(cartToUpdate, APPLICATION_JSON_TYPE));
+				.delete();
 
 		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
@@ -238,7 +229,7 @@ public class CartRestfulServicePUTAcceptanceTest extends BaseRestfulServiceAccep
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
 				.queryParam("id", "fakeId").request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.put(entity(cartToUpdate, APPLICATION_JSON_TYPE));
+				.delete();
 
 		assertThat(response.getStatus()).isEqualTo(Status.NOT_FOUND.getStatusCode());
 
@@ -247,27 +238,14 @@ public class CartRestfulServicePUTAcceptanceTest extends BaseRestfulServiceAccep
 	}
 
 	@Test
-	public void whenCallingServiceWithMissingTitle() {
-		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToUpdate.getId()).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.put(entity(emptyCartToUpdate, APPLICATION_JSON_TYPE));
-
-		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-
-		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
-		assertThat(error.getMessage()).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "cart.title"));
-	}
-
-	@Test
 	public void whenCallingServiceWithoutPermission() throws Exception {
 		recordServices.update(userServices.getUserRecordInCollection(bobGratton, zeCollection)
 				.setUserRoles(asList(roleWithoutPermission)));
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("id", cartToUpdate.getId()).request()
+				.queryParam("id", cart.getId()).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.put(entity(cartToUpdate, APPLICATION_JSON_TYPE));
+				.delete();
 
 		assertThat(response.getStatus()).isEqualTo(Status.FORBIDDEN.getStatusCode());
 
