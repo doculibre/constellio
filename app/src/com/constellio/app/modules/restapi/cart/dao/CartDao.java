@@ -20,6 +20,20 @@ import java.util.List;
 
 public class CartDao extends BaseDao {
 
+	public CartDto getCart(User user, Record cartRecord) {
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(cartRecord.getCollection(), appLayerFactory);
+		Cart cart = rm.wrapCart(cartRecord);
+
+		CartDto cartDto = CartDto.builder()
+				.id(cart.getId())
+				.title(cart.getTitle())
+				.owner(cart.getOwner())
+				.build();
+
+		return cartDto;
+	}
+
 	public CartDto createCart(User user, String collection, CartDto cartDto)
 			throws Exception {
 

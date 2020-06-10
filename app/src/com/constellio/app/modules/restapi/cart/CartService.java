@@ -31,6 +31,21 @@ public class CartService extends BaseService {
 		return cartDao;
 	}
 
+	public CartDto getCart(String host, String token, String serviceKey, String id) {
+		validationService.validateHost(host);
+		validationService.validateToken(token, serviceKey);
+
+		Record cartRecord = getRecord(id, true);
+		User user = getUserByServiceKey(serviceKey, cartRecord.getCollection());
+		if (id.equals(user.getId())) {
+			validateMyCartPermission(user);
+		} else {
+			validateCartGroupPermission(user);
+		}
+
+		return cartDao.getCart(user, cartRecord);
+	}
+
 	public CartDto createCart(String host, String token, String serviceKey, String collection, CartDto cartDto)
 			throws Exception {
 		validationService.validateHost(host);
