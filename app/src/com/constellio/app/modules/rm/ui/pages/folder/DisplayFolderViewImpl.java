@@ -127,6 +127,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private DisplayFolderPresenter presenter;
 	private RMModuleExtensions rmModuleExtensions;
 	private boolean dragNDropAllowed;
+	private boolean dragRowsEnabled;
 	private Button displayFolderButton, editFolderButton, addDocumentButton;
 	private Label borrowedLabel;
 	private StringAutocompleteField<String> searchField;
@@ -302,7 +303,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		contentAndFacetsLayout.setExpandRatio(tabSheet, 1);
 
 		mainLayout.addComponents(borrowedLabel, uploadField, contentAndFacetsLayout);
-		presenter.selectInitialTabForUser();
 		return mainLayout;
 	}
 
@@ -495,8 +495,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 
 				@Override
+				public boolean isDropSupported() {
+					return dragNDropAllowed;
+				}
+
+				@Override
 				public boolean isRowDragSupported() {
-					return !isNested();
+					return !isNested() && dragRowsEnabled;
 				}
 
 				@Override
@@ -838,6 +843,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	//startWorkflowButton.setVisible(state.isVisible());
 	//startWorkflowButton.setEnabled(state.isEnabled());
 	//}
+
+	@Override
+	public void setDragRowsEnabled(boolean enabled) {
+		this.dragRowsEnabled = enabled;
+	}
 
 	@Override
 	public void drop(DragAndDropEvent event) {
