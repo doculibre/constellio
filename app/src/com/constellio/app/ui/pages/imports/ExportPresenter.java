@@ -33,7 +33,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.search.SearchServices;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
@@ -82,8 +81,8 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS);
 	}
 
-	void exportWithoutContentsButtonClicked() {
-		export(false);
+	void exportWithoutContentsButtonClicked(boolean fastSaveState) {
+		export(false, fastSaveState);
 	}
 
 	void exportWithoutContentsXMLButtonClicked(boolean isSameCollection, String schemaTypeCode,
@@ -257,15 +256,25 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		return exportAudit;
 	}
 
-	void exportWithContentsButtonClicked() {
-		export(false);
+	void exportWithContentsButtonClicked(boolean fastSaveState) {
+		export(false, fastSaveState);
 	}
 
-	private void export(boolean onlyTools) {
+	private void export(boolean onlyTools, boolean fastSaveState) {
 
 		String exportedIdsStr = view.getExportedIds();
 
-		String filename = "systemstate-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
+		StringBuilder filenameSB = new StringBuilder();
+		filenameSB.append("systemstate-");
+		if (fastSaveState) {
+			filenameSB.append("fast-");
+		} else {
+			filenameSB.append("regular-");
+		}
+		filenameSB.append(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+		filenameSB.append(".zip");
+		String filename = filenameSB.toString();
+		
 		File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
 				.newTemporaryFolder(EXPORT_FOLDER_RESOURCE);
 		File file = new File(folder, filename);
@@ -280,7 +289,6 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				List<String> verifiedIds = new ArrayList<>();
 
 				RecordServices recordServices = modelLayerFactory.newRecordServices();
-				SearchServices searchServices = modelLayerFactory.newSearchServices();
 
 				for (String id : ids) {
 					try {
@@ -317,6 +325,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 							modelLayerFactory.getSystemConfigurationsManager());
 
 					SystemStateExportParams params = new SystemStateExportParams();
+					params.setUseWeeklyExport(fastSaveState);
 					if (constellioEIMConfigs.isIncludeContentsInSavestate()) {
 						params.setExportAllContent();
 					} else {
@@ -397,7 +406,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		return appLayerFactory.getModulesManager().isModuleEnabled(collection, new ConstellioRMModule());
 	}
 
-	public void exportToolsButtonClicked() {
-		export(true);
+	public void exportToolsButtonClicked(boolean fastSaveState) {
+		export(true, fastSaveState);
 	}
 }
