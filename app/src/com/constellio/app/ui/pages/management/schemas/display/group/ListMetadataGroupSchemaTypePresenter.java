@@ -24,7 +24,7 @@ import java.util.Set;
 public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresenter<ListMetadataGroupSchemaTypeView> {
 
 	private String schemaTypeCode;
-	
+
 	private List<String> metadataGroups = new ArrayList<>();
 	private String defaultMetadataGroup;
 
@@ -49,7 +49,7 @@ public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresen
 	}
 
 	public List<String> getMetadataGroupList() {
-		return new ArrayList<>();
+		return new ArrayList<>(metadataGroups);
 	}
 
 	public String getGroupLabel(String code, String language) {
@@ -89,7 +89,7 @@ public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresen
 		view.navigate().to().listSchemaTypes();
 	}
 
-	private void saveChanges(String medataGroupCode, boolean metatadaGroupCodeDeleted) {
+	private void saveChanges(String metadataGroupCode, boolean metatadaGroupCodeDeleted) {
 		SchemasDisplayManager displayManager = schemasDisplayManager();
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 
@@ -131,16 +131,16 @@ public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresen
 		metadataGroups.add(targetIndex, code);
 		saveChanges(code, false);
 	}
-	
+
 	void windowClosed() {
-		
+
 	}
-	
+
 	void addButtonClicked() {
 		List<String> languageCodes = getCollectionLanguages();
 		view.showAddWindow(languageCodes);
 	}
-	
+
 	void editButtonClicked(String code) {
 		SchemaTypeDisplayConfig typeConfig = schemasDisplayManager().getType(collection, schemaTypeCode);
 		Map<String, Map<Language, String>> groups = typeConfig.getMetadataGroup();
@@ -151,7 +151,7 @@ public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresen
 		}
 		view.showEditWindow(code, labels);
 	}
-	
+
 	void deleteButtonClicked(String code) {
 		if (metadataGroups.size() > 1) {
 			metadataGroups.remove(code);
@@ -161,11 +161,11 @@ public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresen
 			view.displayDeleteError();
 		}
 	}
-	
+
 	void cancelButtonClicked(String code, Map<String, String> labels, boolean adding) {
 		view.closeAllWindows();
 	}
-	
+
 	void saveButtonClicked(String code, Map<String, String> labels, boolean adding) {
 		SchemaTypeDisplayConfig typeConfig = schemasDisplayManager().getType(collection, schemaTypeCode);
 		Map<String, Map<Language, String>> groups = typeConfig.getMetadataGroup();
@@ -182,10 +182,14 @@ public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresen
 					typeConfig = typeConfig.withMetadataGroup(newGroups);
 					schemasDisplayManager().saveType(typeConfig);
 					view.closeAllWindows();
+					metadataGroups.add(code);
+					if (StringUtils.isEmpty(defaultMetadataGroup) && code.startsWith("default:")) {
+						defaultMetadataGroup = code;
+					}
 					view.addMetadataGroup(code, labels);
 				} else {
 					view.displayAddError();
-				}		
+				}
 			} else {
 				newGroups.put(code, languageLabels);
 				typeConfig = typeConfig.withMetadataGroup(newGroups);
@@ -196,7 +200,7 @@ public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresen
 		} else {
 			view.invalidCodeOrLabels();
 		}
-	} 
+	}
 
 	public Map<String, String> getGroupLabels(String group) {
 		Map<String, String> result = new LinkedHashMap<>();
@@ -208,5 +212,5 @@ public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresen
 		}
 		return result;
 	}
-	
+
 }
