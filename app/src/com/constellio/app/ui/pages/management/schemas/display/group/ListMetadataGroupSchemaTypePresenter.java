@@ -96,7 +96,12 @@ public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresen
 		SchemaTypeDisplayConfig typeConfig = displayManager.getType(collection, schemaTypeCode);
 		Map<String, Map<Language, String>> oldGroups = typeConfig.getMetadataGroup();
 		Map<String, Map<Language, String>> newGroups = new LinkedHashMap<>();
+		defaultMetadataGroup = null;
 		for (String metadataGroup : metadataGroups) {
+			if (StringUtils.isEmpty(defaultMetadataGroup) && metadataGroup.startsWith("default:")) {
+				defaultMetadataGroup = metadataGroup;
+			}
+
 			Map<Language, String> metadataGroupLabels = oldGroups.get(metadataGroup);
 			newGroups.put(metadataGroup, metadataGroupLabels);
 		}
@@ -108,7 +113,7 @@ public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresen
 			for (MetadataSchema metadataSchema : schemaType.getAllSchemas()) {
 				for (Metadata metadata : metadataSchema.getMetadatas()) {
 					MetadataDisplayConfig displayConfig = displayManager.getMetadata(collection, metadata.getCode());
-					if (displayConfig.getMetadataGroupCode().equals(medataGroupCode)) {
+					if (displayConfig.getMetadataGroupCode().equals(metadataGroupCode)) {
 						transaction.add(displayConfig.withMetadataGroup(getDefaultMetadataGroupCode()));
 					}
 				}
