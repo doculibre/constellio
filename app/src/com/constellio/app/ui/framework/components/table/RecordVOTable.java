@@ -339,7 +339,7 @@ public class RecordVOTable extends BaseTable {
 	}
 
 	@SuppressWarnings("rawtypes")
-	protected RecordVO getRecordVO(Object itemId) {
+	public RecordVO getRecordVO(Object itemId) {
 		RecordVO recordVO;
 		Item item = getItem(itemId);
 		if (item instanceof RecordVOItem) {

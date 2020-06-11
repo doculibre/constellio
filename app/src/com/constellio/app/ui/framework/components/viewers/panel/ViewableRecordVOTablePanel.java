@@ -1378,31 +1378,35 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		// Limitation: https://vaadin.com/forum/thread/986110/table-drag-and-drop-with-layout-in-a-cell-doesn-t-work
 		if (event.getTargetDetails() instanceof AbstractSelectTargetDetails) {
 			Transferable t = event.getTransferable();
-			if (t.getSourceComponent() != table || table.size() <= 1) {
-				return;
-			}
+			Component sourceComponent = t.getSourceComponent();
+			if (sourceComponent instanceof RecordVOTable) {
+				RecordVOTable sourceTable = (RecordVOTable) sourceComponent;
 
-			AbstractSelectTargetDetails target = (AbstractSelectTargetDetails) event.getTargetDetails();
-			Object sourceItemId = t.getData("itemId");
-			Object targetItemId = target.getItemIdOver();
+				AbstractSelectTargetDetails target = (AbstractSelectTargetDetails) event.getTargetDetails();
+				Object sourceItemId = t.getData("itemId");
+				Object targetItemId = target.getItemIdOver();
 
-			Boolean above;
-			if (target.getDropLocation().equals(VerticalDropLocation.TOP)) {
-				above = true;
-			} else if (target.getDropLocation().equals(VerticalDropLocation.MIDDLE) && targetItemId.equals(table.firstItemId())) {
-				above = true;
-			} else {
-				above = false;
-			}
-			RecordVO sourceRecordVO = recordVOContainer.getRecordVO(sourceItemId);
-			RecordVO targetRecordVO = recordVOContainer.getRecordVO(targetItemId);
+				Boolean above;
+				if (target.getDropLocation().equals(VerticalDropLocation.TOP)) {
+					above = true;
+				} else if (target.getDropLocation().equals(VerticalDropLocation.MIDDLE) && targetItemId.equals(table.firstItemId())) {
+					above = true;
+				} else {
+					above = false;
+				}
+				RecordVO sourceRecordVO = sourceTable.getRecordVO(sourceItemId);
+				RecordVO targetRecordVO = recordVOContainer.getRecordVO(targetItemId);
 
-			List<RecordVO> droppedRecordVOs = new ArrayList<>(getSelectedRecordVOs());
-			if (!droppedRecordVOs.contains(sourceRecordVO)) {
-				droppedRecordVOs.add(0, sourceRecordVO);
+				List<RecordVO> droppedRecordVOs = new ArrayList<>();
+				if (sourceComponent == table) {
+					droppedRecordVOs.addAll(getSelectedRecordVOs());
+				}
+				if (!droppedRecordVOs.contains(sourceRecordVO)) {
+					droppedRecordVOs.add(0, sourceRecordVO);
+				}
+				droppedRecordVOs.remove(targetRecordVO);
+				recordsDroppedOn(droppedRecordVOs, targetRecordVO, above);
 			}
-			droppedRecordVOs.remove(targetRecordVO);
-			recordsDroppedOn(droppedRecordVOs, targetRecordVO, above);
 		} else {
 			Component panelContent = viewerMetadataPanel.getPanelContent();
 			if (panelContent instanceof DropHandler) {

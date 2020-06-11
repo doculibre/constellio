@@ -737,7 +737,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 		Folder folder = schemas.getFolder(summaryFolderVO.getId());
 		disableMenuItems(folder);
-		view.setDragRowsEnabled(isVisibleSubFolder());
+		if (!nestedView) {
+			view.setDragRowsEnabled(isVisibleSubFolder());
+		} else {
+			view.setDragRowsEnabled(true);
+		}
 
 		modelLayerFactory.newLoggingServices().logRecordView(folder.getWrappedRecord(), getCurrentUser());
 

@@ -501,7 +501,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 				@Override
 				public boolean isRowDragSupported() {
-					return !isNested() && dragRowsEnabled;
+					return dragRowsEnabled;
 				}
 
 				@Override
