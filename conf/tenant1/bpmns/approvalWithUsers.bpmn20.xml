@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:activiti="http://activiti.org/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" typeLanguage="http://www.w3.org/2001/XMLSchema"
+             expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/processdef">
+    <process id="process" isExecutable="true">
+        <startEvent id="start"></startEvent>
+        <userTask id="askApproval" name="Ask approval" activiti:candidateGroups="group:legends"
+                  activiti:candidateUsers="bob"
+                  activiti:dueDate="14"
+                  activiti:formKey="task_approval">
+            <extensionElements>
+                <activiti:formProperty id="decision" name="Ze decision" type="string"
+                                       variable="decision"></activiti:formProperty>
+                <activiti:formProperty id="title" name="Ze title" type="string"
+                                       expression="Veuillez approuver la suppression du ${record:schema} ${record:id} - ${record:title}   "></activiti:formProperty>
+            </extensionElements>
+        </userTask>
+        <exclusiveGateway id="isApproved"></exclusiveGateway>
+        <exclusiveGateway id="x2"></exclusiveGateway>
+        <endEvent id="end"></endEvent>
+        <serviceTask id="executeRequest" name="Execute request"
+                     activiti:class="com.constellio.model.api.impl.workflows.approval.DeleteRecordsWorkflowAction"></serviceTask>
+        <sequenceFlow id="waitForApproval_isApproved" sourceRef="askApproval" targetRef="isApproved"></sequenceFlow>
+        <sequenceFlow id="isApproved_refused" sourceRef="isApproved" targetRef="x2">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${decision == "refused"}]]></conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="isApproved_approved" sourceRef="isApproved" targetRef="executeRequest">
+            <conditionExpression xsi:type="tFormalExpression">
+                <![CDATA[${decision == "approved"}]]></conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="executeRequest_x2" sourceRef="executeRequest" targetRef="x2"></sequenceFlow>
+        <sequenceFlow id="x2_end" sourceRef="x2" targetRef="end"></sequenceFlow>
+        <sequenceFlow id="createTask_waitForApproval" sourceRef="start" targetRef="askApproval"></sequenceFlow>
+    </process>
+    <bpmndi:BPMNDiagram id="BPMNDiagram_process">
+        <bpmndi:BPMNPlane bpmnElement="process" id="BPMNPlane_process">
+            <bpmndi:BPMNShape bpmnElement="start" id="BPMNShape_start">
+                <omgdc:Bounds height="30.0" width="30.0" x="15.0" y="130.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="askApproval" id="BPMNShape_askApproval">
+                <omgdc:Bounds height="80.0" width="100.0" x="180.0" y="105.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="isApproved" id="BPMNShape_isApproved">
+                <omgdc:Bounds height="40.0" width="40.0" x="390.0" y="125.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="x2" id="BPMNShape_x2">
+                <omgdc:Bounds height="40.0" width="40.0" x="630.0" y="125.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="end" id="BPMNShape_end">
+                <omgdc:Bounds height="28.0" width="28.0" x="735.0" y="131.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="executeRequest" id="BPMNShape_executeRequest">
+                <omgdc:Bounds height="80.0" width="100.0" x="475.0" y="30.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNEdge bpmnElement="executeRequest_x2" id="BPMNEdge_executeRequest_x2">
+                <omgdi:waypoint x="575.0" y="70.0"></omgdi:waypoint>
+                <omgdi:waypoint x="650.0" y="70.0"></omgdi:waypoint>
+                <omgdi:waypoint x="650.0" y="125.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="createTask_waitForApproval" id="BPMNEdge_createTask_waitForApproval">
+                <omgdi:waypoint x="71.0" y="145.0"></omgdi:waypoint>
+                <omgdi:waypoint x="180.0" y="145.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="isApproved_approved" id="BPMNEdge_isApproved_approved">
+                <omgdi:waypoint x="410.0" y="125.0"></omgdi:waypoint>
+                <omgdi:waypoint x="410.0" y="70.0"></omgdi:waypoint>
+                <omgdi:waypoint x="475.0" y="70.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="x2_end" id="BPMNEdge_x2_end">
+                <omgdi:waypoint x="670.0" y="145.0"></omgdi:waypoint>
+                <omgdi:waypoint x="735.0" y="145.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="isApproved_refused" id="BPMNEdge_isApproved_refused">
+                <omgdi:waypoint x="430.0" y="145.0"></omgdi:waypoint>
+                <omgdi:waypoint x="630.0" y="145.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="waitForApproval_isApproved" id="BPMNEdge_waitForApproval_isApproved">
+                <omgdi:waypoint x="280.0" y="145.0"></omgdi:waypoint>
+                <omgdi:waypoint x="390.0" y="145.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+        </bpmndi:BPMNPlane>
+    </bpmndi:BPMNDiagram>
+</definitions>
