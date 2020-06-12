@@ -3,6 +3,7 @@ package com.constellio.app.modules.restapi.user;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.service.BaseRestfulService;
 import com.constellio.app.modules.restapi.core.util.AuthorizationUtils;
+import com.constellio.app.modules.restapi.user.dto.UserConfigDto;
 import com.constellio.app.modules.restapi.user.dto.UserSignatureContentDto;
 import com.constellio.app.modules.restapi.user.dto.UserSignatureDto;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -211,6 +212,58 @@ public class UserRestfulService extends BaseRestfulService {
 		String token = AuthorizationUtils.getToken(authentication);
 
 		userService.deleteContent(host, token, serviceKey, UserCredential.ELECTRONIC_INITIALS);
+		return Response.noContent().build();
+	}
+
+	@GET
+	@Path("config")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Operation(summary = "Get user config value", description = "Return the user config value. (Only metadata of type String multi-value supported at the moment)")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Metadata"))),
+			@ApiResponse(responseCode = "204", description = "No Content"),
+			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
+	public Response getConfig(
+			@Parameter(required = true, description = "Config metadata code") @QueryParam("localCode") String localCode,
+			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
+			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
+			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
+
+		validateAuthentication(authentication);
+		validateRequiredParameter(serviceKey, "serviceKey");
+		validateRequiredParameter(localCode, "localCode");
+
+		String token = AuthorizationUtils.getToken(authentication);
+		UserConfigDto configDto = userService.getConfig(host, token, serviceKey, localCode);
+		return Response.ok(configDto).build();
+	}
+
+	@POST
+	@Path("config")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Operation(summary = "Set user config value", description = "Set the user config value. (Only metadata of type String multi-value supported at the moment)")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "204", description = "No Content"),
+			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
+	public Response setConfig(
+			@Parameter(required = true, description = "Config metadata code") @QueryParam("localCode") String localCode,
+			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
+			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
+			@Valid UserConfigDto config,
+			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
+
+		validateAuthentication(authentication);
+		validateRequiredParameter(serviceKey, "serviceKey");
+		validateRequiredParameter(localCode, "localCode");
+		validateRequiredParameter(config, "config");
+
+		String token = AuthorizationUtils.getToken(authentication);
+		userService.setConfig(host, token, serviceKey, localCode, config);
 		return Response.noContent().build();
 	}
 }
