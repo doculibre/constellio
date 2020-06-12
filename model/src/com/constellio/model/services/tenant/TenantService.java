@@ -1,6 +1,6 @@
-package com.constellio.model.services.appManagement;
+package com.constellio.model.services.tenant;
 
-import com.constellio.model.entities.structures.TenantProperties;
+import com.constellio.model.conf.FoldersLocator;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -19,7 +19,6 @@ import java.util.Map;
 
 public class TenantService {
 
-	private static final String TENANTS_FILE_PATH = "/opt/constellio/conf/";
 	private static final String TENANTS_FILENAME = "tenants.json";
 
 	public static final String CANNOT_LOAD_TENANT_PROPERTIES = "Integrity exception. Cannot load tenant properties.";
@@ -34,10 +33,20 @@ public class TenantService {
 	private Map<String, TenantProperties> tenantsByCode;
 	private Map<String, TenantProperties> tenantsByHostname;
 
-	public TenantService() {
-		this.tenantFilePath = TENANTS_FILE_PATH + TENANTS_FILENAME;
+	private static TenantService instance;
+
+	// FIXME class is not thread-safe
+	private TenantService() {
+		this.tenantFilePath = new FoldersLocator().getAllTenantsConfFolder().getPath() + File.separator + TENANTS_FILENAME;
 		tenants = readProperties();
 		buildCache();
+	}
+
+	public static synchronized TenantService getInstance() {
+		if (instance == null) {
+			instance = new TenantService();
+		}
+		return instance;
 	}
 
 	private List<TenantProperties> readProperties() {
@@ -53,10 +62,6 @@ public class TenantService {
 	}
 
 	private void buildCache() {
-		if (tenants == null || tenants.isEmpty()) {
-			throw new RuntimeException(CANNOT_LOAD_TENANT_PROPERTIES);
-		}
-
 		tenantsById = new HashMap<>();
 		tenantsByCode = new HashMap<>();
 		tenantsByHostname = new HashMap<>();
@@ -101,12 +106,16 @@ public class TenantService {
 		return tenantsByHostname.get(hostname);
 	}
 
+	public boolean isSupportingTenants() {
+		return !tenants.isEmpty();
+	}
+
 
 	//
 	// TEST UTILS
 	//
 
-	public TenantService(File tempFolder) throws IOException {
+	TenantService(File tempFolder) throws IOException {
 		File propertiesFile = new File(tempFolder, TENANTS_FILENAME);
 		this.tenantFilePath = propertiesFile.getPath();
 
@@ -117,9 +126,29 @@ public class TenantService {
 	}
 
 	public void addTenant(TenantProperties tenant) throws IOException {
-		List<TenantProperties> tenants = new ArrayList<>(readProperties());
-		tenants.add(tenant);
-		writeProperties(tenants);
+		addTenant(tenant, true);
+	}
+
+	public void addTenant(TenantProperties tenant, boolean writeToFile) throws IOException {
+		if (writeToFile) {
+			List<TenantProperties> tenants = new ArrayList<>(readProperties());
+			tenants.add(tenant);
+			writeProperties(tenants);
+			refreshTenants();
+		} else {
+			tenants.add(tenant);
+			buildCache();
+		}
+	}
+
+	public void clearTenants(boolean writeToFile) throws IOException {
+		tenants.clear();
+		if (writeToFile) {
+			writeProperties(tenants);
+			refreshTenants();
+		} else {
+			buildCache();
+		}
 	}
 
 	private void writeProperties(List<TenantProperties> tenants) throws IOException {

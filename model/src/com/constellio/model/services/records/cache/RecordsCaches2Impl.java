@@ -60,6 +60,7 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.utils.Lazy;
+import com.constellio.model.utils.TenantUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -134,7 +135,10 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.fileSystemDataStore = fileSystemDataStore;
-		SummaryCacheSingletons.dataStore.put(modelLayerFactory.getInstanceId(), fileSystemDataStore);
+
+		short instanceId = TenantUtils.isSupportingTenants() ? TenantUtils.getByteTenantId() :
+						   modelLayerFactory.getInstanceId();
+		SummaryCacheSingletons.dataStore.put(instanceId, fileSystemDataStore);
 		this.memoryDataStore = memoryDataStore;
 		this.recordServices = new Lazy<RecordServices>() {
 			@Override
@@ -1320,7 +1324,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 		String collection = (String) dto.getFields().get("collection_s");
 		String schemaCode = (String) dto.getFields().get("schema_s");
-		short instanceId = modelLayerFactory.getInstanceId();
+		short instanceId = TenantUtils.isSupportingTenants() ? TenantUtils.getByteTenantId() :
+						   modelLayerFactory.getInstanceId();
 		MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
 				.getSchemaType(SchemaUtils.getSchemaTypeCode(schemaCode));
 

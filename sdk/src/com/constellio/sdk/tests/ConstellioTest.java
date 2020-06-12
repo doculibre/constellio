@@ -12,6 +12,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
+import com.constellio.model.utils.TenantUtils;
 import com.constellio.sdk.tests.annotations.PreserveState;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
 import org.apache.commons.lang.StringUtils;
@@ -82,12 +83,23 @@ public class ConstellioTest extends AbstractConstellioTest {
 		if (!isKeepingPreviousState() && testSession.getFactoriesTestFeatures() != null && IS_FIRST_EXECUTED_TEST) {
 
 			//			testSession.getFactoriesTestFeatures().clear();
+			SDKConstellioFactoriesInstanceProvider.firstTest = true;
 			try {
-				SDKConstellioFactoriesInstanceProvider.firstTest = true;
 				testSession.getFactoriesTestFeatures().getConstellioFactories();
-			} catch (Exception e) {
-
+			} catch (Exception ignored) {
 			}
+
+			testSession.getFactoriesTestFeatures().addTenants();
+			testSession.getFactoriesTestFeatures().getTenants().forEach(tenant -> {
+				try {
+					TenantUtils.setTenant(String.valueOf(tenant.getId()));
+					testSession.getFactoriesTestFeatures().getConstellioFactories().getDataLayerFactory().getSolrServers();
+				} catch (Exception ignored) {
+				} finally {
+					TenantUtils.setTenant(null);
+				}
+			});
+			testSession.getFactoriesTestFeatures().clearTenants();
 
 			testSession.close(true, false, false);
 			ReindexingServices.markReindexingHasFinished();

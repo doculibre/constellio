@@ -28,7 +28,11 @@ import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModel
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.tenant.TenantProperties;
+import com.constellio.model.services.tenant.TenantService;
+import com.constellio.model.utils.TenantUtils;
 import com.constellio.sdk.FakeEncryptionServices;
+import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -41,12 +45,15 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
 import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
+import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_TENANT_ID;
+import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.EMPTY_TENANT_ID;
 import static com.constellio.sdk.tests.SaveStateFeature.loadStateFrom;
 import static java.util.Arrays.asList;
 import static org.mockito.Mockito.spy;
@@ -73,8 +80,10 @@ public class FactoriesTestFeatures {
 	private List<ModelLayerConfigurationAlteration> modelLayerConfigurationAlterations = new ArrayList<>();
 	private List<AppLayerConfigurationAlteration> appLayerConfigurationAlterations = new ArrayList<>();
 	private Map<String, String> configs = new HashMap<>();
-	private List<String> instanceNames = new ArrayList<>();
+	private Map<String, List<String>> instanceNames = new HashMap<>();
 	private String systemLanguage;
+
+	private TenantService tenantService;
 
 	public FactoriesTestFeatures(FileSystemTestFeatures fileSystemTestFeatures, Map<String, String> sdkProperties,
 								 boolean checkRollback) {
@@ -82,6 +91,8 @@ public class FactoriesTestFeatures {
 		this.checkRollback = checkRollback;
 		//		this.sdkProperties = sdkProperties;
 		ConstellioFactories.instanceProvider = new SDKConstellioFactoriesInstanceProvider();
+
+		tenantService = TenantService.getInstance();
 	}
 
 	public List<Runnable> afterTest(boolean restarting) {
@@ -89,13 +100,20 @@ public class FactoriesTestFeatures {
 		List<Runnable> runtimes = new ArrayList<>();
 
 
-		if (ConstellioFactories.instanceProvider.isInitialized()) {
+		if (isInitialized()) {
 			if (!restarting) {
 				runtimes.addAll(clear());
 			}
 		}
 
-		ConstellioFactories.clear();
+		ConstellioFactories.instanceProvider.clearAll();
+
+		try {
+			tenantService.clearTenants(false);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		TenantUtils.setTenant(null);
 
 		return runtimes;
 
@@ -105,7 +123,7 @@ public class FactoriesTestFeatures {
 		List<Runnable> runnables = new ArrayList<>();
 		SDKConstellioFactoriesInstanceProvider instanceProvider = (SDKConstellioFactoriesInstanceProvider) ConstellioFactories.instanceProvider;
 
-		for (ConstellioFactories factoriesInstance : instanceProvider.instances.values()) {
+		for (ConstellioFactories factoriesInstance : instanceProvider.getAllInstances()) {
 
 			final File licenseFile = factoriesInstance.getFoldersLocator().getLicenseFile();
 			runnables.add(new Runnable() {
@@ -155,8 +173,7 @@ public class FactoriesTestFeatures {
 
 	private void deleteFromCaches() {
 		try {
-			ConstellioCacheManager settingsCacheManager = getConstellioFactories().getDataLayerFactory()
-					.getLocalCacheManager();
+			ConstellioCacheManager settingsCacheManager = getConstellioFactories().getDataLayerFactory().getLocalCacheManager();
 			if (settingsCacheManager != null) {
 				for (String cacheName : settingsCacheManager.getCacheNames()) {
 					ConstellioCache cache = settingsCacheManager.getCache(cacheName);
@@ -239,7 +256,7 @@ public class FactoriesTestFeatures {
 
 	public void restart() {
 		SDKConstellioFactoriesInstanceProvider instanceProvider = (SDKConstellioFactoriesInstanceProvider) ConstellioFactories.instanceProvider;
-		instanceProvider.clear();
+		instanceProvider.clearAll();
 		getConstellioFactories();
 	}
 
@@ -248,7 +265,28 @@ public class FactoriesTestFeatures {
 	}
 
 	public synchronized ConstellioFactories getConstellioFactories(final String name) {
-		TestConstellioFactoriesDecorator decorator = decorators.get(name);
+		String tenantId = null;
+		if (tenantService.isSupportingTenants()) {
+			try {
+				tenantId = TenantUtils.getTenantId();
+			} catch (Exception e) {
+				tenantId = DEFAULT_TENANT_ID;
+				TenantUtils.setTenant(tenantId);
+			}
+		} else {
+			tenantId = EMPTY_TENANT_ID;
+		}
+
+		return getConstellioFactories(name, tenantId);
+	}
+
+	public synchronized ConstellioFactories getConstellioFactories(final byte tenantId) {
+		return getConstellioFactories(DEFAULT_NAME, "" + tenantId);
+	}
+
+	private synchronized ConstellioFactories getConstellioFactories(final String name, final String tenantId) {
+		String compositeName = tenantId + "-" + name;
+		TestConstellioFactoriesDecorator decorator = decorators.get(compositeName);
 		if (decorator == null) {
 
 			StringBuilder setupPropertiesContent = new StringBuilder();
@@ -416,7 +454,7 @@ public class FactoriesTestFeatures {
 
 				}
 			}
-			decorators.put(name, decorator);
+			decorators.put(compositeName, decorator);
 		}
 
 		File propertyFile = new SDKFoldersLocator().getSDKProperties();
@@ -447,22 +485,22 @@ public class FactoriesTestFeatures {
 			@Override
 			public ConstellioFactories get() {
 
-				short instanceId = 0;
-				if (name != null) {
-					if (!instanceNames.contains(name)) {
-						instanceNames.add(name);
-					}
-					instanceId = (short) instanceNames.indexOf(name);
+				String compositeName = "" + tenantId + "-" + "" + name;
+				if (instanceNames.containsKey(tenantId)) {
+					instanceNames.get(tenantId).add(compositeName);
+				} else {
+					instanceNames.put(tenantId, Lists.newArrayList(compositeName));
 				}
+				short instanceId = (short) instanceNames.get(tenantId).indexOf(compositeName);
 
-				ConstellioFactories instance = ConstellioFactories.buildFor(finalPropertyFile, finalDecorator, name, instanceId);
+				ConstellioFactories instance = ConstellioFactories.buildFor(finalPropertyFile, finalDecorator, compositeName, instanceId);
 				LeaderElectionManager electionService = instance.getDataLayerFactory().getLeaderElectionService().getNestedLeaderElectionManager();
 				if (electionService instanceof StandaloneLeaderElectionManager) {
-					((StandaloneLeaderElectionManager) electionService).setLeader(DEFAULT_NAME.equals(name));
+					((StandaloneLeaderElectionManager) electionService).setLeader(instanceId == 0);
 				}
 				return instance;
 			}
-		}, name);
+		}, name, tenantId);
 
 		return constellioFactories;
 
@@ -533,7 +571,7 @@ public class FactoriesTestFeatures {
 	}
 
 	public boolean isInitialized() {
-		return ConstellioFactories.instanceProvider.isInitialized();
+		return !((SDKConstellioFactoriesInstanceProvider) ConstellioFactories.instanceProvider).getAllInstances().isEmpty();
 	}
 
 	public void givenBackgroundThreadsEnabled() {
@@ -559,4 +597,31 @@ public class FactoriesTestFeatures {
 		return checkRollback;
 	}
 
+	void addTenants() {
+		try {
+			tenantService.addTenant(buildTenant1(), false);
+			tenantService.addTenant(buildTenant2(), false);
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to add tenants", e);
+		}
+	}
+
+	List<TenantProperties> getTenants() {
+		return tenantService.getTenants();
+	}
+
+	private TenantProperties buildTenant1() {
+		return new TenantProperties("Tenant 1", "T01", 1, Collections.singletonList("localhost:7070"));
+	}
+
+	void clearTenants() {
+		try {
+			tenantService.clearTenants(false);
+		} catch (Exception ignored) {
+		}
+	}
+
+	private TenantProperties buildTenant2() {
+		return new TenantProperties("Tenant 2", "T02", 2, Collections.singletonList("127.0.0.1:7070"));
+	}
 }

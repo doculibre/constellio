@@ -5,6 +5,7 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.utils.Octets;
+import com.constellio.model.utils.TenantUtils;
 import com.constellio.sdk.tests.annotations.PreserveState;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -178,6 +179,7 @@ public class FileSystemTestFeatures {
 	}
 
 	public File newTempFolderWithName(String name) {
+		name = appendTenant(name);
 		File testFolder = new File(testClassFolder, "test_" + testClass.getSimpleName() + "_" + name);
 		testFolder.mkdirs();
 		foldersToDeleteAfterTest.add(testFolder);
@@ -303,5 +305,13 @@ public class FileSystemTestFeatures {
 		}
 
 		return tempFolder;
+	}
+
+	private String appendTenant(String path) {
+		String tenantId = TenantUtils.getTenantId();
+		if (tenantId != null) {
+			return path.concat(File.separator).concat("tenant").concat(tenantId);
+		}
+		return path;
 	}
 }
