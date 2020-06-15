@@ -198,7 +198,10 @@ public interface ContentDao {
 
 	void delete(List<String> ids);
 
-	LocalDateTime getLastModification(String ids);
+	default LocalDateTime getLastModification(String contentId) {
+		DaoFile file = getFile(contentId);
+		return new LocalDateTime(file.lastModifed());
+	}
 
 	InputStream getContentInputStream(String id, String streamName)
 			throws ContentDaoException_NoSuchContent;

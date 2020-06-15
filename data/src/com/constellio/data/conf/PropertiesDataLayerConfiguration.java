@@ -400,4 +400,44 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	public boolean isSystemDistributed() {
 		return getElectionServiceType() != ElectionServiceType.STANDALONE;
 	}
+
+	@Override
+	public String getAzureBlobStorageConnectionString() {
+		return getRequiredString("azureBlobStorage.connectionString");
+	}
+
+	@Override
+	public String getAzureBlobStorageConnectionAccountName() {
+		return getRequiredString("azureBlobStorage.accountName");
+	}
+
+	@Override
+	public String getAzureBlobStorageConnectionAccountKey() {
+		return getRequiredString("azureBlobStorage.accountKey");
+	}
+
+	@Override
+	public void setAzureBlobStorageConnectionAccountName(String accountName) {
+		setString("azureBlobStorage.accountName", accountName);
+	}
+
+	@Override
+	public void setAzureBlobStorageConnectionAccountKey(String accountKey) {
+		setString("azureBlobStorage.accountKey", accountKey);
+	}
+
+	@Override
+	public void setAzureBlobStorageContainerName(String containerName) {
+		setString("azureBlobStorage.containerName", containerName);
+	}
+
+	@Override
+	public void setAzureBlobStorageConnectionString(String containerName) {
+		setString("azureBlobStorage.connectionString", containerName);
+	}
+
+	@Override
+	public String getAzureBlobStorageContainerName() {
+		return getRequiredString("azureBlobStorage.containerName");
+	}
 }

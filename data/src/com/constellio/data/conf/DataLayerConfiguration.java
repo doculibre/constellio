@@ -107,4 +107,20 @@ public interface DataLayerConfiguration {
 
 	int getSolrMinimalReplicationFactor();
 
+	String getAzureBlobStorageConnectionString();
+
+	String getAzureBlobStorageConnectionAccountName();
+
+	String getAzureBlobStorageConnectionAccountKey();
+
+	String getAzureBlobStorageContainerName();
+
+	void setAzureBlobStorageConnectionAccountName(String accountName);
+
+	void setAzureBlobStorageConnectionAccountKey(String accountKey);
+
+	void setAzureBlobStorageContainerName(String containerName);
+
+	void setAzureBlobStorageConnectionString(String containerName);
+
 }
