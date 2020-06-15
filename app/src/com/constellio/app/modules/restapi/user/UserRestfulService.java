@@ -5,6 +5,7 @@ import com.constellio.app.modules.restapi.core.service.BaseRestfulService;
 import com.constellio.app.modules.restapi.core.util.AuthorizationUtils;
 import com.constellio.app.modules.restapi.user.dto.UserCredentialsConfigDto;
 import com.constellio.app.modules.restapi.user.dto.UserCredentialsContentDto;
+import com.constellio.app.modules.restapi.user.dto.UserDto;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.google.common.base.Strings;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,6 +40,29 @@ public class UserRestfulService extends BaseRestfulService {
 
 	@Inject
 	private UserService userService;
+
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Operation(summary = "Get user", description = "Return the user.")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(ref = "User"))),
+			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
+	public Response get(
+			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
+			@Parameter(required = true, description = "Collection") @QueryParam("collection") String collection,
+			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
+			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
+
+		validateAuthentication(authentication);
+		validateRequiredParameter(serviceKey, "serviceKey");
+		validateRequiredParameter(collection, "collection");
+
+		String token = AuthorizationUtils.getToken(authentication);
+		UserDto userDto = userService.getUser(host, token, serviceKey, collection);
+		return Response.ok(userDto).build();
+	}
 
 	@GET
 	@Path("credentials/signature")

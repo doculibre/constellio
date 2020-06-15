@@ -5,8 +5,11 @@ import com.constellio.app.modules.restapi.core.service.BaseService;
 import com.constellio.app.modules.restapi.user.dao.UserDao;
 import com.constellio.app.modules.restapi.user.dto.UserCredentialsConfigDto;
 import com.constellio.app.modules.restapi.user.dto.UserCredentialsContentDto;
+import com.constellio.app.modules.restapi.user.dto.UserDto;
 import com.constellio.app.modules.restapi.validation.ValidationService;
 import com.constellio.app.modules.restapi.validation.dao.ValidationDao;
+import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
+import com.constellio.model.entities.records.wrappers.User;
 
 import javax.inject.Inject;
 import java.io.InputStream;
@@ -25,6 +28,19 @@ public class UserService extends BaseService {
 	@Override
 	protected BaseDao getDao() {
 		return userDao;
+	}
+
+	public UserDto getUser(String host, String token, String serviceKey, String collection) {
+		validationService.validateHost(host);
+		validationService.validateToken(token, serviceKey);
+
+		User user;
+		try {
+			user = getUserByServiceKey(serviceKey, collection);
+		} catch (Exception e) {
+			throw new UnauthenticatedUserException();
+		}
+		return UserDto.builder().id(user.getId()).build();
 	}
 
 	public UserCredentialsContentDto getContent(String host, String token, String serviceKey, String metadataCode) {

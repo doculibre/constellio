@@ -21,12 +21,14 @@ import javax.ws.rs.core.Response.Status;
 import java.util.List;
 
 import static java.util.Arrays.asList;
-import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.client.Entity.entity;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class UserRestfulServiceGETConfigAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
+public class UserRestfulServicePOSTCredentialsConfigAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
 
 	private List<String> mails;
+	private UserCredentialsConfigDto configToUpdate, emptyConfigToUpdate;
 
 	@Before
 	public void setUp() throws Exception {
@@ -40,8 +42,11 @@ public class UserRestfulServiceGETConfigAcceptanceTest extends BaseRestfulServic
 		userCredentials.set(UserCredential.PERSONAL_EMAILS, mails);
 		userServices.addUpdateUserCredential(userCredentials);
 
-		queryCounter.reset();
+		configToUpdate = UserCredentialsConfigDto.builder().localCode(UserCredential.PERSONAL_EMAILS).value(asList("m3", "m2", "m1", "m4", "m6")).build();
+		emptyConfigToUpdate = UserCredentialsConfigDto.builder().build();
+
 		commitCounter.reset();
+		queryCounter.reset();
 	}
 
 	@Test
@@ -52,43 +57,44 @@ public class UserRestfulServiceGETConfigAcceptanceTest extends BaseRestfulServic
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
 				.queryParam("localCode", UserCredential.PERSONAL_EMAILS).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();
-
-		assertThat(response.getStatus()).isEqualTo(OK.getStatusCode());
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
-		assertThat(commitCounter.newCommitsCall().isEmpty());
-
-		UserCredentialsConfigDto configDto = response.readEntity(UserCredentialsConfigDto.class);
-		assertThat(configDto.getLocalCode()).isEqualTo(UserCredential.PERSONAL_EMAILS);
-		assertThat(configDto.getValue()).containsExactly("m1", "m2", "m3", "m4", "m5");
-	}
-
-	@Test
-	public void validateServiceWithEmptyData() {
-		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
-		userCredentials.set(UserCredential.PERSONAL_EMAILS, null);
-		userServices.addUpdateUserCredential(userCredentials);
-
-		queryCounter.reset();
-		commitCounter.reset();
-
-		List<String> favoritesDisplayOrder = userCredentials.getList(UserCredential.PERSONAL_EMAILS);
-		assertThat(favoritesDisplayOrder).isEmpty();
-
-		Response response = webTarget.queryParam("serviceKey", serviceKey)
-				.queryParam("localCode", UserCredential.PERSONAL_EMAILS).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.post(entity(configToUpdate, APPLICATION_JSON_TYPE));
 
 		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
-		assertThat(commitCounter.newCommitsCall().isEmpty());
+		assertThat(commitCounter.newCommitsCall()).isNotEmpty();
+
+		userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
+		favoritesDisplayOrder = userCredentials.getList(UserCredential.PERSONAL_EMAILS);
+		assertThat(favoritesDisplayOrder).containsExactly("m3", "m2", "m1", "m4", "m6");
+	}
+
+	@Test
+	public void whenCallingServiceWithEmptyValue() {
+		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
+		List<String> favoritesDisplayOrder = userCredentials.getList(UserCredential.PERSONAL_EMAILS);
+		assertThat(favoritesDisplayOrder).isNotEmpty();
+
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("localCode", UserCredential.PERSONAL_EMAILS).request()
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.post(entity(emptyConfigToUpdate, APPLICATION_JSON_TYPE));
+
+		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(commitCounter.newCommitsCall()).isNotEmpty();
+
+		userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
+		favoritesDisplayOrder = userCredentials.getList(UserCredential.PERSONAL_EMAILS);
+		assertThat(favoritesDisplayOrder).isEmpty();
 	}
 
 	@Test
 	public void whenCallingServiceWithoutAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
 				.queryParam("localCode", UserCredential.PERSONAL_EMAILS).request()
-				.header(HttpHeaders.HOST, host).get();
+				.header(HttpHeaders.HOST, host)
+				.post(entity(configToUpdate, APPLICATION_JSON_TYPE));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -103,7 +109,8 @@ public class UserRestfulServiceGETConfigAcceptanceTest extends BaseRestfulServic
 	public void whenCallingServiceWithEmptyAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
 				.queryParam("localCode", UserCredential.PERSONAL_EMAILS).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "").get();
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "")
+				.post(entity(configToUpdate, APPLICATION_JSON_TYPE));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -118,7 +125,8 @@ public class UserRestfulServiceGETConfigAcceptanceTest extends BaseRestfulServic
 	public void whenCallingServiceWithInvalidSchemeInAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
 				.queryParam("localCode", UserCredential.PERSONAL_EMAILS).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Basic ".concat(token)).get();
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Basic ".concat(token))
+				.post(entity(configToUpdate, APPLICATION_JSON_TYPE));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -133,7 +141,8 @@ public class UserRestfulServiceGETConfigAcceptanceTest extends BaseRestfulServic
 	public void whenCallingServiceWithoutSchemeInAuthorizationHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
 				.queryParam("localCode", UserCredential.PERSONAL_EMAILS).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, token).get();
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, token)
+				.post(entity(configToUpdate, APPLICATION_JSON_TYPE));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -148,7 +157,8 @@ public class UserRestfulServiceGETConfigAcceptanceTest extends BaseRestfulServic
 	public void whenCallingServiceWithExpiredToken() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
 				.queryParam("localCode", UserCredential.PERSONAL_EMAILS).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(expiredToken)).get();
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(expiredToken))
+				.post(entity(configToUpdate, APPLICATION_JSON_TYPE));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -162,7 +172,8 @@ public class UserRestfulServiceGETConfigAcceptanceTest extends BaseRestfulServic
 	public void whenCallingServiceWithInvalidToken() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
 				.queryParam("localCode", UserCredential.PERSONAL_EMAILS).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(fakeToken)).get();
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(fakeToken))
+				.post(entity(configToUpdate, APPLICATION_JSON_TYPE));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -175,7 +186,8 @@ public class UserRestfulServiceGETConfigAcceptanceTest extends BaseRestfulServic
 	@Test
 	public void whenCallingServiceWithoutServiceKeyParam() {
 		Response response = webTarget.queryParam("localCode", UserCredential.PERSONAL_EMAILS).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.post(entity(configToUpdate, APPLICATION_JSON_TYPE));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -189,7 +201,8 @@ public class UserRestfulServiceGETConfigAcceptanceTest extends BaseRestfulServic
 	public void whenCallingServiceWithInvalidServiceKeyParam() {
 		Response response = webTarget.queryParam("serviceKey", fakeServiceKey)
 				.queryParam("localCode", UserCredential.PERSONAL_EMAILS).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.post(entity(configToUpdate, APPLICATION_JSON_TYPE));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -203,11 +216,12 @@ public class UserRestfulServiceGETConfigAcceptanceTest extends BaseRestfulServic
 	public void whenCallingServiceWithUnallowedHostHeader() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
 				.queryParam("localCode", UserCredential.PERSONAL_EMAILS).request()
-				.header(HttpHeaders.HOST, fakeHost).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();
+				.header(HttpHeaders.HOST, fakeHost).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.post(entity(configToUpdate, APPLICATION_JSON_TYPE));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
-		assertThat(response.getStatus()).isEqualTo(Status.FORBIDDEN.getStatusCode());
+		assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).isEqualTo(i18n.$(new UnallowedHostException(fakeHost).getValidationError()));
@@ -216,9 +230,8 @@ public class UserRestfulServiceGETConfigAcceptanceTest extends BaseRestfulServic
 	@Test
 	public void whenCallingServiceWithMissingCode() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
-		assertThat(commitCounter.newCommitsCall().isEmpty());
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.post(entity(configToUpdate, APPLICATION_JSON_TYPE));
 
 		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
@@ -230,9 +243,8 @@ public class UserRestfulServiceGETConfigAcceptanceTest extends BaseRestfulServic
 	public void whenCallingServiceWithNonExistingCode() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
 				.queryParam("localCode", "fakeCode").request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
-		assertThat(commitCounter.newCommitsCall().isEmpty());
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.post(entity(configToUpdate, APPLICATION_JSON_TYPE));
 
 		assertThat(response.getStatus()).isEqualTo(Status.NOT_FOUND.getStatusCode());
 
@@ -244,13 +256,25 @@ public class UserRestfulServiceGETConfigAcceptanceTest extends BaseRestfulServic
 	public void whenCallingServiceWithInvalidCode() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
 				.queryParam("localCode", UserCredential.FIRST_NAME).request()
-				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
-		assertThat(commitCounter.newCommitsCall().isEmpty());
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.post(entity(configToUpdate, APPLICATION_JSON_TYPE));
 
 		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).isEqualTo(i18n.$(new UserConfigNotSupportedException().getValidationError()));
+	}
+
+	@Test
+	public void whenCallingServiceWithMissingConfig() {
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("localCode", UserCredential.PERSONAL_EMAILS).request()
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.post(entity(null, APPLICATION_JSON_TYPE));
+
+		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "config"));
 	}
 }
