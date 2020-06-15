@@ -51,7 +51,7 @@ public class UserRestfulServicePOSTSignatureAcceptanceTest extends BaseRestfulSe
 
 		contentManager = getModelLayerFactory().getContentManager();
 
-		webTarget = newWebTarget("v1/user/signature", new ObjectMapper());
+		webTarget = newWebTarget("v1/user/credentials/signature", new ObjectMapper());
 
 		fileToAdd = getTestResourceFile("imageTestFile.png");
 		invalidFileToAdd = getTestResourceFile("docTestFile.docx");

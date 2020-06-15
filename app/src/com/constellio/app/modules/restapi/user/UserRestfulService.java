@@ -42,7 +42,7 @@ public class UserRestfulService extends BaseRestfulService {
 	private UserService userService;
 
 	@GET
-	@Path("signature")
+	@Path("credentials/signature")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Operation(summary = "Get user signature", description = "Stream the content of the user profile signature")
 	@ApiResponses(value = {
@@ -70,7 +70,7 @@ public class UserRestfulService extends BaseRestfulService {
 	}
 
 	@POST
-	@Path("signature")
+	@Path("credentials/signature")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Operation(summary = "Set user signature", description = "Set the content of the user profile signature.<br><br>" +
 															 "This is a multipart/form-data request. The body must contains two parts:<br>" +
@@ -107,7 +107,7 @@ public class UserRestfulService extends BaseRestfulService {
 	}
 
 	@DELETE
-	@Path("signature")
+	@Path("credentials/signature")
 	@Operation(summary = "Delete user signature", description = "Delete the content of the user profile signature")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "204", description = "No Content"),
@@ -129,7 +129,7 @@ public class UserRestfulService extends BaseRestfulService {
 	}
 
 	@GET
-	@Path("initials")
+	@Path("credentials/initials")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Operation(summary = "Get user initials", description = "Stream the content of the user profile initials")
 	@ApiResponses(value = {
@@ -157,7 +157,7 @@ public class UserRestfulService extends BaseRestfulService {
 	}
 
 	@POST
-	@Path("initials")
+	@Path("credentials/initials")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Operation(summary = "Set user initials", description = "Set the content of the user profile initials.<br><br>" +
 															"This is a multipart/form-data request. The body must contains two parts:<br>" +
@@ -194,7 +194,7 @@ public class UserRestfulService extends BaseRestfulService {
 	}
 
 	@DELETE
-	@Path("initials")
+	@Path("credentials/initials")
 	@Operation(summary = "Delete user initials", description = "Delete the content of the user profile initials")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "204", description = "No Content"),
@@ -216,7 +216,7 @@ public class UserRestfulService extends BaseRestfulService {
 	}
 
 	@GET
-	@Path("config")
+	@Path("credentials/config")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Operation(summary = "Get user config value", description = "Return the user config value. (Only metadata of type String multi-value supported at the moment)")
 	@ApiResponses(value = {
@@ -241,7 +241,7 @@ public class UserRestfulService extends BaseRestfulService {
 	}
 
 	@POST
-	@Path("config")
+	@Path("credentials/config")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Operation(summary = "Set user config value", description = "Set the user config value. (Only metadata of type String multi-value supported at the moment)")

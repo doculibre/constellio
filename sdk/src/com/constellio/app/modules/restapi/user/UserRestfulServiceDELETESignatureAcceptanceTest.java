@@ -33,7 +33,7 @@ public class UserRestfulServiceDELETESignatureAcceptanceTest extends BaseRestful
 
 		contentManager = getModelLayerFactory().getContentManager();
 
-		webTarget = newWebTarget("v1/user/signature", new ObjectMapper());
+		webTarget = newWebTarget("v1/user/credentials/signature", new ObjectMapper());
 
 		File file = getTestResourceFile("imageTestFile.png");
 		ContentVersionDataSummary versionDataSummary = contentManager.upload(file);

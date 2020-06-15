@@ -34,7 +34,7 @@ public class UserRestfulServicePOSTConfigAcceptanceTest extends BaseRestfulServi
 	public void setUp() throws Exception {
 		setUpTest();
 
-		webTarget = newWebTarget("v1/user/config", new ObjectMapper());
+		webTarget = newWebTarget("v1/user/credentials/config", new ObjectMapper());
 
 		mails = asList("m1", "m2", "m3", "m4", "m5");
 
