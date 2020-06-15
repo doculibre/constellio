@@ -4,7 +4,7 @@ import com.constellio.app.modules.restapi.BaseRestfulServiceAcceptanceTest;
 import com.constellio.app.modules.restapi.core.exception.InvalidAuthenticationException;
 import com.constellio.app.modules.restapi.core.exception.MetadataNotFoundException;
 import com.constellio.app.modules.restapi.core.exception.mapper.RestApiErrorResponse;
-import com.constellio.app.modules.restapi.user.dto.UserConfigDto;
+import com.constellio.app.modules.restapi.user.dto.UserCredentialsConfigDto;
 import com.constellio.app.modules.restapi.user.exception.UserConfigNotSupportedException;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredTokenException;
 import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class UserRestfulServicePOSTConfigAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
 
 	private List<String> mails;
-	private UserConfigDto configToUpdate, emptyConfigToUpdate;
+	private UserCredentialsConfigDto configToUpdate, emptyConfigToUpdate;
 
 	@Before
 	public void setUp() throws Exception {
@@ -42,8 +42,8 @@ public class UserRestfulServicePOSTConfigAcceptanceTest extends BaseRestfulServi
 		userCredentials.set(UserCredential.PERSONAL_EMAILS, mails);
 		userServices.addUpdateUserCredential(userCredentials);
 
-		configToUpdate = UserConfigDto.builder().localCode(UserCredential.PERSONAL_EMAILS).value(asList("m3", "m2", "m1", "m4", "m6")).build();
-		emptyConfigToUpdate = UserConfigDto.builder().build();
+		configToUpdate = UserCredentialsConfigDto.builder().localCode(UserCredential.PERSONAL_EMAILS).value(asList("m3", "m2", "m1", "m4", "m6")).build();
+		emptyConfigToUpdate = UserCredentialsConfigDto.builder().build();
 
 		commitCounter.reset();
 		queryCounter.reset();

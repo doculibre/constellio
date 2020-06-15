@@ -3,9 +3,8 @@ package com.constellio.app.modules.restapi.user;
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
 import com.constellio.app.modules.restapi.core.service.BaseService;
 import com.constellio.app.modules.restapi.user.dao.UserDao;
-import com.constellio.app.modules.restapi.user.dto.UserConfigDto;
-import com.constellio.app.modules.restapi.user.dto.UserSignatureContentDto;
-import com.constellio.app.modules.restapi.user.dto.UserSignatureDto;
+import com.constellio.app.modules.restapi.user.dto.UserCredentialsConfigDto;
+import com.constellio.app.modules.restapi.user.dto.UserCredentialsContentDto;
 import com.constellio.app.modules.restapi.validation.ValidationService;
 import com.constellio.app.modules.restapi.validation.dao.ValidationDao;
 
@@ -28,7 +27,7 @@ public class UserService extends BaseService {
 		return userDao;
 	}
 
-	public UserSignatureContentDto getContent(String host, String token, String serviceKey, String metadataCode) {
+	public UserCredentialsContentDto getContent(String host, String token, String serviceKey, String metadataCode) {
 		validationService.validateHost(host);
 		validationService.validateToken(token, serviceKey);
 
@@ -37,7 +36,7 @@ public class UserService extends BaseService {
 	}
 
 	public void setContent(String host, String token, String serviceKey, String metadataCode,
-						   UserSignatureDto userSignature, InputStream fileStream) {
+						   UserCredentialsContentDto userSignature, InputStream fileStream) {
 		validationService.validateHost(host);
 		validationService.validateToken(token, serviceKey);
 
@@ -53,7 +52,7 @@ public class UserService extends BaseService {
 		userDao.deleteContent(username, metadataCode);
 	}
 
-	public UserConfigDto getConfig(String host, String token, String serviceKey, String metadataCode) {
+	public UserCredentialsConfigDto getConfig(String host, String token, String serviceKey, String metadataCode) {
 		validationService.validateHost(host);
 		validationService.validateToken(token, serviceKey);
 
@@ -61,7 +60,8 @@ public class UserService extends BaseService {
 		return userDao.getConfig(username, metadataCode);
 	}
 
-	public void setConfig(String host, String token, String serviceKey, String metadataCode, UserConfigDto config) {
+	public void setConfig(String host, String token, String serviceKey, String metadataCode,
+						  UserCredentialsConfigDto config) {
 		validationService.validateHost(host);
 		validationService.validateToken(token, serviceKey);
 

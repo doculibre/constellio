@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class UserConfigDto {
+public class UserCredentialsConfigDto {
 	private String localCode;
 	private List<String> value;
 }

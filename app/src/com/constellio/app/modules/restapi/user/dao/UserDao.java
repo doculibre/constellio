@@ -2,8 +2,8 @@ package com.constellio.app.modules.restapi.user.dao;
 
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
 import com.constellio.app.modules.restapi.core.exception.MetadataNotFoundException;
-import com.constellio.app.modules.restapi.user.dto.UserConfigDto;
-import com.constellio.app.modules.restapi.user.dto.UserSignatureContentDto;
+import com.constellio.app.modules.restapi.user.dto.UserCredentialsConfigDto;
+import com.constellio.app.modules.restapi.user.dto.UserCredentialsContentDto;
 import com.constellio.app.modules.restapi.user.exception.SignatureContentNotFoundException;
 import com.constellio.app.modules.restapi.user.exception.SignatureInvalidContentException;
 import com.constellio.app.modules.restapi.user.exception.SignatureNoContentException;
@@ -23,7 +23,7 @@ import java.util.List;
 
 public class UserDao extends BaseDao {
 
-	public UserSignatureContentDto getContent(String username, String metadataCode) {
+	public UserCredentialsContentDto getContent(String username, String metadataCode) {
 		try {
 			UserCredential userCredentials = userServices.getUser(username);
 
@@ -40,7 +40,7 @@ public class UserDao extends BaseDao {
 			InputStream stream = contentManager.getContentInputStream(contentVersion.getHash(), contentVersion.getFilename());
 			String mimeType = contentVersion.getMimetype();
 
-			return UserSignatureContentDto.builder().content(stream).mimeType(mimeType).filename(contentVersion.getFilename()).build();
+			return UserCredentialsContentDto.builder().content(stream).mimeType(mimeType).filename(contentVersion.getFilename()).build();
 		} catch (ContentImplRuntimeException.ContentImplRuntimeException_NoSuchVersion |
 				ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent e) {
 			throw new SignatureContentNotFoundException();
@@ -74,7 +74,7 @@ public class UserDao extends BaseDao {
 		userServices.addUpdateUserCredential(userCredentials);
 	}
 
-	public UserConfigDto getConfig(String username, String metadataCode) {
+	public UserCredentialsConfigDto getConfig(String username, String metadataCode) {
 		UserCredential userCredentials = userServices.getUser(username);
 
 		MetadataSchema schema = getMetadataSchema(userCredentials.getWrappedRecord());
@@ -93,10 +93,10 @@ public class UserDao extends BaseDao {
 			throw new UserConfigNoContentException();
 		}
 
-		return UserConfigDto.builder().localCode(metadataCode).value(value).build();
+		return UserCredentialsConfigDto.builder().localCode(metadataCode).value(value).build();
 	}
 
-	public void setConfig(String username, String metadataCode, UserConfigDto config) {
+	public void setConfig(String username, String metadataCode, UserCredentialsConfigDto config) {
 		UserCredential userCredentials = userServices.getUser(username);
 
 		MetadataSchema schema = getMetadataSchema(userCredentials.getWrappedRecord());
