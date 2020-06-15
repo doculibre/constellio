@@ -4,7 +4,7 @@ import com.constellio.app.modules.restapi.BaseRestfulServiceAcceptanceTest;
 import com.constellio.app.modules.restapi.core.exception.InvalidAuthenticationException;
 import com.constellio.app.modules.restapi.core.exception.mapper.RestApiErrorResponse;
 import com.constellio.app.modules.restapi.core.util.HashingUtils;
-import com.constellio.app.modules.restapi.user.dto.UserSignatureDto;
+import com.constellio.app.modules.restapi.user.dto.UserCredentialsContentDto;
 import com.constellio.app.modules.restapi.user.exception.SignatureInvalidContentException;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredTokenException;
 import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserRestfulServicePOSTInitialsAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
 
-	private UserSignatureDto initialsToAdd;
+	private UserCredentialsContentDto initialsToAdd;
 	private File fileToAdd, invalidFileToAdd;
 	private String expectedFilename;
 	private String expectedMimeType;
@@ -55,7 +55,7 @@ public class UserRestfulServicePOSTInitialsAcceptanceTest extends BaseRestfulSer
 
 		fileToAdd = getTestResourceFile("imageTestFile.png");
 		invalidFileToAdd = getTestResourceFile("docTestFile.docx");
-		initialsToAdd = UserSignatureDto.builder().filename(fileToAdd.getName()).build();
+		initialsToAdd = UserCredentialsContentDto.builder().filename(fileToAdd.getName()).build();
 
 		FileInputStream fileStream = new FileInputStream(fileToAdd);
 		byte[] fileData = new byte[fileStream.available()];
@@ -236,7 +236,7 @@ public class UserRestfulServicePOSTInitialsAcceptanceTest extends BaseRestfulSer
 
 	@Test
 	public void whenCallingServiceWithMissingFilename() {
-		UserSignatureDto emptyInitialsToAdd = UserSignatureDto.builder().build();
+		UserCredentialsContentDto emptyInitialsToAdd = UserCredentialsContentDto.builder().build();
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
@@ -272,7 +272,7 @@ public class UserRestfulServicePOSTInitialsAcceptanceTest extends BaseRestfulSer
 		assertThat(error.getMessage()).isEqualTo(i18n.$(new SignatureInvalidContentException().getValidationError()));
 	}
 
-	private MultiPart buildMultiPart(UserSignatureDto userInitials, File file) {
+	private MultiPart buildMultiPart(UserCredentialsContentDto userInitials, File file) {
 		FormDataMultiPart multiPart = new FormDataMultiPart();
 		if (userInitials != null) {
 			multiPart.bodyPart(new FormDataBodyPart("userInitials", userInitials, APPLICATION_JSON_TYPE));

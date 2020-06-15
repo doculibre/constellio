@@ -3,9 +3,8 @@ package com.constellio.app.modules.restapi.user;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.service.BaseRestfulService;
 import com.constellio.app.modules.restapi.core.util.AuthorizationUtils;
-import com.constellio.app.modules.restapi.user.dto.UserConfigDto;
-import com.constellio.app.modules.restapi.user.dto.UserSignatureContentDto;
-import com.constellio.app.modules.restapi.user.dto.UserSignatureDto;
+import com.constellio.app.modules.restapi.user.dto.UserCredentialsConfigDto;
+import com.constellio.app.modules.restapi.user.dto.UserCredentialsContentDto;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.google.common.base.Strings;
 import io.swagger.v3.oas.annotations.Operation;
@@ -63,7 +62,7 @@ public class UserRestfulService extends BaseRestfulService {
 
 		String token = AuthorizationUtils.getToken(authentication);
 
-		UserSignatureContentDto contentDto = userService.getContent(host, token, serviceKey, UserCredential.ELECTRONIC_SIGNATURE);
+		UserCredentialsContentDto contentDto = userService.getContent(host, token, serviceKey, UserCredential.ELECTRONIC_SIGNATURE);
 		return Response.ok(contentDto.getContent(), contentDto.getMimeType())
 				.header("Content-Disposition", "attachment; filename=\"" + contentDto.getFilename() + "\"")
 				.build();
@@ -85,7 +84,7 @@ public class UserRestfulService extends BaseRestfulService {
 	public Response setSignature(
 			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
 			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
-			@Valid @FormDataParam("userSignature") UserSignatureDto userSignature,
+			@Valid @FormDataParam("userSignature") UserCredentialsContentDto userSignature,
 			@Parameter(schema = @Schema(type = "string", format = "binary")) @FormDataParam("file") InputStream fileStream,
 			@Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileHeader,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
@@ -150,7 +149,7 @@ public class UserRestfulService extends BaseRestfulService {
 
 		String token = AuthorizationUtils.getToken(authentication);
 
-		UserSignatureContentDto contentDto = userService.getContent(host, token, serviceKey, UserCredential.ELECTRONIC_INITIALS);
+		UserCredentialsContentDto contentDto = userService.getContent(host, token, serviceKey, UserCredential.ELECTRONIC_INITIALS);
 		return Response.ok(contentDto.getContent(), contentDto.getMimeType())
 				.header("Content-Disposition", "attachment; filename=\"" + contentDto.getFilename() + "\"")
 				.build();
@@ -172,7 +171,7 @@ public class UserRestfulService extends BaseRestfulService {
 	public Response setInitials(
 			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
 			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
-			@Valid @FormDataParam("userInitials") UserSignatureDto userInitials,
+			@Valid @FormDataParam("userInitials") UserCredentialsContentDto userInitials,
 			@Parameter(schema = @Schema(type = "string", format = "binary")) @FormDataParam("file") InputStream fileStream,
 			@Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileHeader,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
@@ -236,7 +235,7 @@ public class UserRestfulService extends BaseRestfulService {
 		validateRequiredParameter(localCode, "localCode");
 
 		String token = AuthorizationUtils.getToken(authentication);
-		UserConfigDto configDto = userService.getConfig(host, token, serviceKey, localCode);
+		UserCredentialsConfigDto configDto = userService.getConfig(host, token, serviceKey, localCode);
 		return Response.ok(configDto).build();
 	}
 
@@ -254,7 +253,7 @@ public class UserRestfulService extends BaseRestfulService {
 			@Parameter(required = true, description = "Config metadata code") @QueryParam("localCode") String localCode,
 			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
 			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
-			@Valid UserConfigDto config,
+			@Valid UserCredentialsConfigDto config,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
 		validateAuthentication(authentication);

@@ -4,7 +4,7 @@ import com.constellio.app.modules.restapi.BaseRestfulServiceAcceptanceTest;
 import com.constellio.app.modules.restapi.core.exception.InvalidAuthenticationException;
 import com.constellio.app.modules.restapi.core.exception.MetadataNotFoundException;
 import com.constellio.app.modules.restapi.core.exception.mapper.RestApiErrorResponse;
-import com.constellio.app.modules.restapi.user.dto.UserConfigDto;
+import com.constellio.app.modules.restapi.user.dto.UserCredentialsConfigDto;
 import com.constellio.app.modules.restapi.user.exception.UserConfigNotSupportedException;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredTokenException;
 import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
@@ -58,7 +58,7 @@ public class UserRestfulServiceGETConfigAcceptanceTest extends BaseRestfulServic
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
-		UserConfigDto configDto = response.readEntity(UserConfigDto.class);
+		UserCredentialsConfigDto configDto = response.readEntity(UserCredentialsConfigDto.class);
 		assertThat(configDto.getLocalCode()).isEqualTo(UserCredential.PERSONAL_EMAILS);
 		assertThat(configDto.getValue()).containsExactly("m1", "m2", "m3", "m4", "m5");
 	}
