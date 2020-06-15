@@ -11,7 +11,11 @@ import com.constellio.app.modules.restapi.validation.exception.UnauthorizedAcces
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.ui.i18n.i18n;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
@@ -59,7 +63,29 @@ public class CartRestfulServiceDELETEAcceptanceTest extends BaseRestfulServiceAc
 
 	@Test
 	public void validateService() {
-		assertThat(cart.isLogicallyDeletedStatus()).isFalse();
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("id", cart.getId()).request()
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.delete();
+
+		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(commitCounter.newCommitsCall()).isNotEmpty();
+
+		Record cartRecord = null;
+		try {
+			cartRecord = recordServices.getDocumentById(cart.getId());
+		} catch (NoSuchRecordWithId ignored) {
+
+		}
+		assertThat(cartRecord).isNull();
+	}
+
+	@Test
+	public void whenCallingServiceWithLogicallyDeletedRecord() {
+		recordServices.logicallyDelete(cart.getWrappedRecord(), User.GOD);
+		Boolean logicallyDeleted = cart.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS);
+		assertThat(logicallyDeleted).isTrue();
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
 				.queryParam("id", cart.getId()).request()
@@ -68,10 +94,39 @@ public class CartRestfulServiceDELETEAcceptanceTest extends BaseRestfulServiceAc
 
 		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
-		assertThat(commitCounter.newCommitsCall()).hasSize(1);
+		assertThat(commitCounter.newCommitsCall()).isNotEmpty();
 
-		cart = rm.getCart(cart.getId());
-		assertThat(cart.isLogicallyDeletedStatus()).isTrue();
+		Record cartRecord = null;
+		try {
+			cartRecord = recordServices.getDocumentById(cart.getId());
+		} catch (NoSuchRecordWithId ignored) {
+
+		}
+		assertThat(cartRecord).isNull();
+	}
+
+	@Test
+	public void whenCallingServiceWithPhysicallyDeletedRecord() {
+		recordServices.logicallyDelete(cart.getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(cart.getWrappedRecord(), User.GOD);
+
+		Record cartRecord = null;
+		try {
+			cartRecord = recordServices.getDocumentById(cart.getId());
+		} catch (NoSuchRecordWithId ignored) {
+
+		}
+		assertThat(cartRecord).isNull();
+
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("id", cart.getId()).request()
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.delete();
+
+		assertThat(response.getStatus()).isEqualTo(Status.NOT_FOUND.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).isEqualTo(i18n.$(new RecordNotFoundException(cart.getId()).getValidationError()));
 	}
 
 	@Test

@@ -2,7 +2,6 @@ package com.constellio.app.modules.restapi.cart.dao;
 
 import com.constellio.app.modules.restapi.cart.dto.CartDto;
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
-import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -65,11 +64,10 @@ public class CartDao extends BaseDao {
 
 	public void deleteCart(User user, Record cartRecord) {
 		Boolean logicallyDeleted = cartRecord.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS);
-
-		if (Boolean.TRUE.equals(logicallyDeleted)) {
-			throw new RecordLogicallyDeletedException(cartRecord.getId());
+		if (!Boolean.TRUE.equals(logicallyDeleted)) {
+			recordServices.logicallyDelete(cartRecord, user);
 		}
-		recordServices.logicallyDelete(cartRecord, user);
+		recordServices.physicallyDelete(cartRecord, user);
 	}
 
 	public void deleteCartContent(User user, Record cartRecord)
