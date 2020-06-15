@@ -39,7 +39,7 @@ public class UserRestfulServiceGETInitialsAcceptanceTest extends BaseRestfulServ
 
 		contentManager = getModelLayerFactory().getContentManager();
 
-		webTarget = newWebTarget("v1/user/initials", new ObjectMapper());
+		webTarget = newWebTarget("v1/user/credentials/initials", new ObjectMapper());
 
 		File file = getTestResourceFile("imageTestFile.png");
 		ContentVersionDataSummary versionDataSummary = contentManager.upload(file);

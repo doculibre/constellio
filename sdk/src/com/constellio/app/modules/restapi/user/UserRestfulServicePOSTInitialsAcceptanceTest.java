@@ -51,7 +51,7 @@ public class UserRestfulServicePOSTInitialsAcceptanceTest extends BaseRestfulSer
 
 		contentManager = getModelLayerFactory().getContentManager();
 
-		webTarget = newWebTarget("v1/user/initials", new ObjectMapper());
+		webTarget = newWebTarget("v1/user/credentials/initials", new ObjectMapper());
 
 		fileToAdd = getTestResourceFile("imageTestFile.png");
 		invalidFileToAdd = getTestResourceFile("docTestFile.docx");
