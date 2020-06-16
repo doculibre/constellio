@@ -136,6 +136,8 @@ public class Toggle {
 
 	public static AvailableToggle ENABLE_SIGNATURE = newToggle(false);
 
+	public static AvailableToggle ENABLE_CLOUD_SYSADMIN_FEATURES = newToggle(false);
+
 
 
 	// ------------------------------------------------

@@ -131,7 +131,10 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 				presenter.standardUpdateRequested();
 			}
 		});
-		buttons.add(standardUpdate);
+
+		if (presenter.hasUpdatePermission()) {
+			buttons.add(standardUpdate);
+		}
 
 		alternateUpdate = new Button($("UpdateManagerViewImpl." + presenter.getAlternateUpdateName()));
 		alternateUpdate.addClickListener(new ClickListener() {
@@ -141,7 +144,9 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 			}
 		});
 		alternateUpdate.setVisible(presenter.isAlternateUpdateAvailable());
-		buttons.add(alternateUpdate);
+		if (presenter.hasUpdatePermission()) {
+			buttons.add(alternateUpdate);
+		}
 
 		license = new Button($("UpdateManagerViewImpl.licenseButton"));
 		license.addClickListener(new ClickListener() {
@@ -150,7 +155,9 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 				presenter.licenseUpdateRequested();
 			}
 		});
-		buttons.add(license);
+		if (presenter.hasUpdatePermission()) {
+			buttons.add(license);
+		}
 
 
 		lastAlert = new WindowButton($("UpdateManagerViewImpl.printLastAlertShort"), $("UpdateManagerViewImpl.printLastAlertLong"),
@@ -175,7 +182,9 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 			}
 		};
 		lastAlert.setVisible(presenter.hasLastAlertPermission() && presenter.getLastAlertConfigValue() != null);
-		buttons.add(lastAlert);
+		if (presenter.hasUpdatePermission()) {
+			buttons.add(lastAlert);
+		}
 
 		return buttons;
 	}
@@ -195,7 +204,10 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		layout.addComponent(panel);
 		layout.setSpacing(true);
 
-		showStandardUpdatePanel();
+		if (presenter.hasUpdatePermission()) {
+			showStandardUpdatePanel();
+		}
+
 		//		layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.currentVersionofConstellio"), presenter.getCurrentVersion()));
 		//
 		//		MemoryDetails allocatedMemoryForConstellio = SystemAnalysisUtils.getAllocatedMemoryForConstellio();
