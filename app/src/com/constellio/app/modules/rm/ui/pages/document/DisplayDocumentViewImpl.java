@@ -63,7 +63,12 @@ import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.data.dao.services.Stats;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.services.logging.RecordEventNotification;
+import com.constellio.model.services.logging.RecordEventNotification.DocumentEventNotification;
+import com.constellio.model.services.logging.RecordEventNotification.FolderEventNotification;
 import com.vaadin.data.Container;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
@@ -75,6 +80,7 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.JavaScript;
@@ -82,6 +88,7 @@ import com.vaadin.ui.JavaScriptFunction;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Panel;
+import com.vaadin.ui.RichTextArea;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
@@ -348,6 +355,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		} else {
 			tabSheet.getTab(eventsComponent).setEnabled(false);
 		}
+		tabSheet.addTab(new DocumentNotificationsTab(), "Alertes");
 
 		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
 			@Override
@@ -975,5 +983,57 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		});
 		return container;
+	}
+	
+	private class DocumentNotificationsTab extends VerticalLayout implements ValueChangeListener {
+		
+		private CheckBox editDocumentField;
+		
+		private CheckBox deleteDocumentField;
+		
+		private RichTextArea messageField;
+		
+		public DocumentNotificationsTab() {
+			editDocumentField = new CheckBox("M'aviser par courriel si le document est modifié");
+			deleteDocumentField = new CheckBox("M'aviser par courriel si un document est supprimé");
+			messageField = new RichTextArea("Message de notification personnalisé");
+			
+			DocumentEventNotification documentEventNotification = (DocumentEventNotification) RecordEventNotification.get(documentVO.getId(), presenter.getUser().getId());
+			if (documentEventNotification != null) {
+				editDocumentField.setValue(documentEventNotification.isEditDocument());
+				deleteDocumentField.setValue(documentEventNotification.isDeleteDocument());
+				messageField.setValue(documentEventNotification.getMessage());
+			}
+			
+			editDocumentField.addValueChangeListener(this);
+			deleteDocumentField.addValueChangeListener(this);
+			messageField.addValueChangeListener(this);
+			
+			addComponents(
+					editDocumentField, deleteDocumentField,
+					messageField);
+		}
+
+		@Override
+		public void valueChange(ValueChangeEvent event) {
+			String folderId = documentVO.getId();
+			String userId = presenter.getUser().getId();
+			DocumentEventNotification documentEventNotification = (DocumentEventNotification) RecordEventNotification.get(folderId, userId);
+			if (documentEventNotification == null) {
+				documentEventNotification = new DocumentEventNotification(folderId, userId);
+			}
+			documentEventNotification.setEditDocument(editDocumentField.getValue());
+			documentEventNotification.setDeleteDocument(deleteDocumentField.getValue());
+			
+			String message = messageField.getValue();
+			if (StringUtils.isNotBlank(message)) {
+				documentEventNotification.setMessage(message);
+			} else {
+				documentEventNotification.setMessage(null);
+			}
+			
+			RecordEventNotification.addUpdateNotification(documentEventNotification);
+		}
+		
 	}
 }

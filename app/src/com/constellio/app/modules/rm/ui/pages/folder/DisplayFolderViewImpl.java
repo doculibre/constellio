@@ -1,5 +1,24 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.DisplayMode.PRINCIPALS;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.sliderpanel.client.SliderPanelListener;
+
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
@@ -58,6 +77,8 @@ import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.dao.services.Stats;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.services.logging.RecordEventNotification;
+import com.constellio.model.services.logging.RecordEventNotification.FolderEventNotification;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -79,6 +100,7 @@ import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.RichTextArea;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.Table;
@@ -87,23 +109,6 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.sliderpanel.client.SliderPanelListener;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.DisplayMode.PRINCIPALS;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler, BrowserWindowResizeListener, NavigationParams {
 
@@ -255,6 +260,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		tabSheet.addTab(recordDisplay, $("DisplayFolderView.tabs.metadata"));
 		tabSheet.addTab(tasksComponent, $("DisplayFolderView.tabs.tasks", presenter.getTaskCount()));
 		tabSheet.addTab(sharesComponent, $("DisplayFolderView.tabs.shares"));
+		tabSheet.addTab(new FolderNotificationsTab(), "Alertes");
 
 		eventsComponent = new CustomComponent();
 		tabSheet.addTab(eventsComponent, $("DisplayFolderView.tabs.logs"));
@@ -1104,6 +1110,96 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		if (viewerPanel != null) {
 			viewerPanel.closePanel();
 		}
+	}
+	
+	private class FolderNotificationsTab extends VerticalLayout implements ValueChangeListener {
+		
+		private CheckBox editFolderField;
+		
+		private CheckBox deleteFolderField;
+		
+		private CheckBox addSubFolderField;
+		
+		private CheckBox editSubFolderField;
+		
+		private CheckBox deleteSubFolderField;
+		
+		private CheckBox addDocumentField;
+		
+		private CheckBox editDocumentField;
+		
+		private CheckBox deleteDocumentField;
+		
+		private RichTextArea messageField;
+		
+		public FolderNotificationsTab() {
+			editFolderField = new CheckBox("M'aviser par courriel si le dossier est modifié");
+			deleteFolderField = new CheckBox("M'aviser par courriel si le dossier est supprimé");
+			addSubFolderField = new CheckBox("M'aviser par courriel si un sous-dossier est ajouté");
+			editSubFolderField = new CheckBox("M'aviser par courriel si un sous-dossier est modifié");
+			deleteSubFolderField = new CheckBox("M'aviser par courriel si un sous-dossier est supprimé");
+			addDocumentField = new CheckBox("M'aviser par courriel si un document est ajouté");
+			editDocumentField = new CheckBox("M'aviser par courriel si un document est modifié");
+			deleteDocumentField = new CheckBox("M'aviser par courriel si un document est supprimé");
+			messageField = new RichTextArea("Message de notification personnalisé");
+			
+			FolderEventNotification folderEventNotification = (FolderEventNotification) RecordEventNotification.get(summaryRecordVO.getId(), presenter.getUser().getId());
+			if (folderEventNotification != null) {
+				editFolderField.setValue(folderEventNotification.isEditFolder());
+				deleteFolderField.setValue(folderEventNotification.isDeleteFolder());
+				addSubFolderField.setValue(folderEventNotification.isAddSubFolder());
+				editSubFolderField.setValue(folderEventNotification.isEditSubFolder());
+				deleteSubFolderField.setValue(folderEventNotification.isDeleteSubFolder());
+				addDocumentField.setValue(folderEventNotification.isAddDocument());
+				editDocumentField.setValue(folderEventNotification.isEditDocument());
+				deleteDocumentField.setValue(folderEventNotification.isDeleteDocument());
+				messageField.setValue(folderEventNotification.getMessage());
+			}
+
+			editFolderField.addValueChangeListener(this);
+			deleteFolderField.addValueChangeListener(this);
+			addSubFolderField.addValueChangeListener(this);
+			editSubFolderField.addValueChangeListener(this);
+			deleteSubFolderField.addValueChangeListener(this);
+			addDocumentField.addValueChangeListener(this);
+			editDocumentField.addValueChangeListener(this);
+			deleteDocumentField.addValueChangeListener(this);
+			messageField.addValueChangeListener(this);
+			
+			addComponents(
+					editFolderField, deleteFolderField,
+					addSubFolderField, editSubFolderField, deleteSubFolderField,
+					addDocumentField, editDocumentField, deleteDocumentField,
+					messageField);
+		}
+
+		@Override
+		public void valueChange(ValueChangeEvent event) {
+			String folderId = summaryRecordVO.getId();
+			String userId = presenter.getUser().getId();
+			FolderEventNotification folderEventNotification = (FolderEventNotification) RecordEventNotification.get(folderId, userId);
+			if (folderEventNotification == null) {
+				folderEventNotification = new FolderEventNotification(folderId, userId);
+			}
+			folderEventNotification.setEditFolder(editFolderField.getValue());
+			folderEventNotification.setDeleteFolder(deleteFolderField.getValue());
+			folderEventNotification.setAddSubFolder(addSubFolderField.getValue());
+			folderEventNotification.setEditSubFolder(editSubFolderField.getValue());
+			folderEventNotification.setDeleteSubFolder(deleteSubFolderField.getValue());
+			folderEventNotification.setAddDocument(addDocumentField.getValue());
+			folderEventNotification.setEditDocument(editDocumentField.getValue());
+			folderEventNotification.setDeleteDocument(deleteDocumentField.getValue());
+			
+			String message = messageField.getValue();
+			if (StringUtils.isNotBlank(message)) {
+				folderEventNotification.setMessage(message);
+			} else {
+				folderEventNotification.setMessage(null);
+			}
+			
+			RecordEventNotification.addUpdateNotification(folderEventNotification);
+		}
+		
 	}
 	
 }

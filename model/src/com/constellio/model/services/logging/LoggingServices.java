@@ -73,6 +73,7 @@ public class LoggingServices {
 			Event event = eventFactory.logAddUpdateRecord(record, transaction.getUser());
 			if (event != null) {
 				eventsTransaction.addUpdate(event.getWrappedRecord());
+				RecordEventNotification.sendNotifications(event, modelLayerFactory);
 			}
 		}
 
