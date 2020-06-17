@@ -82,10 +82,15 @@ public class CacheRecordDTOUtils {
 
 	static TenantLocal<KeyLongMap<String>> filesystemStoredMetadataUsageCounter = new TenantLocal<>();
 
-	public static synchronized void startCompilingDTOsStats() {
-		if (compiledDTOStatsBuilder == null) {
-			compiledDTOStatsBuilder = new CompiledDTOStatsBuilder();
+	public static KeyLongMap<String> getFilesystemStoredMetadataUsageCounterAndInitIfNull() {
+		if (filesystemStoredMetadataUsageCounter.get() == null) {
+			filesystemStoredMetadataUsageCounter.set(new KeyLongMap<>());
 		}
+		return filesystemStoredMetadataUsageCounter.get();
+	}
+
+	public static void startCompilingDTOsStats() {
+		compiledDTOStatsBuilder.set(new CompiledDTOStatsBuilder());
 	}
 
 	public static synchronized CompiledDTOStats stopCompilingDTOsStats() {
