@@ -14,6 +14,7 @@ import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.services.factories.TestLogConfigurationFactory;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExportParams;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporter;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -74,6 +75,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.ConfigurationFactory;
 import org.apache.solr.client.solrj.SolrClient;
 import org.joda.time.Duration;
 import org.joda.time.LocalDate;
@@ -85,8 +89,6 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -125,6 +127,7 @@ import static org.junit.Assume.assumeTrue;
 
 public abstract class AbstractConstellioTest implements FailureDetectionTestWatcherListener {
 
+	public static Logger log = null;
 	protected static boolean notAUnitItest = false;
 
 	private static TestsSpeedStats stats = new TestsSpeedStats();
@@ -132,7 +135,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	public static final String SDK_STREAM = StreamsTestFeatures.SDK_STREAM;
 
 	public static SDKPropertiesLoader sdkPropertiesLoader = new SDKPropertiesLoader();
-	public final static Logger log = LoggerFactory.getLogger(AbstractConstellioTest.class);
+	//public final static Logger log = LoggerFactory.getLogger(AbstractConstellioTest.class);
 	//	private static boolean batchProcessControllerStarted = false;
 	private static String[] notUnitTestSuffix = new String[]{"AcceptanceTest", "IntegrationTest", "RealTest", "LoadTest",
 															 "StressTest", "PerformanceTest", "AcceptTest"};
@@ -173,6 +176,13 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	private File state1, state2;
 	private TemporaryFolder folder;
 
+	static {
+		ConfigurationFactory custom = new TestLogConfigurationFactory();
+		ConfigurationFactory.setConfigurationFactory(custom);
+		log = LogManager.getLogger(AbstractConstellioTest.class);
+	}
+
+
 	public AbstractConstellioTest() {
 
 		sdkProperties = sdkPropertiesLoader.getSDKProperties();
@@ -185,8 +195,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	@BeforeClass
 	public static void beforeClass()
 			throws Exception {
+		log.error("Error log message");
 		MetadataSchemasManager.cacheEnabled = true;
 
+		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
 		System.setProperty(BenchmarkOptionsSystemProperties.BENCHMARK_ROUNDS_PROPERTY, "1");
 		System.setProperty(BenchmarkOptionsSystemProperties.WARMUP_ROUNDS_PROPERTY, "0");
 		if (System.getProperty("jub.consumers") == null) {

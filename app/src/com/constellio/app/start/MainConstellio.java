@@ -27,6 +27,8 @@ public final class MainConstellio {
 
 	public static void main(String[] args)
 			throws IOException, InterruptedException, ZipServiceException {
+
+		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
 		changeTemporaryDirectory();
 		File constellioInstallationDir = new FoldersLocator().getWrapperInstallationFolder();
 
