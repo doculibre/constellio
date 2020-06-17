@@ -9,6 +9,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.tenant.TenantLocal;
 import com.constellio.model.utils.i18n.Utf8ResourceBundles;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.jexl3.JexlBuilder;
@@ -34,8 +35,7 @@ public class i18n {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(i18n.class);
 
-	// TODO Use a languageCode->Locale Map instead?
-	private static Locale locale;
+	private static TenantLocal<Locale> locale = new TenantLocal<Locale>();
 
 	private static List<Utf8ResourceBundles> defaultBundles = null;
 
@@ -52,11 +52,11 @@ public class i18n {
 		} catch (Throwable e) {
 			LOGGER.warn("error when trying to get session locale", e);
 		}
-		return locale;
+		return locale.get();
 	}
 
 	public static void setLocale(Locale locale) {
-		i18n.locale = locale;
+		i18n.locale.set(locale);
 		try {
 			ConstellioUI constellioUI = ConstellioUI.getCurrent();
 			SessionContext context = constellioUI == null ? null : constellioUI.getSessionContext();
