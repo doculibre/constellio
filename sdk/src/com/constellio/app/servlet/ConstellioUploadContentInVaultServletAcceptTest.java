@@ -30,7 +30,7 @@ public class ConstellioUploadContentInVaultServletAcceptTest extends ConstellioT
 	String bobToken;
 	String bobServiceKey = "bobServiceKey";
 	Users users = new Users();
-	private static int PORT_NUMBER = 7071;
+	private static int PORT_NUMBER = 7070;
 	private static String SERVLET_URL = "uploadContentInVault";
 
 	@Before
