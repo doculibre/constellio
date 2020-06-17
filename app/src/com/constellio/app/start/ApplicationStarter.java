@@ -1,6 +1,6 @@
 package com.constellio.app.start;
 
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConfiguration;

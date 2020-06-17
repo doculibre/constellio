@@ -3,7 +3,7 @@ package com.constellio.app.ui.acceptation;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;

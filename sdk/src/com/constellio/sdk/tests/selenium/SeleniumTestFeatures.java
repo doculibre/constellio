@@ -3,7 +3,7 @@ package com.constellio.sdk.tests.selenium;
 import com.constellio.app.client.services.AdminServicesSession;
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.client.cmis.client.CmisSessionBuilder;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTestSession;
 import com.constellio.sdk.tests.FactoriesTestFeatures;

@@ -4,7 +4,7 @@ import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtil
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.services.appManagement.InstallationService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;

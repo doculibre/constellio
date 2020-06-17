@@ -1,7 +1,7 @@
 package com.constellio.app.ui.acceptation;
 
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.Language;
 import com.constellio.sdk.dev.tools.CompareI18nKeys;
 import com.constellio.sdk.tests.ConstellioTest;

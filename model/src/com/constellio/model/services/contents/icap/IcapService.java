@@ -2,8 +2,8 @@ package com.constellio.model.services.contents.icap;
 
 import com.constellio.data.threads.ConstellioJob;
 import com.constellio.data.threads.ConstellioJobManager;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocatorMode;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;

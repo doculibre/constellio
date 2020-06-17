@@ -1,6 +1,7 @@
 package com.constellio.model.conf;
 
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.conf.PropertiesConfiguration;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.services.encrypt.EncryptionServices;

@@ -1,9 +1,10 @@
-package com.constellio.model.conf;
+package com.constellio.data.conf;
 
+import com.constellio.data.conf.FoldersLocatorRuntimeException.NotAvailableInGitMode;
 import com.constellio.data.utils.LangUtils;
-import com.constellio.model.conf.FoldersLocatorRuntimeException.NotAvailableInGitMode;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.FileAssert;
 import org.junit.Before;
@@ -12,16 +13,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.junit.runners.Parameterized;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 
 @RunWith(Parameterized.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -42,7 +40,7 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 			buildData, vaadin, themes, themesConstellio, themesConstellioImages, crypt,
 			modelBuildClassesMainComConstellioModelConf, modelBinComConstellioModelConf, workFolder;
 	String testCase;
-	private com.constellio.model.conf.FoldersLocator foldersLocator;
+	private FoldersLocator foldersLocator;
 
 	public FoldersLocatorGivenGitContextRealTest(String testCase) {
 		this.testCase = testCase;
@@ -142,35 +140,35 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 
 	private FoldersLocator newFoldersLocator(File customTempFolder, File customImportationFolder,
 											 File customSettingsFolder) {
-		FoldersLocator locator = spy(new FoldersLocator());
+		FoldersLocator locator = Mockito.spy(new FoldersLocator());
 		if (testCase == givenJavaRootFolderIsConstellioProject) {
-			doReturn(constellio).when(locator).getJavaRootFolder();
+			Mockito.doReturn(constellio).when(locator).getJavaRootFolder();
 
 		} else if (testCase == givenJavaRootFolderIsUIProject) {
-			doReturn(constellioApp).when(locator).getJavaRootFolder();
+			Mockito.doReturn(constellioApp).when(locator).getJavaRootFolder();
 
 		} else if (testCase == givenJavaRootFolderIsServicesProject) {
-			doReturn(constellioModel).when(locator).getJavaRootFolder();
+			Mockito.doReturn(constellioModel).when(locator).getJavaRootFolder();
 
 		} else if (testCase == givenJavaRootFolderIsDaoProject) {
-			doReturn(constellioData).when(locator).getJavaRootFolder();
+			Mockito.doReturn(constellioData).when(locator).getJavaRootFolder();
 
 		} else if (testCase == givenJavaRootFolderIsCustomProject) {
-			doReturn(custom).when(locator).getJavaRootFolder();
+			Mockito.doReturn(custom).when(locator).getJavaRootFolder();
 
 		} else if (testCase == givenJavaRootFolderIsSDKProject) {
-			doReturn(sdk).when(locator).getJavaRootFolder();
+			Mockito.doReturn(sdk).when(locator).getJavaRootFolder();
 
 		} else if (testCase == givenJavaRootFolderIsPluginsSDKProject) {
-			doReturn(constellioPluginsSdk).when(locator).getJavaRootFolder();
+			Mockito.doReturn(constellioPluginsSdk).when(locator).getJavaRootFolder();
 
 		} else if (testCase == givenClassInBuildClassesMain) {
 			String path = modelBuildClassesMainComConstellioModelConf.getAbsolutePath();
-			doReturn(path).when(locator).getCurrentClassPath();
+			Mockito.doReturn(path).when(locator).getCurrentClassPath();
 
 		} else if (testCase == givenClassInBin) {
 			String path = modelBinComConstellioModelConf.getAbsolutePath();
-			doReturn(path).when(locator).getCurrentClassPath();
+			Mockito.doReturn(path).when(locator).getCurrentClassPath();
 
 		}
 		return locator;
@@ -179,7 +177,7 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 	@Test
 	public void whenDetectingModeThenValidMode()
 			throws Exception {
-		assertThat(foldersLocator.getFoldersLocatorMode()).isEqualTo(FoldersLocatorMode.PROJECT);
+		Assertions.assertThat(foldersLocator.getFoldersLocatorMode()).isEqualTo(FoldersLocatorMode.PROJECT);
 	}
 
 	@Test
@@ -308,7 +306,7 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 	@Test
 	public void whenGetWorkFolderThenObtainCorrectFolderAndCreateItIfRequired() {
 		assertThatFile(foldersLocator.getWorkFolder()).isEqualTo(workFolder);
-		assertThat(workFolder).exists();
+		Assertions.assertThat(workFolder).exists();
 	}
 
 	/*
@@ -339,7 +337,7 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 	}
 
 	private FileAssert assertThatFile(File file) {
-		return assertThat(file).usingComparator(new Comparator<File>() {
+		return Assertions.assertThat(file).usingComparator(new Comparator<File>() {
 			@Override
 			public int compare(File o1, File o2) {
 				String p1 = o1 == null ? null : o1.getAbsolutePath();

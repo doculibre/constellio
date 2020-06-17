@@ -1,6 +1,6 @@
-package com.constellio.model.services.tenant;
+package com.constellio.data.services.tenant;
 
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 

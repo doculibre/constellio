@@ -3,7 +3,7 @@ package com.constellio.model.services.records.cache;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.KeyLongMap;
 import com.constellio.model.services.records.cache.CompiledDTOStats.CompiledDTOStatsBuilder;
-import com.constellio.model.utils.TenantUtils;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;

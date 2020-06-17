@@ -1,7 +1,7 @@
-package com.constellio.model.conf;
+package com.constellio.data.conf;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.utils.TenantUtils;
+import com.constellio.data.utils.TenantUtils;
 
 import java.io.File;
 import java.util.Arrays;
@@ -48,7 +48,7 @@ public class FoldersLocator {
 				File classFolder = new File(path);
 				finalPath = classFolder.getParentFile();
 
-				while (!finalPath.getName().equals("model") && !finalPath.getName().equals("WEB-INF")) {
+				while (!finalPath.getName().equals("model") && !finalPath.getName().equals("data") && !finalPath.getName().equals("WEB-INF")) {
 					finalPath = finalPath.getParentFile();
 				}
 

@@ -23,7 +23,7 @@ import com.constellio.model.services.records.cache.offHeapCollections.OffHeapLon
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapShortList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.utils.TenantUtils;
+import com.constellio.data.utils.TenantUtils;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

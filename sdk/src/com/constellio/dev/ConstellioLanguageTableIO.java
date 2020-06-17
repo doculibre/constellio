@@ -1,6 +1,6 @@
 package com.constellio.dev;
 
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import jxl.write.WritableFont;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;

@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.constellio.model.utils.TenantUtils.EMPTY_TENANT_ID;
+import static com.constellio.data.utils.TenantUtils.EMPTY_TENANT_ID;
 
 public class SingletonConstellioFactoriesInstanceProvider implements ConstellioFactoriesInstanceProvider {
 

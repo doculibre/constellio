@@ -12,7 +12,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
-import com.constellio.model.utils.TenantUtils;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.sdk.tests.annotations.PreserveState;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
 import org.apache.commons.lang.StringUtils;

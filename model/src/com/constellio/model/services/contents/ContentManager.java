@@ -105,7 +105,7 @@ import java.util.stream.Stream;
 import static com.constellio.data.dao.services.contents.ContentDao.MoveToVaultOption.ONLY_IF_INEXISTING;
 import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.utils.dev.Toggle.LOG_CONVERSION_FILENAME_AND_SIZE;
-import static com.constellio.model.conf.FoldersLocator.usingAppWrapper;
+import static com.constellio.data.conf.FoldersLocator.usingAppWrapper;
 import static com.constellio.model.entities.enums.ParsingBehavior.ASYNC_PARSING_FOR_ALL_CONTENTS;
 import static com.constellio.model.entities.enums.ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;

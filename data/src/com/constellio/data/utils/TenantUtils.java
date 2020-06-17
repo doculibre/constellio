@@ -1,7 +1,7 @@
-package com.constellio.model.utils;
+package com.constellio.data.utils;
 
-import com.constellio.model.services.tenant.TenantProperties;
-import com.constellio.model.services.tenant.TenantService;
+import com.constellio.data.services.tenant.TenantProperties;
+import com.constellio.data.services.tenant.TenantService;
 
 public class TenantUtils {
 

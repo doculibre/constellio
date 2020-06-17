@@ -1,8 +1,8 @@
 package com.constellio.model.services.records.populators;
 
 import com.constellio.data.utils.KeyListMap;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocatorMode;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;

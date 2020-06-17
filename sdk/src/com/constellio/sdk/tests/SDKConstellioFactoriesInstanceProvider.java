@@ -4,7 +4,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.factories.ConstellioFactoriesInstanceProvider;
 import com.constellio.app.services.factories.SingletonConstellioFactoriesInstanceProvider;
 import com.constellio.data.utils.Factory;
-import com.constellio.model.utils.TenantUtils;
+import com.constellio.data.utils.TenantUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

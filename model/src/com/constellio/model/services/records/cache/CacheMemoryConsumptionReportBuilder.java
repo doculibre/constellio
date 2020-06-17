@@ -1,7 +1,7 @@
 package com.constellio.model.services.records.cache;
 
 import com.constellio.data.utils.CacheStat;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.records.reindexing.SystemReindexingConsumptionInfos;

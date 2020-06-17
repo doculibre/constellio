@@ -1,4 +1,4 @@
-package com.constellio.model.conf;
+package com.constellio.data.conf;
 
 public enum FoldersLocatorMode {
 

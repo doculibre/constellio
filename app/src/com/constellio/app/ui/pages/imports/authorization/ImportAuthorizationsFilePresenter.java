@@ -7,7 +7,7 @@ import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.imports.ImportFilePresenterInterface;
 import com.constellio.app.ui.pages.imports.ImportFileView;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import org.apache.commons.io.FileUtils;

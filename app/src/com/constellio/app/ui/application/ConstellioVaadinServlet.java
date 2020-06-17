@@ -3,9 +3,9 @@ package com.constellio.app.ui.application;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.dao.services.Stats;
 import com.constellio.data.dao.services.Stats.CallStatCompiler;
-import com.constellio.model.services.tenant.TenantProperties;
-import com.constellio.model.services.tenant.TenantService;
-import com.constellio.model.utils.TenantUtils;
+import com.constellio.data.services.tenant.TenantProperties;
+import com.constellio.data.services.tenant.TenantService;
+import com.constellio.data.utils.TenantUtils;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.server.CustomizedSystemMessages;
 import com.vaadin.server.SystemMessages;
@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.utils.TenantUtils.EMPTY_TENANT_ID;
+import static com.constellio.data.utils.TenantUtils.EMPTY_TENANT_ID;
 
 @SuppressWarnings("serial")
 @WebServlet(value = "/*", asyncSupported = true)

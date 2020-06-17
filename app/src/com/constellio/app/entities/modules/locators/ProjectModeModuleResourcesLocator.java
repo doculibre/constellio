@@ -1,6 +1,6 @@
 package com.constellio.app.entities.modules.locators;
 
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.utils.i18n.Utf8ResourceBundles;
 
 import java.io.File;

@@ -1,4 +1,4 @@
-package com.constellio.model.services.tenant;
+package com.constellio.data.services.tenant;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;

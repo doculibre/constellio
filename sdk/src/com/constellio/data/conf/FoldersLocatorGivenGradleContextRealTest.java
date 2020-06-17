@@ -1,19 +1,17 @@
-package com.constellio.model.conf;
+package com.constellio.data.conf;
 
 import com.constellio.sdk.tests.ConstellioTestWithGlobalContext;
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWithGlobalContext {
@@ -97,19 +95,19 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 	@Before
 	public void setUp()
 			throws IOException {
-		foldersLocator = spy(new FoldersLocator());
-		doReturn(classpath).when(foldersLocator).getCurrentClassPath();
+		foldersLocator = Mockito.spy(new FoldersLocator());
+		Mockito.doReturn(classpath).when(foldersLocator).getCurrentClassPath();
 	}
 
 	@Test
 	public void whenDetectingModeThenValidMode()
 			throws Exception {
-		assertThat(foldersLocator.getFoldersLocatorMode()).isEqualTo(FoldersLocatorMode.PROJECT);
+		Assertions.assertThat(foldersLocator.getFoldersLocatorMode()).isEqualTo(FoldersLocatorMode.PROJECT);
 	}
 
 	@Test
 	public void whenGradleClasspathIsJarThenRightJavaRootFolder() {
-		assertThat(foldersLocator.getJavaRootFolder().getAbsolutePath()).isEqualTo(constellio.getAbsolutePath());
+		Assertions.assertThat(foldersLocator.getJavaRootFolder().getAbsolutePath()).isEqualTo(constellio.getAbsolutePath());
 	}
 
 	@Test
@@ -119,7 +117,7 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 
 	@Test
 	public void whenGetDictFolderThenReturnCorrectFolder() {
-		assertThat(foldersLocator.getDict().getAbsolutePath()).isEqualTo(dict.getAbsolutePath());
+		Assertions.assertThat(foldersLocator.getDict().getAbsolutePath()).isEqualTo(dict.getAbsolutePath());
 	}
 
 	@Test
@@ -129,7 +127,7 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 
 	@Test
 	public void whenGetConstellioEncryptionFileThenReturnCorrectFolder() {
-		assertThat(foldersLocator.getConstellioEncryptionFile()).is(samePath(crypt));
+		Assertions.assertThat(foldersLocator.getConstellioEncryptionFile()).is(samePath(crypt));
 	}
 
 	@Test
@@ -140,44 +138,44 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 	@Test
 	public void whenGetConstellioLanguageSchemasFolderThenReturnCorrectFolder()
 			throws Exception {
-		assertThat(foldersLocator.getLanguageProfiles().getAbsolutePath()).isEqualTo(languageProfiles.getAbsolutePath());
+		Assertions.assertThat(foldersLocator.getLanguageProfiles().getAbsolutePath()).isEqualTo(languageProfiles.getAbsolutePath());
 	}
 
 	@Test
 	public void whenGetConstellioConfFolderThenReturnCorrectFolder()
 			throws Exception {
-		assertThat(foldersLocator.getConfFolder().getAbsolutePath()).isEqualTo(conf.getAbsolutePath());
+		Assertions.assertThat(foldersLocator.getConfFolder().getAbsolutePath()).isEqualTo(conf.getAbsolutePath());
 	}
 
 	@Test
 	public void whenGetBPMNsFolderThenReturnCorrectFolder()
 			throws Exception {
-		assertThat(foldersLocator.getBPMNsFolder().getAbsolutePath()).isEqualTo(bpmns.getAbsolutePath());
+		Assertions.assertThat(foldersLocator.getBPMNsFolder().getAbsolutePath()).isEqualTo(bpmns.getAbsolutePath());
 	}
 
 	@Test
 	public void whenGetSmtpMailThenReturnCorrectFolder()
 			throws Exception {
-		assertThat(foldersLocator.getSmtpMailFolder().getAbsolutePath()).isEqualTo(smtpMail.getAbsolutePath());
+		Assertions.assertThat(foldersLocator.getSmtpMailFolder().getAbsolutePath()).isEqualTo(smtpMail.getAbsolutePath());
 	}
 
 	@Test
 	public void whenGetConstellioPropertiesFileThenReturnCorrectFile()
 			throws Exception {
-		assertThat(foldersLocator.getConstellioProperties().getAbsolutePath()).isEqualTo(constellioProperties.getAbsolutePath());
+		Assertions.assertThat(foldersLocator.getConstellioProperties().getAbsolutePath()).isEqualTo(constellioProperties.getAbsolutePath());
 	}
 
 	@Test
 	public void whenGetIntelliGISetupDPropertiesFileThenReturnCorrectFile()
 			throws Exception {
-		assertThat(foldersLocator.getConstellioSetupProperties().getAbsolutePath())
+		Assertions.assertThat(foldersLocator.getConstellioSetupProperties().getAbsolutePath())
 				.isEqualTo(constellioSetupProperties.getAbsolutePath());
 	}
 
 	@Test
 	public void whenGetConstellioWebInfFolderThenReturnCorrectFolder()
 			throws Exception {
-		assertThat(foldersLocator.getConstellioWebinfFolder().getAbsolutePath()).isEqualTo(webinf.getAbsolutePath());
+		Assertions.assertThat(foldersLocator.getConstellioWebinfFolder().getAbsolutePath()).isEqualTo(webinf.getAbsolutePath());
 	}
 
 	@Test
@@ -189,14 +187,14 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 	@Test
 	public void whenGetWarFileThenObtainCorrectFileInUpdateClientTempFolder()
 			throws Exception {
-		assertThat(foldersLocator.getUploadConstellioWarFile().getAbsolutePath())
+		Assertions.assertThat(foldersLocator.getUploadConstellioWarFile().getAbsolutePath())
 				.isEqualTo(uploadConstellioWar.getAbsolutePath());
 	}
 
 	@Test
 	public void whenGetTempFolderThenObtainCorrectFolderInProjectTempFolder()
 			throws Exception {
-		assertThat(foldersLocator.getDefaultTempFolder().getAbsolutePath()).isEqualTo(temp.getAbsolutePath());
+		Assertions.assertThat(foldersLocator.getDefaultTempFolder().getAbsolutePath()).isEqualTo(temp.getAbsolutePath());
 	}
 
 	@Test
@@ -214,12 +212,12 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 	@Test
 	public void whenGetDefaultImportationFolderThenObtainCorrectFolderInConstellioProject()
 			throws Exception {
-		assertThat(foldersLocator.getDefaultImportationFolder().getAbsolutePath()).isEqualTo(importation.getAbsolutePath());
+		Assertions.assertThat(foldersLocator.getDefaultImportationFolder().getAbsolutePath()).isEqualTo(importation.getAbsolutePath());
 	}
 
 	@Test
 	public void whenGetCustomProjectThenObtainCorrectFolder() {
-		assertThat(foldersLocator.getCustomProject().getAbsolutePath()).isEqualTo(custom.getAbsolutePath());
+		Assertions.assertThat(foldersLocator.getCustomProject().getAbsolutePath()).isEqualTo(custom.getAbsolutePath());
 	}
 
 	@Test
@@ -234,19 +232,19 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 
 	@Test
 	public void whenGetSettingsThenObtainCorrectFolder() {
-		assertThat(foldersLocator.getDefaultSettingsFolder().getAbsolutePath()).isEqualTo(settings.getAbsolutePath());
+		Assertions.assertThat(foldersLocator.getDefaultSettingsFolder().getAbsolutePath()).isEqualTo(settings.getAbsolutePath());
 	}
 
 	@Test
 	public void whenConstellioThemesImagesThenObtainCorrectFolder() {
-		assertThat(foldersLocator.getConstellioThemeImages().getAbsolutePath())
+		Assertions.assertThat(foldersLocator.getConstellioThemeImages().getAbsolutePath())
 				.isEqualTo(themesConstellioImages.getAbsolutePath());
 	}
 
 	@Test
 	public void whenGetWorkFolderThenObtainCorrectFolderAndCreateItIfRequired() {
-		assertThat(foldersLocator.getWorkFolder().getAbsolutePath()).isEqualTo(workFolder.getAbsolutePath());
-		assertThat(workFolder).exists();
+		Assertions.assertThat(foldersLocator.getWorkFolder().getAbsolutePath()).isEqualTo(workFolder.getAbsolutePath());
+		Assertions.assertThat(workFolder).exists();
 	}
 
 	private Condition<? super File> samePath(final File expectedPath) {

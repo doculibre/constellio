@@ -9,7 +9,7 @@ import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.records.cache.CompiledDTOStats.CompiledDTOStatsBuilder;
-import com.constellio.model.services.tenant.TenantLocal;
+import com.constellio.data.services.tenant.TenantLocal;
 import lombok.AllArgsConstructor;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;

@@ -5,7 +5,7 @@ import com.constellio.data.dao.services.Stats;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.threads.ConstellioThread;
 import com.constellio.data.utils.BatchBuilderIterator;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
@@ -46,7 +46,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.constellio.model.conf.FoldersLocatorMode.PROJECT;
+import static com.constellio.data.conf.FoldersLocatorMode.PROJECT;
 
 public class BatchProcessControllerThread extends ConstellioThread {
 
