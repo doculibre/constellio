@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -28,20 +29,22 @@ public class ConstellioJobManager implements StatefulService {
 	private Scheduler scheduler;
 
 	private DataLayerConfiguration dataLayerConfiguration;
+	private String instanceName;
 
 	AtomicBoolean systemStarted = new AtomicBoolean();
 
 	List<ConstellioJobInStandby> jobsInStandby = new ArrayList<>();
 
-	public ConstellioJobManager(DataLayerConfiguration dataLayerConfiguration) {
+	public ConstellioJobManager(DataLayerConfiguration dataLayerConfiguration, String instanceName) {
 		this.dataLayerConfiguration = dataLayerConfiguration;
+		this.instanceName = instanceName;
 	}
 
 	@Override
 	public void initialize() {
 		if (dataLayerConfiguration.isBackgroundThreadsEnabled()) {
 			try {
-				scheduler = new StdSchedulerFactory().getScheduler();
+				scheduler = new StdSchedulerFactory(createProperties()).getScheduler();
 
 				scheduler.start();
 			} catch (final SchedulerException e) {
@@ -117,6 +120,21 @@ public class ConstellioJobManager implements StatefulService {
 			addJob(jobInStandby.job, jobInStandby.cleanPreviousTriggers);
 		}
 		jobsInStandby.clear();
+	}
+
+	private Properties createProperties() {
+		Properties properties = new Properties();
+		properties.setProperty("org.quartz.scheduler.instanceName", instanceName);
+		properties.setProperty("org.quartz.scheduler.rmi.export", "false");
+		properties.setProperty("org.quartz.scheduler.rmi.proxy", "false");
+		properties.setProperty("org.quartz.scheduler.wrapJobExecutionInUserTransaction", "false");
+		properties.setProperty("org.quartz.threadPool.class", "org.quartz.simpl.SimpleThreadPool");
+		properties.setProperty("org.quartz.threadPool.threadCount", "10");
+		properties.setProperty("org.quartz.threadPool.threadPriority", "5");
+		properties.setProperty("org.quartz.threadPool.threadsInheritContextClassLoaderOfInitializingThread", "true");
+		properties.setProperty("org.quartz.jobStore.misfireThreshold", "60000");
+		properties.setProperty("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
+		return properties;
 	}
 
 	private static class ConstellioJobInStandby {

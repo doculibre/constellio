@@ -10,7 +10,7 @@ import java.util.List;
 public class FoldersLocator {
 
 	public static final String CONSTELLIO_TMP = "constellio_tmp";
-	private static boolean CONTEXT_PRINTED = false;
+	private static boolean CONTEXT_PRINTED = true;
 
 	private static FoldersLocatorMode foldersLocatorModeCached;
 
@@ -186,7 +186,11 @@ public class FoldersLocator {
 	}
 
 	public File getConstellioProperties() {
-		return new File(getConfFolder(), "constellio.properties");
+		return getConstellioProperties(true);
+	}
+
+	public File getConstellioProperties(boolean appendTenantFolder) {
+		return new File(getConfFolder(appendTenantFolder), "constellio.properties");
 	}
 
 	public File getConstellioSetupProperties() {
@@ -198,7 +202,7 @@ public class FoldersLocator {
 	}
 
 	public File getLogsFolder() {
-		return new File(getWrapperInstallationFolder(), concatTenantFolder("logs"));
+		return new File(getWrapperInstallationFolder(), "logs");
 	}
 
 	public File getBatFolder() {
@@ -232,10 +236,15 @@ public class FoldersLocator {
 	}*/
 
 	public File getDefaultTempFolder() {
-		String tempFolder = concatTenantFolder("temp");
+		return getDefaultTempFolder(true);
+	}
+
+	public File getDefaultTempFolder(boolean appendTenantFolder) {
+		String tempFolder = appendTenantFolder ? concatTenantFolder("temp") : "temp";
 
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
-			File file = new File(getWrapperInstallationFolder().getParentFile(), concatTenantFolder(CONSTELLIO_TMP));
+			String constellioTmpFolder = appendTenantFolder ? concatTenantFolder(CONSTELLIO_TMP) : CONSTELLIO_TMP;
+			File file = new File(getWrapperInstallationFolder().getParentFile(), constellioTmpFolder);
 			if (file.exists() && file.isDirectory()) {
 				return file;
 			} else {
@@ -325,6 +334,7 @@ public class FoldersLocator {
 		if (foldersLocatorModeCached == null) {
 			foldersLocatorModeCached = detectFoldersLocatorMode();
 
+			// FIXME disabled since it cause a loop with tenant service
 			if (!CONTEXT_PRINTED) {
 				System.out.println("========================================================================");
 				System.out.println("CLASS FOLDER  : '" + getCurrentClassPath() + "'");
@@ -562,7 +572,11 @@ public class FoldersLocator {
 	}
 
 	public File getPluginsJarsFolder() {
-		String pluginsJarsFolder = concatTenantFolder("plugins");
+		return getPluginsJarsFolder(false);
+	}
+
+	public File getPluginsJarsFolder(boolean appendTenantFolder) {
+		String pluginsJarsFolder = appendTenantFolder ? concatTenantFolder("plugins") : "plugins";
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER || getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
 			return new File(getConstellioWebinfFolder(), pluginsJarsFolder);
 
@@ -572,12 +586,17 @@ public class FoldersLocator {
 	}
 
 	public File getPluginsToMoveOnStartupFile() {
+		return getPluginsToMoveOnStartupFile(false);
+	}
+
+	public File getPluginsToMoveOnStartupFile(boolean appendTenantFolder) {
 		File pluginManagementFolder;
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER || getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
-			pluginManagementFolder = new File(getConstellioWebinfFolder(), concatTenantFolder("pluginsManagement"));
-
+			String pluginsFolder = appendTenantFolder ? concatTenantFolder("pluginsManagement") : "pluginsManagement";
+			pluginManagementFolder = new File(getConstellioWebinfFolder(), pluginsFolder);
 		} else {
-			pluginManagementFolder = new File(getConstellioWebappFolder(), concatTenantFolder("pluginsManagement"));
+			String pluginsFolder = appendTenantFolder ? concatTenantFolder("pluginsManagement") : "pluginsManagement";
+			pluginManagementFolder = new File(getConstellioWebappFolder(), pluginsFolder);
 		}
 		return new File(pluginManagementFolder, "toMoveOnStartup");
 	}

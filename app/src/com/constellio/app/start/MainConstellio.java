@@ -46,7 +46,7 @@ public final class MainConstellio {
 			PluginManagementUtils utils = new PluginManagementUtils(folderLocator);
 			Set<String> pluginsToMove = utils.getPluginsToMove();
 			if (pluginsToMove.isEmpty()) {
-				Map<String, String> configs = PropertyFileUtils.loadKeyValues(folderLocator.getConstellioProperties());
+				Map<String, String> configs = PropertyFileUtils.loadKeyValues(folderLocator.getConstellioProperties(false));
 				boolean initOnStartup = true;
 				if ("false".equals(configs.get("init.startup"))) {
 					initOnStartup = false;
@@ -63,7 +63,7 @@ public final class MainConstellio {
 
 	private static void changeTemporaryDirectory() {
 		FoldersLocator foldersLocator = new FoldersLocator();
-		File tempFile = foldersLocator.getDefaultTempFolder();
+		File tempFile = foldersLocator.getDefaultTempFolder(false);
 		try {
 			FileUtils.deleteDirectory(tempFile);
 		} catch (IOException e) {
@@ -141,7 +141,7 @@ public final class MainConstellio {
 	}
 
 	private static Map<String, String> readProperties() {
-		return PropertyFileUtils.loadKeyValues(new FoldersLocator().getConstellioProperties());
+		return PropertyFileUtils.loadKeyValues(new FoldersLocator().getConstellioProperties(false));
 	}
 
 }

@@ -15,7 +15,8 @@ public class LanguageDetectionManager implements StatefulService {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(LanguageDetectionManager.class);
 
-	private static boolean schemasLoaded;
+	private static boolean schemasLoaded = false;
+	private static final Object schemasLoadedLock = new Object();
 
 	private File languageProfiles;
 
@@ -25,20 +26,22 @@ public class LanguageDetectionManager implements StatefulService {
 
 	@Override
 	public void initialize() {
-		if (!schemasLoaded) {
-			try {
-				LOGGER.info("Loading profiles " + languageProfiles.getAbsolutePath());
-				DetectorFactory.loadProfile(languageProfiles);
+		synchronized (schemasLoadedLock) {
+			if (!schemasLoaded) {
+				try {
+					LOGGER.info("Loading profiles " + languageProfiles.getAbsolutePath());
+					DetectorFactory.loadProfile(languageProfiles);
 
-				//Langdetect uses random sampling for avoiding local noises(person name, place name and so on),
-				//so the language detections of the same document might differ for every time.
-				//This feature is disabled since it cause to much random behaviors
-				DetectorFactory.setSeed(0);
+					//Langdetect uses random sampling for avoiding local noises(person name, place name and so on),
+					//so the language detections of the same document might differ for every time.
+					//This feature is disabled since it cause to much random behaviors
+					DetectorFactory.setSeed(0);
 
-			} catch (Throwable e) {
-				throw new LanguageDetectionServicesRuntimeException("Cannot load schemas", e);
+				} catch (Throwable e) {
+					throw new LanguageDetectionServicesRuntimeException("Cannot load schemas", e);
+				}
+				schemasLoaded = true;
 			}
-			schemasLoaded = true;
 		}
 	}
 

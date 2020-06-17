@@ -95,11 +95,11 @@ public class FoldersLocatorGivenMultiTenancyWrapperContextRealTest extends Const
 	public void getLogsFolder() {
 		TenantUtils.setTenant("1");
 		File file = foldersLocator.getLogsFolder();
-		assertThat(file.getPath()).endsWith("logs/tenant1");
+		assertThat(file.getPath()).endsWith("logs");
 
 		TenantUtils.setTenant("2");
 		File file2 = foldersLocator.getLogsFolder();
-		assertThat(file2.getPath()).endsWith("logs/tenant2");
+		assertThat(file2.getPath()).endsWith("logs");
 	}
 
 	@Test

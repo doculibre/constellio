@@ -75,8 +75,9 @@ public class ConstellioFactories {
 
 	private static ConstellioFactories getInstance(final String tenantId, final Supplier<File> propertyFileSupplier,
 												   final ConstellioFactoriesDecorator decorator) {
+		String instanceName = tenantId != null ? "tenant" + tenantId : null;
 		return instanceProvider.getInstance(tenantId,
-				() -> buildFor(propertyFileSupplier.get(), decorator, null, (short) 0));
+				() -> buildFor(propertyFileSupplier.get(), decorator, instanceName, (short) 0));
 	}
 
 	public static void start() {

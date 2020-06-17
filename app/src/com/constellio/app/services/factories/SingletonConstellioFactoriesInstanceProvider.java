@@ -31,7 +31,13 @@ public class SingletonConstellioFactoriesInstanceProvider implements ConstellioF
 		return instanceByTenantId.computeIfAbsent(currentTenantId, key -> {
 			ConstellioFactories instanceBeingInitialized = constellioFactoriesFactory.get();
 
-			CompletableFuture.runAsync(() -> initializeInstance(key, instanceBeingInitialized));
+			CompletableFuture.runAsync(() -> {
+				try {
+					initializeInstance(key, instanceBeingInitialized);
+				} catch (Exception e) {
+					LOGGER.error("Error while initializing for tenant " + tenantId, e);
+				}
+			});
 
 			return instanceBeingInitialized;
 		});
