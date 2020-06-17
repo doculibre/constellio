@@ -45,7 +45,7 @@ public class CacheRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void getCompiledDTOStatsBuilderTest() throws Exception {
+	public void givenTenantsWhenInitializingDTOStatsBuilderThenGettingOtherDTOStatsBuilder() throws Exception {
 		String tenantId = "1";
 		TenantUtils.setTenant(tenantId);
 
@@ -75,7 +75,7 @@ public class CacheRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void getLastCompiledDTOStatsTest() throws Exception {
+	public void givenTenantsWhenInitializingDTOStatsThenGettingOtherDTOStats() throws Exception {
 		String tenantId = "1";
 		TenantUtils.setTenant(tenantId);
 
@@ -106,7 +106,8 @@ public class CacheRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 
 	@Test
-	public void getFilesystemStoredMetadataUsageCounterTest() throws Exception {
+	public void givenTenantsWhenInitializingFsStoredMetadataUsageThenGettingOtherFsStoredMetadataUsage()
+			throws Exception {
 		String tenantId = "1";
 		TenantUtils.setTenant(tenantId);
 
