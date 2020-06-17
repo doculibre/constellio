@@ -41,7 +41,8 @@ public class i18nMultiTenantAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void getLocaleTest() throws Exception {
+	public void givenTenantsWithDifferentLanguagesWhenInitializingCollectionThenAllHaveTheirDefaultLanguage()
+			throws Exception {
 		String tenantId = "1";
 		TenantUtils.setTenant(tenantId);
 		assertThat(i18n.getLocale()).isEqualTo(new Locale("fr"));
@@ -54,7 +55,7 @@ public class i18nMultiTenantAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void setLocaleTest() throws Exception {
+	public void whenChangingDefaultLanguageThenOnlyChangedForCurrentTenant() throws Exception {
 		String tenantId = "1";
 		TenantUtils.setTenant(tenantId);
 
