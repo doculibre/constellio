@@ -33,6 +33,7 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.modules.PluginUtil;
 import com.constellio.model.entities.records.Record;
@@ -48,6 +49,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.model.utils.TenantUtils;
 import com.vaadin.server.Page;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -105,7 +107,12 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 
 	public void restart() {
 		try {
-			appLayerFactory.newApplicationService().restart();
+			if (hasUpdatePermission()) {
+				appLayerFactory.newApplicationService().restart();
+			} else {
+				ConstellioFactories.clear();
+				ConstellioFactories.getInstance();
+			}
 		} catch (AppManagementServiceException e) {
 			view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
 		}
@@ -115,6 +122,13 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
+		return true;
+	}
+
+	private boolean hasUpdatePermission() {
+		if (TenantUtils.isSupportingTenants()) {
+			return Toggle.ENABLE_CLOUD_SYSADMIN_FEATURES.isEnabled();
+		}
 		return true;
 	}
 
@@ -370,6 +384,11 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 
 	private void loadTransactionLog()
 			throws AppManagementServiceException {
-		appLayerFactory.newApplicationService().restart();
+		if (hasUpdatePermission()) {
+			appLayerFactory.newApplicationService().restart();
+		} else {
+			ConstellioFactories.clear();
+			ConstellioFactories.getInstance();
+		}
 	}
 }
