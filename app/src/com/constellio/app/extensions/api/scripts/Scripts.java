@@ -1,23 +1,33 @@
 package com.constellio.app.extensions.api.scripts;
 
+import com.constellio.data.services.tenant.TenantLocal;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class Scripts {
 
-	private static List<Script> scripts = new ArrayList<>();
+	private static TenantLocal<List<Script>> scripts = new TenantLocal<>();
 
 	public static void registerScript(Script script) {
-		scripts.add(script);
+		if (scripts.get() == null) {
+			scripts.set(new ArrayList<Script>());
+		}
+		scripts.get().add(script);
 	}
 
 	public static List<Script> getScripts() {
-		return Collections.unmodifiableList(scripts);
+		if (scripts.get() == null) {
+			scripts.set(new ArrayList<Script>());
+		}
+		return Collections.unmodifiableList(scripts.get());
 	}
 
 	public static void removeScripts() {
-		scripts.clear();
+		if (scripts.get() != null) {
+			scripts.get().clear();
+		}
 	}
 
 }
