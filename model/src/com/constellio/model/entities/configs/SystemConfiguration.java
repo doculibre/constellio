@@ -1,5 +1,6 @@
 package com.constellio.model.entities.configs;
 
+import com.constellio.data.services.tenant.TenantLocal;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 
@@ -7,7 +8,9 @@ import java.io.Serializable;
 
 public class SystemConfiguration implements Serializable {
 
-	boolean hidden;
+	TenantLocal<Boolean> hidden;
+
+	boolean defaultHidden;
 
 	SystemConfigurationType type;
 
@@ -34,6 +37,8 @@ public class SystemConfiguration implements Serializable {
 						Class<? extends Enum<?>> enumClass, Class<? extends SystemConfigurationScript> scriptClass,
 						boolean hidden,
 						boolean rebootRequired, boolean hiddenValue, boolean requireReIndexing) {
+		this.hidden = new TenantLocal<Boolean>();
+
 		this.type = type;
 		this.configGroupCode = configGroupCode;
 		this.code = code;
@@ -41,7 +46,8 @@ public class SystemConfiguration implements Serializable {
 		this.defaultValue = defaultValue;
 		this.enumClass = enumClass;
 		this.scriptClass = scriptClass;
-		this.hidden = hidden;
+		this.hidden.set(hidden);
+		this.defaultHidden = hidden;
 		this.rebootRequired = rebootRequired;
 		this.hiddenValue = hiddenValue;
 		this.propertyKey = configGroupCode + "_" + code;
@@ -77,13 +83,13 @@ public class SystemConfiguration implements Serializable {
 	}
 
 	public SystemConfiguration withDefaultValue(Object value) {
-		return new SystemConfiguration(type, module, configGroupCode, code, value, enumClass, scriptClass, hidden, rebootRequired,
+		return new SystemConfiguration(type, module, configGroupCode, code, value, enumClass, scriptClass, getIsHiddenOrInitIfNull(), rebootRequired,
 				hiddenValue, requireReIndexing);
 
 	}
 
 	public SystemConfiguration scriptedBy(Class<? extends SystemConfigurationScript> scriptClass) {
-		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, hidden,
+		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, getIsHiddenOrInitIfNull(),
 				rebootRequired, hiddenValue, requireReIndexing);
 	}
 
@@ -116,26 +122,26 @@ public class SystemConfiguration implements Serializable {
 	}
 
 	public SystemConfiguration whichRequiresReboot() {
-		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, hidden,
+		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, getIsHiddenOrInitIfNull(),
 				true, hiddenValue, requireReIndexing);
 	}
 
 	public SystemConfiguration whichHasHiddenValue() {
-		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, hidden,
+		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, getIsHiddenOrInitIfNull(),
 				rebootRequired, true, requireReIndexing);
 	}
 
 	public SystemConfiguration withReIndexationRequired() {
-		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, hidden,
+		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, getIsHiddenOrInitIfNull(),
 				rebootRequired, hiddenValue, true);
 	}
 
 	public boolean isHidden() {
-		return hidden;
+		return getIsHiddenOrInitIfNull();
 	}
 
 	public void setHidden(boolean hidden) {
-		this.hidden = hidden;
+		this.hidden.set(hidden);
 	}
 
 	public boolean isHiddenValue() {
@@ -155,7 +161,14 @@ public class SystemConfiguration implements Serializable {
 	}
 
 	public void hide() {
-		this.hidden = true;
+		this.hidden.set(true);
+	}
+
+	private boolean getIsHiddenOrInitIfNull() {
+		if (hidden.get() == null) {
+			hidden.set(defaultHidden);
+		}
+		return hidden.get();
 	}
 }
 
