@@ -1,8 +1,8 @@
 package com.constellio.app.ui.pages.management.updates;
 
 import com.constellio.app.ui.entities.UserCredentialVO;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.dev.Toggle;
-import com.constellio.model.utils.TenantUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;

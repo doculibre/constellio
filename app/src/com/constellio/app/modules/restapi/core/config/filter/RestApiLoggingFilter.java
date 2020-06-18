@@ -1,4 +1,4 @@
-package com.constellio.app.modules.restapi.core.config;
+package com.constellio.app.modules.restapi.core.config.filter;
 
 import lombok.extern.slf4j.Slf4j;
 
