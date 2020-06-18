@@ -1,24 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.DisplayMode.PRINCIPALS;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.sliderpanel.client.SliderPanelListener;
-
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
@@ -109,6 +90,24 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.sliderpanel.client.SliderPanelListener;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.DisplayMode.PRINCIPALS;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler, BrowserWindowResizeListener, NavigationParams {
 
@@ -260,7 +259,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		tabSheet.addTab(recordDisplay, $("DisplayFolderView.tabs.metadata"));
 		tabSheet.addTab(tasksComponent, $("DisplayFolderView.tabs.tasks", presenter.getTaskCount()));
 		tabSheet.addTab(sharesComponent, $("DisplayFolderView.tabs.shares"));
-		tabSheet.addTab(new FolderNotificationsTab(), "Alertes");
+		tabSheet.addTab(new FolderNotificationsTab(), " Alertes");
 
 		eventsComponent = new CustomComponent();
 		tabSheet.addTab(eventsComponent, $("DisplayFolderView.tabs.logs"));
@@ -1133,6 +1132,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		private RichTextArea messageField;
 		
 		public FolderNotificationsTab() {
+			setSpacing(true);
+			
 			editFolderField = new CheckBox("M'aviser par courriel si le dossier est modifié");
 			deleteFolderField = new CheckBox("M'aviser par courriel si le dossier est supprimé");
 			addSubFolderField = new CheckBox("M'aviser par courriel si un sous-dossier est ajouté");
@@ -1142,6 +1143,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			editDocumentField = new CheckBox("M'aviser par courriel si un document est modifié");
 			deleteDocumentField = new CheckBox("M'aviser par courriel si un document est supprimé");
 			messageField = new RichTextArea("Message de notification personnalisé");
+			messageField.setImmediate(true);
 			
 			FolderEventNotification folderEventNotification = (FolderEventNotification) RecordEventNotification.get(summaryRecordVO.getId(), presenter.getUser().getId());
 			if (folderEventNotification != null) {
@@ -1153,7 +1155,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				addDocumentField.setValue(folderEventNotification.isAddDocument());
 				editDocumentField.setValue(folderEventNotification.isEditDocument());
 				deleteDocumentField.setValue(folderEventNotification.isDeleteDocument());
-				messageField.setValue(folderEventNotification.getMessage());
+				if (StringUtils.isNotBlank(folderEventNotification.getMessage())) {
+					messageField.setValue(folderEventNotification.getMessage());
+				}
 			}
 
 			editFolderField.addValueChangeListener(this);

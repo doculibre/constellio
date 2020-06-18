@@ -65,7 +65,6 @@ import com.constellio.data.dao.services.Stats;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.services.logging.RecordEventNotification;
 import com.constellio.model.services.logging.RecordEventNotification.DocumentEventNotification;
-import com.constellio.model.services.logging.RecordEventNotification.FolderEventNotification;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -355,7 +354,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		} else {
 			tabSheet.getTab(eventsComponent).setEnabled(false);
 		}
-		tabSheet.addTab(new DocumentNotificationsTab(), "Alertes");
+		tabSheet.addTab(new DocumentNotificationsTab(), " Alertes");
 
 		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
 			@Override
@@ -994,15 +993,20 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		private RichTextArea messageField;
 		
 		public DocumentNotificationsTab() {
+			setSpacing(true);
+			
 			editDocumentField = new CheckBox("M'aviser par courriel si le document est modifié");
-			deleteDocumentField = new CheckBox("M'aviser par courriel si un document est supprimé");
+			deleteDocumentField = new CheckBox("M'aviser par courriel si le document est supprimé");
 			messageField = new RichTextArea("Message de notification personnalisé");
+			messageField.setImmediate(true);
 			
 			DocumentEventNotification documentEventNotification = (DocumentEventNotification) RecordEventNotification.get(documentVO.getId(), presenter.getUser().getId());
 			if (documentEventNotification != null) {
 				editDocumentField.setValue(documentEventNotification.isEditDocument());
 				deleteDocumentField.setValue(documentEventNotification.isDeleteDocument());
-				messageField.setValue(documentEventNotification.getMessage());
+				if (StringUtils.isNotBlank(documentEventNotification.getMessage())) {
+					messageField.setValue(documentEventNotification.getMessage());
+				}
 			}
 			
 			editDocumentField.addValueChangeListener(this);
