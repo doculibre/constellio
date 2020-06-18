@@ -3,7 +3,6 @@ package com.constellio.app.ui.i18n;
 
 import com.constellio.data.utils.TenantUtils;
 import com.constellio.sdk.tests.ConstellioTest;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Locale;
@@ -14,9 +13,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class i18nMultiTenantAcceptanceTest extends ConstellioTest {
 
-	protected void givenMultiCulturalTenantsSystem() {
+	private void givenMultiCulturalTenantsSystem() {
 		givenTwoTenants();
-		prepareSystemWithoutHyperTurbo();
 
 		Stream.of("1", "2").forEach(tenantId -> {
 			String codeLang = tenantId.equals("1") ? "fr" : "en";
@@ -32,17 +30,24 @@ public class i18nMultiTenantAcceptanceTest extends ConstellioTest {
 		});
 	}
 
-	@Before
-	public void setUp()
-			throws Exception {
+	private void givenNoTenantsSystemWithNoSetLocale() {
+		givenSystemLanguageIs("fr");
+		givenCollectionWithTitle(zeCollection, asList("fr"), "Collection de test tenant ");
+	}
 
-		givenMultiCulturalTenantsSystem();
+	private void givenNoTenantsSystem() {
+		givenSystemLanguageIs("fr");
+		givenCollectionWithTitle(zeCollection, asList("fr"), "Collection de test tenant ");
+
+		i18n.setLocale(new Locale("fr"));
 
 	}
 
 	@Test
 	public void givenTenantsWithDifferentLanguagesWhenInitializingCollectionThenAllHaveTheirDefaultLanguage()
 			throws Exception {
+		givenMultiCulturalTenantsSystem();
+
 		String tenantId = "1";
 		TenantUtils.setTenant(tenantId);
 		assertThat(i18n.getLocale()).isEqualTo(new Locale("fr"));
@@ -55,7 +60,9 @@ public class i18nMultiTenantAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenChangingDefaultLanguageThenOnlyChangedForCurrentTenant() throws Exception {
+	public void givenTenantswhenChangingDefaultLanguageThenOnlyChangedForCurrentTenant() throws Exception {
+		givenMultiCulturalTenantsSystem();
+
 		String tenantId = "1";
 		TenantUtils.setTenant(tenantId);
 
@@ -79,4 +86,42 @@ public class i18nMultiTenantAcceptanceTest extends ConstellioTest {
 
 		//TenantUtils.setTenant(null);
 	}
+
+	@Test
+	public void givenNoTenantsWithDifferentLanguagesWhenInitializingCollectionThenAllHaveTheirDefaultLanguage()
+			throws Exception {
+		givenNoTenantsSystem();
+		assertThat(i18n.getLocale()).isEqualTo(new Locale("fr"));
+	}
+
+	@Test
+	public void givenNoTenantsWhenChangingDefaultLanguageThenOnlyChangedForCurrentTenant() throws Exception {
+		givenNoTenantsSystem();
+
+		assertThat(i18n.getLocale()).isEqualTo(new Locale("fr"));
+		i18n.setLocale(new Locale("en"));
+		assertThat(i18n.getLocale()).isEqualTo(new Locale("en"));
+		i18n.setLocale(new Locale("fr"));
+		assertThat(i18n.getLocale()).isEqualTo(new Locale("fr"));
+	}
+
+
+	@Test
+	public void givenNoTenantsNoSetLocaleWithDifferentLanguagesWhenInitializingCollectionThenHaveCorrectDefaultLanguage()
+			throws Exception {
+		givenNoTenantsSystemWithNoSetLocale();
+		assertThat(i18n.getLocale()).isEqualTo(new Locale("fr"));
+	}
+
+	@Test
+	public void givenNoTenantsNoSetLocalewhenChangingDefaultLanguageThenOnlyChangedForCurrentTenant() throws Exception {
+		givenNoTenantsSystemWithNoSetLocale();
+
+		assertThat(i18n.getLocale()).isEqualTo(new Locale("fr"));
+		i18n.setLocale(new Locale("en"));
+		assertThat(i18n.getLocale()).isEqualTo(new Locale("en"));
+		i18n.setLocale(new Locale("fr"));
+		assertThat(i18n.getLocale()).isEqualTo(new Locale("fr"));
+	}
+
 }
