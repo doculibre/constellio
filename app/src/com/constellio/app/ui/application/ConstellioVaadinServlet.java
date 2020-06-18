@@ -85,7 +85,7 @@ public class ConstellioVaadinServlet extends VaadinServlet {
 			String tenantId = tenant != null ? "" + tenant.getId() : null;
 
 			if (supportingTenants && tenantId == null) {
-				throw new RuntimeException("Missing tenantId header");
+				throw new RuntimeException("No Tenant found for host " + host);
 			}
 
 			if (tenantId == null) {
@@ -100,9 +100,6 @@ public class ConstellioVaadinServlet extends VaadinServlet {
 				}
 			}
 
-			if (supportingTenants) {
-				TenantUtils.setTenant(tenantId);
-			}
 			ConstellioFactories.getInstance().onRequestStarted();
 		}
 
@@ -114,9 +111,6 @@ public class ConstellioVaadinServlet extends VaadinServlet {
 			statCompiler.stop(start);
 			if (!staticResourceRequest) {
 				ConstellioFactories.getInstance().onRequestEnded();
-				if (supportingTenants) {
-					TenantUtils.setTenant(null);
-				}
 			}
 		}
 	}

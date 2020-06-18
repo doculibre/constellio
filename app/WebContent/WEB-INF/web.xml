@@ -101,6 +101,11 @@
         </init-param>
     </filter>
 
+    <filter>
+        <filter-name>TenantFilter</filter-name>
+        <filter-class>com.constellio.app.api.admin.services.TenantFilter</filter-class>
+    </filter>
+
     <servlet>
         <servlet-name>serviceMonitoring</servlet-name>
         <servlet-class>com.constellio.app.servlet.ConstellioMonitoringServlet</servlet-class>
@@ -355,6 +360,11 @@
 
     <filter-mapping>
         <filter-name>GzipFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>TenantFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 

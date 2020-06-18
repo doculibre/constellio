@@ -28,6 +28,14 @@ public class TenantUtils {
 		return tenant;
 	}
 
+	public static void setTenant(byte tenantId) {
+		TenantProperties tenant = tenantService.getTenantById(tenantId);
+		if (tenant == null) {
+			throw new RuntimeException("Invalid tenant id");
+		}
+		tenantThreadLocal.set(tenant);
+	}
+
 	public static void setTenant(String tenantId) {
 		if (tenantId == null) {
 			tenantThreadLocal.set(null);
