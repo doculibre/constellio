@@ -68,7 +68,8 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		this.schemaPresenterUtils = new SchemaPresenterUtils(recordVO.getSchemaCode(), constellioFactories, ConstellioUI.getCurrentSessionContext());
 	}
 
-	public RecordForm(final RecordVO recordVO, RecordFieldFactory formFieldFactory, ConstellioFactories constellioFactories) {
+	public RecordForm(final RecordVO recordVO, RecordFieldFactory formFieldFactory,
+					  ConstellioFactories constellioFactories) {
 		super(recordVO, buildFields(recordVO, formFieldFactory));
 		this.formFieldFactory = formFieldFactory;
 
@@ -276,7 +277,9 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 			for (Language language : groupLabels.keySet()) {
 				if (language.getLocale().equals(currentLocale)) {
 					String tabCaption = groupLabels.get(language);
-					orderedTabCaptions.add(tabCaption);
+					if (!orderedTabCaptions.contains(tabCaption)) {
+						orderedTabCaptions.add(tabCaption);
+					}
 				}
 			}
 		}
