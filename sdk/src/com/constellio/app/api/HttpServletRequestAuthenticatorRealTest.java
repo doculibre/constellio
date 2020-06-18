@@ -21,6 +21,8 @@ public class HttpServletRequestAuthenticatorRealTest extends ConstellioTest {
 
 	public static final String USER_SERVICE_KEY = "serviceKey";
 	public static final String USER_TOKEN = "token";
+	public static final String USERNAME = "username";
+
 	private Users usersRecords = new Users();
 
 	private String bobServiceKey;
@@ -85,6 +87,22 @@ public class HttpServletRequestAuthenticatorRealTest extends ConstellioTest {
 		UserCredential credentials = authenticator.authenticate(request);
 
 		assertThat(credentials).isNull();
+	}
+
+
+	@Test
+	public void givenInvalidUsernameButValidTokenThenWhenAuthenticateWithUsernameThenCredentials() {
+
+		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(getModelLayerFactory());
+		HttpServletRequest request = mock(HttpServletRequest.class);
+
+		when(request.getSession()).thenReturn(mock(HttpSession.class));
+		when(request.getHeader(USERNAME)).thenReturn("invalidUserame");
+		when(request.getHeader(USER_TOKEN)).thenReturn(this.bobToken);
+
+		UserCredential credentials = authenticator.authenticateUsingUsername(request);
+
+		assertThat(credentials).isNotNull();
 	}
 
 	@Test
