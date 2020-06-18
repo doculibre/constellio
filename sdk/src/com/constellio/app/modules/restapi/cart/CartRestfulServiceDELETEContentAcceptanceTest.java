@@ -35,7 +35,7 @@ public class CartRestfulServiceDELETEContentAcceptanceTest extends BaseRestfulSe
 
 	private Cart cart;
 
-	private String roleWithPermissions = "roleWithPermissions";
+	private String roleWithPermissions = "roleWithGroupPermissions";
 	private String roleWithoutPermission = "roleWithoutPermission";
 
 	@Before
@@ -51,7 +51,7 @@ public class CartRestfulServiceDELETEContentAcceptanceTest extends BaseRestfulSe
 		rolesManager.addRole(new Role(zeCollection, roleWithoutPermission, "Role without permission", new ArrayList<String>()));
 
 		Role role = rolesManager.getRole(zeCollection, roleWithPermissions);
-		role = role.withPermissions(asList(RMPermissionsTo.USE_GROUP_CART));
+		role = role.withPermissions(asList(RMPermissionsTo.USE_GROUP_CART, RMPermissionsTo.USE_MY_CART));
 		rolesManager.updateRole(role);
 
 		recordServices.update(userServices.getUserRecordInCollection(bobGratton, zeCollection)
@@ -64,7 +64,43 @@ public class CartRestfulServiceDELETEContentAcceptanceTest extends BaseRestfulSe
 	}
 
 	@Test
-	public void validateService() {
+	public void validateServiceWithMyCartId()
+			throws Exception {
+		String myCartId = users.bobIn(zeCollection).getId();
+
+		Folder folder = rm.getFolder(records.folder_A10);
+		folder.addFavorite(myCartId);
+		recordServices.update(folder);
+
+		folder = rm.getFolder(records.folder_A11);
+		folder.addFavorite(myCartId);
+		recordServices.update(folder);
+
+		folder = rm.getFolder(records.folder_A11);
+		folder.addFavorite(myCartId);
+		recordServices.update(folder);
+
+		List<Record> favorites = cartUtil.getCartRecords(myCartId);
+		assertThat(favorites).isNotEmpty();
+
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("id", myCartId).request()
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.delete();
+
+		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(commitCounter.newCommitsCall()).isNotEmpty();
+
+		folder = rm.getFolder(records.folder_A11);
+		assertThat(folder.getFavorites()).isEmpty();
+
+		favorites = cartUtil.getCartRecords(myCartId);
+		assertThat(favorites).isEmpty();
+	}
+
+	@Test
+	public void validateServiceWithCustomGroupCartId() {
 		assertThat(cart.isLogicallyDeletedStatus()).isFalse();
 
 		List<Record> records = cartUtil.getCartRecords(cart.getId());

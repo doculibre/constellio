@@ -94,11 +94,8 @@ public class CartService extends BaseService {
 		validationService.validateHost(host);
 		validationService.validateToken(token, serviceKey);
 
-		Record cartRecord = getRecord(id, true);
-		User user = getUserByServiceKey(serviceKey, cartRecord.getCollection());
-		validateCartGroupPermission(user);
-
-		cartDao.deleteCartContent(user, cartRecord);
+		String username = validationDao.getUsernameByServiceKey(serviceKey);
+		cartDao.deleteCartContent(username, id);
 	}
 
 	private void validateCartGroupPermission(User user) {

@@ -2,6 +2,9 @@ package com.constellio.app.modules.restapi.cart.dao;
 
 import com.constellio.app.modules.restapi.cart.dto.CartDto;
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
+import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException;
+import com.constellio.app.modules.restapi.validation.exception.UnauthorizedAccessException;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -14,6 +17,7 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.UserCredential;
 
 import java.util.List;
 
@@ -70,15 +74,40 @@ public class CartDao extends BaseDao {
 		recordServices.physicallyDelete(cartRecord, user);
 	}
 
-	public void deleteCartContent(User user, Record cartRecord)
+	public void deleteCartContent(String username, String cartId)
 			throws Exception {
 
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(cartRecord.getCollection(), appLayerFactory);
-		CartUtil cartUtil = new CartUtil(cartRecord.getCollection(), appLayerFactory);
+		// Delete "My cart" content
+		UserCredential userCredentials = userServices.getUser(username);
+		List<String> collections = userCredentials.getCollections();
+		for (String collection : collections) {
+			User user = getUserByUsername(username, collection);
+			if (user.getId().equals(cartId)) {
+				validateMyCartPermission(user);
+				removeAllFromFavorite(user, cartId);
+				return;
+			}
+		}
 
-		List<Record> records = cartUtil.getCartRecords(cartRecord.getId());
+		// Delete custom group cart content
+		Record cartRecord = getRecordById(cartId);
+		if (cartRecord == null) {
+			throw new RecordNotFoundException(cartId);
+		}
+
+		User user = getUserByUsername(username, cartRecord.getCollection());
+		validateCartGroupPermission(user);
+		removeAllFromFavorite(user, cartId);
+	}
+
+	private void removeAllFromFavorite(User user, String cartId)
+			throws Exception {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(user.getCollection(), appLayerFactory);
+		CartUtil cartUtil = new CartUtil(user.getCollection(), appLayerFactory);
+
+		List<Record> records = cartUtil.getCartRecords(cartId);
 		for (Record record : records) {
-			removeFromFavorite(rm, record, cartRecord.getId());
+			removeFromFavorite(rm, record, cartId);
 		}
 
 		Transaction transaction = new Transaction();
@@ -102,6 +131,18 @@ public class CartDao extends BaseDao {
 		} else if (schemaCode.startsWith(ContainerRecord.SCHEMA_TYPE)) {
 			ContainerRecord containerRecord = rm.wrapContainerRecord(record);
 			containerRecord.removeFavorite(cartId);
+		}
+	}
+
+	private void validateCartGroupPermission(User user) {
+		if (!user.has(RMPermissionsTo.USE_GROUP_CART).globally()) {
+			throw new UnauthorizedAccessException();
+		}
+	}
+
+	private void validateMyCartPermission(User user) {
+		if (!user.has(RMPermissionsTo.USE_MY_CART).globally()) {
+			throw new UnauthorizedAccessException();
 		}
 	}
 }
