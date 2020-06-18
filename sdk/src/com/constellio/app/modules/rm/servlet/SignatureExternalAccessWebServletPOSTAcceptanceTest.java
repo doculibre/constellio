@@ -44,7 +44,6 @@ import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.I
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_DATE_PARAM;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_DOCUMENT_PARAM;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_EXTERNAL_USER_FULLNAME_PARAM;
-import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_EXTERNAL_USER_FULLNAME_PARAM;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_LANGUAGE_PARAM;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.UNAUTHORIZED;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet.HEADER_PARAM_AUTH;
@@ -56,6 +55,7 @@ import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebSe
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends ConstellioTest {
 
@@ -138,6 +138,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 			throws Exception {
 		try {
 			callWebservice("", bobKey, records.document_A19, misterXFullname, getTomorrow(), validLanguage);
+			fail("whenCallingServiceWithMissingAuth should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
 			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
@@ -149,6 +150,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 			throws Exception {
 		try {
 			callWebservice("fakeToken", bobKey, records.document_A19, misterXFullname, getTomorrow(), validLanguage);
+			fail("whenCallingServiceWithInvalidAuth should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
 			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
@@ -160,6 +162,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 			throws Exception {
 		try {
 			callWebservice(expiredAuth, bobKey, records.document_A19, misterXFullname, getTomorrow(), validLanguage);
+			fail("whenCallingServiceWithExpiredAuth should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
 			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
@@ -171,6 +174,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 			throws Exception {
 		try {
 			callWebservice(bobAuth, "", records.document_A19, misterXFullname, getTomorrow(), validLanguage);
+			fail("whenCallingServiceWithMissingServiceKey should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
 			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
@@ -182,6 +186,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 			throws Exception {
 		try {
 			callWebservice(bobAuth, "fakeKey", records.document_A19, misterXFullname, getTomorrow(), validLanguage);
+			fail("whenCallingServiceWithInvalidServiceKey should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
 			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
@@ -193,6 +198,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 			throws Exception {
 		try {
 			callWebservice(bobAuth, bobKey, "", misterXFullname, getTomorrow(), validLanguage);
+			fail("whenCallingServiceWithMissingDocument should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
 			assertThat(e.getStatusMessage()).isEqualTo(MISSING_DOCUMENT_PARAM);
@@ -204,6 +210,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 			throws Exception {
 		try {
 			callWebservice(bobAuth, bobKey, "fakeDocument", misterXFullname, getTomorrow(), validLanguage);
+			fail("whenCallingServiceWithNonExistingDocument should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
 			assertThat(e.getStatusMessage()).isEqualTo(INVALID_DOCUMENT_PARAM);
@@ -218,6 +225,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 					.setUserRoles(asList(roleWithoutPermission)));
 
 			callWebservice(bobAuth, bobKey, records.document_A19, misterXFullname, getTomorrow(), validLanguage);
+			fail("whenCallingServiceWithUserWithoutUrlGenerationPermission should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
 			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
@@ -233,6 +241,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 			authorizationsServices.add(authorizationForUsers(bobUser).on(record).givingNegativeReadWriteAccess());
 
 			callWebservice(bobAuth, bobKey, records.document_A19, misterXFullname, getTomorrow(), validLanguage);
+			fail("whenCallingServiceWithUserWithoutWritePermission should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
 			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
@@ -244,6 +253,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 			throws Exception {
 		try {
 			callWebservice(bobAuth, bobKey, records.folder_A01, misterXFullname, getTomorrow(), validLanguage);
+			fail("whenCallingServiceWithInvalidDocument should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
 			assertThat(e.getStatusMessage()).isEqualTo(INVALID_DOCUMENT_PARAM);
@@ -256,6 +266,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 		try {
 			Document docWithoutContent = createDocumentWithoutContent();
 			callWebservice(bobAuth, bobKey, docWithoutContent.getId(), misterXFullname, getTomorrow(), validLanguage);
+			fail("whenCallingServiceWithDocumentWithoutContent should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
 			assertThat(e.getStatusMessage()).isEqualTo(ACTION_IMPOSSIBLE);
@@ -268,6 +279,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 		try {
 			Document docWithZipContent = createDocumentWithZipContent();
 			callWebservice(bobAuth, bobKey, docWithZipContent.getId(), misterXFullname, getTomorrow(), validLanguage);
+			fail("whenCallingServiceWithDocumentWithUnsupportedContent should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
 			assertThat(e.getStatusMessage()).isEqualTo(ACTION_IMPOSSIBLE);
@@ -279,6 +291,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 			throws Exception {
 		try {
 			callWebservice(bobAuth, bobKey, records.document_A19, "", getTomorrow(), validLanguage);
+			fail("whenCallingServiceWithMissingExternalUsername should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
 			assertThat(e.getStatusMessage()).isEqualTo(MISSING_EXTERNAL_USER_FULLNAME_PARAM);
@@ -290,6 +303,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 			throws Exception {
 		try {
 			callWebservice(bobAuth, bobKey, records.document_A19, misterXFullname, "", validLanguage);
+			fail("whenCallingServiceWithMissingExpirationDate should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
 			assertThat(e.getStatusMessage()).isEqualTo(MISSING_DATE_PARAM);
@@ -301,6 +315,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 			throws Exception {
 		try {
 			callWebservice(bobAuth, bobKey, records.document_A19, misterXFullname, "fakeDate", validLanguage);
+			fail("whenCallingServiceWithInvalidExpirationDate should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
 			assertThat(e.getStatusMessage()).isEqualTo(INVALID_DATE_PARAM);
@@ -312,6 +327,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 			throws Exception {
 		try {
 			callWebservice(bobAuth, bobKey, records.document_A19, misterXFullname, getTomorrow(), "");
+			fail("whenCallingServiceWithMissignLanguage should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
 			assertThat(e.getStatusMessage()).isEqualTo(MISSING_LANGUAGE_PARAM);
