@@ -33,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -110,7 +111,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		return isFileToCoped;
 	}
 
-	boolean moveFile(File fileToBeMoved, File target) {
+	public boolean moveFile(File fileToBeMoved, File target, String relativePath) {
 		boolean isFileMoved;
 
 		if (fileToBeMoved == null || target == null) {
@@ -169,47 +170,35 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	}
 
-	@Override
-	public void moveFileToVault(String relativePath, File file, MoveToVaultOption... options) {
-		File target = getFileOf(relativePath);
-		boolean isFileMovedInTheVault;
+	public void verify(boolean isFileMovedInTheVault, File file, String relativePath) {
 		boolean isFileReplicated = false;
-
 		boolean isExecutedReplication = false;
 
-		boolean onlyIfInexsting = false;
-		for (MoveToVaultOption option : options) {
-			onlyIfInexsting |= option == MoveToVaultOption.ONLY_IF_INEXISTING;
-		}
-
+		File target = getFileOf(relativePath);
 		boolean targetWasExisting = target.exists();
-		if (!targetWasExisting || !onlyIfInexsting) {
-			isFileMovedInTheVault = moveFile(file, target);
-
-			if (!(replicatedRootFolder == null || target.equals(getReplicatedVaultFile(target)))) {
-				isExecutedReplication = true;
-				if (!getReplicatedVaultFile(target).exists() || targetWasExisting) {
-					if (isFileMovedInTheVault) {
-						isFileReplicated = fileCopy(target, getReplicatedVaultFile(target).getAbsolutePath());
-					} else {
-						isFileReplicated = fileCopy(file, getReplicatedVaultFile(target).getAbsolutePath());
-					}
+		if (!(replicatedRootFolder == null || target.equals(getReplicatedVaultFile(target)))) {
+			isExecutedReplication = true;
+			if (!getReplicatedVaultFile(target).exists() || targetWasExisting) {
+				if (isFileMovedInTheVault) {
+					isFileReplicated = fileCopy(target, getReplicatedVaultFile(target).getAbsolutePath());
 				} else {
-					isFileReplicated = true;
+					isFileReplicated = fileCopy(file, getReplicatedVaultFile(target).getAbsolutePath());
 				}
+			} else {
+				isFileReplicated = true;
 			}
-
-			if (!isFileMovedInTheVault && !isFileReplicated && isExecutedReplication) {
-				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVaultAndReplication(file);
-			} else if (!isFileMovedInTheVault && !isExecutedReplication) {
-				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVault(file);
-			} else if (!isFileMovedInTheVault) {
-				addFileNotMovedInTheVault(relativePath);
-			} else if (!isFileReplicated && isExecutedReplication) {
-				addFileNotReplicated(relativePath);
-			}
-			extensions.onVaultUpload(new ContentDaoUploadParams(relativePath, file.length(), true));
 		}
+
+		if (!isFileMovedInTheVault && !isFileReplicated && isExecutedReplication) {
+			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVaultAndReplication(file);
+		} else if (!isFileMovedInTheVault && !isExecutedReplication) {
+			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVault(file);
+		} else if (!isFileMovedInTheVault) {
+			addFileNotMovedInTheVault(relativePath);
+		} else if (!isFileReplicated && isExecutedReplication) {
+			addFileNotReplicated(relativePath);
+		}
+		extensions.onVaultUpload(new ContentDaoUploadParams(relativePath, file.length(), true));
 	}
 
 	@Override
@@ -608,7 +597,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	@Override
 	public DaoFile getFile(String id) {
 		File file = getFileOf(id);
-		return new DaoFile(id, file.getName(), file.length(), file.lastModified(), this);
+		return new DaoFile(id, file.getName(), file.length(), file.lastModified(), file.isDirectory(), this);
 	}
 
 	private String toCaseInsensitive(char character) {
@@ -629,10 +618,14 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	}
 
-
-	public Stream<Path> streamVaultContent(Predicate<? super Path> filter) {
+	public Stream<DaoFile> streamVaultContent(Predicate<? super DaoFile> filter,
+											  Comparator<? super DaoFile> orderComparator) {
 		try {
-			return Files.walk(rootFolder.toPath(), 5).filter(filter);
+			Stream<DaoFile> daoFileStream = Files.walk(rootFolder.toPath(), 5)
+					.map(path -> new DaoFile(path.getFileName().toString(), path.getFileName().toString(), path.toFile().length(), path.toFile().lastModified(), path.toFile().isDirectory(), this))
+					.filter(filter)
+					.sorted(orderComparator);
+			return daoFileStream;
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

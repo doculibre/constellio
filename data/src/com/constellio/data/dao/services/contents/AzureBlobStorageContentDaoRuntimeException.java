@@ -15,8 +15,8 @@ public class AzureBlobStorageContentDaoRuntimeException extends ContentDaoRuntim
 		super(cause);
 	}
 
-	public static class AzureBlobStorageContentDaoRuntimeException_FailedToWriteVault extends AzureBlobStorageContentDaoRuntimeException {
-		public AzureBlobStorageContentDaoRuntimeException_FailedToWriteVault(String contentId) {
+	public static class AzureBlobStorageContentDaoRuntimeException_FailedToGetFile extends AzureBlobStorageContentDaoRuntimeException {
+		public AzureBlobStorageContentDaoRuntimeException_FailedToGetFile(String contentId) {
 			super("Le fichier '" + contentId + "' n'est pas enregistré en local");
 		}
 	}

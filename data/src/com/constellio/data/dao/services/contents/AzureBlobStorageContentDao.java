@@ -1,9 +1,11 @@
 package com.constellio.data.dao.services.contents;
 
+import com.azure.core.http.rest.PagedIterable;
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.storage.blob.models.BlobItem;
 import com.azure.storage.blob.models.BlobProperties;
 import com.azure.storage.blob.models.BlobStorageException;
 import com.azure.storage.blob.specialized.BlobInputStream;
@@ -11,7 +13,7 @@ import com.azure.storage.blob.specialized.BlobOutputStream;
 import com.azure.storage.common.StorageSharedKeyCredential;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.data.dao.services.contents.AzureBlobStorageContentDaoRuntimeException.AzureBlobStorageContentDaoRuntimeException_FailedToWriteVault;
+import com.constellio.data.dao.services.contents.AzureBlobStorageContentDaoRuntimeException.AzureBlobStorageContentDaoRuntimeException_FailedToGetFile;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
@@ -21,9 +23,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -98,12 +102,9 @@ public class AzureBlobStorageContentDao implements StatefulService, ContentDao {
 	}
 
 	@Override
-	public void moveFileToVault(String id, File file, MoveToVaultOption... options) {
-		if (typeStoredInAzure(id)) {
-			throw new AzureBlobStorageContentDaoRuntimeException_FailedToWriteVault(id);
-		} else {
-			fileSystemContentDao.moveFileToVault(id, file, options);
-		}
+	public void verify(boolean isFileMovedInTheVault, File file,
+					   String relativePath) {
+		//TODO
 	}
 
 	@Override
@@ -124,7 +125,8 @@ public class AzureBlobStorageContentDao implements StatefulService, ContentDao {
 			throws ContentDaoException_NoSuchContent {
 		if (typeStoredInAzure(contentId)) {
 			BlobClient blobClient = getBlobClient(contentId);
-			return blobClient.openInputStream();
+			InputStream inputStream = blobClient.openInputStream();
+			return inputStream;
 		} else {
 			return fileSystemContentDao.getContentInputStream(contentId, streamName);
 		}
@@ -192,7 +194,7 @@ public class AzureBlobStorageContentDao implements StatefulService, ContentDao {
 	@Override
 	public File getFileOf(String contentId) {
 		if (typeStoredInAzure(contentId)) {
-			throw new AzureBlobStorageContentDaoRuntimeException_FailedToWriteVault(contentId);
+			return null;
 		} else {
 			return fileSystemContentDao.getFileOf(contentId);
 		}
@@ -208,9 +210,9 @@ public class AzureBlobStorageContentDao implements StatefulService, ContentDao {
 				blobInputStream = blobClient.openInputStream();
 				BlobProperties properties = blobInputStream.getProperties();
 
-				file = new DaoFile(contentId, contentId, properties.getBlobSize(), properties.getLastModified().toInstant().toEpochMilli(), this);
+				file = new DaoFile(contentId, contentId, properties.getBlobSize(), properties.getLastModified().toInstant().toEpochMilli(), false, this);
 			} catch (BlobStorageException e) {
-				throw new AzureBlobStorageContentDaoRuntimeException_FailedToWriteVault(contentId);
+				throw new AzureBlobStorageContentDaoRuntimeException_FailedToGetFile(contentId);
 			} finally {
 				ioServices.closeQuietly(blobInputStream);
 			}
@@ -218,7 +220,7 @@ public class AzureBlobStorageContentDao implements StatefulService, ContentDao {
 			return file;
 		} else {
 			File file = getFileOf(contentId);
-			return new DaoFile(contentId, file.getName(), file.length(), file.lastModified(), this);
+			return new DaoFile(contentId, file.getName(), file.length(), file.lastModified(), file.isDirectory(), this);
 		}
 	}
 
@@ -228,11 +230,25 @@ public class AzureBlobStorageContentDao implements StatefulService, ContentDao {
 	}
 
 	@Override
-	public Stream<Path> streamVaultContent(Predicate<? super Path> filter) {
-		return null;
+	public Stream<DaoFile> streamVaultContent(Predicate<? super DaoFile> filter,
+											  Comparator<? super DaoFile> orderComparator) {
+		Stream<DaoFile> localContentStream = fileSystemContentDao.streamVaultContent(filter, orderComparator);
+		PagedIterable<BlobItem> blobItems = getBlobContainerClient().listBlobs();
+
+		Stream<DaoFile> azureContentStream = blobItems.stream()
+				.map(blobItem -> new DaoFile(blobItem.getName(), blobItem.getName(), blobItem.getProperties().getContentLength(), blobItem.getProperties().getLastModified().toInstant().toEpochMilli(), false, this));
+		Stream<DaoFile> contentStream = Stream.concat(localContentStream, azureContentStream).sorted(orderComparator);
+		return contentStream;
 	}
 
 	protected BlobClient getBlobClient(String contentId) {
+		BlobContainerClient containerClient = getBlobContainerClient();
+		BlobClient blobClient = containerClient.getBlobClient(contentId);
+
+		return blobClient;
+	}
+
+	protected BlobContainerClient getBlobContainerClient() {
 		StorageSharedKeyCredential storageSharedKeyCredential = new StorageSharedKeyCredential(configuration.getAzureBlobStorageConnectionAccountName(),
 				configuration.getAzureBlobStorageConnectionAccountKey());
 		BlobServiceClient blobServiceClient = new BlobServiceClientBuilder()
@@ -242,20 +258,42 @@ public class AzureBlobStorageContentDao implements StatefulService, ContentDao {
 
 
 		BlobContainerClient containerClient;
+		String azureBlobStorageContainerName = dataLayerFactory.getDataLayerConfiguration().getAzureBlobStorageContainerName();
 		try {
-			containerClient = blobServiceClient.getBlobContainerClient(dataLayerFactory.getDataLayerConfiguration().getAzureBlobStorageContainerName());
+			containerClient = blobServiceClient.getBlobContainerClient(azureBlobStorageContainerName);
 
-			BlobClient blobClient = containerClient.getBlobClient(contentId);
-
-			return blobClient;
+			return containerClient;
 		} catch (BlobStorageException e) {
-			log.error("Unable to get blob client with id : " + contentId);
+			log.error("Unable to get blob container client : " + azureBlobStorageContainerName);
 			throw new RuntimeException(e);
 		}
 	}
 
 	boolean typeStoredInAzure(String contentId) {
-		return !contentId.endsWith("._parsed") || !contentId.contains("/");
+		return !contentId.endsWith("__parsed") && !contentId.contains("/");
+	}
+
+	public boolean moveFile(File fileToBeMoved, File target, String relativePath) {
+		boolean isFileMoved = false;
+
+		if (fileToBeMoved == null) {
+			return false;
+		}
+
+		InputStream inputStream = null;
+		if (!isDocumentExisting(relativePath)) {
+			try {
+				inputStream = new FileInputStream(fileToBeMoved);
+				add(relativePath, inputStream);
+				isFileMoved = true;
+			} catch (FileNotFoundException e) {
+				isFileMoved = false;
+			} finally {
+				ioServices.closeQuietly(inputStream);
+			}
+		}
+
+		return isFileMoved;
 	}
 
 }

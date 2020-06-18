@@ -80,7 +80,7 @@ public class AzureBlobStorageContentDaoAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	@Test(expected = AzureBlobStorageContentDaoRuntimeException.class)
+	@Test
 	public void givenFileAddedToAzureWhenDeleteFileoAzureContainer() {
 		InputStream inputStream = null;
 		InputStream contentInputStream = null;
@@ -95,7 +95,7 @@ public class AzureBlobStorageContentDaoAcceptanceTest extends ConstellioTest {
 
 			azureBlobStorageContentDao.delete(asList(fileHash2));
 
-			azureBlobStorageContentDao.getFile(fileHash2);
+			assertThat(fileSystemContentDao.isDocumentExisting(fileHash2)).isFalse();
 
 		} finally {
 			ioServices.closeQuietly(inputStream);

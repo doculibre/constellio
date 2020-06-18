@@ -9,6 +9,8 @@ import lombok.Getter;
 import java.io.File;
 import java.util.Optional;
 
+import static org.apache.ignite.internal.util.lang.GridFunc.asList;
+
 @AllArgsConstructor
 public class DaoFile {
 
@@ -22,6 +24,9 @@ public class DaoFile {
 
 	long lastModified;
 
+	boolean isDirectory;
+
+	@Getter
 	ContentDao contentDao;
 
 	public long lastModifed() {
@@ -45,6 +50,13 @@ public class DaoFile {
 		return contentDao.getFileOf(id);
 	}
 
+	public void delete() {
+		contentDao.delete(asList(id));
+	}
+
+	public boolean exists() {
+		return contentDao.isDocumentExisting(id);
+	}
 
 	public <T> T readonlyFunction(DaoFileFunction<T> function) throws ContentDaoException_NoSuchContent {
 		return contentDao.readonlyFunction(id, function);
@@ -59,4 +71,7 @@ public class DaoFile {
 		}
 	}
 
+	public boolean isDirectory() {
+		return isDirectory;
+	}
 }
