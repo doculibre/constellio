@@ -2,10 +2,9 @@ package com.constellio.model.services.records.cache;
 
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.KeyLongMap;
-import com.constellio.model.services.records.cache.CompiledDTOStats.CompiledDTOStatsBuilder;
 import com.constellio.data.utils.TenantUtils;
+import com.constellio.model.services.records.cache.CompiledDTOStats.CompiledDTOStatsBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Locale;
@@ -16,11 +15,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class CacheRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
-	//ConstellioWebDriver driver;
-
-	protected void givenMultiCulturalTenantsSystem() {
+	private void givenMultiCulturalTenantsSystem() {
 		givenTwoTenants();
-		prepareSystemWithoutHyperTurbo();
 
 		Stream.of("1", "2").forEach(tenantId -> {
 			String codeLang = tenantId.equals("1") ? "fr" : "en";
@@ -36,16 +32,16 @@ public class CacheRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		});
 	}
 
-	@Before
-	public void setUp()
-			throws Exception {
 
-		givenMultiCulturalTenantsSystem();
-
+	private void givenNoTenantsSystem() {
+		givenSystemLanguageIs("fr");
+		givenCollectionWithTitle(zeCollection, asList("fr"), "Collection de test tenant ");
 	}
 
 	@Test
 	public void givenTenantsWhenInitializingDTOStatsBuilderThenGettingOtherDTOStatsBuilder() throws Exception {
+		givenMultiCulturalTenantsSystem();
+
 		String tenantId = "1";
 		TenantUtils.setTenant(tenantId);
 
@@ -76,6 +72,8 @@ public class CacheRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenTenantsWhenInitializingDTOStatsThenGettingOtherDTOStats() throws Exception {
+		givenMultiCulturalTenantsSystem();
+
 		String tenantId = "1";
 		TenantUtils.setTenant(tenantId);
 
@@ -108,6 +106,8 @@ public class CacheRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenTenantsWhenInitializingFsStoredMetadataUsageThenGettingOtherFsStoredMetadataUsage()
 			throws Exception {
+		givenMultiCulturalTenantsSystem();
+
 		String tenantId = "1";
 		TenantUtils.setTenant(tenantId);
 
@@ -132,5 +132,45 @@ public class CacheRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(tenant2Fs).isNotSameAs(CacheRecordDTOUtils.getFilesystemStoredMetadataUsageCounterOrNull());
 
 		//TenantUtils.setTenant(null);
+	}
+
+
+	@Test
+	public void givenNoTenantsWhenInitializingDTOStatsBuilderThenGettingOtherDTOStatsBuilder() throws Exception {
+		givenNoTenantsSystem();
+
+		assertThat(CacheRecordDTOUtils.getCompiledDTOStatsBuilder()).isNull();
+
+		CacheRecordDTOUtils.startCompilingDTOsStats();
+		CompiledDTOStatsBuilder tenant1Builder = CacheRecordDTOUtils.getCompiledDTOStatsBuilder();
+
+		assertThat(tenant1Builder).isNotNull();
+
+	}
+
+	@Test
+	public void givenNoTenantsWhenInitializingDTOStatsThenGettingOtherDTOStats() throws Exception {
+		givenNoTenantsSystem();
+
+
+		CacheRecordDTOUtils.startCompilingDTOsStats();
+		CacheRecordDTOUtils.stopCompilingDTOsStats();
+		CompiledDTOStats tenant1Stats = CacheRecordDTOUtils.getLastCompiledDTOStats();
+
+		assertThat(tenant1Stats).isNotNull();
+		assertThat(CacheRecordDTOUtils.getCompiledDTOStatsBuilder()).isNull();
+	}
+
+
+	@Test
+	public void givenNoTenantsWhenInitializingFsStoredMetadataUsageThenGettingOtherFsStoredMetadataUsage()
+			throws Exception {
+		givenNoTenantsSystem();
+
+		assertThat(CacheRecordDTOUtils.getFilesystemStoredMetadataUsageCounterOrNull()).isNull();
+
+		KeyLongMap<String> tenant1Fs = CacheRecordDTOUtils.getFilesystemStoredMetadataUsageCounterAndInitIfNull();
+
+		assertThat(tenant1Fs).isNotNull();
 	}
 }
