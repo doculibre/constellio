@@ -7,13 +7,13 @@ import com.constellio.app.services.extensions.plugins.PluginActivationFailureCau
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.modules.ConstellioPlugin;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
-import com.constellio.model.utils.TenantUtils;
 import net.xeoh.plugins.base.PluginManager;
 import net.xeoh.plugins.base.impl.PluginManagerFactory;
 import net.xeoh.plugins.base.util.PluginManagerUtil;
