@@ -3,7 +3,6 @@ package com.constellio.app.ui.framework.components.viewers.panel;
 import com.constellio.app.api.extensions.params.SchemaDisplayParams;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.ui.ViewableRecordVOTablePanelExtension.ViewableRecordVOTablePanelExtensionParams;
-import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -16,6 +15,7 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
+import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.ViewWindow;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.layouts.I18NCssLayout;
@@ -37,7 +37,6 @@ import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.exception.UserException.UserDoesNotHaveAccessException;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.management.schemaRecords.DisplaySchemaRecordWindow;
-import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.entities.enums.TableMode;
 import com.constellio.model.entities.records.Record;
@@ -65,7 +64,6 @@ import com.vaadin.shared.ui.dd.VerticalDropLocation;
 import com.vaadin.ui.AbstractSelect.AbstractSelectTargetDetails;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.DragAndDropWrapper;
@@ -704,20 +702,26 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				public Property getContainerProperty(Object itemId, Object propertyId) {
 					Property result = super.getContainerProperty(itemId, propertyId);
 					Object propertyValue = result.getValue();
-					if (propertyValue instanceof Component) {
-						List<ReferenceDisplay> referenceDisplays = ComponentTreeUtils.getChildren((Component) propertyValue, ReferenceDisplay.class);
-						for (ReferenceDisplay referenceDisplay : referenceDisplays) {
-							for (Object listenerObject : new ArrayList<>(referenceDisplay.getListeners(ClickEvent.class))) {
-								referenceDisplay.removeClickListener((ClickListener) listenerObject);
-							}
-						}
-						List<ConstellioAgentLink> constellioAgentLinks = ComponentTreeUtils.getChildren((Component) propertyValue, ConstellioAgentLink.class);
-						for (ConstellioAgentLink constellioAgentLink : constellioAgentLinks) {
-							for (Object listenerObject : new ArrayList<>(constellioAgentLink.getAgentLink().getListeners(ClickEvent.class))) {
-								constellioAgentLink.getAgentLink().removeClickListener((ClickListener) listenerObject);
-							}
+					if (propertyValue instanceof SearchResultDisplay) {
+						SearchResultDisplay searchResultDisplay = (SearchResultDisplay) propertyValue;
+						for (ClickListener clickListener : searchResultDisplay.getClickListeners()) {
+							searchResultDisplay.removeClickListener(clickListener);
 						}
 					}
+					//					if (propertyValue instanceof Component) {
+					//						List<ReferenceDisplay> referenceDisplays = ComponentTreeUtils.getChildren((Component) propertyValue, ReferenceDisplay.class);
+					//						for (ReferenceDisplay referenceDisplay : referenceDisplays) {
+					//							for (Object listenerObject : new ArrayList<>(referenceDisplay.getListeners(ClickEvent.class))) {
+					//								referenceDisplay.removeClickListener((ClickListener) listenerObject);
+					//							}
+					//						}
+					//						List<ConstellioAgentLink> constellioAgentLinks = ComponentTreeUtils.getChildren((Component) propertyValue, ConstellioAgentLink.class);
+					//						for (ConstellioAgentLink constellioAgentLink : constellioAgentLinks) {
+					//							for (Object listenerObject : new ArrayList<>(constellioAgentLink.getAgentLink().getListeners(ClickEvent.class))) {
+					//								constellioAgentLink.getAgentLink().removeClickListener((ClickListener) listenerObject);
+					//							}
+					//						}
+					//					}
 					return new ObjectProperty<>(propertyValue);
 				}
 			});
