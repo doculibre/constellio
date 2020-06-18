@@ -734,14 +734,31 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void viewAssembled() {
+		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
+		Folder folder = schemas.getFolder(summaryFolderVO.getId());
+		disableMenuItems(folder);
+		view.setDragRowsEnabled(isVisibleSubFolder());
+
+		modelLayerFactory.newLoggingServices().logRecordView(folder.getWrappedRecord(), getCurrentUser());
+
 		view.setFolderContent(folderContentDataProvider);
 		view.setTasks(tasksDataProvider);
 		view.setEvents(eventsDataProvider);
 
-		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
-		Folder folder = schemas.getFolder(summaryFolderVO.getId());
-		disableMenuItems(folder);
-		modelLayerFactory.newLoggingServices().logRecordView(folder.getWrappedRecord(), getCurrentUser());
+		selectInitialTabForUser();
+	}
+
+	boolean isVisibleSubFolder() {
+		SearchServices searchServices = searchServices();
+		Record record = summaryFolderVO.getRecord();
+		MetadataSchemaType foldersSchemaType = getFoldersSchemaType();
+		MetadataSchema foldersSchema = getFoldersSchema();
+		Metadata parentFolderMetadata = foldersSchema.getMetadata(Folder.PARENT_FOLDER);
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(from(foldersSchemaType).where(parentFolderMetadata).is(record));
+		query.filteredWithUser(getCurrentUser());
+		query.filteredByStatus(StatusFilter.ACTIVES);
+		return searchServices.hasResults(query);
 	}
 
 	public void updateTaskStarred(boolean isStarred, String taskId, RecordVODataProvider dataProvider) {

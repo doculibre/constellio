@@ -968,10 +968,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			viewWindow.addCloseListener(new Window.CloseListener() {
 				@Override
 				public void windowClose(CloseEvent e) {
-					if (selectedRecordVO != null && getTableMode() == TableMode.LIST) {
+					if (getPanelContent() != null) {
 						refreshMetadata();
-					} else {
 						recordVOContainer.forceRefresh();
+					} else {
+						selectRecordVO(null, null, true);
 					}
 				}
 			});
@@ -1051,30 +1052,35 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			if (reload) {
 				recordVOContainer.forceRefresh();
 			}
-			selectedRecordVO = getRecordVO(selectedItemId);
 
-			if (selectedRecordVO == null) {
-				return;
-			}
-
-			previousItemId = recordVOContainer.prevItemId(itemId);
-			nextItemId = recordVOContainer.nextItemId(itemId);
-
-			if ((!isCompressionSupported() && selectedRecordVO != null)
-				|| (selectedRecordVO != null && !isSelectionPossible(selectedRecordVO))) {
-				displayInWindowOrNavigate(selectedRecordVO);
+			if (selectedItemId != null) {
+				selectedRecordVO = getRecordVO(selectedItemId);
 			} else {
-				previousButton.setEnabled(previousItemId != null);
-				nextButton.setEnabled(nextItemId != null);
+				selectedRecordVO = null;
+			}
+			if (selectedRecordVO == null) {
+				previousItemId = null;
+				nextItemId = null;
+			} else {
+				previousItemId = recordVOContainer.prevItemId(itemId);
+				nextItemId = recordVOContainer.nextItemId(itemId);
 
-				viewerMetadataPanel.setRecordVO(selectedRecordVO);
-				if (compressionChange != null) {
-					TableCompressEvent tableCompressEvent = new TableCompressEvent(event, compressionChange);
-					for (TableCompressListener tableCompressListener : tableCompressListeners) {
-						tableCompressListener.tableCompressChange(tableCompressEvent);
+				if ((!isCompressionSupported() && selectedRecordVO != null)
+					|| (selectedRecordVO != null && !isSelectionPossible(selectedRecordVO))) {
+					displayInWindowOrNavigate(selectedRecordVO);
+				} else {
+					previousButton.setEnabled(previousItemId != null);
+					nextButton.setEnabled(nextItemId != null);
+
+					viewerMetadataPanel.setRecordVO(selectedRecordVO);
+					if (compressionChange != null && event != null) {
+						TableCompressEvent tableCompressEvent = new TableCompressEvent(event, compressionChange);
+						for (TableCompressListener tableCompressListener : tableCompressListeners) {
+							tableCompressListener.tableCompressChange(tableCompressEvent);
+						}
 					}
+					adjustTableExpansion();
 				}
-				adjustTableExpansion();
 			}
 		}
 	}

@@ -81,5 +81,7 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 	DisplayFolderView getNestedDisplayFolderView();
 
 	void closeViewerPanel();
+
+	void setDragRowsEnabled(boolean enabled);
 	
 }

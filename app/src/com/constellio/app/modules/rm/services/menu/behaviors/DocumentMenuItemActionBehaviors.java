@@ -40,17 +40,20 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -106,6 +109,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.simplejavamail.converter.EmailConverter;
@@ -337,27 +341,70 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void delete(Document documentSummary, MenuItemActionBehaviorParams params) {
+		Button deleteDocumentButton = getDeleteWithJustificationButton(documentSummary, params);
+		deleteDocumentButton.click();
+	}
+
+	@NotNull
+	private Button getDeleteWithJustificationButton(Document documentSummary, MenuItemActionBehaviorParams params) {
 		Document document = loadingFullRecordIfSummary(documentSummary);
 		final boolean isDocumentCheckout = documentRecordActionsServices.isContentCheckedOut(document.getContent());
-
-		Button deleteDocumentButton = new DeleteButton($("DisplayDocumentView.deleteDocument")) {
+		Button deleteDocumentButton;
+		deleteDocumentButton = new DeleteWithJustificationButton($("DisplayDocumentView.deleteDocument"), false, WindowConfiguration.modalDialog("650px", null)) {
 			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				deleteConfirmationDocumentButtonClicked(document, params);
+			protected void deletionConfirmed(String reason) {
+				deleteDocument(document, reason, params);
 			}
 
 			@Override
-			protected String getConfirmDialogMessage() {
+			public Component getRecordCaption() {
+				return new ReferenceDisplay(params.getRecordVO());
+			}
+
+			@Override
+			protected Component buildWindowContent() {
+				Component content = super.buildWindowContent();
+				content.addStyleName(BaseWindow.WINDOW_CONTENT_WITH_BOTTOM_MARGIN);
+				return content;
+			}
+
+			@Override
+			public Component getMessageComponent() {
+				Component messageComponent;
 				if (isDocumentCheckout) {
-					return $("DocumentMenuItemActionBehaviors.documentIsCheckoutDeleteConfirmationMessage");
+					messageComponent = new Label($("DocumentMenuItemActionBehaviors.documentIsCheckoutDeleteConfirmationMessage"));
 				} else {
-					return super.getConfirmDialogMessage();
+					messageComponent = super.getMessageComponent();
 				}
+				return messageComponent;
 			}
 		};
+		return deleteDocumentButton;
+	}
 
-		deleteDocumentButton.click();
-
+	protected void deleteDocument(Document document, String reason, MenuItemActionBehaviorParams params) {
+		document = loadingFullRecordIfSummary(document);
+		if (validateDeleteDocumentPossibleExtensively(document.getWrappedRecord(), params.getUser()).isEmpty()) {
+			String parentId = document.getFolder();
+			try {
+				SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA,
+						params.getView().getConstellioFactories(), params.getView().getSessionContext());
+				presenterUtils.delete(document.getWrappedRecord(), reason, true, 1);
+			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
+				params.getView().showMessage(MessageUtils.toMessage(e));
+				return;
+			}
+			if (BehaviorsUtil.reloadIfSearchView(params.getView())) {
+				return;
+			} else if (parentId != null) {
+				navigateToDisplayFolder(parentId, params.getFormParams());
+			} else {
+				params.getView().navigate().to().recordsManagement();
+			}
+		} else {
+			MessageUtils.getCannotDeleteWindow(validateDeleteDocumentPossibleExtensively(
+					document.getWrappedRecord(), params.getUser())).openWindow();
+		}
 	}
 
 	private void renameContentButtonClicked(Document document, MenuItemActionBehaviorParams params,
@@ -389,31 +436,6 @@ public class DocumentMenuItemActionBehaviors {
 
 		document.getContent().renameCurrentVersion(newName);
 		return document;
-	}
-
-	private void deleteConfirmationDocumentButtonClicked(Document document, MenuItemActionBehaviorParams params) {
-		document = loadingFullRecordIfSummary(document);
-		if (validateDeleteDocumentPossibleExtensively(document.getWrappedRecord(), params.getUser()).isEmpty()) {
-			String parentId = document.getFolder();
-			try {
-				SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA,
-						params.getView().getConstellioFactories(), params.getView().getSessionContext());
-				presenterUtils.delete(document.getWrappedRecord(), null, true, 1);
-			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
-				params.getView().showMessage(MessageUtils.toMessage(e));
-				return;
-			}
-			if (BehaviorsUtil.reloadIfSearchView(params.getView())) {
-				return;
-			} else if (parentId != null) {
-				navigateToDisplayFolder(parentId, params.getFormParams());
-			} else {
-				params.getView().navigate().to().recordsManagement();
-			}
-		} else {
-			MessageUtils.getCannotDeleteWindow(validateDeleteDocumentPossibleExtensively(
-					document.getWrappedRecord(), params.getUser())).openWindow();
-		}
 	}
 
 	public void finalize(Document document, MenuItemActionBehaviorParams params) {
