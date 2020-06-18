@@ -20,10 +20,16 @@ import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.dd.VerticalDropLocation;
 import com.vaadin.ui.AbstractSelect.AbstractSelectTargetDetails;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.TableDragMode;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.LinkedHashMap;
@@ -43,17 +49,17 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 	private VerticalLayout viewLayout;
 	private Button addButton;
 	private Table table;
-	
+
 	private List<String> metadataGroups;
-	
+
 	@PropertyId("code")
 	private TextField codeField;
-	
+
 	@PropertyId("labels")
 	private MultilingualTextField labelsField;
 
 	private ListMetadataGroupSchemaTypePresenter presenter;
-	
+
 	public ListMetadataGroupSchemaTypeViewImpl() {
 		this.presenter = new ListMetadataGroupSchemaTypePresenter(this);
 	}
@@ -90,7 +96,7 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 		viewLayout.setExpandRatio(table, 1);
 		return viewLayout;
 	}
-	
+
 	private void buildAddButton() {
 		addButton = new AddButton() {
 			@Override
@@ -104,12 +110,12 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 		table = new BaseTable(getClass().getName());
 		table.addStyleName(GROUP_TABLE);
 		table.setWidth("100%");
-		
+
 		table.setColumnHeader("buttons", "");
 		table.setColumnWidth("buttons", 80);
 		table.setColumnHeader("code", $("ListMetadataGroupSchemaTypeView.code"));
 		table.addContainerProperty("code", String.class, "");
-		
+
 		for (String language : presenter.getCollectionLanguages()) {
 			table.setColumnHeader(language, language);
 			table.addContainerProperty(language, String.class, "");
@@ -119,39 +125,45 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 		for (String group : metadataGroups) {
 			setItem(group, presenter.getGroupLabels(group));
 		}
-		
+
 		table.setDragMode(TableDragMode.ROW);
 		table.setDropHandler(new DropHandler() {
 			@Override
 			public AcceptCriterion getAcceptCriterion() {
 				return AcceptAll.get();
 			}
-			
+
 			@Override
 			public void drop(DragAndDropEvent event) {
-                Transferable t = event.getTransferable();
-                if (t.getSourceComponent() != table || table.size() <= 1) {
-                    return;
-                }
+				Transferable t = event.getTransferable();
+				if (t.getSourceComponent() != table || table.size() <= 1) {
+					return;
+				}
 
-                AbstractSelectTargetDetails target = (AbstractSelectTargetDetails) event.getTargetDetails();
-                Object sourceItemId = t.getData("itemId");
-                Object targetItemId = target.getItemIdOver();
+				AbstractSelectTargetDetails target = (AbstractSelectTargetDetails) event.getTargetDetails();
+				Object sourceItemId = t.getData("itemId");
+				Object targetItemId = target.getItemIdOver();
 
-                Boolean above;
-                if (target.getDropLocation().equals(VerticalDropLocation.TOP)) {
-                	above = true;
-                } else if (target.getDropLocation().equals(VerticalDropLocation.MIDDLE) && targetItemId.equals(table.firstItemId())) {	
-                	above = true;
-                } else {
-                	above = false;
-                }
-                
-            	presenter.groupDroppedOn((String) sourceItemId, (String) targetItemId, above);
-        		moveAfter(targetItemId, sourceItemId);
-            	if (Boolean.TRUE.equals(above)) {
-            		moveAfter(sourceItemId, targetItemId);
-            	}
+				Boolean above;
+				if (target.getDropLocation().equals(VerticalDropLocation.TOP)) {
+					above = true;
+				} else if (target.getDropLocation().equals(VerticalDropLocation.MIDDLE) && targetItemId.equals(table.firstItemId())) {
+					above = true;
+				} else {
+					above = false;
+				}
+
+				presenter.groupDroppedOn((String) sourceItemId, (String) targetItemId, above);
+				moveAfter(targetItemId, sourceItemId);
+				if (Boolean.TRUE.equals(above)) {
+					moveAfter(sourceItemId, targetItemId);
+				}
+
+				if (((String) sourceItemId).startsWith("default:")) {
+					for (String metadataGroup : presenter.getMetadataGroupList()) {
+						updateMetadataGroup(metadataGroup, presenter.getGroupLabels(metadataGroup));
+					}
+				}
 			}
 		});
 	}
@@ -166,7 +178,7 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 			String groupLabel = labels.get(language);
 			table.getContainerProperty(group, language).setValue(groupLabel);
 		}
-		
+
 		Button editButton = new EditButton() {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -184,51 +196,52 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 		deleteButton.addStyleName(GROUP_DELETE_BUTTON);
 		deleteButton.setVisible(isNotDefaultGroup(group));
 		deleteButton.setEnabled(isNotDefaultGroup(group));
-		
+
 		I18NHorizontalLayout buttonsLayout = new I18NHorizontalLayout(editButton, deleteButton);
 
 		table.getContainerProperty(group, "buttons").setValue(buttonsLayout);
 	}
 
 	private boolean isNotDefaultGroup(String group) {
-		return !presenter.getDefaultMetadataGroupCode().equals(group);
+		return !group.equals(presenter.getDefaultMetadataGroupCode());
 	}
 
-    @SuppressWarnings("unchecked")
-    /**
-     * 
-     * @param targetItemId
-     * @param sourceItemId
-     * @return ItemId of the object the item moved to
-     */
-    public Object moveAfter(Object targetItemId, Object sourceItemId) {
-        if(sourceItemId == null)
-            return null;
-        Item sourceItem = table.getItem(sourceItemId);
+	@SuppressWarnings("unchecked")
+	/**
+	 *
+	 * @param targetItemId
+	 * @param sourceItemId
+	 * @return ItemId of the object the item moved to
+	 */
+	public Object moveAfter(Object targetItemId, Object sourceItemId) {
+		if (sourceItemId == null) {
+			return null;
+		}
+		Item sourceItem = table.getItem(sourceItemId);
 
-        Object[] propertyIds = table.getContainerPropertyIds().toArray();
-        int size = propertyIds.length;
-        Object[][] properties = new Object[size][2];
+		Object[] propertyIds = table.getContainerPropertyIds().toArray();
+		int size = propertyIds.length;
+		Object[][] properties = new Object[size][2];
 
-        // backup source item properties and values
-        for(int i = 0; i < size; i++) {
-            Object propertyId = propertyIds[i];
-            Object value = sourceItem.getItemProperty(propertyId).getValue();
-            properties[i][0] = propertyId;
-            properties[i][1] = value;
-        }
-        table.removeItem(sourceItemId);
-        Item item = table.addItemAfter(targetItemId, sourceItemId);
+		// backup source item properties and values
+		for (int i = 0; i < size; i++) {
+			Object propertyId = propertyIds[i];
+			Object value = sourceItem.getItemProperty(propertyId).getValue();
+			properties[i][0] = propertyId;
+			properties[i][1] = value;
+		}
+		table.removeItem(sourceItemId);
+		Item item = table.addItemAfter(targetItemId, sourceItemId);
 
-        // restore source item properties and values
-        for(int i = 0; i < size; i++) {
-            Object propertyId = properties[i][0];
-            Object value = properties[i][1];
-            item.getItemProperty(propertyId).setValue(value);
-        }
+		// restore source item properties and values
+		for (int i = 0; i < size; i++) {
+			Object propertyId = properties[i][0];
+			Object value = properties[i][1];
+			item.getItemProperty(propertyId).setValue(value);
+		}
 
-        return sourceItemId;
-    }
+		return sourceItemId;
+	}
 
 	@Override
 	public void setMetadataGroups(List<String> metadataGroups) {
@@ -264,7 +277,7 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 	public void invalidCodeOrLabels() {
 		this.showErrorMessage($("ListMetadataGroupSchemaTypeView.invalidCodeOrLabels"));
 	}
-	
+
 	@Override
 	public void showAddWindow(List<String> languageCodes) {
 		Map<String, String> labels = new LinkedHashMap<>();
@@ -285,7 +298,7 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 		final MetadataGroupVO viewObject = new MetadataGroupVO();
 		viewObject.setCode(code);
 		viewObject.setLabels(labels);
-		
+
 		codeField = new TextField();
 		codeField.setRequired(addForm);
 		codeField.setEnabled(addForm);
@@ -294,7 +307,7 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 
 		labelsField = new MultilingualTextField(true);
 		labelsField.setRequired(true);
-		
+
 		BaseForm<MetadataGroupVO> form = new BaseForm<MetadataGroupVO>(viewObject, this, codeField, labelsField) {
 			@Override
 			protected void saveButtonClick(MetadataGroupVO viewObject) throws ValidationException {
@@ -310,7 +323,7 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 				presenter.cancelButtonClicked(code, labels, addForm);
 			}
 		};
-		
+
 		String windowCaption = addForm ? $("ListMetadataGroupSchemaTypeView.addGroup") : $("ListMetadataGroupSchemaTypeView.editGroup");
 		Window baseWindow = new BaseWindow(windowCaption, form);
 		baseWindow.center();
@@ -318,16 +331,16 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 		baseWindow.setHeight("400px");
 		return baseWindow;
 	}
-	
+
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
 		return true;
 	}
 
 	public static class MetadataGroupVO {
-		
+
 		private String code;
-		
+
 		private Map<String, String> labels = new LinkedHashMap<>();
 
 		public String getCode() {
@@ -345,7 +358,7 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 		public void setLabels(Map<String, String> labels) {
 			this.labels = labels;
 		}
-		
+
 	}
-	
+
 }

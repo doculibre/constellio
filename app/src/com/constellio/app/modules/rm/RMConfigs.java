@@ -4,7 +4,12 @@ import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsMan
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableTypeRestrictionInFolderScript;
-import com.constellio.app.modules.rm.model.enums.*;
+import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
+import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
+import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
+import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
+import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
+import com.constellio.app.modules.rm.model.enums.ReportsSortingMetadata;
 import com.constellio.app.modules.rm.validator.EndYearValueCalculator;
 import com.constellio.app.modules.rm.wrappers.RMDecommissioningTypeRequiredScript;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -84,7 +89,9 @@ public class RMConfigs {
 			SUB_FOLDER_DECOMMISSIONING,
 			DOCUMENT_SUMMARY_CACHE_ENABLED,
 			IGNORE_VALIDATIONS_IN_BATCH_PROCESSING,
-			ENABLE_TYPE_RESTRICTION_IN_FOLDER;
+			ENABLE_TYPE_RESTRICTION_IN_FOLDER,
+			SHARE_CONTENT_REQUIRES_DATE_VALUES,
+			PUBLISH_DOCUMENT_REQUIRES_DATE_VALUES;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -334,6 +341,9 @@ public class RMConfigs {
 		add(DOCUMENT_SUMMARY_CACHE_ENABLED = others.createBooleanTrueByDefault("documentSummaryCacheEnabled")
 				.whichIsHidden().whichRequiresReboot().scriptedBy(RMDocumentSummaryCacheEnabledScript.class));
 
+		add(SHARE_CONTENT_REQUIRES_DATE_VALUES = others.createBooleanFalseByDefault("shareContentRequiresDateValues"));
+
+		add(PUBLISH_DOCUMENT_REQUIRES_DATE_VALUES = others.createBooleanFalseByDefault("publishDocumentRequiresDateValues"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -624,5 +634,13 @@ public class RMConfigs {
 
 	public boolean isTypeRestrictionEnabledInFolder() {
 		return manager.getValue(ENABLE_TYPE_RESTRICTION_IN_FOLDER);
+	}
+
+	public boolean isDateFieldValuesRequiredInShareContent() {
+		return manager.getValue(SHARE_CONTENT_REQUIRES_DATE_VALUES);
+	}
+
+	public boolean isDateFieldValuesRequiredInPublishDocument() {
+		return manager.getValue(PUBLISH_DOCUMENT_REQUIRES_DATE_VALUES);
 	}
 }

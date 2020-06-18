@@ -35,20 +35,46 @@ import com.vaadin.data.util.converter.ConverterUtil;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.MouseEvents;
-import com.vaadin.server.*;
+import com.vaadin.server.ErrorMessage;
+import com.vaadin.server.Extension;
+import com.vaadin.server.Page;
+import com.vaadin.server.Resource;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomField;
+import com.vaadin.ui.Image;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.vaadin.addons.lazyquerycontainer.*;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.Query;
+import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.QueryFactory;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -218,14 +244,14 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 			if (listValue != null) {
 				List<Object> convertedListValue = new ArrayList<>();
 				for (Object listItem : listValue) {
-			        Class<?> modelType = getModelType();
-			        try {
-			        	Object convertedListItem = ConverterUtil.convertToModel(listItem,
-			                    (Class<Object>) modelType, getConverter(), locale);
-			        	convertedListValue.add(convertedListItem);
-			        } catch (ConversionException e) {
-			            throw new ConversionException(getConversionError(modelType, e), e);
-			        }
+					Class<?> modelType = getModelType();
+					try {
+						Object convertedListItem = ConverterUtil.convertToModel(listItem,
+								(Class<Object>) modelType, getConverter(), locale);
+						convertedListValue.add(convertedListItem);
+					} catch (ConversionException e) {
+						throw new ConversionException(getConversionError(modelType, e), e);
+					}
 				}
 				convertedValue = convertedListValue;
 			} else {
@@ -238,9 +264,21 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 	@Override
 	protected void setInternalValue(Object newValue) {
 		super.setInternalValue(newValue);
-		if (!multiValue && autoCompleteField != null) {
+		if (autoCompleteField != null) {
 			autoCompleteField.removeValueChangeListener(autoCompleteChangeListener);
-			autoCompleteField.setValue(newValue);
+			if (!multiValue) {
+				autoCompleteField.setValue(newValue);
+			} else if (newValue instanceof List) {
+				List newListValue = (List) newValue;
+				boolean onlyOneElement = newListValue.size() == 1;
+				if (onlyOneElement) {
+					autoCompleteField.setValue(newListValue.get(0));
+				} else if (newListValue.isEmpty()) {
+					autoCompleteField.setValue(null);
+				}
+			} else if (newValue == null) {
+				autoCompleteField.setValue(null);
+			}
 			autoCompleteField.addValueChangeListener(autoCompleteChangeListener);
 		}
 	}
@@ -268,16 +306,16 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 			@Override
 			public List<T> suggest(String text) {
 				List<T> values = new ArrayList<>(suggestInputDataProvider.getData(text, 0, getBufferSize()));
-//				if (itemConverter != null) {
-//					Collections.sort(values, new Comparator<T>() {
-//						@Override
-//						public int compare(T o1, T o2) {
-//							String s1 = itemConverter.convertToPresentation(o1, String.class, getLocale());
-//							String s2 = itemConverter.convertToPresentation(o2, String.class, getLocale());
-//							return s1.compareTo(s2);
-//						}
-//					});
-//				}
+				//				if (itemConverter != null) {
+				//					Collections.sort(values, new Comparator<T>() {
+				//						@Override
+				//						public int compare(T o1, T o2) {
+				//							String s1 = itemConverter.convertToPresentation(o1, String.class, getLocale());
+				//							String s2 = itemConverter.convertToPresentation(o2, String.class, getLocale());
+				//							return s1.compareTo(s2);
+				//						}
+				//					});
+				//				}
 				return values;
 			}
 
@@ -370,7 +408,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 
 			@Override
 			protected boolean acceptWindowOpen(ClickEvent event) {
-				if(LookupField.this.isReadOnly()) {
+				if (LookupField.this.isReadOnly()) {
 					showReadOnlyMessage();
 					return false;
 				} else {
@@ -391,7 +429,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 	}
 
 	protected String getReadOnlyMessage() {
-		if(!StringUtils.isBlank(readOnlyMessageI18NKey)) {
+		if (!StringUtils.isBlank(readOnlyMessageI18NKey)) {
 			return $(readOnlyMessageI18NKey);
 		}
 		return $("readOnlyComponent");
@@ -536,10 +574,10 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 			if (!multiValue) {
 				super.validate();
 			} else {
-		        if (isRequired() && isEmpty()) {
-		            throw new Validator.EmptyValueException(getRequiredError());
-		        }
-		        validate(getValue());
+				if (isRequired() && isEmpty()) {
+					throw new Validator.EmptyValueException(getRequiredError());
+				}
+				validate(getValue());
 			}
 			removeStyleName(ERROR_STYLE_NAME);
 		} catch (InvalidValueException e) {
