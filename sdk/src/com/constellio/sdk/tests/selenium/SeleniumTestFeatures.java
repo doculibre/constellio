@@ -4,6 +4,8 @@ import com.constellio.app.client.services.AdminServicesSession;
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.client.cmis.client.CmisSessionBuilder;
 import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.services.tenant.TenantService;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTestSession;
 import com.constellio.sdk.tests.FactoriesTestFeatures;
@@ -124,7 +126,14 @@ public class SeleniumTestFeatures {
 			startApplication();
 
 		}
-		String url = "http://localhost:" + port + "/constellio/";
+		String url;
+
+		if (TenantUtils.isSupportingTenants()) {
+			url = "http://" + TenantService.getInstance().getTenantByCode(TenantUtils.getTenantId()).getHostnames().get(0) + ":" + port + "/constellio/";
+		} else {
+			url = "http://localhost:" + port + "/constellio/";
+		}
+
 
 		return CmisSessionBuilder.forAppUrl(url);
 
