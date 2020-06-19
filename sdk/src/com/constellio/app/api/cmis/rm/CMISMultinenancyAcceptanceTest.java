@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.data.services.tenant.TenantLocal;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -93,11 +94,37 @@ public class CMISMultinenancyAcceptanceTest extends ConstellioTest {
 			recordServices.get().update(users.get().aliceIn(zeCollection).setCollectionReadAccess(true));
 			recordServices.get().update(users.get().chuckNorrisIn(zeCollection).setCollectionAllAccess(true));
 			recordServices.get().update(users.get().gandalfIn(zeCollection).setCollectionReadAccess(true).setCollectionWriteAccess(true));
-		});
-		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, false);
-		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 
-		rm.set(new RMSchemasRecordsServices(zeCollection, getAppLayerFactory()));
+			givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, false);
+			CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
+
+			rm.set(new RMSchemasRecordsServices(zeCollection, getAppLayerFactory()));
+		});
+
+	}
+
+
+	@Test
+	public void givenDifferentRecordsWithSameIdInTwoTenantsThenRetrieveTheGoodOne()
+			throws Exception {
+
+		TenantUtils.setTenant("1");
+		recordServices.get().add(records.get().getFolder_A42().setTitle("Dossier 42 du tenant 1"));
+
+		TenantUtils.setTenant("2");
+		recordServices.get().add(records.get().getFolder_A42().setTitle("Dossier 42 du tenant 2"));
+
+
+		TenantUtils.setTenant("1");
+		session.set(newCMISSessionAsUserInZeCollection(admin));
+		Folder folder = (Folder) session.get().getObject(records.get().getFolder_A42().getId());
+		assertThat(folder.getName()).isEqualTo("Dossier 42 du tenant 1");
+
+		TenantUtils.setTenant("2");
+		session.set(newCMISSessionAsUserInZeCollection(admin));
+		folder = (Folder) session.get().getObject(records.get().getFolder_A42().getId());
+		assertThat(folder.getName()).isEqualTo("Dossier 42 du tenant 2");
+
 	}
 
 	@Test

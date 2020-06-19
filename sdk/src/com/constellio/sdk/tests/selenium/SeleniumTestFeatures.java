@@ -129,7 +129,7 @@ public class SeleniumTestFeatures {
 		String url;
 
 		if (TenantUtils.isSupportingTenants()) {
-			url = "http://" + TenantService.getInstance().getTenantByCode(TenantUtils.getTenantId()).getHostnames().get(0) + ":" + port + "/constellio/";
+			url = "http://" + TenantService.getInstance().getTenantById(TenantUtils.getByteTenantId()).getHostnames().get(0) + "/constellio/";
 		} else {
 			url = "http://localhost:" + port + "/constellio/";
 		}
