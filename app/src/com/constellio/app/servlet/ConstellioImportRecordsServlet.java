@@ -50,6 +50,8 @@ public class ConstellioImportRecordsServlet extends HttpServlet {
 			FileService fileService = modelLayerFactory().getDataLayerFactory().getIOServicesFactory().newFileService();
 			File tempFile = fileService.newTemporaryFile(TEMP_FILE_RESSOURCE_NAME);
 			String dataType = request.getHeader("dataType");
+			Boolean isSimulation = Boolean.valueOf(request.getHeader("simulate"));
+
 			try {
 				OutputStream fos = new BufferedOutputStream(new FileOutputStream(tempFile));
 				User user = authenticator.authenticateInCollection(request);
@@ -71,7 +73,7 @@ public class ConstellioImportRecordsServlet extends HttpServlet {
 						}
 						fos.close();
 					}
-					importErrors = respond(tempFile, dataType, user);
+					importErrors = respond(tempFile, dataType, user, isSimulation);
 
 					if (!importErrors.isEmpty()) {
 						response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -103,15 +105,18 @@ public class ConstellioImportRecordsServlet extends HttpServlet {
 		return ConstellioFactories.getInstance().getModelLayerFactory();
 	}
 
-	protected ValidationErrors respond(File file, String dataType, User user)
+	protected ValidationErrors respond(File file, String dataType, User user, boolean isSimulation)
 			throws Exception {
 		ImportDataProvider dataProvider = toDataProvider(file, dataType);
 
 		RecordsImportServices recordsImportServices = new RecordsImportServices(modelLayerFactory());
-
+		BulkImportParams params = new BulkImportParams().setAllowingReferencesToNonExistingUsers(false);
+		if (isSimulation) {
+			params.setSimulate(true);
+		}
 		try {
 			recordsImportServices.bulkImport(dataProvider, new LoggerBulkImportProgressionListener(), user,
-					new BulkImportParams().setAllowingReferencesToNonExistingUsers(false));
+					params);
 
 		} catch (ValidationException e) {
 			return e.getValidationErrors();
