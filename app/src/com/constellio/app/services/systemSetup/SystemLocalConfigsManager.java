@@ -25,6 +25,12 @@ public class SystemLocalConfigsManager implements StatefulService {
 	public SystemLocalConfigsManager(File propertyFile, SystemGlobalConfigsManager systemGlobalConfigsManager) {
 		this.propertyFile = propertyFile;
 		this.systemGlobalConfigsManager = systemGlobalConfigsManager;
+
+		if (propertyFile.exists()) {
+			this.properties = new HashMap<>(PropertyFileUtils.loadKeyValues(propertyFile));
+		} else {
+			this.properties = new HashMap<>();
+		}
 	}
 
 	@Override
