@@ -22,6 +22,7 @@ import com.constellio.app.ui.tools.vaadin.TestContainerButtonListener;
 import com.constellio.app.ui.tools.vaadin.TestEnterViewListener;
 import com.constellio.app.ui.tools.vaadin.TestInitUIListener;
 import com.constellio.client.cmis.client.CmisSessionBuilder;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
@@ -38,10 +39,11 @@ import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.ConsoleLogger;
+import com.constellio.data.utils.RunnableWithException;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.TimeProvider.DefaultTimeProvider;
 import com.constellio.data.utils.dev.Toggle.AvailableToggle;
-import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -222,6 +224,31 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected void givenTwoTenants() {
 		getCurrentTestSession().getFactoriesTestFeatures().addTenants();
+	}
+
+	protected void givenTwoTenants(final RunnableWithException runnable) throws Exception {
+		getCurrentTestSession().getFactoriesTestFeatures().addTenants();
+
+		TenantUtils.setTenant("1");
+		runnable.run();
+
+		TenantUtils.setTenant("2");
+		runnable.run();
+
+
+	}
+
+	protected void forEachTenants(final RunnableWithException runnable) throws Exception {
+
+		String currentTenant = TenantUtils.getTenantId();
+
+		TenantUtils.setTenant("1");
+		runnable.run();
+
+		TenantUtils.setTenant("2");
+		runnable.run();
+
+		TenantUtils.setTenant(currentTenant);
 	}
 
 	@AfterClass
