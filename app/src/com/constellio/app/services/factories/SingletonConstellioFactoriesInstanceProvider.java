@@ -1,5 +1,6 @@
 package com.constellio.app.services.factories;
 
+import com.constellio.app.services.factories.AppLayerFactoryRuntineException.AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry;
 import com.constellio.data.utils.Factory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,10 +33,21 @@ public class SingletonConstellioFactoriesInstanceProvider implements ConstellioF
 			ConstellioFactories instanceBeingInitialized = constellioFactoriesFactory.get();
 
 			CompletableFuture.runAsync(() -> {
-				try {
-					initializeInstance(key, instanceBeingInitialized);
-				} catch (Exception e) {
-					LOGGER.error("Error while initializing for tenant " + tenantId, e);
+
+				boolean tryInitialize = true;
+				while (tryInitialize) {
+					try {
+						initializeInstance(key, instanceBeingInitialized);
+						tryInitialize = false;
+
+					} catch (AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry ignored) {
+						clear(currentTenantId);
+						getInstance(currentTenantId, constellioFactoriesFactory);
+						//Nothing, just re-entering the while loop for an other attempt
+
+					} catch (Exception e) {
+						LOGGER.error("Error while initializing for tenant " + tenantId, e);
+					}
 				}
 			});
 

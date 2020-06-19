@@ -21,6 +21,7 @@ import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
+import com.constellio.app.services.factories.AppLayerFactoryRuntineException.AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry;
 import com.constellio.app.services.metadata.AppSchemasServices;
 import com.constellio.app.services.migrations.ConstellioEIM;
 import com.constellio.app.services.migrations.MigrationServices;
@@ -37,6 +38,8 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.EnterViewListener;
 import com.constellio.app.ui.pages.base.InitUIListener;
 import com.constellio.app.ui.pages.base.PresenterService;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocatorMode;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
@@ -46,10 +49,9 @@ import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.systemLogger.SystemLogger;
-import com.constellio.data.conf.FoldersLocator;
-import com.constellio.data.conf.FoldersLocatorMode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -254,25 +256,74 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 				.getSystemConfigurationsManager();
 		configManager.initialize();
 		ConstellioEIMConfigs constellioConfigs = new ConstellioEIMConfigs(configManager);
-		if (!dataLayerFactory.isDistributed() && (Toggle.FORCE_ROLLBACK.isEnabled() || constellioConfigs.isInUpdateProcess())) {
+
+		boolean startedUp = true;
+		if (isSupportingRollbacks(constellioConfigs)) {
 			LOGGER.info("Launching in rollback mode");
 			startupWithPossibleRecovery(upgradeAppRecoveryService);
 		} else {
-			LOGGER.info("Launching in normal mode");
+			if (TenantUtils.isSupportingTenants()) {
+				LOGGER.info("Launching in tenant mode");
+				startedUp = normalStartupInMultiTenantSystem();
+			} else {
+				LOGGER.info("Launching in normal mode");
+				normalStartup(false);
+			}
+		}
+		if (startedUp) {
+			if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {
+				dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
+				dataLayerFactory.getConstellioJobManager().onSystemStarted();
+			}
+			dataLayerFactory.getEventBusManager().resume();
+			upgradeAppRecoveryService.close();
+
+			initializationFinished = true;
+
+			getModelLayerFactory().getRecordsCaches().register(new SavedSearchRecordsCachesHook(10_000));
+
+			SystemLogger.info("Application started");
+		} else {
+
+			LOGGER.error("Application could not start for " + TenantUtils.getTenantId());
+		}
+	}
+
+	private boolean normalStartupInMultiTenantSystem() {
+		try {
 			normalStartup(false);
+			return true;
+
+		} catch (AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry e) {
+			LOGGER.info("AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry catched in normalStartupInMultiTenantSystem, will be retrown");
+			try {
+				close();
+
+			} catch (Throwable t2) {
+				LOGGER.error("Fatal error during the tenant's shutdown, but it's initialization will be retried", t2);
+			}
+
+			//Will be catched higher,
+			throw e;
+
+		} catch (Throwable t) {
+			LOGGER.error("Fatal error during startup, tenant is shutdowned", t);
+
+			try {
+				close();
+
+			} catch (Throwable t2) {
+				LOGGER.error("Fatal error during the tenant's shutdown, no further actions will be done", t2);
+			}
+			return false;
+
 		}
-		if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {
-			dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
-			dataLayerFactory.getConstellioJobManager().onSystemStarted();
-		}
-		dataLayerFactory.getEventBusManager().resume();
-		upgradeAppRecoveryService.close();
+	}
 
-		initializationFinished = true;
-
-		getModelLayerFactory().getRecordsCaches().register(new SavedSearchRecordsCachesHook(10_000));
-
-		SystemLogger.info("Application started");
+	private boolean isSupportingRollbacks(ConstellioEIMConfigs constellioConfigs) {
+		return !dataLayerFactory.isDistributed()
+			   && !TenantUtils.isSupportingTenants()
+			   && (Toggle.FORCE_ROLLBACK.isEnabled() || constellioConfigs.isInUpdateProcess());
 	}
 
 	private void startupWithPossibleRecovery(UpgradeAppRecoveryServiceImpl recoveryService) {
@@ -331,12 +382,18 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 			getModulesManager().enableComplementaryModules();
 		} catch (ConstellioModulesManagerException_ModuleInstallationFailed e) {
 			if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER && !recoveryMode) {
-				LOGGER.warn("System is restarting because of failure to install/update module '" + e.getFailedModule()
-							+ "' in collection '" + e.getFailedCollection() + "'", e);
-				try {
-					restart();
-				} catch (AppManagementServiceException e2) {
-					throw new RuntimeException(e2);
+				if (TenantUtils.isSupportingTenants()) {
+					//The faulty plugin was disabled, retrying without it
+					throw new AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry();
+
+				} else {
+					LOGGER.warn("System is restarting because of failure to install/update module '" + e.getFailedModule()
+								+ "' in collection '" + e.getFailedCollection() + "'", e);
+					try {
+						restart();
+					} catch (AppManagementServiceException e2) {
+						throw new RuntimeException(e2);
+					}
 				}
 			} else {
 				throw new RuntimeException(e);
