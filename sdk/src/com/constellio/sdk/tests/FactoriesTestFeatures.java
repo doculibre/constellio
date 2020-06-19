@@ -3,9 +3,11 @@ package com.constellio.sdk.tests;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.services.factories.SingletonConstellioFactoriesInstanceProvider;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.conf.ConfigManagerType;
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
@@ -22,15 +24,14 @@ import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.extensions.TransactionLogExtension;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.io.IOServicesFactory;
+import com.constellio.data.services.tenant.TenantProperties;
+import com.constellio.data.services.tenant.TenantService;
 import com.constellio.data.utils.Factory;
-import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.data.services.tenant.TenantProperties;
-import com.constellio.data.services.tenant.TenantService;
-import com.constellio.data.utils.TenantUtils;
 import com.constellio.sdk.FakeEncryptionServices;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
@@ -571,7 +572,11 @@ public class FactoriesTestFeatures {
 	}
 
 	public boolean isInitialized() {
-		return !((SDKConstellioFactoriesInstanceProvider) ConstellioFactories.instanceProvider).getAllInstances().isEmpty();
+		if (ConstellioFactories.instanceProvider instanceof SDKConstellioFactoriesInstanceProvider) {
+			return !((SDKConstellioFactoriesInstanceProvider) ConstellioFactories.instanceProvider).getAllInstances().isEmpty();
+		} else {
+			return ((SingletonConstellioFactoriesInstanceProvider) ConstellioFactories.instanceProvider).isInitialized(TenantUtils.getTenantId());
+		}
 	}
 
 	public void givenBackgroundThreadsEnabled() {
