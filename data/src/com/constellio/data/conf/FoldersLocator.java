@@ -571,12 +571,9 @@ public class FoldersLocator {
 		}
 	}
 
-	public File getPluginsJarsFolder() {
-		return getPluginsJarsFolder(false);
-	}
 
-	public File getPluginsJarsFolder(boolean appendTenantFolder) {
-		String pluginsJarsFolder = appendTenantFolder ? concatTenantFolder("plugins") : "plugins";
+	public File getPluginsJarsFolder() {
+		String pluginsJarsFolder = "plugins";
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER || getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
 			return new File(getConstellioWebinfFolder(), pluginsJarsFolder);
 
@@ -585,29 +582,26 @@ public class FoldersLocator {
 		}
 	}
 
-	public File getPluginsToMoveOnStartupFile() {
-		return getPluginsToMoveOnStartupFile(false);
-	}
 
-	public File getPluginsToMoveOnStartupFile(boolean appendTenantFolder) {
+	public File getPluginsToMoveOnStartupFile() {
 		File pluginManagementFolder;
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER || getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
-			String pluginsFolder = appendTenantFolder ? concatTenantFolder("pluginsManagement") : "pluginsManagement";
+			String pluginsFolder = "pluginsManagement";
 			pluginManagementFolder = new File(getConstellioWebinfFolder(), pluginsFolder);
 		} else {
-			String pluginsFolder = appendTenantFolder ? concatTenantFolder("pluginsManagement") : "pluginsManagement";
+			String pluginsFolder = "pluginsManagement";
 			pluginManagementFolder = new File(getConstellioWebappFolder(), pluginsFolder);
 		}
 		return new File(pluginManagementFolder, "toMoveOnStartup");
 	}
 
 	public File getPluginsJarsFolder(File webAppFolder) {
-		File webInf = new File(webAppFolder, concatTenantFolder("WEB-INF"));
+		File webInf = new File(webAppFolder, "WEB-INF");
 		return new File(webInf, "plugins");
 	}
 
 	public File getPluginsToMoveOnStartupFile(File webAppFolder) {
-		File webInf = new File(webAppFolder, concatTenantFolder("WEB-INF"));
+		File webInf = new File(webAppFolder, "WEB-INF");
 		File pluginManagementFolder = new File(webInf, "pluginsManagement");
 		return new File(pluginManagementFolder, "toMoveOnStartup");
 	}

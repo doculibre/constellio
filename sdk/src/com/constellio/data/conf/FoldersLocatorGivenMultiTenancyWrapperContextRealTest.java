@@ -181,22 +181,22 @@ public class FoldersLocatorGivenMultiTenancyWrapperContextRealTest extends Const
 	public void getPluginsJarsFolder() {
 		TenantUtils.setTenant("1");
 		File file = foldersLocator.getPluginsJarsFolder();
-		Assertions.assertThat(file.getPath()).endsWith("WEB-INF/plugins/tenant1");
+		Assertions.assertThat(file.getPath()).endsWith("WEB-INF/plugins");
 
 		TenantUtils.setTenant("2");
 		File file2 = foldersLocator.getPluginsJarsFolder();
-		Assertions.assertThat(file2.getPath()).endsWith("WEB-INF/plugins/tenant2");
+		Assertions.assertThat(file2.getPath()).endsWith("WEB-INF/plugins");
 	}
 
 	@Test
 	public void getPluginsToMoveOnStartupFile() {
 		TenantUtils.setTenant("1");
 		File file = foldersLocator.getPluginsToMoveOnStartupFile();
-		Assertions.assertThat(file.getPath()).endsWith("WEB-INF/pluginsManagement/tenant1/toMoveOnStartup");
+		Assertions.assertThat(file.getPath()).endsWith("WEB-INF/pluginsManagement/toMoveOnStartup");
 
 		TenantUtils.setTenant("2");
 		File file2 = foldersLocator.getPluginsToMoveOnStartupFile();
-		Assertions.assertThat(file2.getPath()).endsWith("WEB-INF/pluginsManagement/tenant2/toMoveOnStartup");
+		Assertions.assertThat(file2.getPath()).endsWith("WEB-INF/pluginsManagement/toMoveOnStartup");
 	}
 
 	@Test

@@ -28,6 +28,10 @@ public class TenantUtils {
 		return tenant;
 	}
 
+	public static void setTenant(int tenantId) {
+		setTenant((byte) tenantId);
+	}
+
 	public static void setTenant(byte tenantId) {
 		TenantProperties tenant = tenantService.getTenantById(tenantId);
 		if (tenant == null) {
