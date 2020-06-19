@@ -14,7 +14,6 @@ import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.services.factories.TestLogConfigurationFactory;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExportParams;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporter;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -77,7 +76,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.ConfigurationFactory;
+import org.apache.logging.log4j.core.config.plugins.util.PluginManager;
 import org.apache.solr.client.solrj.SolrClient;
 import org.joda.time.Duration;
 import org.joda.time.LocalDate;
@@ -176,13 +175,6 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	private File state1, state2;
 	private TemporaryFolder folder;
 
-	static {
-		ConfigurationFactory custom = new TestLogConfigurationFactory();
-		ConfigurationFactory.setConfigurationFactory(custom);
-		log = LogManager.getLogger(AbstractConstellioTest.class);
-	}
-
-
 	public AbstractConstellioTest() {
 
 		sdkProperties = sdkPropertiesLoader.getSDKProperties();
@@ -195,10 +187,16 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	@BeforeClass
 	public static void beforeClass()
 			throws Exception {
-		log.error("Error log message");
-		MetadataSchemasManager.cacheEnabled = true;
 
 		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+		System.setProperty("log4j.configurationFile", new FoldersLocator().getSDKProject().getAbsolutePath() + "\\log4j2.xml");
+
+		PluginManager.addPackage("com.constellio.app.services.factories");
+		log = LogManager.getLogger(AbstractConstellioTest.class);
+		log.error("Error log message");
+
+		MetadataSchemasManager.cacheEnabled = true;
+
 		System.setProperty(BenchmarkOptionsSystemProperties.BENCHMARK_ROUNDS_PROPERTY, "1");
 		System.setProperty(BenchmarkOptionsSystemProperties.WARMUP_ROUNDS_PROPERTY, "0");
 		if (System.getProperty("jub.consumers") == null) {

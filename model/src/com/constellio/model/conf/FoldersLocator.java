@@ -10,7 +10,7 @@ import java.util.List;
 public class FoldersLocator {
 
 	public static final String CONSTELLIO_TMP = "constellio_tmp";
-	private static boolean CONTEXT_PRINTED = false;
+	private static boolean CONTEXT_PRINTED = true;
 
 	private static FoldersLocatorMode foldersLocatorModeCached;
 

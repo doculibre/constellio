@@ -1,6 +1,7 @@
 package com.constellio.model.services.tenant;
 
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.services.exception.Log4JRuntimeExceptionHandler;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -34,6 +35,10 @@ public class TenantService {
 	private Map<String, TenantProperties> tenantsByHostname;
 
 	private static TenantService instance;
+
+	static {
+		Thread.setDefaultUncaughtExceptionHandler(new Log4JRuntimeExceptionHandler());
+	}
 
 	// FIXME class is not thread-safe
 	private TenantService() {

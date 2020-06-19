@@ -2,6 +2,7 @@ package com.constellio.model.utils;
 
 import com.constellio.model.services.tenant.TenantProperties;
 import com.constellio.model.services.tenant.TenantService;
+import org.apache.logging.log4j.ThreadContext;
 
 public class TenantUtils {
 
@@ -31,11 +32,15 @@ public class TenantUtils {
 	public static void setTenant(String tenantId) {
 		if (tenantId == null) {
 			tenantThreadLocal.set(null);
+			ThreadContext.clearAll();
 		} else {
 			TenantProperties tenant = tenantService.getTenantById(Integer.valueOf(tenantId));
+			ThreadContext.put("tenant.id", tenantId);
+
 			if (tenant == null) {
 				throw new RuntimeException("Invalid tenant id");
 			}
+
 			tenantThreadLocal.set(tenant);
 		}
 	}

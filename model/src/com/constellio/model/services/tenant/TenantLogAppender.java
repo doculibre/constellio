@@ -1,6 +1,6 @@
 package com.constellio.model.services.tenant;
 
-import org.apache.logging.log4j.Level;
+import com.constellio.model.utils.TenantUtils;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Core;
 import org.apache.logging.log4j.core.Filter;
@@ -32,13 +32,13 @@ public class TenantLogAppender extends AbstractAppender {
 
 	@Override
 	public void append(LogEvent event) {
-		if (event.getLevel()
-				.isLessSpecificThan(Level.WARN)) {
-			error("Unable to log less than WARN level.");
+		if (event.getContextData().getValue(TenantUtils.getTenantId())) {
+			eventMap.put(Instant.now()
+					.toString(), event);
+		} else {
 			return;
 		}
-		eventMap.put(Instant.now()
-				.toString(), event);
+
 	}
 
 	public ConcurrentMap<String, LogEvent> getEventMap() {
