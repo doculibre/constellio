@@ -39,10 +39,6 @@ public class GetRecordContentServlet extends HttpServlet {
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
-
-		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-		authenticator = new HttpServletRequestAuthenticator(modelLayerFactory);
 	}
 
 	@Override

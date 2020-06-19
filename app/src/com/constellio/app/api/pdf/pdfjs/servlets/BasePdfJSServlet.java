@@ -35,15 +35,9 @@ import java.util.UUID;
 
 public abstract class BasePdfJSServlet extends HttpServlet {
 
-	protected HttpServletRequestAuthenticator authenticator;
-
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
-
-		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-		authenticator = new HttpServletRequestAuthenticator(modelLayerFactory);
 	}
 
 	@Override
@@ -83,13 +77,14 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 		String localeCode = request.getParameter("locale");
 		String accessId = request.getParameter("accessId");
 
-		ModelLayerFactory modelLayerFactory = getAppLayerFactory().getModelLayerFactory();
+		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		Record record = recordServices.getDocumentById(recordId);
 		MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record);
 		Metadata metadata = schema.get(metadataCode);
 		String collection = record.getCollection();
 
+		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory);
 		UserCredential userCredentials = authenticator.authenticate(request);
 		User user;
 		if (userCredentials != null) {
@@ -125,6 +120,10 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 	protected AppLayerFactory getAppLayerFactory() {
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		return constellioFactories.getAppLayerFactory();
+	}
+
+	protected ModelLayerFactory getModelLayerFactory() {
+		return getAppLayerFactory().getModelLayerFactory();
 	}
 
 	protected User getUser(UserCredential userCredential, String collection) {
