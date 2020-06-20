@@ -3,7 +3,6 @@ package com.constellio.app.modules.restapi.user;
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
 import com.constellio.app.modules.restapi.core.service.BaseService;
 import com.constellio.app.modules.restapi.user.dao.UserDao;
-import com.constellio.app.modules.restapi.user.dto.UserCredentialsConfigDto;
 import com.constellio.app.modules.restapi.user.dto.UserCredentialsContentDto;
 import com.constellio.app.modules.restapi.user.dto.UsersByCollectionDto;
 import com.constellio.app.modules.restapi.validation.ValidationService;
@@ -59,22 +58,5 @@ public class UserService extends BaseService {
 
 		String username = validationDao.getUsernameByServiceKey(serviceKey);
 		userDao.deleteContent(username, metadataCode);
-	}
-
-	public UserCredentialsConfigDto getConfig(String host, String token, String serviceKey, String metadataCode) {
-		validationService.validateHost(host);
-		validationService.validateToken(token, serviceKey);
-
-		String username = validationDao.getUsernameByServiceKey(serviceKey);
-		return userDao.getConfig(username, metadataCode);
-	}
-
-	public void setConfig(String host, String token, String serviceKey, String metadataCode,
-						  UserCredentialsConfigDto config) {
-		validationService.validateHost(host);
-		validationService.validateToken(token, serviceKey);
-
-		String username = validationDao.getUsernameByServiceKey(serviceKey);
-		userDao.setConfig(username, metadataCode, config);
 	}
 }
