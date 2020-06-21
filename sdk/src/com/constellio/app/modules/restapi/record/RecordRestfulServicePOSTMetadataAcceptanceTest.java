@@ -17,7 +17,6 @@ import com.constellio.app.modules.restapi.validation.exception.ExpiredTokenExcep
 import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthorizedAccessException;
-import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.entities.records.Record;
@@ -63,7 +62,7 @@ public class RecordRestfulServicePOSTMetadataAcceptanceTest extends BaseRestfulS
 
 		systemConfigurationsManager = getModelLayerFactory().getSystemConfigurationsManager();
 		dateFormat = systemConfigurationsManager.getValue(ConstellioEIMConfigs.DATE_FORMAT);
-		;
+
 		dateTimeFormat = systemConfigurationsManager.getValue(ConstellioEIMConfigs.DATE_TIME_FORMAT);
 
 		webTarget = newWebTarget("v1/record/metadata", new ObjectMapper());
@@ -601,7 +600,7 @@ public class RecordRestfulServicePOSTMetadataAcceptanceTest extends BaseRestfulS
 
 	@Test
 	public void validateServiceWithNonManualMetadata() {
-		emptyMetadata.setCode(Folder.MAIN_COPY_RULE);
+		emptyMetadata.setCode(Folder.CLOSING_DATE);
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
 				.queryParam("id", folderId).request()
@@ -618,7 +617,6 @@ public class RecordRestfulServicePOSTMetadataAcceptanceTest extends BaseRestfulS
 	@Test
 	public void validateServiceWithUnsupportedTypeMetadata() {
 		emptyMetadata.setCode(Folder.MANUAL_DISPOSAL_TYPE);
-		emptyMetadata.setValues(asList(DisposalType.DEPOSIT.name()));
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
 				.queryParam("id", folderId).request()

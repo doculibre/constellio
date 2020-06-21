@@ -8,17 +8,24 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Collections.singletonList;
+
 public class RecordDao extends BaseDao {
 
 	public MetadataDto getRecordMetadata(Record record, Metadata metadata) {
-		//List<String> values = parseMetadataValue(metadata.getType(), getMetadataValue(record, metadataCode));
-		//return MetadataDto.builder().code(metadata.getLocalCode()).values(values).build();
-
-		return MetadataDto.builder().build();
+		List<String> values;
+		if (metadata.isMultivalue()) {
+			values = parseMetadataValue(metadata.getType(), getMetadataValue(record, metadata.getCode()));
+		} else {
+			values = parseMetadataValue(metadata.getType(), singletonList(getMetadataValue(record, metadata.getCode())));
+		}
+		return MetadataDto.builder().code(metadata.getLocalCode()).values(values).build();
 	}
 
 	public void setRecordMetadata(User user, Record record, Metadata metadata, MetadataDto metadataDto)
@@ -32,6 +39,36 @@ public class RecordDao extends BaseDao {
 		}
 
 		recordServices.update(record, user);
+	}
+
+	private List<String> parseMetadataValue(MetadataValueType type, List<Object> objectValues) {
+		if (objectValues == null) {
+			return null;
+		}
+
+		List<String> values = new ArrayList<>(objectValues.size());
+		for (Object value : objectValues) {
+			switch (type) {
+				case STRING:
+				case TEXT:
+				case REFERENCE:
+					values.add((String) value);
+					break;
+				case DATE:
+					values.add(((LocalDate) value).toString(getDateFormat()));
+					break;
+				case DATE_TIME:
+					values.add(((LocalDateTime) value).toString(getDateTimeFormat()));
+					break;
+				case NUMBER:
+				case BOOLEAN:
+					values.add(String.valueOf(value));
+					break;
+				default:
+					throw new UnsupportedMetadataTypeException(type.name());
+			}
+		}
+		return values;
 	}
 
 	private List<Object> parseStringValues(MetadataValueType type, List<String> stringValues) {
