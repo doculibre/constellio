@@ -167,26 +167,35 @@ public class JSPFPluginServices implements PluginServices {
 		FileUtils.copyFile(newPluginFile, new File(pluginsDirectory, pluginCode + "." + NEW_JAR_EXTENSION));
 	}
 
+	/**
+	 * Do not replace with TenantLocal, this variable must be the same for each tenants
+	 */
+	private static List<String> pluginsWithReplacementException = null;
+
 	@Override
-	public void replaceOldPluginVersionsByNewOnes(File pluginsDirectory, File oldVersionsDestinationDirectory)
+	public synchronized void replaceOldPluginVersionsByNewOnes(File pluginsDirectory,
+															   File oldVersionsDestinationDirectory)
 			throws PluginsReplacementException {
-		List<String> pluginsWithReplacementException = new ArrayList<>();
-		for (File newJarVersionFile : FileUtils.listFiles(pluginsDirectory, new String[]{NEW_JAR_EXTENSION}, false)) {
-			String newVersionFilePath = newJarVersionFile.getPath();
-			String previousVersionFilePath = newVersionFilePath.substring(0, newVersionFilePath.length() - 4);
-			File previousVersionFile = new File(previousVersionFilePath);
-			File oldVersionFile = new File(oldVersionsDestinationDirectory, previousVersionFile.getName());
-			FileUtils.deleteQuietly(oldVersionFile);
-			try {
-				if (previousVersionFile.exists()) {
-					FileUtils.moveFile(previousVersionFile, oldVersionFile);
-					FileUtils.deleteQuietly(previousVersionFile);
+
+		if (pluginsWithReplacementException == null) {
+			pluginsWithReplacementException = new ArrayList<>();
+			for (File newJarVersionFile : FileUtils.listFiles(pluginsDirectory, new String[]{NEW_JAR_EXTENSION}, false)) {
+				String newVersionFilePath = newJarVersionFile.getPath();
+				String previousVersionFilePath = newVersionFilePath.substring(0, newVersionFilePath.length() - 4);
+				File previousVersionFile = new File(previousVersionFilePath);
+				File oldVersionFile = new File(oldVersionsDestinationDirectory, previousVersionFile.getName());
+				FileUtils.deleteQuietly(oldVersionFile);
+				try {
+					if (previousVersionFile.exists()) {
+						FileUtils.moveFile(previousVersionFile, oldVersionFile);
+						FileUtils.deleteQuietly(previousVersionFile);
+					}
+					FileUtils.moveFile(newJarVersionFile, previousVersionFile);
+				} catch (IOException e) {
+					String pluginId = StringUtils.substringBeforeLast(newJarVersionFile.getName(), "." + NEW_JAR_EXTENSION);
+					LOGGER.error("Error when trying to replace old plugin " + pluginId, e);
+					pluginsWithReplacementException.add(pluginId);
 				}
-				FileUtils.moveFile(newJarVersionFile, previousVersionFile);
-			} catch (IOException e) {
-				String pluginId = StringUtils.substringBeforeLast(newJarVersionFile.getName(), "." + NEW_JAR_EXTENSION);
-				LOGGER.error("Error when trying to replace old plugin " + pluginId, e);
-				pluginsWithReplacementException.add(pluginId);
 			}
 		}
 		if (!pluginsWithReplacementException.isEmpty()) {
