@@ -171,6 +171,8 @@ public class ConversionManager implements StatefulService {
 	private static boolean openOfficeOrLibreOfficeInstalled = false;
 
 	private static OfficeManager officeManager;
+	private static final Object officeManagerLock = new Object();
+	private static boolean officeManagerStarted = false;
 
 	static {
 		try {
@@ -248,15 +250,17 @@ public class ConversionManager implements StatefulService {
 	public void initialize() {
 	}
 
-	private synchronized void ensureInitialized() {
+	private void ensureInitialized() {
 		if (openOfficeOrLibreOfficeInstalled && executor == null) {
 			executor = newFixedThreadPool(numberOfProcesses);
 
 			DocumentFormatRegistry formatRegistry = DefaultDocumentFormatRegistry.getInstance();
 			if (onlineConversionUrl != null) {
-				if (officeManager == null) {
-					officeManager = OnlineOfficeManager.builder().taskExecutionTimeout(CONVERSION_TIMEOUT).poolSize(numberOfProcesses).urlConnection(onlineConversionUrl)
-							.build();
+				synchronized (officeManagerLock) {
+					if (officeManager == null) {
+						officeManager = OnlineOfficeManager.builder().taskExecutionTimeout(CONVERSION_TIMEOUT).poolSize(numberOfProcesses).urlConnection(onlineConversionUrl)
+								.build();
+					}
 					startOfficeManager();
 				}
 
@@ -265,26 +269,27 @@ public class ConversionManager implements StatefulService {
 						.formatRegistry(formatRegistry)
 						.build();
 			} else {
-				if (officeManager == null) {
-					int[] portNumbers = getPortNumbers();
-					officeManager = LocalOfficeManager.builder().taskExecutionTimeout(CONVERSION_TIMEOUT).install().portNumbers(portNumbers).build();
+				synchronized (officeManagerLock) {
+					if (officeManager == null) {
+						int[] portNumbers = getPortNumbers();
+						officeManager = LocalOfficeManager.builder().taskExecutionTimeout(CONVERSION_TIMEOUT).install().portNumbers(portNumbers).build();
+					}
 					startOfficeManager();
 				}
 
-				delegate =
-						LocalConverter.builder()
-								.officeManager(officeManager)
-								.formatRegistry(formatRegistry)
-								.build();
+				delegate = LocalConverter.builder()
+						.officeManager(officeManager)
+						.formatRegistry(formatRegistry)
+						.build();
 			}
-
 		}
 	}
 
 	private void startOfficeManager() {
 		try {
-			if (!officeManager.isRunning()) {
+			if (!officeManagerStarted) {
 				officeManager.start();
+				officeManagerStarted = true;
 			}
 		} catch (OfficeException e) {
 			throw new RuntimeException(e);
@@ -367,10 +372,16 @@ public class ConversionManager implements StatefulService {
 			}
 
 			// Stop the office process
-			try {
-				officeManager.stop();
-			} catch (OfficeException e) {
-				LOGGER.warn("Problem while closing OfficeManager", e);
+			synchronized (officeManagerLock) {
+				try {
+					if (officeManager != null) {
+						officeManager.stop();
+						officeManager = null;
+					}
+					officeManagerStarted = false;
+				} catch (OfficeException e) {
+					LOGGER.warn("Problem while closing OfficeManager", e);
+				}
 			}
 		}
 	}

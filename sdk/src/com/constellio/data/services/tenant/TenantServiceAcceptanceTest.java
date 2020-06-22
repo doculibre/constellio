@@ -7,7 +7,6 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.constellio.data.services.tenant.TenantService.CANNOT_LOAD_TENANT_PROPERTIES;
 import static com.constellio.data.services.tenant.TenantService.DUPLICATE_CODE_EXCEPTION;
 import static com.constellio.data.services.tenant.TenantService.DUPLICATE_HOSTNAME_EXCEPTION;
 import static com.constellio.data.services.tenant.TenantService.DUPLICATE_ID_EXCEPTION;
@@ -58,13 +57,12 @@ public class TenantServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenEmptyTenantsThenException()
+	public void givenEmptyTenantsThenNoException()
 			throws Exception {
 		try {
 			tenantService.refreshTenants();
-			fail("Starting without any tenant should throws an exception.");
-		} catch (RuntimeException e) {
-			assertThat(e.getMessage()).isEqualTo(CANNOT_LOAD_TENANT_PROPERTIES);
+		} catch (Exception e) {
+			fail("Starting without any tenant should not throws an exception.");
 		}
 	}
 
@@ -73,10 +71,9 @@ public class TenantServiceAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		tenantService.addTenant(tenant1);
 		tenant2.setId(tenant1.getId());
-		tenantService.addTenant(tenant2);
 
 		try {
-			tenantService.refreshTenants();
+			tenantService.addTenant(tenant2);
 			fail("Adding a duplicated id should throws an exception");
 		} catch (RuntimeException e) {
 			assertThat(e.getMessage()).isEqualTo(String.format(DUPLICATE_ID_EXCEPTION, tenant2.getId()));
@@ -88,10 +85,9 @@ public class TenantServiceAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		tenantService.addTenant(tenant1);
 		tenant2.setCode(tenant1.getCode());
-		tenantService.addTenant(tenant2);
 
 		try {
-			tenantService.refreshTenants();
+			tenantService.addTenant(tenant2);
 			fail("Adding a duplicated code should throws an exception");
 		} catch (RuntimeException e) {
 			assertThat(e.getMessage()).isEqualTo(String.format(DUPLICATE_CODE_EXCEPTION, tenant2.getCode()));
@@ -103,10 +99,9 @@ public class TenantServiceAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		tenantService.addTenant(tenant1);
 		tenant2.setHostnames(tenant1.getHostnames());
-		tenantService.addTenant(tenant2);
 
 		try {
-			tenantService.refreshTenants();
+			tenantService.addTenant(tenant2);
 			fail("Adding a duplicated hostname should throws an exception");
 		} catch (RuntimeException e) {
 			assertThat(e.getMessage()).isEqualTo(
@@ -118,13 +113,11 @@ public class TenantServiceAcceptanceTest extends ConstellioTest {
 	public void givenTooMuchTenantThenException()
 			throws Exception {
 
-		for (int i = 0; i <= 256; i++) {
-			tenantService.addTenant(new TenantProperties("Tenant " + i, "T" + i, i,
-					Arrays.asList("tenant" + i + ".cloud.constellio.com")));
-		}
-
 		try {
-			tenantService.refreshTenants();
+			for (int i = 0; i <= 256; i++) {
+				tenantService.addTenant(new TenantProperties("Tenant " + i, "T" + i, i,
+						Arrays.asList("tenant" + i + ".cloud.constellio.com")));
+			}
 			fail("Adding more than 256 tenants should throws an exception");
 		} catch (RuntimeException e) {
 			assertThat(e.getMessage()).isEqualTo(String.format(DUPLICATE_ID_EXCEPTION, (byte) 256));
