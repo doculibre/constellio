@@ -173,34 +173,37 @@ public class JSPFPluginServices implements PluginServices {
 	private static List<String> pluginsWithReplacementException = null;
 
 	@Override
-	public synchronized void replaceOldPluginVersionsByNewOnes(File pluginsDirectory,
-															   File oldVersionsDestinationDirectory)
+	public void replaceOldPluginVersionsByNewOnes(File pluginsDirectory,
+												  File oldVersionsDestinationDirectory)
 			throws PluginsReplacementException {
 
-		if (pluginsWithReplacementException == null) {
-			pluginsWithReplacementException = new ArrayList<>();
-			for (File newJarVersionFile : FileUtils.listFiles(pluginsDirectory, new String[]{NEW_JAR_EXTENSION}, false)) {
-				String newVersionFilePath = newJarVersionFile.getPath();
-				String previousVersionFilePath = newVersionFilePath.substring(0, newVersionFilePath.length() - 4);
-				File previousVersionFile = new File(previousVersionFilePath);
-				File oldVersionFile = new File(oldVersionsDestinationDirectory, previousVersionFile.getName());
-				FileUtils.deleteQuietly(oldVersionFile);
-				try {
-					if (previousVersionFile.exists()) {
-						FileUtils.moveFile(previousVersionFile, oldVersionFile);
-						FileUtils.deleteQuietly(previousVersionFile);
+		synchronized (JSPFPluginServices.class) {
+			if (pluginsWithReplacementException == null) {
+				pluginsWithReplacementException = new ArrayList<>();
+				for (File newJarVersionFile : FileUtils.listFiles(pluginsDirectory, new String[]{NEW_JAR_EXTENSION}, false)) {
+					String newVersionFilePath = newJarVersionFile.getPath();
+					String previousVersionFilePath = newVersionFilePath.substring(0, newVersionFilePath.length() - 4);
+					File previousVersionFile = new File(previousVersionFilePath);
+					File oldVersionFile = new File(oldVersionsDestinationDirectory, previousVersionFile.getName());
+					FileUtils.deleteQuietly(oldVersionFile);
+					try {
+						if (previousVersionFile.exists()) {
+							FileUtils.moveFile(previousVersionFile, oldVersionFile);
+							FileUtils.deleteQuietly(previousVersionFile);
+						}
+						FileUtils.moveFile(newJarVersionFile, previousVersionFile);
+					} catch (IOException e) {
+						String pluginId = StringUtils.substringBeforeLast(newJarVersionFile.getName(), "." + NEW_JAR_EXTENSION);
+						LOGGER.error("Error when trying to replace old plugin " + pluginId, e);
+						pluginsWithReplacementException.add(pluginId);
 					}
-					FileUtils.moveFile(newJarVersionFile, previousVersionFile);
-				} catch (IOException e) {
-					String pluginId = StringUtils.substringBeforeLast(newJarVersionFile.getName(), "." + NEW_JAR_EXTENSION);
-					LOGGER.error("Error when trying to replace old plugin " + pluginId, e);
-					pluginsWithReplacementException.add(pluginId);
 				}
 			}
 		}
 		if (!pluginsWithReplacementException.isEmpty()) {
 			throw new PluginsReplacementException(pluginsWithReplacementException);
 		}
+
 	}
 
 	@Override
