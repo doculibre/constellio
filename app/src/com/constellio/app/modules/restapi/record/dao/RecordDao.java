@@ -55,10 +55,10 @@ public class RecordDao extends BaseDao {
 					values.add((String) value);
 					break;
 				case DATE:
-					values.add(((LocalDate) value).toString(getDateFormat()));
+					values.add(DateUtils.format((LocalDate) value, getDateFormat()));
 					break;
 				case DATE_TIME:
-					values.add(((LocalDateTime) value).toString(getDateTimeFormat()));
+					values.add(DateUtils.format((LocalDateTime) value, getDateTimeFormat()));
 					break;
 				case NUMBER:
 				case BOOLEAN:
