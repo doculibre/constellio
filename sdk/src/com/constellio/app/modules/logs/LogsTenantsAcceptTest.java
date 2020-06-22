@@ -1,6 +1,7 @@
 package com.constellio.app.modules.logs;
 
-import com.constellio.model.utils.TenantUtils;
+
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.logging.LogFactory;
 import org.apache.logging.log4j.LogManager;

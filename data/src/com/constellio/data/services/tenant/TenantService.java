@@ -1,6 +1,5 @@
 package com.constellio.data.services.tenant;
 
-import com.constellio.model.services.exception.Log4JRuntimeExceptionHandler;
 import com.constellio.data.conf.FoldersLocator;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

@@ -1,10 +1,10 @@
 package com.constellio.app.start;
 
 import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.services.appManagement.InstallationService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +31,7 @@ public final class MainConstellio {
 		changeTemporaryDirectory();
 		File constellioInstallationDir = new FoldersLocator().getWrapperInstallationFolder();
 		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
-		System.setProperty("log4j.configurationFile", constellioInstallationDir.getAbsolutePath() + "app\\WebContent\\WEB-INF\\classes\\log4j2.xml");
+		System.setProperty("log4j.configurationFile", new FoldersLocator().getWebClasses().getAbsolutePath() + "log4j2.xml");
 
 		FileService fileService = new FileService(null);
 

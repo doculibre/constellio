@@ -1,6 +1,6 @@
 package com.constellio.app.services.factories;
 
-import com.constellio.model.services.tenant.TenantService;
+import com.constellio.data.services.tenant.TenantService;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.ConfigurationSource;
 import org.apache.logging.log4j.core.config.xml.XmlConfiguration;

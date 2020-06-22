@@ -1,4 +1,4 @@
-package com.constellio.model.utils;
+package com.constellio.data.utils;
 
 import com.constellio.data.services.tenant.TenantProperties;
 import com.constellio.data.services.tenant.TenantService;
@@ -39,17 +39,17 @@ public class TenantUtils {
 			throw new RuntimeException("Invalid tenant id");
 		}
 		ThreadContext.clearAll();
-		ThreadContext.put("tenant.id", tenant.getId());
+		ThreadContext.put("tenant.id", tenant.getCode());
 		tenantThreadLocal.set(tenant);
 	}
 
 	public static void setTenant(String tenantId) {
+		ThreadContext.clearAll();
 		if (tenantId == null) {
 			tenantThreadLocal.set(null);
 		} else {
 			TenantProperties tenant = tenantService.getTenantById(Integer.valueOf(tenantId));
-			ThreadContext.clearAll();
-			ThreadContext.put("tenant.id", tenantId);
+			ThreadContext.put("tenant.id", tenant.getCode());
 
 			if (tenant == null) {
 				throw new RuntimeException("Invalid tenant id");

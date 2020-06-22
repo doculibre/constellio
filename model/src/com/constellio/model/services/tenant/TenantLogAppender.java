@@ -1,6 +1,6 @@
 package com.constellio.model.services.tenant;
 
-import com.constellio.model.utils.TenantUtils;
+import com.constellio.data.utils.TenantUtils;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Core;
 import org.apache.logging.log4j.core.Filter;

@@ -1,4 +1,4 @@
-package com.constellio.model.services.exception;
+package com.constellio.data.services.tenant;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
