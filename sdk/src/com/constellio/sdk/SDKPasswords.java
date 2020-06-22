@@ -2,7 +2,7 @@ package com.constellio.sdk;
 
 import com.constellio.data.utils.ConsoleLogger;
 import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import org.junit.internal.AssumptionViolatedException;
 
 import java.io.File;

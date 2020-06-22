@@ -444,10 +444,10 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 			PropertiesConfiguration propertiesConfig = configManager.getProperties(CONFIG_FILE_PATH);
 			if (propertiesConfig != null) {
 				properties = propertiesConfig.getProperties();
-				cache2.put("properties", (Serializable) properties, InsertionReason.WAS_OBTAINED);
 			} else {
-				cache2.put("properties", new HashMap<>(), InsertionReason.WAS_OBTAINED);
+				properties = new HashMap<>();
 			}
+			cache2.put("properties", (Serializable) properties, InsertionReason.WAS_OBTAINED);
 		}
 
 		return properties;

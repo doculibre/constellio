@@ -1,7 +1,7 @@
 package com.constellio.app.entities.modules.locators;
 
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocatorMode;
 
 public class PropertiesLocatorFactory {
 

@@ -20,6 +20,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
@@ -34,7 +35,7 @@ import java.util.Locale;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.any;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -53,6 +54,7 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 	RMSchemasRecordsServices rmSchemasRecordsServices;
 	MetadataSchemasManager metadataSchemasManager;
 	RecordServices recordServices;
+	UserServices userServices;
 
 	@Before
 	public void setUp()
@@ -68,6 +70,7 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		recordServices = getModelLayerFactory().newRecordServices();
+		userServices = getModelLayerFactory().newUserServices();
 
 		sessionContext = FakeSessionContext.chuckNorrisInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);

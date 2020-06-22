@@ -207,8 +207,8 @@ public class StringIdsRecordsCachesDataStore {
 			}
 
 		} else if (dto instanceof SolrRecordDTO) {
-			int mainSortValue = mainSortValues.get(RecordId.id(dto.getId()).intValue());
-			if (mainSortValue > 0) {
+			Integer mainSortValue = mainSortValues.get(RecordId.id(dto.getId()).intValue());
+			if (mainSortValue != null && mainSortValue > 0) {
 				return ((SolrRecordDTO) dto).withMainSortValue(mainSortValue);
 			}
 		}

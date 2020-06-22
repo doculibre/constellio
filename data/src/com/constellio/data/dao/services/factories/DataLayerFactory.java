@@ -172,7 +172,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		this.eventBusManager = add(new EventBusManager(eventBusSendingService, dataLayerExtensions.getSystemWideExtensions()));
 
-		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
+		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration, instanceName));
 
 
 		if (dataLayerConfiguration.getCacheType() == CacheType.MEMORY) {

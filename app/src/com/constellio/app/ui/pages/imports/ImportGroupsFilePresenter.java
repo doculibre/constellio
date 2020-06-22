@@ -5,7 +5,7 @@ import com.constellio.app.services.schemas.bulkImport.ImportError;
 import com.constellio.app.services.schemas.bulkImport.groups.GroupsImportServices;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import org.apache.commons.io.FileUtils;

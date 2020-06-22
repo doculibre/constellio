@@ -29,6 +29,7 @@ public class HealthService extends BaseService {
 	@PostConstruct
 	public void init() {
 		cache = new HashMap<>();
+		cache.put(CONSTELLIO_KEY, true);
 
 		Runnable runnableTask = () -> {
 			try {

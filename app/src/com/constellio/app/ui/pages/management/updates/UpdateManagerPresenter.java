@@ -12,9 +12,11 @@ import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
 import com.constellio.app.services.systemInformations.SystemInformationsService;
 import com.constellio.app.servlet.ConstellioMonitoringServlet;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocatorMode;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -386,6 +388,13 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	@Override
 	protected boolean hasPageAccess(String params, final User user) {
 		return user.has(CorePermissions.MANAGE_SYSTEM_UPDATES).globally();
+	}
+
+	public boolean hasUpdatePermission() {
+		if (TenantUtils.isSupportingTenants()) {
+			return Toggle.ENABLE_CLOUD_SYSADMIN_FEATURES.isEnabled();
+		}
+		return true;
 	}
 
 	public boolean isRestartWithReindexButtonEnabled() {

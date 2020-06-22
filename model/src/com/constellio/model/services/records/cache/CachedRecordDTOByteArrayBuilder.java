@@ -38,11 +38,11 @@ class CachedRecordDTOByteArrayBuilder {
 
 	public CachedRecordDTOByteArrayBuilder(String id) {
 
-		this.headerWriterBytesToKeepInMemory = new DTOUtilsByteArrayDataOutputStream(false, CacheRecordDTOUtils.compiledDTOStatsBuilder);
-		this.dataWriterBytesToKeepInMemory = new DTOUtilsByteArrayDataOutputStream(false, CacheRecordDTOUtils.compiledDTOStatsBuilder);
+		this.headerWriterBytesToKeepInMemory = new DTOUtilsByteArrayDataOutputStream(false, CacheRecordDTOUtils.getCompiledDTOStatsBuilder());
+		this.dataWriterBytesToKeepInMemory = new DTOUtilsByteArrayDataOutputStream(false, CacheRecordDTOUtils.getCompiledDTOStatsBuilder());
 
-		this.headerWriterBytesToPersist = new DTOUtilsByteArrayDataOutputStream(true, CacheRecordDTOUtils.compiledDTOStatsBuilder);
-		this.dataWriterBytesToPersist = new DTOUtilsByteArrayDataOutputStream(true, CacheRecordDTOUtils.compiledDTOStatsBuilder);
+		this.headerWriterBytesToPersist = new DTOUtilsByteArrayDataOutputStream(true, CacheRecordDTOUtils.getCompiledDTOStatsBuilder());
+		this.dataWriterBytesToPersist = new DTOUtilsByteArrayDataOutputStream(true, CacheRecordDTOUtils.getCompiledDTOStatsBuilder());
 		this.id = id;
 	}
 

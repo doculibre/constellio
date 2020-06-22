@@ -19,6 +19,8 @@ import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.PropertyFileUtils;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
@@ -266,6 +268,7 @@ public class PdfDocumentCertifyService {
 			   (content.getCheckoutUserId() == null || content.getCheckoutUserId().equals(getCurrentUser().getId()));
 	}
 
+	@SuppressWarnings("rawtypes")
 	public void certifyAndSign(String fileAsStr, List<PdfSignatureAnnotation> signatures)
 			throws PdfSignatureException {
 
@@ -274,9 +277,26 @@ public class PdfDocumentCertifyService {
 			throw new PdfSignatureException_CannotReadSourceFileException();
 		}
 
-		String keystorePath = createTempKeystoreFile("keystore");
-		String keystorePass = modelLayerFactory
-				.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE_PASSWORD);
+		File keystoreFile;
+		String keystorePass;
+		StreamFactory keystore = appLayerFactory.getModelLayerFactory()
+				.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE);
+		if (keystore != null) {
+			keystoreFile = createTempKeystoreFile("keystore");
+			keystorePass = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE_PASSWORD);
+		} else {
+			FoldersLocator foldersLocator = new FoldersLocator();
+			keystoreFile = foldersLocator.getKeystoreFile();
+			File constellioPropertiesFile = foldersLocator.getConstellioProperties();
+			if (constellioPropertiesFile.exists()) {
+				keystorePass = PropertyFileUtils.loadKeyValues(constellioPropertiesFile).get("server.keystorePassword");
+			} else {
+				keystorePass = null;
+			}
+		}
+		if (keystoreFile == null || !keystoreFile.exists() || keystorePass == null) {
+			throw new PdfSignatureException_CannotReadKeystoreFileException();
+		}
 
 		if (signatures.size() < 1) {
 			throw new PdfSignatureException_NothingToSignException();
@@ -291,7 +311,7 @@ public class PdfDocumentCertifyService {
 			}
 
 			try {
-				signedDocument = CreateVisibleSignature.signDocument(keystorePath, keystorePass, filePath, signaturePath, signature);
+				signedDocument = CreateVisibleSignature.signDocument(keystoreFile.getAbsolutePath(), keystorePass, filePath, signaturePath, signature);
 				filePath = signedDocument.getPath();
 			} catch (Exception e) {
 				throw new PdfSignatureException_CannotSignDocumentException(e);
@@ -327,7 +347,7 @@ public class PdfDocumentCertifyService {
 		}
 	}
 
-	private String createTempKeystoreFile(String filename) throws PdfSignatureException {
+	private File createTempKeystoreFile(String filename) throws PdfSignatureException {
 		FileService fileService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService();
 		File tempFile = fileService.newTemporaryFile(filename);
 
@@ -354,7 +374,7 @@ public class PdfDocumentCertifyService {
 			throw new PdfSignatureException_CannotCreateTempFileException(e);
 		}
 
-		return tempFile.getPath();
+		return tempFile;
 	}
 
 	private String createTempFileFromBase64(String filename, String fileAsBase64Str) throws PdfSignatureException {

@@ -6,10 +6,11 @@ import com.constellio.app.services.appManagement.AppManagementService.LicenseInf
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.systemInformations.SystemInformationsService;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocatorMode;
+import com.constellio.data.conf.FoldersLocatorRuntimeException;
+import com.constellio.data.services.tenant.TenantLocal;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
-import com.constellio.model.conf.FoldersLocatorRuntimeException;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +50,7 @@ public class SystemInfo {
 	private static final String FILE_NOT_FOUND = "fileNotFound";
 	private static final String SYSTEM_LOG_FILE_NAME = "system.log";
 	private static final String fileNameParameterKey = "fileName";
-	private static SystemInfo instance;
+	private static TenantLocal<SystemInfo> instance = new TenantLocal<>();
 
 	LocalDateTime lastTimeUpdated;
 
@@ -77,10 +78,10 @@ public class SystemInfo {
 	}
 
 	public static SystemInfo getInstance() {
-		if (instance == null) {
-			instance = new SystemInfo();
+		if (instance.get() == null) {
+			instance.set(new SystemInfo());
 		}
-		return instance;
+		return instance.get();
 	}
 
 	synchronized public void recalculate() {

@@ -3,7 +3,10 @@ package com.constellio.app.api.cmis.binding.global;
 import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_InvalidLogin;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.data.services.tenant.TenantProperties;
+import com.constellio.data.services.tenant.TenantService;
 import com.constellio.data.utils.AuthCache;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -22,9 +25,12 @@ import org.apache.chemistry.opencmis.server.support.wrapper.CmisServiceWrapperMa
 import org.apache.chemistry.opencmis.server.support.wrapper.ConformanceCmisServiceWrapper;
 import org.joda.time.Duration;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.HttpHeaders;
 import java.math.BigInteger;
 import java.util.Map;
 
+import static com.constellio.data.utils.TenantUtils.EMPTY_TENANT_ID;
 import static com.constellio.model.entities.CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION;
 
 public class ConstellioCmisRequestFactory extends AbstractServiceFactory {
@@ -72,6 +78,10 @@ public class ConstellioCmisRequestFactory extends AbstractServiceFactory {
 	@Override
 	public CmisService getService(CallContext context) {
 
+		HttpServletRequest request = (HttpServletRequest) context.get(CallContext.HTTP_SERVLET_REQUEST);
+		setTenantFromServletRequest(request);
+
+
 		authenticate(context);
 
 		CallContextAwareCmisService service = getCurrentThreadCmisService();
@@ -82,6 +92,27 @@ public class ConstellioCmisRequestFactory extends AbstractServiceFactory {
 
 		return service;
 	}
+
+	private static void setTenantFromServletRequest(HttpServletRequest request) {
+		TenantService tenantService = TenantService.getInstance();
+		boolean supportingTenants = tenantService.isSupportingTenants();
+		String host = request.getHeader(HttpHeaders.HOST);
+		TenantProperties tenant = tenantService.getTenantByHostname(host);
+		String tenantId = tenant != null ? "" + tenant.getId() : null;
+
+		if (supportingTenants && tenantId == null) {
+			throw new RuntimeException("Missing tenantId header");
+		}
+
+		if (tenantId == null) {
+			tenantId = EMPTY_TENANT_ID;
+		}
+
+		if (supportingTenants) {
+			TenantUtils.setTenant(tenantId);
+		}
+	}
+
 
 	private void addConstellioParameters(CallContext context) {
 

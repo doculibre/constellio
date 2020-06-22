@@ -1,6 +1,6 @@
 package com.constellio.sdk.tests;
 
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 
 import java.io.File;
 

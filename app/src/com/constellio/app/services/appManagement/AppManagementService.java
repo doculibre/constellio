@@ -13,22 +13,26 @@ import com.constellio.app.services.extensions.plugins.PluginServices;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.migrations.VersionValidator;
 import com.constellio.app.services.migrations.VersionsComparator;
 import com.constellio.app.services.recovery.ConstellioVersionInfo;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.app.services.systemSetup.SystemLocalConfigsManager;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocatorMode;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.services.tenant.TenantProperties;
+import com.constellio.data.services.tenant.TenantService;
 import com.constellio.data.utils.PropertyFileUtils;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -240,11 +244,30 @@ public class AppManagementService {
 	}
 
 	private void updatePluginsWithThoseInWar(File nextWebapp) {
-		updatePlugins(nextWebapp);
-		installPlugins(nextWebapp);
+
+		if (TenantUtils.isSupportingTenants()) {
+			String currentTenant = TenantUtils.getTenantId();
+			try {
+				for (TenantProperties tenantProperties : TenantService.getInstance().getTenants()) {
+					ConstellioPluginManager pluginManager = getConstellioPluginManagerForTenant(tenantProperties.getId());
+					updatePlugins(nextWebapp, pluginManager, pluginServices);
+					installPlugins(nextWebapp, pluginManager);
+				}
+			} finally {
+				TenantUtils.setTenant(currentTenant);
+			}
+		} else {
+			updatePlugins(nextWebapp, pluginManager, pluginServices);
+			installPlugins(nextWebapp, pluginManager);
+		}
 	}
 
-	private void installPlugins(File nextWebapp) {
+	ConstellioPluginManager getConstellioPluginManagerForTenant(byte tenantId) {
+		TenantUtils.setTenant(tenantId);
+		return ConstellioFactories.getInstance().getAppLayerFactory().getPluginManager();
+	}
+
+	private static void installPlugins(File nextWebapp, ConstellioPluginManager pluginManager) {
 		File pluginsFolder = new File(nextWebapp, "plugins-to-install");
 		if (pluginsFolder.exists() && pluginsFolder.listFiles() != null) {
 			for (File pluginFile : pluginsFolder.listFiles()) {
@@ -256,7 +279,8 @@ public class AppManagementService {
 		}
 	}
 
-	private void updatePlugins(File nextWebapp) {
+	private static void updatePlugins(File nextWebapp, ConstellioPluginManager pluginManager,
+									  PluginServices pluginServices) {
 		File pluginsFolder = new File(nextWebapp, "plugins-to-update");
 		if (pluginsFolder.exists() && pluginsFolder.listFiles() != null) {
 			Set<String> alreadyInstalledPlugins = new HashSet<>();

@@ -57,6 +57,8 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 
 	private Button exportTools;
 
+	private CheckBox fastSaveStateCheckBox;
+
 	private VerticalLayout toolLayout = new VerticalLayout();
 	private VerticalLayout idsLayout = new VerticalLayout();
 	private VerticalLayout folderAndDocumentsLayout = new VerticalLayout();
@@ -161,23 +163,26 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		idsField = new BaseTextArea($("ExportView.exportedIds"));
 		idsField.setWidth("100%");
 
+		fastSaveStateCheckBox = new CheckBox($("ExportView.fastSaveState"));
+		fastSaveStateCheckBox.setValue(true);
+
 		exportWithoutContentsButton = new BaseButton($("ExportView.exportNoContents")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.exportWithoutContentsButtonClicked();
+				presenter.exportWithoutContentsButtonClicked(fastSaveStateCheckBox.getValue());
 			}
 		};
 		exportTools = new BaseButton($("ExportView.exportTools")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.exportToolsButtonClicked();
+				presenter.exportToolsButtonClicked(fastSaveStateCheckBox.getValue());
 			}
 		};
 
 		exportWithContentsButton = new BaseButton($("ExportView.exportAllContents")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.exportWithContentsButtonClicked();
+				presenter.exportWithContentsButtonClicked(fastSaveStateCheckBox.getValue());
 			}
 		};
 		exportLogs = new BaseButton($("ExportView.exportLogs")) {
@@ -188,7 +193,7 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		};
 		exportWithContentsButton.setVisible(false);
 
-		othersLayout = new VerticalLayout(idsField, exportWithoutContentsButton, exportWithContentsButton, exportTools,
+		othersLayout = new VerticalLayout(idsField, fastSaveStateCheckBox, exportWithoutContentsButton, exportWithContentsButton, exportTools,
 				exportLogs);
 		othersLayout.setSizeFull();
 		othersLayout.setSpacing(true);

@@ -1,7 +1,7 @@
 package com.constellio.app.services.sip.xsd;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;

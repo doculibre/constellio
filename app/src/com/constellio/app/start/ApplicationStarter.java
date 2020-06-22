@@ -1,6 +1,6 @@
 package com.constellio.app.start;
 
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -191,7 +191,8 @@ public class ApplicationStarter {
 		return sslServer;
 	}
 
-	public static void registerServlet(String pathRelativeToConstellioContext, ServletHolder servletHolder) {
+	public static synchronized void registerServlet(String pathRelativeToConstellioContext,
+													ServletHolder servletHolder) {
 		if (!servletMappings.containsKey(pathRelativeToConstellioContext)) {
 			servletMappings.put(pathRelativeToConstellioContext, servletHolder);
 			if (handler != null) {
@@ -208,7 +209,7 @@ public class ApplicationStarter {
 		registerFilter(pathRelativeToConstellioContext, new FilterHolder(filter));
 	}
 
-	public static void registerFilter(String pathRelativeToConstellioContext, FilterHolder filterHolder) {
+	public static synchronized void registerFilter(String pathRelativeToConstellioContext, FilterHolder filterHolder) {
 		if (handler == null) {
 			if (!filterMappings.containsKey(pathRelativeToConstellioContext)) {
 				filterMappings.put(pathRelativeToConstellioContext, new ArrayList<FilterHolder>());

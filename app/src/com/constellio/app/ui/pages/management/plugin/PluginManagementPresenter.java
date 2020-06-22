@@ -7,6 +7,8 @@ import com.constellio.app.services.extensions.plugins.PluginActivationFailureCau
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.data.utils.TenantUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.modules.ConstellioPlugin;
 import com.constellio.model.entities.modules.Module;
@@ -36,6 +38,13 @@ public class PluginManagementPresenter extends BasePresenter<PluginManagementVie
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return userServices().has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_CONFIGURATION);
+	}
+
+	public boolean hasUpdatePermission() {
+		if (TenantUtils.isSupportingTenants()) {
+			return Toggle.ENABLE_CLOUD_SYSADMIN_FEATURES.isEnabled();
+		}
+		return true;
 	}
 
 	public String getDetectedPluginsNames(File file) {
@@ -81,6 +90,10 @@ public class PluginManagementPresenter extends BasePresenter<PluginManagementVie
 
 	//TODO test me
 	public boolean isEnableOrDisablePossible(ConstellioPluginInfo info) {
+		if (!hasUpdatePermission()) {
+			return false;
+		}
+
 		if (!info.getPluginStatus().equals(ENABLED) && !info.getPluginStatus().equals(DISABLED)) {
 			return false;
 		} else {

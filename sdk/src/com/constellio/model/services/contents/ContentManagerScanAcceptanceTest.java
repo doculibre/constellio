@@ -30,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.attribute.FileTime;
 
+import static com.constellio.data.dao.services.contents.ContentDao.MoveToVaultOption.ONLY_IF_INEXISTING;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContentManagerScanAcceptanceTest extends ConstellioTest {
@@ -71,13 +72,12 @@ public class ContentManagerScanAcceptanceTest extends ConstellioTest {
 
 		File fileToUse = newTempFileWithContent("documentToUse", ".jpegConversion"); // Document with an old modification date.
 
-		contentManager.getContentDao().moveFileToVault(createTempCopy(fileToUse), referencedFilehash + ".todelete");
-		contentManager.getContentDao().moveFileToVault(createTempCopy(fileToUse), referencedFilehash + ".jpegConversion");
-		contentManager.getContentDao().moveFileToVault(createTempCopy(fileToUse), referencedFilehash + ".icapscan");
-		contentManager.getContentDao().moveFileToVault(createTempCopy(fileToUse), referencedFilehash + ".thumbnail");
-		contentManager.getContentDao().moveFileToVault(createTempCopy(fileToUse), referencedFilehash + ".annotation.A01_numericContractWithDifferentCopy.0.1");
-		contentManager.getContentDao().moveFileToVault(createTempCopy(fileToUse), referencedFilehash + ".annotation.A01_numericContractWithDifferentCopy.0.2");
-
+		contentManager.getContentDao().moveFileToVault(referencedFilehash + ".todelete", createTempCopy(fileToUse), ONLY_IF_INEXISTING);
+		contentManager.getContentDao().moveFileToVault(referencedFilehash + ".jpegConversion", createTempCopy(fileToUse), ONLY_IF_INEXISTING);
+		contentManager.getContentDao().moveFileToVault(referencedFilehash + ".icapscan", createTempCopy(fileToUse), ONLY_IF_INEXISTING);
+		contentManager.getContentDao().moveFileToVault(referencedFilehash + ".thumbnail", createTempCopy(fileToUse), ONLY_IF_INEXISTING);
+		contentManager.getContentDao().moveFileToVault(referencedFilehash + ".annotation.A01_numericContractWithDifferentCopy.0.1", createTempCopy(fileToUse), ONLY_IF_INEXISTING);
+		contentManager.getContentDao().moveFileToVault(referencedFilehash + ".annotation.A01_numericContractWithDifferentCopy.0.2", createTempCopy(fileToUse), ONLY_IF_INEXISTING);
 
 		contentManager.scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
 		assertThat(vaultScanResults.getReportMessage()).contains(referencedFilehash + ".todelete");

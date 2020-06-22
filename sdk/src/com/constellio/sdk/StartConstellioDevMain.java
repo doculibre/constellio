@@ -3,7 +3,7 @@ package com.constellio.sdk;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.data.utils.dev.Toggle;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 
 import java.io.File;

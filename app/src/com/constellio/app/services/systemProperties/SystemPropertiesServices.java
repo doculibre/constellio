@@ -1,7 +1,7 @@
 package com.constellio.app.services.systemProperties;
 
 import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 
 import java.io.File;
 

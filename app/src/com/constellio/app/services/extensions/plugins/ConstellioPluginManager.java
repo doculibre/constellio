@@ -5,7 +5,7 @@ import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRun
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus;
 import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.modules.Module;
 
 import java.io.File;

@@ -4,7 +4,7 @@ import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.services.factories.ModelLayerFactory;
 

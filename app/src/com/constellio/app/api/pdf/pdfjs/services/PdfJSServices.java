@@ -14,6 +14,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -43,6 +44,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -51,6 +53,8 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import static com.constellio.data.utils.dev.Toggle.ENABLE_SIGNATURE;
 
 @Slf4j
 public class PdfJSServices {
@@ -112,6 +116,7 @@ public class PdfJSServices {
 				ExternalAccessUser externalAccessUser = (ExternalAccessUser) user;
 				contentPreviewParams.append("&accessId=" + externalAccessUser.getExternalAccessUrl().getId());
 			}
+			contentPreviewParams.append("&ts=" + System.currentTimeMillis());
 			
 			Content content = record.get(metadata);
 			String filename = content.getCurrentVersion().getFilename();
@@ -194,14 +199,20 @@ public class PdfJSServices {
 	@SuppressWarnings("rawtypes")
 	public boolean isSignaturePossible(Record record, Metadata metadata, User user) {
 		boolean signaturePossible;
-		if (record != null && user.hasWriteAccess().on(record)) {
+		if (ENABLE_SIGNATURE.isEnabled() && record != null && user.hasWriteAccess().on(record)) {
 			Content content = record.get(metadata);
 			if (content == null || content.isCheckedOut()) {
 				signaturePossible = false;
 			} else {
 				StreamFactory keystore = appLayerFactory.getModelLayerFactory()
 						.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE);
-				signaturePossible = keystore != null;
+				if (keystore != null) {
+					signaturePossible = true;
+				} else {
+					FoldersLocator foldersLocator = new FoldersLocator();
+					File keystoreFile = foldersLocator.getKeystoreFile();
+					signaturePossible = keystoreFile.exists();
+				}
 			}
 		} else {
 			signaturePossible = false;

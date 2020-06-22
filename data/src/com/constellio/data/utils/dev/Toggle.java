@@ -1,5 +1,6 @@
 package com.constellio.data.utils.dev;
 
+import com.constellio.data.services.tenant.TenantLocal;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 
 import java.lang.reflect.Field;
@@ -12,6 +13,9 @@ public class Toggle {
 	public static AvailableToggle PUBLIC_TOKENS = newToggle(false);
 
 	public static AvailableToggle TEMP_FRANCIS = newToggle(true);
+
+
+	public static AvailableToggle EXPORT_SAVESTATES_USING_WITH_FAILSAFE = newToggle(true);
 
 	public static AvailableToggle SDK_CACHE_INTEGRITY_VALIDATION = newToggle(false);
 	public static AvailableToggle SDK_REQUEST_CACHE_VALIDATION = newToggle();
@@ -131,6 +135,12 @@ public class Toggle {
 
 	public static AvailableToggle ENABLE_OFFICE365_EXCLUSIVE = newToggle(false);
 
+	public static AvailableToggle ENABLE_SIGNATURE = newToggle(false);
+
+	public static AvailableToggle ENABLE_CLOUD_SYSADMIN_FEATURES = newToggle(false);
+
+
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();
@@ -166,7 +176,7 @@ public class Toggle {
 			toggles = new ArrayList<>();
 		}
 		AvailableToggle toggle = new AvailableToggle();
-		toggle.enabled = value;
+		toggle.enabled.set(value);
 		toggle.defaultValue = value;
 		toggles.add(toggle);
 		return toggle;
@@ -193,49 +203,56 @@ public class Toggle {
 
 	public static class AvailableToggle {
 
-		private boolean enabled;
+		private TenantLocal<Boolean> enabled = new TenantLocal<>();
 		private boolean defaultValue;
 
 		private String id;
 
 		public boolean isEnabled() {
-			return enabled;
+			return getIsEnabledAndInitToDefaultIfNull();
 		}
 
 		public void ensureDisabled() {
-			if (enabled) {
+			if (getIsEnabledAndInitToDefaultIfNull()) {
 				throw new ImpossibleRuntimeException("Unsupported with toggle '" + id + "'");
 			}
 		}
 
 		public void reset() {
-			enabled = defaultValue;
+			enabled.set(defaultValue);
 		}
 
 		public void ensureEnabled() {
-			if (!enabled) {
+			if (!getIsEnabledAndInitToDefaultIfNull()) {
 				throw new ImpossibleRuntimeException("Only supported with toggle '" + id + "'");
 			}
 		}
 
 		public boolean enable() {
-			boolean oldValue = enabled;
-			enabled = true;
+			boolean oldValue = getIsEnabledAndInitToDefaultIfNull();
+			enabled.set(true);
 			return oldValue;
 		}
 
 		public void set(boolean value) {
-			this.enabled = value;
+			this.enabled.set(value);
 		}
 
 		public boolean disable() {
-			boolean oldValue = enabled;
-			enabled = false;
+			boolean oldValue = getIsEnabledAndInitToDefaultIfNull();
+			enabled.set(false);
 			return oldValue;
 		}
 
 		public String getId() {
 			return id;
+		}
+
+		private boolean getIsEnabledAndInitToDefaultIfNull() {
+			if (enabled.get() == null) {
+				enabled.set(defaultValue);
+			}
+			return enabled.get();
 		}
 	}
 }

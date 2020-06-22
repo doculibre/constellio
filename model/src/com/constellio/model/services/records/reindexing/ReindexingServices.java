@@ -11,7 +11,7 @@ import com.constellio.data.dao.services.sql.SqlRecordDaoType;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.systemLogger.SystemLogger;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
@@ -71,7 +71,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import static com.constellio.model.conf.FoldersLocatorMode.PROJECT;
+import static com.constellio.data.conf.FoldersLocatorMode.PROJECT;
 import static com.constellio.model.entities.enums.MemoryConsumptionLevel.LEAST_MEMORY_CONSUMPTION;
 import static com.constellio.model.entities.enums.MemoryConsumptionLevel.LESS_MEMORY_CONSUMPTION;
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;

@@ -9,13 +9,18 @@ public class PdfSignatureAnnotation implements Comparable<PdfSignatureAnnotation
 	private String userId;
 	private String username;
 	private String imageData;
+	private boolean initials;
+	private boolean baked;
 
-	public PdfSignatureAnnotation(int page, Rectangle position, String userId, String username, String imageData) {
+	public PdfSignatureAnnotation(int page, Rectangle position, String userId, String username, String imageData,
+								  boolean initials, boolean baked) {
 		this.page = page;
 		this.position = position;
 		this.userId = userId;
 		this.username = username;
 		this.imageData = imageData;
+		this.initials = initials;
+		this.baked = baked;
 	}
 
 	public int getPage() {
@@ -44,6 +49,18 @@ public class PdfSignatureAnnotation implements Comparable<PdfSignatureAnnotation
 
 	public String getImageData() {
 		return imageData;
+	}
+
+	public boolean isInitials() {
+		return initials;
+	}
+
+	public boolean isBaked() {
+		return baked;
+	}
+
+	public void setBaked(boolean baked) {
+		this.baked = baked;
 	}
 
 	@Override

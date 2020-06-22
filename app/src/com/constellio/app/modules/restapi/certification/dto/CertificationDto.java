@@ -19,6 +19,8 @@ public class CertificationDto {
 	private String userId;
 	private String username;
 	private String imageData;
+	private boolean initials;
+	private boolean baked;
 	@Valid
 	private RectangleDto position;
 	@JsonIgnore @Getter(onMethod = @__(@JsonIgnore))

@@ -9,6 +9,7 @@ import com.constellio.app.api.pdf.pdfjs.servlets.RemovePdfJSSignatureServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSAnnotationsServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSSignatureServlet;
 import com.constellio.app.api.search.CachedSearchWebService;
+import com.constellio.app.api.systemManagement.services.SystemInfoWebService;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.extensions.ui.AppSupportedExtensionExtension;
 import com.constellio.app.services.extensions.AppRecordExtension;
@@ -106,6 +107,7 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_0;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_10;
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3_14;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -204,6 +206,7 @@ public class ConstellioEIM {
 		scripts.add(new CoreMigrationTo_9_0_1_428());
 		scripts.add(new CoreMigrationTo_9_0_2_7());
 		scripts.add(new CoreMigrationTo_9_0_2_11());
+		scripts.add(new CoreMigrationTo_9_0_3_14());
 
 		scripts.add(new CoreMigrationTo_9_0_42_1());
 		scripts.add(new CoreMigrationTo_9_0_1_89());
@@ -226,6 +229,14 @@ public class ConstellioEIM {
 		filterHolder.setInitParameter(CrossOriginFilter.CHAIN_PREFLIGHT_PARAM, "false");
 		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
 		ApplicationStarter.registerFilter("/cachedSelect", filterHolder);
+
+		ApplicationStarter.registerServlet("/systemInfo", new SystemInfoWebService());
+		filterHolder = new FilterHolder(new CrossOriginFilter());
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,GET");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "content-type,access-control-allow-origin,token,serviceKey");
+		filterHolder.setInitParameter(CrossOriginFilter.CHAIN_PREFLIGHT_PARAM, "false");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
+		ApplicationStarter.registerFilter("/systemInfo", filterHolder);
 
 		ApplicationStarter.registerServlet("/getRecordContent", new GetRecordContentServlet());
 

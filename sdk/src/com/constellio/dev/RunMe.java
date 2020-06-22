@@ -1,6 +1,6 @@
 package com.constellio.dev;
 
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 
 public class RunMe {
 

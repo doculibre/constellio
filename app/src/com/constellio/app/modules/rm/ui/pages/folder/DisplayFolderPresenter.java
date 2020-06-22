@@ -734,14 +734,31 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void viewAssembled() {
+		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
+		Folder folder = schemas.getFolder(summaryFolderVO.getId());
+		disableMenuItems(folder);
+		view.setDragRowsEnabled(isVisibleSubFolder());
+
+		modelLayerFactory.newLoggingServices().logRecordView(folder.getWrappedRecord(), getCurrentUser());
+
 		view.setFolderContent(folderContentDataProvider);
 		view.setTasks(tasksDataProvider);
 		view.setEvents(eventsDataProvider);
 
-		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
-		Folder folder = schemas.getFolder(summaryFolderVO.getId());
-		disableMenuItems(folder);
-		modelLayerFactory.newLoggingServices().logRecordView(folder.getWrappedRecord(), getCurrentUser());
+		selectInitialTabForUser();
+	}
+
+	boolean isVisibleSubFolder() {
+		SearchServices searchServices = searchServices();
+		Record record = summaryFolderVO.getRecord();
+		MetadataSchemaType foldersSchemaType = getFoldersSchemaType();
+		MetadataSchema foldersSchema = getFoldersSchema();
+		Metadata parentFolderMetadata = foldersSchema.getMetadata(Folder.PARENT_FOLDER);
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(from(foldersSchemaType).where(parentFolderMetadata).is(record));
+		query.filteredWithUser(getCurrentUser());
+		query.filteredByStatus(StatusFilter.ACTIVES);
+		return searchServices.hasResults(query);
 	}
 
 	public void updateTaskStarred(boolean isStarred, String taskId, RecordVODataProvider dataProvider) {
@@ -1449,5 +1466,44 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			}
 		}
 		return suggestions;
+	}
+
+	void recordsDroppedOn(List<RecordVO> droppedRecordVOs, RecordVO targetFolderRecordVO) {
+		if (!droppedRecordVOs.isEmpty()) {
+			Transaction transaction = new Transaction(getCurrentUser());
+
+			for (RecordVO droppedRecordVO : droppedRecordVOs) {
+				if (!getCurrentUser().hasWriteAccess().on(droppedRecordVO.getRecord()) ||
+					!getCurrentUser().hasWriteAccess().on(targetFolderRecordVO.getRecord())) {
+					return;
+				}
+
+				if (droppedRecordVO.getRecord().isOfSchemaType(Folder.SCHEMA_TYPE)) {
+					Folder folder = rmSchemasRecordsServices.getFolder(droppedRecordVO.getId());
+					folder.setParentFolder(targetFolderRecordVO.getId());
+					transaction.update(folder.getWrappedRecord());
+				} else if (droppedRecordVO.getRecord().isOfSchemaType(Document.SCHEMA_TYPE)) {
+					Document document = rmSchemasRecordsServices.getDocument(droppedRecordVO.getId());
+					document.setFolder(targetFolderRecordVO.getId());
+					transaction.update(document.getWrappedRecord());
+				} else if (droppedRecordVO.getRecord().isOfSchemaType(ExternalLink.SCHEMA_TYPE)) {
+					Folder currentFolder = rmSchemasRecordsServices.wrapFolder(getLazyFullFolderVO().getRecord());
+					currentFolder.removeExternalLink(droppedRecordVO.getId());
+
+					Folder targetFolder = rmSchemasRecordsServices.getFolder(targetFolderRecordVO.getId());
+					targetFolder.addExternalLink(droppedRecordVO.getId());
+					transaction.addAll(currentFolder, targetFolder);
+				}
+			}
+			try {
+				recordServices().execute(transaction);
+				folderContentDataProvider.fireDataRefreshEvent();
+				view.refreshFolderContentTab();
+				view.closeViewerPanel();
+			} catch (Exception e) {
+				LOGGER.warn("Error while dropping record(s) " + droppedRecordVOs + " on folder " + targetFolderRecordVO.getId(), e);
+				view.showErrorMessage(e.getMessage());
+			}
+		}
 	}
 }

@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -156,6 +157,11 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 			authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 		}
 		return authorizationsServices;
+	}
+
+	protected boolean isDateFieldValuesRequired() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager())
+				.isDateFieldValuesRequiredInShareContent();
 	}
 
 	@Override
