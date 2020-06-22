@@ -65,7 +65,6 @@ import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexationParams;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.utils.TenantUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

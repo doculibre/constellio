@@ -7,10 +7,10 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.utils.TenantUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
