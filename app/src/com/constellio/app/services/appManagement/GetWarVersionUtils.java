@@ -1,8 +1,8 @@
 package com.constellio.app.services.appManagement;
 
 import com.constellio.app.utils.GradleFileVersionParser;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorRuntimeException;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocatorRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;

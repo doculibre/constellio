@@ -14,11 +14,11 @@ import com.constellio.app.services.extensions.plugins.PluginServices.PluginsRepl
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus;
 import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocatorMode;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.modules.ConstellioPlugin;
 import com.constellio.model.entities.modules.Module;
 import net.xeoh.plugins.base.PluginManager;
@@ -107,7 +107,9 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 						new File(pluginsDirectory, PREVIOUS_PLUGINS));
 			} catch (PluginsReplacementException e) {
 				for (String pluginId : e.getPluginsWithReplacementExceptionIds()) {
-					pluginConfigManger.invalidateModule(pluginId, IO_EXCEPTION, e);
+					if (pluginConfigManger.getPluginInfo(pluginId) != null) {
+						pluginConfigManger.invalidateModule(pluginId, IO_EXCEPTION, e);
+					}
 				}
 			}
 

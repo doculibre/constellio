@@ -5,7 +5,7 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.utils.Octets;
-import com.constellio.model.utils.TenantUtils;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.sdk.tests.annotations.PreserveState;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;

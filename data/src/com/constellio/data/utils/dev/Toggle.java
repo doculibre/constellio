@@ -1,5 +1,6 @@
 package com.constellio.data.utils.dev;
 
+import com.constellio.data.services.tenant.TenantLocal;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 
 import java.lang.reflect.Field;
@@ -175,7 +176,7 @@ public class Toggle {
 			toggles = new ArrayList<>();
 		}
 		AvailableToggle toggle = new AvailableToggle();
-		toggle.enabled = value;
+		toggle.enabled.set(value);
 		toggle.defaultValue = value;
 		toggles.add(toggle);
 		return toggle;
@@ -202,49 +203,56 @@ public class Toggle {
 
 	public static class AvailableToggle {
 
-		private boolean enabled;
+		private TenantLocal<Boolean> enabled = new TenantLocal<>();
 		private boolean defaultValue;
 
 		private String id;
 
 		public boolean isEnabled() {
-			return enabled;
+			return getIsEnabledAndInitToDefaultIfNull();
 		}
 
 		public void ensureDisabled() {
-			if (enabled) {
+			if (getIsEnabledAndInitToDefaultIfNull()) {
 				throw new ImpossibleRuntimeException("Unsupported with toggle '" + id + "'");
 			}
 		}
 
 		public void reset() {
-			enabled = defaultValue;
+			enabled.set(defaultValue);
 		}
 
 		public void ensureEnabled() {
-			if (!enabled) {
+			if (!getIsEnabledAndInitToDefaultIfNull()) {
 				throw new ImpossibleRuntimeException("Only supported with toggle '" + id + "'");
 			}
 		}
 
 		public boolean enable() {
-			boolean oldValue = enabled;
-			enabled = true;
+			boolean oldValue = getIsEnabledAndInitToDefaultIfNull();
+			enabled.set(true);
 			return oldValue;
 		}
 
 		public void set(boolean value) {
-			this.enabled = value;
+			this.enabled.set(value);
 		}
 
 		public boolean disable() {
-			boolean oldValue = enabled;
-			enabled = false;
+			boolean oldValue = getIsEnabledAndInitToDefaultIfNull();
+			enabled.set(false);
 			return oldValue;
 		}
 
 		public String getId() {
 			return id;
+		}
+
+		private boolean getIsEnabledAndInitToDefaultIfNull() {
+			if (enabled.get() == null) {
+				enabled.set(defaultValue);
+			}
+			return enabled.get();
 		}
 	}
 }

@@ -13,7 +13,7 @@ import com.constellio.app.utils.ReportGeneratorUtils;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;

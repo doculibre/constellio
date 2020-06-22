@@ -1,5 +1,6 @@
 package com.constellio.app.services.factories;
 
+import com.constellio.app.services.factories.AppLayerFactoryRuntineException.AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry;
 import com.constellio.data.utils.Factory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,7 +9,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.constellio.model.utils.TenantUtils.EMPTY_TENANT_ID;
+import static com.constellio.data.utils.TenantUtils.EMPTY_TENANT_ID;
 
 public class SingletonConstellioFactoriesInstanceProvider implements ConstellioFactoriesInstanceProvider {
 
@@ -31,7 +32,24 @@ public class SingletonConstellioFactoriesInstanceProvider implements ConstellioF
 		return instanceByTenantId.computeIfAbsent(currentTenantId, key -> {
 			ConstellioFactories instanceBeingInitialized = constellioFactoriesFactory.get();
 
-			CompletableFuture.runAsync(() -> initializeInstance(key, instanceBeingInitialized));
+			CompletableFuture.runAsync(() -> {
+
+				boolean tryInitialize = true;
+				while (tryInitialize) {
+					try {
+						initializeInstance(key, instanceBeingInitialized);
+						tryInitialize = false;
+
+					} catch (AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry ignored) {
+						clear(currentTenantId);
+						getInstance(currentTenantId, constellioFactoriesFactory);
+						//Nothing, just re-entering the while loop for an other attempt
+
+					} catch (Exception e) {
+						LOGGER.error("Error while initializing for tenant " + tenantId, e);
+					}
+				}
+			});
 
 			return instanceBeingInitialized;
 		});

@@ -3,7 +3,7 @@ package com.constellio.sdk.dev.tools;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.StringUtils;
 

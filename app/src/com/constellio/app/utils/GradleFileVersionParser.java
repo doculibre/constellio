@@ -1,6 +1,6 @@
 package com.constellio.app.utils;
 
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;

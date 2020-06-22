@@ -21,7 +21,7 @@ import com.constellio.app.ui.tools.ApplicationRuntimeException;
 import com.constellio.app.ui.tools.ServerThrowableContext;
 import com.constellio.app.ui.tools.pageloadtime.PageLoadTimeReader;
 import com.constellio.app.ui.tools.pageloadtime.PageLoadTimeWriter;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.sdk.tests.SkipTestsRule;
 import com.constellio.sdk.tests.selenium.adapters.base.WebDriverAdapter;
 import com.constellio.sdk.tests.selenium.adapters.base.WebElementFinder;

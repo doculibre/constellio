@@ -1,8 +1,8 @@
 package com.constellio.app.api.admin.services;
 
 import com.constellio.app.entities.system.SystemMemory.MemoryDetails;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocatorMode;
 
 import java.io.BufferedReader;
 import java.io.File;

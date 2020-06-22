@@ -1,7 +1,7 @@
 package com.constellio.app.servlet;
 
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocatorMode;
 import org.apache.chemistry.opencmis.server.impl.webservices.CallContextHandlerInterceptor;
 import org.apache.chemistry.opencmis.server.impl.webservices.CmisWebServicesServlet;
 import org.apache.chemistry.opencmis.server.impl.webservices.SoapActionRemoveInterceptor;

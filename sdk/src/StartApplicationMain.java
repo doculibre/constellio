@@ -1,5 +1,5 @@
 import com.constellio.app.start.ApplicationStarter;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 
 import java.io.File;
 

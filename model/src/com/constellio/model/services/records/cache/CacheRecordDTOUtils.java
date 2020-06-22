@@ -1,14 +1,15 @@
 package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.utils.KeyLongMap;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.systemLogger.SystemLogger;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.cache.CompiledDTOStats.CompiledDTOStatsBuilder;
+import com.constellio.data.services.tenant.TenantLocal;
 import lombok.AllArgsConstructor;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -76,27 +77,40 @@ public class CacheRecordDTOUtils {
 	static final byte VALUE_IS_NOT_FOUND = -1;
 	public static List<String> debuggedDTOIds = new ArrayList<>();
 
-	static CompiledDTOStatsBuilder compiledDTOStatsBuilder;
-	static CompiledDTOStats lastCompiledDTOStats;
+	static TenantLocal<CompiledDTOStatsBuilder> compiledDTOStatsBuilder = new TenantLocal<>();
+	static TenantLocal<CompiledDTOStats> lastCompiledDTOStats = new TenantLocal<>();
 
-	static KeyLongMap<String> filesystemStoredMetadataUsageCounter = new KeyLongMap<>();
+	static TenantLocal<KeyLongMap<String>> filesystemStoredMetadataUsageCounter = new TenantLocal<>();
+
+	public static KeyLongMap<String> getFilesystemStoredMetadataUsageCounterAndInitIfNull() {
+		if (filesystemStoredMetadataUsageCounter.get() == null) {
+			filesystemStoredMetadataUsageCounter.set(new KeyLongMap<>());
+		}
+		return filesystemStoredMetadataUsageCounter.get();
+	}
 
 	public static void startCompilingDTOsStats() {
-		compiledDTOStatsBuilder = new CompiledDTOStatsBuilder();
+		compiledDTOStatsBuilder.set(new CompiledDTOStatsBuilder());
 	}
 
-	public static CompiledDTOStats stopCompilingDTOsStats() {
-		lastCompiledDTOStats = compiledDTOStatsBuilder.build();
-		compiledDTOStatsBuilder = null;
-		return lastCompiledDTOStats;
+	public static synchronized CompiledDTOStats stopCompilingDTOsStats() {
+		if (compiledDTOStatsBuilder.get() != null) {
+			lastCompiledDTOStats.set(compiledDTOStatsBuilder.get().build());
+			compiledDTOStatsBuilder.set(null);
+		}
+		return lastCompiledDTOStats.get();
 	}
 
-	public static KeyLongMap<String> getFilesystemStoredMetadataUsageCounter() {
-		return filesystemStoredMetadataUsageCounter;
+	public static CompiledDTOStatsBuilder getCompiledDTOStatsBuilder() {
+		return compiledDTOStatsBuilder.get();
+	}
+
+	public static KeyLongMap<String> getFilesystemStoredMetadataUsageCounterOrNull() {
+		return filesystemStoredMetadataUsageCounter.get();
 	}
 
 	public static CompiledDTOStats getLastCompiledDTOStats() {
-		return lastCompiledDTOStats;
+		return lastCompiledDTOStats.get();
 	}
 
 	public static class CacheRecordDTOBytesArray {
@@ -240,7 +254,7 @@ public class CacheRecordDTOUtils {
 			}
 
 			if (Toggle.COUNT_CACHE_FILESYSTEM_METADATA_USAGE.isEnabled()) {
-				filesystemStoredMetadataUsageCounter.increment(metadataSearched.getNoInheritanceCode());
+				getFilesystemStoredMetadataUsageCounterAndInitIfNull().increment(metadataSearched.getNoInheritanceCode());
 			}
 			byteArrayToSearchIn = byteArrayRecordDTO.get();
 

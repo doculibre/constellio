@@ -4,19 +4,19 @@ import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.conf.PropertiesAppLayerConfiguration;
 import com.constellio.app.services.appManagement.GetWarVersionUtils;
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.Holder;
 import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerFactoryImpl;
-import com.constellio.model.utils.TenantUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,8 +75,9 @@ public class ConstellioFactories {
 
 	private static ConstellioFactories getInstance(final String tenantId, final Supplier<File> propertyFileSupplier,
 												   final ConstellioFactoriesDecorator decorator) {
+		String instanceName = tenantId != null ? "tenant" + tenantId : null;
 		return instanceProvider.getInstance(tenantId,
-				() -> buildFor(propertyFileSupplier.get(), decorator, null, (short) 0));
+				() -> buildFor(propertyFileSupplier.get(), decorator, instanceName, (short) 0));
 	}
 
 	public static void start() {
@@ -94,6 +95,10 @@ public class ConstellioFactories {
 	public static ConstellioFactories buildFor(File propertyFile, ConstellioFactoriesDecorator decorator,
 											   String instanceName, short instanceId) {
 		ConstellioFactories factories = new ConstellioFactories();
+
+		if (instanceName == null) {
+			instanceName = "default";
+		}
 
 		factories.propertyFile = propertyFile;
 		Map<String, String> configs = PropertyFileUtils.loadKeyValues(propertyFile);

@@ -1,7 +1,7 @@
-package com.constellio.model.utils;
+package com.constellio.data.utils;
 
-import com.constellio.model.services.tenant.TenantProperties;
-import com.constellio.model.services.tenant.TenantService;
+import com.constellio.data.services.tenant.TenantProperties;
+import com.constellio.data.services.tenant.TenantService;
 
 public class TenantUtils {
 
@@ -26,6 +26,18 @@ public class TenantUtils {
 			throw new RuntimeException("No tenant found in InheritableThreadLocal variable");
 		}
 		return tenant;
+	}
+
+	public static void setTenant(int tenantId) {
+		setTenant((byte) tenantId);
+	}
+
+	public static void setTenant(byte tenantId) {
+		TenantProperties tenant = tenantService.getTenantById(tenantId);
+		if (tenant == null) {
+			throw new RuntimeException("Invalid tenant id");
+		}
+		tenantThreadLocal.set(tenant);
 	}
 
 	public static void setTenant(String tenantId) {

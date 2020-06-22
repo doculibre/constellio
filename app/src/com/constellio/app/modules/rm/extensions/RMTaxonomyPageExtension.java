@@ -31,6 +31,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.users.UserServices;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -253,9 +254,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 		return new RecordVODataProvider(foldersSchemaVO, voBuilder, sessionContextProvider) {
 			@Override
 			public LogicalSearchQuery getQuery() {
-				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
-				SessionContext sessionContext = sessionContextProvider.getSessionContext();
-				User currentUser = rm.getUser(sessionContext.getCurrentUser().getId());
+				User currentUser = getCurrentUser(sessionContextProvider);
 				return logicalSearchQueryFactory.get().filteredWithUser(currentUser);
 			}
 		};
@@ -280,13 +279,20 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 			@Override
 			public LogicalSearchQuery get() {
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
-				SessionContext sessionContext = sessionContextProvider.getSessionContext();
-				User currentUser = rm.getUser(sessionContext.getCurrentUser().getId());
+				User currentUser = getCurrentUser(sessionContextProvider);
 				return new LogicalSearchQuery()
 						.setCondition(from(rm.folder.schemaType()).where(rm.folder.administrativeUnit()).isEqualTo(conceptId))
 						.sortAsc(Schemas.TITLE).filteredWithUser(currentUser);
 			}
 		};
+	}
+
+	private User getCurrentUser(SessionContextProvider sessionContextProvider) {
+		UserServices userServices = sessionContextProvider.getConstellioFactories().getModelLayerFactory().newUserServices();
+		SessionContext sessionContext = sessionContextProvider.getSessionContext();
+		String username = sessionContext.getCurrentUser().getUsername();
+		String collection = sessionContext.getCurrentCollection();
+		return userServices.getUserInCollection(username, collection);
 	}
 
 	private Factory<LogicalSearchQuery> newRulesWithAdministrativeUnitSearchQuery(
@@ -311,8 +317,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 			@Override
 			public LogicalSearchQuery get() {
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
-				SessionContext sessionContext = sessionContextProvider.getSessionContext();
-				User currentUser = rm.getUser(sessionContext.getCurrentUser().getId());
+				User currentUser = getCurrentUser(sessionContextProvider);
 				return new LogicalSearchQuery()
 						.setCondition(from(rm.folder.schemaType()).where(rm.folder.category()).isEqualTo(conceptId))
 						.sortAsc(Schemas.TITLE).filteredWithUser(currentUser);

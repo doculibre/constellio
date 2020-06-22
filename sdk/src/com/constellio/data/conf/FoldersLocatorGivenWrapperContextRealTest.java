@@ -1,7 +1,8 @@
-package com.constellio.model.conf;
+package com.constellio.data.conf;
 
 import com.constellio.sdk.tests.ConstellioTestWithGlobalContext;
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -9,15 +10,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.junit.runners.Parameterized;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 
 @RunWith(Parameterized.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -112,135 +110,135 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 
 	private FoldersLocator newFoldersLocator(File customTempFolder, File customImportationFolder,
 											 File customSettingsFolder) {
-		FoldersLocator locator = spy(new FoldersLocator());
+		FoldersLocator locator = Mockito.spy(new FoldersLocator());
 		if (testCase == givenJavaRootFolderIsWebappFolder) {
-			doReturn(webapp).when(locator).getJavaRootFolder();
+			Mockito.doReturn(webapp).when(locator).getJavaRootFolder();
 		} else if (testCase == givenJavaRootFolderIsNewWebappFolder) {
-			doReturn(webapp2).when(locator).getJavaRootFolder();
+			Mockito.doReturn(webapp2).when(locator).getJavaRootFolder();
 		}
 		return locator;
 	}
 
 	@Test
 	public void whenGetConstellioEncryptionFileThenReturnCorrectFolder() {
-		assertThat(foldersLocator.getConstellioEncryptionFile()).is(samePath(crypt));
+		Assertions.assertThat(foldersLocator.getConstellioEncryptionFile()).is(samePath(crypt));
 	}
 
 	@Test
 	public void whenDetectingModeThenValidMode()
 			throws Exception {
-		assertThat(foldersLocator.getFoldersLocatorMode()).isEqualTo(FoldersLocatorMode.WRAPPER);
+		Assertions.assertThat(foldersLocator.getFoldersLocatorMode()).isEqualTo(FoldersLocatorMode.WRAPPER);
 	}
 
 	@Test
 	public void whenGetConstellioWrapperInstallationFolderThenReturnCorrectFolder() {
-		assertThat(foldersLocator.getWrapperInstallationFolder()).isEqualTo(wrapperInstallationFolder);
+		Assertions.assertThat(foldersLocator.getWrapperInstallationFolder()).isEqualTo(wrapperInstallationFolder);
 	}
 
 	@Test
 	public void whenGetConstellioWebappFolderThenReturnCorrectFolder() {
-		assertThat(foldersLocator.getConstellioWebappFolder().getName()).contains(webapp.getName());
+		Assertions.assertThat(foldersLocator.getConstellioWebappFolder().getName()).contains(webapp.getName());
 	}
 
 	@Test
 	public void whenGetDictFolderThenReturnCorrectFolder() {
-		assertThat(foldersLocator.getDict()).isEqualTo(dict);
+		Assertions.assertThat(foldersLocator.getDict()).isEqualTo(dict);
 	}
 
 	@Test
 	public void whenGetConstellioLanguageSchemasFolderThenReturnCorrectFolder()
 			throws Exception {
-		assertThat(foldersLocator.getLanguageProfiles()).isEqualTo(languageProfiles);
+		Assertions.assertThat(foldersLocator.getLanguageProfiles()).isEqualTo(languageProfiles);
 	}
 
 	@Test
 	public void whenGetConstellioConfFolderThenReturnCorrectFolder()
 			throws Exception {
-		assertThat(foldersLocator.getConfFolder()).isEqualTo(conf);
+		Assertions.assertThat(foldersLocator.getConfFolder()).isEqualTo(conf);
 	}
 
 	@Test
 	public void whenGetBPMNsFolderThenReturnCorrectFolder()
 			throws Exception {
-		assertThat(foldersLocator.getBPMNsFolder()).isEqualTo(bpmns);
+		Assertions.assertThat(foldersLocator.getBPMNsFolder()).isEqualTo(bpmns);
 	}
 
 	@Test
 	public void whenGetSmtpMailFolderThenReturnCorrectFolder()
 			throws Exception {
-		assertThat(foldersLocator.getSmtpMailFolder()).isEqualTo(smtpMail);
+		Assertions.assertThat(foldersLocator.getSmtpMailFolder()).isEqualTo(smtpMail);
 	}
 
 	@Test
 	public void whenGetConstellioPropertiesFileThenReturnCorrectFile()
 			throws Exception {
-		assertThat(foldersLocator.getConstellioProperties()).isEqualTo(constellioProperties);
+		Assertions.assertThat(foldersLocator.getConstellioProperties()).isEqualTo(constellioProperties);
 	}
 
 	@Test
 	public void whenGetKeystoreFileThenReturnCorrectFile()
 			throws Exception {
-		assertThat(foldersLocator.getKeystoreFile()).isEqualTo(keystore);
+		Assertions.assertThat(foldersLocator.getKeystoreFile()).isEqualTo(keystore);
 	}
 
 	@Test
 	public void whenGetIntelliGISetupDPropertiesFileThenReturnCorrectFile()
 			throws Exception {
-		assertThat(foldersLocator.getConstellioSetupProperties()).isEqualTo(constellioSetupProperties);
+		Assertions.assertThat(foldersLocator.getConstellioSetupProperties()).isEqualTo(constellioSetupProperties);
 	}
 
 	@Test
 	public void whenGetConstellioWebInfFolderThenReturnCorrectFolder()
 			throws Exception {
-		assertThat(foldersLocator.getConstellioWebinfFolder()).isEqualTo(webinf);
+		Assertions.assertThat(foldersLocator.getConstellioWebinfFolder()).isEqualTo(webinf);
 	}
 
 	@Test
 	public void whenGetBinFolderThenReturnCorrectFile()
 			throws Exception {
-		assertThat(foldersLocator.getBinFolder()).isEqualTo(bin);
+		Assertions.assertThat(foldersLocator.getBinFolder()).isEqualTo(bin);
 	}
 
 	@Test
 	public void whenGetWrapperCommandFolderFolderThenReturnCorrectFile()
 			throws Exception {
-		assertThat(foldersLocator.getWrapperCommandFolder()).isEqualTo(command);
+		Assertions.assertThat(foldersLocator.getWrapperCommandFolder()).isEqualTo(command);
 	}
 
 	@Test
 	public void whenGetWrapperCommandCmdTxtFileThenReturnCorrectFile()
 			throws Exception {
-		assertThat(foldersLocator.getWrapperCommandFile()).isEqualTo(commandCmdTxt);
+		Assertions.assertThat(foldersLocator.getWrapperCommandFile()).isEqualTo(commandCmdTxt);
 	}
 
 	@Test
 	public void whenGetWrapperConfFileThenReturnCorrectFile()
 			throws Exception {
-		assertThat(foldersLocator.getWrapperConf()).isEqualTo(wrapperConf);
+		Assertions.assertThat(foldersLocator.getWrapperConf()).isEqualTo(wrapperConf);
 	}
 
 	@Test
 	public void whenGetWrapperUploadWarFileThenReturnCorrectFile()
 			throws Exception {
-		assertThat(foldersLocator.getUploadConstellioWarFile()).isEqualTo(uploadConstellioWar);
+		Assertions.assertThat(foldersLocator.getUploadConstellioWarFile()).isEqualTo(uploadConstellioWar);
 	}
 
 	@Test
 	public void whenGetWrapperDefaultTempFolderThenReturnCorrectFolderInWrapperInstallationDir()
 			throws Exception {
-		assertThat(foldersLocator.getDefaultTempFolder()).isEqualTo(temp);
+		Assertions.assertThat(foldersLocator.getDefaultTempFolder()).isEqualTo(temp);
 	}
 
 	@Test
 	public void whenGetWrapperDefaultImportationFolderThenReturnCorrectFolderInWrapperInstallationDir()
 			throws Exception {
-		assertThat(foldersLocator.getDefaultImportationFolder()).isEqualTo(importation);
+		Assertions.assertThat(foldersLocator.getDefaultImportationFolder()).isEqualTo(importation);
 	}
 
 	@Test
 	public void whenGetSettingsThenObtainCorrectFolder() {
 
-		assertThat(foldersLocator.getDefaultSettingsFolder()).isEqualTo(settings);
+		Assertions.assertThat(foldersLocator.getDefaultSettingsFolder()).isEqualTo(settings);
 	}
 
 	/*@Test
@@ -252,30 +250,30 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 	@Test
 	public void whenGetLibFolderThenObtainCorrectFolder() {
 
-		assertThat(foldersLocator.getLibFolder()).isEqualTo(lib);
+		Assertions.assertThat(foldersLocator.getLibFolder()).isEqualTo(lib);
 	}
 
 	@Test
 	public void whenConstellioThemesImagesThenObtainCorrectFolder() {
-		assertThat(foldersLocator.getConstellioThemeImages().getAbsolutePath())
+		Assertions.assertThat(foldersLocator.getConstellioThemeImages().getAbsolutePath())
 				.isEqualTo(themesConstellioImages.getAbsolutePath());
 	}
 
 	@Test
 	public void givenWebAppFolderWhenGetLibFolderForItThenReturnsDefaultLibFolder() {
-		assertThat(foldersLocator.getLibFolder())
+		Assertions.assertThat(foldersLocator.getLibFolder())
 				.isEqualTo(foldersLocator.getLibFolder(foldersLocator.getConstellioWebappFolder()));
 	}
 
 	@Test
 	public void whenGetWorkFolderThenObtainCorrectFolderAndCreateItIfRequired() {
-		assertThat(foldersLocator.getWorkFolder()).isEqualTo(workFolder);
-		assertThat(workFolder).exists();
+		Assertions.assertThat(foldersLocator.getWorkFolder()).isEqualTo(workFolder);
+		Assertions.assertThat(workFolder).exists();
 	}
 
 	@Test
 	public void givenWebAppFolderWhenGetPluginsFolderForItThenReturnsDefaultPluginFolder() {
-		assertThat(foldersLocator.getPluginsJarsFolder())
+		Assertions.assertThat(foldersLocator.getPluginsJarsFolder())
 				.isEqualTo(foldersLocator.getPluginsJarsFolder(foldersLocator.getConstellioWebappFolder()));
 	}
 

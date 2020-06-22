@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.Charset;
 import java.security.Principal;
 
-import static com.constellio.model.conf.FoldersLocator.usingAppWrapper;
+import static com.constellio.data.conf.FoldersLocator.usingAppWrapper;
 
 public class HttpServletRequestAuthenticator {
 

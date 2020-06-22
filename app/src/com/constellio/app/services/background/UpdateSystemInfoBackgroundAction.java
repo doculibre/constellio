@@ -2,8 +2,8 @@ package com.constellio.app.services.background;
 
 import com.constellio.app.entities.system.SystemInfo;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocatorMode;
 import org.joda.time.LocalDateTime;
 
 public class UpdateSystemInfoBackgroundAction implements Runnable {

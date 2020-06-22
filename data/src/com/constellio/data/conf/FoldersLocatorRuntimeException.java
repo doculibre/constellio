@@ -1,4 +1,4 @@
-package com.constellio.model.conf;
+package com.constellio.data.conf;
 
 @SuppressWarnings("serial")
 public class FoldersLocatorRuntimeException extends RuntimeException {

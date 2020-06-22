@@ -1,6 +1,6 @@
-package com.constellio.model.services.tenant;
+package com.constellio.data.services.tenant;
 
-import com.constellio.model.utils.TenantUtils;
+import com.constellio.data.utils.TenantUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,14 +11,18 @@ public class TenantLocal<V> {
 
 	public V get() {
 		String currentTenantId = TenantUtils.getTenantId();
-		return currentTenantId == null ? null : values.get(currentTenantId);
+		if (currentTenantId == null) {
+			currentTenantId = "default";
+		}
+		return values.get(currentTenantId);
 	}
 
 	public void set(V value) {
 		String currentTenantId = TenantUtils.getTenantId();
-		if (currentTenantId != null) {
-			values.put(currentTenantId, value);
+		if (currentTenantId == null) {
+			currentTenantId = "default";
 		}
+		values.put(currentTenantId, value);
 	}
 
 }

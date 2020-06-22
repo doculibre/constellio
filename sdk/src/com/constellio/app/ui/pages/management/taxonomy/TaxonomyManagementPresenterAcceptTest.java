@@ -59,6 +59,7 @@ public class TaxonomyManagementPresenterAcceptTest extends ConstellioTest {
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
+		when(userVO.getId()).thenReturn(admin);
 		when(userVO.getUsername()).thenReturn(admin);
 		when(sessionContext.getCurrentUser()).thenReturn(userVO);
 		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);

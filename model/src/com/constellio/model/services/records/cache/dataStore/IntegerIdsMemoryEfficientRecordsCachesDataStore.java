@@ -8,6 +8,7 @@ import com.constellio.data.utils.CacheStat;
 import com.constellio.data.utils.KeyLongMap;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LazyIterator;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -23,7 +24,6 @@ import com.constellio.model.services.records.cache.offHeapCollections.OffHeapLon
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapShortList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.utils.TenantUtils;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -792,32 +792,34 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 
 	public void close() {
 
-		mechanism.obtainSystemWideWritingPermit();
+		if (this.ids != null) {
+			mechanism.obtainSystemWideWritingPermit();
 
-		try {
-			this.ids.clear();
-			this.ids = null;
+			try {
+				this.ids.clear();
+				this.ids = null;
 
-			this.versions.clear();
-			this.versions = null;
+				this.versions.clear();
+				this.versions = null;
 
-			this.mainSortValues.clear();
-			this.mainSortValues = null;
+				this.mainSortValues.clear();
+				this.mainSortValues = null;
 
-			this.schema.clear();
-			this.schema = null;
+				this.schema.clear();
+				this.schema = null;
 
-			this.type.clear();
-			this.type = null;
+				this.type.clear();
+				this.type = null;
 
-			this.collection.clear();
-			this.collection = null;
+				this.collection.clear();
+				this.collection = null;
 
-			this.summaryCachedData.clear();
-			this.summaryCachedData = null;
+				this.summaryCachedData.clear();
+				this.summaryCachedData = null;
 
-		} finally {
-			mechanism.releaseSystemWideWritingPermit();
+			} finally {
+				mechanism.releaseSystemWideWritingPermit();
+			}
 		}
 	}
 

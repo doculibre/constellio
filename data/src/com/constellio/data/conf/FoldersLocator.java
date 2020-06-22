@@ -1,7 +1,7 @@
-package com.constellio.model.conf;
+package com.constellio.data.conf;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.utils.TenantUtils;
+import com.constellio.data.utils.TenantUtils;
 
 import java.io.File;
 import java.util.Arrays;
@@ -10,7 +10,7 @@ import java.util.List;
 public class FoldersLocator {
 
 	public static final String CONSTELLIO_TMP = "constellio_tmp";
-	private static boolean CONTEXT_PRINTED = false;
+	private static boolean CONTEXT_PRINTED = true;
 
 	private static FoldersLocatorMode foldersLocatorModeCached;
 
@@ -48,7 +48,7 @@ public class FoldersLocator {
 				File classFolder = new File(path);
 				finalPath = classFolder.getParentFile();
 
-				while (!finalPath.getName().equals("model") && !finalPath.getName().equals("WEB-INF")) {
+				while (!finalPath.getName().equals("model") && !finalPath.getName().equals("data") && !finalPath.getName().equals("WEB-INF")) {
 					finalPath = finalPath.getParentFile();
 				}
 
@@ -186,7 +186,11 @@ public class FoldersLocator {
 	}
 
 	public File getConstellioProperties() {
-		return new File(getConfFolder(), "constellio.properties");
+		return getConstellioProperties(true);
+	}
+
+	public File getConstellioProperties(boolean appendTenantFolder) {
+		return new File(getConfFolder(appendTenantFolder), "constellio.properties");
 	}
 
 	public File getConstellioSetupProperties() {
@@ -198,7 +202,7 @@ public class FoldersLocator {
 	}
 
 	public File getLogsFolder() {
-		return new File(getWrapperInstallationFolder(), concatTenantFolder("logs"));
+		return new File(getWrapperInstallationFolder(), "logs");
 	}
 
 	public File getBatFolder() {
@@ -232,10 +236,15 @@ public class FoldersLocator {
 	}*/
 
 	public File getDefaultTempFolder() {
-		String tempFolder = concatTenantFolder("temp");
+		return getDefaultTempFolder(true);
+	}
+
+	public File getDefaultTempFolder(boolean appendTenantFolder) {
+		String tempFolder = appendTenantFolder ? concatTenantFolder("temp") : "temp";
 
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
-			File file = new File(getWrapperInstallationFolder().getParentFile(), concatTenantFolder(CONSTELLIO_TMP));
+			String constellioTmpFolder = appendTenantFolder ? concatTenantFolder(CONSTELLIO_TMP) : CONSTELLIO_TMP;
+			File file = new File(getWrapperInstallationFolder().getParentFile(), constellioTmpFolder);
 			if (file.exists() && file.isDirectory()) {
 				return file;
 			} else {
@@ -325,6 +334,7 @@ public class FoldersLocator {
 		if (foldersLocatorModeCached == null) {
 			foldersLocatorModeCached = detectFoldersLocatorMode();
 
+			// FIXME disabled since it cause a loop with tenant service
 			if (!CONTEXT_PRINTED) {
 				System.out.println("========================================================================");
 				System.out.println("CLASS FOLDER  : '" + getCurrentClassPath() + "'");
@@ -561,8 +571,9 @@ public class FoldersLocator {
 		}
 	}
 
+
 	public File getPluginsJarsFolder() {
-		String pluginsJarsFolder = concatTenantFolder("plugins");
+		String pluginsJarsFolder = "plugins";
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER || getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
 			return new File(getConstellioWebinfFolder(), pluginsJarsFolder);
 
@@ -571,24 +582,26 @@ public class FoldersLocator {
 		}
 	}
 
+
 	public File getPluginsToMoveOnStartupFile() {
 		File pluginManagementFolder;
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER || getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
-			pluginManagementFolder = new File(getConstellioWebinfFolder(), concatTenantFolder("pluginsManagement"));
-
+			String pluginsFolder = "pluginsManagement";
+			pluginManagementFolder = new File(getConstellioWebinfFolder(), pluginsFolder);
 		} else {
-			pluginManagementFolder = new File(getConstellioWebappFolder(), concatTenantFolder("pluginsManagement"));
+			String pluginsFolder = "pluginsManagement";
+			pluginManagementFolder = new File(getConstellioWebappFolder(), pluginsFolder);
 		}
 		return new File(pluginManagementFolder, "toMoveOnStartup");
 	}
 
 	public File getPluginsJarsFolder(File webAppFolder) {
-		File webInf = new File(webAppFolder, concatTenantFolder("WEB-INF"));
+		File webInf = new File(webAppFolder, "WEB-INF");
 		return new File(webInf, "plugins");
 	}
 
 	public File getPluginsToMoveOnStartupFile(File webAppFolder) {
-		File webInf = new File(webAppFolder, concatTenantFolder("WEB-INF"));
+		File webInf = new File(webAppFolder, "WEB-INF");
 		File pluginManagementFolder = new File(webInf, "pluginsManagement");
 		return new File(pluginManagementFolder, "toMoveOnStartup");
 	}

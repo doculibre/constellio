@@ -1,13 +1,11 @@
-package com.constellio.model.conf;
+package com.constellio.data.conf;
 
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.io.File;
-
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 
 public class FoldersLocatorGivenUnknownFolderRealTest extends ConstellioTest {
 
@@ -18,14 +16,14 @@ public class FoldersLocatorGivenUnknownFolderRealTest extends ConstellioTest {
 	@Before
 	public void setUp() {
 		FoldersLocator.invalidateCaches();
-		foldersLocator = spy(new FoldersLocator());
+		foldersLocator = Mockito.spy(new FoldersLocator());
 		emptyFolder = newTempFolder();
 	}
 
 	@Test(expected = RuntimeException.class)
 	public void givenUnknownFolderThenWhenGetWebappThenExceptionThrown()
 			throws Exception {
-		doReturn(emptyFolder).when(foldersLocator).getJavaRootFolder();
+		Mockito.doReturn(emptyFolder).when(foldersLocator).getJavaRootFolder();
 
 		foldersLocator.getConstellioWebappFolder();
 	}
