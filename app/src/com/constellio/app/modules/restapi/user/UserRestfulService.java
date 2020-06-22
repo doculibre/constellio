@@ -4,6 +4,7 @@ import com.constellio.app.modules.restapi.core.exception.RequiredParameterExcept
 import com.constellio.app.modules.restapi.core.service.BaseRestfulService;
 import com.constellio.app.modules.restapi.core.util.AuthorizationUtils;
 import com.constellio.app.modules.restapi.user.dto.UserCredentialsContentDto;
+import com.constellio.app.modules.restapi.user.dto.UserCredentialsDto;
 import com.constellio.app.modules.restapi.user.dto.UsersByCollectionDto;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.google.common.base.Strings;
@@ -41,6 +42,28 @@ public class UserRestfulService extends BaseRestfulService {
 	private UserService userService;
 
 	@GET
+	@Path("credentials")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Operation(summary = "Get user credentials", description = "Return the user credentials. (Only id at the moment)")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(ref = "UserCredential"))),
+			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
+	public Response getCredentials(
+			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
+			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
+			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
+
+		validateAuthentication(authentication);
+		validateRequiredParameter(serviceKey, "serviceKey");
+
+		String token = AuthorizationUtils.getToken(authentication);
+		UserCredentialsDto userDto = userService.getCredentials(host, token, serviceKey);
+		return Response.ok(userDto).build();
+	}
+
+	@GET
 	@Path("credentials/collections")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Operation(summary = "Get collections for this user", description = "Return a list of user by collection.")
@@ -49,7 +72,7 @@ public class UserRestfulService extends BaseRestfulService {
 			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
-	public Response get(
+	public Response getUsersByCollection(
 			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
 			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {

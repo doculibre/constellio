@@ -2,6 +2,7 @@ package com.constellio.app.modules.restapi.user.dao;
 
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
 import com.constellio.app.modules.restapi.user.dto.UserCredentialsContentDto;
+import com.constellio.app.modules.restapi.user.dto.UserCredentialsDto;
 import com.constellio.app.modules.restapi.user.dto.UserInCollectionDto;
 import com.constellio.app.modules.restapi.user.dto.UsersByCollectionDto;
 import com.constellio.app.modules.restapi.user.exception.SignatureContentNotFoundException;
@@ -22,6 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserDao extends BaseDao {
+
+	public UserCredentialsDto getCredentials(String username) {
+		UserCredential userCredentials = userServices.getUser(username);
+		return UserCredentialsDto.builder().id(userCredentials.getId()).build();
+	}
 
 	public UsersByCollectionDto getUsersByCollection(String username) {
 		UserCredential userCredentials = userServices.getUser(username);
