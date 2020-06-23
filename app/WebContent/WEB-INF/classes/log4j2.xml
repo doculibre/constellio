@@ -15,7 +15,7 @@
 
                 <!-- This route is chosen if ThreadContext has no value for key tenant.id. -->
                 <Route key="$${ctx:tenant.id}">
-                    <RollingFile name="Rolling-default" fileName="logs/default/constellio.log"
+                    <RollingFile name="Rolling-default" fileName="logs/constellio.log"
                                  filePattern="logs/archive/defaultLog-%d{yyyy-MM-dd}-%i.log.gz">
                         <PatternLayout>
                             <pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %p %c{3} - default - %m%n</pattern>
@@ -31,7 +31,7 @@
                      The value dynamically determines the name of the log file and which folder to write it. -->
                 <Route>
                     <RollingFile name="Rolling-${ctx:tenant.id}" fileName="logs/${ctx:tenant.id}/constellio.log"
-                                 filePattern="logs/archive/${ctx:tenant.id}-%d{yyyy-MM-dd}-%i.log.gz">
+                                 filePattern="logs/archive/tenant-${ctx:tenant.id}-%d{yyyy-MM-dd}-%i.log.gz">
                         <PatternLayout>
                             <pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %p %c{3} - tenant.id=${ctx:tenant.id} -
                                 %m%n

@@ -38,14 +38,13 @@ public class TenantUtils {
 		if (tenant == null) {
 			throw new RuntimeException("Invalid tenant id");
 		}
-		ThreadContext.clearAll();
 		ThreadContext.put("tenant.id", tenant.getCode());
 		tenantThreadLocal.set(tenant);
 	}
 
 	public static void setTenant(String tenantId) {
-		ThreadContext.clearAll();
 		if (tenantId == null) {
+			ThreadContext.clearAll();
 			tenantThreadLocal.set(null);
 		} else {
 			TenantProperties tenant = tenantService.getTenantById(Integer.valueOf(tenantId));
