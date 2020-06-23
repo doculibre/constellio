@@ -17,6 +17,7 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -70,6 +71,10 @@ public class RecordRestfulServiceGETMetadataAcceptanceTest extends BaseRestfulSe
 		folder.setKeywords(asList("F1", "F2", "F3"));
 		recordServices.update(folder.getWrappedRecord());
 
+		UserCredential credentials = userServices.getUserCredential(bob);
+		credentials.setPersonalEmails(asList("P1", "P2", "P3"));
+		recordServices.update(credentials);
+
 		commitCounter.reset();
 		queryCounter.reset();
 	}
@@ -90,6 +95,36 @@ public class RecordRestfulServiceGETMetadataAcceptanceTest extends BaseRestfulSe
 
 		assertThat(dto.getCode()).isEqualTo(Folder.TITLE);
 		assertThat(dto.getValues().get(0)).isEqualTo(folder.getTitle());
+	}
+
+	@Test
+	public void validateServiceForUserCredentials() {
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("id", userServices.getUserCredential(bob).getId())
+				.queryParam("metadataCode", UserCredential.PERSONAL_EMAILS).request()
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();
+
+		assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(commitCounter.newCommitsCall()).isEmpty();
+
+		MetadataDto dto = response.readEntity(MetadataDto.class);
+
+		assertThat(dto.getCode()).isEqualTo(UserCredential.PERSONAL_EMAILS);
+		assertThat(dto.getValues()).containsAll(userServices.getUserCredential(bob).getPersonalEmails());
+	}
+
+	@Test
+	public void whenCallingServiceForOtherUserCredentials() {
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("id", userServices.getUserCredential(sasquatch).getId())
+				.queryParam("metadataCode", UserCredential.PERSONAL_EMAILS).request()
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();
+
+		assertThat(response.getStatus()).isEqualTo(Status.FORBIDDEN.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).isEqualTo(i18n.$(new UnauthorizedAccessException().getValidationError()));
 	}
 
 	@Test

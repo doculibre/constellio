@@ -22,6 +22,7 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -107,6 +108,40 @@ public class RecordRestfulServicePOSTMetadataAcceptanceTest extends BaseRestfulS
 
 		folder = rm.getFolder(folderId);
 		assertThat(folder.getTitle()).isEqualTo("My Title");
+	}
+
+	@Test
+	public void validateServiceForUserCredentials() {
+		emptyMetadata.setCode(UserCredential.PERSONAL_EMAILS);
+		emptyMetadata.setValues(asList("P1", "P2", "P3"));
+
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("id", userServices.getUserCredential(bob).getId()).request()
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.post(entity(emptyMetadata, APPLICATION_JSON_TYPE));
+
+		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(commitCounter.newCommitsCall()).isNotEmpty();
+
+		UserCredential credentials = userServices.getUserCredential(bob);
+		assertThat(credentials.getPersonalEmails()).containsAll(asList("P1", "P2", "P3"));
+	}
+
+	@Test
+	public void whenCallingServiceForOtherUserCredentials() {
+		emptyMetadata.setCode(UserCredential.PERSONAL_EMAILS);
+		emptyMetadata.setValues(asList("P1", "P2", "P3"));
+
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("id", userServices.getUserCredential(sasquatch).getId()).request()
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.post(entity(emptyMetadata, APPLICATION_JSON_TYPE));
+
+		assertThat(response.getStatus()).isEqualTo(Status.FORBIDDEN.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).isEqualTo(i18n.$(new UnauthorizedAccessException().getValidationError()));
 	}
 
 	@Test

@@ -41,6 +41,10 @@ public class RecordDao extends BaseDao {
 		recordServices.update(record, user);
 	}
 
+	public Record getUserCredentialByServiceKey(String serviceKey) {
+		return getRecordByMetadata(schemas.credentialServiceKey(), serviceKey);
+	}
+
 	private List<String> parseMetadataValue(MetadataValueType type, List<Object> objectValues) {
 		if (objectValues == null) {
 			return null;

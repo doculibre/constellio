@@ -15,12 +15,14 @@ import com.constellio.app.modules.restapi.record.dao.RecordDao;
 import com.constellio.app.modules.restapi.record.dto.MetadataDto;
 import com.constellio.app.modules.restapi.validation.ValidationService;
 import com.constellio.app.modules.restapi.validation.dao.ValidationDao;
+import com.constellio.app.modules.restapi.validation.exception.UnauthorizedAccessException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.security.global.UserCredential;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -47,8 +49,13 @@ public class RecordService extends BaseService {
 		validationService.validateToken(token, serviceKey);
 
 		Record record = getRecord(recordId, true);
-		User user = getUserByServiceKey(serviceKey, record.getCollection());
-		validationService.validateUserAccess(user, record, HttpMethods.GET);
+		if (record.isOfSchemaType(UserCredential.SCHEMA_TYPE)) {
+			Record userCredentials = recordDao.getUserCredentialByServiceKey(serviceKey);
+			validateCredential(recordId, userCredentials.getId());
+		} else {
+			User user = getUserByServiceKey(serviceKey, record.getCollection());
+			validationService.validateUserAccess(user, record, HttpMethods.GET);
+		}
 
 		Metadata metadata = getMetadata(record, metadataCode);
 		return recordDao.getRecordMetadata(record, metadata);
@@ -60,14 +67,26 @@ public class RecordService extends BaseService {
 		validationService.validateHost(host);
 		validationService.validateToken(token, serviceKey);
 
+		User user = null;
 		Record record = getRecord(recordId, true);
-		User user = getUserByServiceKey(serviceKey, record.getCollection());
-		validationService.validateUserAccess(user, record, HttpMethods.POST);
+		if (record.isOfSchemaType(UserCredential.SCHEMA_TYPE)) {
+			Record userCredentials = recordDao.getUserCredentialByServiceKey(serviceKey);
+			validateCredential(recordId, userCredentials.getId());
+		} else {
+			user = getUserByServiceKey(serviceKey, record.getCollection());
+			validationService.validateUserAccess(user, record, HttpMethods.GET);
+		}
 
 		Metadata metadata = getMetadata(record, metadataDto.getCode());
 		validateMetadata(metadata, metadataDto.getValues());
 
 		recordDao.setRecordMetadata(user, record, metadata, metadataDto);
+	}
+
+	private void validateCredential(String requestedCredentialId, String authenticatedCredentialId) {
+		if (!authenticatedCredentialId.equals(requestedCredentialId)) {
+			throw new UnauthorizedAccessException();
+		}
 	}
 
 	private Metadata getMetadata(Record record, String metadataCode) {
