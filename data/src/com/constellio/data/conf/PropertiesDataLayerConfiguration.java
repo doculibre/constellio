@@ -403,41 +403,41 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	@Override
 	public String getAzureBlobStorageConnectionString() {
-		return getRequiredString("azureBlobStorage.connectionString");
+		return getRequiredString("dao.contents.azure.connectionString");
 	}
 
 	@Override
 	public String getAzureBlobStorageConnectionAccountName() {
-		return getRequiredString("azureBlobStorage.accountName");
+		return getRequiredString("dao.contents.azure.accountName");
 	}
 
 	@Override
 	public String getAzureBlobStorageConnectionAccountKey() {
-		return getRequiredString("azureBlobStorage.accountKey");
+		return getRequiredString("dao.contents.azure.accountKey");
 	}
 
 	@Override
 	public void setAzureBlobStorageConnectionAccountName(String accountName) {
-		setString("azureBlobStorage.accountName", accountName);
+		setString("dao.contents.azure.accountName", accountName);
 	}
 
 	@Override
 	public void setAzureBlobStorageConnectionAccountKey(String accountKey) {
-		setString("azureBlobStorage.accountKey", accountKey);
+		setString("dao.contents.azure.accountKey", accountKey);
 	}
 
 	@Override
 	public void setAzureBlobStorageContainerName(String containerName) {
-		setString("azureBlobStorage.containerName", containerName);
+		setString("dao.contents.azure.containerName", containerName);
 	}
 
 	@Override
 	public void setAzureBlobStorageConnectionString(String containerName) {
-		setString("azureBlobStorage.connectionString", containerName);
+		setString("dao.contents.azure.connectionString", containerName);
 	}
 
 	@Override
 	public String getAzureBlobStorageContainerName() {
-		return getRequiredString("azureBlobStorage.containerName");
+		return getRequiredString("dao.contents.azure.containerName");
 	}
 }

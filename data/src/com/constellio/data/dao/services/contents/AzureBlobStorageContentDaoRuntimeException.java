@@ -21,5 +21,25 @@ public class AzureBlobStorageContentDaoRuntimeException extends ContentDaoRuntim
 		}
 	}
 
+	public static class AzureBlobStorageContentDaoRuntimeException_FailedToAddFile extends AzureBlobStorageContentDaoRuntimeException {
+		public AzureBlobStorageContentDaoRuntimeException_FailedToAddFile(String contentId) {
+			super("Une erreur s'est produite lors de l'ajout du fichier '" + contentId);
+		}
+	}
+
+	public static class AzureBlobStorageContentDaoRuntimeException_FailedToSaveInformationInVaultRecoveryFile extends FileSystemContentDaoRuntimeException {
+
+		public AzureBlobStorageContentDaoRuntimeException_FailedToSaveInformationInVaultRecoveryFile(String id) {
+			super("La sauvegarde dans le fichier de recuperation de la voûte à échoué. Pour l'id : " + id);
+		}
+	}
+
+	public static class AzureBlobStorageContentDaoRuntimeException_FailedToMoveFileToVault extends FileSystemContentDaoRuntimeException {
+
+		public AzureBlobStorageContentDaoRuntimeException_FailedToMoveFileToVault(String id) {
+			super("La sauvegarde du fichier dans la voûte à échoué. Pour l'id : " + id);
+		}
+	}
+
 
 }

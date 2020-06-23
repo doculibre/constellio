@@ -1377,17 +1377,17 @@ public class ContentManager implements StatefulService {
 				return false;
 			} else {
 						String filename = file.getName();
-						if (filename.endsWith("tlogs") || filename.endsWith("tlogs-backup") || filename.endsWith(".tlog")) {
-					return false;
+						if (filename.endsWith("tlogs") || filename.endsWith("tlogs-backup") || filename.endsWith(".tlog") || filename.equals("tlogBaseFile.zip") || filename.equals("tlog-infos.txt")) {
+							return false;
 
-				} else if (filename.endsWith(".preview") || filename.endsWith(".thumbnails")
-						   || filename.endsWith("__parsed") || filename.endsWith(".jpegConversion")) {
-					return false;
+						} else if (filename.endsWith(".preview") || filename.endsWith(".thumbnails")
+								   || filename.endsWith("__parsed") || filename.endsWith(".jpegConversion")) {
+							return false;
 
-				} else {
-					return true;
-				}
-			}
+						} else {
+							return true;
+						}
+					}
 				},
 				(file1, file2) -> 0);
 
