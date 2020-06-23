@@ -6,7 +6,6 @@ import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidCode;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.servlet.ConstellioMonitoringServlet;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.i18n.i18n;
@@ -110,13 +109,12 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 			if (hasUpdatePermission()) {
 				appLayerFactory.newApplicationService().restart();
 			} else {
-				ConstellioFactories.clear();
-				ConstellioFactories.getInstance();
+				appLayerFactory.newApplicationService().restartTenant();
 			}
 		} catch (AppManagementServiceException e) {
 			view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
 		}
-		ConstellioMonitoringServlet.systemRestarting = true;
+
 		Page.getCurrent().setLocation("/constellio/serviceMonitoring");
 	}
 
@@ -387,8 +385,7 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 		if (hasUpdatePermission()) {
 			appLayerFactory.newApplicationService().restart();
 		} else {
-			ConstellioFactories.clear();
-			ConstellioFactories.getInstance();
+			appLayerFactory.newApplicationService().restartTenant();
 		}
 	}
 }

@@ -3,7 +3,6 @@ package com.constellio.app.ui.pages.management.app;
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementService;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.io.streamFactories.StreamFactory;
@@ -41,8 +40,7 @@ public class AppManagementPresenter extends BasePresenter<AppManagementView> {
 			if (hasUpdatePermission()) {
 				appManagementService().restart();
 			} else {
-				ConstellioFactories.clear();
-				ConstellioFactories.getInstance();
+				appManagementService().restartTenant();
 			}
 		} catch (AppManagementServiceException e) {
 			view.showErrorMessage(MessageUtils.toMessage(e));

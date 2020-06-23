@@ -6,7 +6,6 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.CannotConnectToServer;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
@@ -175,33 +174,23 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	public void restart() {
 		logRestartingEvent();
 
-		if (hasUpdatePermission()) {
-			restartServer();
-		} else {
-			restartFactories();
-		}
-
-		ConstellioMonitoringServlet.systemRestarting = true;
-		view.navigate().to().serviceMonitoring();
-	}
-
-	private void restartServer() {
 		try {
-			appLayerFactory.newApplicationService().restart();
+			if (hasUpdatePermission()) {
+				appLayerFactory.newApplicationService().restart();
+			} else {
+				appLayerFactory.newApplicationService().restartTenant();
+			}
 		} catch (AppManagementServiceException e) {
 			view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
 		}
-	}
 
-	private void restartFactories() {
-		ConstellioFactories.clear();
-		ConstellioFactories.getInstance();
+		view.navigate().to().serviceMonitoring();
 	}
 
 	private boolean isFromTest() {
 		if (FoldersLocator.usingAppWrapper()) {
 			File systemLogFile = getSystemLogFile();
-			if (systemLogFile.exists()) {
+			if (systemLogFile != null && systemLogFile.exists()) {
 				if (!FileUtils.deleteQuietly(systemLogFile)) {
 					view.showErrorMessage($("UpdateManagerViewImpl.error.fileNotDeleted"));
 				}
@@ -402,6 +391,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 
 	private boolean recoveryModeEnabled() {
 		return !appLayerFactory.getModelLayerFactory().getDataLayerFactory().isDistributed()
+			   && !TenantUtils.isSupportingTenants()
 			   && appLayerFactory.getModelLayerFactory().getSystemConfigs().isInUpdateProcess();
 	}
 
