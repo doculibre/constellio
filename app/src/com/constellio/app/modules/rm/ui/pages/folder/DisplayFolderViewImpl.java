@@ -127,6 +127,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private DisplayFolderPresenter presenter;
 	private RMModuleExtensions rmModuleExtensions;
 	private boolean dragNDropAllowed;
+	private boolean dragRowsEnabled;
 	private Button displayFolderButton, editFolderButton, addDocumentButton;
 	private Label borrowedLabel;
 	private StringAutocompleteField<String> searchField;
@@ -302,7 +303,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		contentAndFacetsLayout.setExpandRatio(tabSheet, 1);
 
 		mainLayout.addComponents(borrowedLabel, uploadField, contentAndFacetsLayout);
-		presenter.selectInitialTabForUser();
 		return mainLayout;
 	}
 
@@ -414,6 +414,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
+	public RecordVODataProvider getFolderContentDataProvider() {
+		return folderContentDataProvider;
+	}
+
+	@Override
 	public void setFolderContent(RecordVODataProvider dataProvider) {
 		this.folderContentDataProvider = dataProvider;
 	}
@@ -479,7 +484,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 
 				@Override
-				protected boolean isNested() {
+				public boolean isNested() {
 					return nestedView;
 				}
 
@@ -487,6 +492,24 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				public void setQuickActionButtonsVisible(boolean visible) {
 					super.setQuickActionButtonsVisible(visible);
 					DisplayFolderViewImpl.this.setQuickActionButtonsVisible(visible);
+				}
+
+				@Override
+				public boolean isDropSupported() {
+					return dragNDropAllowed;
+				}
+
+				@Override
+				public boolean isRowDragSupported() {
+					return !isNested() && dragRowsEnabled;
+				}
+
+				@Override
+				protected void recordsDroppedOn(List<RecordVO> sourceRecordVOs, RecordVO targetRecordVO,
+												Boolean above) {
+					if (dragNDropAllowed) {
+						presenter.recordsDroppedOn(sourceRecordVOs, targetRecordVO);
+					}
 				}
 
 				@Override
@@ -822,15 +845,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	//}
 
 	@Override
+	public void setDragRowsEnabled(boolean enabled) {
+		this.dragRowsEnabled = enabled;
+	}
+
+	@Override
 	public void drop(DragAndDropEvent event) {
-		boolean handledByViewer;
-		if (viewerPanel != null && viewerPanel.isDropSupported()) {
-			viewerPanel.drop(event);
-			handledByViewer = true;
-		} else {
-			handledByViewer = false;
-		}
-		if (!handledByViewer && dragNDropAllowed) {
+		if (dragNDropAllowed) {
 			uploadField.drop(event);
 		}
 	}
@@ -922,13 +943,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void refreshFolderContentAndFacets() {
-
 	}
 
 	@Override
 	public void refreshFolderContent() {
 	}
-
 
 	//	@Override
 	public void refreshFacets(RecordVODataProvider dataProvider) {
@@ -1046,4 +1065,45 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		});
 		return container;
 	}
+
+	@Override
+	public Integer getSelectedFolderContentIndex() {
+		Integer selectedFolderContentIndex;
+		if (viewerPanel != null && viewerPanel.getPanelRecordIndex() != null) {
+			selectedFolderContentIndex = viewerPanel.getPanelRecordIndex();
+		} else {
+			selectedFolderContentIndex = null;
+		}
+		return selectedFolderContentIndex;
+	}
+
+	@Override
+	public RecordVO getSelectedFolderContentRecordVO() {
+		RecordVO selectedFolderContentRecordVO;
+		if (viewerPanel != null && viewerPanel.getPanelRecordVO() != null) {
+			selectedFolderContentRecordVO = viewerPanel.getPanelRecordVO();
+		} else {
+			selectedFolderContentRecordVO = null;
+		}
+		return selectedFolderContentRecordVO;
+	}
+
+	@Override
+	public DisplayFolderView getNestedDisplayFolderView() {
+		DisplayFolderView nestedDisplayFolderView;
+		if (viewerPanel != null && viewerPanel.getPanelContent() instanceof DisplayFolderViewImpl) {
+			nestedDisplayFolderView = (DisplayFolderViewImpl) viewerPanel.getPanelContent();
+		} else {
+			nestedDisplayFolderView = null;
+		}
+		return nestedDisplayFolderView;
+	}
+
+	@Override
+	public void closeViewerPanel() {
+		if (viewerPanel != null) {
+			viewerPanel.closePanel();
+		}
+	}
+	
 }

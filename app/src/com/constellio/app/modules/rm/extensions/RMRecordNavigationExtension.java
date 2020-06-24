@@ -156,7 +156,8 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 					public void buttonClick(ClickEvent event) {
 						if (isRecordInTrash) {
 							RecordNavigationExtensionUtils.showMessage(errorMessage);
-						} else if (!isOpenInViewer(referenceDisplay)) {
+							//						} else if (!isOpenInViewer(referenceDisplay)) {
+						} else {	
 							navigateToView(navigationParams.setOpenInNewTab(referenceDisplay.isOpenLinkInNewTab()));
 						}
 					}

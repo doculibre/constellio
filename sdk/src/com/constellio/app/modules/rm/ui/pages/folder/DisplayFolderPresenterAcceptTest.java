@@ -5,16 +5,25 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
+import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
+import com.constellio.app.modules.rm.ui.builders.ExternalLinkToVOBuilder;
+import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
+import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
+import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.ExternalLink;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserCredentialVO;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
@@ -43,6 +52,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -51,6 +62,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -370,6 +382,84 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 				.containsExactly(link3.getId(), link4.getId()); // Alphabetically sorted
 
 		assertThat(queryCounter.newQueryCalls()).isZero();
+	}
+
+	@Test
+	public void givenSubDocumentDraggedAndDroppedInSubFolderThenParentUpdated() throws Exception {
+		Document subDocument = rmSchemasRecordsServices.newDocumentWithId("abeilleDoc")
+				.setFolder(rmRecords.folder_A01).setTitle("AbeilleDoc");
+		Folder subFolder = rmSchemasRecordsServices.newFolderWithId("abeille2")
+				.setParentFolder(rmRecords.folder_A01).setTitle("Abeille2").setOpenDate(TimeProvider.getLocalDate());
+		recordServices.execute(new Transaction().addAll(subFolder, subDocument));
+
+		Record record = recordServices.getDocumentById(subDocument.getId());
+		DocumentVO documentVO = new DocumentToVOBuilder(getModelLayerFactory()).build(record, VIEW_MODE.TABLE, sessionContext);
+		FolderVO subFolderVO = new FolderToVOBuilder().build(subFolder.getWrappedRecord(), VIEW_MODE.TABLE, sessionContext);
+		presenter.recordsDroppedOn(Arrays.asList(documentVO), subFolderVO);
+		waitForBatchProcess();
+
+		record = recordServices.getDocumentById(subDocument.getId());
+		assertThat(record.getParentId()).isEqualTo(subFolder.getId());
+	}
+
+	@Test
+	public void givenSubFolderDraggedAndDroppedInAnotherSubFolderThenParentUpdated() throws Exception {
+		Folder subFolder1 = rmSchemasRecordsServices.newFolderWithId("abeille1")
+				.setParentFolder(rmRecords.folder_A01).setTitle("Abeille1").setOpenDate(TimeProvider.getLocalDate());
+		Folder subFolder2 = rmSchemasRecordsServices.newFolderWithId("abeille2")
+				.setParentFolder(rmRecords.folder_A01).setTitle("Abeille2").setOpenDate(TimeProvider.getLocalDate());
+		recordServices.execute(new Transaction().addAll(subFolder1, subFolder2));
+
+		FolderVO folderVO = new FolderToVOBuilder().build(subFolder1.getWrappedRecord(), VIEW_MODE.TABLE, sessionContext);
+		FolderVO targetFolderVO = new FolderToVOBuilder().build(subFolder2.getWrappedRecord(), VIEW_MODE.TABLE, sessionContext);
+		presenter.recordsDroppedOn(Arrays.asList(folderVO), targetFolderVO);
+		waitForBatchProcess();
+
+		Record record = recordServices.getDocumentById(subFolder1.getId());
+		assertThat(record.getParentId()).isEqualTo(subFolder2.getId());
+	}
+
+	@Test
+	public void givenSubFolderDraggedAndDroppedAndUserHasNoWriteAccessThenParentNotUpdated() throws Exception {
+		User user = users.sasquatchIn(zeCollection);
+		UserVO userVO = new UserToVOBuilder().build(user.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
+		sessionContext.setCurrentUser(userVO);
+
+		Folder subFolder1 = rmSchemasRecordsServices.newFolderWithId("abeille1")
+				.setParentFolder(rmRecords.folder_A01).setTitle("Abeille1").setOpenDate(TimeProvider.getLocalDate());
+		Folder subFolder2 = rmSchemasRecordsServices.newFolderWithId("abeille2")
+				.setParentFolder(rmRecords.folder_A01).setTitle("Abeille2").setOpenDate(TimeProvider.getLocalDate());
+		recordServices.execute(new Transaction().addAll(subFolder1, subFolder2));
+
+		FolderVO folderVO = new FolderToVOBuilder().build(subFolder1.getWrappedRecord(), VIEW_MODE.TABLE, sessionContext);
+		FolderVO targetFolderVO = new FolderToVOBuilder().build(subFolder2.getWrappedRecord(), VIEW_MODE.TABLE, sessionContext);
+		presenter.recordsDroppedOn(Arrays.asList(folderVO), targetFolderVO);
+		waitForBatchProcess();
+
+		Record record = recordServices.getDocumentById(subFolder1.getId());
+		assertThat(record.getParentId()).isEqualTo("abeille2");
+	}
+
+	@Test
+	public void givenExternalLinkDraggedAndDroppedInSubFolderThenParentUpdated() throws Exception {
+		ExternalLink externalLink = rmSchemasRecordsServices.newExternalLinkWithId("link1").setTitle("link1");
+		Folder parentFolder = rmRecords.getFolder_A01().setExternalLinks(Collections.singletonList(externalLink.getId()));
+		Folder subFolder = rmSchemasRecordsServices.newFolderWithId("abeille2")
+				.setParentFolder(rmRecords.folder_A01).setTitle("Abeille2").setOpenDate(TimeProvider.getLocalDate());
+		recordServices.execute(new Transaction().addAll(externalLink, parentFolder, subFolder));
+
+		FolderVO folderVO = new FolderToVOBuilder().build(parentFolder.getWrappedRecord(), VIEW_MODE.FORM, sessionContext);
+		doReturn(folderVO).when(presenter).getLazyFullFolderVO();
+
+		RecordVO externalLinkVO = new ExternalLinkToVOBuilder(getAppLayerFactory()).build(externalLink.getWrappedRecord(), VIEW_MODE.TABLE, sessionContext);
+		FolderVO targetFolderVO = new FolderToVOBuilder().build(subFolder.getWrappedRecord(), VIEW_MODE.TABLE, sessionContext);
+		presenter.recordsDroppedOn(Arrays.asList(externalLinkVO), targetFolderVO);
+		waitForBatchProcess();
+
+		subFolder = rmSchemasRecordsServices.getFolder(subFolder.getId());
+		assertThat(subFolder.getExternalLinks()).containsExactly(externalLink.getId());
+		parentFolder = rmSchemasRecordsServices.getFolder(parentFolder.getId());
+		assertThat(parentFolder.getExternalLinks()).isEmpty();
 	}
 
 	private MetadataSchemaTypes getSchemaTypes() {

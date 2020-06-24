@@ -13,6 +13,9 @@ public class Toggle {
 
 	public static AvailableToggle TEMP_FRANCIS = newToggle(true);
 
+
+	public static AvailableToggle EXPORT_SAVESTATES_USING_WITH_FAILSAFE = newToggle(true);
+
 	public static AvailableToggle SDK_CACHE_INTEGRITY_VALIDATION = newToggle(false);
 	public static AvailableToggle SDK_REQUEST_CACHE_VALIDATION = newToggle();
 
@@ -130,6 +133,10 @@ public class Toggle {
 	public static AvailableToggle IGNORE_CONFIGS_WHEN_SYNCHRONIZING_AZURE_RELATED_USERS_AND_GROUPS = newToggle(false);
 
 	public static AvailableToggle ENABLE_OFFICE365_EXCLUSIVE = newToggle(false);
+
+	public static AvailableToggle ENABLE_SIGNATURE = newToggle(false);
+
+
 
 	// ------------------------------------------------
 

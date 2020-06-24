@@ -1062,4 +1062,24 @@ public class AppLayerCollectionExtensions {
 		return displayInWindowOnSelection;
 	}
 
+	public Boolean isViewerSelectionPossible(ViewableRecordVOTablePanelExtensionParams params) {
+		Boolean viewerSelectionPossible = null;
+		for (ViewableRecordVOTablePanelExtension extension : viewableRecordVOTablePanelExtensions) {
+			viewerSelectionPossible = extension.isViewerSelectionPossible(params);
+		}
+		return viewerSelectionPossible;
+	}
+
+	public boolean navigateFromViewerToRecordVO(
+			ViewableRecordVOTablePanelExtensionParams params) {
+		boolean navigationHandledByExtension = false;
+		for (ViewableRecordVOTablePanelExtension extension : viewableRecordVOTablePanelExtensions) {
+			navigationHandledByExtension = extension.navigateFromViewerToRecordVO(params);
+			if (navigationHandledByExtension) {
+				break;
+			}
+		}
+		return navigationHandledByExtension;
+	}
+
 }

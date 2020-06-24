@@ -31,5 +31,11 @@ public class ContentDaoRuntimeException extends RuntimeException {
 			super("Cannot move folder '" + folderId + "' to '" + newFolderId + "'", cause);
 		}
 	}
+
+	public static class ContentDaoRuntimeException_WriteCancelled extends ContentDaoRuntimeException {
+		public ContentDaoRuntimeException_WriteCancelled(String id) {
+			super("Write of '" + id + "' was cancelled");
+		}
+	}
 }
 

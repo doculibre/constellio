@@ -58,6 +58,11 @@ public abstract class CommentsLayout extends VerticalLayout {
 
 		if (addCommentButtonVisible()) {
 			Component addCommentsComponent = newCommentComponent($("RecordCommentsDisplayImpl.addComment"), $("RecordCommentsDisplayImpl.addComment"), FontAwesome.PLUS, null);
+			addCommentsComponent.addStyleName("task-details-add-comment-button");
+			addCommentsComponent.addStyleName(ValoTheme.BUTTON_LINK);
+			addCommentsComponent.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
+			addCommentsComponent.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+			
 			addComponent(addCommentsComponent);
 			setComponentAlignment(addCommentsComponent, Alignment.TOP_RIGHT);
 		}
@@ -95,7 +100,10 @@ public abstract class CommentsLayout extends VerticalLayout {
 			modificationInformation.addExtension(new NiceTitle($("CommentsLayout.modifiedOn") + " " + dateTimeConverter.convertToPresentation(comment.getModificationDateTime(), String.class, getLocal())));
 		}
 
-		Component editCommentButton = newCommentComponent("", $("RecordCommentsDisplayImpl.editComment"), FontAwesome.EDIT, comment);
+		Component editCommentButton = newCommentComponent($("edit"), $("RecordCommentsDisplayImpl.editComment"), FontAwesome.EDIT, comment);
+		editCommentButton.addStyleName("edit-record-comment-button");
+		editCommentButton.addStyleName(ValoTheme.BUTTON_LINK);
+		editCommentButton.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
 		editCommentButton.setVisible(editButtonVisible(comment));
 
 		BaseButton deleteCommentButton = new DeleteButton(FontAwesome.TRASH_O, $("delete"), true) {
@@ -135,9 +143,8 @@ public abstract class CommentsLayout extends VerticalLayout {
 			}
 		};
 		addEditCommentButton.setIcon(icon);
-		addEditCommentButton.addStyleName(ValoTheme.BUTTON_LINK);
-		addEditCommentButton.addStyleName("task-details-add-comment-button");
 		addEditCommentButton.setCaptionVisibleOnMobile(false);
+		addEditCommentButton.addExtension(new NiceTitle(caption));
 		return addEditCommentButton;
 	}
 

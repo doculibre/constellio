@@ -31,6 +31,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.users.UserServices;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -231,7 +232,6 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 		SessionContext sessionContext = sessionContextProvider.getSessionContext();
 
-		AppLayerFactory appLayerFactory = sessionContextProvider.getConstellioFactories().getAppLayerFactory();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
 		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 		MetadataSchemaVO rulesSchemaVO = schemaVOBuilder.build(rm.retentionRule.schema(), VIEW_MODE.TABLE, sessionContext);
@@ -244,7 +244,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	}
 
 	private RecordVODataProvider newFolderDataProvider(final Factory<LogicalSearchQuery> logicalSearchQueryFactory,
-													   SessionContextProvider sessionContextProvider) {
+													   final SessionContextProvider sessionContextProvider) {
 
 		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 		SessionContext sessionContext = sessionContextProvider.getSessionContext();
@@ -254,7 +254,8 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 		return new RecordVODataProvider(foldersSchemaVO, voBuilder, sessionContextProvider) {
 			@Override
 			public LogicalSearchQuery getQuery() {
-				return logicalSearchQueryFactory.get();
+				User currentUser = getCurrentUser(sessionContextProvider);
+				return logicalSearchQueryFactory.get().filteredWithUser(currentUser);
 			}
 		};
 	}
@@ -278,11 +279,20 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 			@Override
 			public LogicalSearchQuery get() {
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
+				User currentUser = getCurrentUser(sessionContextProvider);
 				return new LogicalSearchQuery()
 						.setCondition(from(rm.folder.schemaType()).where(rm.folder.administrativeUnit()).isEqualTo(conceptId))
-						.sortAsc(Schemas.TITLE);
+						.sortAsc(Schemas.TITLE).filteredWithUser(currentUser);
 			}
 		};
+	}
+
+	private User getCurrentUser(SessionContextProvider sessionContextProvider) {
+		UserServices userServices = sessionContextProvider.getConstellioFactories().getModelLayerFactory().newUserServices();
+		SessionContext sessionContext = sessionContextProvider.getSessionContext();
+		String username = sessionContext.getCurrentUser().getUsername();
+		String collection = sessionContext.getCurrentCollection();
+		return userServices.getUserInCollection(username, collection);
 	}
 
 	private Factory<LogicalSearchQuery> newRulesWithAdministrativeUnitSearchQuery(
@@ -307,9 +317,10 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 			@Override
 			public LogicalSearchQuery get() {
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
+				User currentUser = getCurrentUser(sessionContextProvider);
 				return new LogicalSearchQuery()
 						.setCondition(from(rm.folder.schemaType()).where(rm.folder.category()).isEqualTo(conceptId))
-						.sortAsc(Schemas.TITLE);
+						.sortAsc(Schemas.TITLE).filteredWithUser(currentUser);
 			}
 		};
 	}

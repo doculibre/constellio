@@ -5,7 +5,6 @@ import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.ClickableNotification;
 import com.constellio.app.ui.util.FileIconUtils;
-import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.data.Item;
 import com.vaadin.event.UIEvents.PollEvent;
@@ -376,6 +375,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 
 	@Override
 	public void detach() {
+		closeUploadWindow();
 		UI.getCurrent().getNavigator().removeViewChangeListener(this);
 		UI.getCurrent().removePollListener(this);
 		UI.getCurrent().setPollInterval(uiPollIntervalBefore);
@@ -422,12 +422,10 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 	protected boolean supportsFileDrops() {
 		boolean supportsFileDrops;
 		WebBrowser browser = getUI().getPage().getWebBrowser();
-		if (ResponsiveUtils.isMobile()) {
+		if (browser.isWindowsPhone() || browser.isIOS() || browser.isAndroid()) {
 			supportsFileDrops = false;
-		} else if (browser.isChrome() || browser.isFirefox() || browser.isSafari()) {
-			supportsFileDrops = true;
 		} else {
-			supportsFileDrops = false;
+			supportsFileDrops = true;
 		}
 		return supportsFileDrops;
 	}
@@ -539,6 +537,10 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 		});
 	}
 
+	protected void closeUploadWindow() {
+		UI.getCurrent().removeWindow(uploadWindow);
+	}
+
 	private void closeUploadWindowIfAllDone() {
 		closeUploadWindowIfAllDone(Collections.<String>emptyList());
 	}
@@ -548,8 +550,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 			@Override
 			public void run() {
 				if (!isUploadInProgress()) {
-					UI.getCurrent().removeWindow(uploadWindow);
-
+					closeUploadWindow();
 					if (!emptyFilesName.isEmpty()) {
 						StringBuilder errorMessage = new StringBuilder(
 								$("BaseMultiFileUpload.fileUploadCancel") + " :");

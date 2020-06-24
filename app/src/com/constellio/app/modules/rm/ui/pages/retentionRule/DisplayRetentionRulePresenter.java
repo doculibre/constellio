@@ -177,7 +177,7 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 				}
 
 				return new LogicalSearchQuery(from(folderSchemaType).whereAllConditions(conditions))
-						.sortDesc(Schemas.MODIFIED_ON);
+						.sortDesc(Schemas.MODIFIED_ON).filteredWithUser(getCurrentUser());
 			}
 
 			private LogicalSearchCondition getRetentionRuleCondition(String retentionRule) {

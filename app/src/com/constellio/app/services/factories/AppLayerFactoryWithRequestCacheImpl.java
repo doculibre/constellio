@@ -6,6 +6,7 @@ import com.constellio.app.extensions.AppLayerExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.services.appManagement.AppManagementService;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
+import com.constellio.app.services.background.AppLayerBackgroundThreadsManager;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.corrector.CorrectorExcluderManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
@@ -159,6 +160,11 @@ public class AppLayerFactoryWithRequestCacheImpl implements AppLayerFactory {
 	@Override
 	public boolean isInitializationFinished() {
 		return appLayerFactory.isInitializationFinished();
+	}
+
+	@Override
+	public AppLayerBackgroundThreadsManager getAppLayerBackgroundThreadsManager() {
+		return appLayerFactory.getAppLayerBackgroundThreadsManager();
 	}
 
 	@Override

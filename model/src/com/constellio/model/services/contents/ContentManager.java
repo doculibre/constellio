@@ -102,6 +102,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
+import static com.constellio.data.dao.services.contents.ContentDao.MoveToVaultOption.ONLY_IF_INEXISTING;
 import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.utils.dev.Toggle.LOG_CONVERSION_FILENAME_AND_SIZE;
 import static com.constellio.model.conf.FoldersLocator.usingAppWrapper;
@@ -564,7 +565,7 @@ public class ContentManager implements StatefulService {
 			throws ContentManagerRuntimeException_CannotSaveContent {
 
 		try {
-			getContentDao().moveFileToVault(streamFactory.getTempFile(), id);
+			getContentDao().moveFileToVault(id, streamFactory.getTempFile(), ONLY_IF_INEXISTING);
 		} catch (ContentDaoRuntimeException e) {
 			throw new ContentManagerRuntimeException_CannotSaveContent(e);
 		}
@@ -969,7 +970,7 @@ public class ContentManager implements StatefulService {
 				try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
 					File convertedJPEGFile =
 							conversionManager.convertToJPEG(inputStream, dimension, mimeType, filename, tempFolder);
-					contentDao.moveFileToVault(convertedJPEGFile, hash + ".jpegConversion");
+					contentDao.moveFileToVault(hash + ".jpegConversion", convertedJPEGFile, ONLY_IF_INEXISTING);
 					LOGGER.info("Generated a JPEG conversion for content '" + filename + "' with hash '" + hash + "'");
 				} catch (Throwable t) {
 					LOGGER.warn("Cannot generate JPEG conversion for content '" + filename + "' with hash '" + hash + "'", t);
@@ -982,7 +983,7 @@ public class ContentManager implements StatefulService {
 					LOGGER.info("Converting file " + filename + " : " + content.getCurrentVersion().getLength() / (1024 * 1024));
 				}
 				File pdfPreviewFile = conversionManager.convertToPDF(inputStream, filename, tempFolder);
-				contentDao.moveFileToVault(pdfPreviewFile, hash + ".preview");
+				contentDao.moveFileToVault(hash + ".preview", pdfPreviewFile, ONLY_IF_INEXISTING);
 
 			} catch (ContentDaoException_NoSuchContent e) {
 				//Missing content are not logged from the conversion thread. Instead, they are checked by system diagnostic and other mechanisms
@@ -1022,7 +1023,7 @@ public class ContentManager implements StatefulService {
 			String tempFilename = tempFolder + filename + "_thumbnail_" + ".png";
 			File thumbnailFile = new File(tempFilename);
 			ImageIO.write(thumbnailImage, "png", thumbnailFile);
-			contentDao.moveFileToVault(thumbnailFile, hash + ".thumbnail");
+			contentDao.moveFileToVault(hash + ".thumbnail", thumbnailFile, ONLY_IF_INEXISTING);
 		} finally {
 			ioServices.closeQuietly(thumbnailSourceInputStream);
 		}

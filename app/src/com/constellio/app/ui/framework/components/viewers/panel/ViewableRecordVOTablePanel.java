@@ -4,7 +4,6 @@ import com.constellio.app.api.extensions.params.SchemaDisplayParams;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.ui.ViewableRecordVOTablePanelExtension.ViewableRecordVOTablePanelExtensionParams;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -45,13 +44,13 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.event.Transferable;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptAll;
@@ -62,6 +61,8 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
+import com.vaadin.shared.ui.dd.VerticalDropLocation;
+import com.vaadin.ui.AbstractSelect.AbstractSelectTargetDetails;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -75,6 +76,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.CellStyleGenerator;
+import com.vaadin.ui.Table.TableDragMode;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
@@ -475,7 +477,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		return ResponsiveUtils.isDesktop() && !isNested() && tableMode == TableMode.LIST;
 	}
 
-	protected boolean isNested() {
+	public boolean isNested() {
 		return false;
 	}
 
@@ -501,7 +503,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					if (!closeButtonViewerMetadataLayout.isVisible()) {
 						int compressedWidth = computeCompressedWidth();
 						if (table != null) {
-							int searchResultPropertyWidth = compressedWidth - BaseTable.SELECT_PROPERTY_WIDTH - (isShowThumbnailCol() ? ViewableRecordVOContainer.THUMBNAIL_WIDTH : 0) - 3;
+							int searchResultPropertyWidth = compressedWidth - BaseTable.SELECT_PROPERTY_WIDTH - 3;
+							if (isShowThumbnailCol()) {
+								searchResultPropertyWidth -= ViewableRecordVOContainer.THUMBNAIL_WIDTH;
+							}
 							table.setColumnWidth(ViewableRecordVOContainer.SEARCH_RESULT_PROPERTY, searchResultPropertyWidth);
 							table.addStyleName(compressedStyleName);
 						}
@@ -607,6 +612,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				@Override
 				public boolean isSelectColumn() {
 					return ViewableRecordVOTablePanel.this.isSelectColumn();
+				}
+
+				@Override
+				public boolean isDragColumn() {
+					return ViewableRecordVOTablePanel.this.isRowDragSupported();
 				}
 
 				@Override
@@ -818,9 +828,13 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		resultsTable.removeStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
 		//resultsTable.setAlwaysRecalculateColumnWidths(true);
 
+		if (isRowDragSupported()) {
+			resultsTable.setDragMode(TableDragMode.ROW);
+			resultsTable.setDropHandler(this);
+		}
+
 		return resultsTable;
 	}
-
 
 	protected int getSelectedSize() {
 		return table.getSelectionManager().getAllSelectedItemIds().size();
@@ -865,7 +879,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			this.tableMode = tableMode;
 			if (table != null) {
 				if (tableMode == TableMode.TABLE) {
-					closeViewer();
+					closePanel();
 				}
 
 				BaseTable tableBefore = table;
@@ -914,16 +928,13 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	void rowClicked(ItemClickEvent event) {
 		Object itemId = event.getItemId();
+		selectRecordVO(itemId, event, false);
 		if (isCompressionSupported()) {
-			selectRecordVO(itemId, event, false);
 			previousButton.setVisible(itemId != null);
 			nextButton.setVisible(itemId != null);
 			if (isHideQuickActionButtonsOnSelection()) {
 				setQuickActionButtonsVisible(false);
 			}
-		} else {
-			RecordVO recordVO = getRecordVO(itemId);
-			displayInWindowOrNavigate(recordVO);
 		}
 	}
 
@@ -957,10 +968,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			viewWindow.addCloseListener(new Window.CloseListener() {
 				@Override
 				public void windowClose(CloseEvent e) {
-					if (selectedRecordVO != null && getTableMode() == TableMode.LIST) {
+					if (getPanelContent() != null) {
 						refreshMetadata();
-					} else {
 						recordVOContainer.forceRefresh();
+					} else {
+						selectRecordVO(null, null, true);
 					}
 				}
 			});
@@ -983,7 +995,12 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	}
 
 	private void navigateToRecordVO(RecordVO recordVO) {
-		new ReferenceDisplay(recordVO).click();
+		AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(recordVO.getRecord().getCollection());
+		boolean navigationHandledByExtensions = extensions.navigateFromViewerToRecordVO(new ViewableRecordVOTablePanelExtensionParams(recordVO, searchTerm, this));
+		if (!navigationHandledByExtensions) {
+			new ReferenceDisplay(recordVO).click();
+		}
 	}
 
 	protected boolean isDisplayInWindowOnSelection(RecordVO recordVO) {
@@ -1008,14 +1025,15 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	}
 
 	protected boolean isSelectionPossible(RecordVO recordVO) {
-		boolean selectionPossible;
+		Boolean selectionPossible;
 		if (recordVO != null) {
-			String schemaType = SchemaUtils.getSchemaTypeCode(recordVO.getSchema().getCode());
-			selectionPossible = !Folder.SCHEMA_TYPE.equals(schemaType);
+			AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
+			AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(recordVO.getRecord().getCollection());
+			selectionPossible = extensions.isViewerSelectionPossible(new ViewableRecordVOTablePanelExtensionParams(recordVO, searchTerm, this));
 		} else {
 			selectionPossible = false;
 		}
-		return selectionPossible;
+		return selectionPossible != null ? selectionPossible.booleanValue() : true;
 	}
 
 	void selectRecordVO(Object itemId, ItemClickEvent event, boolean reload) {
@@ -1034,35 +1052,40 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			if (reload) {
 				recordVOContainer.forceRefresh();
 			}
-			selectedRecordVO = getRecordVO(selectedItemId);
 
-			if (selectedRecordVO == null) {
-				return;
-			}
-
-			previousItemId = recordVOContainer.prevItemId(itemId);
-			nextItemId = recordVOContainer.nextItemId(itemId);
-
-			if ((!isCompressionSupported() && selectedRecordVO != null)
-				|| (selectedRecordVO != null && !isSelectionPossible(selectedRecordVO))) {
-				displayInWindowOrNavigate(selectedRecordVO);
+			if (selectedItemId != null) {
+				selectedRecordVO = getRecordVO(selectedItemId);
 			} else {
-				previousButton.setEnabled(previousItemId != null);
-				nextButton.setEnabled(nextItemId != null);
+				selectedRecordVO = null;
+			}
+			if (selectedRecordVO == null) {
+				previousItemId = null;
+				nextItemId = null;
+			} else {
+				previousItemId = recordVOContainer.prevItemId(itemId);
+				nextItemId = recordVOContainer.nextItemId(itemId);
 
-				viewerMetadataPanel.setRecordVO(selectedRecordVO);
-				if (compressionChange != null) {
-					TableCompressEvent tableCompressEvent = new TableCompressEvent(event, compressionChange);
-					for (TableCompressListener tableCompressListener : tableCompressListeners) {
-						tableCompressListener.tableCompressChange(tableCompressEvent);
+				if ((!isCompressionSupported() && selectedRecordVO != null)
+					|| (selectedRecordVO != null && !isSelectionPossible(selectedRecordVO))) {
+					displayInWindowOrNavigate(selectedRecordVO);
+				} else {
+					previousButton.setEnabled(previousItemId != null);
+					nextButton.setEnabled(nextItemId != null);
+
+					viewerMetadataPanel.setRecordVO(selectedRecordVO);
+					if (compressionChange != null && event != null) {
+						TableCompressEvent tableCompressEvent = new TableCompressEvent(event, compressionChange);
+						for (TableCompressListener tableCompressListener : tableCompressListeners) {
+							tableCompressListener.tableCompressChange(tableCompressEvent);
+						}
 					}
+					adjustTableExpansion();
 				}
-				adjustTableExpansion();
 			}
 		}
 	}
 
-	private void closeViewer() {
+	public void closePanel() {
 		selectedItemId = null;
 
 		TableCompressEvent tableCompressEvent = new TableCompressEvent(null, false);
@@ -1154,7 +1177,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		BaseButton closeViewerButton = new IconButton(FontAwesome.TIMES, $("ViewableRecordVOTablePanel.closeViewer")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				closeViewer();
+				closePanel();
 			}
 		};
 		closeViewerButton.setId("close-viewer-button");
@@ -1346,17 +1369,90 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		return selectedItemId != null && viewerMetadataPanel.getPanelContent() instanceof DropHandler;
 	}
 
+	public boolean isRowDragSupported() {
+		return false;
+	}
+
 	@Override
 	public void drop(DragAndDropEvent event) {
-		Component panelContent = viewerMetadataPanel.getPanelContent();
-		if (panelContent instanceof DropHandler) {
-			((DropHandler) panelContent).drop(event);
+		// Limitation: https://vaadin.com/forum/thread/986110/table-drag-and-drop-with-layout-in-a-cell-doesn-t-work
+		if (event.getTargetDetails() instanceof AbstractSelectTargetDetails) {
+			Transferable t = event.getTransferable();
+			if (t.getSourceComponent() != table || table.size() <= 1) {
+				return;
+			}
+
+			AbstractSelectTargetDetails target = (AbstractSelectTargetDetails) event.getTargetDetails();
+			Object sourceItemId = t.getData("itemId");
+			Object targetItemId = target.getItemIdOver();
+
+			Boolean above;
+			if (target.getDropLocation().equals(VerticalDropLocation.TOP)) {
+				above = true;
+			} else if (target.getDropLocation().equals(VerticalDropLocation.MIDDLE) && targetItemId.equals(table.firstItemId())) {
+				above = true;
+			} else {
+				above = false;
+			}
+			RecordVO sourceRecordVO = recordVOContainer.getRecordVO(sourceItemId);
+			RecordVO targetRecordVO = recordVOContainer.getRecordVO(targetItemId);
+
+			List<RecordVO> droppedRecordVOs = new ArrayList<>(getSelectedRecordVOs());
+			if (!droppedRecordVOs.contains(sourceRecordVO)) {
+				droppedRecordVOs.add(0, sourceRecordVO);
+			}
+			droppedRecordVOs.remove(targetRecordVO);
+			recordsDroppedOn(droppedRecordVOs, targetRecordVO, above);
+		} else {
+			Component panelContent = viewerMetadataPanel.getPanelContent();
+			if (panelContent instanceof DropHandler) {
+				((DropHandler) panelContent).drop(event);
+			}
 		}
+	}
+
+	protected void recordsDroppedOn(List<RecordVO> sourceRecordVOs, RecordVO targetRecordVO, Boolean above) {
 	}
 
 	@Override
 	public AcceptCriterion getAcceptCriterion() {
 		return AcceptAll.get();
+	}
+
+	private String getPanelId() {
+		List<MetadataSchemaVO> schemaVOs = recordVOContainer.getSchemas();
+
+		StringBuilder schemaVOSuffix = new StringBuilder();
+		for (MetadataSchemaVO schemaVO : schemaVOs) {
+			if (schemaVOSuffix.length() > 0) {
+				schemaVOSuffix.append("_");
+			}
+			schemaVOSuffix.append(schemaVO.getCode());
+		}
+		String navigatorState = ConstellioUI.getCurrent().getNavigator().getState();
+		String navigatorStateWithoutParams;
+		if (navigatorState.contains("/")) {
+			navigatorStateWithoutParams = StringUtils.substringBefore(navigatorState, "/");
+		} else {
+			navigatorStateWithoutParams = navigatorState;
+		}
+		return navigatorStateWithoutParams + "." + schemaVOSuffix;
+	}
+
+	public Component getPanelContent() {
+		return viewerMetadataPanel != null ? viewerMetadataPanel.getPanelContent() : null;
+	}
+
+	public RecordVO getPanelRecordVO() {
+		return selectedRecordVO;
+	}
+
+	public Integer getPanelRecordIndex() {
+		return selectedRecordVO != null ? recordVOContainer.indexOfId(selectedItemId) : null;
+	}
+
+	public Button getCloseViewerButton() {
+		return closeViewerButton;
 	}
 
 	private class ViewerMetadataPanel extends VerticalLayout {
@@ -1427,30 +1523,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			return panelContent;
 		}
 
-	}
-
-	private String getPanelId() {
-		List<MetadataSchemaVO> schemaVOs = recordVOContainer.getSchemas();
-
-		StringBuilder schemaVOSuffix = new StringBuilder();
-		for (MetadataSchemaVO schemaVO : schemaVOs) {
-			if (schemaVOSuffix.length() > 0) {
-				schemaVOSuffix.append("_");
-			}
-			schemaVOSuffix.append(schemaVO.getCode());
-		}
-		String navigatorState = ConstellioUI.getCurrent().getNavigator().getState();
-		String navigatorStateWithoutParams;
-		if (navigatorState.contains("/")) {
-			navigatorStateWithoutParams = StringUtils.substringBefore(navigatorState, "/");
-		} else {
-			navigatorStateWithoutParams = navigatorState;
-		}
-		return navigatorStateWithoutParams + "." + schemaVOSuffix;
-	}
-
-	public Button getCloseViewerButton() {
-		return closeViewerButton;
 	}
 
 	public class TableCompressEvent implements Serializable {

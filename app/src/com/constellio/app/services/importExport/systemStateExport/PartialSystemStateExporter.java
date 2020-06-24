@@ -7,14 +7,9 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.conf.DataLayerConfiguration;
-import com.constellio.data.dao.dto.records.RecordDTO;
-import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.BigVaultRecordDao;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
-import com.constellio.data.dao.services.transactionLog.writer1.TransactionWriterV1;
-import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
@@ -22,24 +17,19 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.FieldsPopulator;
-import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.utils.SavestateFileWriter;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -47,7 +37,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -117,11 +106,10 @@ public class PartialSystemStateExporter {
 
 		List<String> filteredSchemaTypes = asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, Task.SCHEMA_TYPE,
 				ContainerRecord.SCHEMA_TYPE, UserDocument.SCHEMA_TYPE, UserFolder.SCHEMA_TYPE, Event.SCHEMA_TYPE);
-		List<FieldsPopulator> populators = new ArrayList<>();
 
 		SavestateFileWriter writer = null;
 		try {
-			writer = new SavestateFileWriter(new File(tlogsFolder, "records.tlog"), filteredSchemaTypes, populators);
+			writer = new SavestateFileWriter(modelLayerFactory, new File(tlogsFolder, "records.tlog"), false);
 
 			for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
 				MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
@@ -167,51 +155,6 @@ public class PartialSystemStateExporter {
 			if (writer != null) {
 				writer.close();
 			}
-		}
-	}
-
-	private class SavestateFileWriter {
-
-		TransactionWriterV1 transactionWriter = new TransactionWriterV1(false, new DataLayerSystemExtensions());
-		BufferedWriter writer;
-		List<String> filteredSchemaTypes;
-		List<FieldsPopulator> populators = new ArrayList<>();
-
-		public SavestateFileWriter(File file, List<String> filteredSchemaTypes, List<FieldsPopulator> populators) {
-			this.writer = writer;
-			this.filteredSchemaTypes = filteredSchemaTypes;
-			this.populators = populators;
-
-			try {
-				writer = new BufferedWriter(new FileWriter(file));
-
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-		public void write(List<Record> records) {
-
-			List<RecordDTO> recordDTOs = new ArrayList<>();
-
-			for (Record record : records) {
-				MetadataSchema schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
-				recordDTOs.add(((RecordImpl) record).toDocumentDTO(schema, populators));
-			}
-
-			BigVaultServerTransaction bigVaultServerTransaction = recordDao.prepare(new TransactionDTO(NOW())
-					.withFullRewrite(true).withNewRecords(recordDTOs));
-
-			try {
-				writer.append(transactionWriter.toLogEntry(bigVaultServerTransaction));
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-
-		}
-
-		public void close() {
-			IOUtils.closeQuietly(writer);
 		}
 	}
 

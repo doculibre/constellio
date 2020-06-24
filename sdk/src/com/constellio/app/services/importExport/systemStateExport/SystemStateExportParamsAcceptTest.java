@@ -3,7 +3,6 @@ package com.constellio.app.services.importExport.systemStateExport;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.services.extensions.plugins.InvalidJarsTest;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporterRuntimeException.SystemStateExporterRuntimeException_InvalidRecordId;
 import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.io.services.zip.ZipService;
@@ -92,7 +91,7 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 		File unzipFolder = newTempFolder();
 		File zipFile = new File(newTempFolder(), "file.zip");
 		SystemStateExportParams params = new SystemStateExportParams();
-		params.setExportPluginJars(false);
+
 		new SystemStateExporter(getAppLayerFactory()).exportSystemToFile(zipFile, params);
 		zipService.unzip(zipFile, unzipFolder);
 
@@ -117,7 +116,7 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 		File unzipFolder = newTempFolder();
 		File zipFile = new File(newTempFolder(), "file.zip");
 		SystemStateExportParams params = new SystemStateExportParams();
-		params.setExportPluginJars(false);
+
 		params.setExportNoContent();
 		new SystemStateExporter(getAppLayerFactory()).exportSystemToFile(zipFile, params);
 		zipService.unzip(zipFile, unzipFolder);
@@ -136,43 +135,13 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenExportingStateWithPluginsThenAllPluginsExported()
-			throws Exception {
-
-		File unzipFolder = newTempFolder();
-		File zipFile = new File(newTempFolder(), "file.zip");
-		SystemStateExportParams params = new SystemStateExportParams();
-		params.setExportPluginJars(true);
-		params.setExportNoContent();
-		File pluginsFolder = getAppLayerFactory().getAppLayerConfiguration().getPluginsFolder();
-		InvalidJarsTest.loadJarsToPluginsFolder(pluginsFolder);
-		new SystemStateExporter(getAppLayerFactory()).exportSystemToFile(zipFile, params);
-		zipService.unzip(zipFile, unzipFolder);
-
-		assertThat(unzipFolder.list()).containsOnly("settings", "content", "plugins");
-
-		File settingsFolder = new File(unzipFolder, "settings");
-		assertThat(settingsFolder.list()).contains("collections.xml", "zeCollection", "anotherCollection");
-		assertThat(new File(settingsFolder, "zeCollection").list()).contains("schemas.xml", "roles.xml", "taxonomies.xml");
-
-		File contentFolder = new File(unzipFolder, "content");
-		assertThat(contentFolder)
-				.has(transactionLogs())
-				.has(noTransactionLogBackups())
-				.has(noContents());
-
-		File exportedPluginsFolder = new File(unzipFolder, "plugins");
-		InvalidJarsTest.assertThatJarsLoadedCorrectly(exportedPluginsFolder);
-	}
-
-	@Test
 	public void whenExportingStateWithSomeRecordContentThenOnlySpecifiedRecordContent()
 			throws Exception {
 
 		File unzipFolder = newTempFolder();
 		File zipFile = new File(newTempFolder(), "file.zip");
 		SystemStateExportParams params = new SystemStateExportParams();
-		params.setExportPluginJars(false);
+
 		params.setOnlyExportContentOfRecords(asList(document1Id));
 		new SystemStateExporter(getAppLayerFactory())
 				.exportSystemToFile(zipFile, params);
@@ -197,7 +166,7 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 
 		File zipFile = new File(newTempFolder(), "file.zip");
 		SystemStateExportParams params = new SystemStateExportParams();
-		params.setExportPluginJars(false);
+
 		params.setOnlyExportContentOfRecords(asList(document1Id, "anInexistingRecord"));
 		new SystemStateExporter(getAppLayerFactory()).exportSystemToFile(zipFile, params);
 	}

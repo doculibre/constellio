@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.entities;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
+import org.joda.time.LocalDate;
 
 import java.util.List;
 
@@ -11,6 +12,8 @@ import static com.constellio.app.modules.rm.wrappers.Document.DESCRIPTION;
 import static com.constellio.app.modules.rm.wrappers.Document.FOLDER;
 import static com.constellio.app.modules.rm.wrappers.Document.KEYWORDS;
 import static com.constellio.app.modules.rm.wrappers.Document.LINKED_TO;
+import static com.constellio.app.modules.rm.wrappers.Document.PUBLISHED_EXPIRATION_DATE;
+import static com.constellio.app.modules.rm.wrappers.Document.PUBLISHED_START_DATE;
 import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
 
 public class DocumentVO extends RecordVO {
@@ -77,6 +80,22 @@ public class DocumentVO extends RecordVO {
 
 	public void setLinkedTo(String folder) {
 		set(LINKED_TO, folder);
+	}
+
+	public LocalDate getPublishingStartDate() {
+		return get(PUBLISHED_START_DATE);
+	}
+
+	public void setPublishingStartDate(LocalDate publishingStartDate) {
+		set(PUBLISHED_START_DATE, publishingStartDate);
+	}
+
+	public LocalDate getPublishingExpirationDate() {
+		return get(PUBLISHED_EXPIRATION_DATE);
+	}
+
+	public void setPublishingExpirationDate(LocalDate publishingEndDate) {
+		set(PUBLISHED_EXPIRATION_DATE, publishingEndDate);
 	}
 
 }
