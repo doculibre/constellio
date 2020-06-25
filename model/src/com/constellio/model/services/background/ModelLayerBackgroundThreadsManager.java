@@ -1,10 +1,10 @@
 package com.constellio.model.services.background;
 
+import com.constellio.data.conf.FoldersLocatorMode;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadExceptionHandling;
 import com.constellio.data.threads.BackgroundThreadsManager;
-import com.constellio.data.conf.FoldersLocatorMode;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.commons.lang3.SystemUtils;
@@ -43,7 +43,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 		recordsReindexingBackgroundAction = new RecordsReindexingBackgroundAction(modelLayerFactory);
 		backgroundThreadsManager.configure(repeatingAction("recordsReindexingBackgroundAction",
 				recordsReindexingBackgroundAction)
-				.executedEvery(standardSeconds(5)).handlingExceptionWith(CONTINUE));
+				.executedEvery(standardSeconds(5)).handlingExceptionWith(CONTINUE).usingPermits(4));
 
 		ModelLayerConfiguration configuration = modelLayerFactory.getConfiguration();
 		backgroundThreadsManager.configure(BackgroundThreadConfiguration.repeatingAction("removeTimedOutTokens", new Runnable() {
