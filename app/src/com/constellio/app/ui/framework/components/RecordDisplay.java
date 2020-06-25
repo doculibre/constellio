@@ -157,7 +157,7 @@ public class RecordDisplay extends BaseDisplay {
 					break usedTabsLoop;
 				}
 			}
-			if (usedTab) {
+			if (usedTab && !usedTabCaptions.contains(orderedTabCaption)) {
 				usedTabCaptions.add(orderedTabCaption);
 			}
 		}
@@ -202,7 +202,9 @@ public class RecordDisplay extends BaseDisplay {
 			for (Language language : groupLabels.keySet()) {
 				if (language.getLocale().equals(currentLocale)) {
 					String tabCaption = groupLabels.get(language);
-					orderedTabCaptions.add(tabCaption);
+					if (!orderedTabCaptions.contains(tabCaption)) {
+						orderedTabCaptions.add(tabCaption);
+					}
 				}
 			}
 		}
