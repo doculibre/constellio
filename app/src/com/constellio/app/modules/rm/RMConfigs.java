@@ -10,13 +10,6 @@ import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.app.modules.rm.model.enums.ReportsSortingMetadata;
-import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
-import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
-import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
-import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
-import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
-import com.constellio.app.modules.rm.model.enums.ReportsSortingMetadata;
-import com.constellio.app.modules.rm.model.enums.*;
 import com.constellio.app.modules.rm.validator.EndYearValueCalculator;
 import com.constellio.app.modules.rm.wrappers.RMDecommissioningTypeRequiredScript;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -547,8 +540,6 @@ public class RMConfigs {
 		return manager.getValue(AGENT_DELETE_IMPORTED_FILES);
 	}
 
-	public int getBorrowingDurationDays() {
-		return manager.getValue(BORROWING_DURATION_IN_DAYS);
 	public int getFolderBorrowingDurationDays() {
 		return manager.getValue(FOLDER_BORROWING_DURATION_IN_DAYS);
 	}
