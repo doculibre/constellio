@@ -112,7 +112,7 @@ public class RecordRestfulServicePOSTMetadataAcceptanceTest extends BaseRestfulS
 
 	@Test
 	public void validateServiceForUserCredentials() {
-		emptyMetadata.setCode(UserCredential.PERSONAL_EMAILS);
+		emptyMetadata.setCode(UserCredential.TEAMS_HIDDEN_FAVORITES);
 		emptyMetadata.setValues(asList("P1", "P2", "P3"));
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
@@ -125,7 +125,7 @@ public class RecordRestfulServicePOSTMetadataAcceptanceTest extends BaseRestfulS
 		assertThat(commitCounter.newCommitsCall()).isNotEmpty();
 
 		UserCredential credentials = userServices.getUserCredential(bob);
-		assertThat(credentials.getPersonalEmails()).containsAll(asList("P1", "P2", "P3"));
+		assertThat(credentials.getList(UserCredential.TEAMS_HIDDEN_FAVORITES)).containsAll(asList("P1", "P2", "P3"));
 	}
 
 	@Test

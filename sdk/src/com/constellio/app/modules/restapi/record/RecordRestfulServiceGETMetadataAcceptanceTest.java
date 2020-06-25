@@ -72,7 +72,7 @@ public class RecordRestfulServiceGETMetadataAcceptanceTest extends BaseRestfulSe
 		recordServices.update(folder.getWrappedRecord());
 
 		UserCredential credentials = userServices.getUserCredential(bob);
-		credentials.setPersonalEmails(asList("P1", "P2", "P3"));
+		credentials.set(UserCredential.TEAMS_HIDDEN_FAVORITES, asList("P1", "P2", "P3"));
 		recordServices.update(credentials);
 
 		commitCounter.reset();
@@ -101,7 +101,7 @@ public class RecordRestfulServiceGETMetadataAcceptanceTest extends BaseRestfulSe
 	public void validateServiceForUserCredentials() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
 				.queryParam("id", userServices.getUserCredential(bob).getId())
-				.queryParam("metadataCode", UserCredential.PERSONAL_EMAILS).request()
+				.queryParam("metadataCode", UserCredential.TEAMS_HIDDEN_FAVORITES).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();
 
 		assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
@@ -110,8 +110,8 @@ public class RecordRestfulServiceGETMetadataAcceptanceTest extends BaseRestfulSe
 
 		MetadataDto dto = response.readEntity(MetadataDto.class);
 
-		assertThat(dto.getCode()).isEqualTo(UserCredential.PERSONAL_EMAILS);
-		assertThat(dto.getValues()).containsAll(userServices.getUserCredential(bob).getPersonalEmails());
+		assertThat(dto.getCode()).isEqualTo(UserCredential.TEAMS_HIDDEN_FAVORITES);
+		assertThat(dto.getValues()).containsAll(userServices.getUserCredential(bob).getList(UserCredential.TEAMS_HIDDEN_FAVORITES));
 	}
 
 	@Test
