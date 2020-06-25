@@ -128,7 +128,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		dragAndDropWrapper = new DragAndDropWrapper(mainMenuContentFooterLayout) {
 			@Override
 			public void setDropHandler(DropHandler dropHandler) {
-				if (ResponsiveUtils.isDesktop()) {
+				if (ResponsiveUtils.isFileDropSupported()) {
 					super.setDropHandler(dropHandler);
 				}
 			}

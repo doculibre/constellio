@@ -112,7 +112,7 @@ public class RMConfigs {
 
 	// Agent configs
 	public static final SystemConfiguration AGENT_ENABLED, AGENT_SWITCH_USER_POSSIBLE, AGENT_DOWNLOAD_ALL_USER_CONTENT,
-			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING, AGENT_DISABLED_UNTIL_FIRST_CONNECTION, AGENT_MOVE_IMPORTED_FILES_TO_TRASH, AGENT_CREATE_DROP_DIR_SHORTCUT;
+			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING, AGENT_DISABLED_UNTIL_FIRST_CONNECTION, AGENT_MOVE_IMPORTED_FILES_TO_TRASH, AGENT_CREATE_DROP_DIR_SHORTCUT, AGENT_DELETE_IMPORTED_FILES;
 
 	// other
 	public static final SystemConfiguration OPEN_HOLDER, MAJOR_VERSION_FOR_NEW_FILE;
@@ -272,6 +272,8 @@ public class RMConfigs {
 		add(AGENT_MOVE_IMPORTED_FILES_TO_TRASH = agent.createBooleanTrueByDefault("agentMoveImportedFilesToTrash"));
 
 		add(AGENT_CREATE_DROP_DIR_SHORTCUT = agent.createBooleanTrueByDefault("agentCreateDropDirShortcut"));
+
+		add(AGENT_DELETE_IMPORTED_FILES = agent.createBooleanTrueByDefault("deleteImportedFiles"));
 
 		SystemConfigurationGroup others = new SystemConfigurationGroup(ID, "others");
 
@@ -541,6 +543,12 @@ public class RMConfigs {
 		return manager.getValue(AGENT_CREATE_DROP_DIR_SHORTCUT);
 	}
 
+	public boolean isAgentDeleteImportedFiles() {
+		return manager.getValue(AGENT_DELETE_IMPORTED_FILES);
+	}
+
+	public int getBorrowingDurationDays() {
+		return manager.getValue(BORROWING_DURATION_IN_DAYS);
 	public int getFolderBorrowingDurationDays() {
 		return manager.getValue(FOLDER_BORROWING_DURATION_IN_DAYS);
 	}
