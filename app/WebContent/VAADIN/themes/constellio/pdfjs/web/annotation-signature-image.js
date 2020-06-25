@@ -23,6 +23,20 @@ SignatureImageAnnotation.prototype.getBakeInfoI10nKey = function() {
 	return "annotation.signature.bakeInfo";
 };
 
+SignatureImageAnnotation.prototype.toJSON = function() {
+	var json = ImageAnnotation.prototype.toJSON.call(this);
+	json.initials = this.isInitials();
+	return json;
+};
+
+SignatureImageAnnotation.prototype.fromJSON = function(json) {
+	ImageAnnotation.prototype.fromJSON.call(this, json);
+	this.initials = json.initials;
+	if (json.imageUrl) {
+		this.url = json.imageUrl;
+	}
+};	
+
 SignatureImageAnnotation.prototype.bind = function(htmlElement) {
 	ImageAnnotation.prototype.bind.call(this, htmlElement);
 	htmlElement.classList.add("signature-image-annotation");

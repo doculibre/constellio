@@ -206,6 +206,13 @@ SignaturePicker.prototype.buildFields = function(signHereAnnotation, initials) {
 	typeButton.classList.add("tooltip");
 	typeButton.title=this.i10n("signaturePicker." + tooltipPrefix + ".type.tooltip", "Type");
 	typeButton.onclick = function(e) {
+		var saveCallback = function(imageUrl) {
+			if (initials) {
+				self.signatureDataStore.setInitialsImageUrl(imageUrl);
+			} else {
+				self.signatureDataStore.setSignatureImageUrl(imageUrl);
+			}
+		};
 		self.textAnnotationPicked(signHereAnnotation, initials);
 		self.closeWindow();
 	};
@@ -240,9 +247,9 @@ SignaturePicker.prototype.buildFields = function(signHereAnnotation, initials) {
 	actionsElement.appendChild(inputField);
 	actionsElement.appendChild(drawButton);
 	actionsElement.appendChild(uploadButton);
-	actionsElement.appendChild(deleteButton);
 	//actionsElement.appendChild(useButton);
-	//actionsElement.appendChild(typeButton);
+	actionsElement.appendChild(typeButton);
+	actionsElement.appendChild(deleteButton);
 	
 	adjustVisibility();
 	

@@ -23,6 +23,17 @@ ImageAnnotation.prototype.setUrl = function(url) {
 	}
 };
 
+ImageAnnotation.prototype.toJSON = function() {
+	var json = Annotation.prototype.toJSON.call(this);
+	json.url = this.getUrl();
+	return json;
+};	
+
+ImageAnnotation.prototype.fromJSON = function(json) {
+	Annotation.prototype.fromJSON.call(this, json);
+	this.url = json.url;
+};	
+
 ImageAnnotation.prototype.bind = function(htmlElement) {
 	Annotation.prototype.bind.call(this, htmlElement);
 	

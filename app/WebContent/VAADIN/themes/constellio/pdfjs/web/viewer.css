@@ -1168,14 +1168,24 @@ html[dir='rtl'] .toolbarButton.pageDown::before {
   content: url(images/toolbarButton-print.png);
 }
 
+.toolbarButton.certify::before,
+.secondaryToolbarButton.certify::before {
+  content: url(images/toolbarButton-certify.png);
+}
+
 .toolbarButton.sign::before,
 .secondaryToolbarButton.sign::before {
   content: url(images/toolbarButton-sign.png);
 }
 
-.toolbarButton.certify::before,
-.secondaryToolbarButton.certify::before {
-  content: url(images/toolbarButton-certify.png);
+.toolbarButton.signatureZone::before,
+.secondaryToolbarButton.signatureZone::before {
+  content: url(images/toolbarButton-sign-x.png);
+}
+
+.toolbarButton.textZone::before,
+.secondaryToolbarButton.textZone::before {
+  content: url(images/toolbarButton-text-zone.png);
 }
 
 .toolbarButton.openFile::before,
@@ -1230,16 +1240,43 @@ html[dir="rtl"] #viewOutline.toolbarButton::before {
   content: url(images/toolbarButton-search.png);
 }
 
-.toolbarButton.pdfSidebarNotification::after {
+.toolbarButton.pdfSidebarNotification1::after, .toolbarButton.certifyNotification::after {
   position: absolute;
   display: inline-block;
   top: 1px;
   /* Create a filled circle, with a diameter of 9 pixels, using only CSS: */
   content: '';
-  background-color: #70DB55;
+  background-color: #71db57;
   height: 9px;
   width: 9px;
   border-radius: 50%;
+  box-shadow: 0 0 0 rgba(113, 219, 87, 0.4);
+  animation: pulse 1s infinite;
+}
+@-webkit-keyframes pulse {
+  0% {
+    -webkit-box-shadow: 0 0 0 0 rgba(113, 219, 87, 0.4);
+  }
+  70% {
+      -webkit-box-shadow: 0 0 0 10px rgba(113, 219, 87, 0);
+  }
+  100% {
+      -webkit-box-shadow: 0 0 0 0 rgba(113, 219, 87, 0);
+  }
+}
+@keyframes pulse {
+  0% {
+    -moz-box-shadow: 0 0 0 0 rgba(113, 219, 87, 0.4);
+    box-shadow: 0 0 0 0 rgba(113, 219, 87, 0.4);
+  }
+  70% {
+      -moz-box-shadow: 0 0 0 10px rgba(113, 219, 87, 0);
+      box-shadow: 0 0 0 10px rgba(113, 219, 87, 0);
+  }
+  100% {
+      -moz-box-shadow: 0 0 0 0 rgba(113, 219, 87, 0);
+      box-shadow: 0 0 0 0 rgba(113, 219, 87, 0);
+  }
 }
 html[dir='ltr'] .toolbarButton.pdfSidebarNotification::after {
   left: 17px;

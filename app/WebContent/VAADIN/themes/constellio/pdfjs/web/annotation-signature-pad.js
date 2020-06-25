@@ -24,6 +24,23 @@ SignaturePadAnnotation.prototype.getBakeInfoI10nKey = function() {
 	return "annotation.signature.bakeInfo";
 };	
 
+SignaturePadAnnotation.prototype.toJSON = function() {
+	var json = Annotation.prototype.toJSON.call(this);
+	json.initials = this.isInitials();
+	if (this.imageUrl) {
+		json.imageUrl = this.imageUrl;
+	}	
+	return json;
+};
+
+SignaturePadAnnotation.prototype.fromJSON = function(json) {
+	Annotation.prototype.fromJSON.call(this, json);
+	if (json.imageUrl) {
+		this.imageUrl = json.imageUrl;
+	}
+	this.initials = json.initials;
+};	
+
 SignaturePadAnnotation.prototype.bind = function(htmlElement) {
 	Annotation.prototype.bind.call(this, htmlElement);
 	

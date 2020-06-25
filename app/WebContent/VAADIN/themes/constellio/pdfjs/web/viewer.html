@@ -50,6 +50,7 @@ See https://github.com/adobe-type-tools/cmap-resources
       <script src="./jquery/jquery.ajaxQueue.min.js"></script>
 
       <script src="./tooltipster/dist/js/tooltipster.bundle.min.js"></script>
+    <script src="./html2canvas/0.4.1/html2canvas.min.js"></script>
 
       <script src="./annotation-common.js"></script>
       <script src="./signature-datastore.js"></script>
@@ -148,14 +149,25 @@ See https://github.com/adobe-type-tools/cmap-resources
               <span data-l10n-id="print_label">Print</span>
             </button>
 
+            <button id="secondaryCertify" class="secondaryToolbarButton certify visibleMediumView" title="Certify"
+                    tabindex="53" data-l10n-id="certify">
+              <span data-l10n-id="certify_label">Certify</span>
+            </button>
+
               <button id="secondarySign" class="secondaryToolbarButton sign visibleMediumView" title="Sign"
-                      tabindex="53" data-l10n-id="Sign">
+                      tabindex="53" data-l10n-id="sign">
                   <span data-l10n-id="sign_label">Sign</span>
               </button>
 
-              <button id="secondaryCertify" class="secondaryToolbarButton certify visibleMediumView" title="Certify"
-                      tabindex="53" data-l10n-id="Certify">
-                  <span data-l10n-id="certify_label">Certify</span>
+            <button id="secondarySignatureZone" class="secondaryToolbarButton signatureZone visibleMediumView"
+                    title="Sign"
+                    tabindex="53" data-l10n-id="signatureZone">
+              <span data-l10n-id="signature_zone_label">New signature zone</span>
+            </button>
+
+            <button id="secondaryTextZone" class="secondaryToolbarButton textZone visibleMediumView" title="Sign"
+                    tabindex="53" data-l10n-id="textZone">
+              <span data-l10n-id="text_zone_label">New text zone</span>
               </button>
 
 <!--  
@@ -167,7 +179,8 @@ See https://github.com/adobe-type-tools/cmap-resources
               <span data-l10n-id="download_label">Download</span>
             </button>
 
-            <a href="#" id="secondaryViewBookmark" class="secondaryToolbarButton bookmark visibleSmallView" title="Current view (copy or open in new window)" tabindex="55" data-l10n-id="bookmark">
+            <a href="#" id="secondaryViewBookmark" class="secondaryToolbarButton bookmark visibleSmallView hidden"
+               title="Current view (copy or open in new window)" tabindex="55" data-l10n-id="bookmark">
               <span data-l10n-id="bookmark_label">Current View</span>
             </a>
 
@@ -212,9 +225,34 @@ See https://github.com/adobe-type-tools/cmap-resources
           <div id="toolbarContainer">
             <div id="toolbarViewer">
               <div id="toolbarViewerLeft">
+
                 <button id="sidebarToggle" class="toolbarButton" title="Toggle Sidebar" tabindex="11" data-l10n-id="toggle_sidebar">
                   <span data-l10n-id="toggle_sidebar_label">Toggle Sidebar</span>
                 </button>
+
+                <button id="certify" class="toolbarButton certify hiddenMediumView certifyNotification"
+                        title="Certify" tabindex="33"
+                        data-l10n-id="certify">
+                  <span data-l10n-id="certify_label">Certify</span>
+                </button>
+
+                <button id="sign" class="toolbarButton sign hiddenMediumView" title="Sign" tabindex="33"
+                        data-l10n-id="sign">
+                  <span data-l10n-id="sign_label">Sign</span>
+                </button>
+
+                <button id="signatureZone" class="toolbarButton signatureZone hiddenMediumView"
+                        title="New signature zone" tabindex="33"
+                        data-l10n-id="signatureZone">
+                  <span data-l10n-id="signature_zone_label">New signature zone</span>
+                </button>
+
+                <button id="textZone" class="toolbarButton textZone hiddenMediumView" title="New text zone"
+                        tabindex="33"
+                        data-l10n-id="textZone">
+                  <span data-l10n-id="text_zone_label">New text zone</span>
+                </button>
+
                 <div class="toolbarButtonSpacer"></div>
                 <button id="viewFind" class="toolbarButton" title="Find in Document" tabindex="12" data-l10n-id="findbar">
                   <span data-l10n-id="findbar_label">Find</span>
@@ -249,16 +287,6 @@ See https://github.com/adobe-type-tools/cmap-resources
                   <span data-l10n-id="print_label">Print</span>
                 </button>
 
-                  <button id="sign" class="toolbarButton sign hiddenMediumView" title="Sign" tabindex="33"
-                          data-l10n-id="sign">
-                      <span data-l10n-id="sign_label">Sign</span>
-                  </button>
-
-                  <button id="certify" class="toolbarButton certify hiddenMediumView" title="Certify" tabindex="33"
-                          data-l10n-id="certify">
-                      <span data-l10n-id="sign_label">Certify</span>
-                  </button>
-
                   <!--
                                   <button id="download" class="toolbarButton download hiddenMediumView" title="Download" tabindex="34" data-l10n-id="download">
                                     <span data-l10n-id="download_label">Download</span>
@@ -267,7 +295,8 @@ See https://github.com/adobe-type-tools/cmap-resources
                 <button id="download" class="toolbarButton download hidden" title="Download" tabindex="34" data-l10n-id="download">
                   <span data-l10n-id="download_label">Download</span>
                 </button>
-                <a href="#" id="viewBookmark" class="toolbarButton bookmark hiddenSmallView" title="Current view (copy or open in new window)" tabindex="35" data-l10n-id="bookmark">
+                <a href="#" id="viewBookmark" class="toolbarButton bookmark hiddenSmallView hidden"
+                   title="Current view (copy or open in new window)" tabindex="35" data-l10n-id="bookmark">
                   <span data-l10n-id="bookmark_label">Current View</span>
                 </a>
 

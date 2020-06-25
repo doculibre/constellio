@@ -48,6 +48,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Base64;
 import java.util.Date;
@@ -181,7 +182,11 @@ public class PdfJSServices {
 			params.append("&accessId=" + externalAccessUser.getExternalAccessUrl().getId());
 		}
 		if (urlPrefix != null) {
-			params.append("&urlPrefix=" + urlPrefix);
+			try {
+				params.append("&urlPrefix=" + URLEncoder.encode(urlPrefix, "UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				throw new RuntimeException(e);
+			}
 		}
 		return params.toString();
 	}
@@ -454,6 +459,12 @@ public class PdfJSServices {
 			urlPrefix = constellioUrl;
 			if (StringUtils.endsWith(urlPrefix, "/")) {
 				urlPrefix = StringUtils.substringBeforeLast(urlPrefix, "/");
+			}
+		} else {
+			try {
+				urlPrefix = URLDecoder.decode(urlPrefix, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				throw new RuntimeException(e);
 			}
 		}
 

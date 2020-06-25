@@ -28,7 +28,7 @@ SignatureAnnotationPicker.prototype.replaceSignHereAnnotation = function(signHer
     var self = this;
     var defaultRemove = newAnnotation.remove;
     if (!defaultRemove) {
-        defaultRemove = newAnnotation.__proto__.remove;
+        defaultRemove = Object.getPrototypeOf(newAnnotation).remove;
     }    
     newAnnotation.remove = function(e) {
         if (defaultRemove.call(newAnnotation)) {
@@ -37,7 +37,7 @@ SignatureAnnotationPicker.prototype.replaceSignHereAnnotation = function(signHer
     };    
     var defaultBind = newAnnotation.bind;
     if (!defaultBind) {
-        defaultBind = newAnnotation.__proto__.bind;
+        defaultBind = Object.getPrototypeOf(newAnnotation).bind;
     }
     newAnnotation.bind = function(htmlElement) {
         defaultBind.call(newAnnotation, htmlElement);

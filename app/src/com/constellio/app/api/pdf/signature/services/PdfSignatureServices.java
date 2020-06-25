@@ -41,7 +41,7 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
-import java.awt.Rectangle;
+import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -73,7 +73,8 @@ public class PdfSignatureServices {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public void signAndCertify(Record record, Metadata metadata, User user, List<PdfSignatureAnnotation> signatures,
+	public void signAndCertify(Record record, Metadata metadata, User user,
+							   List<PdfSignatureAnnotation> signatureAnnotations,
 							   String base64PdfContent)
 			throws PdfSignatureException {
 		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
@@ -136,38 +137,35 @@ public class PdfSignatureServices {
 				throw new PdfSignatureException_CannotReadKeystoreFileException();
 			}
 
-			if (signatures.size() < 1) {
+			if (signatureAnnotations.size() < 1) {
 				throw new PdfSignatureException_NothingToSignException();
 			}
-			Collections.sort(signatures);
+			Collections.sort(signatureAnnotations);
 
 			List<PdfSignatureAnnotation> signedAnnotations = new ArrayList<>();
-			List<PdfSignatureAnnotation> initialsAnnotations = new ArrayList<>();
-			List<PdfSignatureAnnotation> notInitialsAnnotations = new ArrayList<>();
+			List<PdfSignatureAnnotation> notSignedAnnotations = new ArrayList<>();
 
-			for (PdfSignatureAnnotation signature : signatures) {
+			for (PdfSignatureAnnotation signature : signatureAnnotations) {
 				if (signature.isInitials()) {
-					initialsAnnotations.add(signature);
+					notSignedAnnotations.add(signature);
 				} else {
-					notInitialsAnnotations.add(signature);
+					signedAnnotations.add(signature);
 				} 
 			}
-			
-			if (initialsAnnotations.size() > 1) {
-				signedAnnotations.add(initialsAnnotations.get(0));
-				
+
+			if (!notSignedAnnotations.isEmpty()) {
 				PDDocument doc = null;
 				try {
 					doc = PDDocument.load(docToSignFile);
-	
-					for (int i = 1; i < initialsAnnotations.size(); i++) {
-						PdfSignatureAnnotation initialsAnnotation = initialsAnnotations.get(i);
-						
-						int pageNumber = initialsAnnotation.getPage();
+
+					for (int i = 0; i < notSignedAnnotations.size(); i++) {
+						PdfSignatureAnnotation notSignedAnnotation = notSignedAnnotations.get(i);
+
+						int pageNumber = notSignedAnnotation.getPage();
 						//Retrieving the page
 						PDPage page = doc.getPage(pageNumber);
-						
-						File initialsFile = createTempFileFromBase64("initials", initialsAnnotation.getImageData());
+
+						File initialsFile = createTempFileFromBase64("not_signed", notSignedAnnotation.getImageData());
 						if (initialsFile == null) {
 							throw new PdfSignatureException_CannotReadSignatureFileException();
 						} else {
@@ -180,12 +178,14 @@ public class PdfSignatureServices {
 						//Creating the PDPageContentStream object
 						try (PDPageContentStream contents = new PDPageContentStream(doc, page, PDPageContentStream.AppendMode.APPEND, true)) {
 							//Drawing the image in the PDF document
-							Rectangle initialsPosition = initialsAnnotation.getPosition();
-							contents.drawImage(pdImage, (float) initialsPosition.getX(), (float) initialsPosition.getY(), (float) initialsPosition.getWidth(), (float) initialsPosition.getHeight());
+							Rectangle imagePosition = notSignedAnnotation.getPosition();
+							float adjustedY = (float) (imagePosition.getY() - imagePosition.getHeight());
+							imagePosition.setLocation((int) imagePosition.getX(), (int) adjustedY);
+							contents.drawImage(pdImage, (float) imagePosition.getX(), (float) imagePosition.getY(), (float) imagePosition.getWidth(), (float) imagePosition.getHeight());
 						}
 					}
-					
-					File docWithInitialsFile = fileService.newTemporaryFile(docToSignFile.getName() + "_with_initials.pdf");
+
+					File docWithInitialsFile = fileService.newTemporaryFile(docToSignFile.getName() + "_with_images.pdf");
 					tempFiles.add(docWithInitialsFile);
 					//Saving the document
 					doc.save(docWithInitialsFile);
@@ -196,7 +196,6 @@ public class PdfSignatureServices {
 					ioServices.closeQuietly(doc);
 				}
 			}
-			signedAnnotations.addAll(notInitialsAnnotations);
 
 			File signedDocument = null;
 			for (PdfSignatureAnnotation signature : signedAnnotations) {

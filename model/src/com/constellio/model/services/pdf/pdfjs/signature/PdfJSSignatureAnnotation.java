@@ -32,11 +32,11 @@ public class PdfJSSignatureAnnotation extends PdfSignatureAnnotation {
 		float pageWidth = pageRectangle.getWidth();
 		float pageHeight = pageRectangle.getHeight();
 
+		float widthRectangle = (widthPercent / 100) * pageWidth;
+		float heightRectangle = (heightPercent / 100) * pageHeight;
 		float xRectangle = (xPercent / 100) * pageWidth;
 		// PDF rectangle y starts from the bottom 
 		float yRectangle = (1 - yPercent / 100) * pageHeight; 
-		float widthRectangle = (widthPercent / 100) * pageWidth;
-		float heightRectangle = (heightPercent / 100) * pageHeight;
 
 		return new Rectangle(Math.round(xRectangle), Math.round(yRectangle), Math.round(widthRectangle), Math.round(heightRectangle));
 	}
@@ -55,6 +55,10 @@ public class PdfJSSignatureAnnotation extends PdfSignatureAnnotation {
 		if ("signature-image-annotation".equals(type)) {
 			imageUrl = annotationJson.getString("url");
 		} else if ("signature-pad-annotation".equals(type)) {
+			imageUrl = annotationJson.getString("imageUrl");
+		} else if ("signature-text-annotation".equals(type)) {
+			imageUrl = annotationJson.getString("imageUrl");
+		} else if ("text-annotation".equals(type)) {
 			imageUrl = annotationJson.getString("imageUrl");
 		} else {
 			imageUrl = null;

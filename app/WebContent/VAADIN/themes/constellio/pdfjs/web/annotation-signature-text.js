@@ -23,6 +23,17 @@ SignatureTextAnnotation.prototype.getBakeInfoI10nKey = function() {
 	return "annotation.signature.bakeInfo";
 };
 
+SignatureTextAnnotation.prototype.toJSON = function() {
+	var json = TextAnnotation.prototype.toJSON.call(this);
+	json.initials = this.isInitials();
+	return json;
+};
+
+SignatureTextAnnotation.prototype.fromJSON = function(json) {
+	TextAnnotation.prototype.fromJSON.call(this, json);
+	this.initials = json.initials;
+};	
+
 SignatureTextAnnotation.prototype.bind = function(htmlElement) {
 	TextAnnotation.prototype.bind.call(this, htmlElement);
 	htmlElement.classList.add("signature-text-annotation");

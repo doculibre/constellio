@@ -58,7 +58,7 @@ public class PdfJSAnnotations {
 	private boolean isSignatureAnnotation(JSONObject annotationJson) {
 		boolean signatureAnnotation;
 		String type = annotationJson.getString("type");
-		if ("signature-image-annotation".equals(type) || "signature-pad-annotation".equals(type)) {
+		if ("signature-image-annotation".equals(type) || "signature-pad-annotation".equals(type) || "signature-text-annotation".equals(type)) {
 			signatureAnnotation = true;
 		} else {
 			signatureAnnotation = false;
@@ -75,7 +75,9 @@ public class PdfJSAnnotations {
 				JSONObject annotationJson = (JSONObject) it.next();
 				if (isSignatureAnnotation(annotationJson) && !annotationJson.getBoolean("baked")) {
 					String type = annotationJson.getString("type");
-					if ("signature-pad-annotation".equals(type)) {
+					if ("signature-pad-annotation".equals(type)
+						|| "signature-text-annotation".equals(type)
+						|| "text-annotation".equals(type)) {
 						annotationJson.put("type", "signature-image-annotation");
 						String imageUrl = annotationJson.getString("imageUrl");
 						annotationJson.remove("imageUrl");
