@@ -62,12 +62,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
 import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.INVALID;
@@ -250,15 +250,15 @@ public class AppManagementService {
 			try {
 				for (TenantProperties tenantProperties : TenantService.getInstance().getTenants()) {
 					ConstellioPluginManager pluginManager = getConstellioPluginManagerForTenant(tenantProperties.getId());
-					updatePlugins(nextWebapp, pluginManager, pluginServices);
-					installPlugins(nextWebapp, pluginManager);
+					updatePluginsOfCurrentTenant(nextWebapp, pluginManager, pluginServices);
+					installPluginsForCurrentTenant(nextWebapp, pluginManager);
 				}
 			} finally {
 				TenantUtils.setTenant(currentTenant);
 			}
 		} else {
-			updatePlugins(nextWebapp, pluginManager, pluginServices);
-			installPlugins(nextWebapp, pluginManager);
+			updatePluginsOfCurrentTenant(nextWebapp, pluginManager, pluginServices);
+			installPluginsForCurrentTenant(nextWebapp, pluginManager);
 		}
 	}
 
@@ -267,7 +267,7 @@ public class AppManagementService {
 		return ConstellioFactories.getInstance().getAppLayerFactory().getPluginManager();
 	}
 
-	private static void installPlugins(File nextWebapp, ConstellioPluginManager pluginManager) {
+	private static void installPluginsForCurrentTenant(File nextWebapp, ConstellioPluginManager pluginManager) {
 		File pluginsFolder = new File(nextWebapp, "plugins-to-install");
 		if (pluginsFolder.exists() && pluginsFolder.listFiles() != null) {
 			for (File pluginFile : pluginsFolder.listFiles()) {
@@ -279,25 +279,24 @@ public class AppManagementService {
 		}
 	}
 
-	private static void updatePlugins(File nextWebapp, ConstellioPluginManager pluginManager,
-									  PluginServices pluginServices) {
+	private static void updatePluginsOfCurrentTenant(File nextWebapp, ConstellioPluginManager pluginManager,
+													 PluginServices pluginServices) {
 		File pluginsFolder = new File(nextWebapp, "plugins-to-update");
 		if (pluginsFolder.exists() && pluginsFolder.listFiles() != null) {
-			Set<String> alreadyInstalledPlugins = new HashSet<>();
+			Set<String> alreadyInstalledPluginsForTenant = pluginManager.getPlugins(ENABLED, READY_TO_INSTALL, INVALID)
+					.stream().map(ConstellioPluginInfo::getCode).collect(Collectors.toSet());
+			List<String> alreadyInstalledPluginsForAnyTenant = pluginManager.getPluginsFromAnyTenants(ENABLED, READY_TO_INSTALL, INVALID);
 
-			for (ConstellioPluginInfo info : pluginManager.getPlugins(ENABLED, READY_TO_INSTALL, INVALID)) {
-				alreadyInstalledPlugins.add(info.getCode());
-			}
 
 			for (File pluginFile : pluginsFolder.listFiles()) {
 				if (pluginFile.getName().toLowerCase().endsWith(".jar")) {
 					try {
 						ConstellioPluginInfo info = pluginServices.extractPluginInfo(pluginFile);
 
-						if (alreadyInstalledPlugins.contains(info.getCode())) {
+						if (alreadyInstalledPluginsForTenant.contains(info.getCode())) {
 							LOGGER.info(pluginsFolder.getName() + "/" + pluginFile.getName() + ".jar : installed");
 							pluginManager.prepareInstallablePluginInNextWebapp(pluginFile, nextWebapp);
-						} else {
+						} else if (!alreadyInstalledPluginsForAnyTenant.contains(info.getCode())) {
 							LOGGER.info(pluginsFolder.getName() + "/" + pluginFile.getName() + ".jar : deleted");
 							pluginFile.delete();
 						}
@@ -318,7 +317,7 @@ public class AppManagementService {
 		PluginManagementUtils utils = new PluginManagementUtils(oldPluginsFolder, newLibsFolder, pluginsToMoveFile);
 
 		try {
-			utils.movePlugins(pluginManager.getPluginsOfEveryStatus());
+			utils.movePlugins(pluginManager.getPluginsOfEveryStatusFromAnyTenants());
 		} catch (IOException e) {
 			throw new CannotSaveOldPlugins(e);
 		}

@@ -4,8 +4,8 @@ import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus;
-import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.model.entities.modules.Module;
 
 import java.io.File;
@@ -45,7 +45,11 @@ public interface ConstellioPluginManager extends StatefulService {
 
 	List<ConstellioPluginInfo> getPlugins(ConstellioPluginStatus... statuses);
 
+	List<String> getPluginsFromAnyTenants(ConstellioPluginStatus... statuses);
+
 	List<String> getPluginsOfEveryStatus();
+
+	List<String> getPluginsOfEveryStatusFromAnyTenants();
 
 	boolean isRegistered(String id);
 
