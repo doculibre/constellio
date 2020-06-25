@@ -15,6 +15,7 @@ import com.constellio.model.entities.records.wrappers.structure.ExternalAccessUr
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.emails.EmailServicesException.CannotSendEmailException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -33,10 +34,12 @@ public class SignatureExternalAccessDao {
 	public static final String MISSING_DOCUMENT_PARAM = "Missing document param.";
 	public static final String INVALID_DOCUMENT_PARAM = "The document does not exist.";
 	public static final String MISSING_EXTERNAL_USER_FULLNAME_PARAM = "Missing external user fullname param.";
+	public static final String MISSING_EXTERNAL_USER_EMAIL_PARAM = "Missing external user email param.";
 	public static final String MISSING_DATE_PARAM = "Missing expiration date param.";
 	public static final String INVALID_DATE_PARAM = "The expiration date is not valid.";
 	public static final String MISSING_LANGUAGE_PARAM = "Missing language param.";
 	public static final String ACTION_IMPOSSIBLE = "The url generation is not possible for this type of document.";
+	public static final String CANNOT_SEND_EMAIL = "Unable to send email.";
 	private static final String CANNOT_SAVE_RECORD = "Impossible to save record.";
 
 	private AppLayerFactory appLayerFactory;
@@ -130,7 +133,7 @@ public class SignatureExternalAccessDao {
 	}
 
 	public String createExternalSignatureUrl(String username, String documentId, String externalUserFullname,
-											 String expirationDate, String language)
+											 String externalUserEmail, String expirationDate, String language)
 			throws SignatureExternalAccessServiceException {
 
 		if (StringUtils.isBlank(documentId)) {
@@ -175,6 +178,11 @@ public class SignatureExternalAccessDao {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, MISSING_EXTERNAL_USER_FULLNAME_PARAM);
 		}
 
+		// TODO --> Enable this validation when Teams will be ready to send external user email.
+		/*if (StringUtils.isBlank(externalUserEmail)) {
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, MISSING_EXTERNAL_USER_EMAIL_PARAM);
+		}*/
+
 		if (StringUtils.isBlank(expirationDate)) {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, MISSING_DATE_PARAM);
 		}
@@ -191,9 +199,12 @@ public class SignatureExternalAccessDao {
 		}
 
 		try {
-			return documentMenuItemActionBehaviors.createExternalSignatureUrl(documentId, externalUserFullname, convertedDate, language, user);
+			return documentMenuItemActionBehaviors.createExternalSignatureUrl(documentId, externalUserFullname,
+					externalUserEmail, convertedDate, language, user);
 		} catch (RecordServicesException e) {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, CANNOT_SAVE_RECORD);
+		} catch (CannotSendEmailException e) {
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, CANNOT_SEND_EMAIL);
 		}
 	}
 }

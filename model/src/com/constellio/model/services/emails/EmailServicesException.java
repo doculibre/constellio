@@ -33,4 +33,10 @@ public class EmailServicesException extends Exception {
 			super("Null email server exception");
 		}
 	}
+
+	public static class CannotSendEmailException extends EmailServicesException {
+		public CannotSendEmailException() {
+			super("Cannot send email exception");
+		}
+	}
 }
