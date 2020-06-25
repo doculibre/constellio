@@ -14,6 +14,7 @@ import com.azure.storage.common.StorageSharedKeyCredential;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.contents.AzureBlobStorageContentDaoRuntimeException.AzureBlobStorageContentDaoRuntimeException_FailedToAddFile;
+import com.constellio.data.dao.services.contents.AzureBlobStorageContentDaoRuntimeException.AzureBlobStorageContentDaoRuntimeException_FailedToDeleteFileFromAzure;
 import com.constellio.data.dao.services.contents.AzureBlobStorageContentDaoRuntimeException.AzureBlobStorageContentDaoRuntimeException_FailedToGetFile;
 import com.constellio.data.dao.services.contents.AzureBlobStorageContentDaoRuntimeException.AzureBlobStorageContentDaoRuntimeException_FailedToMoveFileToVault;
 import com.constellio.data.dao.services.contents.AzureBlobStorageContentDaoRuntimeException.AzureBlobStorageContentDaoRuntimeException_FailedToSaveInformationInVaultRecoveryFile;
@@ -103,8 +104,12 @@ public class AzureBlobStorageContentDao implements StatefulService, ContentDao {
 		for (String contentId : contentIds) {
 			if (typeStoredInAzure(contentId)) {
 				BlobClient blobClient = getBlobClient(contentId);
+				try {
+					blobClient.delete();
+				} catch (BlobStorageException e) {
+					throw new AzureBlobStorageContentDaoRuntimeException_FailedToDeleteFileFromAzure(contentId);
+				}
 
-				blobClient.delete();
 			} else {
 				fileSystemContentDao.delete(asList(contentId));
 			}
@@ -121,7 +126,6 @@ public class AzureBlobStorageContentDao implements StatefulService, ContentDao {
 
 	public void addFileNotMovedInTheVault(String id) {
 		createRootRecoveryDirectory();
-
 		try {
 			Path path = Paths.get(replicatedRootRecoveryFolder.getPath() + File.separator + id);
 			Files.createFile(path);

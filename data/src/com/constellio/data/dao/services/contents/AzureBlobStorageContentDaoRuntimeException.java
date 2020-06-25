@@ -41,5 +41,11 @@ public class AzureBlobStorageContentDaoRuntimeException extends ContentDaoRuntim
 		}
 	}
 
+	public static class AzureBlobStorageContentDaoRuntimeException_FailedToDeleteFileFromAzure extends FileSystemContentDaoRuntimeException {
+
+		public AzureBlobStorageContentDaoRuntimeException_FailedToDeleteFileFromAzure(String id) {
+			super("La suppression du fichier de azure blob storage à échoué. Pour l'id : " + id);
+		}
+	}
 
 }

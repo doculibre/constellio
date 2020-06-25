@@ -1372,23 +1372,7 @@ public class ContentManager implements StatefulService {
 	}
 
 	public Stream<VaultContentEntry> stream() {
-		Stream<DaoFile> daoFileStream = modelLayerFactory.getContentManager().getContentDao().streamVaultContent((file) -> {
-					if (file.isDirectory()) {
-				return false;
-			} else {
-						String filename = file.getName();
-						if (filename.endsWith("tlogs") || filename.endsWith("tlogs-backup") || filename.endsWith(".tlog") || filename.equals("tlogBaseFile.zip") || filename.equals("tlog-infos.txt")) {
-							return false;
-
-						} else if (filename.endsWith(".preview") || filename.endsWith(".thumbnails")
-								   || filename.endsWith("__parsed") || filename.endsWith(".jpegConversion")) {
-							return false;
-
-						} else {
-							return true;
-						}
-					}
-				},
+		Stream<DaoFile> daoFileStream = modelLayerFactory.getContentManager().getContentDao().streamVaultContent((file) -> filterVaultContent(file),
 				(file1, file2) -> 0);
 
 		return daoFileStream.map((daoFile -> {
@@ -1404,6 +1388,24 @@ public class ContentManager implements StatefulService {
 				}
 			};
 		}));
+	}
+
+	public boolean filterVaultContent(DaoFile file) {
+		if (file.isDirectory()) {
+			return false;
+		} else {
+			String filename = file.getName();
+			if (filename.endsWith("tlogs") || filename.endsWith("tlogs-backup") || filename.endsWith(".tlog") || filename.equals("tlogBaseFile.zip") || filename.equals("tlog-infos.txt")) {
+				return false;
+
+			} else if (filename.endsWith(".preview") || filename.endsWith(".thumbnails")
+					   || filename.endsWith("__parsed") || filename.endsWith(".jpegConversion")) {
+				return false;
+
+			} else {
+				return true;
+			}
+		}
 	}
 
 	protected static class VaultScanResults {
