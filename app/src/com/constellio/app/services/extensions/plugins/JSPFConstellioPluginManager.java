@@ -14,6 +14,7 @@ import com.constellio.app.services.extensions.plugins.PluginServices.PluginsRepl
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus;
 import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
+import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils.NewPluginsInNewWar;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.conf.FoldersLocatorMode;
@@ -22,6 +23,7 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.services.tenant.TenantProperties;
 import com.constellio.data.services.tenant.TenantService;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TenantUtils;
 import com.constellio.model.entities.modules.ConstellioPlugin;
 import com.constellio.model.entities.modules.Module;
@@ -386,7 +388,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 			throw new RuntimeException(e);
 		}
 
-		PluginManagementUtils.markNewPluginsInNewWar(nextWebapp, jarfileInNextWarPlugins.getName());
+		PluginManagementUtils.markNewPluginsInNewWar(nextWebapp, jarfileInNextWarPlugins.getName(), TenantUtils.getTenantId());
 
 		return null;
 	}
@@ -394,23 +396,25 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	public void markNewPluginsInNewWarAsInstalled(FoldersLocator foldersLocator) {
 		File webapp = foldersLocator.getConstellioWebappFolder();
 		File plugins = foldersLocator.getPluginsJarsFolder();
-		List<String> newPluginsFileNames = PluginManagementUtils.getNewPluginsInNewWar(webapp);
+		List<NewPluginsInNewWar> newPluginsFileNames = PluginManagementUtils.getNewPluginsInNewWar(webapp);
 
 		if (!newPluginsFileNames.isEmpty()) {
-			for (String newPluginFilename : newPluginsFileNames) {
-				File newPlugin = new File(plugins, newPluginFilename);
-				PluginServices helperService = newPluginServices();
-				ConstellioPluginInfo newPluginInfo;
-				try {
-					newPluginInfo = helperService.extractPluginInfo(newPlugin);
-					validateId(newPluginInfo.getCode());
-				} catch (Exception e) {
-					throw new ImpossibleRuntimeException(e);
-				}
+			for (NewPluginsInNewWar newPluginsInNewWar : newPluginsFileNames) {
+				if (LangUtils.isEqual(newPluginsInNewWar.getTenantId(), TenantUtils.getTenantId())) {
+					File newPlugin = new File(plugins, newPluginsInNewWar.getFilename());
+					PluginServices helperService = newPluginServices();
+					ConstellioPluginInfo newPluginInfo;
+					try {
+						newPluginInfo = helperService.extractPluginInfo(newPlugin);
+						validateId(newPluginInfo.getCode());
+					} catch (Exception e) {
+						throw new ImpossibleRuntimeException(e);
+					}
 
-				LOGGER.info("mark plugin " + newPluginFilename + "' in new war '" + webapp.getAbsolutePath() + "' as installed");
-				pluginConfigManger.installPlugin(newPluginInfo.getCode(), newPluginInfo.getTitle(),
-						newPluginInfo.getVersion(), newPluginInfo.getRequiredConstellioVersion());
+					LOGGER.info("mark plugin " + newPluginsInNewWar.getFilename() + "' in new war '" + webapp.getAbsolutePath() + "' as installed for tenant '" + TenantUtils.getTenantId() + "'");
+					pluginConfigManger.installPlugin(newPluginInfo.getCode(), newPluginInfo.getTitle(),
+							newPluginInfo.getVersion(), newPluginInfo.getRequiredConstellioVersion());
+				}
 			}
 		}
 		PluginManagementUtils.clearNewPluginsInNewWar(webapp);

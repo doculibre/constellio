@@ -250,14 +250,14 @@ public class AppManagementService {
 			try {
 				for (TenantProperties tenantProperties : TenantService.getInstance().getTenants()) {
 					ConstellioPluginManager pluginManager = getConstellioPluginManagerForTenant(tenantProperties.getId());
-					updatePluginsOfCurrentTenant(nextWebapp, pluginManager, pluginServices);
+					updatePluginsOfCurrentTenant(nextWebapp, pluginManager, pluginServices, currentTenant);
 					installPluginsForCurrentTenant(nextWebapp, pluginManager);
 				}
 			} finally {
 				TenantUtils.setTenant(currentTenant);
 			}
 		} else {
-			updatePluginsOfCurrentTenant(nextWebapp, pluginManager, pluginServices);
+			updatePluginsOfCurrentTenant(nextWebapp, pluginManager, pluginServices, "main");
 			installPluginsForCurrentTenant(nextWebapp, pluginManager);
 		}
 	}
@@ -280,7 +280,7 @@ public class AppManagementService {
 	}
 
 	private static void updatePluginsOfCurrentTenant(File nextWebapp, ConstellioPluginManager pluginManager,
-													 PluginServices pluginServices) {
+													 PluginServices pluginServices, String tenantId) {
 		File pluginsFolder = new File(nextWebapp, "plugins-to-update");
 		if (pluginsFolder.exists() && pluginsFolder.listFiles() != null) {
 			Set<String> alreadyInstalledPluginsForTenant = pluginManager.getPlugins(ENABLED, READY_TO_INSTALL, INVALID)
@@ -293,8 +293,9 @@ public class AppManagementService {
 					try {
 						ConstellioPluginInfo info = pluginServices.extractPluginInfo(pluginFile);
 
+
 						if (alreadyInstalledPluginsForTenant.contains(info.getCode())) {
-							LOGGER.info(pluginsFolder.getName() + "/" + pluginFile.getName() + ".jar : installed");
+							LOGGER.info(pluginsFolder.getName() + "/" + pluginFile.getName() + ".jar : installed for tenant " + tenantId);
 							pluginManager.prepareInstallablePluginInNextWebapp(pluginFile, nextWebapp);
 						} else if (!alreadyInstalledPluginsForAnyTenant.contains(info.getCode())) {
 							LOGGER.info(pluginsFolder.getName() + "/" + pluginFile.getName() + ".jar : deleted");
