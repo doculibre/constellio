@@ -1,21 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="debug" name="RoutingTest" packages="org.apache.logging.log4j.test">
     <Properties>
-        <Property name="filename">target/general/rollingtest.log</Property>
+        <Property name="filename">constellio</Property>
     </Properties>
     <ThresholdFilter level="debug"/>
 
     <Appenders>
-        <Console name="STDOUT">
-            <PatternLayout pattern="%m%n"/>
-            <ThresholdFilter level="debug"/>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
         </Console>
+        <RollingFile name="file" fileName="constellio.log" filePattern="constellio.log.%i">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="1 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="1"/>
+        </RollingFile>
+        <RollingFile name="system" fileName="logs/system.log" filePattern="system.log.%i">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="250 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="4"/>
+        </RollingFile>
+        <RollingFile name="restapi" fileName="logs/restapi.log" filePattern="restapi.log.%i">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="250 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="4"/>
+        </RollingFile>
+        <RollingFile name="cmis" fileName="logs/cmisapi.log" filePattern="cmisapi.log.%i">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="250 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="4"/>
+        </RollingFile>
+        <RollingFile name="es" fileName="logs/es.log" filePattern="es.log.%i">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
+            <Policies>
+                <sizebasedtriggeringpolicy size="250 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="4"/>
+        </RollingFile>
         <Routing name="Routing">
             <Routes pattern="$${ctx:tenant.id}">
 
                 <!-- This route is chosen if ThreadContext has no value for key tenant.id. -->
                 <Route key="$${ctx:tenant.id}">
-                    <RollingFile name="Rolling-default" fileName="logs/constellio.log"
+                    <RollingFile name="Rolling-default" fileName="logs/${ctx:filename}.log"
                                  filePattern="logs/archive/defaultLog-%d{yyyy-MM-dd}-%i.log.gz">
                         <PatternLayout>
                             <pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %p %c{3} - default - %m%n</pattern>
@@ -30,7 +64,7 @@
                 <!-- This route is chosen if ThreadContext has a value for tenant.id
                      The value dynamically determines the name of the log file and which folder to write it. -->
                 <Route>
-                    <RollingFile name="Rolling-${ctx:tenant.id}" fileName="logs/${ctx:tenant.id}/constellio.log"
+                    <RollingFile name="Rolling-${ctx:tenant.id}" fileName="logs/${ctx:tenant.id}/${ctx:filename}.log"
                                  filePattern="logs/archive/tenant-${ctx:tenant.id}-%d{yyyy-MM-dd}-%i.log.gz">
                         <PatternLayout>
                             <pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %p %c{3} - tenant.id=${ctx:tenant.id} -
@@ -50,9 +84,31 @@
     <Loggers>
         <Logger name="STDOUT_APPENDER" level="INFO"
                 additivity="false">
-            <AppenderRef ref="STDOUT"/>
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="com.constellio.com.constellio.importscript.data.utils.systemLogger" level="info"
+                additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="system"/>
+        </Logger>
+        <Logger name="com.constellio.app.modules.restapi" level="info" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="restapi"/>
+        </Logger>
+        <Logger name="com.constellio.app.api.cmis" level="info" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="cmis"/>
+        </Logger>
+        <Logger name="com.constellio.app.modules.es" level="info" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="es"/>
+        </Logger>
+        <Logger name="org.jasig.cas" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="file"/>
         </Logger>
         <Root level="TRACE">
+            <AppenderRef ref="Console"/>
             <AppenderRef ref="Routing"/>
         </Root>
     </Loggers>
