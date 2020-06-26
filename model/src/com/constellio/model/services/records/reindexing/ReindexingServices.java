@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.reindexing;
 
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
@@ -9,9 +10,9 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.sql.SqlRecordDaoType;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
+import com.constellio.data.services.tenant.TenantLocal;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.systemLogger.SystemLogger;
-import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
@@ -85,7 +86,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 public class ReindexingServices {
 
-	private static SystemReindexingInfos REINDEXING_INFOS;
+	private static final TenantLocal<SystemReindexingInfos> reindexingInfos = new TenantLocal<>();
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ReindexingServices.class);
 
@@ -120,11 +121,11 @@ public class ReindexingServices {
 	}
 
 	public static SystemReindexingInfos getReindexingInfos() {
-		return REINDEXING_INFOS;
+		return reindexingInfos.get();
 	}
 
 	public static void markReindexingHasFinished() {
-		REINDEXING_INFOS = null;
+		reindexingInfos.set(null);
 	}
 
 	public void reindexCollections(ReindexationMode reindexationMode) {
@@ -143,7 +144,7 @@ public class ReindexingServices {
 				}
 
 			} finally {
-				REINDEXING_INFOS = null;
+				reindexingInfos.set(null);
 			}
 
 		} else {
@@ -224,7 +225,7 @@ public class ReindexingServices {
 
 			} finally {
 
-				REINDEXING_INFOS = null;
+				reindexingInfos.set(null);
 
 				dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(true);
 				modelLayerFactory.getRecordsCaches().enableVolatileCache();
@@ -304,7 +305,7 @@ public class ReindexingServices {
 			reindexCollection(collection, params, transactionOptions);
 
 		} finally {
-			REINDEXING_INFOS = null;
+			reindexingInfos.set(null);
 		}
 
 	}
@@ -502,7 +503,7 @@ public class ReindexingServices {
 			//LOGGER.info("starting a new iteration");
 			Iterator<Record> recordsIterator = recordsProvider.startNewSchemaTypeIteration();
 			while (recordsIterator.hasNext()) {
-				REINDEXING_INFOS = new SystemReindexingInfos(type.getCollection(), type.getCode(), current, counter, consumptionSupplier);
+				reindexingInfos.set(new SystemReindexingInfos(type.getCollection(), type.getCode(), current, counter, consumptionSupplier));
 
 				if (new Date().getTime() - lastCacheLogging > 30 * 60 * 1000) {
 					String cacheReport = new CacheMemoryConsumptionReportBuilder(modelLayerFactory).build();

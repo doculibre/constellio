@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordId;
+import com.constellio.data.services.tenant.TenantLocal;
 import com.constellio.data.utils.KeyLongMap;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.systemLogger.SystemLogger;
@@ -9,7 +10,6 @@ import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.records.cache.CompiledDTOStats.CompiledDTOStatsBuilder;
-import com.constellio.data.services.tenant.TenantLocal;
 import lombok.AllArgsConstructor;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -77,10 +77,10 @@ public class CacheRecordDTOUtils {
 	static final byte VALUE_IS_NOT_FOUND = -1;
 	public static List<String> debuggedDTOIds = new ArrayList<>();
 
-	static TenantLocal<CompiledDTOStatsBuilder> compiledDTOStatsBuilder = new TenantLocal<>();
-	static TenantLocal<CompiledDTOStats> lastCompiledDTOStats = new TenantLocal<>();
+	static final TenantLocal<CompiledDTOStatsBuilder> compiledDTOStatsBuilder = new TenantLocal<>();
+	static final TenantLocal<CompiledDTOStats> lastCompiledDTOStats = new TenantLocal<>();
 
-	static TenantLocal<KeyLongMap<String>> filesystemStoredMetadataUsageCounter = new TenantLocal<>();
+	static final TenantLocal<KeyLongMap<String>> filesystemStoredMetadataUsageCounter = new TenantLocal<>();
 
 	public static KeyLongMap<String> getFilesystemStoredMetadataUsageCounterAndInitIfNull() {
 		if (filesystemStoredMetadataUsageCounter.get() == null) {

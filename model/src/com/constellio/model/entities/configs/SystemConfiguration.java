@@ -8,7 +8,7 @@ import java.io.Serializable;
 
 public class SystemConfiguration implements Serializable {
 
-	TenantLocal<Boolean> hidden;
+	final TenantLocal<Boolean> hidden;
 
 	boolean defaultHidden;
 

@@ -8,7 +8,7 @@ import java.util.List;
 
 public class Scripts {
 
-	private static TenantLocal<List<Script>> scripts = new TenantLocal<>();
+	private static final TenantLocal<List<Script>> scripts = new TenantLocal<>();
 
 	public static void registerScript(Script script) {
 		if (scripts.get() == null) {

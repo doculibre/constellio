@@ -203,7 +203,7 @@ public class Toggle {
 
 	public static class AvailableToggle {
 
-		private TenantLocal<Boolean> enabled = new TenantLocal<>();
+		private final TenantLocal<Boolean> enabled = new TenantLocal<>();
 		private boolean defaultValue;
 
 		private String id;

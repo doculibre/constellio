@@ -16,7 +16,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class ConstellioMonitoringServlet extends HttpServlet {
 
 	public static boolean systemRestarting;
-	public static TenantLocal<Boolean> tenantRestarting = new TenantLocal<>();
+	public static final TenantLocal<Boolean> tenantRestarting = new TenantLocal<>();
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
