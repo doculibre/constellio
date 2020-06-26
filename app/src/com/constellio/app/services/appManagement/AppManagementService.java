@@ -20,6 +20,7 @@ import com.constellio.app.services.recovery.ConstellioVersionInfo;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.app.services.systemSetup.SystemLocalConfigsManager;
+import com.constellio.app.servlet.ConstellioMonitoringServlet;
 import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.conf.FoldersLocatorMode;
 import com.constellio.data.io.services.facades.FileService;
@@ -121,6 +122,15 @@ public class AppManagementService {
 		} catch (IOException e) {
 			throw new AppManagementServiceException.CannotWriteInCommandFile(commandFile, e);
 		}
+
+		ConstellioMonitoringServlet.systemRestarting = true;
+	}
+
+	public void restartTenant() {
+		ConstellioFactories.clear();
+		ConstellioFactories.getInstance();
+
+		ConstellioMonitoringServlet.tenantRestarting.set(true);
 	}
 
 	public void dump()

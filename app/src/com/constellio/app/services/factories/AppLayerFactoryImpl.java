@@ -340,8 +340,10 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 					LOGGER.info("rollbacked successfully");
 					//this.appLayerFactory.getModelLayerFactory().getDataLayerFactory().close(false);
 					try {
-						newApplicationService().restart();
-						LOGGER.info("Restart command launched");
+						if (!TenantUtils.isSupportingTenants()) {
+							newApplicationService().restart();
+							LOGGER.info("Restart command launched");
+						}
 					} catch (AppManagementServiceException e) {
 						throw new RuntimeException(e);
 					}
@@ -464,7 +466,9 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 	public void restart()
 			throws AppManagementServiceException {
-		newApplicationService().restart();
+		if (!TenantUtils.isSupportingTenants()) {
+			newApplicationService().restart();
+		}
 	}
 
 	@Override

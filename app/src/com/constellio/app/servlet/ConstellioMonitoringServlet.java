@@ -1,5 +1,6 @@
 package com.constellio.app.servlet;
 
+import com.constellio.data.services.tenant.TenantLocal;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.records.reindexing.SystemReindexingInfos;
 
@@ -15,6 +16,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class ConstellioMonitoringServlet extends HttpServlet {
 
 	public static boolean systemRestarting;
+	public static TenantLocal<Boolean> tenantRestarting = new TenantLocal<>();
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -23,7 +25,7 @@ public class ConstellioMonitoringServlet extends HttpServlet {
 		SystemReindexingInfos reindexingInfos = ReindexingServices.getReindexingInfos();
 		PrintWriter pw = resp.getWriter();
 
-		if (systemRestarting) {
+		if (isRestarting()) {
 			pw.append(
 					"<html><head><META HTTP-EQUIV=\"Refresh\" CONTENT=\"120\"/><link rel=\"stylesheet\" type=\"text/css\" href=\"./VAADIN/themes/constellio/styles.css?v=7.7.4\"></link></head><body>");
 		} else {
@@ -51,7 +53,7 @@ public class ConstellioMonitoringServlet extends HttpServlet {
 		pw.append("<h1>");
 		pw.append($("ConstellioMonitoringServlet.status"));
 		pw.append(" : ");
-		if (systemRestarting) {
+		if (isRestarting()) {
 			pw.append($("ConstellioMonitoringServlet.restarting"));
 		} else {
 			if (reindexingInfos != null) {
@@ -73,7 +75,7 @@ public class ConstellioMonitoringServlet extends HttpServlet {
 			pw.append("" + reindexingInfos.getTotal());
 			pw.append("</h4>");
 
-		} else if (!systemRestarting) {
+		} else if (!isRestarting()) {
 
 			pw.append(
 					"<br/><br/><div  onclick=\"location.href='/constellio';\" class=\"v-button v-widget primary v-button-primary\" role=\"button\" tabindex=\"0\"><span class=\"v-button-wrap\"><span class=\"v-button-caption\">"
@@ -98,5 +100,25 @@ public class ConstellioMonitoringServlet extends HttpServlet {
 		pw.append("</body></html>");
 
 		pw.close();
+
+		if (tenantRestarting != null) {
+			tenantRestarting.set(false);
+		}
+	}
+
+	private static boolean isRestarting() {
+		if (systemRestarting) {
+			return true;
+		}
+
+		if (tenantRestarting == null) {
+			return false;
+		}
+
+		try {
+			return tenantRestarting.get();
+		} catch (Exception e) {
+			return false;
+		}
 	}
 }

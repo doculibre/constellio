@@ -44,7 +44,6 @@ import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.management.updates.UpdateNotRecommendedReason.BATCH_PROCESS_IN_PROGRESS;
 import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
-import static java.util.Arrays.asList;
 
 public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	private SystemInformationsService systemInformationsService = new SystemInformationsService();
@@ -155,37 +154,43 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		}
 	}
 
-	public void restart() {
-		try {
-			appLayerFactory.newApplicationService().restart();
-			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-			Record event = rm.newEvent()
-					.setType(EventType.RESTARTING)
-					.setUsername(getCurrentUser().getUsername())
-					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
-					.setIp(getCurrentUser().getLastIPAddress())
-					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle($("ListEventsView.restarting"))
-					.getWrappedRecord();
-			Transaction t = new Transaction();
-			t.add(event);
-			appLayerFactory.getModelLayerFactory().newRecordServices().execute(t);
-		} catch (AppManagementServiceException | RecordServicesException ase) {
-			view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
-		}
-		ConstellioMonitoringServlet.systemRestarting = true;
-		view.navigate().to().serviceMonitoring();
-	}
-
 	public void restartAndRebuildCache() {
 		appLayerFactory.newApplicationService().markCacheForRebuild();
 		restart();
 	}
 
 	public void restartAndReindex(boolean repopulate) {
+		if (isFromTest()) {
+			restartFromTest(repopulate);
+		} else {
+			appLayerFactory.newApplicationService().markForReindexing();
+			appLayerFactory.newApplicationService().markCacheForRebuildIfRequired();
+
+			logReindexingEvent();
+			restart();
+		}
+	}
+
+	public void restart() {
+		logRestartingEvent();
+
+		try {
+			if (hasUpdatePermission()) {
+				appLayerFactory.newApplicationService().restart();
+			} else {
+				appLayerFactory.newApplicationService().restartTenant();
+			}
+		} catch (AppManagementServiceException e) {
+			view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
+		}
+
+		view.navigate().to().serviceMonitoring();
+	}
+
+	private boolean isFromTest() {
 		if (FoldersLocator.usingAppWrapper()) {
 			File systemLogFile = getSystemLogFile();
-			if (systemLogFile.exists()) {
+			if (systemLogFile != null && systemLogFile.exists()) {
 				if (!FileUtils.deleteQuietly(systemLogFile)) {
 					view.showErrorMessage($("UpdateManagerViewImpl.error.fileNotDeleted"));
 				}
@@ -193,74 +198,49 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		}
 
 		FoldersLocator foldersLocator = new FoldersLocator();
-		if (foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
-			//Application is started from a test, it cannot be restarted
-			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-			LOGGER.info("Reindexing started");
-			ReindexingServices reindexingServices = modelLayerFactory.newReindexingServices();
-			reindexingServices.reindexCollections(new ReindexationParams(RECALCULATE_AND_REWRITE)
-					.setRepopulate(repopulate));
-			LOGGER.info("Reindexing finished");
-			Record eventRestarting = rm.newEvent()
-					.setType(EventType.RESTARTING)
-					.setUsername(getCurrentUser().getUsername())
-					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
-					.setIp(getCurrentUser().getLastIPAddress())
-					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle($("ListEventsView.restarting"))
-					.getWrappedRecord();
-			Record eventReindexing = rm.newEvent()
-					.setType(EventType.REINDEXING)
-					.setUsername(getCurrentUser().getUsername())
-					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
-					.setIp(getCurrentUser().getLastIPAddress())
-					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle($("ListEventsView.reindexing"))
-					.getWrappedRecord();
-			Transaction t = new Transaction();
-			t.addAll(asList(eventReindexing, eventRestarting));
-			try {
+		return foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.PROJECT;
+	}
 
-				appLayerFactory.getModelLayerFactory().newRecordServices().execute(t);
-			} catch (Exception e) {
-				view.showErrorMessage(e.getMessage());
-			}
-		} else {
-			appLayerFactory.newApplicationService().markForReindexing();
-			appLayerFactory.newApplicationService().markCacheForRebuildIfRequired();
-			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-			Record eventRestarting = rm.newEvent()
-					.setType(EventType.RESTARTING)
-					.setUsername(getCurrentUser().getUsername())
-					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
-					.setIp(getCurrentUser().getLastIPAddress())
-					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle($("RedémarrageListEventsView.restarting"))
-					.getWrappedRecord();
-			Record eventReindexing = rm.newEvent()
-					.setType(EventType.REINDEXING)
-					.setUsername(getCurrentUser().getUsername())
-					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
-					.setIp(getCurrentUser().getLastIPAddress())
-					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle($("ListEventsView.reindexing"))
-					.getWrappedRecord();
-			Transaction t = new Transaction();
-			t.addAll(asList(eventReindexing, eventRestarting));
-			try {
-				appLayerFactory.getModelLayerFactory().newRecordServices().execute(t);
-			} catch (Exception e) {
-				view.showErrorMessage(e.getMessage());
-			}
+	private void restartFromTest(boolean repopulate) {
+		//Application is started from a test, it cannot be restarted
+		LOGGER.info("Reindexing started");
+		ReindexingServices reindexingServices = modelLayerFactory.newReindexingServices();
+		reindexingServices.reindexCollections(new ReindexationParams(RECALCULATE_AND_REWRITE)
+				.setRepopulate(repopulate));
+		LOGGER.info("Reindexing finished");
 
-			try {
-				appLayerFactory.newApplicationService().restart();
-			} catch (AppManagementServiceException ase) {
-				view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
-			}
-		}
+		logRestartingEvent();
+		logReindexingEvent();
+
 		ConstellioMonitoringServlet.systemRestarting = true;
 		view.navigate().to().serviceMonitoring();
+	}
+
+	private void logRestartingEvent() {
+		logRestartingOrReindexingEvent(EventType.RESTARTING, "ListEventsView.restarting");
+	}
+
+	private void logReindexingEvent() {
+		logRestartingOrReindexingEvent(EventType.REINDEXING, "ListEventsView.reindexing");
+	}
+
+	private void logRestartingOrReindexingEvent(String eventType, String locId) {
+		try {
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+			Record event = rm.newEvent()
+					.setType(eventType)
+					.setUsername(getCurrentUser().getUsername())
+					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
+					.setIp(getCurrentUser().getLastIPAddress())
+					.setCreatedOn(TimeProvider.getLocalDateTime())
+					.setTitle($(locId))
+					.getWrappedRecord();
+			Transaction t = new Transaction();
+			t.add(event);
+			appLayerFactory.getModelLayerFactory().newRecordServices().execute(t);
+		} catch (RecordServicesException e) {
+			view.showErrorMessage(e.getMessage());
+		}
 	}
 
 	private File getSystemLogFile() {
@@ -411,6 +391,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 
 	private boolean recoveryModeEnabled() {
 		return !appLayerFactory.getModelLayerFactory().getDataLayerFactory().isDistributed()
+			   && !TenantUtils.isSupportingTenants()
 			   && appLayerFactory.getModelLayerFactory().getSystemConfigs().isInUpdateProcess();
 	}
 
