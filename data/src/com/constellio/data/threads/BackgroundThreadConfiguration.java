@@ -19,6 +19,8 @@ public class BackgroundThreadConfiguration {
 
 	private boolean runOnAllInstances;
 
+	private int permitsRequired = 1;
+
 	private BackgroundThreadConfiguration(String id, Runnable repeatedAction) {
 		this.id = id;
 		this.repeatedAction = repeatedAction;
@@ -49,6 +51,11 @@ public class BackgroundThreadConfiguration {
 		return this;
 	}
 
+	public BackgroundThreadConfiguration usingPermits(int permitsRequired) {
+		this.permitsRequired = permitsRequired;
+		return this;
+	}
+
 	public boolean isRunOnAllInstances() {
 		return runOnAllInstances;
 	}
@@ -75,5 +82,9 @@ public class BackgroundThreadConfiguration {
 
 	public BackgroundThreadExceptionHandling getExceptionHandling() {
 		return exceptionHandling;
+	}
+
+	public int getPermitsRequired() {
+		return permitsRequired;
 	}
 }
