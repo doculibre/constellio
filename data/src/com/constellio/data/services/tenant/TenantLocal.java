@@ -9,7 +9,7 @@ public class TenantLocal<V> {
 
 	private Map<String, V> values = new HashMap<>();
 
-	public V get() {
+	public synchronized V get() {
 		String currentTenantId = TenantUtils.getTenantId();
 		if (currentTenantId == null) {
 			currentTenantId = "default";
@@ -17,7 +17,7 @@ public class TenantLocal<V> {
 		return values.get(currentTenantId);
 	}
 
-	public void set(V value) {
+	public synchronized void set(V value) {
 		String currentTenantId = TenantUtils.getTenantId();
 		if (currentTenantId == null) {
 			currentTenantId = "default";
