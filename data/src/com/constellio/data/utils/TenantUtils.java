@@ -44,7 +44,7 @@ public class TenantUtils {
 
 	public static void setTenant(String tenantId) {
 		if (tenantId == null) {
-			ThreadContext.clearAll();
+			ThreadContext.remove("tenant.id");
 			tenantThreadLocal.set(null);
 		} else {
 			TenantProperties tenant = tenantService.getTenantById(Integer.valueOf(tenantId));

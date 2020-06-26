@@ -4,6 +4,7 @@ import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtil
 import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.zip.ZipServiceException;
+import com.constellio.data.services.tenant.Log4JRuntimeExceptionHandler;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.model.services.appManagement.InstallationService;
 import org.apache.commons.io.FileUtils;
@@ -20,6 +21,10 @@ import static com.constellio.app.services.appManagement.AppManagementService.RES
 
 public final class MainConstellio {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MainConstellio.class);
+
+	static {
+		Thread.setDefaultUncaughtExceptionHandler(new Log4JRuntimeExceptionHandler());
+	}
 
 	private MainConstellio() {
 

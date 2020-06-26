@@ -35,10 +35,6 @@ public class TenantService {
 
 	private static TenantService instance;
 
-	static {
-		Thread.setDefaultUncaughtExceptionHandler(new Log4JRuntimeExceptionHandler());
-	}
-
 	// FIXME class is not thread-safe
 	private TenantService() {
 		this.tenantFilePath = new FoldersLocator().getAllTenantsConfFolder().getPath() + File.separator + TENANTS_FILENAME;
