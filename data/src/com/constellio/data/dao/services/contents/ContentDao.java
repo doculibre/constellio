@@ -188,29 +188,7 @@ public interface ContentDao {
 
 	}
 
-	void verify(boolean isFileMovedInTheVault, File file, String relativePath);
-
-	default void moveFileToVault(String relativePath, File file, MoveToVaultOption... options) {
-		File target = getFileOf(relativePath);
-		boolean isFileMovedInTheVault;
-
-		boolean onlyIfInexsting = false;
-		for (MoveToVaultOption option : options) {
-			onlyIfInexsting |= option == MoveToVaultOption.ONLY_IF_INEXISTING;
-		}
-
-		boolean targetWasExisting = false;
-		if (target != null) {
-			targetWasExisting = target.exists();
-		}
-
-		if (!targetWasExisting || !onlyIfInexsting) {
-			isFileMovedInTheVault = moveFile(file, target, relativePath);
-			verify(isFileMovedInTheVault, file, relativePath);
-		}
-	}
-
-	boolean moveFile(File fileToBeMoved, File target, String relativePath);
+	void moveFileToVault(String relativePath, File file, MoveToVaultOption... options);
 
 	String getLocalRelativePath(String id);
 

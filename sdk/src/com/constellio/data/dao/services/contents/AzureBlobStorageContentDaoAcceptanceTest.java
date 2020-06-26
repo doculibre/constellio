@@ -3,7 +3,6 @@ package com.constellio.data.dao.services.contents;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.common.StorageSharedKeyCredential;
-import com.constellio.data.dao.services.contents.AzureBlobStorageContentDaoRuntimeException.AzureBlobStorageContentDaoRuntimeException_FailedToMoveFileToVault;
 import com.constellio.data.dao.services.contents.ContentDao.MoveToVaultOption;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 import com.constellio.data.io.services.facades.IOServices;
@@ -25,7 +24,6 @@ import java.util.stream.Stream;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 public class AzureBlobStorageContentDaoAcceptanceTest extends ConstellioTest {
 
@@ -93,13 +91,6 @@ public class AzureBlobStorageContentDaoAcceptanceTest extends ConstellioTest {
 		assertThat(tempFile.exists()).isFalse();
 	}
 
-	@Test(expected = AzureBlobStorageContentDaoRuntimeException_FailedToMoveFileToVault.class)
-	public void whenMoveToVaultReturnsFalseThenThrowFailedToMoveFileToVault() {
-		File tempFile = newTempFileWithContent("azureBlobStorageContentDaoAcceptanceTest_temp", fileHash1);
-		when(azureBlobStorageContentDao.moveFile(tempFile, null, fileHash1)).thenReturn(false);
-		azureBlobStorageContentDao.moveFileToVault(fileHash1, tempFile, MoveToVaultOption.ONLY_IF_INEXISTING);
-	}
-
 	@Test
 	public void whenCopyFileFromVaultThenFileExistsInVault() throws ContentDaoException_NoSuchContent {
 		InputStream inputStream = getTestResourceInputStream("1.docx");
@@ -110,13 +101,14 @@ public class AzureBlobStorageContentDaoAcceptanceTest extends ConstellioTest {
 		azureBlobStorageContentDao.copyFileFromVault(fileHash1, file);
 		assertThat(azureBlobStorageContentDao.isDocumentExisting(fileHash1)).isTrue();
 		assertThat(file.exists()).isTrue();
+		file.delete();
 	}
 
 	@Test
 	public void givenToFilesInAzureWhenStreamVaultContentWithFilterThenFiltered() {
 		addFileToVault("1.docx", fileHash1);
 		addFileToVault("2.docx", fileHash2);
-		Stream<DaoFile> daoFileStream = azureBlobStorageContentDao.streamVaultContent(file -> (file.getId().equals(fileHash1)) ? true : false, (file1, file2) -> 0);
+		Stream<DaoFile> daoFileStream = azureBlobStorageContentDao.streamVaultContent(file -> (file.getId().equals(fileHash1)), (file1, file2) -> 0);
 		daoFileStream.forEach(file -> assertThat(file.getId()).isEqualTo(fileHash1));
 	}
 

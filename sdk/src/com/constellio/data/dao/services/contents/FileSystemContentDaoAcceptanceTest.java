@@ -71,7 +71,7 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 		getDataLayerFactory().getDataLayerConfiguration().setContentDaoReplicatedVaultMountPoint(null);
 		fileSystemContentDao = Mockito.spy(new FileSystemContentDao(getDataLayerFactory()));
 
-		Mockito.doReturn(false).when(fileSystemContentDao).moveFile((File) Mockito.any(), (File) Mockito.any(), Mockito.any());
+		Mockito.doReturn(false).when(fileSystemContentDao).moveFile((File) Mockito.any(), (File) Mockito.any());
 
 		File tempFile1 = ioServices.newTemporaryFile(FILE_NAME_1);
 		FileUtils.copyToFile(getTestResourceInputStream("1.docx"), tempFile1);
@@ -98,7 +98,7 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 		FileUtils.copyFile(getTestResourceFile("3.docx"), tempFile3 = ioServices.newTemporaryFile(FILE_NAME_3));
 
 		Mockito.doReturn(false).doCallRealMethod().when(fileSystemContentDao)
-				.moveFile((File) Mockito.any(), (File) Mockito.any(), Mockito.any());
+				.moveFile((File) Mockito.any(), (File) Mockito.any());
 		Mockito.doCallRealMethod().doReturn(false).doReturn(false).doCallRealMethod()
 				.when(fileSystemContentDao).fileCopy((File) Mockito.any(), Mockito.anyString());
 
@@ -145,7 +145,7 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 		FileUtils.copyToFile(getTestResourceInputStream("1.docx"), tempFile1);
 
 		Mockito.doReturn(false).when(fileSystemContentDao).moveFile((File) Mockito.any(),
-				(File) Mockito.any(), "");
+				(File) Mockito.any());
 		Mockito.doReturn(false).when(fileSystemContentDao).fileCopy((File) Mockito.any(),
 				Mockito.anyString());
 

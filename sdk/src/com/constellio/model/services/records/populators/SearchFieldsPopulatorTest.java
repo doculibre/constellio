@@ -19,7 +19,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.awt.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -350,12 +349,12 @@ public class SearchFieldsPopulatorTest extends ConstellioTest {
 
 	private ParsedContent elvishParsedContent(String text) {
 		return new ParsedContent(text, "elvish", "zeMime", 42, new HashMap<String, Object>(),
-				new HashMap<String, List<String>>(), new Dimension(0, 0));
+				new HashMap<String, List<String>>());
 	}
 
 	private ParsedContent klingonParsedContent(String text) {
 		return new ParsedContent(text, "klingon", "zeMime", 666, new HashMap<String, Object>(),
-				new HashMap<String, List<String>>(), new Dimension(0, 0));
+				new HashMap<String, List<String>>());
 	}
 
 	private Map<String, Object> populate(Object value) {

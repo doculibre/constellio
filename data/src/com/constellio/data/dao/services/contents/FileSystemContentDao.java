@@ -111,7 +111,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		return isFileToCoped;
 	}
 
-	public boolean moveFile(File fileToBeMoved, File target, String relativePath) {
+	boolean moveFile(File fileToBeMoved, File target) {
 		boolean isFileMoved;
 
 		if (fileToBeMoved == null || target == null) {
@@ -170,35 +170,47 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	}
 
-	public void verify(boolean isFileMovedInTheVault, File file, String relativePath) {
+	@Override
+	public void moveFileToVault(String relativePath, File file, MoveToVaultOption... options) {
+		File target = getFileOf(relativePath);
+		boolean isFileMovedInTheVault;
 		boolean isFileReplicated = false;
+
 		boolean isExecutedReplication = false;
 
-		File target = getFileOf(relativePath);
-		boolean targetWasExisting = target.exists();
-		if (!(replicatedRootFolder == null || target.equals(getReplicatedVaultFile(target)))) {
-			isExecutedReplication = true;
-			if (!getReplicatedVaultFile(target).exists() || targetWasExisting) {
-				if (isFileMovedInTheVault) {
-					isFileReplicated = fileCopy(target, getReplicatedVaultFile(target).getAbsolutePath());
-				} else {
-					isFileReplicated = fileCopy(file, getReplicatedVaultFile(target).getAbsolutePath());
-				}
-			} else {
-				isFileReplicated = true;
-			}
+		boolean onlyIfInexsting = false;
+		for (MoveToVaultOption option : options) {
+			onlyIfInexsting |= option == MoveToVaultOption.ONLY_IF_INEXISTING;
 		}
 
-		if (!isFileMovedInTheVault && !isFileReplicated && isExecutedReplication) {
-			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVaultAndReplication(file);
-		} else if (!isFileMovedInTheVault && !isExecutedReplication) {
-			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVault(file);
-		} else if (!isFileMovedInTheVault) {
-			addFileNotMovedInTheVault(relativePath);
-		} else if (!isFileReplicated && isExecutedReplication) {
-			addFileNotReplicated(relativePath);
+		boolean targetWasExisting = target.exists();
+		if (!targetWasExisting || !onlyIfInexsting) {
+			isFileMovedInTheVault = moveFile(file, target);
+
+			if (!(replicatedRootFolder == null || target.equals(getReplicatedVaultFile(target)))) {
+				isExecutedReplication = true;
+				if (!getReplicatedVaultFile(target).exists() || targetWasExisting) {
+					if (isFileMovedInTheVault) {
+						isFileReplicated = fileCopy(target, getReplicatedVaultFile(target).getAbsolutePath());
+					} else {
+						isFileReplicated = fileCopy(file, getReplicatedVaultFile(target).getAbsolutePath());
+					}
+				} else {
+					isFileReplicated = true;
+				}
+			}
+
+			if (!isFileMovedInTheVault && !isFileReplicated && isExecutedReplication) {
+				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVaultAndReplication(file);
+			} else if (!isFileMovedInTheVault && !isExecutedReplication) {
+				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVault(file);
+			} else if (!isFileMovedInTheVault) {
+				addFileNotMovedInTheVault(relativePath);
+			} else if (!isFileReplicated && isExecutedReplication) {
+				addFileNotReplicated(relativePath);
+			}
+			extensions.onVaultUpload(new ContentDaoUploadParams(relativePath, file.length(), true));
 		}
-		extensions.onVaultUpload(new ContentDaoUploadParams(relativePath, file.length(), true));
 	}
 
 	@Override
