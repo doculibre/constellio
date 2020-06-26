@@ -3,6 +3,7 @@ package com.constellio.model.services.contents;
 import com.constellio.model.entities.records.ParsedContent;
 import org.junit.Test;
 
+import java.awt.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,7 @@ public class ParsedContentConverterTest {
 
 		ParsedContentConverter converter = new ParsedContentConverter();
 
-		ParsedContent parsedContent = new ParsedContent(content, lang, mime, length, properties, styles);
+		ParsedContent parsedContent = new ParsedContent(content, lang, mime, length, properties, styles, new Dimension(1, 2));
 		String parsedContentAsString = converter.convertToString(parsedContent);
 		ParsedContent parsedContent2 = converter.convertToParsedContent(parsedContentAsString);
 		String parsedContentAsString2 = converter.convertToString(parsedContent2);
@@ -50,6 +51,8 @@ public class ParsedContentConverterTest {
 				entry("style2\n\r", asList("value3:", "value4\"")));
 
 		assertThat(parsedContentAsString2).isEqualTo(parsedContentAsString);
+		assertThat(parsedContent.getDimension().width).isEqualTo(1);
+		assertThat(parsedContent.getDimension().height).isEqualTo(2);
 
 	}
 }

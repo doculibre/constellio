@@ -4,6 +4,7 @@ import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import java.awt.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -26,9 +27,11 @@ public class ParsedContent {
 
 	private String title;
 
+	private Dimension dimension;
+
 	public ParsedContent(String parsedContent, String language, String mimeType, long length,
-						 Map<String, Object> properties,
-						 Map<String, List<String>> styles) {
+						 Map<String, Object> properties, Map<String, List<String>> styles,
+						 Dimension dimension) {
 		this.parsedContent = parsedContent;
 		this.language = language;
 		this.mimeType = mimeType;
@@ -36,6 +39,7 @@ public class ParsedContent {
 		this.properties = Collections.unmodifiableMap(properties);
 		this.normalizedPropertyNames = normalizePropertyNames(properties);
 		this.styles = Collections.unmodifiableMap(styles);
+		this.dimension = dimension;
 	}
 
 	private Map<String, String> normalizePropertyNames(Map<String, Object> properties) {
@@ -56,7 +60,7 @@ public class ParsedContent {
 	public static ParsedContent unparsable(String mimeType, long length) {
 		Map<String, Object> emptyPropertiesMap = Collections.emptyMap();
 		Map<String, List<String>> emptyStylesMap = Collections.emptyMap();
-		return new ParsedContent("", Language.UNKNOWN.getCode(), mimeType, length, emptyPropertiesMap, emptyStylesMap);
+		return new ParsedContent("", Language.UNKNOWN.getCode(), mimeType, length, emptyPropertiesMap, emptyStylesMap, new Dimension());
 	}
 
 	public String getParsedContent() {
@@ -124,5 +128,9 @@ public class ParsedContent {
 
 	public void setTitle(String title) {
 		this.title = title;
+	}
+
+	public Dimension getDimension() {
+		return dimension;
 	}
 }

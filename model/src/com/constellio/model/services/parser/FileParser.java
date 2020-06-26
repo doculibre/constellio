@@ -4,6 +4,7 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.io.streamFactories.StreamFactoryWithFilename;
 import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
+import com.constellio.data.utils.ImageUtils;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -40,6 +41,7 @@ import org.apache.tika.parser.pdf.PDFParserConfig;
 import org.apache.tika.parser.pdf.PDFParserConfig.OCR_STRATEGY;
 import org.apache.tika.sax.BodyContentHandler;
 
+import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -217,8 +219,8 @@ public class FileParser {
 		} catch (Throwable t) {
 			throw new FileParserException_CannotExtractStyles(t, type);
 		}
-
-		ParsedContent content = new ParsedContent(parsedContent, language, type, length, properties, styles);
+		Dimension imageDimension = ImageUtils.getImageDimension(inputStream);
+		ParsedContent content = new ParsedContent(parsedContent, language, type, length, properties, styles, imageDimension);
 		content.setDescription(metadata.get(Metadata.DESCRIPTION));
 		content.setTitle(metadata.get(Metadata.TITLE));
 
@@ -312,7 +314,8 @@ public class FileParser {
 		} catch (Throwable t) {
 			throw new FileParserException_CannotExtractStyles(t, type);
 		}
-		return new ParsedContent(parsedContent, language, type, length, properties, styles);
+		Dimension imageDimension = ImageUtils.getImageDimension(inputStream);
+		return new ParsedContent(parsedContent, language, type, length, properties, styles, imageDimension);
 	}
 
 	protected Map<String, Object> getPropertiesHashMap(Metadata metadata, String mimeType) {

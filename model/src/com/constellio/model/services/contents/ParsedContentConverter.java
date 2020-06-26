@@ -3,6 +3,7 @@ package com.constellio.model.services.contents;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.ParsedContent;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +19,8 @@ public class ParsedContentConverter {
 		stringBuilder.append(parsedContent.getLanguage() + "\n");
 		stringBuilder.append(parsedContent.getLength() + "\n");
 		stringBuilder.append(parsedContent.getMimeType() + "\n");
+		stringBuilder.append(parsedContent.getDimension().height + "\n");
+		stringBuilder.append(parsedContent.getDimension().width + "\n");
 		for (Entry<String, Object> mapEntry : parsedContent.getProperties().entrySet()) {
 			String parameterKey = encodeString("" + mapEntry.getKey());
 			String parameterValue = encodeString("" + mapEntry.getValue());
@@ -31,7 +34,6 @@ public class ParsedContentConverter {
 				stringBuilder.append(parameterKey + "=" + parameterValue + "\n");
 			}
 		}
-
 		stringBuilder.append(SEPARATOR);
 		stringBuilder.append(encodeString(parsedContent.getParsedContent()));
 		return stringBuilder.toString();
@@ -55,7 +57,9 @@ public class ParsedContentConverter {
 		String lang = attributeLines[0];
 		long length = Long.valueOf(attributeLines[1]);
 		String mime = attributeLines[2];
-		for (int i = 3; i < attributeLines.length; i++) {
+		int height = Integer.valueOf(attributeLines[3]);
+		int width = Integer.valueOf(attributeLines[4]);
+		for (int i = 5; i < attributeLines.length; i++) {
 			String attributeLine = attributeLines[i];
 			int equalSignIndex = attributeLine.indexOf("=");
 			String key = decodeString(attributeLine.substring(0, equalSignIndex));
@@ -70,7 +74,7 @@ public class ParsedContentConverter {
 			}
 		}
 		String parsedContent = decodeString(string.substring(separatorIndex + SEPARATOR.length()));
-		ParsedContent parsedContentToReturn = new ParsedContent(parsedContent, lang, mime, length, parameters, styles.getNestedMap());
+		ParsedContent parsedContentToReturn = new ParsedContent(parsedContent, lang, mime, length, parameters, styles.getNestedMap(), new Dimension(width, height));
 		if (parameters.get("Title") instanceof String) {
 			parsedContentToReturn.setTitle((String) parameters.get("Title"));
 		}
