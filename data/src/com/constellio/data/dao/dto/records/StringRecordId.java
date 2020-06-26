@@ -1,5 +1,6 @@
 package com.constellio.data.dao.dto.records;
 
+import com.constellio.data.services.tenant.TenantLocal;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -28,13 +29,13 @@ public class StringRecordId implements RecordId {
 	 */
 	public static final String INVALID_ID = "MappingError_See_StringRecordId_INVALID_ID";
 
-	private static StringRecordIdLegacyMapping mapping;
+	private static final TenantLocal<StringRecordIdLegacyMapping> mapping = new TenantLocal<>();
 
 	private int intValue;
 	private String id;
 
 	public static void setMapping(StringRecordIdLegacyMapping mapping) {
-		StringRecordId.mapping = mapping;
+		StringRecordId.mapping.set(mapping);
 	}
 
 	public StringRecordId(String id) {
@@ -46,7 +47,7 @@ public class StringRecordId implements RecordId {
 	}
 
 	public StringRecordId(int id) {
-		this.id = mapping.getStringId(id);
+		this.id = mapping.get().getStringId(id);
 		this.intValue = id;
 	}
 
@@ -58,7 +59,7 @@ public class StringRecordId implements RecordId {
 	@Override
 	public int intValue() {
 		if (intValue == 0) {
-			intValue = mapping.getIntId(id);
+			intValue = mapping.get().getIntId(id);
 		}
 		return intValue;
 	}

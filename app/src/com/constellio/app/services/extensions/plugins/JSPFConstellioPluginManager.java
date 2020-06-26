@@ -70,6 +70,8 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	private static final Logger LOGGER = LogManager.getLogger(JSPFConstellioPluginManager.class);
 	public static final String PREVIOUS_PLUGINS = "previousPlugins";
 
+	public static List<InstallableModule> availablePluginsForTestOnly = new ArrayList<>();
+
 	private final File pluginsDirectory;
 	private PluginManager pluginManager;
 	private final ConstellioPluginConfigurationManager pluginConfigManger;
@@ -287,7 +289,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		return plugins;
 	}
 
-	public static List<InstallableModule> availablePluginsForTestOnly = new ArrayList<>();
+
 
 	@Override
 	public List<InstallableModule> getActivePluginModules() {
