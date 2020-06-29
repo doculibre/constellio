@@ -108,8 +108,11 @@
             <AppenderRef ref="file"/>
         </Logger>
         <Root level="TRACE">
+            <!--
             <AppenderRef ref="Console"/>
+            -->
             <AppenderRef ref="Routing"/>
+            <AppenderRef ref="es"/>
         </Root>
     </Loggers>
 
