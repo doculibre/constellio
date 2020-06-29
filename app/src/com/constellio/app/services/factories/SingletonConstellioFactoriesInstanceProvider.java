@@ -17,9 +17,13 @@ public class SingletonConstellioFactoriesInstanceProvider implements ConstellioF
 
 	private Map<String, ConstellioFactories> instanceByTenantId;
 
+	private Map<String, Boolean> brokenFactoriesMap;
+
 	SingletonConstellioFactoriesInstanceProvider() {
 		instanceByTenantId = new ConcurrentHashMap<>();
+		brokenFactoriesMap = new ConcurrentHashMap<>();
 	}
+
 
 	@Override
 	public ConstellioFactories getInstance(String tenantId, Factory<ConstellioFactories> constellioFactoriesFactory) {
@@ -29,25 +33,31 @@ public class SingletonConstellioFactoriesInstanceProvider implements ConstellioF
 			return instanceByTenantId.get(currentTenantId);
 		}
 
+		if (Boolean.TRUE.equals(brokenFactoriesMap.get(tenantId))) {
+			throw new ConstellioFactoriesRuntimeException("Tenant '" + tenantId + " ' is offline because of previous failures");
+		}
+
 		return instanceByTenantId.computeIfAbsent(currentTenantId, key -> {
 			ConstellioFactories instanceBeingInitialized = constellioFactoriesFactory.get();
 
 			CompletableFuture.runAsync(() -> {
 
-				boolean tryInitialize = true;
-				while (tryInitialize) {
-					try {
-						initializeInstance(key, instanceBeingInitialized);
-						tryInitialize = false;
+				try {
+					initializeInstance(key, instanceBeingInitialized);
 
-					} catch (AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry ignored) {
-						clear(currentTenantId);
-						getInstance(currentTenantId, constellioFactoriesFactory);
-						//Nothing, just re-entering the while loop for an other attempt
+				} catch (AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry ignored) {
+					LOGGER.info("Factories of tenant '" + tenantId + "' failed to initialize. Removing it from the map and retrying a new creation");
+					clear(currentTenantId);
 
-					} catch (Exception e) {
-						LOGGER.error("Error while initializing for tenant " + tenantId, e);
-					}
+					getInstance(currentTenantId, constellioFactoriesFactory);
+					//The retry is not working well, since these factories have been returned
+					//getInstance(currentTenantId, constellioFactoriesFactory);
+					//Nothing, just re-entering the while loop for an other attempt
+
+				} catch (Exception e) {
+					LOGGER.info("Factories of tenant '" + tenantId + "' failed to initialize. This tenant is now offline");
+					brokenFactoriesMap.put(tenantId, Boolean.TRUE);
+					clear(currentTenantId);
 				}
 			});
 

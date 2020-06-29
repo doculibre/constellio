@@ -14,4 +14,6 @@ public class ConstellioFactoriesRuntimeException extends RuntimeException {
 	public ConstellioFactoriesRuntimeException(Throwable cause) {
 		super(cause);
 	}
+
+
 }

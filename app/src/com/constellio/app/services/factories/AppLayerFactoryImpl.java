@@ -296,12 +296,12 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 		} catch (AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry e) {
 			LOGGER.info("AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry catched in normalStartupInMultiTenantSystem, will be retrown");
-			try {
-				close();
-
-			} catch (Throwable t2) {
-				LOGGER.error("Fatal error during the tenant's shutdown, but it's initialization will be retried", t2);
-			}
+			//			try {
+			//				close();
+			//
+			//			} catch (Throwable t2) {
+			//				LOGGER.error("Fatal error during the tenant's shutdown, but it's initialization will be retried", t2);
+			//			}
 
 			//Will be catched higher,
 			throw e;
@@ -386,6 +386,8 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 			if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER && !recoveryMode) {
 				if (TenantUtils.isSupportingTenants()) {
 					//The faulty plugin was disabled, retrying without it
+					LOGGER.info("Retrying to initialize the tenant '" + TenantUtils.getTenantId()
+								+ "' without the module '" + e.getFailedModule() + "'", e);
 					throw new AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry();
 
 				} else {

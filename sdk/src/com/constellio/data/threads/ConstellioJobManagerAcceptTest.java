@@ -62,6 +62,21 @@ public class ConstellioJobManagerAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenStartedAndClosedMultipleTimesThenOk()
+			throws Exception {
+		backgroundThreadsManager.addJob(new ConstellioJobManagerAcceptTest.Job2(), false);
+		backgroundThreadsManager.close();
+		backgroundThreadsManager.initialize();
+		backgroundThreadsManager.onSystemStarted();
+		backgroundThreadsManager.addJob(new ConstellioJobManagerAcceptTest.Job2(), false);
+		backgroundThreadsManager.close();
+		backgroundThreadsManager.initialize();
+		backgroundThreadsManager.onSystemStarted();
+		backgroundThreadsManager.addJob(new ConstellioJobManagerAcceptTest.Job2(), false);
+
+	}
+
+	@Test
 	public void whenConfiguringAThreadToExecuteAnActionOf2SecondsEvery3SecondsThenWait1SecondsBetweenRuns()
 			throws Exception {
 
