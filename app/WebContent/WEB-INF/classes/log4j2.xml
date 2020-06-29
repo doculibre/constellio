@@ -10,35 +10,39 @@
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
         </Console>
-        <RollingFile name="file" fileName="logs/constellio.log" filePattern="logs/constellio.log.%i">
+        <RollingFile name="file" fileName="logs/${ctx:tenant.id}/constellio.log"
+                     filePattern="logs/${ctx:tenant.id}/constellio.log.%i">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="1 MB"/>
             </Policies>
             <DefaultRolloverStrategy max="1"/>
         </RollingFile>
-        <RollingFile name="system" fileName="logs/system.log" filePattern="logs/system.log.%i">
+        <RollingFile name="system" fileName="logs/${ctx:tenant.id}/system.log"
+                     filePattern="logs/${ctx:tenant.id}/system.log.%i">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="250 MB"/>
             </Policies>
             <DefaultRolloverStrategy max="4"/>
         </RollingFile>
-        <RollingFile name="restapi" fileName="logs/restapi.log" filePattern="logs/restapi.log.%i">
+        <RollingFile name="restapi" fileName="logs/${ctx:tenant.id}/restapi.log"
+                     filePattern="logs/${ctx:tenant.id}/restapi.log.%i">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="250 MB"/>
             </Policies>
             <DefaultRolloverStrategy max="4"/>
         </RollingFile>
-        <RollingFile name="cmis" fileName="logs/cmisapi.log" filePattern="logs/cmisapi.log.%i">
+        <RollingFile name="cmis" fileName="logs/${ctx:tenant.id}/cmisapi.log"
+                     filePattern="logs/${ctx:tenant.id}/cmisapi.log.%i">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="250 MB"/>
             </Policies>
             <DefaultRolloverStrategy max="4"/>
         </RollingFile>
-        <RollingFile name="es" fileName="logs/es.log" filePattern="logs/es.log.%i">
+        <RollingFile name="es" fileName="logs/${ctx:tenant.id}/es.log" filePattern="logs/${ctx:tenant.id}/es.log.%i">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
             <Policies>
                 <sizebasedtriggeringpolicy size="250 MB"/>
@@ -127,7 +131,9 @@
             <AppenderRef ref="Console"/>
             -->
             <AppenderRef ref="Routing"/>
+            <!--
             <AppenderRef ref="es"/>
+            -->
         </Root>
     </Loggers>
 
