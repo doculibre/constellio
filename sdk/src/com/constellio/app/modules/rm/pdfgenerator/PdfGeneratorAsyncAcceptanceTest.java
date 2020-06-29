@@ -124,9 +124,9 @@ public class PdfGeneratorAsyncAcceptanceTest extends ConstellioTest {
 
 		if (parsedContent != null) {
 			String parsedContentText = parsedContent.getParsedContent().replace("\n", "").replace("\r", "");
-			assertThat(parsedContentText).contains("La racine du mot « grenouille » vient du latin rana");
-			assertThat(parsedContentText).contains("Pour une définition du mot « pêcher »");
-			assertThat(parsedContentText).contains("germaniques ont emprunté l'étymon du latin vulgaire : anglais pear (renforcé par le normand),");
+			assertThat(parsedContentText).contains("La racine du mot « grenouille » vient du latin rana");
+			assertThat(parsedContentText).contains("Pour une définition du mot « pêcher »");
+			assertThat(parsedContentText).contains("Les langues germaniques ont emprunté l'étymon du latin vulgaire : anglais pear (renforcé par le normand),");
 			assertThat(parsedContentText).contains("Lynx");
 		}
 	}
