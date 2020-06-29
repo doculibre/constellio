@@ -16,8 +16,9 @@ public class TenantUtils {
 		return tenant != null ? "" + getTenant().getId() : null;
 	}
 
-	public static byte getByteTenantId() {
-		return getTenant().getId();
+	public static Byte getByteTenantId() {
+		TenantProperties tenant = getTenant();
+		return tenant != null ? getTenant().getId() : null;
 	}
 
 	private static TenantProperties getTenant() {

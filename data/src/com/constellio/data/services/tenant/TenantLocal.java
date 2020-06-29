@@ -2,27 +2,27 @@ package com.constellio.data.services.tenant;
 
 import com.constellio.data.utils.TenantUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class TenantLocal<V> {
 
-	private Map<String, V> values = new HashMap<>();
+	private Object[] values = new Object[257];
 
-	public synchronized V get() {
-		String currentTenantId = TenantUtils.getTenantId();
-		if (currentTenantId == null) {
-			currentTenantId = "default";
-		}
-		return values.get(currentTenantId);
+	public V get() {
+		return (V) values[getIdx()];
 	}
 
-	public synchronized void set(V value) {
-		String currentTenantId = TenantUtils.getTenantId();
+	public void set(V value) {
+		values[getIdx()] = value;
+	}
+
+	private int getIdx() {
+		Byte currentTenantId = TenantUtils.getByteTenantId();
+		int idx;
 		if (currentTenantId == null) {
-			currentTenantId = "default";
+			idx = 256;
+		} else {
+			idx = currentTenantId - Byte.MIN_VALUE;
 		}
-		values.put(currentTenantId, value);
+		return idx;
 	}
 
 }
