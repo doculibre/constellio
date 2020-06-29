@@ -46,7 +46,7 @@ public class OffHeapMemoryAllocator {
 		Unsafe unsafe = getUnsafe();
 		long adr = unsafe.allocateMemory(length);
 
-		if (Toggle.OFF_HEAP_ADDRESS_VALIDATOR.isEnabled()) {
+		if (Toggle.OFF_HEAP_ADDRESS_VALIDATOR) {
 			synchronized (allocatedMemory) {
 				allocatedMemory.put(adr, adr + length);
 			}
@@ -62,7 +62,7 @@ public class OffHeapMemoryAllocator {
 		memoryAllocationByUsingClass[classId].addAndGet(-1 * length);
 		Unsafe unsafe = getUnsafe();
 		unsafe.freeMemory(address);
-		if (Toggle.OFF_HEAP_ADDRESS_VALIDATOR.isEnabled()) {
+		if (Toggle.OFF_HEAP_ADDRESS_VALIDATOR) {
 			synchronized (allocatedMemory) {
 				allocatedMemory.remove(address);
 			}
@@ -215,7 +215,7 @@ public class OffHeapMemoryAllocator {
 	}
 
 	private static void validateMemoryUsage(long address, int size) {
-		if (Toggle.OFF_HEAP_ADDRESS_VALIDATOR.isEnabled()) {
+		if (Toggle.OFF_HEAP_ADDRESS_VALIDATOR) {
 			synchronized (allocatedMemory) {
 				boolean found = false;
 

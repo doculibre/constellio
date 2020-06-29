@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 public class Toggle {
+
+	public static boolean OFF_HEAP_ADDRESS_VALIDATOR = false;
+
 	public static AvailableToggle PUBLIC_TOKENS = newToggle(false);
 
 	public static AvailableToggle TEMP_FRANCIS = newToggle(true);
@@ -99,8 +102,6 @@ public class Toggle {
 	public static AvailableToggle USE_FILESYSTEM_DB_FOR_LARGE_METADATAS_CACHE = newToggle(true);
 
 
-	public static AvailableToggle OFF_HEAP_ADDRESS_VALIDATOR = newToggle(false);
-
 	public static AvailableToggle NO_TAXONOMIES_CACHE_INVALIDATION = newToggle(true);
 
 	public static AvailableToggle PERFORMANCE_TESTING = newToggle(false);
@@ -138,7 +139,6 @@ public class Toggle {
 	public static AvailableToggle ENABLE_SIGNATURE = newToggle(false);
 
 	public static AvailableToggle ENABLE_CLOUD_SYSADMIN_FEATURES = newToggle(false);
-
 
 
 	// ------------------------------------------------
