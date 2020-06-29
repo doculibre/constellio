@@ -86,7 +86,7 @@ public class BackgroundThreadCommand implements Runnable {
 	public void runAndHandleException() {
 		setCurrentThreadName();
 		try {
-			configuration.getRepeatedAction().run();
+			BackgroundActionExecutionManager.execute(configuration.getRepeatedAction(), configuration.getPermitsRequired());
 		} catch (Throwable e) {
 			logCommandCallEndedWithException(e);
 			if (configuration.getExceptionHandling() == BackgroundThreadExceptionHandling.STOP) {

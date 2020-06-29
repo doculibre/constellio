@@ -1,6 +1,8 @@
 package com.constellio.app.services.extensions.plugins.utils;
 
 import com.constellio.data.conf.FoldersLocator;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -8,12 +10,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.services.extensions.plugins.JSPFPluginServices.NEW_JAR_EXTENSION;
 import static java.util.Arrays.asList;
@@ -101,10 +103,14 @@ public class PluginManagementUtils {
 		FileUtils.writeLines(pluginsToMoveToLibFile, pluginsNames, false);
 	}
 
-	public static void markNewPluginsInNewWar(File webapp, String newPluginFilename) {
+	public static void markNewPluginsInNewWar(File webapp, String newPluginFilename, String tenant) {
 		File newPlugins = new File(webapp, "new-plugins");
 		try {
-			FileUtils.write(newPlugins, newPluginFilename + "\n", true);
+			if (tenant == null) {
+				FileUtils.write(newPlugins, newPluginFilename + "\n", true);
+			} else {
+				FileUtils.write(newPlugins, newPluginFilename + ":" + tenant + "\n", true);
+			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -115,13 +121,27 @@ public class PluginManagementUtils {
 		newPlugins.delete();
 	}
 
-	public static List<String> getNewPluginsInNewWar(File webapp) {
+	@AllArgsConstructor
+	public static class NewPluginsInNewWar {
+
+		@Getter
+		String filename;
+
+		@Getter
+		String tenantId;
+	}
+
+	public static List<NewPluginsInNewWar> getNewPluginsInNewWar(File webapp) {
 		File newPlugins = new File(webapp, "new-plugins");
 		if (newPlugins.exists()) {
 			try {
-				List<File> files = new ArrayList<>();
-
-				return FileUtils.readLines(newPlugins);
+				return FileUtils.readLines(newPlugins).stream().map((l -> {
+					if (l.contains(":")) {
+						return new NewPluginsInNewWar(StringUtils.substringBefore(l, ":"), StringUtils.substringAfter(l, ":"));
+					} else {
+						return new NewPluginsInNewWar(l, null);
+					}
+				})).collect(Collectors.toList());
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}

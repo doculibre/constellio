@@ -50,7 +50,7 @@ public class SystemInfo {
 	private static final String FILE_NOT_FOUND = "fileNotFound";
 	private static final String SYSTEM_LOG_FILE_NAME = "system.log";
 	private static final String fileNameParameterKey = "fileName";
-	private static TenantLocal<SystemInfo> instance = new TenantLocal<>();
+	private static final TenantLocal<SystemInfo> instance = new TenantLocal<>();
 
 	LocalDateTime lastTimeUpdated;
 

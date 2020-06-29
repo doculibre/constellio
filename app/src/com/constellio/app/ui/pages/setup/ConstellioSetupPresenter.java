@@ -6,7 +6,6 @@ import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidCode;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.servlet.ConstellioMonitoringServlet;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.i18n.i18n;
@@ -33,6 +32,8 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.TenantUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.modules.PluginUtil;
 import com.constellio.model.entities.records.Record;
@@ -105,16 +106,27 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 
 	public void restart() {
 		try {
-			appLayerFactory.newApplicationService().restart();
+			if (hasUpdatePermission()) {
+				appLayerFactory.newApplicationService().restart();
+			} else {
+				appLayerFactory.newApplicationService().restartTenant();
+			}
 		} catch (AppManagementServiceException e) {
 			view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
 		}
-		ConstellioMonitoringServlet.systemRestarting = true;
+
 		Page.getCurrent().setLocation("/constellio/serviceMonitoring");
 	}
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
+		return true;
+	}
+
+	private boolean hasUpdatePermission() {
+		if (TenantUtils.isSupportingTenants()) {
+			return Toggle.ENABLE_CLOUD_SYSADMIN_FEATURES.isEnabled();
+		}
 		return true;
 	}
 
@@ -370,6 +382,10 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 
 	private void loadTransactionLog()
 			throws AppManagementServiceException {
-		appLayerFactory.newApplicationService().restart();
+		if (hasUpdatePermission()) {
+			appLayerFactory.newApplicationService().restart();
+		} else {
+			appLayerFactory.newApplicationService().restartTenant();
+		}
 	}
 }

@@ -40,7 +40,7 @@ public class BackgroundThreadsManager implements StatefulService {
 	public void close() {
 		stopRequested.set(true);
 		if (scheduledExecutorService != null) {
-			scheduledExecutorService.shutdownNow();
+			scheduledExecutorService.shutdown();
 			try {
 				scheduledExecutorService.awaitTermination(1, TimeUnit.HOURS);
 			} catch (InterruptedException e) {

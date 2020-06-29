@@ -6,6 +6,8 @@ import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.utils.TenantUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import org.slf4j.Logger;
@@ -26,9 +28,20 @@ public class AppManagementPresenter extends BasePresenter<AppManagementView> {
 		return user.hasAny(CorePermissions.MANAGE_SYSTEM_UPDATES).globally();
 	}
 
+	public boolean hasUpdatePermission() {
+		if (TenantUtils.isSupportingTenants()) {
+			return Toggle.ENABLE_CLOUD_SYSADMIN_FEATURES.isEnabled();
+		}
+		return true;
+	}
+
 	public void restartApplicationButtonClicked() {
 		try {
-			appManagementService().restart();
+			if (hasUpdatePermission()) {
+				appManagementService().restart();
+			} else {
+				appManagementService().restartTenant();
+			}
 		} catch (AppManagementServiceException e) {
 			view.showErrorMessage(MessageUtils.toMessage(e));
 			// FIXME No reference to Vaadin objects

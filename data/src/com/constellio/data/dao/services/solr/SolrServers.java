@@ -1,9 +1,11 @@
 package com.constellio.data.dao.services.solr;
 
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultLogger;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.extensions.DataLayerExtensions;
+import com.constellio.data.utils.TenantUtils;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -35,7 +37,9 @@ public class SolrServers {
 	}
 
 	public synchronized void close() {
-		solrServerFactory.clear();
+		if (!TenantUtils.isSupportingTenants() || !FoldersLocator.usingAppWrapper()) {
+			solrServerFactory.clear();
+		}
 		servers.clear();
 	}
 

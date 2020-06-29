@@ -35,11 +35,11 @@ public class i18n {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(i18n.class);
 
-	private static TenantLocal<Locale> locale = new TenantLocal<Locale>();
+	private static final TenantLocal<Locale> locale = new TenantLocal<Locale>();
 
-	private static TenantLocal<List<Utf8ResourceBundles>> defaultBundles = new TenantLocal<>();
+	private static final TenantLocal<List<Utf8ResourceBundles>> defaultBundles = new TenantLocal<>();
 
-	private static TenantLocal<List<Utf8ResourceBundles>> registeredBundles = new TenantLocal<>();
+	private static final TenantLocal<List<Utf8ResourceBundles>> registeredBundles = new TenantLocal<>();
 
 	public static Locale getLocale() {
 		try {
@@ -214,6 +214,7 @@ public class i18n {
 		}
 		return registeredBundles.get();
 	}
+
 	private static String callJexlScript(String expression, Map<String, Object> args)
 			throws Exception {
 
