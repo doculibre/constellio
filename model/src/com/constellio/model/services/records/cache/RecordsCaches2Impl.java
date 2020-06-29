@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.cache;
 
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordId;
@@ -13,10 +14,10 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.data.utils.LazyIterator;
 import com.constellio.data.utils.ParallelIterator;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.systemLogger.SystemLogger;
-import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -60,7 +61,6 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.utils.Lazy;
-import com.constellio.data.utils.TenantUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1058,9 +1058,9 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	@Override
 	public void close() {
-		metadataIndexCacheDataStore.close();
-		memoryDataStore.close();
-		fileSystemDataStore.close();
+		LangUtils.closeQuietly(metadataIndexCacheDataStore);
+		LangUtils.closeQuietly(memoryDataStore);
+		LangUtils.closeQuietly(fileSystemDataStore);
 	}
 
 	protected void removeFromAllCaches(byte collectionId, List<String> recordIds) {

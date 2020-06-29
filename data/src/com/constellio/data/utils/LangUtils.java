@@ -6,7 +6,10 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -42,6 +45,8 @@ import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
 import static java.lang.String.format;
 
 public class LangUtils {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(LangUtils.class);
 
 	public static final int OBJECT_REF_BYTES = 4;
 
@@ -530,6 +535,14 @@ public class LangUtils {
 		List<T> sortedValues = new ArrayList<>(values);
 		sortedValues.sort(null);
 		return sortedValues;
+	}
+
+	public static void closeQuietly(Closeable closeable) {
+		try {
+			closeable.close();
+		} catch (Throwable t) {
+			LOGGER.warn("Error while closing, continuing...", t);
+		}
 	}
 
 

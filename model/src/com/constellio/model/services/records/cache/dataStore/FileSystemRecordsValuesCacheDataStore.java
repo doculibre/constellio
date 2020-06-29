@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -35,7 +36,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-public class FileSystemRecordsValuesCacheDataStore {
+public class FileSystemRecordsValuesCacheDataStore implements Closeable {
 
 	private static final int VERSION = 2;
 
@@ -287,9 +288,15 @@ public class FileSystemRecordsValuesCacheDataStore {
 	}
 
 	public void close() {
-		onDiskFileSystemCacheIntKeyMap.close();
-		onDiskFileSystemCacheStringKeyMap.close();
-		onDiskRebootMemoryCacheIntKeyMap.close();
+		if (onDiskFileSystemCacheIntKeyMap != null) {
+			onDiskFileSystemCacheIntKeyMap.close();
+		}
+		if (onDiskFileSystemCacheStringKeyMap != null) {
+			onDiskFileSystemCacheStringKeyMap.close();
+		}
+		if (onDiskRebootMemoryCacheIntKeyMap != null) {
+			onDiskRebootMemoryCacheIntKeyMap.close();
+		}
 
 		onDiskFileSystemCacheIntKeyMap = null;
 		onDiskFileSystemCacheStringKeyMap = null;

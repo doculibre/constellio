@@ -19,6 +19,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ import static java.util.Spliterator.IMMUTABLE;
 import static java.util.Spliterator.NONNULL;
 import static java.util.Spliterators.spliteratorUnknownSize;
 
-public class RecordsCachesDataStore {
+public class RecordsCachesDataStore implements Closeable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecordsCachesDataStore.class);
 
@@ -291,6 +292,8 @@ public class RecordsCachesDataStore {
 
 	public void close() {
 		intIdsDataStore.close();
+		intIdsDataStore = null;
+		stringIdsDataStore = null;
 	}
 
 	public List<CacheStat> compileMemoryConsumptionStats() {

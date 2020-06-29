@@ -794,6 +794,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 
 		if (this.ids != null) {
 			mechanism.obtainSystemWideWritingPermit();
+			mechanism.setEnabled(false);
 
 			try {
 				this.ids.clear();

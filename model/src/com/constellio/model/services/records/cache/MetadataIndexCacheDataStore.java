@@ -26,6 +26,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,7 +47,7 @@ import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
  * - Map creation and iteration is synchronized on this
  * - Map get/put/iteration is synchronized on the given map
  */
-public class MetadataIndexCacheDataStore {
+public class MetadataIndexCacheDataStore implements Closeable {
 
 	private static MetadataIndex EMPTY_INDEX = new MetadataIndex(Collections.emptyMap());
 
