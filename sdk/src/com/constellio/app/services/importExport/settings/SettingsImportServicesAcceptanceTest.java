@@ -18,6 +18,7 @@ import com.constellio.app.services.importExport.settings.model.ImportedMetadataS
 import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
 import com.constellio.app.services.importExport.settings.model.ImportedSequence;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedSystemVersion;
 import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
 import com.constellio.app.services.importExport.settings.model.ImportedType;
 import com.constellio.app.services.importExport.settings.model.ImportedValueList;
@@ -169,6 +170,38 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				"Ze template #1b", "Ze template #2");
 
 		runTwice = false;
+	}
+
+	@Test(expected = com.constellio.model.frameworks.validation.ValidationException.class)
+	public void whenImportingTemplatesOfdifferentVersionThenDoNotImport()
+			throws ValidationException {
+		when(appLayerFactory.getExtensions()).thenReturn(extensions);
+		when(extensions.getSystemWideExtensions()).thenReturn(systemExtensions);
+
+		ImportedSystemVersion importedSystemVersion = new ImportedSystemVersion();
+
+		importedSystemVersion.setFullVersion("5.0.1");
+		importedSystemVersion.setMajorVersion(5);
+		importedSystemVersion.setMinorVersion(0);
+		importedSystemVersion.setMinorRevisionVersion(1);
+
+		settings.setImportedSystemVersion(importedSystemVersion);
+
+		settings.addImportedLabelTemplate(getTestResourceContent("template1.xml"));
+		importSettings();
+
+		assertThat(labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE)).extracting("name").containsOnly(
+				"Code de plan justifié à droite (Avery 5159)", "Code de plan justifié à droite (Avery 5161)",
+				"Code de plan justifié à droite (Avery 5162)", "Code de plan justifié à droite (Avery 5163)",
+				"Code de plan justifié à gauche (Avery 5159)", "Code de plan justifié à gauche (Avery 5161)",
+				"Code de plan justifié à gauche (Avery 5162)", "Code de plan justifié à gauche (Avery 5163)",
+				"Ze template #1");
+
+		settings = new ImportedSettings();
+		settings.addImportedLabelTemplate(getTestResourceContent("template1b.xml"));
+		settings.addImportedLabelTemplate(getTestResourceContent("template2.xml"));
+		importSettings();
+
 	}
 
 	@Test

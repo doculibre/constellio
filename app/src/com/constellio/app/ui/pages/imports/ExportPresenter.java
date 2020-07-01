@@ -139,9 +139,9 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		exportToXML(options);
 	}
 
-	void exportSchemasClicked() {
+	void exportSchemasClicked(boolean personalizedMetadataOnly) {
 		SettingsExportOptions options = new SettingsExportOptions();
-		options.setOnlyUSR(true);
+		options.setOnlyUSR(personalizedMetadataOnly);
 		options.setExportingAsCurrentCollection(true);
 
 		SettingsExportServices services = new SettingsExportServices(appLayerFactory);
@@ -274,7 +274,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		filenameSB.append(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
 		filenameSB.append(".zip");
 		String filename = filenameSB.toString();
-		
+
 		File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
 				.newTemporaryFolder(EXPORT_FOLDER_RESOURCE);
 		File file = new File(folder, filename);

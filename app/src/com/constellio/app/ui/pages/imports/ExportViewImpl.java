@@ -59,6 +59,8 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 
 	private CheckBox fastSaveStateCheckBox;
 
+	private CheckBox personalizedMetadataOnlyCheckBox;
+
 	private VerticalLayout toolLayout = new VerticalLayout();
 	private VerticalLayout idsLayout = new VerticalLayout();
 	private VerticalLayout folderAndDocumentsLayout = new VerticalLayout();
@@ -101,14 +103,17 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 
+		personalizedMetadataOnlyCheckBox = new CheckBox($("ExportView.personalizedMetadataOnly"));
+		personalizedMetadataOnlyCheckBox.setValue(false);
 		BaseButton exportSchemas = new BaseButton($("ExportView.schema")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.exportSchemasClicked();
+				presenter.exportSchemasClicked(personalizedMetadataOnlyCheckBox.getValue());
 			}
 		};
 
 		schemaLayout = new VerticalLayout(exportSchemas);
+		schemaLayout.addComponent(personalizedMetadataOnlyCheckBox);
 		schemaLayout.setSizeFull();
 		schemaLayout.setSpacing(true);
 
@@ -193,7 +198,7 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		};
 		exportWithContentsButton.setVisible(false);
 
-		othersLayout = new VerticalLayout(idsField, fastSaveStateCheckBox, exportWithoutContentsButton, exportWithContentsButton, exportTools,
+		othersLayout = new VerticalLayout(idsField, fastSaveStateCheckBox, personalizedMetadataOnlyCheckBox, exportWithoutContentsButton, exportWithContentsButton, exportTools,
 				exportLogs);
 		othersLayout.setSizeFull();
 		othersLayout.setSpacing(true);

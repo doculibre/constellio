@@ -1,7 +1,9 @@
 package com.constellio.app.services.importExport.settings;
 
+import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.appManagement.GetWarVersionUtils;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
@@ -12,6 +14,7 @@ import com.constellio.app.services.importExport.settings.model.ImportedType;
 import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileReader;
 import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileWriter;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataAccessRestriction;
@@ -46,6 +49,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static java.util.Arrays.asList;
@@ -113,6 +117,25 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		for (ImportedTaxonomy importedTaxonomy : zeCollectionSettings.getTaxonomies()) {
 			System.out.println(importedTaxonomy.toString());
 		}
+	}
+
+	@Test
+	public void givenCreatingVersionWhenExportingThenVersionOK()
+			throws ValidationException {
+		ImportedSettings settings = services.exportSettings(asList(zeCollection), options);
+		assertThat(settings).isNotNull();
+		assertThat(settings.getImportedSystemVersion()).isNotNull();
+		File versionDirectory = new FoldersLocator().getConstellioWebappFolder();
+		String version = GetWarVersionUtils.getWarVersion(versionDirectory);
+		assertThat(settings.getImportedSystemVersion().getFullVersion()).isEqualTo(version);
+
+		List<InstallableModule> plugins = new ArrayList<>();
+		List<String> pluginIds = new ArrayList<>();
+
+		plugins = getAppLayerFactory().getPluginManager().getActivePluginModules();
+		pluginIds = plugins.stream().map(plugin -> plugin.getId()).collect(Collectors.toList());
+		assertThat(pluginIds).containsAll(settings.getImportedSystemVersion().getPlugins());
+
 	}
 
 	@Test
