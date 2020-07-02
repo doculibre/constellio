@@ -415,7 +415,10 @@ public class FileSystemConfigManager implements StatefulService, EventBusListene
 		validateFileExistance(path);
 		String content = "";
 		try {
-			LOGGER.info("read file  => " + new File(configFolder, path).getAbsolutePath() + " for " + TenantUtils.getTenantId());
+			if (TenantUtils.getTenantId() == null ||
+				!configFolder.getAbsolutePath().contains(TenantUtils.getTenantId())) {
+				LOGGER.error("read file  => " + new File(configFolder, path).getAbsolutePath() + " for " + TenantUtils.getTenantId(), new RuntimeException(""));
+			}
 			content = ioServices.readFileToString(new File(configFolder, path));
 		} catch (IOException e) {
 			throw new ConfigManagerRuntimeException.CannotCompleteOperation("read file content", e);

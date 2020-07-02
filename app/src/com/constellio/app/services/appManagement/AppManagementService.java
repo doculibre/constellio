@@ -256,7 +256,9 @@ public class AppManagementService {
 	private void updatePluginsWithThoseInWar(File nextWebapp) {
 
 		if (TenantUtils.isSupportingTenants()) {
+
 			String currentTenant = TenantUtils.getTenantId();
+			LOGGER.warn("Was tenant '" + currentTenant + "'");
 			try {
 				for (TenantProperties tenantProperties : TenantService.getInstance().getTenants()) {
 					ConstellioPluginManager pluginManager = getConstellioPluginManagerForTenant(tenantProperties.getId());
@@ -266,6 +268,7 @@ public class AppManagementService {
 			} finally {
 				TenantUtils.setTenant(currentTenant);
 			}
+			LOGGER.warn("Now tenant '" + TenantUtils.getTenantId() + "'");
 		} else {
 			updatePluginsOfCurrentTenant(nextWebapp, pluginManager, pluginServices, "main");
 			installPluginsForCurrentTenant(nextWebapp, pluginManager);
