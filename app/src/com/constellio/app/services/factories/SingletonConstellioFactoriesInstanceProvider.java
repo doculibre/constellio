@@ -2,6 +2,7 @@ package com.constellio.app.services.factories;
 
 import com.constellio.app.services.factories.AppLayerFactoryRuntineException.AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.TenantUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,7 @@ public class SingletonConstellioFactoriesInstanceProvider implements ConstellioF
 			ConstellioFactories instanceBeingInitialized = constellioFactoriesFactory.get();
 
 			CompletableFuture.runAsync(() -> {
-
+				TenantUtils.setTenant(tenantId);
 				try {
 					initializeInstance(key, instanceBeingInitialized);
 
