@@ -78,9 +78,10 @@ public class ImportedSettings {
 		return importedSystemVersion;
 	}
 
-	public void setImportedSystemVersion(
+	public ImportedSettings setImportedSystemVersion(
 			ImportedSystemVersion importedSystemVersion) {
 		this.importedSystemVersion = importedSystemVersion;
+		return this;
 	}
 
 	@Override

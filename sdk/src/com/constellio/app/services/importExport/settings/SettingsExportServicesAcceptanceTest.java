@@ -418,6 +418,21 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenSystemVersionWhenExportingThenVersionPluginsAndOnlyUSRExported()
+			throws ValidationException, IOException {
+
+		options.setOnlyUSR(true);
+
+		ImportedSettings settings = writeAndReadXML(services.exportSettings(asList(zeCollection), options));
+		assertThat(settings.getImportedSystemVersion()).isNotNull();
+		assertThat(settings.getImportedSystemVersion().getMajorVersion()).isEqualTo(5);
+		assertThat(settings.getImportedSystemVersion().getMinorVersion()).isEqualTo(0);
+		assertThat(settings.getImportedSystemVersion().getMinorRevisionVersion()).isEqualTo(0);
+		assertThat(settings.getImportedSystemVersion().isOnlyUSR()).isTrue();
+
+	}
+
 	private ImportedSettings writeAndReadXML(ImportedSettings exportSettings) throws IOException {
 
 		String outputFilePath = "settings-export-output.xml";

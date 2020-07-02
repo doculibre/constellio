@@ -20,6 +20,7 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
@@ -112,8 +113,7 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 			}
 		};
 
-		schemaLayout = new VerticalLayout(exportSchemas);
-		schemaLayout.addComponent(personalizedMetadataOnlyCheckBox);
+		schemaLayout = new VerticalLayout(personalizedMetadataOnlyCheckBox, exportSchemas);
 		schemaLayout.setSizeFull();
 		schemaLayout.setSpacing(true);
 
@@ -198,7 +198,7 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		};
 		exportWithContentsButton.setVisible(false);
 
-		othersLayout = new VerticalLayout(idsField, fastSaveStateCheckBox, personalizedMetadataOnlyCheckBox, exportWithoutContentsButton, exportWithContentsButton, exportTools,
+		othersLayout = new VerticalLayout(idsField, fastSaveStateCheckBox, exportWithoutContentsButton, exportWithContentsButton, exportTools,
 				exportLogs);
 		othersLayout.setSizeFull();
 		othersLayout.setSpacing(true);
@@ -208,7 +208,11 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 			mainLayout.addComponents(collectionOptions, toolLayout, folderAndDocumentsLayout, idsLayout, administrativeUnitLayout,
 					completeLayout);
 		}
-		mainLayout.addComponents(schemaLayout, othersLayout);
+
+		Label emptyLabel = new Label("");
+		emptyLabel.setHeight("1em");
+
+		mainLayout.addComponents(emptyLabel, schemaLayout, othersLayout);
 
 		return mainLayout;
 	}
