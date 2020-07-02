@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.ID_MISMATCH;
 import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_EXISTING_ID;
@@ -122,10 +123,10 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 			}
 
 			for (ConstellioPluginInfo pluginInfo : getPlugins(ENABLED, DISABLED, READY_TO_INSTALL)) {
-				LOGGER.info("Detected plugin : " + pluginInfo.getCode());
+				LOGGER.info("Detected plugin for tenant " + TenantUtils.getTenantId() + " : " + pluginInfo.getCode());
 				installValidPlugin(pluginInfo);
 			}
-			handlePluginsDependency();
+			//handlePluginsDependency();
 
 			//Be aware of order : invalid are last plugins to be handled
 			for (ConstellioPluginInfo pluginInfo : getPlugins(INVALID)) {
@@ -135,25 +136,25 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 
 	}
 
-	//TODO in future version
-	private void handlePluginsDependency() {
-		for (InstallableModule pluginModule : validUploadedPlugins.values()) {
-			//1. ensure no module depend on invalid module otherwise it is also invalid
-			List<String> dependencies = pluginModule.getDependencies();
-			if (dependencies != null) {
-				for (String dependency : dependencies) {
-					if (!registeredModules.keySet().contains(dependency)) {
-						InstallableModule dependOnModule = validUploadedPlugins.get(dependency);
-						if (dependOnModule == null
-							|| pluginConfigManger.getPluginInfo(dependency).getPluginStatus() == DISABLED) {
-							//TODO disable and remove from validUploadedPlugins see avec Cis
-						}
-					}
-				}
-			}
-			//2. cyclic dependency is not supported hence save only oldest plugins
-		}
-	}
+//	//TODO in future version
+//	private void handlePluginsDependency() {
+//		for (InstallableModule pluginModule : validUploadedPlugins.values()) {
+//			//1. ensure no module depend on invalid module otherwise it is also invalid
+//			List<String> dependencies = pluginModule.getDependencies();
+//			if (dependencies != null) {
+//				for (String dependency : dependencies) {
+//					if (!registeredModules.keySet().contains(dependency)) {
+//						InstallableModule dependOnModule = validUploadedPlugins.get(dependency);
+//						if (dependOnModule == null
+//							|| pluginConfigManger.getPluginInfo(dependency).getPluginStatus() == DISABLED) {
+//							//TODO disable and remove from validUploadedPlugins see avec Cis
+//						}
+//					}
+//				}
+//			}
+//			//2. cyclic dependency is not supported hence save only oldest plugins
+//		}
+//	}
 
 	private void installInvalidPlugin(String pluginId) {
 		PluginServices helperService = newPluginServices();
@@ -276,8 +277,16 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	public List<InstallableModule> getRegistredModulesAndActivePlugins() {
 		ensureStarted();
 		List<InstallableModule> plugins = new ArrayList<>();
-		plugins.addAll(registeredModules.values());
-		plugins.addAll(getActivePluginModules());
+
+		Collection<InstallableModule> registeredModulesValues = registeredModules.values();
+		LOGGER.info("Registered module values for tenant '" + TenantUtils.getTenantId() + "' are : " +
+					registeredModulesValues.stream().map(InstallableModule::getId).collect(Collectors.toList()));
+		plugins.addAll(registeredModulesValues);
+
+		Collection<InstallableModule> activePluginModules = getActivePluginModules();
+		LOGGER.info("Active plugin modules for tenant '" + TenantUtils.getTenantId() + "' are : " +
+					activePluginModules.stream().map(InstallableModule::getId).collect(Collectors.toList()));
+		plugins.addAll(activePluginModules);
 		return plugins;
 	}
 
@@ -288,7 +297,6 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		plugins.addAll(registeredModules.values());
 		return plugins;
 	}
-
 
 
 	@Override

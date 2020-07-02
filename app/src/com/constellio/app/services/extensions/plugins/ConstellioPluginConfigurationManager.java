@@ -11,6 +11,7 @@ import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.TimeProvider;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -50,7 +51,9 @@ public class ConstellioPluginConfigurationManager {
 	}
 
 	public List<String> getActivePluginsIds() {
-		return getPluginsWithStatus(ENABLED);
+		List<String> activePluginIds = getPluginsWithStatus(ENABLED);
+		LOGGER.warn("Active plugin ids of tenant '" + TenantUtils.getTenantId() + "' : " + activePluginIds, new Exception());
+		return activePluginIds;
 	}
 
 	private List<String> getPluginsWithStatus(ConstellioPluginStatus status) {
@@ -69,6 +72,7 @@ public class ConstellioPluginConfigurationManager {
 
 	public void markPluginAsEnabled(String pluginId)
 			throws ConstellioPluginConfigurationManagerRuntimeException {
+		LOGGER.warn("marking plugin '" + pluginId + " ' as enabled for tenant " + TenantUtils.getTenantId(), new Exception());
 		ConstellioPluginStatus status = prValidateModule(pluginId);
 		switch (status) {
 			case INVALID:
@@ -100,6 +104,7 @@ public class ConstellioPluginConfigurationManager {
 
 	public void markPluginAsDisabled(String pluginId)
 			throws ConstellioPluginConfigurationManagerRuntimeException {
+		LOGGER.warn("marking plugin '" + pluginId + " ' as disabled for tenant " + TenantUtils.getTenantId(), new Exception());
 		ConstellioPluginStatus status = prValidateModule(pluginId);
 		switch (status) {
 			case INVALID:
@@ -143,6 +148,7 @@ public class ConstellioPluginConfigurationManager {
 
 	public void installPlugin(String pluginId, String pluginTitle, String version, String requiredConstellioVersion) {
 		//LOGGER.info("Detected plugin : " + pluginId + "-" + version + " (" + pluginTitle + ")");
+		LOGGER.warn("installing plugin '" + pluginId + " ' for tenant " + TenantUtils.getTenantId(), new Exception());
 		final ConstellioPluginInfo pluginInfo = new ConstellioPluginInfo()
 				.setLastInstallDate(TimeProvider.getLocalDate())
 				.setPluginStatus(READY_TO_INSTALL)
@@ -259,6 +265,7 @@ public class ConstellioPluginConfigurationManager {
 	}
 
 	void invalidateModule(final String pluginId, final PluginActivationFailureCause cause, final Throwable throwable) {
+		LOGGER.warn("invalidate module'" + pluginId + " ' for tenant " + TenantUtils.getTenantId(), new Exception());
 		if (pluginId != null) {
 			configManager.updateXML(PLUGINS_CONFIG_PATH, new DocumentAlteration() {
 				@Override
