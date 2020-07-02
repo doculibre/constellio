@@ -273,8 +273,7 @@ public class AppManagementService {
 	}
 
 	ConstellioPluginManager getConstellioPluginManagerForTenant(byte tenantId) {
-		TenantUtils.setTenant(tenantId);
-		return ConstellioFactories.getInstance().getAppLayerFactory().getPluginManager();
+		return ConstellioFactories.getInstance("" + tenantId).getAppLayerFactory().getPluginManager();
 	}
 
 	private static void installPluginsForCurrentTenant(File nextWebapp, ConstellioPluginManager pluginManager) {

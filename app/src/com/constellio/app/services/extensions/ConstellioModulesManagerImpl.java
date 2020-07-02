@@ -22,6 +22,7 @@ import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.modules.PluginUtil;
@@ -42,6 +43,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static java.util.stream.Collectors.toList;
 
 public class ConstellioModulesManagerImpl implements ConstellioModulesManager, StatefulService {
 	@SuppressWarnings("unused") private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioModulesManagerImpl.class);
@@ -143,6 +146,9 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	public List<InstallableModule> getRequiredDependentModulesToInstall(String collection) {
 		Set<String> dependentModuleIds = new HashSet<>();
 
+		LOGGER.warn("Builtin modules for '" + TenantUtils.getTenantId() + "' : " +
+					getBuiltinModules());
+
 		for (InstallableModule module : getBuiltinModules()) {
 			if (isModuleEnabled(collection, module)) {
 				dependentModuleIds.addAll(module.getDependencies());
@@ -154,6 +160,9 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 				dependentModuleIds.remove(module.getId());
 			}
 		}
+
+		LOGGER.warn("Dependent module ids for tenant '" + TenantUtils.getTenantId() + "' : " +
+					dependentModuleIds);
 
 		List<InstallableModule> dependentModules = new ArrayList<>();
 		for (String dependentModuleId : dependentModuleIds) {
@@ -227,9 +236,11 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	}
 
 	public void markAsInstalled(final Module module, CollectionsListManager collectionsListManager) {
+		LOGGER.warn("Marking module '" + module.getId() + "' as installed for tenant " + TenantUtils.getTenantId(), new Exception());
 		for (String dependentModuleId : getDependencies(module)) {
 			InstallableModule dependentModule = getInstalledModule(dependentModuleId);
 			if (!isInstalled(dependentModule)) {
+				LOGGER.warn("Marking module '" + dependentModuleId + "' as installed for tenant, since it is a dependency of '" + module.getId() + "' " + TenantUtils.getTenantId(), new Exception());
 				addModuleInConfigFile(dependentModule);
 			}
 		}
@@ -254,6 +265,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	}
 
 	private void addModuleInConfigFile(final Module module) {
+		LOGGER.warn("Adding module '" + module.getId() + "' for tenant " + TenantUtils.getTenantId(), new Exception());
 		configManager.updateXML(MODULES_CONFIG_PATH, new DocumentAlteration() {
 			@Override
 			public void alter(Document document) {
@@ -310,14 +322,25 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 			enabledModuleIds.add(enabledModule.getId());
 		}
 
+		LOGGER.warn("Enabled modules for tenant '" + TenantUtils.getTenantId() + "' : " +
+					enabledModuleIds);
+
 		boolean newModulesEnabled = false;
-		for (InstallableModule complementaryModule : getComplementaryModules()) {
+		List<InstallableModule> complementaryModules = getComplementaryModules();
+		LOGGER.warn("Available complementary modules for tenant '" + TenantUtils.getTenantId() + "' : " +
+					complementaryModules.stream().map((m) -> m.getId()).collect(toList()));
+		for (InstallableModule complementaryModule : complementaryModules) {
 			if (enabledModuleIds.containsAll(getDependencies(complementaryModule))) {
 				if (!isInstalled(complementaryModule)) {
+
+					LOGGER.warn("installValidModuleAndGetInvalidOnes for tenant '" + TenantUtils.getTenantId() + "' and for module " +
+								complementaryModule.getId());
 					installValidModuleAndGetInvalidOnes(complementaryModule,
 							appLayerFactory.getModelLayerFactory().getCollectionsListManager());
 				}
 				if (!isModuleEnabled(collection, complementaryModule)) {
+					LOGGER.warn("enableValidModuleAndGetInvalidOnes for tenant '" + TenantUtils.getTenantId() + "' and for module " +
+								complementaryModule.getId());
 					enableValidModuleAndGetInvalidOnes(collection, complementaryModule);
 					newModulesEnabled = true;
 				}

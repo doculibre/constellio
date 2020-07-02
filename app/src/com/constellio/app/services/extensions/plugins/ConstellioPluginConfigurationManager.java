@@ -52,7 +52,7 @@ public class ConstellioPluginConfigurationManager {
 
 	public List<String> getActivePluginsIds() {
 		List<String> activePluginIds = getPluginsWithStatus(ENABLED);
-		LOGGER.warn("Active plugin ids of tenant '" + TenantUtils.getTenantId() + "' : " + activePluginIds, new Exception());
+		LOGGER.warn("Active plugin ids of tenant '" + TenantUtils.getTenantId() + "' : " + activePluginIds);
 		return activePluginIds;
 	}
 

@@ -123,7 +123,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 			}
 
 			for (ConstellioPluginInfo pluginInfo : getPlugins(ENABLED, DISABLED, READY_TO_INSTALL)) {
-				LOGGER.info("Detected plugin for tenant " + TenantUtils.getTenantId() + " : " + pluginInfo.getCode());
+				LOGGER.warn("Detected plugin for tenant " + TenantUtils.getTenantId() + " : " + pluginInfo.getCode(), new Exception());
 				installValidPlugin(pluginInfo);
 			}
 			//handlePluginsDependency();
@@ -136,25 +136,25 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 
 	}
 
-//	//TODO in future version
-//	private void handlePluginsDependency() {
-//		for (InstallableModule pluginModule : validUploadedPlugins.values()) {
-//			//1. ensure no module depend on invalid module otherwise it is also invalid
-//			List<String> dependencies = pluginModule.getDependencies();
-//			if (dependencies != null) {
-//				for (String dependency : dependencies) {
-//					if (!registeredModules.keySet().contains(dependency)) {
-//						InstallableModule dependOnModule = validUploadedPlugins.get(dependency);
-//						if (dependOnModule == null
-//							|| pluginConfigManger.getPluginInfo(dependency).getPluginStatus() == DISABLED) {
-//							//TODO disable and remove from validUploadedPlugins see avec Cis
-//						}
-//					}
-//				}
-//			}
-//			//2. cyclic dependency is not supported hence save only oldest plugins
-//		}
-//	}
+	//	//TODO in future version
+	//	private void handlePluginsDependency() {
+	//		for (InstallableModule pluginModule : validUploadedPlugins.values()) {
+	//			//1. ensure no module depend on invalid module otherwise it is also invalid
+	//			List<String> dependencies = pluginModule.getDependencies();
+	//			if (dependencies != null) {
+	//				for (String dependency : dependencies) {
+	//					if (!registeredModules.keySet().contains(dependency)) {
+	//						InstallableModule dependOnModule = validUploadedPlugins.get(dependency);
+	//						if (dependOnModule == null
+	//							|| pluginConfigManger.getPluginInfo(dependency).getPluginStatus() == DISABLED) {
+	//							//TODO disable and remove from validUploadedPlugins see avec Cis
+	//						}
+	//					}
+	//				}
+	//			}
+	//			//2. cyclic dependency is not supported hence save only oldest plugins
+	//		}
+	//	}
 
 	private void installInvalidPlugin(String pluginId) {
 		PluginServices helperService = newPluginServices();
