@@ -57,6 +57,7 @@ import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebSe
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends ConstellioTest {
 
@@ -315,6 +316,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 			throws Exception {
 		try {
 			callWebservice(bobAuth, bobKey, records.document_A19, misterXFullname, "", getTomorrow(), validLanguage);
+			fail("whenCallingServiceWithMissingExternalUserEmail should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
 			assertThat(e.getStatusMessage()).isEqualTo(MISSING_EXTERNAL_USER_EMAIL_PARAM);
@@ -326,6 +328,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 			throws Exception {
 		try {
 			callWebservice(bobAuth, bobKey, records.document_A19, misterXFullname, "fakeMail", getTomorrow(), validLanguage);
+			fail("whenCallingServiceWithInvalidExternalUserEmail should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
 			assertThat(e.getStatusMessage()).isEqualTo(CANNOT_SEND_EMAIL);
