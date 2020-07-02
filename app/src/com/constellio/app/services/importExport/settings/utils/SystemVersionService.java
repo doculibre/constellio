@@ -9,13 +9,14 @@ import com.constellio.data.conf.FoldersLocator;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class SystemVersionService {
 
-	private String[] EXCEPTION_PLUGINS = {"MU", "devtools"};
+	private static List<String> EXCEPTION_PLUGINS = Arrays.asList("MU", "devtools");
 
 	AppLayerFactory appLayerFactory;
 
@@ -50,9 +51,7 @@ public class SystemVersionService {
 
 		plugins = appLayerFactory.getPluginManager().getActivePluginModules();
 		pluginIds = plugins.stream().map(plugin -> plugin.getId()).collect(Collectors.toList());
-		for (String ex : EXCEPTION_PLUGINS) {
-			pluginIds = pluginIds.stream().filter(id -> !ex.equals(id)).collect(Collectors.toList());
-		}
+		pluginIds.removeAll(EXCEPTION_PLUGINS);
 
 		importedSystemVersion.setPlugins(pluginIds);
 
@@ -68,6 +67,9 @@ public class SystemVersionService {
 		boolean isSameVersionMajorToRevisedMinor = currentSystemVersion.getMajorVersion() == importedSystemVersion.getMajorVersion()
 												   && currentSystemVersion.getMinorVersion() == importedSystemVersion.getMinorVersion()
 												   && currentSystemVersion.getMinorRevisionVersion() == importedSystemVersion.getMinorRevisionVersion();
+
+		importedSystemVersion.getPlugins().removeAll(EXCEPTION_PLUGINS);
+		currentSystemVersion.getPlugins().removeAll(EXCEPTION_PLUGINS);
 
 		boolean HasAllPlugins = listEqualsIgnoreOrder(currentSystemVersion.getPlugins(), importedSystemVersion.getPlugins());
 

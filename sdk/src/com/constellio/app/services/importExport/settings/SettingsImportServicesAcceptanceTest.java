@@ -118,27 +118,41 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	Users users = new Users();
 
 	//-------------------------------------------------------------------------------------
-	SystemConfigurationsManager systemConfigurationsManager;
-	MetadataSchemasManager metadataSchemasManager;
-	SchemasDisplayManager schemasDisplayManager;
-	LabelTemplateManager labelTemplateManager;
-	boolean runTwice;
-	SettingsImportServices services;
-	ImportedSettings settings = new ImportedSettings();
-	ImportedCollectionSettings zeCollectionSettings;
-	ImportedCollectionSettings anotherCollectionSettings;
+	protected SystemConfigurationsManager systemConfigurationsManager;
+	protected MetadataSchemasManager metadataSchemasManager;
+	protected SchemasDisplayManager schemasDisplayManager;
+	protected LabelTemplateManager labelTemplateManager;
+	protected boolean runTwice;
+	protected SettingsImportServices services;
+	protected ImportedSettings settings = new ImportedSettings();
+	protected ImportedCollectionSettings zeCollectionSettings;
+	protected ImportedCollectionSettings anotherCollectionSettings;
 	@Mock
-	AppLayerFactory appLayerFactory;
+	protected AppLayerFactory appLayerFactory;
 	@Mock
-	AppLayerExtensions extensions;
+	protected AppLayerExtensions extensions;
 	@Mock
-	AppLayerSystemExtensions systemExtensions;
+	protected AppLayerSystemExtensions systemExtensions;
 
 	@Test
 	public void whenImportingLabelTemplatesThenCorrectlyImported()
 			throws ValidationException {
 		when(appLayerFactory.getExtensions()).thenReturn(extensions);
 		when(extensions.getSystemWideExtensions()).thenReturn(systemExtensions);
+
+		List<String> plugins = new ArrayList<>();
+		plugins.add("plugin1");
+		plugins.add("plugin2");
+		ImportedSystemVersion importedSystemVersion = new ImportedSystemVersion();
+
+		importedSystemVersion.setPlugins(plugins);
+		importedSystemVersion.setFullVersion("5.0.1");
+		importedSystemVersion.setMajorVersion(5);
+		importedSystemVersion.setMinorVersion(0);
+		importedSystemVersion.setMinorRevisionVersion(0);
+		importedSystemVersion.setOnlyUSR(true);
+
+		settings.setImportedSystemVersion(importedSystemVersion);
 
 		settings.addImportedLabelTemplate(getTestResourceContent("template1.xml"));
 		importSettings();
@@ -151,6 +165,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				"Ze template #1");
 
 		settings = new ImportedSettings();
+		settings.setImportedSystemVersion(importedSystemVersion);
 		settings.addImportedLabelTemplate(getTestResourceContent("template1b.xml"));
 		settings.addImportedLabelTemplate(getTestResourceContent("template2.xml"));
 		importSettings();
@@ -184,6 +199,58 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		importedSystemVersion.setMajorVersion(5);
 		importedSystemVersion.setMinorVersion(0);
 		importedSystemVersion.setMinorRevisionVersion(1);
+		importedSystemVersion.setOnlyUSR(false);
+
+		settings.setImportedSystemVersion(importedSystemVersion);
+
+		settings.addImportedLabelTemplate(getTestResourceContent("template1.xml"));
+		importSettings();
+
+	}
+
+	@Test(expected = com.constellio.model.frameworks.validation.ValidationException.class)
+	public void whenImportingTemplatesOfDifferentPluginsThenDoNotImport()
+			throws ValidationException {
+		when(appLayerFactory.getExtensions()).thenReturn(extensions);
+		when(extensions.getSystemWideExtensions()).thenReturn(systemExtensions);
+
+		List<String> plugins = new ArrayList<>();
+		plugins.add("plugin1");
+		plugins.add("plugin2");
+		ImportedSystemVersion importedSystemVersion = new ImportedSystemVersion();
+
+		importedSystemVersion.setPlugins(plugins);
+		importedSystemVersion.setFullVersion("5.0.0");
+		importedSystemVersion.setMajorVersion(5);
+		importedSystemVersion.setMinorVersion(0);
+		importedSystemVersion.setMinorRevisionVersion(0);
+		importedSystemVersion.setOnlyUSR(false);
+
+		settings.setImportedSystemVersion(importedSystemVersion);
+
+		settings.addImportedLabelTemplate(getTestResourceContent("template1.xml"));
+		importSettings();
+
+	}
+
+	@Test
+	public void whenImportingTemplatesOfDifferentPluginsDevThenImport()
+			throws ValidationException {
+		when(appLayerFactory.getExtensions()).thenReturn(extensions);
+		when(extensions.getSystemWideExtensions()).thenReturn(systemExtensions);
+
+		List<String> plugins = new ArrayList<>();
+		plugins.add("MU");
+		plugins.add("devtools");
+		ImportedSystemVersion importedSystemVersion = new ImportedSystemVersion();
+
+		importedSystemVersion.setPlugins(plugins);
+		importedSystemVersion.setFullVersion("5.0.0");
+		importedSystemVersion.setMajorVersion(5);
+		importedSystemVersion.setMinorVersion(0);
+		importedSystemVersion.setMinorRevisionVersion(0);
+		importedSystemVersion.setOnlyUSR(false);
+
 
 		settings.setImportedSystemVersion(importedSystemVersion);
 
@@ -197,11 +264,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				"Code de plan justifié à gauche (Avery 5162)", "Code de plan justifié à gauche (Avery 5163)",
 				"Ze template #1");
 
-		settings = new ImportedSettings();
-		settings.addImportedLabelTemplate(getTestResourceContent("template1b.xml"));
-		settings.addImportedLabelTemplate(getTestResourceContent("template2.xml"));
-		importSettings();
-
+		runTwice = false;
 	}
 
 	@Test
@@ -3581,7 +3644,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		}
 	}
 
-	private void importSettings()
+	protected void importSettings()
 			throws com.constellio.model.frameworks.validation.ValidationException {
 		try {
 			// write settings1 to file ==> file2
