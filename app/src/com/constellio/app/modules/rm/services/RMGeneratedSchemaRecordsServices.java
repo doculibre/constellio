@@ -1204,6 +1204,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("contentCheckedOutBy");
 		}
 
+		public Metadata isCheckoutAlertSent() {
+			return metadata("isCheckoutAlertSent");
+		}
+
 		public Metadata copyStatus() {
 			return metadata("copyStatus");
 		}
