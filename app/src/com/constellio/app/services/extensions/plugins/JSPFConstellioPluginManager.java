@@ -516,13 +516,12 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 			ScriptsUtils.forEachAvailableAndFailedTenants((tenantId, appLayerFactory) -> {
 				//Should work event if the tenant failed to start (only requires an initialized ConfigManager)
 
-				//TODO Samuel : Décommenter le try/catch si le test fonctionne
-				//try {
-				appLayerFactory.getPluginManager().getPlugins(statuses).forEach((info) -> returnList.add(info.getCode()));
-				//} catch (Throwable t) {
+				try {
+					appLayerFactory.getPluginManager().getPlugins(statuses).forEach((info) -> returnList.add(info.getCode()));
+				} catch (Throwable t) {
 
-				//LOGGER.info("Update is not considering tenant '" + tenantId + "'", t);
-				//}
+					LOGGER.info("Update is not considering tenant '" + tenantId + "'", t);
+				}
 			});
 
 			ScriptsUtils.forEachAvailableAndFailedTenants((tenantId, appLayerFactory) -> {
@@ -549,13 +548,12 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 			ScriptsUtils.forEachAvailableAndFailedTenants((tenantId, appLayerFactory) -> {
 				//Should work event if the tenant failed to start (only requires an initialized ConfigManager)
 
-				//TODO Samuel : Décommenter le try/catch si le test fonctionne
-				//try {
-				returnList.addAll(appLayerFactory.getPluginManager().getPluginsOfEveryStatus());
-				//} catch (Throwable t) {
+				try {
+					returnList.addAll(appLayerFactory.getPluginManager().getPluginsOfEveryStatus());
+				} catch (Throwable t) {
 
-				//LOGGER.info("Update is not considering tenant '" + tenantId + "'", t);
-				//}
+					LOGGER.info("Update is not considering tenant '" + tenantId + "'", t);
+				}
 			});
 			return new ArrayList<>(returnList);
 		} else {
