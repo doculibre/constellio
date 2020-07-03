@@ -16,8 +16,15 @@ public class AppLayerFactoryRuntineException extends RuntimeException {
 
 	public static class AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry extends AppLayerFactoryRuntineException {
 
-		public AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry() {
-			super("AppLayerFactories initialize cancelled");
+		public AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry(Throwable t) {
+			super("AppLayerFactories initialize cancelled, should retry", t);
+		}
+	}
+
+	public static class AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldNotRetry extends AppLayerFactoryRuntineException {
+
+		public AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldNotRetry(Throwable t) {
+			super("AppLayerFactories initialize cancelled, should not retry", t);
 		}
 	}
 }

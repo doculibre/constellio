@@ -21,6 +21,7 @@ import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
+import com.constellio.app.services.factories.AppLayerFactoryRuntineException.AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldNotRetry;
 import com.constellio.app.services.factories.AppLayerFactoryRuntineException.AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry;
 import com.constellio.app.services.metadata.AppSchemasServices;
 import com.constellio.app.services.migrations.ConstellioEIM;
@@ -257,42 +258,36 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		configManager.initialize();
 		ConstellioEIMConfigs constellioConfigs = new ConstellioEIMConfigs(configManager);
 
-		boolean startedUp = true;
 		if (isSupportingRollbacks(constellioConfigs)) {
 			LOGGER.info("Launching in rollback mode");
 			startupWithPossibleRecovery(upgradeAppRecoveryService);
 		} else {
 			if (TenantUtils.isSupportingTenants()) {
 				LOGGER.info("Launching in tenant mode");
-				startedUp = normalStartupInMultiTenantSystem();
+				normalStartupInMultiTenantSystem();
 			} else {
 				LOGGER.info("Launching in normal mode");
 				normalStartup(false);
 			}
 		}
-		if (startedUp) {
-			if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {
-				dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
-				dataLayerFactory.getConstellioJobManager().onSystemStarted();
-			}
-			dataLayerFactory.getEventBusManager().resume();
-			upgradeAppRecoveryService.close();
 
-			initializationFinished = true;
-
-			getModelLayerFactory().getRecordsCaches().register(new SavedSearchRecordsCachesHook(10_000));
-
-			SystemLogger.info("Application started");
-		} else {
-
-			LOGGER.error("Application could not start for " + TenantUtils.getTenantId());
+		if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {
+			dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
+			dataLayerFactory.getConstellioJobManager().onSystemStarted();
 		}
+		dataLayerFactory.getEventBusManager().resume();
+		upgradeAppRecoveryService.close();
+
+		initializationFinished = true;
+
+		getModelLayerFactory().getRecordsCaches().register(new SavedSearchRecordsCachesHook(10_000));
+
+		SystemLogger.info("Application started");
 	}
 
-	private boolean normalStartupInMultiTenantSystem() {
+	private void normalStartupInMultiTenantSystem() {
 		try {
 			normalStartup(false);
-			return true;
 
 		} catch (AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry e) {
 			LOGGER.info("AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry catched in normalStartupInMultiTenantSystem, will be retrown");
@@ -315,7 +310,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 			} catch (Throwable t2) {
 				LOGGER.error("Fatal error during the tenant's shutdown, no further actions will be done", t2);
 			}
-			return false;
+			throw new AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldNotRetry(t);
 
 		}
 	}
@@ -388,7 +383,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 					//The faulty plugin was disabled, retrying without it
 					LOGGER.info("Retrying to initialize the tenant '" + TenantUtils.getTenantId()
 								+ "' without the module '" + e.getFailedModule() + "'", e);
-					throw new AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry();
+					throw new AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry(e);
 
 				} else {
 					LOGGER.warn("System is restarting because of failure to install/update module '" + e.getFailedModule()

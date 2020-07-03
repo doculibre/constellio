@@ -1,5 +1,6 @@
 package com.constellio.app.services.factories;
 
+import com.constellio.app.services.factories.AppLayerFactoryRuntineException.AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldNotRetry;
 import com.constellio.app.services.factories.AppLayerFactoryRuntineException.AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry;
 import com.constellio.app.services.factories.ConstellioFactoriesRuntimeException.ConstellioFactoriesRuntimeException_TenantOffline;
 import com.constellio.data.utils.Factory;
@@ -60,10 +61,16 @@ public class SingletonConstellioFactoriesInstanceProvider implements ConstellioF
 					//getInstance(currentTenantId, constellioFactoriesFactory);
 					//Nothing, just re-entering the while loop for an other attempt
 
+				} catch (AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldNotRetry t) {
+					LOGGER.info("Factories of tenant '" + tenantId + "' failed to initialize. This tenant is now offline");
+					brokenFactoriesMap.put(tenantId, t.getCause());
+					clear(currentTenantId);
+
 				} catch (Throwable t) {
 					LOGGER.info("Factories of tenant '" + tenantId + "' failed to initialize. This tenant is now offline");
 					brokenFactoriesMap.put(tenantId, t);
 					clear(currentTenantId);
+
 				}
 			});
 
