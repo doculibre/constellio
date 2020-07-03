@@ -30,8 +30,10 @@ import java.util.UUID;
 
 public class SignatureExternalAccessDao {
 	public static final String UNAUTHORIZED = "Unauthorized";
+	public static final String FORBIDDEN = "Forbidden";
 	public static final String MISSING_DOCUMENT_PARAM = "Missing document param.";
-	public static final String INVALID_DOCUMENT_PARAM = "The document does not exist.";
+	public static final String DOCUMENT_NOT_FOUND = "The document does not exist.";
+	public static final String INVALID_DOCUMENT_PARAM = "The document is not valid.";
 	public static final String MISSING_EXTERNAL_USER_FULLNAME_PARAM = "Missing external user fullname param.";
 	public static final String MISSING_DATE_PARAM = "Missing expiration date param.";
 	public static final String INVALID_DATE_PARAM = "The expiration date is not valid.";
@@ -141,11 +143,11 @@ public class SignatureExternalAccessDao {
 		try {
 			documentRecord = recordServices.getDocumentById(documentId);
 		} catch (Exception e) {
-			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, INVALID_DOCUMENT_PARAM);
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_NOT_FOUND, DOCUMENT_NOT_FOUND);
 		}
 
 		if (documentRecord == null) {
-			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, INVALID_DOCUMENT_PARAM);
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_NOT_FOUND, DOCUMENT_NOT_FOUND);
 		}
 
 		initWithCollection(documentRecord.getCollection());
@@ -153,7 +155,7 @@ public class SignatureExternalAccessDao {
 		User user = userServices.getUserInCollection(username, documentRecord.getCollection());
 		if (!user.hasWriteAccess().on(documentRecord) ||
 			!user.has(RMPermissionsTo.GENERATE_EXTERNAL_SIGNATURE_URL).globally()) {
-			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_FORBIDDEN, FORBIDDEN);
 		}
 
 		Document document;

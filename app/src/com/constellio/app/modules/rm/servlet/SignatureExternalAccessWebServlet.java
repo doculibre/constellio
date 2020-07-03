@@ -28,7 +28,9 @@ public class SignatureExternalAccessWebServlet extends HttpServlet {
 			resp.setStatus(HttpServletResponse.SC_OK);
 			resp.sendRedirect(location);
 		} catch (SignatureExternalAccessServiceException e) {
-			resp.sendError(e.getStatus(), e.getMessage());
+			resp.setStatus(e.getStatus());
+			resp.setContentType("application/json");
+			resp.getWriter().write(e.getMessage());
 		}
 	}
 
@@ -46,7 +48,9 @@ public class SignatureExternalAccessWebServlet extends HttpServlet {
 			resp.setStatus(HttpServletResponse.SC_OK);
 			resp.getOutputStream().print(url);
 		} catch (SignatureExternalAccessServiceException e) {
-			resp.sendError(e.getStatus(), e.getMessage());
+			resp.setStatus(e.getStatus());
+			resp.setContentType("application/json");
+			resp.getWriter().write(e.getMessage());
 		}
 	}
 }

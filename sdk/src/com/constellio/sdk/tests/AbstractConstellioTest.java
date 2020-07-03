@@ -668,6 +668,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return getCurrentTestSession().getSeleniumTestFeatures().newWebTarget(path, mapper);
 	}
 
+	protected WebTarget newWebTarget(String path, ObjectMapper mapper, boolean isRest) {
+		ensureNotUnitTest();
+		getCurrentTestSession().getFactoriesTestFeatures().load();
+		return getCurrentTestSession().getSeleniumTestFeatures().newWebTarget(path, mapper, isRest);
+	}
+
 	protected SolrClient newSearchClient() {
 		ensureNotUnitTest();
 		getCurrentTestSession().getFactoriesTestFeatures().load();

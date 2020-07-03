@@ -150,6 +150,10 @@ public class SeleniumTestFeatures {
 	}
 
 	public WebTarget newWebTarget(String path, ObjectMapper objectMapper) {
+		return newWebTarget(path, objectMapper, true);
+	}
+
+	public WebTarget newWebTarget(String path, ObjectMapper objectMapper, boolean isRest) {
 
 		if (!path.isEmpty() && !path.startsWith("/")) {
 			path = "/" + path;
@@ -160,7 +164,12 @@ public class SeleniumTestFeatures {
 		if (!applicationStarted) {
 			startApplication();
 		}
-		String url = "http://localhost:" + port + "/constellio/rest" + path;
+		String url = "http://localhost:" + port + "/constellio";
+		if (isRest) {
+			url += "/rest" + path;
+		} else {
+			url += path;
+		}
 
 		ObjectMapper mapper = objectMapper != null ? objectMapper : new ObjectMapper();
 		mapper.registerModule(new JodaModule());
