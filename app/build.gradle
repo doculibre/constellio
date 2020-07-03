@@ -67,6 +67,7 @@ dependencies {
     compile 'vaadin:breadcrumb:1.7.3'
     compile 'vaadin:mediaelementjs-player:1.2.6'
     compile 'eu.maxschuster:vaadin-autocompletetextfield:1.0-alpha-4'
+    compile 'org.vaadin.teemu:switch:2.0.3'
     compile 'org.apache.chemistry.opencmis:chemistry-opencmis-server-bindings:1.1.0'
     compile 'org.apache.chemistry.opencmis:chemistry-opencmis-server-support:1.1.0'
     compile 'com.jgoodies:jgoodies-common:1.7.0'

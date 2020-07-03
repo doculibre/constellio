@@ -1,0 +1,74 @@
+.v-switch {
+	width: 81px;
+	height: 22px;
+	overflow: hidden;
+	border: 1px solid #bfbfbf;	
+	position: relative;
+	cursor: pointer !important;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+}
+.v-switch-slider {
+	-moz-border-radius: 1px;
+	-webkit-border-radius: 1px;
+	border-radius: 1px;
+}
+.v-switch-slider {
+	position: absolute;
+	top: 0;
+	left: 0;
+	background: url(images/my-switch.png) no-repeat;
+	width: 130px;
+	height: 20px;
+}
+.v-switch-focus,
+.v-switch:focus {
+	outline: none;
+	border-color: #4f83b4 #5b97d0 #5ca0df;
+}
+
+
+
+/** Overriding styles for "compact" style. */
+.v-switch-compact {
+	width: 58px;
+}
+.v-switch-compact .v-switch-slider {
+	background: url(images/compact-switch.png) no-repeat;
+	width: 96px;	
+}
+
+
+
+/** Overriding styles for "holodeck" style. */
+.v-switch-holodeck {
+	border: none;
+	width: 82px;
+	-moz-border-radius: 0;
+	-webkit-border-radius: 0;
+	border-radius: 0;
+}
+.v-switch-holodeck .v-switch-slider {
+	background: #474747 url(images/holodeck-switch.png) no-repeat;
+	width: 122px;
+}
+.v-switch-holodeck.on .v-switch-slider {
+	background-color: #0c7fb1;
+}
+.v-switch-holodeck.on .v-switch-slider:after,
+.v-switch-holodeck .v-switch-slider:after {
+	color: #bdbdbd;
+	font-family: Helvetica;
+	font-size: 10px;
+	position: absolute;
+	top: 0;
+	left: 50px;
+	line-height: 20px;
+}
+.v-switch-holodeck .v-switch-slider:after {
+	content: "OFF";
+}
+.v-switch-holodeck.on .v-switch-slider:after {
+	content: "ON";
+}
