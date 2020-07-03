@@ -1989,8 +1989,10 @@ var PDFViewerApplication = {
     eventBus.on('presentationmode', webViewerPresentationMode);
     eventBus.on('openfile', webViewerOpenFile);
     eventBus.on('print', webViewerPrint);
-    eventBus.on('sign', webViewerSign);
     eventBus.on('certify', webViewerCertify);
+    eventBus.on('sign', webViewerSign);
+    eventBus.on('signatureZone', webViewerSignatureZone);
+    eventBus.on('textZone', webViewerTextZone);
     eventBus.on('download', webViewerDownload);
     eventBus.on('firstpage', webViewerFirstPage);
     eventBus.on('lastpage', webViewerLastPage);
@@ -2102,6 +2104,12 @@ function webViewerInitialized() {
         
         appConfig.toolbar.certify.classList.add('hidden');
         appConfig.secondaryToolbar.certifyButton.classList.add('hidden');
+        
+        appConfig.toolbar.signatureZone.classList.add('hidden');
+        appConfig.secondaryToolbar.signatureZoneButton.classList.add('hidden');
+        
+        appConfig.toolbar.textZone.classList.add('hidden');
+        appConfig.secondaryToolbar.textZoneButton.classList.add('hidden');
       }
   }
   if ('annotationsconfig' in params) {
@@ -2170,6 +2178,12 @@ function webViewerInitialized() {
           
           appConfig.toolbar.certify.classList.add('hidden');
           appConfig.secondaryToolbar.certifyButton.classList.add('hidden');
+        
+          appConfig.toolbar.signatureZone.classList.add('hidden');
+          appConfig.secondaryToolbar.signatureZoneButton.classList.add('hidden');
+          
+          appConfig.toolbar.textZone.classList.add('hidden');
+          appConfig.secondaryToolbar.textZoneButton.classList.add('hidden');
         }
     }
     if ('locale' in hashParams) {
@@ -2390,6 +2404,10 @@ function webViewerOpenFile() {
 function webViewerPrint() {
   window.print();
 }
+function webViewerCertify() {
+  var pdfAnnotationsManager = PDFViewerApplication.pdfAnnotationsManager;
+  pdfAnnotationsManager.certifyPDFSignatures();
+}
 function webViewerSign() {
   var dropZoneManager = PDFViewerApplication.pdfAnnotationsManager.getCurrentDropZoneManager();
   if (dropZoneManager) {
@@ -2400,9 +2418,24 @@ function webViewerSign() {
     console.error("No drop zone manager");
   }
 }
-function webViewerCertify() {
-  var pdfAnnotationsManager = PDFViewerApplication.pdfAnnotationsManager;
-  pdfAnnotationsManager.certifyPDFSignatures();
+function webViewerSignatureZone() {
+  var dropZoneManager = PDFViewerApplication.pdfAnnotationsManager.getCurrentDropZoneManager();
+  if (dropZoneManager) {
+    var signatureDataStore = PDFViewerApplication.signatureDataStore;
+    var signaturePicker = new SignatureAnnotationPicker(signatureDataStore, dropZoneManager);
+    signaturePicker.signHereAnnotationPicked();
+  } else {
+    console.error("No drop zone manager");
+  }
+}
+function webViewerTextZone() {
+  var dropZoneManager = PDFViewerApplication.pdfAnnotationsManager.getCurrentDropZoneManager();
+  if (dropZoneManager) {
+    var textAnnotation = new TextAnnotation();
+    dropZoneManager.defineAnnotation(textAnnotation);
+  } else {
+    console.error("No drop zone manager");
+  }
 }
 function webViewerDownload() {
   PDFViewerApplication.download();
@@ -7080,12 +7113,20 @@ var SecondaryToolbar = function SecondaryToolbarClosure() {
       eventName: 'print',
       close: true
     }, {
+      element: options.certifyButton,
+      eventName: 'certify',
+      close: true
+    }, {
       element: options.signButton,
       eventName: 'sign',
       close: true
     }, {
-      element: options.certifyButton,
-      eventName: 'certify',
+      element: options.signatureZoneButton,
+      eventName: 'signatureZone',
+      close: true
+    }, {
+      element: options.textZoneButton,
+      eventName: 'textZone',
       close: true
     }, {
       element: options.downloadButton,
@@ -7605,11 +7646,17 @@ var Toolbar = function ToolbarClosure() {
       items.print.addEventListener('click', function (e) {
         eventBus.dispatch('print');
       });
+      items.certify.addEventListener('click', function (e) {
+        eventBus.dispatch('certify');
+      });
       items.sign.addEventListener('click', function (e) {
         eventBus.dispatch('sign');
       });
-      items.certify.addEventListener('click', function (e) {
-        eventBus.dispatch('certify');
+      items.signatureZone.addEventListener('click', function (e) {
+        eventBus.dispatch('signatureZone');
+      });
+      items.textZone.addEventListener('click', function (e) {
+        eventBus.dispatch('textZone');
       });
       items.download.addEventListener('click', function (e) {
         eventBus.dispatch('download');
@@ -7830,8 +7877,10 @@ function getViewerConfiguration() {
       viewFind: document.getElementById('viewFind'),
       openFile: document.getElementById('openFile'),
       print: document.getElementById('print'),
-      sign: document.getElementById('sign'),
       certify: document.getElementById('certify'),
+      sign: document.getElementById('sign'),
+      signatureZone: document.getElementById('signatureZone'),
+      textZone: document.getElementById('textZone'),
       presentationModeButton: document.getElementById('presentationMode'),
       download: document.getElementById('download'),
       viewBookmark: document.getElementById('viewBookmark')
@@ -7843,8 +7892,10 @@ function getViewerConfiguration() {
       presentationModeButton: document.getElementById('secondaryPresentationMode'),
       openFileButton: document.getElementById('secondaryOpenFile'),
       printButton: document.getElementById('secondaryPrint'),
-      signButton: document.getElementById('secondarySign'),
       certifyButton: document.getElementById('secondaryCertify'),
+      signButton: document.getElementById('secondarySign'),
+      signatureZoneButton: document.getElementById('secondarySignatureZone'),
+      textZoneButton: document.getElementById('secondaryTextZone'),
       downloadButton: document.getElementById('secondaryDownload'),
       viewBookmarkButton: document.getElementById('secondaryViewBookmark'),
       firstPageButton: document.getElementById('firstPage'),

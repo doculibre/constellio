@@ -31,8 +31,8 @@ import com.constellio.model.services.contents.ContentManagerRuntimeException.Con
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.pdf.pdfjs.signature.PdfJSAnnotations;
-import com.constellio.model.services.pdf.signature.PdfSignatureAnnotation;
+import com.constellio.model.services.pdf.PdfAnnotation;
+import com.constellio.model.services.pdf.pdfjs.PdfJSAnnotations;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
@@ -385,8 +385,8 @@ public class PdfJSServices {
 				pdDocument = PDDocument.load(pdfInputStream);
 
 				String bakeUserInfo = getUserSignatureInfo(user);
-				List<PdfSignatureAnnotation> signatureAnnotations = annotations.getSignatureAnnotations(pdDocument, true);
-				for (PdfSignatureAnnotation signatureAnnotation : signatureAnnotations) {
+				List<PdfAnnotation> signatureAnnotations = annotations.getAnnotationsToSaveWithSignature(pdDocument, true);
+				for (PdfAnnotation signatureAnnotation : signatureAnnotations) {
 					if (signatureAnnotation.getUserId() == null && !(user instanceof ExternalAccessUser)) {
 						signatureAnnotation.setUserId(user.getId());
 					}
@@ -401,7 +401,7 @@ public class PdfJSServices {
 				annotations.setVersion(newAnnotationsVersion);
 
 				Date bakeDate = new Date();
-				annotations.markSignatureAnnotationsAsBaked(bakeUserInfo, bakeDate);
+				annotations.markAnnotationsToSaveWithSignatureAsBaked(bakeUserInfo, bakeDate);
 				saveAnnotations(record, metadata, user, annotations);
 
 				if (user instanceof ExternalAccessUser) {

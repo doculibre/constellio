@@ -1,10 +1,10 @@
 package com.constellio.model.services.pdf.pdtron;
 
+import com.constellio.model.services.pdf.PdfAnnotation;
 import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
 import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_IOExeption;
 import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
 import com.constellio.model.services.pdf.pdtron.signature.PdfTronSignatureAnnotation;
-import com.constellio.model.services.pdf.signature.PdfSignatureAnnotation;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -33,7 +33,7 @@ public class PdfTronXMLService {
 
 	}
 
-	public List<PdfSignatureAnnotation> getSignatureAnnotations(String currentAnnotationAsStr)
+	public List<PdfAnnotation> getSignatureAnnotations(String currentAnnotationAsStr)
 			throws PdfTronXMLException_XMLParsingException, PdfTronXMLException_IOExeption {
 		Document currentAnnotationDocument = getDocumentFromStr(currentAnnotationAsStr);
 		Element currentAnnotsElement = getAnnotationElementList(currentAnnotationDocument);
@@ -41,7 +41,7 @@ public class PdfTronXMLService {
 		Map<String, Element> currentAnnotationsById = currentAnnotsElement != null
 													  ? getElementInMapById(currentAnnotsElement.getChildren()) : new HashMap<>();
 
-		List<PdfSignatureAnnotation> signatures = new ArrayList<>();
+		List<PdfAnnotation> signatures = new ArrayList<>();
 		for (Element element : currentAnnotationsById.values()) {
 			if (element.getAttributeValue(SUBJECT).equals(SIGNATURE_TYPE)) {
 				signatures.add(new PdfTronSignatureAnnotation(element));

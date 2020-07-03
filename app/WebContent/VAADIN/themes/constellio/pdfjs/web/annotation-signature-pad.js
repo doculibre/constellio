@@ -12,12 +12,12 @@ SignaturePadAnnotation.prototype.getType = function() {
 	return "signature-pad-annotation";
 }
 
-SignaturePadAnnotation.prototype.isInitials = function() {
-	return this.initials;
+SignaturePadAnnotation.prototype.isSignature = function() {
+	return this.signature;
 };
 
-SignaturePadAnnotation.prototype.setInitials = function(initials) {
-	this.initials = initials;
+SignaturePadAnnotation.prototype.setSignature = function(signature) {
+	this.signature = signature;
 };
 
 SignaturePadAnnotation.prototype.getBakeInfoI10nKey = function() {
@@ -26,7 +26,7 @@ SignaturePadAnnotation.prototype.getBakeInfoI10nKey = function() {
 
 SignaturePadAnnotation.prototype.toJSON = function() {
 	var json = Annotation.prototype.toJSON.call(this);
-	json.initials = this.isInitials();
+	json.signature = this.isSignature();
 	if (this.imageUrl) {
 		json.imageUrl = this.imageUrl;
 	}	
@@ -38,7 +38,7 @@ SignaturePadAnnotation.prototype.fromJSON = function(json) {
 	if (json.imageUrl) {
 		this.imageUrl = json.imageUrl;
 	}
-	this.initials = json.initials;
+	this.signature = json.signature;
 };	
 
 SignaturePadAnnotation.prototype.bind = function(htmlElement) {

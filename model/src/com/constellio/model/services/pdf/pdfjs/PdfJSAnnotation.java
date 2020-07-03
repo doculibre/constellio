@@ -1,22 +1,22 @@
-package com.constellio.model.services.pdf.pdfjs.signature;
+package com.constellio.model.services.pdf.pdfjs;
 
-import com.constellio.model.services.pdf.signature.PdfSignatureAnnotation;
+import com.constellio.model.services.pdf.PdfAnnotation;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.json.JSONObject;
 
 import java.awt.*;
 
-public class PdfJSSignatureAnnotation extends PdfSignatureAnnotation {
+public class PdfJSAnnotation extends PdfAnnotation {
 
-	public PdfJSSignatureAnnotation(JSONObject annotationJson, PDDocument pdDocument, int page) {
+	public PdfJSAnnotation(JSONObject annotationJson, PDDocument pdDocument, int page) {
 		super(
 				page,
 				createPositionRectangle(annotationJson, pdDocument, page),
 				getUserId(annotationJson),
 				getUsername(annotationJson),
 				fetchImageData(annotationJson),
-				fetchInitials(annotationJson),
+				fetchSignature(annotationJson),
 				fetchBaked(annotationJson)
 		);
 	}
@@ -53,7 +53,7 @@ public class PdfJSSignatureAnnotation extends PdfSignatureAnnotation {
 		String imageUrl;
 		String type = annotationJson.getString("type");
 		if ("signature-image-annotation".equals(type)) {
-			imageUrl = annotationJson.getString("url");
+			imageUrl = annotationJson.getString("imageUrl");
 		} else if ("signature-pad-annotation".equals(type)) {
 			imageUrl = annotationJson.getString("imageUrl");
 		} else if ("signature-text-annotation".equals(type)) {
@@ -66,8 +66,8 @@ public class PdfJSSignatureAnnotation extends PdfSignatureAnnotation {
 		return imageUrl;
 	}
 
-	private static boolean fetchInitials(JSONObject annotationJson) {
-		return annotationJson.has("initials") ? annotationJson.getBoolean("initials") : false;
+	private static boolean fetchSignature(JSONObject annotationJson) {
+		return annotationJson.has("signature") ? annotationJson.getBoolean("signature") : false;
 	}
 
 	private static boolean fetchBaked(JSONObject annotationJson) {

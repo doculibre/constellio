@@ -130,6 +130,26 @@ See https://github.com/adobe-type-tools/cmap-resources
           </div>
         </div>  <!-- findbar -->
 
+          <div class="findbar hidden signatureOptions doorHanger" id="signatureOptions">
+              <div id="signatureOptionsContainer" style="height:auto;">
+
+                  <div id="signatureOptionContainer" style="float:initial;">
+                      <img id="signatureOptionImage" src="https://via.placeholder.com/200x100"/>
+                      <button id="removeSignatureButton" title="Remove signature" data-l10n-id="remove_signature">
+                          <span data-l10n-id="remove_signature_label">Remove signature</span>
+                      </button>
+                  </div>
+
+                  <div id="initialsOptionContainer" style="float:initial;">
+                      <img id="initialsOptionImage" src="https://via.placeholder.com/200x100"/>
+                      <button id="removeInitialsButton" title="Remove initials" data-l10n-id="remove_initials">
+                          <span data-l10n-id="remove_initials_label">Remove initials</span>
+                      </button>
+                  </div>
+
+              </div>
+          </div>  <!-- signature options -->
+
         <div id="secondaryToolbar" class="secondaryToolbar hidden doorHangerRight">
           <div id="secondaryToolbarButtonContainer">
             <button id="secondaryPresentationMode" class="secondaryToolbarButton presentationMode visibleLargeView" title="Switch to Presentation Mode" tabindex="51" data-l10n-id="presentation_mode">
@@ -149,24 +169,26 @@ See https://github.com/adobe-type-tools/cmap-resources
               <span data-l10n-id="print_label">Print</span>
             </button>
 
-            <button id="secondaryCertify" class="secondaryToolbarButton certify visibleMediumView" title="Certify"
-                    tabindex="53" data-l10n-id="certify">
+              <button id="secondaryCertify" class="secondaryToolbarButton certify visibleMediumView tooltip"
+                      title="Certify"
+                      tabindex="53" data-l10n-id="certify">
               <span data-l10n-id="certify_label">Certify</span>
             </button>
 
-              <button id="secondarySign" class="secondaryToolbarButton sign visibleMediumView" title="Sign"
+              <button id="secondarySign" class="secondaryToolbarButton sign visibleMediumView tooltip" title="Sign"
                       tabindex="53" data-l10n-id="sign">
                   <span data-l10n-id="sign_label">Sign</span>
               </button>
 
-            <button id="secondarySignatureZone" class="secondaryToolbarButton signatureZone visibleMediumView"
-                    title="Sign"
-                    tabindex="53" data-l10n-id="signatureZone">
+              <button id="secondarySignatureZone" class="secondaryToolbarButton signatureZone visibleMediumView tooltip"
+                      title="New signature zone"
+                      tabindex="53" data-l10n-id="signatureZone">
               <span data-l10n-id="signature_zone_label">New signature zone</span>
             </button>
 
-            <button id="secondaryTextZone" class="secondaryToolbarButton textZone visibleMediumView" title="Sign"
-                    tabindex="53" data-l10n-id="textZone">
+              <button id="secondaryTextZone" class="secondaryToolbarButton textZone visibleMediumView tooltip"
+                      title="New text zone"
+                      tabindex="53" data-l10n-id="textZone">
               <span data-l10n-id="text_zone_label">New text zone</span>
               </button>
 
@@ -230,26 +252,26 @@ See https://github.com/adobe-type-tools/cmap-resources
                   <span data-l10n-id="toggle_sidebar_label">Toggle Sidebar</span>
                 </button>
 
-                <button id="certify" class="toolbarButton certify hiddenMediumView certifyNotification"
-                        title="Certify" tabindex="33"
-                        data-l10n-id="certify">
+                  <button id="certify" class="toolbarButton certify hiddenMediumView certifyNotification tooltip"
+                          title="Certify" tabindex="33"
+                          data-l10n-id="certify">
                   <span data-l10n-id="certify_label">Certify</span>
                 </button>
 
-                <button id="sign" class="toolbarButton sign hiddenMediumView" title="Sign" tabindex="33"
-                        data-l10n-id="sign">
+                  <button id="sign" class="toolbarButton sign hiddenMediumView tooltip" title="Sign" tabindex="33"
+                          data-l10n-id="sign">
                   <span data-l10n-id="sign_label">Sign</span>
                 </button>
 
-                <button id="signatureZone" class="toolbarButton signatureZone hiddenMediumView"
-                        title="New signature zone" tabindex="33"
-                        data-l10n-id="signatureZone">
+                  <button id="signatureZone" class="toolbarButton signatureZone hiddenMediumView tooltip"
+                          title="New signature zone" tabindex="33"
+                          data-l10n-id="signatureZone">
                   <span data-l10n-id="signature_zone_label">New signature zone</span>
                 </button>
 
-                <button id="textZone" class="toolbarButton textZone hiddenMediumView" title="New text zone"
-                        tabindex="33"
-                        data-l10n-id="textZone">
+                  <button id="textZone" class="toolbarButton textZone hiddenMediumView tooltip" title="New text zone"
+                          tabindex="33"
+                          data-l10n-id="textZone">
                   <span data-l10n-id="text_zone_label">New text zone</span>
                 </button>
 
@@ -462,11 +484,16 @@ See https://github.com/adobe-type-tools/cmap-resources
     <script src="./signature_pad.umd.js"></script>
     <script>
         $(document).ready(function() {
-            $('.tooltip').tooltipster();
-            //$('[data-l10n-id]').tooltipster();
+          var mozL10n = document.mozL10n || document.webL10n;
+          if (mozL10n) {
+            mozL10n.ready(function() {
+              setTimeout(function() {
+                //$('.tooltip').tooltipster();
+                $('[data-l10n-id]').tooltipster();
+              }, 1000);
+            });
+          }
         });
-
-
     </script>
   </body>
 </html>

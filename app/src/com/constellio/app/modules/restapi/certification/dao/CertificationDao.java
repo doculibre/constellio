@@ -11,7 +11,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.pdf.signature.PdfSignatureAnnotation;
+import com.constellio.model.services.pdf.PdfAnnotation;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -23,8 +23,8 @@ public class CertificationDao extends ResourceDao {
 
 	private PdfDocumentCertifyService pdfService;
 
-	public PdfSignatureAnnotation createCertification(User user, CertificationDto certification, String flush,
-													  Record document) throws Exception {
+	public PdfAnnotation createCertification(User user, CertificationDto certification, String flush,
+											 Record document) throws Exception {
 		Content content = getMetadataValue(document, Document.CONTENT);
 		if (content == null) {
 			throw new DocumentContentNotFoundException(document.getId(), LAST_VERSION);
@@ -35,9 +35,9 @@ public class CertificationDao extends ResourceDao {
 			pdfService = new PdfDocumentCertifyService(this.appLayerFactory, document.getCollection(), document.getId(), document.getTypeCode(),
 					contentVersionVO, user);
 		}
-		PdfSignatureAnnotation certified = new PdfSignatureAnnotation(certification.getPage(), convertRectangle(certification.getPosition()),
+		PdfAnnotation certified = new PdfAnnotation(certification.getPage(), convertRectangle(certification.getPosition()),
 				certification.getUserId(), certification.getUsername(), certification.getImageData(), certification.isInitials(), certification.isBaked());
-		List<PdfSignatureAnnotation> listSignature = new ArrayList<>();
+		List<PdfAnnotation> listSignature = new ArrayList<>();
 		listSignature.add(certified);
 		pdfService.certifyAndSign("", listSignature);
 

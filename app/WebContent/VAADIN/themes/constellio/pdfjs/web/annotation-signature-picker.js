@@ -47,9 +47,9 @@ SignatureAnnotationPicker.prototype.replaceSignHereAnnotation = function(signHer
     this.dropZoneManager.onAnnotationSaved(newAnnotation);
 };    
 
-SignatureAnnotationPicker.prototype.drawAnnotationPicked = function(signHereAnnotation, initials, saveCallback) {
+SignatureAnnotationPicker.prototype.drawAnnotationPicked = function(signHereAnnotation, signature, saveCallback) {
     var signaturePadAnnotation = new SignaturePadAnnotation();
-    signaturePadAnnotation.setInitials(initials);
+    signaturePadAnnotation.setSignature(signature);
     if (signHereAnnotation) {
         signaturePadAnnotation.setX(signHereAnnotation.getX());
         signaturePadAnnotation.setY(signHereAnnotation.getY());
@@ -70,9 +70,9 @@ SignatureAnnotationPicker.prototype.drawAnnotationPicked = function(signHereAnno
     }
 };
 
-SignatureAnnotationPicker.prototype.imageAnnotationPicked = function(signHereAnnotation, initials, imageUrl) {
+SignatureAnnotationPicker.prototype.imageAnnotationPicked = function(signHereAnnotation, signature, imageUrl) {
     var signatureImageAnnotation = new SignatureImageAnnotation(imageUrl);
-    signatureImageAnnotation.setInitials(initials);
+    signatureImageAnnotation.setSignature(signature);
     if (signHereAnnotation) {
         signatureImageAnnotation.setX(signHereAnnotation.getX());
         signatureImageAnnotation.setY(signHereAnnotation.getY());
@@ -87,15 +87,20 @@ SignatureAnnotationPicker.prototype.imageAnnotationPicked = function(signHereAnn
     }
 };	
 
-SignatureAnnotationPicker.prototype.textAnnotationPicked = function(signHereAnnotation, initials) {
+SignatureAnnotationPicker.prototype.textAnnotationPicked = function(signHereAnnotation, signature, saveCallback) {
     var signatureTextAnnotation = new SignatureTextAnnotation();
-    signatureTextAnnotation.setInitials(initials);
+    signatureTextAnnotation.setSignature(signature);
     if (signHereAnnotation) {
         signatureTextAnnotation.setX(signHereAnnotation.getX());
         signatureTextAnnotation.setY(signHereAnnotation.getY());
         signatureTextAnnotation.setWidth(signHereAnnotation.getWidth());
         signatureTextAnnotation.setHeight(signHereAnnotation.getHeight());
     }
+    signatureTextAnnotation.editor.closeWindow = function() {			
+        var imageUrl = signatureTextAnnotation.editor.getImageUrl();
+        saveCallback(imageUrl);
+        TextAnnotationEditor.prototype.closeWindow.call(this);
+    };
 
     if (signHereAnnotation) {
         this.replaceSignHereAnnotation(signHereAnnotation, signatureTextAnnotation);

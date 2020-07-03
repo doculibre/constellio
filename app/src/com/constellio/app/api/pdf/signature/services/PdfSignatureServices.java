@@ -28,8 +28,8 @@ import com.constellio.model.services.contents.ContentManagerRuntimeException.Con
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.pdf.PdfAnnotation;
 import com.constellio.model.services.pdf.signature.CreateVisibleSignature;
-import com.constellio.model.services.pdf.signature.PdfSignatureAnnotation;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.roles.Roles;
@@ -67,14 +67,14 @@ public class PdfSignatureServices {
 		this.contentManager = modelLayerFactory.getContentManager();
 	}
 
-	public void signAndCertify(Record record, Metadata metadata, User user, List<PdfSignatureAnnotation> signatures)
+	public void signAndCertify(Record record, Metadata metadata, User user, List<PdfAnnotation> annotations)
 			throws PdfSignatureException {
-		signAndCertify(record, metadata, user, signatures, null);
+		signAndCertify(record, metadata, user, annotations, null);
 	}
 
 	@SuppressWarnings("rawtypes")
 	public void signAndCertify(Record record, Metadata metadata, User user,
-							   List<PdfSignatureAnnotation> signatureAnnotations,
+							   List<PdfAnnotation> annotations,
 							   String base64PdfContent)
 			throws PdfSignatureException {
 		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
@@ -137,19 +137,19 @@ public class PdfSignatureServices {
 				throw new PdfSignatureException_CannotReadKeystoreFileException();
 			}
 
-			if (signatureAnnotations.size() < 1) {
+			if (annotations.size() < 1) {
 				throw new PdfSignatureException_NothingToSignException();
 			}
-			Collections.sort(signatureAnnotations);
+			Collections.sort(annotations);
 
-			List<PdfSignatureAnnotation> signedAnnotations = new ArrayList<>();
-			List<PdfSignatureAnnotation> notSignedAnnotations = new ArrayList<>();
+			List<PdfAnnotation> signedAnnotations = new ArrayList<>();
+			List<PdfAnnotation> notSignedAnnotations = new ArrayList<>();
 
-			for (PdfSignatureAnnotation signature : signatureAnnotations) {
-				if (signature.isInitials()) {
-					notSignedAnnotations.add(signature);
+			for (PdfAnnotation annotation : annotations) {
+				if (annotation.isSignature()) {
+					signedAnnotations.add(annotation);
 				} else {
-					signedAnnotations.add(signature);
+					notSignedAnnotations.add(annotation);
 				} 
 			}
 
@@ -159,7 +159,7 @@ public class PdfSignatureServices {
 					doc = PDDocument.load(docToSignFile);
 
 					for (int i = 0; i < notSignedAnnotations.size(); i++) {
-						PdfSignatureAnnotation notSignedAnnotation = notSignedAnnotations.get(i);
+						PdfAnnotation notSignedAnnotation = notSignedAnnotations.get(i);
 
 						int pageNumber = notSignedAnnotation.getPage();
 						//Retrieving the page
@@ -197,27 +197,32 @@ public class PdfSignatureServices {
 				}
 			}
 
-			File signedDocument = null;
-			for (PdfSignatureAnnotation signature : signedAnnotations) {
-				File signatureFile = createTempFileFromBase64("signature", signature.getImageData());
-				if (signatureFile == null) {
-					throw new PdfSignatureException_CannotReadSignatureFileException();
-				} else {
-					tempFiles.add(signatureFile);
+			File newDocumentVersionFile;
+			if (!signedAnnotations.isEmpty()) {
+				newDocumentVersionFile = null;
+				for (PdfAnnotation signature : signedAnnotations) {
+					File signatureFile = createTempFileFromBase64("signature", signature.getImageData());
+					if (signatureFile == null) {
+						throw new PdfSignatureException_CannotReadSignatureFileException();
+					} else {
+						tempFiles.add(signatureFile);
+					}
+					try {
+						String keystorePath = keystoreFile.getAbsolutePath();
+						String docToSignFilePath = docToSignFile.getAbsolutePath();
+						String signaturePath = signatureFile.getAbsolutePath();
+						newDocumentVersionFile = CreateVisibleSignature.signDocument(keystorePath, keystorePass, docToSignFilePath, signaturePath, signature);
+						tempFiles.add(docToSignFile);
+						docToSignFile = newDocumentVersionFile;
+					} catch (Exception e) {
+						throw new PdfSignatureException_CannotSignDocumentException(e);
+					}
 				}
-				try {
-					String keystorePath = keystoreFile.getAbsolutePath();
-					String docToSignFilePath = docToSignFile.getAbsolutePath();
-					String signaturePath = signatureFile.getAbsolutePath();
-					signedDocument = CreateVisibleSignature.signDocument(keystorePath, keystorePass, docToSignFilePath, signaturePath, signature);
-					tempFiles.add(docToSignFile);
-					docToSignFile = signedDocument;
-				} catch (Exception e) {
-					throw new PdfSignatureException_CannotSignDocumentException(e);
-				}
+			} else {
+				newDocumentVersionFile = docToSignFile;
 			}
 
-			uploadNewVersion(signedDocument, record, metadata, user);
+			uploadNewVersion(newDocumentVersionFile, record, metadata, user);
 		} finally {
 			for (File tempFile : tempFiles) {
 				fileService.deleteQuietly(tempFile);

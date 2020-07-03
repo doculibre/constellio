@@ -11,12 +11,12 @@ SignatureTextAnnotation.prototype.getType = function() {
 	return "signature-text-annotation";
 }
 
-SignatureTextAnnotation.prototype.isInitials = function() {
-	return this.initials;
+SignatureTextAnnotation.prototype.isSignature = function() {
+	return this.signature;
 };
 
-SignatureTextAnnotation.prototype.setInitials = function(initials) {
-	this.initials = initials;
+SignatureTextAnnotation.prototype.setSignature = function(signature) {
+	this.signature = signature;
 };
 
 SignatureTextAnnotation.prototype.getBakeInfoI10nKey = function() {
@@ -25,13 +25,13 @@ SignatureTextAnnotation.prototype.getBakeInfoI10nKey = function() {
 
 SignatureTextAnnotation.prototype.toJSON = function() {
 	var json = TextAnnotation.prototype.toJSON.call(this);
-	json.initials = this.isInitials();
+	json.signature = this.isSignature();
 	return json;
 };
 
 SignatureTextAnnotation.prototype.fromJSON = function(json) {
 	TextAnnotation.prototype.fromJSON.call(this, json);
-	this.initials = json.initials;
+	this.signature = json.signature;
 };	
 
 SignatureTextAnnotation.prototype.bind = function(htmlElement) {
