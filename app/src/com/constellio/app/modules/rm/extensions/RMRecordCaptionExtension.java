@@ -17,6 +17,6 @@ public class RMRecordCaptionExtension extends RecordExtension {
 
 	@Override
 	public String getCaptionForRecord(GetCaptionForRecordParams params) {
-		return SchemaCaptionUtils.getCaptionForRecord(params.getRecord(), params.getLocale());
+		return SchemaCaptionUtils.getCaptionForRecord(params.getRecord(), params.getLocale(), true);
 	}
 }
