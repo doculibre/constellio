@@ -18,7 +18,7 @@ public class SingletonConstellioFactoriesInstanceProvider implements ConstellioF
 
 	private Map<String, ConstellioFactories> instanceByTenantId;
 
-	private Map<String, Boolean> brokenFactoriesMap;
+	private Map<String, Throwable> brokenFactoriesMap;
 
 	SingletonConstellioFactoriesInstanceProvider() {
 		instanceByTenantId = new ConcurrentHashMap<>();
@@ -34,8 +34,9 @@ public class SingletonConstellioFactoriesInstanceProvider implements ConstellioF
 			return instanceByTenantId.get(currentTenantId);
 		}
 
-		if (Boolean.TRUE.equals(brokenFactoriesMap.get(tenantId))) {
-			throw new ConstellioFactoriesRuntimeException("Tenant '" + tenantId + " ' is offline because of previous failures");
+		Throwable throwedException = brokenFactoriesMap.get(tenantId);
+		if (throwedException != null) {
+			throw new ConstellioFactoriesRuntimeException("Tenant '" + tenantId + " ' is offline because of previous failures", throwedException);
 		}
 
 		return instanceByTenantId.computeIfAbsent(currentTenantId, key -> {
@@ -55,9 +56,9 @@ public class SingletonConstellioFactoriesInstanceProvider implements ConstellioF
 					//getInstance(currentTenantId, constellioFactoriesFactory);
 					//Nothing, just re-entering the while loop for an other attempt
 
-				} catch (Exception e) {
+				} catch (Throwable t) {
 					LOGGER.info("Factories of tenant '" + tenantId + "' failed to initialize. This tenant is now offline");
-					brokenFactoriesMap.put(tenantId, Boolean.TRUE);
+					brokenFactoriesMap.put(tenantId, t);
 					clear(currentTenantId);
 				}
 			});
