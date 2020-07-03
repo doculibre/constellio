@@ -21,8 +21,6 @@ import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.conf.FoldersLocatorMode;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.services.tenant.TenantProperties;
-import com.constellio.data.services.tenant.TenantService;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TenantUtils;
@@ -527,11 +525,9 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 				//}
 			});
 
-			for (TenantProperties tenantProperties : TenantService.getInstance().getTenants()) {
-				List<ConstellioPluginInfo> pluginsFromTenant = ConstellioFactories
-						.getInstance("" + tenantProperties.getId()).getAppLayerFactory().getPluginManager().getPlugins(statuses);
-				pluginsFromTenant.forEach((info) -> returnList.add(info.getCode()));
-			}
+			ScriptsUtils.forEachAvailableAndFailedTenants((tenantId, appLayerFactory) -> {
+				appLayerFactory.getPluginManager().getPlugins(statuses).forEach((info) -> returnList.add(info.getCode()));
+			});
 
 		} else {
 			List<ConstellioPluginInfo> pluginsFromTenant = ConstellioFactories

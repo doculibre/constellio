@@ -21,6 +21,7 @@ import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.app.services.systemSetup.SystemLocalConfigsManager;
 import com.constellio.app.servlet.ConstellioMonitoringServlet;
+import com.constellio.app.utils.ScriptsUtils;
 import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.conf.FoldersLocatorMode;
 import com.constellio.data.io.services.facades.FileService;
@@ -28,8 +29,6 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.data.services.tenant.TenantProperties;
-import com.constellio.data.services.tenant.TenantService;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.TimeProvider;
@@ -260,11 +259,12 @@ public class AppManagementService {
 			String currentTenant = TenantUtils.getTenantId();
 			LOGGER.warn("Was tenant '" + currentTenant + "'");
 			try {
-				for (TenantProperties tenantProperties : TenantService.getInstance().getTenants()) {
-					ConstellioPluginManager pluginManager = getConstellioPluginManagerForTenant(tenantProperties.getId());
+
+				ScriptsUtils.forEachAvailableAndFailedTenants((tenantId, applicationLayerFactory) -> {
+					ConstellioPluginManager pluginManager = applicationLayerFactory.getPluginManager();
 					updatePluginsOfCurrentTenant(nextWebapp, pluginManager, pluginServices, currentTenant);
 					installPluginsForCurrentTenant(nextWebapp, pluginManager);
-				}
+				});
 			} finally {
 				TenantUtils.setTenant(currentTenant);
 			}
@@ -273,10 +273,6 @@ public class AppManagementService {
 			updatePluginsOfCurrentTenant(nextWebapp, pluginManager, pluginServices, "main");
 			installPluginsForCurrentTenant(nextWebapp, pluginManager);
 		}
-	}
-
-	ConstellioPluginManager getConstellioPluginManagerForTenant(byte tenantId) {
-		return ConstellioFactories.getInstance("" + tenantId).getAppLayerFactory().getPluginManager();
 	}
 
 	private static void installPluginsForCurrentTenant(File nextWebapp, ConstellioPluginManager pluginManager) {
