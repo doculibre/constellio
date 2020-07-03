@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -103,9 +102,13 @@ public class AzureBlobStorageContentDao implements StatefulService, ContentDao {
 
 	@Override
 	public void moveFileToVault(String relativePath, File file, MoveToVaultOption... options) {
-		if (!isDocumentExisting(relativePath)) {
-			try (InputStream inputStream = new FileInputStream(file)) {
+		boolean onlyIfInexsting = false;
+		for (MoveToVaultOption option : options) {
+			onlyIfInexsting |= option == MoveToVaultOption.ONLY_IF_INEXISTING;
+		}
 
+		if (!isDocumentExisting(relativePath) || !onlyIfInexsting) {
+			try (InputStream inputStream = new FileInputStream(file)) {
 				add(relativePath, inputStream);
 				FileUtils.deleteQuietly(file);
 			} catch (IOException e) {
@@ -224,8 +227,7 @@ public class AzureBlobStorageContentDao implements StatefulService, ContentDao {
 
 			return file;
 		} else {
-			File file = getFileOf(contentId);
-			return new DaoFile(contentId, file.getName(), file.length(), file.lastModified(), file.isDirectory(), this);
+			return fileSystemContentDao.getFile(contentId);
 		}
 	}
 
@@ -235,14 +237,13 @@ public class AzureBlobStorageContentDao implements StatefulService, ContentDao {
 	}
 
 	@Override
-	public Stream<DaoFile> streamVaultContent(Predicate<? super DaoFile> filter,
-											  Comparator<? super DaoFile> orderComparator) {
-		Stream<DaoFile> localContentStream = fileSystemContentDao.streamVaultContent(filter, orderComparator);
+	public Stream<DaoFile> streamVaultContent(Predicate<? super DaoFile> filter) {
+		Stream<DaoFile> localContentStream = fileSystemContentDao.streamVaultContent(filter);
 		PagedIterable<BlobItem> blobItems = getBlobContainerClient().listBlobs();
 
 		Stream<DaoFile> azureContentStream = blobItems.stream()
 				.map(blobItem -> new DaoFile(blobItem.getName(), blobItem.getName(), blobItem.getProperties().getContentLength(), blobItem.getProperties().getLastModified().toInstant().toEpochMilli(), false, this));
-		Stream<DaoFile> contentStream = Stream.concat(localContentStream, azureContentStream).filter(filter).sorted(orderComparator);
+		Stream<DaoFile> contentStream = Stream.concat(localContentStream, azureContentStream).filter(filter);
 		return contentStream;
 	}
 

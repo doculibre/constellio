@@ -33,7 +33,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -111,7 +110,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		return isFileToCoped;
 	}
 
-	boolean moveFile(File fileToBeMoved, File target) {
+	protected boolean moveFile(File fileToBeMoved, File target) {
 		boolean isFileMoved;
 
 		if (fileToBeMoved == null || target == null) {
@@ -630,13 +629,11 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	}
 
-	public Stream<DaoFile> streamVaultContent(Predicate<? super DaoFile> filter,
-											  Comparator<? super DaoFile> orderComparator) {
+	public Stream<DaoFile> streamVaultContent(Predicate<? super DaoFile> filter) {
 		try {
 			Stream<DaoFile> daoFileStream = Files.walk(rootFolder.toPath(), 5)
 					.map(path -> new DaoFile(path.getFileName().toString(), path.getFileName().toString(), path.toFile().length(), path.toFile().lastModified(), path.toFile().isDirectory(), this))
-					.filter(filter)
-					.sorted(orderComparator);
+					.filter(filter);
 			return daoFileStream;
 		} catch (IOException e) {
 			throw new RuntimeException(e);

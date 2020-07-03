@@ -1372,8 +1372,7 @@ public class ContentManager implements StatefulService {
 	}
 
 	public Stream<VaultContentEntry> stream() {
-		Stream<DaoFile> daoFileStream = modelLayerFactory.getContentManager().getContentDao().streamVaultContent((file) -> filterVaultContent(file),
-				(file1, file2) -> 0);
+		Stream<DaoFile> daoFileStream = modelLayerFactory.getContentManager().getContentDao().streamVaultContent((file) -> filterVaultContent(file));
 
 		return daoFileStream.map((daoFile -> {
 			String hash = daoFile.getName();

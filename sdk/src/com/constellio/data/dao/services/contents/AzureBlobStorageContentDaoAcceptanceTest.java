@@ -1,29 +1,37 @@
 package com.constellio.data.dao.services.contents;
 
+import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.storage.blob.specialized.BlobOutputStream;
 import com.azure.storage.common.StorageSharedKeyCredential;
+import com.constellio.data.dao.services.contents.AzureBlobStorageContentDaoRuntimeException.AzureBlobStorageContentDaoRuntimeException_FailedToAddFile;
 import com.constellio.data.dao.services.contents.ContentDao.MoveToVaultOption;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.hashing.HashingService;
+import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.apache.commons.compress.utils.IOUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class AzureBlobStorageContentDaoAcceptanceTest extends ConstellioTest {
 
@@ -84,11 +92,42 @@ public class AzureBlobStorageContentDaoAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenMoveToVaultThenFileExistsInVaultAndRemovedFromInitialPath() {
+	public void whenMoveToVaultWithOnlyIfExistingParameterThenFileExistsInVault() {
+		azureBlobStorageContentDao.delete(asList(fileHash1));
 		File tempFile = newTempFileWithContent("azureBlobStorageContentDaoAcceptanceTest_temp", fileHash1);
 		azureBlobStorageContentDao.moveFileToVault(fileHash1, tempFile, MoveToVaultOption.ONLY_IF_INEXISTING);
 		assertThat(azureBlobStorageContentDao.isDocumentExisting(fileHash1)).isTrue();
-		assertThat(tempFile.exists()).isFalse();
+		try (InputStream inputStream = new FileInputStream(tempFile)) {
+			verify(azureBlobStorageContentDao, times(1)).add(fileHash1, inputStream);
+		} catch (IOException e) {
+		} finally {
+			ioServices.deleteQuietly(tempFile);
+		}
+
+	}
+
+	@Test
+	public void whenMoveToVaultWithNoParameterThenFileExistsInVault() {
+		File tempFile = newTempFileWithContent("azureBlobStorageContentDaoAcceptanceTest_temp", fileHash1);
+		try (InputStream inputStream = new FileInputStream(tempFile)) {
+			BlobContainerClient blobContainerClient = getBlobServiceClient().getBlobContainerClient(CONTAINER_NAME);
+			add(inputStream, fileHash1, blobContainerClient);
+			azureBlobStorageContentDao.moveFileToVault(fileHash1, tempFile);
+			verify(azureBlobStorageContentDao, times(0)).add(fileHash1, inputStream);
+		} catch (IOException e) {
+		} finally {
+			ioServices.deleteQuietly(tempFile);
+		}
+	}
+
+	private void add(InputStream newInputStream, String newContentId, BlobContainerClient blobContainerClient) {
+		try (BlobOutputStream blobOutputStream = blobContainerClient.getBlobClient(newContentId).getBlockBlobClient().getBlobOutputStream(true)) {
+			IOUtils.copy(newInputStream, blobOutputStream);
+		} catch (IOException e) {
+			throw new AzureBlobStorageContentDaoRuntimeException_FailedToAddFile(newContentId);
+		} finally {
+			ioServices.closeQuietly(newInputStream);
+		}
 	}
 
 	@Test
@@ -96,7 +135,8 @@ public class AzureBlobStorageContentDaoAcceptanceTest extends ConstellioTest {
 		InputStream inputStream = getTestResourceInputStream("1.docx");
 
 		azureBlobStorageContentDao.add(fileHash1, inputStream);
-		File file = new File("C:\\Workspace\\dev-constellio-java8\\constellio\\sdk\\sdk-resources\\com\\constellio\\data\\dao\\services\\contents", "copy.docx");
+		File contentDaoFileSystemFolder = getDataLayerFactory().getDataLayerConfiguration().getContentDaoFileSystemFolder();
+		File file = new File(contentDaoFileSystemFolder.getPath(), "copy.docx");
 		assertThat(file.exists()).isFalse();
 		azureBlobStorageContentDao.copyFileFromVault(fileHash1, file);
 		assertThat(azureBlobStorageContentDao.isDocumentExisting(fileHash1)).isTrue();
@@ -108,20 +148,39 @@ public class AzureBlobStorageContentDaoAcceptanceTest extends ConstellioTest {
 	public void givenToFilesInAzureWhenStreamVaultContentWithFilterThenFiltered() {
 		addFileToVault("1.docx", fileHash1);
 		addFileToVault("2.docx", fileHash2);
-		Stream<DaoFile> daoFileStream = azureBlobStorageContentDao.streamVaultContent(file -> (file.getId().equals(fileHash1)), (file1, file2) -> 0);
+		Stream<DaoFile> daoFileStream = azureBlobStorageContentDao.streamVaultContent(file -> (file.getId().equals(fileHash1)));
 		daoFileStream.forEach(file -> assertThat(file.getId()).isEqualTo(fileHash1));
 	}
 
 	@Test
-	public void givenToFilesInAzureWhenStreamVaultContentWithOrderThenFilesAreStreamedInTheDefinedOrder() {
-		addFileToVault("1.docx", fileHash1);
-		addFileToVault("2.docx", fileHash2);
-		Stream<DaoFile> daoFileStream = azureBlobStorageContentDao.streamVaultContent(file -> true, Comparator.comparing(DaoFile::getName));
-		Iterator<DaoFile> iterator = daoFileStream.iterator();
-		String previousFileName = iterator.next().getName();
-		while (iterator.hasNext()) {
-			assertThat(iterator.next().getName().compareTo(previousFileName)).isGreaterThan(1);
+	public void givenFilesInAzureWhenStreamVaultContentWithOrderThenFilesAreStreamedInTheDefinedOrder()
+			throws FileNotFoundException, HashingServiceException {
+		for (int i = 0; i < 100; i++) {
+			File tempFile = newTempFileWithContent("file" + i + ".txt", "This is file " + i);
+			InputStream inputStream = new FileInputStream(tempFile);
+			String hashFromFile = hashingService.getHashFromFile(tempFile);
+			azureBlobStorageContentDao.add(hashFromFile, inputStream);
 		}
+
+		Iterator<DaoFile> iterator = azureBlobStorageContentDao.streamVaultContent(file -> true).iterator();
+		while (iterator.hasNext()) {
+			String previousFileName = iterator.next().getName();
+			if (iterator.hasNext()) {
+				DaoFile file = iterator.next();
+				System.out.println(previousFileName);
+				System.out.println(file.getName());
+				System.out.println(file.getName().compareTo(previousFileName));
+			}
+		}
+	}
+
+	@Test
+	public void whenAddingParsedContentThenContentIsAddedInSystemFolder() {
+		addFileToVault("1.docx", fileHash1 + "__parsed");
+
+		File contentDaoFileSystemFolder = getDataLayerFactory().getDataLayerConfiguration().getContentDaoFileSystemFolder();
+		File file = new File(contentDaoFileSystemFolder, fileHash1 + "__parsed");
+		assertThat(file.exists());
 	}
 
 
