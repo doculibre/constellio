@@ -22,6 +22,7 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
+import com.vaadin.ui.AbstractLayout;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.JavaScript;
@@ -162,6 +163,40 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 		return mainLayout;
 	}
 
+	private void replaceContentViewer(ContentViewer oldContentViewer, ContentViewer newContentViewer) {
+		Component parent = oldContentViewer.getParent();
+		if (parent instanceof CollapsibleHorizontalSplitPanel) {
+			if (newContentViewer != null) {
+				((CollapsibleHorizontalSplitPanel) parent).replaceComponent(oldContentViewer, newContentViewer);
+			} else {
+				((CollapsibleHorizontalSplitPanel) parent).removeComponent(oldContentViewer);
+			}
+		} else if (parent instanceof AbstractLayout) {
+			if (newContentViewer != null) {
+				((AbstractLayout) parent).replaceComponent(oldContentViewer, newContentViewer);
+			} else {
+				((AbstractLayout) parent).removeComponent(oldContentViewer);
+			}
+		}
+	}
+
+	private void replaceRecordForm(DocumentFormImpl oldRecordForm, DocumentFormImpl newRecordForm) {
+		Component parent = oldRecordForm.getParent();
+		if (parent instanceof CollapsibleHorizontalSplitPanel) {
+			if (newRecordForm != null) {
+				((CollapsibleHorizontalSplitPanel) parent).replaceComponent(oldRecordForm, newRecordForm);
+			} else {
+				((CollapsibleHorizontalSplitPanel) parent).removeComponent(oldRecordForm);
+			}
+		} else if (parent instanceof AbstractLayout) {
+			if (newRecordForm != null) {
+				((AbstractLayout) parent).replaceComponent(oldRecordForm, newRecordForm);
+			} else {
+				((AbstractLayout) parent).removeComponent(oldRecordForm);
+			}
+		}
+	}
+
 	private void adjustContentViewerSize() {
 		if (inWindow) {
 			contentViewer.setWidth("100%");
@@ -207,16 +242,16 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 
 			@Override
 			public void reload() {
-				Component oldRecordForm = recordForm;
+				DocumentFormImpl oldRecordForm = recordForm;
 				recordForm = newForm();
 				if ((isUserDocumentViewer && presenter.getUserDocumentRecordVO() == null)
 					|| (isDuplicateDocumentViewer && presenter.getDuplicateDocumentRecordVO() == null)) {
 					isDuplicateDocumentViewer = false;
 					isUserDocumentViewer = false;
-					mainLayout.removeComponent(contentViewer);
+					replaceContentViewer(contentViewer, null);
 					contentViewer = null;
 				}
-				mainLayout.replaceComponent(oldRecordForm, recordForm);
+				replaceRecordForm(oldRecordForm, recordForm);
 			}
 
 			@Override

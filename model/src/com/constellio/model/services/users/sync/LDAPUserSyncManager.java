@@ -14,11 +14,13 @@ import com.constellio.model.conf.ldap.services.LDAPServices.LDAPUsersAndGroups;
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
@@ -48,6 +50,7 @@ import java.util.Set;
 public class LDAPUserSyncManager implements StatefulService {
 	private final static Logger LOGGER = LoggerFactory.getLogger(LDAPUserSyncManager.class);
 	private final LDAPConfigurationManager ldapConfigurationManager;
+	RecordServices recordServices;
 	UserServices userServices;
 	SolrGlobalGroupsManager globalGroupsManager;
 	LDAPUserSyncConfiguration userSyncConfiguration;
@@ -59,6 +62,7 @@ public class LDAPUserSyncManager implements StatefulService {
 	private ConstellioJobManager constellioJobManager;
 
 	public LDAPUserSyncManager(ModelLayerFactory modelLayerFactory) {
+		this.recordServices = modelLayerFactory.newRecordServices();
 		this.userServices = modelLayerFactory.newUserServices();
 		this.dataLayerFactory = modelLayerFactory.getDataLayerFactory();
 		this.globalGroupsManager = modelLayerFactory.getGlobalGroupsManager();
@@ -238,8 +242,7 @@ public class LDAPUserSyncManager implements StatefulService {
 					try {
 						// Keep locally created groups of existing users
 						final List<String> newUserGlobalGroups = new ArrayList<>(userCredential.getGlobalGroups());
-						UserCredential previousUserCredential = userServices
-								.getUserCredential(userCredential.getUsername());
+						UserCredential previousUserCredential = userServices.getUserCredential(userCredential.getUsername());
 						UserCredential userCredentialByDn = userServices.getUserCredentialByDN(ldapUser.getId());
 						if (previousUserCredential == null) {
 							previousUserCredential = userServices.getUserCredentialByDN(ldapUser.getId());
@@ -252,10 +255,31 @@ public class LDAPUserSyncManager implements StatefulService {
 										"Attempting to delete username " + userCredentialByDn.getUsername());
 								userServices.physicallyRemoveUserCredentialAndUsers(userCredentialByDn);
 							} catch (Throwable t) {
-								LOGGER.info(
-										"Could not delete username " + userCredentialByDn.getUsername() + ", attempting to delete " + previousUserCredential.getUsername() + " instead");
-								userServices.physicallyRemoveUserCredentialAndUsers(previousUserCredential);
-								previousUserCredential = userCredentialByDn;
+								try {
+									LOGGER.info(
+											"Could not delete username " + userCredentialByDn.getUsername() + ", attempting to delete " + previousUserCredential.getUsername() + " instead");
+									userServices.physicallyRemoveUserCredentialAndUsers(previousUserCredential);
+									previousUserCredential = userCredentialByDn;
+								} catch (Throwable t2) {
+									UserCredential invalidUserCredential;
+									if (previousUserCredential.getUsername().equalsIgnoreCase(ldapUser.getName())) {
+										invalidUserCredential = userCredentialByDn;
+									} else {
+										invalidUserCredential = previousUserCredential;
+										previousUserCredential = userCredentialByDn;
+									}
+
+									try {
+										LOGGER.info(
+												"Could not delete username " + invalidUserCredential.getUsername() + ", attempting to change DN for " + invalidUserCredential.getUsername() + " instead");
+										invalidUserCredential.setDn(ldapUser.getId() + "-duplicate");
+										RecordUpdateOptions recordUpdateOptions = new RecordUpdateOptions();
+										recordUpdateOptions.setUnicityValidationsEnabled(false);
+										recordServices.update(invalidUserCredential.getWrappedRecord(), recordUpdateOptions);
+									} catch (Throwable t3) {
+										LOGGER.error("Unable to change DN for username " + invalidUserCredential.getUsername(), t3);
+									}
+								}
 							}
 						}
 						if (previousUserCredential != null) {

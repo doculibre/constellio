@@ -236,7 +236,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 						break usedTabsLoop;
 					}
 				}
-				if (usedTab) {
+				if (usedTab && !usedTabCaptions.contains(orderedTabCaption)) {
 					usedTabCaptions.add(orderedTabCaption);
 				}
 			}
