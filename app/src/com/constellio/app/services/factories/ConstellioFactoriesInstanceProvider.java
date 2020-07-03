@@ -4,7 +4,8 @@ import com.constellio.data.utils.Factory;
 
 public interface ConstellioFactoriesInstanceProvider {
 
-	ConstellioFactories getInstance(String tenantId, Factory<ConstellioFactories> constellioFactoriesFactory);
+	ConstellioFactories getInstance(String tenantId, Factory<ConstellioFactories> constellioFactoriesFactory,
+									boolean acceptingFailedFactories);
 
 	boolean isInitialized(String tenantId);
 

@@ -16,6 +16,7 @@ import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPlugi
 import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
 import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils.NewPluginsInNewWar;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.utils.ScriptsUtils;
 import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.conf.FoldersLocatorMode;
 import com.constellio.data.dao.managers.StatefulService;
@@ -514,6 +515,18 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		if (TenantUtils.isSupportingTenants()) {
 
 
+			ScriptsUtils.forEachAvailableAndFailedTenants((tenantId, appLayerFactory) -> {
+				//Should work event if the tenant failed to start (only requires an initialized ConfigManager)
+
+				//TODO Samuel : Décommenter le try/catch si le test fonctionne
+				//try {
+				appLayerFactory.getPluginManager().getPlugins(statuses).forEach((info) -> returnList.add(info.getCode()));
+				//} catch (Throwable t) {
+
+				//LOGGER.info("Update is not considering tenant '" + tenantId + "'", t);
+				//}
+			});
+
 			for (TenantProperties tenantProperties : TenantService.getInstance().getTenants()) {
 				List<ConstellioPluginInfo> pluginsFromTenant = ConstellioFactories
 						.getInstance("" + tenantProperties.getId()).getAppLayerFactory().getPluginManager().getPlugins(statuses);
@@ -537,10 +550,17 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	public List<String> getPluginsOfEveryStatusFromAnyTenants() {
 		if (TenantUtils.isSupportingTenants()) {
 			Set<String> returnList = new HashSet<>();
-			for (TenantProperties tenantProperties : TenantService.getInstance().getTenants()) {
-				returnList.addAll(ConstellioFactories
-						.getInstance("" + tenantProperties.getId()).getAppLayerFactory().getPluginManager().getPluginsOfEveryStatus());
-			}
+			ScriptsUtils.forEachAvailableAndFailedTenants((tenantId, appLayerFactory) -> {
+				//Should work event if the tenant failed to start (only requires an initialized ConfigManager)
+
+				//TODO Samuel : Décommenter le try/catch si le test fonctionne
+				//try {
+				returnList.addAll(appLayerFactory.getPluginManager().getPluginsOfEveryStatus());
+				//} catch (Throwable t) {
+
+				//LOGGER.info("Update is not considering tenant '" + tenantId + "'", t);
+				//}
+			});
 			return new ArrayList<>(returnList);
 		} else {
 			return getPluginsOfEveryStatus();

@@ -501,7 +501,7 @@ public class FactoriesTestFeatures {
 				}
 				return instance;
 			}
-		}, name, tenantId);
+		}, name, tenantId, false);
 
 		return constellioFactories;
 

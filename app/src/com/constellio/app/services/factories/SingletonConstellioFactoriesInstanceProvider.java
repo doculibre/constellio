@@ -1,6 +1,7 @@
 package com.constellio.app.services.factories;
 
 import com.constellio.app.services.factories.AppLayerFactoryRuntineException.AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry;
+import com.constellio.app.services.factories.ConstellioFactoriesRuntimeException.ConstellioFactoriesRuntimeException_TenantOffline;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TenantUtils;
 import org.slf4j.Logger;
@@ -27,16 +28,19 @@ public class SingletonConstellioFactoriesInstanceProvider implements ConstellioF
 
 
 	@Override
-	public ConstellioFactories getInstance(String tenantId, Factory<ConstellioFactories> constellioFactoriesFactory) {
+	public ConstellioFactories getInstance(String tenantId, Factory<ConstellioFactories> constellioFactoriesFactory,
+										   boolean acceptingFailedFactories) {
 		String currentTenantId = getCurrentTenantId(tenantId);
 
 		if (constellioFactoriesFactory == null) {
 			return instanceByTenantId.get(currentTenantId);
 		}
 
-		Throwable throwedException = brokenFactoriesMap.get(tenantId);
-		if (throwedException != null) {
-			throw new ConstellioFactoriesRuntimeException("Tenant '" + tenantId + " ' is offline because of previous failures", throwedException);
+		if (!acceptingFailedFactories) {
+			Throwable throwedException = brokenFactoriesMap.get(tenantId);
+			if (throwedException != null) {
+				throw new ConstellioFactoriesRuntimeException_TenantOffline(tenantId, throwedException);
+			}
 		}
 
 		return instanceByTenantId.computeIfAbsent(currentTenantId, key -> {
@@ -51,7 +55,7 @@ public class SingletonConstellioFactoriesInstanceProvider implements ConstellioF
 					LOGGER.info("Factories of tenant '" + tenantId + "' failed to initialize. Removing it from the map and retrying a new creation");
 					clear(currentTenantId);
 
-					getInstance(currentTenantId, constellioFactoriesFactory);
+					getInstance(currentTenantId, constellioFactoriesFactory, acceptingFailedFactories);
 					//The retry is not working well, since these factories have been returned
 					//getInstance(currentTenantId, constellioFactoriesFactory);
 					//Nothing, just re-entering the while loop for an other attempt

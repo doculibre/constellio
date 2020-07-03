@@ -47,7 +47,7 @@ public class ConstellioFactories {
 	}
 
 	public static ConstellioFactories getInstanceIfAlreadyStarted() {
-		return instanceProvider.getInstance(TenantUtils.getTenantId(), null);
+		return instanceProvider.getInstance(TenantUtils.getTenantId(), null, false);
 	}
 
 	public static boolean isInitialized() {
@@ -59,9 +59,14 @@ public class ConstellioFactories {
 		return getInstance(() -> new FoldersLocator().getConstellioProperties(), constellioFactoriesDecorator);
 	}
 
+	public static ConstellioFactories getInstance(boolean acceptingFailedFactories) {
+		ConstellioFactoriesDecorator constellioFactoriesDecorator = new ConstellioFactoriesDecorator();
+		return getInstance(TenantUtils.getTenantId(), () -> new FoldersLocator().getConstellioProperties(), constellioFactoriesDecorator, acceptingFailedFactories);
+	}
+
 	public static ConstellioFactories getInstance(String tenantId) {
 		ConstellioFactoriesDecorator constellioFactoriesDecorator = new ConstellioFactoriesDecorator();
-		return getInstance(tenantId, () -> new FoldersLocator().getConstellioProperties(), constellioFactoriesDecorator);
+		return getInstance(tenantId, () -> new FoldersLocator().getConstellioProperties(), constellioFactoriesDecorator, false);
 	}
 
 	public static ConstellioFactories getInstance(ConstellioFactoriesDecorator constellioFactoriesDecorator) {
@@ -70,14 +75,15 @@ public class ConstellioFactories {
 
 	public static ConstellioFactories getInstance(final Supplier<File> propertyFileSupplier,
 												  final ConstellioFactoriesDecorator decorator) {
-		return getInstance(TenantUtils.getTenantId(), propertyFileSupplier, decorator);
+		return getInstance(TenantUtils.getTenantId(), propertyFileSupplier, decorator, false);
 	}
 
 	private static ConstellioFactories getInstance(final String tenantId, final Supplier<File> propertyFileSupplier,
-												   final ConstellioFactoriesDecorator decorator) {
+												   final ConstellioFactoriesDecorator decorator,
+												   boolean acceptingFailedFactories) {
 		String instanceName = tenantId != null ? "tenant" + tenantId : null;
 		return instanceProvider.getInstance(tenantId,
-				() -> buildFor(propertyFileSupplier.get(), decorator, instanceName, (short) 0));
+				() -> buildFor(propertyFileSupplier.get(), decorator, instanceName, (short) 0), acceptingFailedFactories);
 	}
 
 	public static void start() {

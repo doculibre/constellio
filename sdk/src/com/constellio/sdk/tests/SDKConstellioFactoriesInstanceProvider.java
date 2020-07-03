@@ -26,16 +26,17 @@ public class SDKConstellioFactoriesInstanceProvider implements ConstellioFactori
 	private Map<String, Map<String, ConstellioFactories>> instances = new HashMap<>();
 
 	@Override
-	public ConstellioFactories getInstance(String tenantId, Factory<ConstellioFactories> constellioFactoriesFactory) {
-		return getInstance(constellioFactoriesFactory, DEFAULT_NAME, tenantId);
+	public ConstellioFactories getInstance(String tenantId, Factory<ConstellioFactories> constellioFactoriesFactory,
+										   boolean ignored_acceptingFailedFactories) {
+		return getInstance(constellioFactoriesFactory, DEFAULT_NAME, tenantId, ignored_acceptingFailedFactories);
 	}
 
 	public ConstellioFactories getInstance(Factory<ConstellioFactories> constellioFactoriesFactory, String name) {
-		return getInstance(constellioFactoriesFactory, name, EMPTY_TENANT_ID);
+		return getInstance(constellioFactoriesFactory, name, EMPTY_TENANT_ID, true);
 	}
 
 	public ConstellioFactories getInstance(Factory<ConstellioFactories> constellioFactoriesFactory, String name,
-										   String tenantId) {
+										   String tenantId, boolean ignored_acceptingFailedFactories) {
 		String currentTenantId = tenantId != null ? tenantId : EMPTY_TENANT_ID;
 		String currentName = name != null ? name : DEFAULT_NAME;
 
