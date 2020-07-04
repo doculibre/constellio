@@ -236,7 +236,7 @@ public class SearchWebService extends AbstractSearchServlet {
 					switch (facetMetadata.getType()) {
 						case REFERENCE:
 							valueLabels = facetField.getValues().stream().map(value -> recordServices.getDocumentById(value.getName())).collect(Collectors.toMap(Record::getId,
-									record -> StringUtils.defaultIfBlank(SchemaCaptionUtils.getShortCaptionForRecord(record, locale), "").replaceAll("\\P{Print}", "".trim())));
+									record -> StringUtils.defaultIfBlank(SchemaCaptionUtils.getShortCaptionForRecord(record, locale, false), "")));
 							break;
 						case ENUM:
 							Class<? extends EnumWithSmallCode> enumClass = (Class<? extends EnumWithSmallCode>) facetMetadata.getEnumClass();
