@@ -29,6 +29,7 @@ import com.constellio.app.modules.rm.extensions.RMMetadataMainCopyRuleFieldsExte
 import com.constellio.app.modules.rm.extensions.RMModulePageExtension;
 import com.constellio.app.modules.rm.extensions.RMOldSchemasBlockageRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMRecordAppExtension;
+import com.constellio.app.modules.rm.extensions.RMRecordAuthorisationPageExtension;
 import com.constellio.app.modules.rm.extensions.RMRecordCaptionExtension;
 import com.constellio.app.modules.rm.extensions.RMRecordNavigationExtension;
 import com.constellio.app.modules.rm.extensions.RMRequestTaskApprovedExtension;
@@ -445,6 +446,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.sipExtensions.add(new RMSIPExtension(collection, appLayerFactory));
 		extensions.searchCriterionExtensions.add(new RMDocumentPathCriterionExtension(appLayerFactory, collection));
 		extensions.viewableRecordVOTablePanelExtensions.add(new RMViewableRecordVOTablePanelExtension(appLayerFactory, collection));
+		extensions.recordAuthorisationPageExtensions.add(new RMRecordAuthorisationPageExtension());
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);
