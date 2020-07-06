@@ -18,6 +18,7 @@ public class UserTitleCalculator implements MetadataValueCalculator<String> {
 	LocalDependency<String> firstNameParam = LocalDependency.toAString(User.FIRSTNAME);
 	LocalDependency<String> lastNameParam = LocalDependency.toAString(User.LASTNAME);
 	LocalDependency<String> usernameParam = LocalDependency.toAString(User.USERNAME);
+	LocalDependency<String> emailParam = LocalDependency.toAString(User.EMAIL);
 
 	@Override
 	public String calculate(CalculatorParameters parameters) {
@@ -25,13 +26,15 @@ public class UserTitleCalculator implements MetadataValueCalculator<String> {
 		String firstName = parameters.get(firstNameParam);
 		String lastName = parameters.get(lastNameParam);
 		String username = parameters.get(usernameParam);
+		String email = parameters.get(emailParam);
 
 		firstName = firstName == null ? "" : firstName;
 		lastName = lastName == null ? "" : lastName;
 		username = username == null ? "" : username;
+		email = email == null ? "" : email;
 
 		titlePattern = titlePattern.replace("${firstName}", firstName).replace("${lastName}", lastName)
-				.replace("${username}", username);
+				.replace("${username}", username).replace("${email}", email);
 
 		String pattern = ".*[A-Za-z0-9]+.*";
 		boolean isValid = titlePattern.matches(pattern);
@@ -58,6 +61,6 @@ public class UserTitleCalculator implements MetadataValueCalculator<String> {
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return Arrays.asList(titlePatternParam, firstNameParam, lastNameParam, usernameParam);
+		return Arrays.asList(titlePatternParam, firstNameParam, lastNameParam, usernameParam, emailParam);
 	}
 }
