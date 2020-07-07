@@ -170,7 +170,7 @@ public class ListContentAccessAuthorizationsPresenterAcceptTest extends Constell
 
 	private void givenAliceIsInLegendsGroup() {
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.addUpdateUserCredential(users.alice().addGlobalGroup(users.legends().getCode()));
+		userServices.addUpdateUserCredential(users.aliceAddUpdateRequest().addGlobalGroup(users.legends().getCode()));
 	}
 }
 

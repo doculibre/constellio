@@ -13,6 +13,7 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.security.authentification.AuthenticationService;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
@@ -79,21 +80,21 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 		if (!validateEntityInfos(entity, username)) {
 			return;
 		}
-		UserCredential userCredential = toUserCredential(entity);
+		UserAddUpdateRequest userRequest = toUserRequest(entity);
 		try {
 			if (!isLDAPAuthentication() && !isEditMode() || entity.getPassword() != null && !entity.getPassword().isEmpty()) {
 				authenticationService.changePassword(entity.getUsername(), entity.getPassword());
 			}
 
-			userServices.addUpdateUserCredential(userCredential);
+			userServices.addUpdateUserCredential(userRequest);
 
 			if (!editMode) {
-				for (String collection : userCredential.getCollections()) {
+				for (String collection : userRequest.getCollections()) {
 					User userInCollection = userServices.getUserInCollection(entity.getUsername(), collection);
 					loggingServices.addUserOrGroup(userInCollection.getWrappedRecord(), getCurrentUser(), collection);
 				}
 			} else {
-				for (String collection : userCredential.getCollections()) {
+				for (String collection : userRequest.getCollections()) {
 					User userInCollection = userServices.getUserInCollection(entity.getUsername(), collection);
 					if (entity.getCollections().contains(collection) && !collections.contains(collection)) {
 						loggingServices.addUserOrGroup(userInCollection.getWrappedRecord(), getCurrentUser(), collection);
@@ -156,7 +157,7 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 		return false;
 	}
 
-	UserCredential toUserCredential(UserCredentialVO userCredentialVO) {
+	UserAddUpdateRequest toUserRequest(UserCredentialVO userCredentialVO) {
 		List<String> globalGroups = new ArrayList<>();
 		List<String> collections = new ArrayList<>();
 		Map<String, LocalDateTime> tokens = new HashMap<>();
@@ -177,7 +178,7 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 			personalEmails = Arrays.asList(userCredentialVO.getPersonalEmails().split("\n"));
 		}
 
-		return userServices.addEdit(userCredentialVO.getUsername())
+		return userServices.addEditRequest(userCredentialVO.getUsername())
 				.setFirstName(userCredentialVO.getFirstName())
 				.setLastName(userCredentialVO.getLastName())
 				.setEmail(userCredentialVO.getEmail())

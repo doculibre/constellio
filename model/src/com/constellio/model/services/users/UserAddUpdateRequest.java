@@ -6,6 +6,7 @@ import com.constellio.model.entities.security.global.UserCredentialStatus;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -120,6 +121,12 @@ public class UserAddUpdateRequest {
 		this.collections = collections;
 		return this;
 	}
+
+	public UserAddUpdateRequest setCollections(String... collections) {
+		this.collections = new ArrayList<>(Arrays.asList(collections));
+		return this;
+	}
+
 
 	public List<String> getGlobalGroups() {
 		return globalGroups;
@@ -276,6 +283,50 @@ public class UserAddUpdateRequest {
 
 	public UserAddUpdateRequest setAccessTokens(Map<String, LocalDateTime> accessTokens) {
 		this.accessTokens = accessTokens;
+		return this;
+	}
+
+	public void addCollection(String collection) {
+		if (collections == null) {
+			collections = new ArrayList<>();
+		}
+		if (!collections.contains(collection)) {
+			collections.add(collection);
+		}
+
+	}
+
+	public UserAddUpdateRequest setSystemAdminEnabled() {
+		return setSystemAdmin(true);
+	}
+
+	public boolean isSystemAdmin() {
+		return Boolean.TRUE.equals(getSystemAdmin());
+	}
+
+	public UserAddUpdateRequest addGlobalGroup(String group) {
+		if (globalGroups == null) {
+			globalGroups = new ArrayList<>();
+		}
+		if (!globalGroups.contains(group)) {
+			globalGroups.add(group);
+		}
+		return this;
+	}
+
+	public UserAddUpdateRequest removeGlobalGroup(String group) {
+		if (globalGroups != null) {
+			globalGroups.remove(group);
+		}
+
+		return this;
+	}
+
+	public UserAddUpdateRequest addAccessToken(String token, LocalDateTime expiration) {
+		if (accessTokens == null) {
+			accessTokens = new HashMap<>();
+		}
+		accessTokens.put(token, expiration);
 		return this;
 	}
 }

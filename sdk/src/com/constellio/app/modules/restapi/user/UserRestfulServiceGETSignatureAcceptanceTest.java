@@ -47,7 +47,7 @@ public class UserRestfulServiceGETSignatureAcceptanceTest extends BaseRestfulSer
 
 		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
 		userCredentials.setElectronicSignature(content);
-		userServices.addUpdateUserCredential(userCredentials);
+		userServices.addUpdateUserConfigs(userCredentials);
 
 		queryCounter.reset();
 		commitCounter.reset();
@@ -86,7 +86,7 @@ public class UserRestfulServiceGETSignatureAcceptanceTest extends BaseRestfulSer
 	public void validateServiceWithEmptyData() {
 		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
 		userCredentials.setElectronicSignature(null);
-		userServices.addUpdateUserCredential(userCredentials);
+		userServices.addUpdateUserConfigs(userCredentials);
 
 		queryCounter.reset();
 		commitCounter.reset();

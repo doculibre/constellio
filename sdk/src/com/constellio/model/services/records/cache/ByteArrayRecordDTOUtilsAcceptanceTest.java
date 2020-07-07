@@ -17,7 +17,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -35,6 +34,7 @@ import com.constellio.model.services.schemas.MetadataSchemaProvider;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
@@ -114,10 +114,10 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 	private void init() {
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		UserCredential adminCredential = createUserCredential("mrlabatt50", "John", "Labatt", "ti-joe@brewerie.com",
+		UserAddUpdateRequest adminCredential = createUserCredential("mrlabatt50", "John", "Labatt", "ti-joe@brewerie.com",
 				new ArrayList<String>(), asList(zeCollection), UserCredentialStatus.ACTIVE).setSystemAdminEnabled();
 		userServices.addUpdateUserCredential(adminCredential);
-		userServices.addUserToCollection(adminCredential, zeCollection);
+		userServices.addUserToCollection(adminCredential.getUsername(), zeCollection);
 		john = userServices.getUserRecordInCollection("mrlabatt50", zeCollection);
 
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();

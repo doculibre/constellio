@@ -39,7 +39,6 @@ import com.constellio.model.entities.modules.PluginUtil;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -48,6 +47,7 @@ import com.constellio.model.services.extensions.ConstellioModulesManagerExceptio
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Page;
 import org.apache.commons.io.FileUtils;
@@ -64,6 +64,7 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static org.apache.ignite.internal.util.lang.GridFunc.asList;
 
 public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView> {
 
@@ -219,14 +220,14 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 					ModelLayerFactory modelLayerFactory = factories.getModelLayerFactory();
 
 					UserServices userServices = modelLayerFactory.newUserServices();
-					UserCredential adminCredential = userServices.addEdit("admin")
+					UserAddUpdateRequest adminRequest = userServices.addEditRequest("admin")
 							.setFirstName("System")
 							.setLastName("Admin")
 							.setEmail("admin@administration.com")
 							.setServiceKey(null)
 							.setSystemAdmin(false)
 							.setGlobalGroups(new ArrayList<String>())
-							.setCollections(collectionCode)
+							.setCollections(asList(collectionCode))
 							.setAccessTokens(Collections.<String, LocalDateTime>emptyMap())
 							.setStatus(UserCredentialStatus.ACTIVE)
 							.setDomain(null)
@@ -234,8 +235,8 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 							.setDn(null);
 
 
-					userServices.addUpdateUserCredential(adminCredential);
-					userServices.addUserToCollection(adminCredential, collectionCode);
+					userServices.addUpdateUserCredential(adminRequest);
+					userServices.addUserToCollection(userServices.getUserCredential("admin"), collectionCode);
 					User user = userServices.getUserRecordInCollection("admin", collectionCode);
 					String effectiveAdminPassword;
 					if (StringUtils.isBlank(adminPassword)) {

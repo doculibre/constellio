@@ -11,6 +11,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 
 import java.io.IOException;
@@ -85,12 +86,12 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 
 	public void addGlobalGroupButtonClicked(String username, String globalGroupCode) {
 		List<String> newGlobalGroups = new ArrayList<>();
-		UserCredential userCredential = userServices.getUserCredential(username);
-		List<String> globalGroups = userCredential.getGlobalGroups();
+		UserAddUpdateRequest userUpdateRequest = userServices.addEditRequest(username);
+		List<String> globalGroups = userUpdateRequest.getGlobalGroups();
 		newGlobalGroups.addAll(globalGroups);
 		newGlobalGroups.add(globalGroupCode);
-		userCredential = userCredential.setGlobalGroups(newGlobalGroups);
-		userServices.addUpdateUserCredential(userCredential);
+		userUpdateRequest.setGlobalGroups(newGlobalGroups);
+		userServices.addUpdateUserCredential(userUpdateRequest);
 		view.refreshTable();
 	}
 

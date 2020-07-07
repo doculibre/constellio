@@ -5,7 +5,6 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.ImportServices;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
@@ -38,10 +37,6 @@ public class UserImportServices implements ImportServices {
 		this.passwordFileAuthenticationService = modelLayerFactory.getPasswordFileAuthenticationService();
 	}
 
-	void importUser(List<String> collections, UserCredential userCredential) {
-		userCredential = userCredential.setCollections(collections);
-		userServices.addUpdateUserCredential(userCredential);
-	}
 
 	@Override
 	public BulkImportResults bulkImport(ImportDataProvider importDataProvider,

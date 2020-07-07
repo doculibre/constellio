@@ -13,6 +13,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 
 import java.io.IOException;
@@ -95,12 +96,12 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 
 	public void addUserCredentialButtonClicked(String globalGroupCode, String username) {
 		List<String> newGlobalGroups = new ArrayList<>();
-		UserCredential userCredential = userServices.getUserCredential(username);
-		List<String> globalGroups = userCredential.getGlobalGroups();
+		UserAddUpdateRequest userCredentialRequest = userServices.addEditRequest(username);
+		List<String> globalGroups = userCredentialRequest.getGlobalGroups();
 		newGlobalGroups.addAll(globalGroups);
 		newGlobalGroups.add(globalGroupCode);
-		userCredential = userCredential.setGlobalGroups(newGlobalGroups);
-		userServices.addUpdateUserCredential(userCredential);
+		userCredentialRequest.setGlobalGroups(newGlobalGroups);
+		userServices.addUpdateUserCredential(userCredentialRequest);
 		view.refreshTable();
 	}
 

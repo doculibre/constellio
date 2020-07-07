@@ -5,9 +5,9 @@ import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
@@ -41,7 +41,7 @@ public class RMUserAcceptanceTest extends ConstellioTest {
 
 	}
 
-	private UserCredential newJackBauerUserCredential() {
+	private UserAddUpdateRequest newJackBauerUserCredential() {
 		return createUserCredential("jack.bauer", "Jack", "Bauer", "jack.bauer@constellio.com",
 				new ArrayList<String>(), asList(zeCollection), UserCredentialStatus.ACTIVE);
 	}

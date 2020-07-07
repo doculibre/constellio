@@ -202,7 +202,7 @@ public class DocumentViewer extends CustomComponent {
 				String serviceKey = userCredentials.getServiceKey();
 				if (serviceKey == null) {
 					serviceKey = userServices.giveNewServiceToken(userCredentials);
-					userServices.addUpdateUserCredential(userCredentials);
+					userServices.addUpdateUserConfigs(userCredentials);
 				}
 				String tokenAttributeName = "document_viewer_token";
 				String token = ConstellioUI.getCurrent().getAttribute(tokenAttributeName);

@@ -21,7 +21,6 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -33,6 +32,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.authentification.PasswordFileAuthenticationService;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.load.script.utils.LinkableIdsList;
 import com.constellio.sdk.load.script.utils.LinkableRecordsList;
@@ -175,7 +175,7 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 			groupCodes.add(group.getCode());
 		}
 
-		for (UserCredential user : userPreparator.createUsers(groupCodes)) {
+		for (UserAddUpdateRequest user : userPreparator.createUsers(groupCodes)) {
 			userServices.addUpdateUserCredential(user);
 			authenticationService.changePassword(user.getUsername(), "password");
 

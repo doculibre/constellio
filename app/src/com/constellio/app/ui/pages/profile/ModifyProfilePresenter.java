@@ -138,7 +138,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 			}
 		}
 
-		userServices.addUpdateUserCredential(userCredential);
+		userServices.addUpdateUserConfigs(userCredential);
 
 		SessionContext sessionContext = view.getSessionContext();
 		String collection = view.getCollection();

@@ -133,25 +133,6 @@ public class DisplayUserCredentialPresenterTest extends ConstellioTest {
 		verify(userCredentialView).refreshTable();
 	}
 
-	//@Test
-	public void whenAddGlobalGroupButtonClickedThenMoveItToUsersGlobalGroupsList()
-			throws Exception {
-
-		List<String> dakotaGlobalGroups = new ArrayList();
-		dakotaGlobalGroups.add("Legends");
-		List<String> newDakotaGlobalGroups = new ArrayList();
-		newDakotaGlobalGroups.add("Legends");
-		newDakotaGlobalGroups.add(HEROES);
-		when(dakotaCredential.getGlobalGroups()).thenReturn(dakotaGlobalGroups);
-		when(newDakotaCredential.getGlobalGroups()).thenReturn(newDakotaGlobalGroups);
-		when(dakotaCredential.setGlobalGroups(newDakotaGlobalGroups)).thenReturn(newDakotaCredential);
-
-		presenter.addGlobalGroupButtonClicked(dakotaCredentialVO.getUsername(), HEROES);
-
-		verify(dakotaCredential).setGlobalGroups(newDakotaGlobalGroups);
-		verify(userServices).addUpdateUserCredential(newDakotaCredential);
-		verify(userCredentialView).refreshTable();
-	}
 
 	//@Test
 	public void whenGetGlobalGroupVODataProviderTheReturnIt()

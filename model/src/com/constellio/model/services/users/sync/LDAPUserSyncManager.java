@@ -22,6 +22,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
@@ -228,17 +229,16 @@ public class LDAPUserSyncManager implements StatefulService {
 
 		for (LDAPUser ldapUser : ldapUsers) {
 			if (!ldapUser.getName().toLowerCase().equals("admin")) {
-				UserCredential userCredential = createUserCredentialsFromLdapUser(ldapUser, selectedCollectionsCodes);
-				if (userCredential.getUsername() == null) {
+				UserAddUpdateRequest request = createUserCredentialsFromLdapUser(ldapUser, selectedCollectionsCodes);
+				if (request.getUsername() == null) {
 					LOGGER.error(
-							"Invalid user ignored (missing username). Id: " + ldapUser.getId() + ", Username : " + userCredential
-									.getUsername());
+							"Invalid user ignored (missing username). Id: " + ldapUser.getId() + ", Username : " + request.getUsername());
 				} else {
 					try {
 						// Keep locally created groups of existing users
-						final List<String> newUserGlobalGroups = new ArrayList<>(userCredential.getGlobalGroups());
+						final List<String> newUserGlobalGroups = new ArrayList<>(request.getGlobalGroups());
 						UserCredential previousUserCredential = userServices
-								.getUserCredential(userCredential.getUsername());
+								.getUserCredential(request.getUsername());
 						UserCredential userCredentialByDn = userServices.getUserCredentialByDN(ldapUser.getId());
 						if (previousUserCredential == null) {
 							previousUserCredential = userServices.getUserCredentialByDN(ldapUser.getId());
@@ -258,8 +258,8 @@ public class LDAPUserSyncManager implements StatefulService {
 							}
 						}
 						if (previousUserCredential != null) {
-							userCredential.setServiceKey(previousUserCredential.getServiceKey());
-							userCredential.setAccessTokens(previousUserCredential.getAccessTokens());
+							request.setServiceKey(previousUserCredential.getServiceKey());
+							request.setAccessTokens(previousUserCredential.getAccessTokens());
 							for (final String userGlobalGroup : previousUserCredential.getGlobalGroups()) {
 								final GlobalGroup previousGlobalGroup = userServices.getNullableGroup(userGlobalGroup);
 								if (previousGlobalGroup != null && previousGlobalGroup.isLocallyCreated()) {
@@ -267,12 +267,12 @@ public class LDAPUserSyncManager implements StatefulService {
 								}
 							}
 						}
-						userCredential.setGlobalGroups(newUserGlobalGroups);
+						request.setGlobalGroups(newUserGlobalGroups);
 
-						userServices.addUpdateUserCredential(userCredential);
+						userServices.addUpdateUserCredential(request);
 						updatedUsersAndGroups.addUsername(UserUtils.cleanUsername(ldapUser.getName()));
 					} catch (Throwable e) {
-						LOGGER.error("User ignored due to error when trying to add it " + userCredential.getUsername(), e);
+						LOGGER.error("User ignored due to error when trying to add it " + request.getUsername(), e);
 					}
 				}
 			}
@@ -299,7 +299,7 @@ public class LDAPUserSyncManager implements StatefulService {
 				GlobalGroupStatus.ACTIVE, false);
 	}
 
-	private UserCredential createUserCredentialsFromLdapUser(LDAPUser ldapUser, List<String> selectedCollectionsCodes) {
+	private UserAddUpdateRequest createUserCredentialsFromLdapUser(LDAPUser ldapUser, List<String> selectedCollectionsCodes) {
 		String username = ldapUser.getName();
 		String firstName = notNull(ldapUser.getGivenName());
 		String lastName = notNull(ldapUser.getFamilyName());
@@ -330,7 +330,7 @@ public class LDAPUserSyncManager implements StatefulService {
 		} else {
 			userStatus = UserCredentialStatus.DELETED;
 		}
-		UserCredential returnUserCredentials = userServices.addEdit(username)
+		UserAddUpdateRequest request = userServices.addEditRequest(username)
 				.setFirstName(firstName)
 				.setLastName(lastName)
 				.setEmail(email)
@@ -347,14 +347,14 @@ public class LDAPUserSyncManager implements StatefulService {
 		try {
 			UserCredential currentUserCredential = userServices.getUser(username);
 			if (currentUserCredential.isSystemAdmin()) {
-				returnUserCredentials = returnUserCredentials.setSystemAdminEnabled();
+				request = request.setSystemAdmin(true);
 			}
-			returnUserCredentials = returnUserCredentials.setAccessTokens(currentUserCredential.getAccessTokens());
+			request = request.setAccessTokens(currentUserCredential.getAccessTokens());
 		} catch (UserServicesRuntimeException_NoSuchUser e) {
 			//OK
 		}
 
-		return returnUserCredentials;
+		return request;
 	}
 
 	private String validateEmail(String email) {

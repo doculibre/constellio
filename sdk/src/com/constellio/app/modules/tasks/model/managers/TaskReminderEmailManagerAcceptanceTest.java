@@ -61,11 +61,11 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 		String aliceAndBobGroupId = users.heroesIn(zeCollection).getId();
 		users.aliceIn(zeCollection);
 
-		userServices.addUpdateUserCredential(users.alice().setCollections(asList(zeCollection))
+		userServices.addUpdateUserCredential(users.aliceAddUpdateRequest().setCollections(asList(zeCollection))
 				.setGlobalGroups(asList(users.heroesIn(zeCollection).getCode())));
-		userServices.addUpdateUserCredential(users.bob().setCollections(asList(zeCollection))
+		userServices.addUpdateUserCredential(users.bobAddUpdateRequest().setCollections(asList(zeCollection))
 				.setGlobalGroups(asList(users.heroesIn(zeCollection).getCode())));
-		userServices.addUpdateUserCredential(users.chuckNorris().setGlobalGroups(new ArrayList<String>()));
+		userServices.addUpdateUserCredential(users.chuckNorrisAddUpdateRequest().setGlobalGroups(new ArrayList<String>()));
 
 		userServices.setGlobalGroupUsers(users.heroes().getCode(), asList(users.alice(), users.bob()));
 		EmailAddress aliceEmailAddress = new EmailAddress(users.alice().getTitle(), users.alice().getEmail());
@@ -109,7 +109,7 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenTaskWithAliceAssigneeAndAliceWithBlankEmailWhenManagerCalledThenNoReminderEmailGenerated()
 			throws Exception {
-		userServices.addUpdateUserCredential(users.alice().setGlobalGroups(new ArrayList<String>()).setEmail(null));
+		userServices.addUpdateUserCredential(users.aliceAddUpdateRequest().setGlobalGroups(new ArrayList<String>()).setEmail(null));
 		zeTask = saveAndReload(zeTask.setAssignee(users.aliceIn(zeCollection).getId())
 				.setAssignationDate(now)
 				.setAssigner(users.adminIn(zeCollection).getId())

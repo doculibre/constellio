@@ -198,7 +198,11 @@ public class UserServices {
 		addUpdateUserCredential(userCredential);
 	}
 
-	public void addUpdateUserCredential(UserCredential userCredential) {
+	public void addUpdateUserConfigs(UserCredential userCredential) {
+		addUpdateUserCredential(userCredential);
+	}
+
+	private void addUpdateUserCredential(UserCredential userCredential) {
 		List<String> collections = collectionsListManager.getCollectionsExcludingSystem();
 		validateAdminIsActive(userCredential);
 		UserCredential savedUserCredential = userCredential;
@@ -241,6 +245,10 @@ public class UserServices {
 		}
 		globalGroupsManager.addUpdate(globalGroup);
 		sync(globalGroup);
+	}
+
+	public void addUserToCollection(String username, String collection) {
+		addUserToCollection(getUserCredential(username), collection);
 	}
 
 	public void addUserToCollection(UserCredential userCredential, String collection) {
@@ -745,7 +753,7 @@ public class UserServices {
 		return Group.wrap(searchServices.search(query), collectionTypes);
 	}
 
-	private List<Group> getGlobalGroupsInCollections(String collection) {
+	List<Group> getGlobalGroupsInCollections(String collection) {
 		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
 		LogicalSearchQuery query = new LogicalSearchQuery(allGroupsWhereGlobalGroupFlag(collectionTypes).isTrue());
 		return Group.wrap(searchServices.search(query), collectionTypes);
@@ -902,7 +910,7 @@ public class UserServices {
 		return globalGroupsManager.getAllGroups();
 	}
 
-	private List<Group> getChildrenOfGroupInCollection(String groupParentCode, String collection) {
+	List<Group> getChildrenOfGroupInCollection(String groupParentCode, String collection) {
 		List<Group> groups = new ArrayList<>();
 		String parentId = getGroupIdInCollection(groupParentCode, collection);
 		if (parentId != null) {
@@ -964,7 +972,7 @@ public class UserServices {
 		return physicallyRemoveGlobalGroup(globalGroupsManager.getAllGroups().toArray(new GlobalGroup[0]));
 	}
 
-	private List<GlobalGroup> physicallyRemoveGlobalGroup(GlobalGroup... globalGroups) {
+	List<GlobalGroup> physicallyRemoveGlobalGroup(GlobalGroup... globalGroups) {
 		List<GlobalGroup> groupWithUserList = new ArrayList<>();
 		for (GlobalGroup group : globalGroups) {
 			List<UserCredential> userInGroup = this.getGlobalGroupActifUsers(group.getCode());
@@ -998,7 +1006,7 @@ public class UserServices {
 		return nonDeletedGroups;
 	}
 
-	private void physicallyRemoveGroup(Group group, String collection) {
+	void physicallyRemoveGroup(Group group, String collection) {
 		LOGGER.info("physicallyRemoveGroup : " + group.getCode());
 
 		List<Record> userInGroup = authorizationsServices.getUserRecordsInGroup(group.getWrappedRecord());
@@ -1034,7 +1042,7 @@ public class UserServices {
 		return nonDeletedUsers;
 	}
 
-	private void safePhysicalDeleteUserCredential(String username)
+	void safePhysicalDeleteUserCredential(String username)
 			throws UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically {
 		LOGGER.info("safePhysicalDeleteUser : " + username);
 		UserCredential userCredential = getUser(username);
@@ -1088,7 +1096,7 @@ public class UserServices {
 		recordServices.physicallyDelete(userCredential.getWrappedRecord(), User.GOD);
 	}
 
-	private void physicallyRemoveUser(User user, String collection) {
+	void physicallyRemoveUser(User user, String collection) {
 		LOGGER.info("physicallyRemoveUser : " + user.getUsername());
 
 		if (searchServices.hasResults(fromAllSchemasIn(collection).where(Schemas.ALL_REFERENCES).isEqualTo(user.getId()))) {
@@ -1100,7 +1108,7 @@ public class UserServices {
 		recordServices.physicallyDelete(user.getWrappedRecord(), User.GOD);
 	}
 
-	private void restoreDeletedGroup(String groupCode, String collection) {
+	void restoreDeletedGroup(String groupCode, String collection) {
 		GlobalGroup globalGroup = globalGroupsManager.getGlobalGroupWithCode(groupCode);
 		if (globalGroup.getStatus().equals(GlobalGroupStatus.INACTIVE)) {
 			globalGroupsManager.addUpdate(globalGroup.setStatus(GlobalGroupStatus.ACTIVE));
@@ -1264,11 +1272,11 @@ public class UserServices {
 		return new UserAddUpdateRequest().setUsername(cleanUsername(username));
 	}
 
-	private UserAddUpdateRequest addEditRequest(String username, String firstName, String lastName, String email) {
+	public UserAddUpdateRequest addEditRequest(String username, String firstName, String lastName, String email) {
 		return new UserAddUpdateRequest().setUsername(cleanUsername(username)).setFirstName(firstName).setLastName(lastName).setEmail(email);
 	}
 
-	private void removeUserCredentialFromCollection(String username, String collection) {
+	void removeUserCredentialFromCollection(String username, String collection) {
 		userCredentialsManager.removeUserCredentialFromCollection(getUserCredential(username), collection);
 	}
 

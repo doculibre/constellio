@@ -104,10 +104,10 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 
-		userServices.addUpdateUserCredential(users.bob().setServiceKey(serviceKey)
+		userServices.addUpdateUserCredential(users.bobAddUpdateRequest().setServiceKey(serviceKey)
 				.addAccessToken(token, TimeProvider.getLocalDateTime().plusYears(1))
 				.addAccessToken(expiredToken, TimeProvider.getLocalDateTime().minusDays(1)));
-		userServices.addUpdateUserCredential(users.sasquatch().setServiceKey(sasquatchServiceKey)
+		userServices.addUpdateUserCredential(users.sasquatchAddUpdateRequest().setServiceKey(sasquatchServiceKey)
 				.addAccessToken(sasquatchToken, TimeProvider.getLocalDateTime().plusYears(1)));
 
 		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();

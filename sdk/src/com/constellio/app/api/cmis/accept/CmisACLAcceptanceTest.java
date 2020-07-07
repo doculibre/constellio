@@ -5,7 +5,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -14,6 +13,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.DriverTest;
@@ -125,7 +125,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		recordServices.update(users.adminIn(zeCollection).setCollectionAllAccess(true));
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionReadAccess(true));
 
-		userServices.addUpdateUserCredential(users.admin().setServiceKey("admin-key"));
+		userServices.addUpdateUserCredential(users.adminAddUpdateRequest().setServiceKey("admin-key"));
 		getModelLayerFactory().newAuthenticationService().changePassword(admin, "1qaz2wsx");
 		adminToken = userServices.generateToken(admin);
 		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
@@ -315,7 +315,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		List<String> users = new ArrayList<>();
 		for (int i = 1; i <= qty; i++) {
 			String username = "grim.patron." + i;
-			UserCredential userCredential = createUserCredential(username, "Grim", "Patron",
+			UserAddUpdateRequest userCredential = createUserCredential(username, "Grim", "Patron",
 					username + "@constellio.com", new ArrayList<String>(), asList(zeCollection), ACTIVE);
 			userServices.addUpdateUserCredential(userCredential);
 			users.add(username);

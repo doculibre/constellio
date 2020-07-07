@@ -18,7 +18,6 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordDeleteServices;
@@ -36,6 +35,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.security.SecurityAcceptanceTestSetup.Records;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -1006,7 +1006,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		public UserAction isRemovedFromGroup(String group) {
-			userServices.addUpdateUserCredential(userServices.getUser(username).removeGlobalGroup(group));
+			userServices.addUpdateUserCredential(userServices.addEditRequest(username).removeGlobalGroup(group));
 			try {
 				waitForBatchProcess();
 			} catch (InterruptedException e) {
@@ -1016,7 +1016,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		public UserAction isAddedInGroup(String group) {
-			userServices.addUpdateUserCredential(userServices.getUser(username).addGlobalGroup(group));
+			userServices.addUpdateUserCredential(userServices.addEditRequest(username).addGlobalGroup(group));
 			try {
 				waitForBatchProcess();
 			} catch (InterruptedException e) {
@@ -1302,7 +1302,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		for (int i = 1; i <= qty; i++) {
 			System.out.println("adding user " + i + "/" + qty);
 			String username = "grim.patron." + i;
-			UserCredential userCredential = createUserCredential(username, "Grim", "Patron",
+			UserAddUpdateRequest userCredential = createUserCredential(username, "Grim", "Patron",
 					username + "@constellio.com", asList("legends"), asList(zeCollection), ACTIVE);
 			userServices.addUpdateUserCredential(userCredential);
 			users.add(username);

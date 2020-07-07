@@ -50,7 +50,6 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleRuntimeException;
@@ -62,6 +61,7 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.FailureDetectionTestWatcher.FailureDetectionTestWatcherListener;
 import com.constellio.sdk.tests.ToggleTestFeature.ToggleCondition;
@@ -1738,7 +1738,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected Session newCMISSessionAsUserInCollection(String username, String collection) {
 		ensureNotUnitTest();
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.addUpdateUserCredential(userServices.getUser(username).setServiceKey(username + "-key"));
+		userServices.addUpdateUserConfigs(userServices.getUser(username).setServiceKey(username + "-key"));
 		String token = userServices.generateToken(username, Duration.standardHours(72));
 		System.out.println("Logging as " + username + "-key / " + token);
 		Session session = newCmisSessionBuilder().authenticatedBy(username + "-key", token).onCollection(collection).build();
@@ -1786,11 +1786,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		this.failMessage = failMessage;
 	}
 
-	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-											   List<String> globalGroups, List<String> collections,
-											   UserCredentialStatus status) {
+	public UserAddUpdateRequest createUserCredential(String username, String firstName, String lastName, String email,
+													 List<String> globalGroups, List<String> collections,
+													 UserCredentialStatus status) {
 
-		return getModelLayerFactory().newUserServices().addEdit(username)
+		return getModelLayerFactory().newUserServices().addEditRequest(username)
 				.setUsername(cleanUsername(username))
 				.setFirstName(firstName)
 				.setLastName(lastName)

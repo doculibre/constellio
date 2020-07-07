@@ -41,7 +41,7 @@ public class UserRestfulServiceDELETEInitialsAcceptanceTest extends BaseRestfulS
 
 		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
 		userCredentials.setElectronicInitials(content);
-		userServices.addUpdateUserCredential(userCredentials);
+		userServices.addUpdateUserConfigs(userCredentials);
 
 		queryCounter.reset();
 		commitCounter.reset();

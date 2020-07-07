@@ -71,7 +71,7 @@ public class ConstellioImportRecordsServletAcceptanceTest extends ConstellioTest
 		admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		getModelLayerFactory().newUserServices().addUpdateUserCredential(users.admin().setServiceKey(adminServiceKey));
+		getModelLayerFactory().newUserServices().addUpdateUserCredential(users.adminAddUpdateRequest().setServiceKey(adminServiceKey));
 		adminToken = getModelLayerFactory().newUserServices().generateToken("admin");
 	}
 

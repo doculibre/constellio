@@ -106,7 +106,6 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 		alice = usersRecords.aliceIn(zeCollection);
 		userCredentialBob = usersRecords.bob();
 		userCredentialAlice = usersRecords.alice();
-		userServices.addUpdateUserCredential(userCredentialAlice);
 		userServices.addUserToCollection(userCredentialAlice, zeCollection);
 
 		userServices.givenSystemAdminPermissionsToUser(userCredentialBob);

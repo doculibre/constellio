@@ -41,7 +41,7 @@ public class UserRestfulServiceDELETESignatureAcceptanceTest extends BaseRestful
 
 		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
 		userCredentials.setElectronicSignature(content);
-		userServices.addUpdateUserCredential(userCredentials);
+		userServices.addUpdateUserConfigs(userCredentials);
 
 		queryCounter.reset();
 		commitCounter.reset();

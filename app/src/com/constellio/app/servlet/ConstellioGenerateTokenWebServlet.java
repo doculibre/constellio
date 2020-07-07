@@ -110,7 +110,7 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 
 			if (userCredential.getServiceKey() == null) {
 				userCredential = userCredential.setServiceKey("agent_" + userCredential.getUsername());
-				userServices.addUpdateUserCredential(userCredential);
+				userServices.addUpdateUserConfigs(userCredential);
 			}
 
 			token = userServices.generateToken(userCredential.getUsername(), Duration.standardHours(tokenDurationInHours));

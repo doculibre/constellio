@@ -83,6 +83,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	List<String> allCollections;
 	String collection1, collection2, collection3;
 	UserCredential user, anotherUser, thirdUser;
+	UserAddUpdateRequest userReq, anotherUserReq, thirdUserReq;
 	@Mock UserCredential userWithNoAccessToDeleteCollection;
 	@Mock Factory<EncryptionServices> encryptionServicesFactory;
 	AuthenticationService authenticationService;
@@ -129,10 +130,10 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenCollection1And2();
 
 		for (int i = 0; i < 10000; i++) {
-			user = createUserCredential("grimPatron" + i, "Grim", "Patron", "grim.patron." + i + "@doculibre.com", noGroups,
+			userReq = createUserCredential("grimPatron" + i, "Grim", "Patron", "grim.patron." + i + "@doculibre.com", noGroups,
 					noCollections, UserCredentialStatus.ACTIVE)
 					.setSystemAdminEnabled();
-			userServices.addUpdateUserCredential(user);
+			userServices.addUpdateUserCredential(userReq);
 		}
 
 		for (int i = 0; i < 10000; i++) {
@@ -594,7 +595,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThat(userServices.getUserInCollection(chuckNorris, collection1).getAllRoles())
 				.containsOnlyOnce("role1", "role2", "role3");
 
-		userServices.addUpdateUserCredential(userServices.getUser(chuckNorris).setFirstName("CHUCK").setLastName("NORRIS")
+		userServices.addUpdateUserCredential(userServices.addEditRequest(chuckNorris).setFirstName("CHUCK").setLastName("NORRIS")
 				.setEmail("chuck@norris.com"));
 
 		user = userServices.getUserInCollection(chuckNorris, collection1);
@@ -631,7 +632,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenCollection1();
 		givenUserAndPassword();
 
-		UserCredential user2 = createUserCredential(
+		UserAddUpdateRequest user2 = createUserCredential(
 				chuckNorris + "Other", "Chuck", "Norris", "chuck.norris@doculibre.com", new ArrayList<String>(),
 				new ArrayList<String>(),
 				UserCredentialStatus.ACTIVE);
@@ -781,7 +782,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		setupAfterCollectionCreation();
-		UserCredential admin = userServices.getUserCredential("admin");
+		UserAddUpdateRequest admin = userServices.addEditRequest("admin");
 		admin = admin.setStatus(UserCredentialStatus.DELETED);
 		try {
 			userServices.addUpdateUserCredential(admin);
@@ -1024,14 +1025,10 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		recordServices.execute(t);
 		userServices = getModelLayerFactory().newUserServices();
 		for (UserCredential user : users.getAllUsers()) {
-			if (!user.isSystemAdmin()) {
-				for (String collection : user.getCollections()) {
-					if (!collection.equals("_system_")) {
-						userServices.getUserInCollection(user.getUsername(), collection).setStatus(UserCredentialStatus.DELETED);
-					}
-				}
-				user.setStatus(UserCredentialStatus.DELETED);
-				userServices.addUpdateUserCredential(user);
+			UserAddUpdateRequest userReq = userServices.addEditRequest(user.getUsername());
+			if (!userReq.isSystemAdmin()) {
+				userReq.setStatus(UserCredentialStatus.DELETED);
+				userServices.addUpdateUserCredential(userReq);
 			}
 		}
 
@@ -1281,28 +1278,28 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		String phone = "450 444 1919";
 
-		UserCredential chuckCredential = users.chuckNorris();
+		UserAddUpdateRequest chuckCredential = users.chuckNorrisAddUpdateRequest();
 		chuckCredential.setPhone(phone);
 		userServices.addUpdateUserCredential(chuckCredential);
 
 		assertThat(userServices.getUserCredential(chuckCredential.getUsername()).getPhone()).isEqualTo(phone);
 
 		String fax = "450 448 4448";
-		chuckCredential = users.chuckNorris();
+		chuckCredential = users.chuckNorrisAddUpdateRequest();
 		chuckCredential.setFax(fax);
 		userServices.addUpdateUserCredential(chuckCredential);
 
 		assertThat(userServices.getUserCredential(chuckCredential.getUsername()).getFax()).isEqualTo(fax);
 
 		String address = "647 addresse";
-		chuckCredential = users.chuckNorris();
+		chuckCredential = users.chuckNorrisAddUpdateRequest();
 		chuckCredential.setAddress(address);
 		userServices.addUpdateUserCredential(chuckCredential);
 
 		assertThat(userServices.getUserCredential(chuckCredential.getUsername()).getAddress()).isEqualTo(address);
 
 		String jobTitle = "Programmeur";
-		chuckCredential = users.chuckNorris();
+		chuckCredential = users.chuckNorrisAddUpdateRequest();
 		chuckCredential.setJobTitle(jobTitle);
 		userServices.addUpdateUserCredential(chuckCredential);
 
@@ -1415,32 +1412,39 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenUserAndPassword() {
-		user = createUserCredential(
+		userReq = createUserCredential(
 				chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", new ArrayList<String>(), new ArrayList<String>(),
 				UserCredentialStatus.ACTIVE);
-		userServices.addUpdateUserCredential(user);
-		authenticationService.changePassword(user.getUsername(), "1qaz2wsx");
-		user = userServices.getUser(user.getUsername());
+		userServices.addUpdateUserCredential(userReq);
+		authenticationService.changePassword(userReq.getUsername(), "1qaz2wsx");
+		user = userServices.getUser(userReq.getUsername());
+		userReq = userServices.addEditRequest(userReq.getUsername());
 	}
 
 	private void givenUserWith(List<String> groups, List<String> collections) {
-		user = createUserCredential(
+		userReq = createUserCredential(
 				chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", groups, collections, UserCredentialStatus.ACTIVE).setSystemAdminEnabled();
-		userServices.addUpdateUserCredential(user);
+		userServices.addUpdateUserCredential(userReq);
+		user = userServices.getUser(userReq.getUsername());
+		userReq = userServices.addEditRequest(userReq.getUsername());
 	}
 
 	private void givenAnotherUserWith(List<String> groups, List<String> collections) {
-		anotherUser = createUserCredential(
+		anotherUserReq = createUserCredential(
 				"gandalf.leblanc", "Gandalf", "Leblanc", "gandalf.leblanc@doculibre.com", groups, collections,
 				UserCredentialStatus.ACTIVE);
-		userServices.addUpdateUserCredential(anotherUser);
+		userServices.addUpdateUserCredential(anotherUserReq);
+		anotherUser = userServices.getUser(anotherUserReq.getUsername());
+		anotherUserReq = userServices.addEditRequest(anotherUserReq.getUsername());
 	}
 
 	private void givenAThirdUserWith(List<String> groups, List<String> collections) {
-		thirdUser = createUserCredential(
+		thirdUserReq = createUserCredential(
 				"edouard.lechat", "Edouard", "Lechat", "edouard.lechat@doculibre.com", groups, collections,
 				UserCredentialStatus.ACTIVE);
-		userServices.addUpdateUserCredential(thirdUser);
+		userServices.addUpdateUserCredential(thirdUserReq);
+		thirdUser = userServices.getUser(thirdUserReq.getUsername());
+		thirdUserReq = userServices.addEditRequest(thirdUserReq.getUsername());
 	}
 
 

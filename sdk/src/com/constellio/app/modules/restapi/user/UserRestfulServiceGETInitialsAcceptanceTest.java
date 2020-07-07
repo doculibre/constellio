@@ -47,7 +47,7 @@ public class UserRestfulServiceGETInitialsAcceptanceTest extends BaseRestfulServ
 
 		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
 		userCredentials.setElectronicInitials(content);
-		userServices.addUpdateUserCredential(userCredentials);
+		userServices.addUpdateUserConfigs(userCredentials);
 
 		queryCounter.reset();
 		commitCounter.reset();
@@ -86,7 +86,7 @@ public class UserRestfulServiceGETInitialsAcceptanceTest extends BaseRestfulServ
 	public void validateServiceWithEmptyData() {
 		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
 		userCredentials.setElectronicInitials(null);
-		userServices.addUpdateUserCredential(userCredentials);
+		userServices.addUpdateUserConfigs(userCredentials);
 
 		queryCounter.reset();
 		commitCounter.reset();

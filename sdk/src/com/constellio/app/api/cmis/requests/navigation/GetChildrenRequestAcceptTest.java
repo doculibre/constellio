@@ -90,12 +90,12 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 
 		userServices.addUpdateUserCredential(
-				userServices.getUserCredential(chuckNorris).setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
+				userServices.addEditRequest(chuckNorris).setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
 		chuckNorrisToken = userServices.generateToken(chuckNorris);
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 		cmisSession = givenAdminSessionOnZeCollection();
 		userServices.addUpdateUserCredential(
-				userServices.getUserCredential(bobGratton).setServiceKey(bobKey).setSystemAdminEnabled());
+				userServices.addEditRequest(bobGratton).setServiceKey(bobKey).setSystemAdminEnabled());
 		bobToken = userServices.generateToken(bobGratton);
 		userServices.addUserToCollection(users.bob(), zeCollection);
 

@@ -91,7 +91,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		contentManager = getModelLayerFactory().getContentManager();
 
-		userServices.addUpdateUserCredential(users.bob().setServiceKey(bobKey)
+		userServices.addUpdateUserCredential(users.bobAddUpdateRequest().setServiceKey(bobKey)
 				.addAccessToken(bobAuth, TimeProvider.getLocalDateTime().plusYears(1))
 				.addAccessToken(expiredAuth, TimeProvider.getLocalDateTime().minusDays(1)));
 

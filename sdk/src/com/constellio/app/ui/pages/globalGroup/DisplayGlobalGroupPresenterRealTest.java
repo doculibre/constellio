@@ -109,24 +109,6 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 				"UTF-8"));
 	}
 
-	@Test
-	public void whenAddUserCredentialButtonClickedThenOk()
-			throws Exception {
-
-		List<String> dakotaGlobalGroups = new ArrayList<>();
-		List<String> newDakotaGlobalGroups = new ArrayList<>();
-		dakotaGlobalGroups.add(HEROES);
-		newDakotaGlobalGroups.addAll(dakotaGlobalGroups);
-		newDakotaGlobalGroups.add(LEGENDS);
-		when(dakotaCredential.getGlobalGroups()).thenReturn(dakotaGlobalGroups);
-		when(dakotaCredential.setGlobalGroups(newDakotaGlobalGroups)).thenReturn(newDakotaCredential);
-		when(userServices.getUserCredential(dakota)).thenReturn(dakotaCredential);
-
-		presenter.addUserCredentialButtonClicked(LEGENDS, dakota);
-
-		verify(userServices).addUpdateUserCredential(newDakotaCredential);
-		verify(globalGroupView).refreshTable();
-	}
 
 	@Test
 	public void whenDisplayUserCredentialButtonClickedThenNavigateToDisplayUserCredential()

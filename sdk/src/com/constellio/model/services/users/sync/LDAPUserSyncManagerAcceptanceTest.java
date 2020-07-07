@@ -11,6 +11,7 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
@@ -132,7 +133,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		assertThat(importedUser.getDn()).isEqualTo("CN=indexer indexer,CN=Users,DC=test,DC=doculibre,DC=ca");
 
 		UserCredential updatedUser = importedUser.setMsExchDelegateListBL(Arrays.asList("newMSExchDelegateListBL"));
-		userServices.addUpdateUserCredential(updatedUser);
+		userServices.addUpdateUserConfigs(updatedUser);
 		updatedUser = user("indexer");
 		assertThat(updatedUser.getMsExchDelegateListBL()).isEqualTo(Arrays.asList("newMSExchDelegateListBL"));
 
@@ -157,6 +158,10 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 
 	private UserCredential user(String code) {
 		return userServices.getUserCredential(code);
+	}
+
+	private UserAddUpdateRequest addEditRequest(String code) {
+		return userServices.addEditRequest(code);
 	}
 
 	@Test
@@ -237,14 +242,14 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		LDAPUserSyncManager ldapUserSyncManager = getModelLayerFactory().getLdapUserSyncManager();
 
 		ldapUserSyncManager.synchronizeIfPossible();
-		UserCredential bfay = userServices.getUser("bfay");
-		assertThat(bfay.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
+		UserAddUpdateRequest bfayReq = userServices.addEditRequest("bfay");
+		assertThat(bfayReq.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
 
-		bfay = bfay.setStatus(UserCredentialStatus.SUSPENDED);
-		userServices.addUpdateUserCredential(bfay);
+		bfayReq.setStatus(UserCredentialStatus.SUSPENDED);
+		userServices.addUpdateUserCredential(bfayReq);
 
 		ldapUserSyncManager.synchronizeIfPossible();
-		bfay = userServices.getUser("bfay");
+		UserCredential bfay = userServices.getUser("bfay");
 		assertThat(bfay.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
 	}
 
@@ -254,7 +259,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 
 		ldapUserSyncManager.synchronizeIfPossible();
 		UserCredential bfay = userServices.getUser("bfay");
-		userServices.addUpdateUserCredential(bfay.setSystemAdminEnabled());
+		userServices.addUpdateUserConfigs(bfay.setSystemAdminEnabled());
 		bfay = userServices.getUser("bfay");
 		assertThat(bfay.isSystemAdmin()).isTrue();
 
@@ -303,7 +308,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		UserCredential userCredentials = userServices.getUser(inactiveUserInLDAP);
 		assertThat(userCredentials.getStatus()).isEqualTo(UserCredentialStatus.DELETED);
 
-		UserCredential userCredential = createUserCredential(inactiveUserInLDAP, inactiveUserInLDAP, inactiveUserInLDAP,
+		UserAddUpdateRequest userCredential = createUserCredential(inactiveUserInLDAP, inactiveUserInLDAP, inactiveUserInLDAP,
 				inactiveUserInLDAP + "@doculibre.com", asList(new String[]{}), asList(new String[]{}),
 				UserCredentialStatus.ACTIVE);
 		userServices.addUpdateUserCredential(userCredential);
@@ -321,19 +326,19 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		LDAPUserSyncManager ldapUserSyncManager = getModelLayerFactory().getLdapUserSyncManager();
 
 		ldapUserSyncManager.synchronizeIfPossible();
-		UserCredential bfay = userServices.getUser("bfay");
-		List<String> currentGroups = bfay.getGlobalGroups();
+		UserAddUpdateRequest bfayReq = userServices.addEditRequest("bfay");
+		List<String> currentGroups = bfayReq.getGlobalGroups();
 		assertThat(currentGroups).containsOnly(groupB, groupC);
 		List<String> usersAutomaticallyAddedToCollections = Collections.emptyList();
 		userServices.addUpdateGlobalGroup(userServices.createGlobalGroup(
 				groupA, groupA, usersAutomaticallyAddedToCollections, null, GlobalGroupStatus.ACTIVE, false));
-		bfay = bfay.setGlobalGroups(asList(groupA, groupB));
-		userServices.addUpdateUserCredential(bfay);
-		currentGroups = bfay.getGlobalGroups();
+		bfayReq.setGlobalGroups(asList(groupA, groupB));
+		userServices.addUpdateUserCredential(bfayReq);
+		currentGroups = bfayReq.getGlobalGroups();
 		assertThat(currentGroups).containsOnly(groupB, groupA);
 
 		ldapUserSyncManager.synchronizeIfPossible();
-		bfay = userServices.getUser("bfay");
+		UserCredential bfay = userServices.getUser("bfay");
 		currentGroups = bfay.getGlobalGroups();
 		assertThat(currentGroups).containsOnly(groupB, groupC);
 	}
@@ -511,16 +516,16 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		ldapUserSyncManager.synchronizeIfPossible();
 
 		final String myUsername = "bfay";
-		UserCredential myUserCredential = userServices.getUser(myUsername);
-		userServices.addUserToCollection(myUserCredential, zeCollection);
-		myUserCredential.setGlobalGroups(Arrays.asList(new String[]{myLocalGroupCode}));
-		userServices.addUpdateUserCredential(myUserCredential);
+		UserAddUpdateRequest myUserCredentialReq = userServices.addEditRequest(myUsername);
+		userServices.addUserToCollection(myUserCredentialReq.getUsername(), zeCollection);
+		myUserCredentialReq.setGlobalGroups(Arrays.asList(new String[]{myLocalGroupCode}));
+		userServices.addUpdateUserCredential(myUserCredentialReq);
 
 		// When
 		ldapUserSyncManager.synchronizeIfPossible();
 
 		// Then
-		myUserCredential = userServices.getUser(myUsername);
+		UserCredential myUserCredential = userServices.getUser(myUsername);
 		assertThat(new TreeSet<>(myUserCredential.getGlobalGroups())).isEqualTo(new TreeSet<>(Arrays.asList(new String[]{"CN=B,OU=Fonct1,OU=Groupes,DC=test,DC=doculibre,DC=ca", "CN=C,OU=Fonct1,OU=Groupes,DC=test,DC=doculibre,DC=ca", myLocalGroupCode})));
 	}
 }

@@ -54,12 +54,12 @@ public class UserDao extends BaseDao {
 		Content content = contentManager.createSystemContent(filename, versionDataSummary);
 		UserCredential userCredentials = userServices.getUser(username);
 		userCredentials.set(metadataCode, content);
-		userServices.addUpdateUserCredential(userCredentials);
+		userServices.addUpdateUserConfigs(userCredentials);
 	}
 
 	public void deleteContent(String username, String metadataCode) {
 		UserCredential userCredentials = userServices.getUser(username);
 		userCredentials.set(metadataCode, null);
-		userServices.addUpdateUserCredential(userCredentials);
+		userServices.addUpdateUserConfigs(userCredentials);
 	}
 }

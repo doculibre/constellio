@@ -51,7 +51,7 @@ public class ConstellioGenerateTokenWebServletAcceptanceTest extends ConstellioT
 
 		givenTimeIs(dateTime(2014, 1, 2, 3, 0, 3));
 		getModelLayerFactory().newUserServices().addUpdateUserCredential(getModelLayerFactory().newUserServices()
-				.getUser(admin).setServiceKey("adminkey"));
+				.addEditRequest(admin).setServiceKey("adminkey"));
 		getModelLayerFactory().newAuthenticationService().changePassword(admin, "1qaz2wsx");
 		getModelLayerFactory().newAuthenticationService().changePassword(aliceWonderland, "mouhahaha");
 		getModelLayerFactory().newAuthenticationService().changePassword(bobGratton, "1qaz2wsx");

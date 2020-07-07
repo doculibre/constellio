@@ -7,6 +7,7 @@ import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.security.authentification.AuthenticationService;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
@@ -41,6 +42,10 @@ public class Users {
 		return getUser(chuckNorrisUsername);
 	}
 
+	public UserAddUpdateRequest chuckNorrisAddUpdateRequest() {
+		return addUpdateRequest(chuckNorrisUsername);
+	}
+
 	public User chuckNorrisIn(String collection) {
 		return getUser(chuckNorrisUsername, collection);
 	}
@@ -48,6 +53,11 @@ public class Users {
 	public UserCredential admin() {
 		return userServices.getUser(admin);
 	}
+
+	public UserAddUpdateRequest adminAddUpdateRequest() {
+		return addUpdateRequest(admin);
+	}
+
 
 	public User adminIn(String collection) {
 		return userServices.getUserInCollection(admin, collection);
@@ -57,6 +67,11 @@ public class Users {
 		return getUser(aliceUsername);
 	}
 
+	public UserAddUpdateRequest aliceAddUpdateRequest() {
+		return addUpdateRequest(aliceUsername);
+	}
+
+
 	public User aliceIn(String collection) {
 		return getUser(aliceUsername, collection);
 	}
@@ -64,6 +79,11 @@ public class Users {
 	public UserCredential bob() {
 		return getUser(bobGrattonUsername);
 	}
+
+	public UserAddUpdateRequest bobAddUpdateRequest() {
+		return addUpdateRequest(bobGrattonUsername);
+	}
+
 
 	public User bobIn(String collection) {
 		return getUser(bobGrattonUsername, collection);
@@ -73,6 +93,10 @@ public class Users {
 		return getUser(charlesFrancoisXavierUsername);
 	}
 
+	public UserAddUpdateRequest charlesAddUpdateRequest() {
+		return addUpdateRequest(charlesFrancoisXavierUsername);
+	}
+
 	public User charlesIn(String collection) {
 		return getUser(charlesFrancoisXavierUsername, collection);
 	}
@@ -80,6 +104,11 @@ public class Users {
 	public UserCredential dakotaLIndien() {
 		return getUser(dakotaLindienUsername);
 	}
+
+	public UserAddUpdateRequest dakotaAddUpdateRequest() {
+		return addUpdateRequest(dakotaLindienUsername);
+	}
+
 
 	public User dakotaIn(String collection) {
 		return dakotaLIndienIn(collection);
@@ -93,6 +122,11 @@ public class Users {
 		return getUser(edouardLechatUsername);
 	}
 
+	public UserAddUpdateRequest edouardAddUpdateRequest() {
+		return addUpdateRequest(edouardLechatUsername);
+	}
+
+
 	public User edouardIn(String collection) {
 		return edouardLechatIn(collection);
 	}
@@ -105,13 +139,28 @@ public class Users {
 		return getUser(gandalfLeblancUsername);
 	}
 
+	public UserAddUpdateRequest gandalfAddUpdateRequest() {
+		return addUpdateRequest(gandalfLeblancUsername);
+	}
+
+
 	public UserCredential robin() {
 		return getUser(robinUsername);
 	}
 
+	public UserAddUpdateRequest robinAddUpdateRequest() {
+		return addUpdateRequest(robinUsername);
+	}
+
+
 	public UserCredential sasquatch() {
 		return getUser(sasquatchUsername);
 	}
+
+	public UserAddUpdateRequest sasquatchAddUpdateRequest() {
+		return addUpdateRequest(sasquatchUsername);
+	}
+
 
 	public User gandalfIn(String collection) {
 		return gandalfLeblancIn(collection);
@@ -243,6 +292,10 @@ public class Users {
 		return userServices.getUser(username);
 	}
 
+	private UserAddUpdateRequest addUpdateRequest(String username) {
+		return userServices.addEditRequest(username);
+	}
+
 	private User getUser(String username, String collection) {
 		return userServices.getUserInCollection(username, collection);
 	}
@@ -259,7 +312,7 @@ public class Users {
 		String email = (username + "@doculibre.com").toLowerCase();
 		List<String> globalGroups = Arrays.asList(groups);
 		List<String> collections = new ArrayList<>();
-		UserCredential credential = userServices.addEdit(username)
+		UserAddUpdateRequest credential = userServices.addEditRequest(username)
 				.setFirstName(firstName)
 				.setLastName(lastName)
 				.setEmail(email)

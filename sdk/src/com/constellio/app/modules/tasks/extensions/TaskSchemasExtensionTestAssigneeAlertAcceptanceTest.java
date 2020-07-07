@@ -14,6 +14,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -78,8 +79,9 @@ public class TaskSchemasExtensionTestAssigneeAlertAcceptanceTest extends Constel
 			throws RecordServicesException {
 		Group heroes = users.heroesIn(zeCollection);
 		for (final UserCredential user : getModelLayerFactory().newUserServices().getGlobalGroupActifUsers(heroes.getCode())) {
-			user.setPersonalEmails(Arrays.asList(user.getUsername() + ".personal.mail@gmail.com"));
-			getModelLayerFactory().newUserServices().addUpdateUserCredential(user);
+			UserAddUpdateRequest userReq = getModelLayerFactory().newUserServices().addEditRequest(user.getUsername());
+			userReq.setPersonalEmails(Arrays.asList(user.getUsername() + ".personal.mail@gmail.com"));
+			getModelLayerFactory().newUserServices().addUpdateUserCredential(userReq);
 		}
 		List<String> heroesEmails = getGroupUsersEmails(heroes);
 		assertThat(heroesEmails).isNotEmpty();
