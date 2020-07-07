@@ -176,9 +176,26 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 		if (userCredentialVO.getPersonalEmails() != null) {
 			personalEmails = Arrays.asList(userCredentialVO.getPersonalEmails().split("\n"));
 		}
-		return userServices.createUserCredential(userCredentialVO.getUsername(), userCredentialVO.getFirstName(),
-				userCredentialVO.getLastName(), userCredentialVO.getEmail(), personalEmails, userCredentialVO.getServiceKey(),
-				userCredentialVO.isSystemAdmin(), globalGroups, collections, tokens, status, domain, Arrays.asList(""), null, userCredentialVO.getJobTitle(), userCredentialVO.getPhone(), userCredentialVO.getFax(), userCredentialVO.getAddress());
+
+		return userServices.addEdit(userCredentialVO.getUsername())
+				.setFirstName(userCredentialVO.getFirstName())
+				.setLastName(userCredentialVO.getLastName())
+				.setEmail(userCredentialVO.getEmail())
+				.setPersonalEmails(personalEmails)
+				.setServiceKey(userCredentialVO.getServiceKey())
+				.setSystemAdmin(userCredentialVO.isSystemAdmin())
+				.setGlobalGroups(globalGroups)
+				.setCollections(collections)
+				.setAccessTokens(tokens)
+				.setStatus(status)
+				.setDomain(domain)
+				.setMsExchDelegateListBL(Arrays.asList(""))
+				.setDn(null)
+				.setJobTitle(userCredentialVO.getJobTitle())
+				.setAddress(userCredentialVO.getAddress())
+				.setPhone(userCredentialVO.getPhone())
+				.setFax(userCredentialVO.getFax());
+
 	}
 
 	public void cancelButtonClicked() {

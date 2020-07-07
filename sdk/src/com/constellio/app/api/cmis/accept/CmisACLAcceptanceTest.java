@@ -315,7 +315,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		List<String> users = new ArrayList<>();
 		for (int i = 1; i <= qty; i++) {
 			String username = "grim.patron." + i;
-			UserCredential userCredential = userServices.createUserCredential(username, "Grim", "Patron",
+			UserCredential userCredential = createUserCredential(username, "Grim", "Patron",
 					username + "@constellio.com", new ArrayList<String>(), asList(zeCollection), ACTIVE);
 			userServices.addUpdateUserCredential(userCredential);
 			users.add(username);

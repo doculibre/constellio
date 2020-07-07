@@ -22,6 +22,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.security.authentification.AuthenticationService;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 
@@ -81,10 +82,19 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 		boolean isSystemAdmin = true;
 
 		UserServices userServices = modelLayerFactory.newUserServices();
-		UserCredential adminCredentials = userServices.createUserCredential(
-				username, firstName, lastName, email, null, isSystemAdmin, globalGroups, collections,
-				null, status, domain, Arrays.asList(""), null);
-		userServices.addUpdateUserCredential(adminCredentials);
+		UserAddUpdateRequest request = userServices.addEditRequest(username)
+				.setFirstName(firstName)
+				.setLastName(lastName)
+				.setEmail(email)
+				.setServiceKey(null)
+				.setSystemAdmin(isSystemAdmin)
+				.setGlobalGroups(globalGroups)
+				.setCollections(collections)
+				.setStatus(status)
+				.setDomain(domain)
+				.setMsExchDelegateListBL(Arrays.asList(""))
+				.setDn(null);
+		userServices.addUpdateUserCredential(request);
 		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();
 		if (authenticationService.supportPasswordChange()) {
 			authenticationService.changePassword("admin", password);

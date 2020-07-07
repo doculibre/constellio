@@ -62,7 +62,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
@@ -72,6 +71,7 @@ import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_ST
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.users.UserUtils.cleanUsername;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 public class UserServices {
@@ -110,76 +110,74 @@ public class UserServices {
 		this.schemas = SchemasRecordsServices.usingMainModelLayerFactory(com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
 
-	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-											   List<String> globalGroups, List<String> collections,
-											   UserCredentialStatus status) {
-		return userCredentialsManager.create(username, firstName, lastName, email, globalGroups, collections, status);
-	}
-
-	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-											   List<String> globalGroups, List<String> collections,
-											   UserCredentialStatus status, String domain,
-											   List<String> msExchDelegateListBL, String dn) {
-		return userCredentialsManager.create(
-				username, firstName, lastName, email, globalGroups, collections, status, domain, msExchDelegateListBL, dn);
-	}
-
-	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-											   String serviceKey,
-											   boolean systemAdmin, List<String> globalGroups, List<String> collections,
-											   Map<String, LocalDateTime> tokens,
-											   UserCredentialStatus status) {
-		return userCredentialsManager.create(
-				username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections, tokens, status);
-	}
-
-	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-											   String serviceKey, boolean systemAdmin, List<String> globalGroups,
-											   List<String> collections,
-											   Map<String, LocalDateTime> tokens, UserCredentialStatus status,
-											   String domain, List<String> msExchDelegateListBL,
-											   String dn) {
-		return userCredentialsManager.create(
-				username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections, tokens, status, domain,
-				msExchDelegateListBL, dn);
-	}
-
-	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-											   List<String> personalEmails,
-											   String serviceKey, boolean systemAdmin, List<String> globalGroups,
-											   List<String> collections,
-											   Map<String, LocalDateTime> tokens, UserCredentialStatus status,
-											   String domain, List<String> msExchDelegateListBL,
-											   String dn) {
-		return userCredentialsManager.create(
-				username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections, tokens,
-				status, domain,
-				msExchDelegateListBL, dn);
-	}
-
-	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-											   List<String> personalEmails,
-											   String serviceKey, boolean systemAdmin, List<String> globalGroups,
-											   List<String> collections,
-											   Map<String, LocalDateTime> tokens, UserCredentialStatus status,
-											   String domain, List<String> msExchDelegateListBL,
-											   String dn, String jobTitle, String phone, String fax, String address) {
-		return userCredentialsManager.create(
-				username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections, tokens,
-				status, domain,
-				msExchDelegateListBL, dn, jobTitle, phone, fax, address);
-	}
-
-	public UserCredential newUserCredential() {
-		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(SYSTEM_COLLECTION);
-		return new UserCredential(recordServices.newRecordWithSchema(types.getDefaultSchema(UserCredential.SCHEMA_TYPE)), types);
-	}
-
 	public GlobalGroup newGlobalGroup() {
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(SYSTEM_COLLECTION);
 		return new GlobalGroup(recordServices.newRecordWithSchema(types.getDefaultSchema(GlobalGroup.SCHEMA_TYPE)), types);
 	}
 
+	public void addUpdateUserCredential(UserAddUpdateRequest request) {
+		UserCredential userCredential = addEdit(request.getUsername())
+				.setFirstName(request.getFirstName())
+				.setLastName(request.getLastName())
+				.setEmail(request.getEmail())
+				.setPersonalEmails(request.getPersonalEmails())
+				.setServiceKey(request.getServiceKey())
+				.setSystemAdmin(request.getSystemAdmin())
+				.setStatus(request.getStatus())
+				.setCollections(request.getCollections())
+				.setGlobalGroups(request.getGlobalGroups())
+				.setDomain(request.getDomain())
+				.setMsExchDelegateListBL(request.getMsExchangeDelegateList())
+				.setDn(request.getDn())
+				.setPhone(request.getPhone())
+				.setFax(request.getFax())
+				.setJobTitle(request.getJobTitle())
+				.setAddress(request.getAddress())
+				.setAgentStatus(request.getAgentStatus());
+
+		try {
+			userCredential.setAgreedPrivacyPolicy(request.getHasAgreedToPrivacyPolicy());
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata ignored) {
+
+		}
+		try {
+			userCredential.setNotReceivingEmails(request.getDoNotReceiveEmails());
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata ignored) {
+
+		}
+		try {
+			userCredential.setApplyFacetsEnabled(request.getEnableFacetsApplyButton());
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata ignored) {
+
+		}
+		try {
+			userCredential.setReadLastAlert(request.getHasReadLastAlert());
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata ignored) {
+
+		}
+		try {
+			userCredential.setElectronicSignature(request.getElectronicSignature());
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata ignored) {
+
+		}
+		try {
+			userCredential.setElectronicInitials(request.getElectronicInitials());
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata ignored) {
+
+		}
+		try {
+			userCredential.setAzureUsername(request.getAzureUsername());
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata ignored) {
+
+		}
+		try {
+			userCredential.setAccessTokens(request.getAccessTokens());
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata ignored) {
+
+		}
+
+		addUpdateUserCredential(userCredential);
+	}
 
 	public void addUpdateUserCredential(UserCredential userCredential) {
 		List<String> collections = collectionsListManager.getCollectionsExcludingSystem();
@@ -1045,8 +1043,8 @@ public class UserServices {
 				}
 			}
 		}
-		recordServices.logicallyDelete(((UserCredential) userCredential).getWrappedRecord(), User.GOD);
-		recordServices.physicallyDelete(((UserCredential) userCredential).getWrappedRecord(), User.GOD);
+		recordServices.logicallyDelete((userCredential).getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete((userCredential).getWrappedRecord(), User.GOD);
 	}
 
 	public List<User> safePhysicalDeleteAllUnusedUsers(String collection) {
@@ -1252,4 +1250,11 @@ public class UserServices {
 		return groups;
 	}
 
+	public UserCredential addEdit(String username) {
+		return userCredentialsManager.addEdit(username);
+	}
+
+	public UserAddUpdateRequest addEditRequest(String username) {
+		return new UserAddUpdateRequest().setUsername(cleanUsername(username));
+	}
 }

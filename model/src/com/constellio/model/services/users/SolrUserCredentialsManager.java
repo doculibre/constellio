@@ -17,7 +17,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserCredentialsManagerRuntimeException.UserCredentialsManagerRuntimeException_CannotExecuteTransaction;
 import org.joda.time.LocalDateTime;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,12 +40,24 @@ public class SolrUserCredentialsManager {
 		schemas = SchemasRecordsServices.usingMainModelLayerFactory(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
 
+	public UserCredential addEdit(String username) {
+		return (valueOrDefault(getUserCredential(username), schemas.newCredential())).setUsername(cleanUsername(username));
+	}
+
+	public UserCredential addEdit(String username, String firstName, String lastName, String email) {
+		return addEdit(username)
+				.setFirstName(firstName)
+				.setLastName(lastName)
+				.setEmail(email)
+				.setStatus(UserCredentialStatus.ACTIVE);
+	}
+
 	public UserCredential create(String username, String firstName, String lastName, String email, String serviceKey,
 								 boolean systemAdmin, List<String> globalGroups, List<String> collections,
 								 Map<String, LocalDateTime> tokens,
 								 UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
 								 String dn) {
-		return ((UserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
+		return addEdit(username)
 				.setUsername(cleanUsername(username))
 				.setFirstName(firstName)
 				.setLastName(lastName)
@@ -62,84 +73,10 @@ public class SolrUserCredentialsManager {
 				.setDn(dn);
 	}
 
-	public UserCredential create(String username, String firstName, String lastName, String email,
-								 List<String> personalEmails,
-								 String serviceKey,
-								 boolean systemAdmin, List<String> globalGroups, List<String> collections,
-								 Map<String, LocalDateTime> tokens,
-								 UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
-								 String dn) {
-		return ((UserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
-				.setUsername(cleanUsername(username))
-				.setFirstName(firstName)
-				.setLastName(lastName)
-				.setEmail(email)
-				.setPersonalEmails(personalEmails)
-				.setServiceKey(serviceKey)
-				.setSystemAdmin(systemAdmin)
-				.setGlobalGroups(globalGroups)
-				.setCollections(collections)
-				.setAccessTokens(tokens)
-				.setStatus(status)
-				.setDomain(domain)
-				.setMsExchDelegateListBL(msExchDelegateListBL)
-				.setDn(dn);
-	}
-
-	public UserCredential create(String username, String firstName, String lastName, String email,
-								 List<String> personalEmails,
-								 String serviceKey, boolean systemAdmin, List<String> globalGroups,
-								 List<String> collections,
-								 Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain,
-								 List<String> msExchDelegateListBL,
-								 String dn, String jobTitle, String phone, String fax, String address) {
-		return ((UserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
-				.setUsername(cleanUsername(username))
-				.setFirstName(firstName)
-				.setLastName(lastName)
-				.setEmail(email)
-				.setPersonalEmails(personalEmails)
-				.setServiceKey(serviceKey)
-				.setSystemAdmin(systemAdmin)
-				.setGlobalGroups(globalGroups)
-				.setCollections(collections)
-				.setAccessTokens(tokens)
-				.setStatus(status)
-				.setDomain(domain)
-				.setMsExchDelegateListBL(msExchDelegateListBL)
-				.setDn(dn)
-				.setJobTitle(jobTitle)
-				.setAddress(address)
-				.setPhone(phone)
-				.setFax(fax);
-	}
-
-	public UserCredential create(String username, String firstName, String lastName, String email, String serviceKey,
-								 boolean systemAdmin, List<String> globalGroups, List<String> collections,
-								 Map<String, LocalDateTime> tokens,
-								 UserCredentialStatus status) {
-		return create(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections, tokens, status,
-				null, null, null);
-	}
-
-	public UserCredential create(String username, String firstName, String lastName, String email,
-								 List<String> globalGroups,
-								 List<String> collections, UserCredentialStatus status, String domain,
-								 List<String> msExchDelegateListBL, String dn) {
-		return create(username, firstName, lastName, email, null, false, globalGroups, collections,
-				Collections.<String, LocalDateTime>emptyMap(), status, domain, msExchDelegateListBL, dn);
-	}
-
-	public UserCredential create(String username, String firstName, String lastName, String email,
-								 List<String> globalGroups,
-								 List<String> collections, UserCredentialStatus status) {
-		return create(username, firstName, lastName, email, null, false, globalGroups, collections,
-				Collections.<String, LocalDateTime>emptyMap(), status, null, null, null);
-	}
 
 	public void addUpdate(UserCredential userCredential) {
 		try {
-			modelLayerFactory.newRecordServices().add((UserCredential) userCredential);
+			modelLayerFactory.newRecordServices().add(userCredential);
 		} catch (RecordServicesException e) {
 			throw new UserCredentialsManagerRuntimeException_CannotExecuteTransaction(e);
 		}
@@ -259,7 +196,7 @@ public class SolrUserCredentialsManager {
 					Transaction transaction = new Transaction();
 					transaction.getRecordUpdateOptions().setOptimisticLockingResolution(EXCEPTION);
 					for (Record record : records) {
-						transaction.add((UserCredential) schemas.wrapCredential(record).removeCollection(collection));
+						transaction.add(schemas.wrapCredential(record).removeCollection(collection));
 					}
 
 					modelLayerFactory.newRecordServices().execute(transaction);
@@ -285,7 +222,7 @@ public class SolrUserCredentialsManager {
 	public void removeGroup(String group) {
 		Transaction transaction = new Transaction();
 		for (Record record : searchServices.search(getUserCredentialsInGlobalGroupQuery(group))) {
-			transaction.add((UserCredential) schemas.wrapCredential(record).removeGlobalGroup(group));
+			transaction.add(schemas.wrapCredential(record).removeGlobalGroup(group));
 		}
 		try {
 			modelLayerFactory.newRecordServices().execute(transaction);
@@ -335,7 +272,7 @@ public class SolrUserCredentialsManager {
 					validTokens.put(token.getKey(), token.getValue());
 				}
 			}
-			transaction.add((UserCredential) credential.setAccessTokens(validTokens));
+			transaction.add(credential.setAccessTokens(validTokens));
 		}
 		try {
 			modelLayerFactory.newRecordServices().execute(transaction);

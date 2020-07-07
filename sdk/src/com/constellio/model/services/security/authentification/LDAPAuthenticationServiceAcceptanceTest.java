@@ -106,7 +106,7 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 		givenCollection(zeCollection);
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		for (String username : usernames) {
-			UserCredential userCredential = userServices.createUserCredential(username, "Inc", "Onnu",
+			UserCredential userCredential = createUserCredential(username, "Inc", "Onnu",
 					username + "@constellio.com", new ArrayList<String>(), asList(zeCollection), UserCredentialStatus.ACTIVE);
 
 			userServices.addUpdateUserCredential(userCredential);

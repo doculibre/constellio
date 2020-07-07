@@ -192,11 +192,20 @@ public class UserServicesAPI {
 			tokens.put(token.getKey(), LocalDateTime.parse(token.getValue()));
 
 		}
-		return userServices().createUserCredential(
-				userResource.getUsername(), userResource.getFirstName(), userResource.getLastName(), userResource.getEmail(),
-				userResource.getServiceKey(), userResource.isSystemAdmin(), userResource.getGlobalGroups(),
-				userResource.getCollections(), tokens, userResource.getStatus(), userResource.getDomain(), Arrays.asList(""),
-				null);
+
+		return userServices().addEdit(userResource.getUsername())
+				.setFirstName(userResource.getFirstName())
+				.setLastName(userResource.getLastName())
+				.setEmail(userResource.getEmail())
+				.setServiceKey(userResource.getServiceKey())
+				.setSystemAdmin(userResource.isSystemAdmin())
+				.setGlobalGroups(userResource.getGlobalGroups())
+				.setCollections(userResource.getCollections())
+				.setAccessTokens(tokens)
+				.setStatus(userResource.getStatus())
+				.setDomain(userResource.getDomain())
+				.setMsExchDelegateListBL(Arrays.asList(""))
+				.setDn(null);
 	}
 
 	private UserResource toData(UserCredential userCredential) {

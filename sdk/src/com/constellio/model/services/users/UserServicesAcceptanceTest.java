@@ -40,7 +40,6 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.annotations.LoadTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -89,7 +88,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	@Mock UserCredential userWithNoAccessToDeleteCollection;
 	@Mock Factory<EncryptionServices> encryptionServicesFactory;
 	AuthenticationService authenticationService;
-	List<String> msExchDelegateListBL = new ArrayList<>();
 
 	@Before
 	public void setUp()
@@ -133,9 +131,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenCollection1And2();
 
 		for (int i = 0; i < 10000; i++) {
-			user = userServices
-					.createUserCredential("grimPatron" + i, "Grim", "Patron", "grim.patron." + i + "@doculibre.com", noGroups,
-							noCollections, UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null)
+			user = createUserCredential("grimPatron" + i, "Grim", "Patron", "grim.patron." + i + "@doculibre.com", noGroups,
+					noCollections, UserCredentialStatus.ACTIVE)
 					.setSystemAdminEnabled();
 			userServices.addUpdateUserCredential(user);
 		}
@@ -635,10 +632,10 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenCollection1();
 		givenUserAndPassword();
 
-		UserCredential user2 = userServices.createUserCredential(
+		UserCredential user2 = createUserCredential(
 				chuckNorris + "Other", "Chuck", "Norris", "chuck.norris@doculibre.com", new ArrayList<String>(),
 				new ArrayList<String>(),
-				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
+				UserCredentialStatus.ACTIVE);
 		userServices.addUpdateUserCredential(user2);
 
 		assertThat(userServices.getUser(chuckNorris + "Other").getEmail()).isEqualTo(user.getEmail());
@@ -1435,34 +1432,34 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenUserAndPassword() {
-		user = userServices.createUserCredential(
+		user = createUserCredential(
 				chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", new ArrayList<String>(), new ArrayList<String>(),
-				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
+				UserCredentialStatus.ACTIVE);
 		userServices.addUpdateUserCredential(user);
 		authenticationService.changePassword(user.getUsername(), "1qaz2wsx");
 		user = userServices.getUser(user.getUsername());
 	}
 
 	private void givenUserWith(List<String> groups, List<String> collections) {
-		user = userServices.createUserCredential(
-				chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", groups, collections, UserCredentialStatus.ACTIVE,
-				"domain", msExchDelegateListBL, null).setSystemAdminEnabled();
+		user = createUserCredential(
+				chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", groups, collections, UserCredentialStatus.ACTIVE).setSystemAdminEnabled();
 		userServices.addUpdateUserCredential(user);
 	}
 
 	private void givenAnotherUserWith(List<String> groups, List<String> collections) {
-		anotherUser = userServices.createUserCredential(
+		anotherUser = createUserCredential(
 				"gandalf.leblanc", "Gandalf", "Leblanc", "gandalf.leblanc@doculibre.com", groups, collections,
-				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
+				UserCredentialStatus.ACTIVE);
 		userServices.addUpdateUserCredential(anotherUser);
 	}
 
 	private void givenAThirdUserWith(List<String> groups, List<String> collections) {
-		thirdUser = userServices.createUserCredential(
+		thirdUser = createUserCredential(
 				"edouard.lechat", "Edouard", "Lechat", "edouard.lechat@doculibre.com", groups, collections,
-				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
+				UserCredentialStatus.ACTIVE);
 		userServices.addUpdateUserCredential(thirdUser);
 	}
+
 
 	@Test
 	public void givenUserWithoutLinkedRecordWhenPhysicallyRemovingUserCredentialsThenDeleted()
@@ -1510,5 +1507,5 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 			//OK !
 		}
 	}
-	
+
 }

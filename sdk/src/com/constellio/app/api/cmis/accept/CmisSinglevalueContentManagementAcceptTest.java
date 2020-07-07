@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -102,13 +101,11 @@ public class CmisSinglevalueContentManagementAcceptTest extends ConstellioTest {
 		taxonomiesManager.setPrincipalTaxonomy(taxonomy, metadataSchemasManager);
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.addUpdateUserCredential(userServices.createUserCredential(
-				"bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(), asList(zeCollection), ACTIVE, null,
-				Arrays.asList(""), null).setServiceKey("bob-key").setSystemAdminEnabled());
+		userServices.addUpdateUserCredential(createUserCredential(
+				"bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(), asList(zeCollection), ACTIVE).setServiceKey("bob-key").setSystemAdminEnabled());
 
-		userServices.addUpdateUserCredential(userServices.createUserCredential(
-				"alice", "alice", "wonderland", "alice@doculibre.com", new ArrayList<String>(), asList(zeCollection), ACTIVE,
-				null, Arrays.asList(""), null).setServiceKey("alice-key").setSystemAdminEnabled());
+		userServices.addUpdateUserCredential(createUserCredential(
+				"alice", "alice", "wonderland", "alice@doculibre.com", new ArrayList<String>(), asList(zeCollection), ACTIVE).setServiceKey("alice-key").setSystemAdminEnabled());
 
 		alice = userServices.getUserInCollection("alice", zeCollection);
 		bob = userServices.getUserInCollection("bob", zeCollection);

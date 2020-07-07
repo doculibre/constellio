@@ -1302,7 +1302,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		for (int i = 1; i <= qty; i++) {
 			System.out.println("adding user " + i + "/" + qty);
 			String username = "grim.patron." + i;
-			UserCredential userCredential = userServices.createUserCredential(username, "Grim", "Patron",
+			UserCredential userCredential = createUserCredential(username, "Grim", "Patron",
 					username + "@constellio.com", asList("legends"), asList(zeCollection), ACTIVE);
 			userServices.addUpdateUserCredential(userCredential);
 			users.add(username);

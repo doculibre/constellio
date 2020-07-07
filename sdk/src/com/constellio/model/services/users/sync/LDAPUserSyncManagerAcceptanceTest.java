@@ -15,7 +15,6 @@ import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Transformer;
 import org.junit.Before;
@@ -309,8 +308,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		UserCredential userCredentials = userServices.getUser(inactiveUserInLDAP);
 		assertThat(userCredentials.getStatus()).isEqualTo(UserCredentialStatus.DELETED);
 
-		UserCredential userCredential = userServices
-				.createUserCredential(inactiveUserInLDAP, inactiveUserInLDAP, inactiveUserInLDAP,
+		UserCredential userCredential = createUserCredential(inactiveUserInLDAP, inactiveUserInLDAP, inactiveUserInLDAP,
 						inactiveUserInLDAP + "@doculibre.com", asList(new String[]{}), asList(new String[]{}),
 						UserCredentialStatus.ACTIVE);
 		userServices.addUpdateUserCredential(userCredential);

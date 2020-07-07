@@ -50,6 +50,8 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleRuntimeException;
 import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
@@ -117,6 +119,7 @@ import java.util.regex.Pattern;
 import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
+import static com.constellio.model.services.users.UserUtils.cleanUsername;
 import static com.constellio.sdk.tests.ConstellioTest.getInstance;
 import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
 import static com.constellio.sdk.tests.SaveStateFeatureAcceptTest.verifySameContentOfUnzippedSaveState;
@@ -1781,6 +1784,27 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	public void setFailMessage(String failMessage) {
 		this.failMessage = failMessage;
+	}
+
+	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
+											   List<String> globalGroups, List<String> collections,
+											   UserCredentialStatus status) {
+
+		return getModelLayerFactory().newUserServices().addEdit(username)
+				.setUsername(cleanUsername(username))
+				.setFirstName(firstName)
+				.setLastName(lastName)
+				.setEmail(email)
+				.setServiceKey(null)
+				.setSystemAdmin(false)
+				.setGlobalGroups(globalGroups)
+				.setCollections(collections)
+				.setAccessTokens(Collections.<String, LocalDateTime>emptyMap())
+				.setStatus(status)
+				.setDomain(null)
+				.setMsExchDelegateListBL(null)
+				.setDn(null);
+
 	}
 
 	public double getSolrVersion() {

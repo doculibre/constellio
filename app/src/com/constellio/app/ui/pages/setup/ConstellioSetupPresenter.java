@@ -54,15 +54,16 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.joda.time.LocalDateTime;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
 
 public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView> {
 
@@ -218,8 +219,21 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 					ModelLayerFactory modelLayerFactory = factories.getModelLayerFactory();
 
 					UserServices userServices = modelLayerFactory.newUserServices();
-					UserCredential adminCredential = userServices.createUserCredential("admin", "System", "Admin", "admin@administration.com",
-							new ArrayList<String>(), asList(collectionCode), UserCredentialStatus.ACTIVE).setSystemAdminEnabled();
+					UserCredential adminCredential = userServices.addEdit("admin")
+							.setFirstName("System")
+							.setLastName("Admin")
+							.setEmail("admin@administration.com")
+							.setServiceKey(null)
+							.setSystemAdmin(false)
+							.setGlobalGroups(new ArrayList<String>())
+							.setCollections(collectionCode)
+							.setAccessTokens(Collections.<String, LocalDateTime>emptyMap())
+							.setStatus(UserCredentialStatus.ACTIVE)
+							.setDomain(null)
+							.setMsExchDelegateListBL(null)
+							.setDn(null);
+
+
 					userServices.addUpdateUserCredential(adminCredential);
 					userServices.addUserToCollection(adminCredential, collectionCode);
 					User user = userServices.getUserRecordInCollection("admin", collectionCode);

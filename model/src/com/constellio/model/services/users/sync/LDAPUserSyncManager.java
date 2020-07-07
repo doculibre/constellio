@@ -31,6 +31,7 @@ import com.google.common.base.Joiner;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
 import org.joda.time.format.DateTimeFormat;
 import org.slf4j.Logger;
@@ -38,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -332,9 +334,19 @@ public class LDAPUserSyncManager implements StatefulService {
 		} else {
 			userStatus = UserCredentialStatus.DELETED;
 		}
-		UserCredential returnUserCredentials = userServices.createUserCredential(
-				username, firstName, lastName, email, globalGroups, new ArrayList<>(collections), userStatus, "",
-				msExchDelegateListBL, ldapUser.getId()).setDN(ldapUser.getId());
+		UserCredential returnUserCredentials = userServices.addEdit(username)
+				.setFirstName(firstName)
+				.setLastName(lastName)
+				.setEmail(email)
+				.setServiceKey(null)
+				.setSystemAdmin(false)
+				.setGlobalGroups(globalGroups)
+				.setCollections(new ArrayList<>(collections))
+				.setAccessTokens(Collections.<String, LocalDateTime>emptyMap())
+				.setStatus(userStatus)
+				.setDomain("")
+				.setMsExchDelegateListBL(msExchDelegateListBL)
+				.setDn(ldapUser.getId());
 
 		try {
 			UserCredential currentUserCredential = userServices.getUser(username);

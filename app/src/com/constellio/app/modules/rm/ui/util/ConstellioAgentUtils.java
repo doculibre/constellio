@@ -164,7 +164,7 @@ public class ConstellioAgentUtils {
 			RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 			UserVO userVO = sessionContext.getCurrentUser();
 			UserServices userServices = modelLayerFactory.newUserServices();
-			UserCredential userCredentials = (UserCredential) userServices.getUser(userVO.getUsername());
+			UserCredential userCredentials = userServices.getUser(userVO.getUsername());
 			AgentStatus agentStatus = userCredentials.getAgentStatus();
 			if (agentStatus == AgentStatus.DISABLED && !rmConfigs.isAgentDisabledUntilFirstConnection()) {
 				agentStatus = AgentStatus.ENABLED;

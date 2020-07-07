@@ -619,7 +619,7 @@ public class RMNavigationConfiguration implements Serializable {
 				RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 
 				String username = user.getUsername();
-				UserCredential userCredentials = (UserCredential) userServices.getUser(username);
+				UserCredential userCredentials = userServices.getUser(username);
 				AgentStatus agentStatus = userCredentials.getAgentStatus();
 				if (agentStatus == AgentStatus.DISABLED && !rmConfigs.isAgentDisabledUntilFirstConnection()) {
 					agentStatus = AgentStatus.ENABLED;

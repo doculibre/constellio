@@ -114,7 +114,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 	private void init() {
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		UserCredential adminCredential = userServices.createUserCredential("mrlabatt50", "John", "Labatt", "ti-joe@brewerie.com",
+		UserCredential adminCredential = createUserCredential("mrlabatt50", "John", "Labatt", "ti-joe@brewerie.com",
 				new ArrayList<String>(), asList(zeCollection), UserCredentialStatus.ACTIVE).setSystemAdminEnabled();
 		userServices.addUpdateUserCredential(adminCredential);
 		userServices.addUserToCollection(adminCredential, zeCollection);

@@ -28,7 +28,6 @@ import java.util.Set;
 
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static com.constellio.sdk.tests.QueryCounter.ON_COLLECTION;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
@@ -109,9 +108,9 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		manager.addUpdate(chuckUserCredential);
 		manager.addUpdate(edouardUserCredential);
 
-		chuckUserCredential = manager.create("chuck", "Chuck1", "Norris1", "chuck.norris1@gmail.com",
-				asList("group11"), asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "domain",
-				msExchDelegateListBL, null);
+		chuckUserCredential = manager.addEdit("chuck", "Chuck1", "Norris1", "chuck.norris1@gmail.com")
+				.setGroups("group11").setCollections(zeCollection, "collection1").setMsExchDelegateListBL(msExchDelegateListBL)
+				.setDomain("domain");
 		manager.addUpdate(chuckUserCredential);
 
 
@@ -131,8 +130,9 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 
 		manager.addUpdate(chuckUserCredential);
 
-		chuckUserCredential = manager.create("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", asList("group1"),
-				asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
+		chuckUserCredential = manager.addEdit("chuck", "Chuck1", "Norris1", "chuck.norris1@gmail.com")
+				.setGroups("group11").setCollections(zeCollection, "collection1").setMsExchDelegateListBL(msExchDelegateListBL)
+				.setDomain("domain");
 
 		manager.addUpdate(chuckUserCredential);
 		assertThat(manager.getActiveUserCredentials()).hasSize(2);
@@ -323,21 +323,19 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	private void createUserCredentials() {
-		chuckUserCredential = manager.create("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", null, true,
-				asList("group1"), asList(zeCollection), new HashMap<String, LocalDateTime>(),
-				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
+		chuckUserCredential = manager.addEdit("chuck", "Chuck", "Norris", "chuck.norris@gmail.com")
+				.setSystemAdmin(true).setGroups("group1").setCollections(zeCollection).setDomain("domain").setMsExchDelegateListBL(msExchDelegateListBL);
 
-		bobUserCredential = manager.create("bob", "Bob", "Gratton", "bob.gratton@gmail.com", null, true,
-				asList("group1"), asList(zeCollection), new HashMap<String, LocalDateTime>(),
-				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
+		bobUserCredential = manager.addEdit("bob", "Bob", "Gratton", "bob.gratton@gmail.com")
+				.setSystemAdmin(true).setGroups("group1").setCollections(zeCollection).setDomain("domain").setMsExchDelegateListBL(msExchDelegateListBL);
 
 		Map<String, LocalDateTime> tokens = new HashMap<String, LocalDateTime>();
 		tokens.put("token1", endDate);
 		tokens.put("token2", endDate.plusMinutes(30));
-		edouardUserCredential = manager.create("edouard", "Edouard", "Lechat", "edouard.lechat@gmail.com",
-				edouardServiceKey,
-				false, asList("group2"), asList(zeCollection, "collection1"), tokens, UserCredentialStatus.ACTIVE,
-				"domain", msExchDelegateListBL, null);
+
+		edouardUserCredential = manager.addEdit("edouard", "Edouard", "Lechat", "edouard.lechat@gmail.com")
+				.setServiceKey(edouardServiceKey)
+				.setSystemAdmin(false).setGroups("group2").setCollections(zeCollection, "collection1").setDomain("domain").setMsExchDelegateListBL(msExchDelegateListBL).setAccessTokens(tokens);
 	}
 
 	private Set<String> getAllCollectionsInUserCredentialFile() {

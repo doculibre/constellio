@@ -178,6 +178,10 @@ public class UserCredential extends RecordWrapper {
 		return this;
 	}
 
+	public UserCredential setGroups(String... groups) {
+		return setGlobalGroups(asList(groups));
+	}
+
 	public UserCredentialStatus getStatus() {
 		return get(STATUS);
 	}
@@ -322,8 +326,20 @@ public class UserCredential extends RecordWrapper {
 		return Boolean.TRUE.equals(get(HAS_READ_LAST_ALERT));
 	}
 
-	public UserCredential setReadLastAlert(boolean hasReadLastAlert) {
+	public UserCredential setReadLastAlert(Boolean hasReadLastAlert) {
 		set(HAS_READ_LAST_ALERT, hasReadLastAlert);
+		return this;
+	}
+
+
+	public UserCredential setNotReceivingEmails(Boolean value) {
+		set(DO_NOT_RECEIVE_EMAILS, value);
+		return this;
+	}
+
+
+	public UserCredential setApplyFacetsEnabled(Boolean value) {
+		set(ENABLE_FACETS_APPLY_BUTTON, value);
 		return this;
 	}
 

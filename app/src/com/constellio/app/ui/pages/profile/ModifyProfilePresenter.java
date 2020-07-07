@@ -114,9 +114,9 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 	private void updateUserCredential(final ProfileVO profileVO,
 									  HashMap<String, Object> additionnalMetadataValues) {
 		String username = profileVO.getUsername();
-		UserCredential userCredential = (UserCredential) userServices.getUserCredential(username);
+		UserCredential userCredential = userServices.getUserCredential(username);
 
-		userCredential = (UserCredential) userCredential.
+		userCredential = userCredential.
 				setFirstName(profileVO.getFirstName())
 				.setLastName(profileVO.getLastName())
 				.setEmail(profileVO.getEmail())
@@ -126,7 +126,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 				.setFax(profileVO.getFax());
 
 		if (profileVO.getPersonalEmails() != null) {
-			userCredential = (UserCredential) userCredential.setPersonalEmails(Arrays.asList(profileVO.getPersonalEmails().split("\n")));
+			userCredential = userCredential.setPersonalEmails(Arrays.asList(profileVO.getPersonalEmails().split("\n")));
 		}
 
 		MetadataSchema userCredentialSchema = userCredential.getSchema();
@@ -227,7 +227,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 			defaultTaxonomy = presenterService().getSystemConfigs().getDefaultTaxonomy();
 		}
 
-		UserCredential userCredentials = (UserCredential) userServices.getUser(username);
+		UserCredential userCredentials = userServices.getUser(username);
 		AgentStatus agentStatus = userCredentials.getAgentStatus();
 		boolean agentManuallyDisabled = agentStatus == AgentStatus.MANUALLY_DISABLED;
 

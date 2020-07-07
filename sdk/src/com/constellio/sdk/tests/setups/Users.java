@@ -10,10 +10,12 @@ import com.constellio.model.services.security.authentification.AuthenticationSer
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
+import org.joda.time.LocalDateTime;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class Users {
@@ -257,9 +259,20 @@ public class Users {
 		String email = (username + "@doculibre.com").toLowerCase();
 		List<String> globalGroups = Arrays.asList(groups);
 		List<String> collections = new ArrayList<>();
-		UserCredential credential = userServices.createUserCredential(
-				username, firstName, lastName, email, globalGroups, collections, UserCredentialStatus.ACTIVE, "domain",
-				Arrays.asList(""), null);
+		UserCredential credential = userServices.addEdit(username)
+				.setFirstName(firstName)
+				.setLastName(lastName)
+				.setEmail(email)
+				.setServiceKey(null)
+				.setSystemAdmin(false)
+				.setGlobalGroups(globalGroups)
+				.setCollections(collections)
+				.setAccessTokens(Collections.<String, LocalDateTime>emptyMap())
+				.setStatus(UserCredentialStatus.ACTIVE)
+				.setDomain("domain")
+				.setMsExchDelegateListBL(Arrays.asList(""))
+				.setDn(null);
+
 		userServices.addUpdateUserCredential(credential);
 	}
 

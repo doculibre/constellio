@@ -4,7 +4,6 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.IOUtils;
@@ -16,8 +15,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,7 +27,6 @@ public class UserPhotosServicesAcceptanceTest extends ConstellioTest {
 	UserPhotosServices services;
 	SolrUserCredentialsManager userCredentialsManager;
 	ZipService zipService;
-	List<String> msExchDelegateListBL = new ArrayList<>();
 
 	@Before
 	public void setUp()
@@ -39,8 +35,7 @@ public class UserPhotosServicesAcceptanceTest extends ConstellioTest {
 		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
 		services = getModelLayerFactory().newUserPhotosServices();
 
-		UserCredential user = userCredentialsManager.create("zeUser", "ze", "user", "ze.user@gmail.com", new ArrayList<String>(),
-				new ArrayList<String>(), UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
+		UserCredential user = userCredentialsManager.addEdit("zeUser", "ze", "user", "ze.user@gmail.com");
 		userCredentialsManager.addUpdate(user);
 
 		zipService = getIOLayerFactory().newZipService();

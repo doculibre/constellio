@@ -117,7 +117,7 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 	private AdditionnalRecordField buildDoNotReceiveEmailsField(RecordFieldsExtensionParams params) {
 		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 
-		UserCredential userCredentials = (UserCredential) appLayerFactory.getModelLayerFactory().newUserServices()
+		UserCredential userCredentials = appLayerFactory.getModelLayerFactory().newUserServices()
 				.getUser(user.getUsername());
 
 		boolean isNotReceivingEmails = userCredentials.isNotReceivingEmails();
