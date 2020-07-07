@@ -6,7 +6,6 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.users.SolrGlobalGroupsManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.MockedFactories;
@@ -35,7 +34,6 @@ public class GlobalGroupVODataProviderTest extends ConstellioTest {
 	MockedFactories mockedFactories = new MockedFactories();
 	GlobalGroupVODataProvider dataProvider;
 	@Mock UserCredential bob, dakota;
-	@Mock SolrGlobalGroupsManager globalGroupsManager;
 	@Mock UserServices userServices;
 	@Mock GlobalGroupToVOBuilder voBuilder;
 	@Mock GlobalGroup heroesGroup, heroesGroup1, legendsGroup;
@@ -84,8 +82,7 @@ public class GlobalGroupVODataProviderTest extends ConstellioTest {
 		collections = new HashSet<>();
 		collections.add(zeCollection);
 
-		when(mockedFactories.getModelLayerFactory().getGlobalGroupsManager()).thenReturn(globalGroupsManager);
-		when(globalGroupsManager.getAllGroups()).thenReturn(globalGroups);
+		when(userServices.getAllGroups()).thenReturn(globalGroups);
 		when(mockedFactories.getModelLayerFactory().newUserServices()).thenReturn(userServices);
 		when(voBuilder.build(heroesGroup)).thenReturn(heroesGroupVO);
 		when(voBuilder.build(heroesGroup1)).thenReturn(heroesGroupVO1);

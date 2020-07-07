@@ -80,7 +80,7 @@ public class ListGlobalGroupsPresenter extends BasePresenter<ListGlobalGroupsVie
 	public void deleteButtonClicked(GlobalGroupVO globalGroupVO) {
 		UserServices userServices = modelLayerFactory.newUserServices();
 		String username = view.getSessionContext().getCurrentUser().getUsername();
-		UserCredential userCredential = modelLayerFactory.getUserCredentialsManager().getUserCredential(username);
+		UserCredential userCredential = userServices.getUserCredential(username);
 		GlobalGroup globalGroup = userServices.getGroup(globalGroupVO.getCode());
 		userServices.logicallyRemoveGroupHierarchy(userCredential, globalGroup);
 		view.refreshTable();

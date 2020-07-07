@@ -3,7 +3,6 @@ package com.constellio.model.services.users;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.IOUtils;
@@ -25,18 +24,16 @@ public class UserPhotosServicesAcceptanceTest extends ConstellioTest {
 
 	IOServices ioServices;
 	UserPhotosServices services;
-	SolrUserCredentialsManager userCredentialsManager;
 	ZipService zipService;
 
 	@Before
 	public void setUp()
 			throws Exception {
 		ioServices = getIOLayerFactory().newIOServices();
-		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
 		services = getModelLayerFactory().newUserPhotosServices();
 
-		UserCredential user = userCredentialsManager.addEdit("zeUser", "ze", "user", "ze.user@gmail.com");
-		userCredentialsManager.addUpdate(user);
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		userServices.addUpdateUserCredential(userServices.addEditRequest("zeUser", "ze", "user", "ze.user@gmail.com"));
 
 		zipService = getIOLayerFactory().newZipService();
 	}

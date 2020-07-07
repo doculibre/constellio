@@ -40,7 +40,8 @@ public class GroupTextInputDataProvider extends RecordTextInputDataProvider {
 		MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager()
 				.getSchemaTypes(getCurrentCollection()).getSchemaType(Group.SCHEMA_TYPE);
 
-		List<String> globalGroupCode = getModelLayerFactory().getGlobalGroupsManager().getActiveGroups().stream().filter((group -> group
+
+		List<String> globalGroupCode = getModelLayerFactory().newUserServices().getActiveGroups().stream().filter((group -> group
 				.getUsersAutomaticallyAddedToCollections().contains(getCurrentCollection())))
 				.map(group -> group.getCode()).collect(Collectors.toList());
 

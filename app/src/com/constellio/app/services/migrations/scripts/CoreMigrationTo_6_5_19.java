@@ -9,8 +9,6 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-import java.util.List;
-
 public class CoreMigrationTo_6_5_19 implements MigrationScript {
 
 	@Override
@@ -24,36 +22,6 @@ public class CoreMigrationTo_6_5_19 implements MigrationScript {
 		//
 		new AddGlobalGroupLocallyCreatedMetadata(collection, provider, appLayerFactory).migrate();
 
-		if (appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-				.hasSchema(GlobalGroup.DEFAULT_SCHEMA)) {
-			// Set metadata value
-			final boolean locallyCreated = appLayerFactory.
-					getModelLayerFactory().
-					newUserServices().
-					canAddOrModifyUserAndGroup();
-
-			final List<GlobalGroup> globalGroupList = appLayerFactory.
-					getModelLayerFactory().
-					getGlobalGroupsManager().
-					getAllGroups();
-
-			boolean runGroupMigration = true;
-			for (int attempt = 0; attempt < 5 && runGroupMigration; attempt++) {
-				runGroupMigration = false;
-				for (final GlobalGroup globalGroup : globalGroupList) {
-					try {
-						appLayerFactory.
-								getModelLayerFactory().
-								getGlobalGroupsManager().
-								addUpdate(globalGroup.setLocallyCreated(locallyCreated));
-					} catch (Exception e) {
-						e.printStackTrace();
-						runGroupMigration = true;
-					}
-
-				}
-			}
-		}
 	}
 
 	private class AddGlobalGroupLocallyCreatedMetadata extends MetadataSchemasAlterationHelper {

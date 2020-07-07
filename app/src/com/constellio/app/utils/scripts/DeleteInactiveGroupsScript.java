@@ -19,14 +19,12 @@ import java.util.List;
 
 public class DeleteInactiveGroupsScript extends ScriptWithLogOutput {
 
-	private SolrGlobalGroupsManager globalGroupsManager;
 	private UserServices userServices;
 	private AuthorizationsServices authorizationsServices;
 
 	public DeleteInactiveGroupsScript(AppLayerFactory appLayerFactory) {
 		super(appLayerFactory, "Groups", "Delete inactive groups");
 
-		globalGroupsManager = modelLayerFactory.getGlobalGroupsManager();
 		userServices = modelLayerFactory.newUserServices();
 		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 	}
@@ -36,7 +34,7 @@ public class DeleteInactiveGroupsScript extends ScriptWithLogOutput {
 		List<String> collections = modelLayerFactory.getCollectionsListManager().getCollections();
 
 
-		List<GlobalGroup> globalGroups = globalGroupsManager.getAllGroups();
+		List<GlobalGroup> globalGroups = userServices.getAllGroups();
 		for (GlobalGroup globalGroup : globalGroups) {
 			if (globalGroup.isLocallyCreated()) {
 				continue;
@@ -91,7 +89,7 @@ public class DeleteInactiveGroupsScript extends ScriptWithLogOutput {
 			recordServices.physicallyDelete(group.getWrappedRecord(), User.GOD);
 		}
 
-		globalGroupsManager.logicallyRemoveGroup(globalGroup);
+		userServices.logicallyRemoveGroup(globalGroup);
 		recordServices.physicallyDelete(((GlobalGroup) globalGroup).getWrappedRecord(), User.GOD);
 
 		outputLogger.info(String.format("Global group '%s' deleted", globalGroup.getCode()));

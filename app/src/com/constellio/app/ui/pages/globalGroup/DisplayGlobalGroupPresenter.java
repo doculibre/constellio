@@ -193,7 +193,7 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 	public void deleteSubGroupButtonClicked(GlobalGroupVO entity) {
 		UserServices userServices = modelLayerFactory.newUserServices();
 		String username = view.getSessionContext().getCurrentUser().getUsername();
-		UserCredential userCredential = modelLayerFactory.getUserCredentialsManager().getUserCredential(username);
+		UserCredential userCredential = userServices.getUserCredential(username);
 		GlobalGroup globalGroup = userServices.getGroup(entity.getCode());
 		userServices.logicallyRemoveGroupHierarchy(userCredential, globalGroup);
 

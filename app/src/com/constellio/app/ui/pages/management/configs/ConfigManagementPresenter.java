@@ -12,13 +12,8 @@ import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder;
-import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder.RecordScript;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -106,8 +101,8 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 				}
 				try {
 					InputStream oldPrivacyPolicyInputStream = oldPrivacyPolicy.create(TEMP_FILE_PRIVACY_POLICY);
-						reShowPrivacyPolicyToUser = !hashingService.getHashFromStream(newPrivacyPolicyInputStream)
-								.equals(hashingService.getHashFromStream(oldPrivacyPolicyInputStream));
+					reShowPrivacyPolicyToUser = !hashingService.getHashFromStream(newPrivacyPolicyInputStream)
+							.equals(hashingService.getHashFromStream(oldPrivacyPolicyInputStream));
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				} catch (HashingServiceException e) {
@@ -119,18 +114,8 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 				}
 			}
 			if (reShowPrivacyPolicyToUser) {
-				new ConditionnedActionExecutorInBatchBuilder(modelLayerFactory, appLayerFactory.getModelLayerFactory()
-						.getUserCredentialsManager().getUserCredentialsWithAgreedToPolicyQuery().getCondition())
-						.setOptions(RecordUpdateOptions
-								.validationExceptionSafeOptions())
-						.modifyingRecordsWithImpactHandling(new RecordScript() {
+				modelLayerFactory.newUserServices().reShowPrivacyPolicyToUser();
 
-							@Override
-							public void modifyRecord(Record record) {
-								UserCredential userCredential = schemasRecordsServices.wrapUserCredential(record);
-								userCredential.setAgreedPrivacyPolicy(false);
-							}
-						});
 			}
 
 		}

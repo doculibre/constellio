@@ -10,8 +10,7 @@ import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.users.SolrGlobalGroupsManager;
-import com.constellio.model.services.users.SolrUserCredentialsManager;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
@@ -36,8 +35,6 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 	ModelLayerFactory modelLayerFactory;
 
 	UserServices userServices;
-	private SolrUserCredentialsManager userCredentialsManager;
-	private SolrGlobalGroupsManager globalGroupsManager;
 	private LDAPConfigurationManager ldapConfigurationManager;
 
 	@Before
@@ -49,8 +46,6 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		modelLayerFactory = getModelLayerFactory();
 
 		userServices = spy(modelLayerFactory.newUserServices());
-		userCredentialsManager = modelLayerFactory.getUserCredentialsManager();
-		globalGroupsManager = modelLayerFactory.getGlobalGroupsManager();
 		this.ldapConfigurationManager = modelLayerFactory.getLdapConfigurationManager();
 		saveValidLDAPConfig();
 	}
@@ -92,11 +87,11 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		assertThat(importedUser.getMsExchDelegateListBL()).isEmpty();
 		assertThat(importedUser.getDn()).isEqualTo("CN=bfay,CN=Users,DC=test,DC=doculibre,DC=ca");
 
-		for (GlobalGroup group : globalGroupsManager.getAllGroups()) {
+		for (GlobalGroup group : userServices.getAllGroups()) {
 			String code = group.getName();
 			assertThat(ldapConfigurationManager.getLDAPUserSyncConfiguration().isGroupAccepted(code)).isTrue();
 		}
-		assertThat(globalGroupsManager.getAllGroups().size()).isEqualTo(14);
+		assertThat(userServices.getAllGroups().size()).isEqualTo(14);
 	}
 
 	@Test
@@ -157,11 +152,11 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	private GlobalGroup group(String code) {
-		return globalGroupsManager.getGlobalGroupWithCode(code);
+		return userServices.getGroup(code);
 	}
 
 	private UserCredential user(String code) {
-		return userCredentialsManager.getUserCredential(code);
+		return userServices.getUserCredential(code);
 	}
 
 	@Test
@@ -309,8 +304,8 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		assertThat(userCredentials.getStatus()).isEqualTo(UserCredentialStatus.DELETED);
 
 		UserCredential userCredential = createUserCredential(inactiveUserInLDAP, inactiveUserInLDAP, inactiveUserInLDAP,
-						inactiveUserInLDAP + "@doculibre.com", asList(new String[]{}), asList(new String[]{}),
-						UserCredentialStatus.ACTIVE);
+				inactiveUserInLDAP + "@doculibre.com", asList(new String[]{}), asList(new String[]{}),
+				UserCredentialStatus.ACTIVE);
 		userServices.addUpdateUserCredential(userCredential);
 		userServices.getUser(inactiveUserInLDAP);
 
@@ -416,7 +411,8 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().getLdapUserSyncManager().synchronizeIfPossible();
 
 		// Then
-		final Set<String> userNameList = new TreeSet<>(CollectionUtils.collect(userCredentialsManager.getUserCredentials(), new Transformer() {
+		SchemasRecordsServices systemSchemas = new SchemasRecordsServices(com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION, modelLayerFactory);
+		final Set<String> userNameList = new TreeSet<>(CollectionUtils.collect(systemSchemas.getAllUserCredentials(), new Transformer() {
 			@Override
 			public Object transform(Object input) {
 				return ((UserCredential) input).getUsername();
@@ -426,7 +422,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 				// Users imported based on users search base, user groups filter and users regex search filter
 				"admin", "bgagnon", "vdq2"})));
 
-		final Set<String> groupNameList = new TreeSet<>(CollectionUtils.collect(globalGroupsManager.getAllGroups(), new Transformer() {
+		final Set<String> groupNameList = new TreeSet<>(CollectionUtils.collect(userServices.getAllGroups(), new Transformer() {
 			@Override
 			public Object transform(Object input) {
 				return ((GlobalGroup) input).getName();
@@ -479,7 +475,8 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().getLdapUserSyncManager().synchronizeIfPossible();
 
 		// Then
-		final Set<String> userNameList = new TreeSet<>(CollectionUtils.collect(userCredentialsManager.getUserCredentials(), new Transformer() {
+		SchemasRecordsServices systemSchemas = new SchemasRecordsServices(com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION, modelLayerFactory);
+		final Set<String> userNameList = new TreeSet<>(CollectionUtils.collect(systemSchemas.getAllUserCredentials(), new Transformer() {
 			@Override
 			public Object transform(Object input) {
 				return ((UserCredential) input).getUsername();
@@ -489,7 +486,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 				// Users imported based on users search base, user groups filter and users regex search filter
 				"admin", "bgagnon", "sharepointtest", "vdq2"})));
 
-		final Set<String> groupNameList = new TreeSet<>(CollectionUtils.collect(globalGroupsManager.getAllGroups(), new Transformer() {
+		final Set<String> groupNameList = new TreeSet<>(CollectionUtils.collect(userServices.getAllGroups(), new Transformer() {
 			@Override
 			public Object transform(Object input) {
 				return ((GlobalGroup) input).getName();

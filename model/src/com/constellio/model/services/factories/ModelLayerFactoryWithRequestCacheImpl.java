@@ -1,10 +1,10 @@
 package com.constellio.model.services.factories;
 
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Factory;
-import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
@@ -181,6 +181,7 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	}
 
 	@Override
+	@Deprecated
 	public SolrGlobalGroupsManager getGlobalGroupsManager() {
 		return modelLayerFactory.getGlobalGroupsManager();
 	}

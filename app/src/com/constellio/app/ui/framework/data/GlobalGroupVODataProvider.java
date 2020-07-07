@@ -7,7 +7,6 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.users.SolrGlobalGroupsManager;
 import com.constellio.model.services.users.UserServices;
 
 import java.io.IOException;
@@ -20,7 +19,6 @@ import java.util.List;
 public class GlobalGroupVODataProvider extends AbstractDataProvider {
 
 	private transient UserServices userServices;
-	private transient SolrGlobalGroupsManager globalGroupsManager;
 	private transient Integer size = null;
 	private transient List<GlobalGroupVO> filteredGlobalGroupVOs;
 	private transient List<GlobalGroupVO> globalGroupVOs;
@@ -43,7 +41,6 @@ public class GlobalGroupVODataProvider extends AbstractDataProvider {
 	}
 
 	void init(ModelLayerFactory modelLayerFactory) {
-		globalGroupsManager = modelLayerFactory.getGlobalGroupsManager();
 		userServices = modelLayerFactory.newUserServices();
 		loadGlobalGroupsVOs();
 	}
@@ -118,8 +115,7 @@ public class GlobalGroupVODataProvider extends AbstractDataProvider {
 
 	private void loadGlobalGroupsVOs() {
 		List<GlobalGroupVO> newGlobalGroupVOs = new ArrayList<>();
-		List<GlobalGroup> globalGroups = globalGroupsManager.getAllGroups();
-		for (GlobalGroup globalGroup : globalGroups) {
+		for (GlobalGroup globalGroup : userServices.getAllGroups()) {
 			GlobalGroupVO globalGroupVO = voBuilder.build(globalGroup);
 			newGlobalGroupVOs.add(globalGroupVO);
 		}

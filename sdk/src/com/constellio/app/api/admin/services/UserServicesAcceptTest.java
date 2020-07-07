@@ -8,7 +8,6 @@ import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.authentification.AuthenticationService;
-import com.constellio.model.services.users.SolrGlobalGroupsManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -31,7 +30,6 @@ public class UserServicesAcceptTest extends ConstellioTest {
 	Users users = new Users();
 	UserServices userServices;
 	AuthenticationService authService;
-	SolrGlobalGroupsManager globalGroupsManager;
 	RecordServices recordServices;
 
 	UserServicesClient userServicesClient;
@@ -47,7 +45,6 @@ public class UserServicesAcceptTest extends ConstellioTest {
 
 		userServices = getModelLayerFactory().newUserServices();
 		authService = getModelLayerFactory().newAuthenticationService();
-		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		users.setUp(userServices);
@@ -181,10 +178,10 @@ public class UserServicesAcceptTest extends ConstellioTest {
 	private void whenGetGlobalGroupThenReturnIt() {
 		GlobalGroupResource resource = userServicesClient.getGlobalGroup("heroes");
 
-		assertThat(resource.getCode()).isEqualTo(globalGroupsManager.getGlobalGroupWithCode("heroes").getCode());
-		assertThat(resource.getName()).isEqualTo(globalGroupsManager.getGlobalGroupWithCode("heroes").getName());
+		assertThat(resource.getCode()).isEqualTo(userServices.getGroup("heroes").getCode());
+		assertThat(resource.getName()).isEqualTo(userServices.getGroup("heroes").getName());
 		assertThat(resource.getUsersAutomaticallyAddedToCollections()).isEqualTo(
-				globalGroupsManager.getGlobalGroupWithCode("heroes").getUsersAutomaticallyAddedToCollections());
+				userServices.getGroup("heroes").getUsersAutomaticallyAddedToCollections());
 	}
 
 	private void givenUserInCollectionwhenRemoveUserFromItThenHeIsRemoved() {

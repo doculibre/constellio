@@ -73,7 +73,7 @@ public class GlobalGroupMenuItemActionBehaviors {
 		DisplayGlobalGroupView displayGlobalGroupView = (DisplayGlobalGroupView) params.getView();
 
 		String username = params.getView().getSessionContext().getCurrentUser().getUsername();
-		UserCredential userCredential = modelLayerFactory.getUserCredentialsManager().getUserCredential(username);
+		UserCredential userCredential = userServices.getUserCredential(username);
 		userServices.logicallyRemoveGroupHierarchy(userCredential, globalGroup);
 
 		displayGlobalGroupView.getPresenter().cleanInvalidBackPages();

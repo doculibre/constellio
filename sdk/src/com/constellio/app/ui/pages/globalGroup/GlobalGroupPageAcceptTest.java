@@ -4,7 +4,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.services.users.SolrGlobalGroupsManager;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
@@ -23,7 +23,7 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 	AddEditGlobalGroupPage addEditGlobalGroupPage;
 	ListGlobalGroupPage listGlobalGroupPage;
 	DisplayGlobalGroupPage displayGlobalGroupPage;
-	SolrGlobalGroupsManager globalGroupsManager;
+	UserServices userServices;
 
 	@Before
 	public void setUp()
@@ -38,10 +38,9 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 
 		givenCollection("otherCollection");
 
-		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
 
 		driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection));
-
+		userServices = getModelLayerFactory().newUserServices();
 		addEditGlobalGroupPage = new AddEditGlobalGroupPage(driver);
 		listGlobalGroupPage = new ListGlobalGroupPage(driver);
 		displayGlobalGroupPage = new DisplayGlobalGroupPage(driver);
@@ -294,7 +293,7 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 		displayGlobalGroupPage.getOkConfirmationDialogButton().click();
 		displayGlobalGroupPage.waitForPageReload();
 
-		assertThat(globalGroupsManager.getGlobalGroupWithCode("heroes1").getStatus()).isSameAs(GlobalGroupStatus.INACTIVE);
+		assertThat(userServices.getGroup("heroes1").getStatus()).isSameAs(GlobalGroupStatus.INACTIVE);
 		displayGlobalGroupPage.getSearchInputSubGroups().setValue("heroes1");
 		displayGlobalGroupPage.getSearchButtonSubGroups().click();
 		assertThat(displayGlobalGroupPage.getTableRowsSubGroups()).isEmpty();

@@ -10,7 +10,6 @@ import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.authentification.PasswordFileAuthenticationService;
-import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.rometools.utils.Strings;
@@ -28,7 +27,6 @@ public class UserImportServices implements ImportServices {
 	private UserServices userServices;
 	private int currentElement;
 	private PasswordFileAuthenticationService passwordFileAuthenticationService;
-	SolrUserCredentialsManager solrUserCredentialsManager;
 
 	public UserImportServices(ModelLayerFactory modelLayerFactory) {
 		this(modelLayerFactory, DEFAULT_BATCH_SIZE);
@@ -38,7 +36,6 @@ public class UserImportServices implements ImportServices {
 		this.batchSize = batchSize;
 		userServices = modelLayerFactory.newUserServices();
 		this.passwordFileAuthenticationService = modelLayerFactory.getPasswordFileAuthenticationService();
-		this.solrUserCredentialsManager = modelLayerFactory.getUserCredentialsManager();
 	}
 
 	void importUser(List<String> collections, UserCredential userCredential) {
@@ -131,7 +128,7 @@ public class UserImportServices implements ImportServices {
 				.setAccessTokens(new HashMap<>())
 				.setStatus(userCredentialStatus);
 		try {
-			if (solrUserCredentialsManager.getUserCredential(username) == null && Strings.isNotEmpty(password)) {
+			if (userServices.getUserCredential(username) == null && Strings.isNotEmpty(password)) {
 				passwordFileAuthenticationService.changePassword(username, password);
 			}
 			userServices.addUpdateUserCredential(userCredential);

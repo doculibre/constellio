@@ -40,11 +40,11 @@ public class SolrUserCredentialsManager {
 		schemas = SchemasRecordsServices.usingMainModelLayerFactory(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
 
-	public UserCredential addEdit(String username) {
+	UserCredential addEdit(String username) {
 		return (valueOrDefault(getUserCredential(username), schemas.newCredential())).setUsername(cleanUsername(username));
 	}
 
-	public UserCredential addEdit(String username, String firstName, String lastName, String email) {
+	UserCredential addEdit(String username, String firstName, String lastName, String email) {
 		return addEdit(username)
 				.setFirstName(firstName)
 				.setLastName(lastName)
@@ -52,11 +52,11 @@ public class SolrUserCredentialsManager {
 				.setStatus(UserCredentialStatus.ACTIVE);
 	}
 
-	public UserCredential create(String username, String firstName, String lastName, String email, String serviceKey,
-								 boolean systemAdmin, List<String> globalGroups, List<String> collections,
-								 Map<String, LocalDateTime> tokens,
-								 UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
-								 String dn) {
+	UserCredential create(String username, String firstName, String lastName, String email, String serviceKey,
+						  boolean systemAdmin, List<String> globalGroups, List<String> collections,
+						  Map<String, LocalDateTime> tokens,
+						  UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
+						  String dn) {
 		return addEdit(username)
 				.setUsername(cleanUsername(username))
 				.setFirstName(firstName)
@@ -74,7 +74,7 @@ public class SolrUserCredentialsManager {
 	}
 
 
-	public void addUpdate(UserCredential userCredential) {
+	void addUpdate(UserCredential userCredential) {
 		try {
 			modelLayerFactory.newRecordServices().add(userCredential);
 		} catch (RecordServicesException e) {
@@ -82,7 +82,7 @@ public class SolrUserCredentialsManager {
 		}
 	}
 
-	public UserCredential getUserCredential(String username) {
+	UserCredential getUserCredential(String username) {
 
 		if (username == null) {
 			return null;
@@ -102,7 +102,7 @@ public class SolrUserCredentialsManager {
 		return record != null ? schemas.wrapCredential(record) : null;
 	}
 
-	public UserCredential getAzureUserCredential(String azureUsername) {
+	UserCredential getAzureUserCredential(String azureUsername) {
 
 		if (azureUsername == null) {
 			return null;
@@ -122,71 +122,62 @@ public class SolrUserCredentialsManager {
 		return record != null ? schemas.wrapCredential(record) : null;
 	}
 
-	public LogicalSearchQuery getUserCredentialsQuery() {
+	private LogicalSearchQuery getUserCredentialsQuery() {
 		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).returnAll()).sortAsc(Schemas.TITLE);
 	}
 
-	public LogicalSearchQuery getUserCredentialsWithAgreedToPolicyQuery() {
-		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).where(schemas.credentialSchemaType().getAllMetadatas().getMetadataWithLocalCode(UserCredential.HAS_AGREED_TO_PRIVACY_POLICY)).isTrue());
-	}
-
-	public LogicalSearchQuery getUserCredentialsWithReadLastAlert() {
-		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).where(schemas.credentialSchemaType()
-				.getAllMetadatas().getMetadataWithLocalCode(UserCredential.HAS_READ_LAST_ALERT)).isTrue());
-	}
-
-	public List<UserCredential> getUserCredentials() {
+	List<UserCredential> getUserCredentials() {
 		return schemas.wrapCredentials(searchServices.search(getUserCredentialsQuery()));
 	}
 
-	public LogicalSearchQuery getActiveUserCredentialsQuery() {
+	LogicalSearchQuery getActiveUserCredentialsQuery() {
 		return getQueryFilteredByStatus(UserCredentialStatus.ACTIVE);
 	}
 
-	public List<UserCredential> getActiveUserCredentials() {
+	List<UserCredential> getActiveUserCredentials() {
 		return schemas.wrapCredentials(searchServices.search(getActiveUserCredentialsQuery()));
 	}
 
-	public LogicalSearchQuery getSuspendedUserCredentialsQuery() {
+	LogicalSearchQuery getSuspendedUserCredentialsQuery() {
 		return getQueryFilteredByStatus(UserCredentialStatus.SUSPENDED);
 	}
 
-	public List<UserCredential> getSuspendedUserCredentials() {
+	List<UserCredential> getSuspendedUserCredentials() {
 		return schemas.wrapCredentials(searchServices.search(getSuspendedUserCredentialsQuery()));
 	}
 
-	public LogicalSearchQuery getPendingApprovalUserCredentialsQuery() {
+	LogicalSearchQuery getPendingApprovalUserCredentialsQuery() {
 		return getQueryFilteredByStatus(UserCredentialStatus.PENDING);
 	}
 
-	public List<UserCredential> getPendingApprovalUserCredentials() {
+	List<UserCredential> getPendingApprovalUserCredentials() {
 		return schemas.wrapCredentials(searchServices.search(getPendingApprovalUserCredentialsQuery()));
 	}
 
-	public LogicalSearchQuery getDeletedUserCredentialsQuery() {
+	LogicalSearchQuery getDeletedUserCredentialsQuery() {
 		return getQueryFilteredByStatus(UserCredentialStatus.DELETED);
 	}
 
-	public List<UserCredential> getDeletedUserCredentials() {
+	List<UserCredential> getDeletedUserCredentials() {
 		return schemas.wrapCredentials(searchServices.search(getDeletedUserCredentialsQuery()));
 	}
 
-	public LogicalSearchQuery getUserCredentialsInGlobalGroupQuery(String group) {
+	LogicalSearchQuery getUserCredentialsInGlobalGroupQuery(String group) {
 		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).where(schemas.credentialGroups()).isEqualTo(group))
 				.sortAsc(Schemas.TITLE);
 	}
 
-	public List<UserCredential> getUserCredentialsInGlobalGroup(String group) {
+	List<UserCredential> getUserCredentialsInGlobalGroup(String group) {
 		return schemas.wrapCredentials(searchServices.search(getUserCredentialsInGlobalGroupQuery(group)));
 	}
 
-	public LogicalSearchQuery getUserCredentialsInCollectionQuery(String collection) {
+	LogicalSearchQuery getUserCredentialsInCollectionQuery(String collection) {
 		return new LogicalSearchQuery(
 				from(schemas.credentialSchemaType()).where(schemas.credentialCollections()).isEqualTo(collection))
 				.sortAsc(Schemas.TITLE);
 	}
 
-	public void removeCollection(final String collection) {
+	void removeCollection(final String collection) {
 		try {
 			new ActionExecutorInBatch(searchServices, "Remove collection in user credentials records", 100) {
 
@@ -208,18 +199,18 @@ public class SolrUserCredentialsManager {
 		}
 	}
 
-	public void removeToken(String token) {
+	void removeToken(String token) {
 		UserCredential credential = getUserCredentialByToken(token);
 		if (credential != null) {
 			addUpdate(credential.removeAccessToken(token));
 		}
 	}
 
-	public void removeUserCredentialFromCollection(UserCredential userCredential, String collection) {
+	void removeUserCredentialFromCollection(UserCredential userCredential, String collection) {
 		addUpdate(userCredential.removeCollection(collection));
 	}
 
-	public void removeGroup(String group) {
+	void removeGroup(String group) {
 		Transaction transaction = new Transaction();
 		for (Record record : searchServices.search(getUserCredentialsInGlobalGroupQuery(group))) {
 			transaction.add(schemas.wrapCredential(record).removeGlobalGroup(group));
@@ -231,36 +222,36 @@ public class SolrUserCredentialsManager {
 		}
 	}
 
-	public UserCredential getUserCredentialByServiceKey(String serviceKey) {
+	UserCredential getUserCredentialByServiceKey(String serviceKey) {
 		String encryptedKey = modelLayerFactory.newEncryptionServices().encrypt(serviceKey);
 		Record record = searchServices.searchSingleResult(
 				from(schemas.credentialSchemaType()).where(schemas.credentialServiceKey()).isEqualTo(encryptedKey));
 		return record != null ? schemas.wrapCredential(record) : null;
 	}
 
-	public UserCredential getUserCredentialByDN(String dn) {
+	UserCredential getUserCredentialByDN(String dn) {
 		Record record = recordServices.getRecordByMetadata(schemas.credentialDN(), dn);
 		return record != null ? schemas.wrapUserCredential(record) : null;
 	}
 
-	public String getUsernameByServiceKey(String serviceKey) {
+	String getUsernameByServiceKey(String serviceKey) {
 		UserCredential credential = getUserCredentialByServiceKey(serviceKey);
 		return credential != null ? credential.getUsername() : null;
 	}
 
-	public UserCredential getUserCredentialByToken(String token) {
+	UserCredential getUserCredentialByToken(String token) {
 		String encryptedToken = modelLayerFactory.newEncryptionServices().encrypt(token);
 		Record record = searchServices.searchSingleResult(
 				from(schemas.credentialSchemaType()).where(schemas.credentialTokenKeys()).isEqualTo(encryptedToken));
 		return record != null ? schemas.wrapCredential(record) : null;
 	}
 
-	public String getServiceKeyByToken(String token) {
+	String getServiceKeyByToken(String token) {
 		UserCredential credential = getUserCredentialByToken(token);
 		return credential != null ? credential.getServiceKey() : null;
 	}
 
-	public void removeTimedOutTokens() {
+	void removeTimedOutTokens() {
 		LocalDateTime now = TimeProvider.getLocalDateTime();
 		Transaction transaction = new Transaction();
 		for (Record record : searchServices.search(getUserCredentialsWithExpiredTokensQuery(now))) {
@@ -281,13 +272,9 @@ public class SolrUserCredentialsManager {
 		}
 	}
 
-	public LogicalSearchQuery getUserCredentialsWithExpiredTokensQuery(LocalDateTime now) {
+	private LogicalSearchQuery getUserCredentialsWithExpiredTokensQuery(LocalDateTime now) {
 		return new LogicalSearchQuery(
 				from(schemas.credentialSchemaType()).where(schemas.credentialTokenExpirations()).isLessOrEqualThan(now));
-	}
-
-	public void rewrite() {
-		// Nothing to be done
 	}
 
 	private LogicalSearchQuery getQueryFilteredByStatus(UserCredentialStatus status) {

@@ -65,7 +65,6 @@ public class AddEditGlobalGroupPresenterTest extends ConstellioTest {
 		when(legendsGlobalGroupVO.getName()).thenReturn(LEGENDS_GLOBAL_GROUP);
 
 		when(mockedFactories.getModelLayerFactory().newUserServices()).thenReturn(userServices);
-		when(mockedFactories.getModelLayerFactory().getUserCredentialsManager()).thenReturn(userCredentialsManager);
 		when(userServices.getGroup(HEROES)).thenReturn(heroesGlobalGroup);
 		when(userServices.getGroup(LEGENDS)).thenReturn(legendsGlobalGroup);
 
@@ -136,7 +135,7 @@ public class AddEditGlobalGroupPresenterTest extends ConstellioTest {
 	public void givenActionEditAndChangedCodeWhenSaveButtonClickedThenDoNothing()
 			throws Exception {
 
-		when(userCredentialsManager.getUserCredential(DAKOTA_INDIEN)).thenReturn(dakotaCredential);
+		when(userServices.getUserCredential(DAKOTA_INDIEN)).thenReturn(dakotaCredential);
 		when(presenter.isEditMode()).thenReturn(true);
 		when(presenter.getCode()).thenReturn(LEGENDS);
 		doReturn(heroesGlobalGroup).when(presenter).toGlobalGroup(heroesGlobalGroupVO);

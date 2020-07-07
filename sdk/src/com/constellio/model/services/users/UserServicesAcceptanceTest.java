@@ -83,8 +83,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	List<String> allCollections;
 	String collection1, collection2, collection3;
 	UserCredential user, anotherUser, thirdUser;
-	SolrUserCredentialsManager userCredentialsManager;
-	SolrGlobalGroupsManager globalGroupsManager;
 	@Mock UserCredential userWithNoAccessToDeleteCollection;
 	@Mock Factory<EncryptionServices> encryptionServicesFactory;
 	AuthenticationService authenticationService;
@@ -395,8 +393,9 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		recordsInLegendsCollection2 = getRecordsInGroupInCollection(recordLegendsCollection2, collection2);
 		recordLegendsCollection1 = getRecordGroupInCollection(legendsGroup, collection1);
 		recordLegendsCollection2 = getRecordGroupInCollection(legendsGroup, collection2);
-		assertThat(userCredentialsManager.getUserCredentialsInGlobalGroup(legendsGroup.getCode())).isEmpty();
-		assertThat(globalGroupsManager.getActiveGroups()).hasSize(1);
+		assertThat(userServices.getAllUsersInGroup(userServices.getGroupInCollection("legends", collection1), false, true)).isEmpty();
+		assertThat(userServices.getAllUsersInGroup(userServices.getGroupInCollection("legends", collection2), false, true)).isEmpty();
+		assertThat(userServices.getActiveGroups()).hasSize(1);
 		assertThat(recordLegendsCollection1.isActive()).isFalse();
 		assertThat(recordLegendsCollection2.isActive()).isFalse();
 		assertThat(recordsInLegendsCollection1).isEmpty();
@@ -924,8 +923,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThat(groupRecords.get(0).isActive()).isFalse();
 		assertThat(groupRecords.get(1).isActive()).isFalse();
 		assertThat(groupRecords.get(2).isActive()).isFalse();
-		assertThat(globalGroupsManager.getAllGroups()).hasSize(3);
-		assertThat(globalGroupsManager.getActiveGroups()).isEmpty();
+		assertThat(userServices.getAllGroups()).hasSize(3);
+		assertThat(userServices.getActiveGroups()).isEmpty();
 		assertThat(userServices.getGroup(group1.getCode()).getStatus()).isEqualTo(GlobalGroupStatus.INACTIVE);
 		try {
 			userServices.getActiveGroup(group1.getCode());
@@ -965,8 +964,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThat(groupRecords.get(0).isActive()).isTrue();
 		assertThat(groupRecords.get(1).isActive()).isTrue();
 		assertThat(groupRecords.get(2).isActive()).isTrue();
-		assertThat(globalGroupsManager.getAllGroups()).hasSize(3);
-		assertThat(globalGroupsManager.getActiveGroups()).hasSize(3);
+		assertThat(userServices.getAllGroups()).hasSize(3);
+		assertThat(userServices.getActiveGroups()).hasSize(3);
 	}
 
 	@Test
@@ -1049,23 +1048,21 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
-		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
-		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
-		GlobalGroup g1 = globalGroupsManager.create("G1", null, GlobalGroupStatus.INACTIVE, true),
-				g2 = globalGroupsManager.create("G2", null, GlobalGroupStatus.ACTIVE, true),
-				g3 = globalGroupsManager.create("G3", null, GlobalGroupStatus.ACTIVE, true),
-				g4 = globalGroupsManager.create("G4", null, GlobalGroupStatus.INACTIVE, true);
+		GlobalGroup g1 = userServices.createGlobalGroup("G1", "G1", Collections.emptyList(), null, GlobalGroupStatus.INACTIVE, true),
+				g2 = userServices.createGlobalGroup("G2", "G2", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true),
+				g3 = userServices.createGlobalGroup("G3", "G3", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true),
+				g4 = userServices.createGlobalGroup("G4", "G4", Collections.emptyList(), null, GlobalGroupStatus.INACTIVE, true);
 
 		Transaction t = new Transaction();
 		t.addAll(asList(g1, g2, g3, g4));
 		recordServices.execute(t);
-		UserCredential chuck = userCredentialsManager.getUserCredential(records.getChuckNorris().getUsername());
+		UserAddUpdateRequest chuck = userServices.addEditRequest(records.getChuckNorris().getUsername());
 
 		chuck.setGlobalGroups(asList(g2.getCode(), g3.getCode(), g4.getCode()));
-		userCredentialsManager.addUpdate(chuck);
+		userServices.addUpdateUserCredential(chuck);
 
 		assertThat(userServices.safePhysicalDeleteAllUnusedGlobalGroups()).doesNotContain(g1).contains(g2, g3, g4);
-		assertThat(globalGroupsManager.getGlobalGroupWithCode(g1.getCode())).isNull();
+		assertThat(userServices.getGroup(g1.getCode())).isNull();
 	}
 
 	@Test
@@ -1077,19 +1074,17 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
-		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
-		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
 
-		GlobalGroup g1 = globalGroupsManager.create("G1", null, GlobalGroupStatus.ACTIVE, true),
-				g2 = globalGroupsManager.create("G2", null, GlobalGroupStatus.ACTIVE, true);
+		GlobalGroup g1 = userServices.createGlobalGroup("G1", "G1", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true),
+				g2 = userServices.createGlobalGroup("G2", "G2", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true);
 		Transaction t = new Transaction();
 		t.addAll(asList(g1, g2));
 		recordServices.execute(t);
-		UserCredential gandalf = userCredentialsManager.getUserCredential(records.getGandalf_managerInABC().getUsername());
+		UserAddUpdateRequest gandalf = userServices.addEditRequest(records.getGandalf_managerInABC().getUsername());
 
 		gandalf.setGlobalGroups(asList(g2.getCode()));
 
-		userCredentialsManager.addUpdate(gandalf);
+		userServices.addUpdateUserCredential(gandalf);
 
 		assertThat(userServices.physicallyRemoveGlobalGroup(g1)).isEmpty();
 
@@ -1105,8 +1100,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
-		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
-		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
 
 		Group g1 = rm.newGroupWithId("G1");
 		g1.setTitle("Group 1");
@@ -1149,8 +1142,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
-		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
-		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
 
 		Group g1 = rm.newGroupWithId("G1");
 		g1.setTitle("Group 1");
@@ -1190,7 +1181,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
-		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
 		Users users = new Users();
 		users.setUp(getModelLayerFactory().newUserServices());
 		User chuck = users.chuckNorrisIn(zeCollection);
@@ -1201,9 +1191,9 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		recordServices.execute(t);
 		userServices = getModelLayerFactory().newUserServices();
 		assertThat(userServices.getUserInCollection("alice", zeCollection)).isNotNull();
-		userCredentialsManager.removeUserCredentialFromCollection(userServices.getUserCredential("alice"), zeCollection);
-		userCredentialsManager
-				.removeUserCredentialFromCollection(userServices.getUserCredential(chuck.getUsername()), zeCollection);
+		userServices.removeUserCredentialFromCollection("alice", zeCollection);
+		userServices
+				.removeUserCredentialFromCollection(chuck.getUsername(), zeCollection);
 		userServices.safePhysicalDeleteAllUnusedUsers(zeCollection);
 		try {
 			userServices.getUserInCollection("alice", zeCollection);
@@ -1221,7 +1211,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
-		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
 		Users users = new Users();
 		users.setUp(getModelLayerFactory().newUserServices());
 		User chuck = users.chuckNorrisIn(zeCollection);
@@ -1231,9 +1220,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		c.setTitle("Ze cart");
 		t.add(c);
 		recordServices.execute(t);
-		userCredentialsManager.removeUserCredentialFromCollection(userServices.getUserCredential("alice"), zeCollection);
-		userCredentialsManager
-				.removeUserCredentialFromCollection(userServices.getUserCredential(chuck.getUsername()), zeCollection);
+		userServices.removeUserCredentialFromCollection("alice", zeCollection);
+		userServices.removeUserCredentialFromCollection(chuck.getUsername(), zeCollection);
 
 		try {
 			userServices.physicallyRemoveUser(chuck, zeCollection);
@@ -1261,25 +1249,23 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
-		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
-		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
 		Group heroes = records.getHeroes();
-		GlobalGroup heroesGlobalGroup = globalGroupsManager.getGlobalGroupWithCode(heroes.getCode());
+		GlobalGroup heroesGlobalGroup = userServices.getGroup(heroes.getCode());
 
-		userServices.removeGroupFromCollections(userCredentialsManager.getUserCredential("admin"), heroes.getCode(),
+		userServices.removeGroupFromCollections(userServices.getUserCredential("admin"), heroes.getCode(),
 				asList(heroes.getCollection()));
-		globalGroupsManager.logicallyRemoveGroup(heroesGlobalGroup);
+		userServices.logicallyRemoveGroup(heroesGlobalGroup);
 
 		Transaction t = new Transaction();
 		t.update(((GlobalGroup) heroesGlobalGroup).getWrappedRecord());
 		recordServices.execute(t);
 
-		assertThat(globalGroupsManager.getGlobalGroupWithCode(heroesGlobalGroup.getCode()).getStatus())
+		assertThat(userServices.getGroup(heroesGlobalGroup.getCode()).getStatus())
 				.isEqualTo(GlobalGroupStatus.INACTIVE);
 
 		userServices.restoreDeletedGroup(heroes.getCode(), zeCollection);
 
-		assertThat(globalGroupsManager.getGlobalGroupWithCode(heroes.getCode()).getStatus()).isEqualTo(GlobalGroupStatus.ACTIVE);
+		assertThat(userServices.getGroup(heroes.getCode()).getStatus()).isEqualTo(GlobalGroupStatus.ACTIVE);
 	}
 
 	@Test
@@ -1291,7 +1277,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices = getModelLayerFactory().newUserServices();
 		Users users = new Users();
 		users.setUp(userServices);
-		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		String phone = "450 444 1919";
@@ -1300,28 +1285,28 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		chuckCredential.setPhone(phone);
 		userServices.addUpdateUserCredential(chuckCredential);
 
-		assertThat(userCredentialsManager.getUserCredential(chuckCredential.getUsername()).getPhone()).isEqualTo(phone);
+		assertThat(userServices.getUserCredential(chuckCredential.getUsername()).getPhone()).isEqualTo(phone);
 
 		String fax = "450 448 4448";
 		chuckCredential = users.chuckNorris();
 		chuckCredential.setFax(fax);
 		userServices.addUpdateUserCredential(chuckCredential);
 
-		assertThat(userCredentialsManager.getUserCredential(chuckCredential.getUsername()).getFax()).isEqualTo(fax);
+		assertThat(userServices.getUserCredential(chuckCredential.getUsername()).getFax()).isEqualTo(fax);
 
 		String address = "647 addresse";
 		chuckCredential = users.chuckNorris();
 		chuckCredential.setAddress(address);
 		userServices.addUpdateUserCredential(chuckCredential);
 
-		assertThat(userCredentialsManager.getUserCredential(chuckCredential.getUsername()).getAddress()).isEqualTo(address);
+		assertThat(userServices.getUserCredential(chuckCredential.getUsername()).getAddress()).isEqualTo(address);
 
 		String jobTitle = "Programmeur";
 		chuckCredential = users.chuckNorris();
 		chuckCredential.setJobTitle(jobTitle);
 		userServices.addUpdateUserCredential(chuckCredential);
 
-		assertThat(userCredentialsManager.getUserCredential(chuckCredential.getUsername()).getJobTitle()).isEqualTo(jobTitle);
+		assertThat(userServices.getUserCredential(chuckCredential.getUsername()).getJobTitle()).isEqualTo(jobTitle);
 	}
 
 	// ----- Utils methods
@@ -1414,8 +1399,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices = getModelLayerFactory().newUserServices();
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
-		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
-		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
 		authenticationService = getModelLayerFactory().newAuthenticationService();
 
 		Key key = EncryptionKeyFactory.newApplicationKey("zePassword", "zeUltimateSalt");
@@ -1469,12 +1452,11 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
-		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
 		Users users = new Users();
 		users.setUp(getModelLayerFactory().newUserServices());
 		User chuck = users.chuckNorrisIn(zeCollection);
 
-		UserCredential chuckUserCredential = userCredentialsManager.getUserCredential(chuck.getUsername());
+		UserCredential chuckUserCredential = userServices.getUserCredential(chuck.getUsername());
 		userServices.physicallyRemoveUserCredentialAndUsers(chuckUserCredential);
 		//OK !
 	}
@@ -1487,7 +1469,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
-		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
 		Users users = new Users();
 		users.setUp(getModelLayerFactory().newUserServices());
 		User chuck = users.chuckNorrisIn(zeCollection);
@@ -1497,7 +1478,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		t.add(c);
 		recordServices.execute(t);
 
-		UserCredential chuckUserCredential = userCredentialsManager.getUserCredential(chuck.getUsername());
+		UserCredential chuckUserCredential = userServices.getUserCredential(chuck.getUsername());
 
 		try {
 			userServices.physicallyRemoveUserCredentialAndUsers(chuckUserCredential);

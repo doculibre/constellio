@@ -245,20 +245,6 @@ public class UserServicesUnitTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenAddUpdateUserThenAddUpdateInManagerAndSync()
-			throws Exception {
-
-		doNothing().when(userServices).sync(bob);
-
-		userServices.addUpdateUserCredential(bob);
-
-		InOrder inOrder = inOrder(userServices, userCredentialsManager);
-		inOrder.verify(userCredentialsManager).addUpdate(bob);
-		inOrder.verify(userServices).sync(bob);
-
-	}
-
-	@Test
 	public void whenAddUpdateGroupThenAddUpdateInManagerAndSync()
 			throws Exception {
 

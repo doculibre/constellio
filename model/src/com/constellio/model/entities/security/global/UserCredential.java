@@ -147,11 +147,11 @@ public class UserCredential extends RecordWrapper {
 	}
 
 	public boolean isSystemAdmin() {
-		return get(SYSTEM_ADMIN);
+		return Boolean.TRUE.equals(get(SYSTEM_ADMIN));
 	}
 
-	public UserCredential setSystemAdmin(boolean systemAdmin) {
-		set(SYSTEM_ADMIN, systemAdmin);
+	public UserCredential setSystemAdmin(Boolean systemAdmin) {
+		set(SYSTEM_ADMIN, Boolean.TRUE.equals(systemAdmin));
 		return this;
 	}
 

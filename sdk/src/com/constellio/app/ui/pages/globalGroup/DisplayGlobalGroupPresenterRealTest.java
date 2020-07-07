@@ -72,7 +72,6 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 		when(heroesGlobalGroupVO.getName()).thenReturn(HEROES_GLOBAL_GROUP);
 
 		when(mockedFactories.getModelLayerFactory().newUserServices()).thenReturn(userServices);
-		when(mockedFactories.getModelLayerFactory().getUserCredentialsManager()).thenReturn(userCredentialsManager);
 		when(userServices.getGroup(HEROES)).thenReturn(heroes);
 
 		when(dakotaCredentialVO.getUsername()).thenReturn(dakota);

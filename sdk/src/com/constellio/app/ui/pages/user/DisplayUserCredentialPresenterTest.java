@@ -61,7 +61,6 @@ public class DisplayUserCredentialPresenterTest extends ConstellioTest {
 		when(userCredentialView.navigate().to()).thenReturn(navigator);
 
 		when(mockedFactories.getModelLayerFactory().newUserServices()).thenReturn(userServices);
-		when(mockedFactories.getModelLayerFactory().getUserCredentialsManager()).thenReturn(userCredentialsManager);
 
 		presenter = spy(new DisplayUserCredentialPresenter(userCredentialView));
 

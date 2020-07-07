@@ -19,7 +19,7 @@ public class UserAddUpdateRequest {
 	private List<String> personalEmails = new ArrayList<>();
 	private String serviceKey;
 	private Boolean systemAdmin;
-	private UserCredentialStatus status;
+	private UserCredentialStatus status = UserCredentialStatus.ACTIVE;
 	private List<String> collections = new ArrayList<>();
 	private List<String> globalGroups = new ArrayList<>();
 	private String domain;

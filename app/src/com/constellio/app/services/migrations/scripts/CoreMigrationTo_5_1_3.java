@@ -58,7 +58,7 @@ public class CoreMigrationTo_5_1_3 implements MigrationScript {
 				}
 				encryptionServices = modelLayerFactory.newEncryptionServices();
 				encryptLdapPassword(modelLayerFactory, encryptionServices);
-				encryptUserTokens(modelLayerFactory.getUserCredentialsManager());
+				//encryptUserTokens(modelLayerFactory.getUserCredentialsManager());
 			} else {
 				encryptionServices = modelLayerFactory.newEncryptionServices();
 			}
@@ -77,7 +77,6 @@ public class CoreMigrationTo_5_1_3 implements MigrationScript {
 	}
 
 	private static void encryptUserTokens(SolrUserCredentialsManager userCredentialsManager) {
-		userCredentialsManager.rewrite();
 	}
 
 	private static void encryptLdapPassword(ModelLayerFactory modelLayerFactory,

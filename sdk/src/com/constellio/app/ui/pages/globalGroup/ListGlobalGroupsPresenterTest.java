@@ -8,8 +8,6 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.users.SolrGlobalGroupsManager;
-import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
@@ -45,8 +43,6 @@ public class ListGlobalGroupsPresenterTest extends ConstellioTest {
 	@Mock GlobalGroupVODataProvider dataProvider;
 	@Mock GlobalGroupVO heroesGlobalGroupVO, legendsGlobalGroupVO;
 	@Mock CoreViews navigator;
-	@Mock SolrUserCredentialsManager userCredentialsManager;
-	@Mock SolrGlobalGroupsManager globalGroupsManager;
 	@Mock UserCredential dakotaCredential;
 	@Mock GlobalGroup heroesGlobalGroup, legendsGlobalGroup;
 	@Mock GlobalGroupVODataProvider globalGroupVODataProvider;
@@ -70,9 +66,7 @@ public class ListGlobalGroupsPresenterTest extends ConstellioTest {
 
 		when(mockedFactories.getModelLayerFactory().newUserServices()).thenReturn(userServices);
 		when(userServices.getGroup(HEROES)).thenReturn(heroesGlobalGroup);
-		when(mockedFactories.getModelLayerFactory().getUserCredentialsManager()).thenReturn(userCredentialsManager);
-		when(mockedFactories.getModelLayerFactory().getGlobalGroupsManager()).thenReturn(globalGroupsManager);
-		when(globalGroupsManager.getActiveGroups()).thenReturn(globalGroups);
+		when(userServices.getActiveGroups()).thenReturn(globalGroups);
 
 		presenter = spy(new ListGlobalGroupsPresenter(globalGroupView));
 		doReturn(dataProvider).when(presenter).getDataProvider();
@@ -113,7 +107,7 @@ public class ListGlobalGroupsPresenterTest extends ConstellioTest {
 	//@Test
 	public void whenDeleteButtonClickedThenRemoveGroup()
 			throws Exception {
-		when(userCredentialsManager.getUserCredential(dakota)).thenReturn(dakotaCredential);
+		when(userServices.getUserCredential(dakota)).thenReturn(dakotaCredential);
 
 		presenter.deleteButtonClicked(heroesGlobalGroupVO);
 

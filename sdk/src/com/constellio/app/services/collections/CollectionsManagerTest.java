@@ -28,8 +28,6 @@ import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.search.SynonymsConfigurationsManager;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.services.users.SolrGlobalGroupsManager;
-import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -70,7 +68,6 @@ public class CollectionsManagerTest extends ConstellioTest {
 	@Mock SynonymsConfigurationsManager synonymsConfigurationsManager;
 
 	@Mock SystemGlobalConfigsManager systemGlobalConfigsManager;
-	@Mock SolrGlobalGroupsManager globalGroupsManager;
 	@Mock MetadataSchemasManager metadataSchemasManager;
 	@Mock TaxonomiesManager taxonomiesManager;
 	@Mock RolesManager rolesManager;
@@ -84,7 +81,6 @@ public class CollectionsManagerTest extends ConstellioTest {
 	@Mock RecordDao recordDao;
 	@Mock TransactionDTO transactionDTO;
 	@Mock ModifiableSolrParams params;
-	@Mock SolrUserCredentialsManager userCredentialsManager;
 	@Mock ConfigManager configManager;
 	@Mock Record aNewCollection, anotherNewCollection;
 
@@ -98,7 +94,6 @@ public class CollectionsManagerTest extends ConstellioTest {
 		when(modelLayerFactory.getMetadataSchemasManager()).thenReturn(metadataSchemasManager);
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 		when(modelLayerFactory.getRolesManager()).thenReturn(rolesManager);
-		when(modelLayerFactory.getGlobalGroupsManager()).thenReturn(globalGroupsManager);
 		when(modelLayerFactory.newUserServices()).thenReturn(userServices);
 		when(modelLayerFactory.getConfiguration()).thenReturn(modelLayerConfiguration);
 		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
@@ -189,15 +184,14 @@ public class CollectionsManagerTest extends ConstellioTest {
 		when(params.get("q")).thenReturn("collection_s:" + zeCollection);
 		when(dataLayerFactory.newRecordDao()).thenReturn(recordDao);
 		when(dataLayerFactory.getConfigManager()).thenReturn(configManager);
-		when(modelLayerFactory.getUserCredentialsManager()).thenReturn(userCredentialsManager);
+		when(modelLayerFactory.newUserServices()).thenReturn(userServices);
 		when(modelLayerFactory.getRecordsCaches()).thenReturn(caches);
 
 		collectionsManager.deleteCollection(zeCollection);
 
-		InOrder inOrder = inOrder(collectionsListManager, userCredentialsManager, configManager, transactionDTO, recordDao,
-				modulesManager, globalGroupsManager, caches);
-		inOrder.verify(userCredentialsManager).removeCollection(zeCollection);
-		inOrder.verify(globalGroupsManager).removeCollection(zeCollection);
+		InOrder inOrder = inOrder(collectionsListManager, userServices, configManager, transactionDTO, recordDao,
+				modulesManager, caches);
+		inOrder.verify(userServices).prepareForCollectionDelete(zeCollection);
 		inOrder.verify(collectionsListManager).remove(zeCollection);
 		inOrder.verify(transactionDTO).withDeletedByQueries(params);
 		inOrder.verify(recordDao).execute(transactionDTO);

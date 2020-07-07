@@ -6,7 +6,6 @@ import com.constellio.app.client.services.SchemaServicesClient;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.testimpl.TestRecordValidator2;
 import com.constellio.model.services.security.authentification.AuthenticationService;
-import com.constellio.model.services.users.SolrGlobalGroupsManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -21,7 +20,6 @@ public class SchemaServicesAcceptTest extends ConstellioTest {
 	Users users = new Users();
 	UserServices userServices;
 	AuthenticationService authService;
-	SolrGlobalGroupsManager globalGroupsManager;
 
 	AdminServicesSession bobSession;
 	SchemaServicesClient driver;
@@ -34,7 +32,6 @@ public class SchemaServicesAcceptTest extends ConstellioTest {
 
 		userServices = getModelLayerFactory().newUserServices();
 		authService = getModelLayerFactory().newAuthenticationService();
-		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
 
 		users.setUp(userServices);
 

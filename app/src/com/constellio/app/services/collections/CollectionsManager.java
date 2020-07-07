@@ -210,8 +210,7 @@ public class CollectionsManager implements StatefulService {
 
 	public void deleteCollection(final String collection) {
 		ConfigManager configManager = dataLayerFactory.getConfigManager();
-		removeCollectionFromUserCredentials(collection);
-		removeCollectionFromGlobalGroups(collection);
+		removeCollectionFromUserAndGroups(collection);
 		removeFromCollectionsListManager(collection);
 		removeCollectionFromBigVault(collection);
 		removeCollectionFromVersionProperties(collection, configManager);
@@ -243,12 +242,8 @@ public class CollectionsManager implements StatefulService {
 		constellioModulesManager.removeCollectionFromVersionProperties(collection, configManager);
 	}
 
-	private void removeCollectionFromUserCredentials(final String collection) {
-		modelLayerFactory.getUserCredentialsManager().removeCollection(collection);
-	}
-
-	private void removeCollectionFromGlobalGroups(final String collection) {
-		modelLayerFactory.getGlobalGroupsManager().removeCollection(collection);
+	private void removeCollectionFromUserAndGroups(final String collection) {
+		modelLayerFactory.newUserServices().prepareForCollectionDelete(collection);
 	}
 
 	private void removeFromCollectionsListManager(final String collection) {

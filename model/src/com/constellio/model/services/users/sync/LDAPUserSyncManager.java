@@ -22,7 +22,6 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
-import com.constellio.model.services.users.SolrGlobalGroupsManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
@@ -51,7 +50,6 @@ public class LDAPUserSyncManager implements StatefulService {
 	private final static Logger LOGGER = LoggerFactory.getLogger(LDAPUserSyncManager.class);
 	private final LDAPConfigurationManager ldapConfigurationManager;
 	UserServices userServices;
-	SolrGlobalGroupsManager globalGroupsManager;
 	LDAPUserSyncConfiguration userSyncConfiguration;
 	LDAPServerConfiguration serverConfiguration;
 	BackgroundThreadsManager backgroundThreadsManager;
@@ -63,7 +61,6 @@ public class LDAPUserSyncManager implements StatefulService {
 	public LDAPUserSyncManager(ModelLayerFactory modelLayerFactory) {
 		this.userServices = modelLayerFactory.newUserServices();
 		this.dataLayerFactory = modelLayerFactory.getDataLayerFactory();
-		this.globalGroupsManager = modelLayerFactory.getGlobalGroupsManager();
 		this.ldapConfigurationManager = modelLayerFactory.getLdapConfigurationManager();
 		this.constellioJobManager = modelLayerFactory.getDataLayerFactory().getConstellioJobManager();
 	}
@@ -264,8 +261,7 @@ public class LDAPUserSyncManager implements StatefulService {
 							userCredential.setServiceKey(previousUserCredential.getServiceKey());
 							userCredential.setAccessTokens(previousUserCredential.getAccessTokens());
 							for (final String userGlobalGroup : previousUserCredential.getGlobalGroups()) {
-								final GlobalGroup previousGlobalGroup = globalGroupsManager
-										.getGlobalGroupWithCode(userGlobalGroup);
+								final GlobalGroup previousGlobalGroup = userServices.getNullableGroup(userGlobalGroup);
 								if (previousGlobalGroup != null && previousGlobalGroup.isLocallyCreated()) {
 									newUserGlobalGroups.add(previousGlobalGroup.getCode());
 								}
@@ -403,7 +399,7 @@ public class LDAPUserSyncManager implements StatefulService {
 
 	private List<String> getGroupsIds() {
 		List<String> groups = new ArrayList<>();
-		List<GlobalGroup> globalGroups = globalGroupsManager.getAllGroups();
+		List<GlobalGroup> globalGroups = userServices.getAllGroups();
 		for (GlobalGroup globalGroup : globalGroups) {
 			if (!globalGroup.isLocallyCreated()) {
 				groups.add(globalGroup.getCode());

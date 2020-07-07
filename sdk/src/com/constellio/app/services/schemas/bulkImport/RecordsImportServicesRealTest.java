@@ -1951,7 +1951,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				}));
 
 		String unusedId = getModelLayerFactory().getDataLayerFactory().getUniqueIdGenerator().next();
-		String adminIdInSystemCollection = getModelLayerFactory().getUserCredentialsManager().getUserCredential("admin").getId();
+		String adminIdInSystemCollection = getModelLayerFactory().newUserServices().getUserCredential("admin").getId();
 
 		recordServices
 				.add(new TestRecord(anotherSchema, "00000111111").set(TITLE, "v0"));
