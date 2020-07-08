@@ -16,7 +16,6 @@ import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
-import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
@@ -358,48 +357,20 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		return new PartialSystemStateExporter(appLayerFactory);
 	}
 
-	//todo: Could be rewritten so it would be reusable for both SDKPAnel and ExportPresenter, modelLayerFactory and view
-	//	are the two differences that are obstructing this modification
 	public void exportLogs() {
-		ZipService zipService = modelLayerFactory.getIOServicesFactory().newZipService();
-
-		String filename = "logs-" + new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date()) + ".zip";
-		File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
-				.newTemporaryFolder(EXPORT_FOLDER_RESOURCE);
-		File zipFile = new File(folder, filename);
-
-		List<File> logFiles = new ArrayList<>();
-
-		for (String logFilename : asList("wrapper.log", "constellio.log", "constellio.log.1", "constellio.log.2",
-				"constellio.log.3", "constellio.log.4", "constellio.log.5")) {
-
-			File logFile = new File(modelLayerFactory.getFoldersLocator().getWrapperInstallationFolder(), logFilename);
-			if (logFile.exists()) {
-				logFiles.add(logFile);
+		try {
+			List<String> logFilenames = asList("wrapper.log", "constellio.log", "constellio.log.1", "constellio.log.2",
+					"constellio.log.3", "constellio.log.4", "constellio.log.5");
+			File zipFile = modelLayerFactory.newLogServices().exportLogs(logFilenames, true);
+			if (zipFile == null) {
+				view.showErrorMessage($("ExportView.noLogs"));
+			} else {
+				view.startDownload(zipFile.getName(), new FileInputStream(zipFile), "application/zip");
 			}
-
+		} catch (Throwable t) {
+			LOGGER.error("Error while generating zip of logs", t);
+			view.showErrorMessage($("ExportView.error"));
 		}
-		File logsFolder = modelLayerFactory.getFoldersLocator().getLogsFolder();
-		if (logsFolder.exists()) {
-			File[] logsFolderFiles = logsFolder.listFiles();
-			if (logsFolderFiles != null) {
-				logFiles.add(logsFolder);
-			}
-		}
-
-		if (logFiles.isEmpty()) {
-			view.showErrorMessage($("ExportView.noLogs"));
-		} else {
-
-			try {
-				zipService.zip(zipFile, logFiles);
-				view.startDownload(filename, new FileInputStream(zipFile), "application/zip");
-			} catch (Throwable t) {
-				LOGGER.error("Error while generating zip of logs", t);
-				view.showErrorMessage($("ExportView.error"));
-			}
-		}
-
 	}
 
 	public boolean hasCurrentCollectionRMModule() {

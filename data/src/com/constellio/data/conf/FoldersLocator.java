@@ -205,6 +205,10 @@ public class FoldersLocator {
 		return new File(getWrapperInstallationFolder(), "logs");
 	}
 
+	public File getTenantLogsFolder() {
+		return new File(getLogsFolder(), TenantUtils.getTenantCode());
+	}
+
 	public File getBatFolder() {
 		return new File(getWrapperInstallationFolder(), "bat");
 	}
