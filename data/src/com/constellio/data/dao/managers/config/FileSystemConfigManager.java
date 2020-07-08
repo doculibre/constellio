@@ -417,7 +417,7 @@ public class FileSystemConfigManager implements StatefulService, EventBusListene
 		try {
 			if (TenantUtils.getTenantId() == null ||
 				!configFolder.getAbsolutePath().contains(TenantUtils.getTenantId())) {
-				LOGGER.error("read file  => " + new File(configFolder, path).getAbsolutePath() + " for " + TenantUtils.getTenantId(), new RuntimeException(""));
+				//LOGGER.error("read file  => " + new File(configFolder, path).getAbsolutePath() + " for " + TenantUtils.getTenantId(), new RuntimeException(""));
 			}
 			content = ioServices.readFileToString(new File(configFolder, path));
 		} catch (IOException e) {
