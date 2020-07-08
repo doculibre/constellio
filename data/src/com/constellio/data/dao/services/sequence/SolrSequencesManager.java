@@ -32,6 +32,12 @@ public class SolrSequencesManager implements SequencesManager {
 
 	SolrClient client;
 
+	/* INFO: most sequenceId are getting stripped of their whitespaces so getById doesn't face errors when querying.
+		Also, sequence is not returning sequence IDs containing whitespace to not break the reindexation on a server.
+		Side effects: Old sequence IDs with whitespace might need to be renamed to work correctly (i.e ddvContainerSerial_default)
+
+		See Freshdesk's ticket 8698 for more context
+	 */
 	public SolrSequencesManager(RecordDao recordDao, SecondTransactionLogManager secondTransactionLogManager) {
 		this.client = recordDao.getBigVaultServer().getNestedSolrServer();
 		this.secondTransactionLogManager = secondTransactionLogManager;
@@ -45,7 +51,7 @@ public class SolrSequencesManager implements SequencesManager {
 
 		UpdateResponse response;
 		try {
-			SolrInputDocument document = newSequenceUpdateInputDocument(sequenceId);
+			SolrInputDocument document = newSequenceUpdateInputDocument(cleanSequenceId(sequenceId));
 			document.addField("counter_d", new Long(value).doubleValue());
 
 			response = client.add(document);
@@ -68,16 +74,16 @@ public class SolrSequencesManager implements SequencesManager {
 
 	@Override
 	public long getLastSequenceValue(String sequenceId) {
-		SolrDocument document = getSequenceDocumentUsingRealtimeGet(sequenceId);
+		SolrDocument document = getSequenceDocumentUsingRealtimeGet(cleanSequenceId(sequenceId));
 		return document == null ? -1L : ((Double) document.getFieldValue("counter_d")).longValue();
 	}
 
 	@Override
 	public long next(String sequenceId) {
-
+		String cleanedSequenceId = cleanSequenceId(sequenceId);
 		String uuid = UUIDV1Generator.newRandomId();
 
-		SolrInputDocument solrInputDocument = prepareSolrInputDocumentForAtomicIncrement(sequenceId, uuid);
+		SolrInputDocument solrInputDocument = prepareSolrInputDocumentForAtomicIncrement(cleanedSequenceId, uuid);
 
 		UpdateResponse response;
 		try {
@@ -85,23 +91,23 @@ public class SolrSequencesManager implements SequencesManager {
 		} catch (Exception e) {
 			//The document does not exist
 			try {
-				response = createSequenceDocument(sequenceId, uuid);
+				response = createSequenceDocument(cleanedSequenceId, uuid);
 			} catch (Exception e2) {
 				//The document has probably been created by an other thread, retrying to increment the counter...
-				return next(sequenceId);
+				return next(cleanedSequenceId);
 			}
 		}
 
 		if (secondTransactionLogManager != null) {
-			secondTransactionLogManager.nextSequence(sequenceId, SolrUtils.createTransactionResponseDTO(response));
+			secondTransactionLogManager.nextSequence(cleanedSequenceId, SolrUtils.createTransactionResponseDTO(response));
 		}
 
-		SolrDocument document = getSequenceDocumentUsingRealtimeGet(sequenceId);
+		SolrDocument document = getSequenceDocumentUsingRealtimeGet(cleanedSequenceId);
 
 		long counter = ((Double) document.getFieldValue("counter_d")).longValue();
 		long returnedValue = counter - getUUIDIndexFromEndOfList(uuid, document);
 
-		markUUIDHasRemovable(sequenceId, uuid);
+		markUUIDHasRemovable(cleanedSequenceId, uuid);
 
 		return returnedValue;
 
@@ -127,8 +133,10 @@ public class SolrSequencesManager implements SequencesManager {
 
 			for (SolrDocument doc : queryResponse.getResults()) {
 				String id = ((String) doc.get("id")).substring(4);
-				Double value = ((Double) doc.get("counter_d"));
-				sequences.put(id, value.longValue());
+				if (!id.matches(".*\\s.*")) { // see comment at the top for an explanation
+					Double value = ((Double) doc.get("counter_d"));
+					sequences.put(id, value.longValue());
+				}
 			}
 
 		} catch (SolrServerException | IOException e) {
@@ -239,11 +247,16 @@ public class SolrSequencesManager implements SequencesManager {
 		return (SolrDocument) response.getResponse().get("doc");
 	}
 
+	private static String cleanSequenceId(String sequenceId) {
+		// see comment at the top for an explanation
+		return sequenceId.replaceAll("\\s", "");
+	}
+
 	public static SolrInputDocument setSequenceInLogReplay(String sequenceId, long value) {
 		String uuid = UUIDV1Generator.newRandomId();
 		SolrInputDocument solrInputDocument;
 		solrInputDocument = new SolrInputDocument();
-		solrInputDocument.addField("id", "seq_" + sequenceId);
+		solrInputDocument.addField("id", "seq_" + cleanSequenceId(sequenceId));
 		solrInputDocument.addField("_version_", "-1");
 		solrInputDocument.addField("type_s", "sequence");
 		if (uuid == null) {
@@ -258,7 +271,7 @@ public class SolrSequencesManager implements SequencesManager {
 	}
 
 	public static SolrInputDocument incrementSequenceInLogReplay(String sequenceId) {
-		SolrInputDocument solrInputDocument = newSequenceUpdateInputDocument(sequenceId);
+		SolrInputDocument solrInputDocument = newSequenceUpdateInputDocument(cleanSequenceId(sequenceId));
 		solrInputDocument.addField("counter_d", singletonMap("inc", 1.0));
 		solrInputDocument.remove("_version_");
 		return solrInputDocument;
