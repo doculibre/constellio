@@ -60,7 +60,6 @@ public class HomePresenter extends BasePresenter<HomeView> {
 			Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
 			String tabParam = paramsMap.get("tab");
 			String taxonomyCodeParam = paramsMap.get("taxonomyCode");
-			String taxonomyMetadataParam = paramsMap.get("taxonomyMetadata");
 			String expandedRecordIdParam = paramsMap.get("expandedRecordId");
 
 			if (tabParam == null) {
@@ -110,7 +109,7 @@ public class HomePresenter extends BasePresenter<HomeView> {
 									expandedRecordIds.add(lastUniqueId);
 
 									for (int y = 1; y < recordHierarchie.size(); y++) {
-										Record record = recordHierarchie.get(i);
+										Record record = recordHierarchie.get(y);
 										String type = record.getTypeCode();
 										String id = record.getId();
 
@@ -118,13 +117,13 @@ public class HomePresenter extends BasePresenter<HomeView> {
 
 										lastUniqueId = DefaultLazyTreeDataProvider.nodeUniqueId(lastUniqueId, currentNode);
 
-										expandedRecordIds.remove(recordHierarchie.get(i).getId());
+										expandedRecordIds.remove(recordHierarchie.get(y).getId());
 										expandedRecordIds.add(lastUniqueId);
 									}
 
 									recordTree.setExpandedRecordIds(expandedRecordIds);
+									recordTree.setExpendedRecordIdsLinkedToTaxonomieCode(taxonomyCodeParam);
 								}
-
 								break loop1;
 							}
 						}
