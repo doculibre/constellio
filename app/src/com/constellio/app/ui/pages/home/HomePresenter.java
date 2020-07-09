@@ -17,17 +17,18 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.TreeNode;
+import com.constellio.app.ui.framework.data.trees.DefaultLazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.trees.LegacyTreeNodesDataProviderAdapter;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -87,42 +88,38 @@ public class HomePresenter extends BasePresenter<HomeView> {
 									Record expandedRecord = getRecord(expandedRecordIdParam);
 
 									List<String> expandedRecordIds = new ArrayList<>();
+
 									expandedRecordIds.add(0, expandedRecordIdParam);
 
 									Record lastAddedParent = null;
 									String currentParentId = expandedRecord.getParentId();
+									List<Record> recordHierarchie = new ArrayList<>();
+									recordHierarchie.add(expandedRecord);
 									while (currentParentId != null) {
 										lastAddedParent = getRecord(currentParentId);
+										recordHierarchie.add(0, lastAddedParent);
 										expandedRecordIds.add(0, currentParentId);
 										currentParentId = lastAddedParent.getParentId();
 									}
 
-									String taxonomyRecordId;
-									if (taxonomyMetadataParam != null) {
-										Record recordWithTaxonomyMetadata;
-										if (lastAddedParent != null) {
-											recordWithTaxonomyMetadata = lastAddedParent;
-										} else {
-											recordWithTaxonomyMetadata = expandedRecord;
-										}
-										MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-										MetadataSchema expandedRecordSchema = schemasManager
-												.getSchemaOf(recordWithTaxonomyMetadata);
-										Metadata taxonomyMetadata = expandedRecordSchema.get(taxonomyMetadataParam);
-										taxonomyRecordId = expandedRecord.get(taxonomyMetadata);
-									} else {
-										taxonomyRecordId = expandedRecordIdParam;
-									}
-									if (!expandedRecordIds.contains(taxonomyRecordId)) {
-										expandedRecordIds.add(0, taxonomyRecordId);
-									}
+									TreeNode currentNode = TreeNode.namelessNode(recordHierarchie.get(0).getId(), LegacyTreeNodesDataProviderAdapter.PROVIDER_ID, recordHierarchie.get(0).getTypeCode());
 
-									Record taxonomyRecord = getRecord(taxonomyRecordId);
-									String currentTaxonomyRecordParentId = taxonomyRecord.getParentId();
-									while (currentTaxonomyRecordParentId != null) {
-										Record taxonomyRecordParent = getRecord(currentTaxonomyRecordParentId);
-										expandedRecordIds.add(0, currentTaxonomyRecordParentId);
-										currentTaxonomyRecordParentId = taxonomyRecordParent.getParentId();
+									String lastUniqueId = DefaultLazyTreeDataProvider.nodeUniqueId(null, currentNode);
+
+									expandedRecordIds.remove(recordHierarchie.get(0).getId());
+									expandedRecordIds.add(lastUniqueId);
+
+									for (int y = 1; y < recordHierarchie.size(); y++) {
+										Record record = recordHierarchie.get(i);
+										String type = record.getTypeCode();
+										String id = record.getId();
+
+										currentNode = TreeNode.namelessNode(id, LegacyTreeNodesDataProviderAdapter.PROVIDER_ID, type);
+
+										lastUniqueId = DefaultLazyTreeDataProvider.nodeUniqueId(lastUniqueId, currentNode);
+
+										expandedRecordIds.remove(recordHierarchie.get(i).getId());
+										expandedRecordIds.add(lastUniqueId);
 									}
 
 									recordTree.setExpandedRecordIds(expandedRecordIds);
