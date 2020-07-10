@@ -36,29 +36,33 @@ import java.util.Locale;
 public class ConstellioImportRecordsServlet extends HttpServlet {
 
 	public static final String TEMP_FILE_RESSOURCE_NAME = "ConstellioImportRecordsServlet-tempFile";
+	private static final String PARAM_DATA_TYPE = "dataType";
+	private static final String PARAM_SIMULATE = "simulate";
+	private static final String RESPONSE_MSG_UNAUTHORIZED = "UNAUTHORIZED";
+	private static final String RESPONSE_MSG_SUCCESS = "SUCCESS";
 
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		PrintWriter writer = response.getWriter();
-		ValidationErrors importErrors = null;
+		ValidationErrors importErrors;
 		Throwable throwable = null;
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory());
 		try {
 			InputStream inputStream = request.getInputStream();
 			FileService fileService = modelLayerFactory().getDataLayerFactory().getIOServicesFactory().newFileService();
 			File tempFile = fileService.newTemporaryFile(TEMP_FILE_RESSOURCE_NAME);
-			String dataType = request.getHeader("dataType");
-			Boolean isSimulation = Boolean.valueOf(request.getHeader("simulate"));
+			String dataType = request.getHeader(PARAM_DATA_TYPE);
+			Boolean isSimulation = Boolean.valueOf(request.getHeader(PARAM_SIMULATE));
 
 			try {
 				OutputStream fos = new BufferedOutputStream(new FileOutputStream(tempFile));
 				User user = authenticator.authenticateInCollection(request);
 				if (user == null) {
 					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-					System.out.println("UNAUTHORIZED");
-					writer.println("UNAUTHORIZED");
+					System.out.println(RESPONSE_MSG_UNAUTHORIZED);
+					writer.println(RESPONSE_MSG_UNAUTHORIZED);
 				} else {
 					byte[] buffer = new byte[4096];
 					int bytesRead;
@@ -84,8 +88,8 @@ public class ConstellioImportRecordsServlet extends HttpServlet {
 						}
 					} else {
 						response.setStatus(HttpServletResponse.SC_OK);
-						System.out.println("SUCCESS");
-						writer.println("SUCCESS");
+						System.out.println(RESPONSE_MSG_SUCCESS);
+						writer.println(RESPONSE_MSG_SUCCESS);
 					}
 
 				}
