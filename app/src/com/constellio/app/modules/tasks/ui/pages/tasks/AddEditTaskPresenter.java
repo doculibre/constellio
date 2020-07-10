@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.tasks.TaskConfigs;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
@@ -82,6 +83,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private ListAddRemoveWorkflowInclusiveDecisionFieldImpl listAddRemoveWorkflowInclusiveDecision;
 	private TaskDecisionField field;
 	private TasksSchemasRecordsServices tasksSchemasRecordsServices;
+	private TaskConfigs taskConfigs;
 	List<String> finishedOrClosedStatuses;
 
 	boolean inclusideDecision = false;
@@ -98,6 +100,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		finishedOrClosedStatuses = getFinishedOrClosedStatuses();
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		taskConfigs = new TaskConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 	}
 
 	private List<String> getFinishedOrClosedStatuses() {
@@ -270,11 +273,14 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			task = tasksSchemas.newTask();
 			TaskUser taskUser = new TaskUser(getCurrentUser().getWrappedRecord(), types(),
 					modelLayerFactory.getRolesManager().getCollectionRoles(collection, modelLayerFactory));
-			if(!Boolean.FALSE.equals(taskUser.getAssignTaskAutomatically())) {
+			if (!Boolean.FALSE.equals(taskUser.getAssignTaskAutomatically())) {
 				task.setAssignee(getCurrentUser().getId());
 			}
 
-			task.setDueDate(TimeProvider.getLocalDate());
+			int defaultDueDate = taskConfigs.getDefaultDueDate();
+			if (defaultDueDate > -1) {
+				task.setDueDate(TimeProvider.getLocalDate().plusDays(defaultDueDate));
+			}
 			parentId = paramsMap.get("parentId");
 			task.setParentTask(parentId);
 
@@ -298,10 +304,10 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		workflowId = paramsMap.get("workflowId");
 		taskVO = new TaskVO(new TaskToVOBuilder().build(task.getWrappedRecord(), FORM, view.getSessionContext()));
 		view.setRecord(taskVO);
-		if(taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + ASSIGNEE)) {
+		if (taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + ASSIGNEE)) {
 			originalAssignedTo = taskVO.getAssignee();
 		}
-		if(taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNER)) {
+		if (taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNER)) {
 			originalAssigner = taskVO.get(Task.ASSIGNER);
 		}
 	}
@@ -376,8 +382,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustAssignerField() {
 		Field assignerField = getAssignerField();
-		if (assignerField != null && taskVO != null &&  taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNEE)
-				&& !Objects.equals(originalAssignedTo, taskVO.getAssignee())) {
+		if (assignerField != null && taskVO != null && taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNEE)
+			&& !Objects.equals(originalAssignedTo, taskVO.getAssignee())) {
 			assignerField.setValue(getCurrentUser().getId());
 		}
 	}
@@ -516,7 +522,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		TaskUser taskUser = new TaskUser(getCurrentUser().getWrappedRecord(), types(),
 				modelLayerFactory.getRolesManager().getCollectionRoles(collection, modelLayerFactory));
 		TaskFollower defaultFollower = taskUser.getDefaultFollowerWhenCreatingTask();
-		if(!editMode && field != null && defaultFollower != null) {
+		if (!editMode && field != null && defaultFollower != null) {
 			field.addTaskFollower(defaultFollower);
 		}
 	}

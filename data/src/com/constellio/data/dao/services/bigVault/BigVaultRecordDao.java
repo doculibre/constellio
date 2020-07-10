@@ -816,6 +816,7 @@ public class BigVaultRecordDao implements RecordDao {
 					fieldValues.put(fieldName, value);
 				}
 			}
+
 		}
 		return new RecordDTO(id, version, fields, fieldValues);
 	}
@@ -830,6 +831,29 @@ public class BigVaultRecordDao implements RecordDao {
 		}
 		int secondUnderScoreIndex = field.indexOf("_", firstUnderScoreIndex + 1);
 		return secondUnderScoreIndex != -1;
+	}
+
+	Object convertSolrMultivalueStringToBigvaultValue(Object fieldValue) {
+		Object returnedValue = fieldValue;
+		if ((fieldValue instanceof List)) {
+			boolean containsEmpty = false;
+			for (Object item : (List) fieldValue) {
+				containsEmpty |= ((item instanceof String) && StringUtils.isEmpty((String) item));
+			}
+			if (containsEmpty) {
+				List<Object> returnedValues = new ArrayList<>();
+
+				for (Object item : (List) fieldValue) {
+					if ((item instanceof String) && !StringUtils.isEmpty((String) item)) {
+						returnedValues.add(item);
+					}
+				}
+
+				returnedValue = returnedValues;
+			}
+		}
+
+		return convertMultivalueBooleanSolrValuesToBooleans(returnedValue);
 	}
 
 	@SuppressWarnings({"rawtypes", "unchecked"})
@@ -891,7 +915,7 @@ public class BigVaultRecordDao implements RecordDao {
 			convertedValue = hasNonNullValues ? localDates : null;
 
 		} else if (isMultiValueStringOrText(fieldName) && fieldValue instanceof List) {
-			convertedValue = convertMultivalueBooleanSolrValuesToBooleans(fieldValue);
+			convertedValue = convertSolrMultivalueStringToBigvaultValue(fieldValue);
 
 		} else {
 			convertedValue = fieldValue;

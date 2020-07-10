@@ -167,7 +167,10 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 			try {
 				recordServices().getDocumentById(defaultAdministrativeUnit);
 			} catch (Exception e) {
-				defaultAdministrativeUnit = null;
+				try {
+					recordServices().update(user.set(RMUser.DEFAULT_ADMINISTRATIVE_UNIT, defaultAdministrativeUnit = null));
+				} catch (RecordServicesException ignore) {
+				}
 			}
 			Boolean hideNotActiveUserParam = user.get(RMUser.HIDE_NOT_ACTIVE);
 			if (Boolean.TRUE.equals(hideNotActiveUserParam)) {
