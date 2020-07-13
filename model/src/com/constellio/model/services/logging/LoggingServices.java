@@ -161,12 +161,8 @@ public class LoggingServices {
 		executeTransaction(eventFactory.newRecordEvent(record, currentUser, EventType.CONSULTATION, null, dateTime));
 	}
 
-	public void logExternallySignedRecord(Record record, User user, String mailOfSigningUser, LocalDateTime dateTime) {
-		executeTransaction(eventFactory.newExternallySignedRecordEvent(record, user, mailOfSigningUser, null, dateTime));
-	}
-
-	public void logInternallySignedRecord(Record record, User user, LocalDateTime dateTime) {
-		executeTransaction(eventFactory.newInternallySignedRecordEvent(record, user, null, dateTime));
+	public void logSignedRecord(Record record, User user, LocalDateTime dateTime) {
+		executeTransaction(eventFactory.newSignedRecordEvent(record, user, null, dateTime));
 	}
 
 	public void returnRecord(Record record, User currentUser, LocalDateTime returnDateTime) {
