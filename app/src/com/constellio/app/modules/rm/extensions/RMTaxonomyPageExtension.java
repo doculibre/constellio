@@ -3,7 +3,11 @@ package com.constellio.app.modules.rm.extensions;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
 import com.constellio.app.api.extensions.params.CanConsultTaxonomyParams;
 import com.constellio.app.api.extensions.params.CanManageTaxonomyParams;
-import com.constellio.app.api.extensions.taxonomies.*;
+import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
+import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
+import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
+import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
+import com.constellio.app.api.extensions.taxonomies.ValidateTaxonomyDeletableParams;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -52,7 +56,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 
 		} else if (canManageTaxonomyParams.getTaxonomy().getCode().equals(RMTaxonomies.CLASSIFICATION_PLAN)) {
 			return ExtensionBooleanResult.forceTrueIf(
-					user.has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally());
+					user.has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).onSomething());
 		} else if (canManageTaxonomyParams.getTaxonomy().getCode().equals(RMTaxonomies.STORAGES)) {
 			return ExtensionBooleanResult.forceTrueIf(
 					user.has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally());
@@ -63,7 +67,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 
 	public ExtensionBooleanResult canConsultTaxonomy(CanConsultTaxonomyParams canConsultTaxonomyParams) {
 		if(canConsultTaxonomyParams.getTaxonomy().getCode().equals(RMTaxonomies.CLASSIFICATION_PLAN)) {
-			return ExtensionBooleanResult.forceTrueIf(canConsultTaxonomyParams.getUser().has(RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN).globally());
+			return ExtensionBooleanResult.forceTrueIf(canConsultTaxonomyParams.getUser().has(RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN).onSomething());
 		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;
 		}

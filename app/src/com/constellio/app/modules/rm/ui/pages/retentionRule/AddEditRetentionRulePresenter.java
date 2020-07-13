@@ -165,7 +165,7 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally();
+		return user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).onSomething();
 	}
 
 	private void saveCategories(String id, List<String> categories) {

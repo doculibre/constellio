@@ -95,7 +95,7 @@ public class RMTrashSchemaExtension extends SchemaExtension {
 				}
 
 			case Category.SCHEMA_TYPE:
-				if (event.getUser().has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally()) {
+				if (event.getUser().has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).onSomething()) {
 					return fromAllSchemasIn(collection).whereAllConditions(
 							where(Schemas.SCHEMA).isStartingWithText(Category.SCHEMA_TYPE + "_"),
 							where(Schemas.LOGICALLY_DELETED_STATUS).isTrue());
@@ -104,7 +104,7 @@ public class RMTrashSchemaExtension extends SchemaExtension {
 				}
 
 			case RetentionRule.SCHEMA_TYPE:
-				if (event.getUser().has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally()) {
+				if (event.getUser().has(RMPermissionsTo.MANAGE_RETENTIONRULE).onSomething()) {
 					return fromAllSchemasIn(collection).whereAllConditions(
 							where(Schemas.SCHEMA).isStartingWithText(RetentionRule.SCHEMA_TYPE + "_"),
 							where(Schemas.LOGICALLY_DELETED_STATUS).isTrue());
