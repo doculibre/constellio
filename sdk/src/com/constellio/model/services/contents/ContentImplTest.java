@@ -1,5 +1,6 @@
 package com.constellio.model.services.contents;
 
+import com.constellio.model.entities.enums.ContentCheckoutSource;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_InvalidArgument;
@@ -656,7 +657,7 @@ public class ContentImplTest extends ConstellioTest {
 	public void givenCurrentVersion0_9WhenNewMinorVersionThen0_10()
 			throws Exception {
 
-		content = new ContentImpl(contentId1, firstHistoryVersion, history, null, null, null, false);
+		content = new ContentImpl(contentId1, firstHistoryVersion, history, null, null, null, null, false);
 
 		givenTimeIs(meetingOClock);
 		content.updateContent(alice, new ContentVersionDataSummary("zeNewHash", "zeNewMime", zeNewLength), false);
@@ -673,14 +674,14 @@ public class ContentImplTest extends ConstellioTest {
 	}
 
 	private void givenNonCheckedOutContent() {
-		content = new ContentImpl(contentId1, currentVersion, history, null, null, null, false);
+		content = new ContentImpl(contentId1, currentVersion, history, null, null, null, null, false);
 	}
 
 	private void givenCheckedOutContentNotYetModified() {
-		content = new ContentImpl(contentId1, currentVersion, history, currentVersion, teaOClock, aliceId, false);
+		content = new ContentImpl(contentId1, currentVersion, history, currentVersion, teaOClock, aliceId, ContentCheckoutSource.CONSTELLIO.getValue(), false);
 	}
 
 	private void givenModifiedCheckedOutContent() {
-		content = new ContentImpl(contentId1, currentVersion, history, modifiedCheckedOut, teaOClock, aliceId, false);
+		content = new ContentImpl(contentId1, currentVersion, history, modifiedCheckedOut, teaOClock, aliceId, ContentCheckoutSource.CONSTELLIO.getValue(), false);
 	}
 }
