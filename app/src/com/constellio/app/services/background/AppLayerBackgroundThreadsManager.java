@@ -16,6 +16,7 @@ public class AppLayerBackgroundThreadsManager implements StatefulService {
 	BackgroundThreadsManager backgroundThreadsManager;
 	UpdateSystemInfoBackgroundAction updateSystemInfoBackgroundAction;
 	DownloadLastAlertBackgroundAction downloadLastAlertBackgroundAction;
+	CreateBaseSaveStateBackgroundAction createBaseSaveStateBackgroundAction;
 
 	public AppLayerBackgroundThreadsManager(AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
@@ -31,10 +32,27 @@ public class AppLayerBackgroundThreadsManager implements StatefulService {
 		downloadLastAlertBackgroundAction = new DownloadLastAlertBackgroundAction(appLayerFactory);
 		backgroundThreadsManager.configure(repeatingAction("downloadLastAlertBackgroundAction", downloadLastAlertBackgroundAction)
 				.executedEvery(standardHours(1)).handlingExceptionWith(CONTINUE));
+
+		createBaseSaveStateBackgroundAction = new CreateBaseSaveStateBackgroundAction(appLayerFactory);
+		backgroundThreadsManager.configure(repeatingAction("createBaseSaveStateBackgroundAction", createBaseSaveStateBackgroundAction)
+				.executedEvery(standardHours(1)).handlingExceptionWith(CONTINUE));
+
 	}
 
 	@Override
 	public void close() {
 
+	}
+
+	public UpdateSystemInfoBackgroundAction getUpdateSystemInfoBackgroundAction() {
+		return updateSystemInfoBackgroundAction;
+	}
+
+	public DownloadLastAlertBackgroundAction getDownloadLastAlertBackgroundAction() {
+		return downloadLastAlertBackgroundAction;
+	}
+
+	public CreateBaseSaveStateBackgroundAction getCreateBaseSaveStateBackgroundAction() {
+		return createBaseSaveStateBackgroundAction;
 	}
 }

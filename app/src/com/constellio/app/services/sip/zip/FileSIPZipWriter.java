@@ -9,6 +9,8 @@ import com.constellio.app.services.sip.mets.MetsEADMetadataReference;
 import com.constellio.app.services.sip.mets.MetsFileWriter;
 import com.constellio.app.services.sip.mets.MetsFileWriterRuntimeException.MetsFileWriterRuntimeException_CreatedFileIsInvalid;
 import com.constellio.app.services.sip.zip.SIPZipWriterRuntimeException.SIPZipWriterRuntimeException_ErrorAddingToSIP;
+import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
+import com.constellio.data.dao.services.contents.DaoFile;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -263,12 +265,28 @@ public class FileSIPZipWriter implements SIPZipWriter {
 
 	public void insertAll(SIPZipWriterTransaction transaction)
 			throws IOException {
-		for (Map.Entry<String, File> entry : transaction.getFiles().entrySet()) {
+		for (Map.Entry<String, File> entry : transaction.getOtherFiles().entrySet()) {
 			String hash = transaction.getComputedHashesCache().get(entry.getKey());
 			if (hash == null) {
 				hash = sipFileHasher.computeHash(entry.getValue(), entry.getKey());
 			}
 			addFileWithoutFlushing(entry.getValue(), hash, entry.getKey());
+		}
+
+		for (Map.Entry<String, DaoFile> entry : transaction.getDaoFiles().entrySet()) {
+			String hash = transaction.getComputedHashesCache().get(entry.getKey());
+			if (hash == null) {
+				hash = entry.getValue().optionalReadonlyFunction((f) -> sipFileHasher.computeHash(f, entry.getKey())).orElse(null);
+			}
+			if (hash == null) {
+				LOGGER.warn("File was not found in vault '" + hash + "'");
+			} else {
+				try {
+					addFileWithoutFlushing(entry.getValue(), hash, entry.getKey());
+				} catch (ContentDaoException_NoSuchContent ignored) {
+					LOGGER.warn("File was not found in vault '" + hash + "'");
+				}
+			}
 		}
 		zipOutputStream.flush();
 
@@ -300,6 +318,34 @@ public class FileSIPZipWriter implements SIPZipWriter {
 			ioServices.closeQuietly(inputStream);
 		}
 		zipOutputStream.closeArchiveEntry();
+
+		if (pathWithoutSlash.contains("/")) {
+			manifestLines.add(hash + " " + pathWithoutSlash);
+		} else {
+			tagManifestLines.add(hash + " " + pathWithoutSlash);
+		}
+	}
+
+
+	protected void addFileWithoutFlushing(DaoFile daoFile, String hash, String path)
+			throws ContentDaoException_NoSuchContent {
+		String pathWithoutSlash = path.startsWith("/") ? path.substring(1) : path;
+
+		sipZipInfos.logFile(getExtension(path), daoFile.length());
+
+		daoFile.readonlyConsume((file) -> {
+			ArchiveEntry entry = zipOutputStream.createArchiveEntry(file, pathWithoutSlash);
+			zipOutputStream.putArchiveEntry(entry);
+			InputStream inputStream = ioServices.newFileInputStream(file, READ_FILE_STREAM_NAME);
+			try {
+				ioServices.copy(inputStream, zipOutputStream);
+
+			} finally {
+				ioServices.closeQuietly(inputStream);
+			}
+			zipOutputStream.closeArchiveEntry();
+		});
+
 
 		if (pathWithoutSlash.contains("/")) {
 			manifestLines.add(hash + " " + pathWithoutSlash);

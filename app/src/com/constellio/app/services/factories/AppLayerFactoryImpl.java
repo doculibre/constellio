@@ -64,7 +64,12 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.model.services.records.reindexing.ReindexationParams.recalculateAndRewriteSchemaTypesInBackground;
 
@@ -474,4 +479,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		return correctorExcluderManager;
 	}
 
+	public AppLayerBackgroundThreadsManager getAppLayerBackgroundThreadsManager() {
+		return appLayerBackgroundThreadsManager;
+	}
 }
