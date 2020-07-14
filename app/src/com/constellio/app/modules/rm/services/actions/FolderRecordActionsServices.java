@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
@@ -289,4 +290,7 @@ public class FolderRecordActionsServices {
 		return user.has(RMPermissionsTo.USE_MY_CART).globally();
 	}
 
+	public boolean isPutInContainerActionPossible(Record record, User user) {
+		return Toggle.PUT_IN_CONTAINER_ACTION.isEnabled() && hasUserWriteAccess(record, user);
+	}
 }
