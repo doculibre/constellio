@@ -154,9 +154,9 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 	}
 
 	public String getServiceKey(String username) {
-		String serviceKey = userServices.getUser(username).getServiceKey();
+		String serviceKey = userServices.getUserInfos(username).getServiceKey();
 		if (serviceKey == null) {
-			serviceKey = userServices.giveNewServiceToken(userServices.getUser(username));
+			serviceKey = userServices.giveNewServiceToken(userServices.getUserInfos(username));
 		}
 		return serviceKey;
 	}

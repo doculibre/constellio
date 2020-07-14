@@ -22,6 +22,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
@@ -317,7 +318,7 @@ public class LDAPUserSyncManager implements StatefulService {
 		}
 		Set<String> collections;
 		try {
-			UserCredential tmpUser = userServices.getUser(username);
+			SystemWideUserInfos tmpUser = userServices.getUserInfos(username);
 			collections = new HashSet<>(tmpUser.getCollections());
 			collections.addAll(selectedCollectionsCodes);
 		} catch (UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser e) {
@@ -345,7 +346,7 @@ public class LDAPUserSyncManager implements StatefulService {
 				.setDn(ldapUser.getId());
 
 		try {
-			UserCredential currentUserCredential = userServices.getUser(username);
+			SystemWideUserInfos currentUserCredential = userServices.getUserInfos(username);
 			if (currentUserCredential.isSystemAdmin()) {
 				request = request.setSystemAdmin(true);
 			}
@@ -379,7 +380,7 @@ public class LDAPUserSyncManager implements StatefulService {
 					userServices.getUser(userId);
 
 					if (!userServices.isAdminInAnyCollection(userId)) {
-						UserCredential userCredential = userServices.getUser(userId);
+						SystemWideUserInfos userCredential = userServices.getUserInfos(userId);
 						userServices.removeUserCredentialAndUser(userCredential);
 					}
 				} catch (UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser e) {
@@ -390,7 +391,7 @@ public class LDAPUserSyncManager implements StatefulService {
 	}
 
 	private void removeGroups(List<String> removedGroupsIds) {
-		UserCredential admin = userServices.getUser(LDAPAuthenticationService.ADMIN_USERNAME);
+		SystemWideUserInfos admin = userServices.getUserInfos(LDAPAuthenticationService.ADMIN_USERNAME);
 		for (String groupId : removedGroupsIds) {
 			GlobalGroup group = userServices.getGroup(groupId);
 			userServices.logicallyRemoveGroupHierarchy(admin, group);

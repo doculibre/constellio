@@ -31,7 +31,6 @@ import com.constellio.model.services.security.AuthorizationsServicesRuntimeExcep
 import com.constellio.model.services.security.SecurityAcceptanceTestSetup.FolderSchema;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -4161,7 +4160,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		UserServices userServices = getModelLayerFactory().newUserServices();
 
 		FreeTextSearchServices freeTextSearchServices = new FreeTextSearchServices(getModelLayerFactory());
-		QueryResponse queryResponse = freeTextSearchServices.search(new FreeTextQuery(params).filteredByUser(userServices.getUserCredential(username)));
+		QueryResponse queryResponse = freeTextSearchServices.search(new FreeTextQuery(params).filteredByUser(userServices.getUserInfos(username)));
 
 		List<String> ids = new ArrayList<>();
 		for (SolrDocument document : queryResponse.getResults()) {

@@ -3,8 +3,8 @@ package com.constellio.app.api;
 import com.constellio.app.api.search.isNotAuthenticatedException;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import org.jetbrains.annotations.NotNull;
 
 import javax.servlet.ServletException;
@@ -77,35 +77,35 @@ public abstract class AuthenticatedHttpServlet extends HttpServlet {
 		}
 	}
 
-	protected void doGet(UserCredential user, HttpServletRequest req, HttpServletResponse resp)
+	protected void doGet(SystemWideUserInfos user, HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		throw new UnsupportedOperationException();
 	}
 
-	protected void doPost(UserCredential user, HttpServletRequest req, HttpServletResponse resp)
+	protected void doPost(SystemWideUserInfos user, HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		throw new UnsupportedOperationException();
 	}
 
-	protected void doPut(UserCredential user, HttpServletRequest req, HttpServletResponse resp)
+	protected void doPut(SystemWideUserInfos user, HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		throw new UnsupportedOperationException();
 	}
 
-	protected void doOptions(UserCredential user, HttpServletRequest req, HttpServletResponse resp)
+	protected void doOptions(SystemWideUserInfos user, HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		throw new UnsupportedOperationException();
 	}
 
-	protected void doDelete(UserCredential user, HttpServletRequest req, HttpServletResponse resp)
+	protected void doDelete(SystemWideUserInfos user, HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		throw new UnsupportedOperationException();
 	}
 
 	@NotNull
-	protected UserCredential authenticate(HttpServletRequest request) {
+	protected SystemWideUserInfos authenticate(HttpServletRequest request) {
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory());
-		UserCredential user = authenticator.authenticate(request);
+		SystemWideUserInfos user = authenticator.authenticate(request);
 		if (user == null) {
 			throw new isNotAuthenticatedException();
 		}

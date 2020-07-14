@@ -9,7 +9,7 @@ import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.services.LDAPServices;
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
-import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 import org.apache.commons.lang3.StringUtils;
@@ -72,7 +72,7 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 		LDAPDirectoryType directoryType = ldapServerConfiguration.getDirectoryType();
 		if (ldapServerConfiguration.getDirectoryType() == LDAPDirectoryType.AZURE_AD) {
 			LDAPServices ldapServices = LDAPServicesFactory.newLDAPServices(directoryType);
-			String userEmail = userServices.getUser(username).getEmail();
+			String userEmail = userServices.getUserInfos(username).getEmail();
 			try {
 				ldapServices.authenticateUser(ldapServerConfiguration, userEmail, password);
 				return true;
@@ -192,7 +192,7 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 	private String getUserDn(String username, String domain, String url)
 			throws NamingException {
 		try {
-			UserCredential user = userServices.getUser(username);
+			SystemWideUserInfos user = userServices.getUserInfos(username);
 			if (StringUtils.isNotBlank(user.getDn())) {
 				return user.getDn();
 			}

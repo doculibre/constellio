@@ -31,6 +31,7 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import com.vaadin.data.util.converter.Converter.ConversionException;
@@ -109,7 +110,7 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 	private AdditionnalRecordField buildAgentManuallyDisabledField(RecordFieldsExtensionParams params) {
 		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 
-		UserCredential userCredentials = appLayerFactory.getModelLayerFactory().newUserServices().getUser(user.getUsername());
+		SystemWideUserInfos userCredentials = appLayerFactory.getModelLayerFactory().newUserServices().getUserInfos(user.getUsername());
 		AgentStatus agentStatus = userCredentials.getAgentStatus();
 
 		AgentManuallyDisabledFieldImpl agentManuallyDisabledField = new AgentManuallyDisabledFieldImpl(agentStatus);
@@ -137,7 +138,7 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 
 		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
-		UserCredential userCredentials = userServices.getUser(user.getUsername());
+		SystemWideUserInfos userCredentials = userServices.getUserInfos(user.getUsername());
 		AgentStatus agentStatus = userCredentials.getAgentStatus();
 		if (agentStatus == AgentStatus.DISABLED && !rmConfigs.isAgentDisabledUntilFirstConnection()) {
 			agentStatus = AgentStatus.ENABLED;

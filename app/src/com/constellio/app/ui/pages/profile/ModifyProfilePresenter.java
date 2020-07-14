@@ -22,6 +22,7 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.authentification.AuthenticationService;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
 import com.constellio.model.services.users.UserServices;
@@ -227,7 +228,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 			defaultTaxonomy = presenterService().getSystemConfigs().getDefaultTaxonomy();
 		}
 
-		UserCredential userCredentials = userServices.getUser(username);
+		SystemWideUserInfos userCredentials = userServices.getUserInfos(username);
 		AgentStatus agentStatus = userCredentials.getAgentStatus();
 		boolean agentManuallyDisabled = agentStatus == AgentStatus.MANUALLY_DISABLED;
 
