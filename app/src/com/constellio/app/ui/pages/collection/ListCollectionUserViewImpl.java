@@ -74,6 +74,11 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		presenter = new ListCollectionUserPresenter(this);
 	}
 
+	public ListCollectionUserViewImpl(ViewChangeEvent event) {
+		presenter = new ListCollectionUserPresenter(this);
+		this.buildMainComponent(event);
+	}
+
 	@Override
 	protected String getTitle() {
 		return $("ListCollectionUserView.viewTitle");

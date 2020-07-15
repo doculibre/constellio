@@ -32,6 +32,11 @@ public class CollectionGroupViewImpl extends BaseViewImpl implements CollectionG
 		presenter = new CollectionGroupPresenter(this);
 	}
 
+	public CollectionGroupViewImpl(ViewChangeEvent event) {
+		presenter = new CollectionGroupPresenter(this);
+		this.buildMainComponent(event);
+	}
+
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		presenter.forRequestParams(event.getParameters());

@@ -15,13 +15,17 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.menu.GroupCollectionMenuItemServices;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemActionState;
+import com.constellio.app.services.menu.UserCollectionMenuItemServices;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 
@@ -33,6 +37,8 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 	private CartMenuItemServices cartMenuItemServices;
 	private StorageSpaceMenuItemServices storageSpaceMenuItemServices;
 	private RMRecordsMenuItemServices rmRecordsMenuItemServices;
+	private UserCollectionMenuItemServices userCollectionMenuItemServices;
+	private GroupCollectionMenuItemServices groupCollectionMenuItemServices;
 
 	public RMMenuItemActionsExtension(String collection, AppLayerFactory appLayerFactory) {
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -43,6 +49,8 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 		cartMenuItemServices = new CartMenuItemServices(collection, appLayerFactory);
 		storageSpaceMenuItemServices = new StorageSpaceMenuItemServices(collection, appLayerFactory);
 		rmRecordsMenuItemServices = new RMRecordsMenuItemServices(collection, appLayerFactory);
+		userCollectionMenuItemServices = new UserCollectionMenuItemServices(collection, appLayerFactory);
+		groupCollectionMenuItemServices = new GroupCollectionMenuItemServices(collection, appLayerFactory);
 	}
 
 	@Override
@@ -79,7 +87,14 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 		List<MenuItemAction> menuItemActions = params.getMenuItemActions();
 		List<String> excludedActionTypes = params.getExcludedActionTypes();
 		MenuItemActionBehaviorParams behaviorParams = params.getBehaviorParams();
-
+		if (records.size() > 0 && records.get(0).isOfSchemaType(User.SCHEMA_TYPE)) {
+			menuItemActions.addAll(userCollectionMenuItemServices.getActionsForRecords(records.stream().map(x -> rm.wrapUser(x)).collect(Collectors.toList()), user,
+					excludedActionTypes, behaviorParams));
+		}
+		if (records.size() > 0 && records.get(0).isOfSchemaType(Group.SCHEMA_TYPE)) {
+			menuItemActions.addAll(groupCollectionMenuItemServices.getActionsForRecords(records.stream().map(x -> rm.wrapGroup(x)).collect(Collectors.toList()), user,
+					excludedActionTypes, behaviorParams));
+		}
 		menuItemActions.addAll(rmRecordsMenuItemServices.getActionsForRecords(records, user,
 				excludedActionTypes, behaviorParams));
 	}
