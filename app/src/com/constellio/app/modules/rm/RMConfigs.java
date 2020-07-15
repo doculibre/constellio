@@ -314,7 +314,7 @@ public class RMConfigs {
 						.withDefaultValue(CompleteDatesWhenAddingFolderWithManualStatusChoice.DISABLED));
 
 		add(ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING = decommissioning
-				.createBooleanFalseByDefault("allowFolderSortingOfDecommissioningList").whichIsHidden());
+				.createBooleanTrueByDefault("allowFolderSortingOfDecommissioningList"));
 
 		add(LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS = others.createBooleanFalseByDefault("logFolderDocumentAccessWithCMIS"));
 
