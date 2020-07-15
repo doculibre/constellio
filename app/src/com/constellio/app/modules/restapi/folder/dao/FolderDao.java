@@ -1,7 +1,7 @@
 package com.constellio.app.modules.restapi.folder.dao;
 
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
-import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
+import com.constellio.app.modules.restapi.core.exception.OptimisticLockRuntimeException;
 import com.constellio.app.modules.restapi.core.exception.RecordCopyNotPermittedException;
 import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
 import com.constellio.app.modules.restapi.core.exception.UnresolvableOptimisticLockException;
@@ -125,7 +125,7 @@ public class FolderDao extends ResourceDao {
 		} catch (RecordServicesException.UnresolvableOptimisticLockingConflict e) {
 			throw new UnresolvableOptimisticLockException(folder.getId());
 		} catch (RecordServicesException.OptimisticLocking e) {
-			throw new OptimisticLockException(folder.getId(), folder.getETag(), e.getVersion());
+			throw new OptimisticLockRuntimeException(folder.getId(), folder.getETag(), e.getVersion());
 		}
 
 		return folderRecord;

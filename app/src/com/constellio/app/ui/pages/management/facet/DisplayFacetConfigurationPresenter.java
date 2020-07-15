@@ -14,6 +14,7 @@ import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.structures.MapStringStringStructure;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -99,7 +100,7 @@ public class DisplayFacetConfigurationPresenter extends BasePresenter<DisplayFac
 		view.navigate().to().listFacetConfiguration();
 	}
 
-	public Record toRecord(RecordVO recordVO) {
+	public Record toRecord(RecordVO recordVO) throws OptimisticLockException {
 		SchemaPresenterUtils schemaPresenterUtils = new SchemaPresenterUtils(recordVO.getSchema().getCode(),
 				view.getConstellioFactories(), view.getSessionContext());
 		return schemaPresenterUtils.toRecord(recordVO);

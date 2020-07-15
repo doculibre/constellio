@@ -3,7 +3,6 @@ package com.constellio.app.ui.pages.base;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -26,9 +25,9 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
-import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.schemas.PutSchemaRecordsInTrashEvent;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
@@ -53,7 +52,6 @@ import java.util.List;
 
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
-import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 
 public class SchemaPresenterUtils extends BasePresenterUtils {
 
@@ -214,7 +212,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	}
 
 	@SuppressWarnings("unchecked")
-	public final Record toRecord(RecordVO recordVO) {
+	public final Record toRecord(RecordVO recordVO) throws OptimisticLockException {
 		return toRecord(recordVO, false);
 	}
 
@@ -224,12 +222,15 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	}
 
 	@SuppressWarnings("unchecked")
-	public final Record toRecord(RecordVO recordVO, boolean newMinorEmpty) {
+	public final Record toRecord(RecordVO recordVO, boolean newMinorEmpty) throws OptimisticLockException {
 		Record record;
 		try {
 			record = recordServices().getDocumentById(recordVO.getId()).getCopyOfOriginalRecord();
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 			record = newRecord(recordVO.getId());
+		}
+		if (recordVO.getRecord() != null && recordVO.getRecord().getVersion() != record.getVersion()) {
+			throw new OptimisticLockException(recordVO.getId());
 		}
 		fillRecordUsingRecordVO(record, recordVO, newMinorEmpty);
 		return record;
