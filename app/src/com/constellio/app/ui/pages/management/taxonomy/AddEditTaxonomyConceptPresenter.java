@@ -94,7 +94,14 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 	public void saveButtonClicked(RecordVO recordVO, boolean isReindexationNeeded) {
 		try {
 			Record record = toRecord(recordVO);
+			if (!record.isSaved()) {
+				record.set(Schemas.CREATED_BY, this.getCurrentUser().getId());
+			} else {
+				record.set(Schemas.MODIFIED_BY, this.getCurrentUser().getId());
+			}
+
 			recordServices().recalculate(record);
+
 
 			if (isReindexationNeeded) {
 				recordServices().executeWithoutImpactHandling(new Transaction().update(record));
