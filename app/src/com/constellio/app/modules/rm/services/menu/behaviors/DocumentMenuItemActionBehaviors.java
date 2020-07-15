@@ -56,6 +56,7 @@ import com.constellio.app.ui.framework.components.content.UpdateContentVersionWi
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -89,6 +90,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -392,6 +394,9 @@ public class DocumentMenuItemActionBehaviors {
 				presenterUtils.delete(document.getWrappedRecord(), reason, true, 1);
 			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
 				params.getView().showMessage(MessageUtils.toMessage(e));
+				return;
+			} catch (RecordDeleteServicesRuntimeException e) {
+				params.getView().showMessage(i18n.$("deletionFailed") + "\n" + MessageUtils.toMessage(e));
 				return;
 			}
 			if (BehaviorsUtil.reloadIfSearchView(params.getView())) {
