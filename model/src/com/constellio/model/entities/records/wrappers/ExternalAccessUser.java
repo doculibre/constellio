@@ -21,7 +21,12 @@ public class ExternalAccessUser extends User {
 
 	@Override
 	public String getUsername() {
-		return externalAccessUrl.getFullname();
+		return externalAccessUrl.getFullname() + " (" + getEmail() + ")";
+	}
+
+	@Override
+	public String getEmail() {
+		return externalAccessUrl.getEmail();
 	}
 
 	@Override
