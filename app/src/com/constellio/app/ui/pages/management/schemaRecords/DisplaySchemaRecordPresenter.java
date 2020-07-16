@@ -116,22 +116,6 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 		view.navigate().to().editSchemaRecord(schemaCode, recordVO.getId());
 	}
 
-	void deleteButtonClicked() {
-		deleteButtonClicked(recordVO);
-	}
-
-	private void deleteButtonClicked(RecordVO recordVO) {
-		if (tryDelete(recordVO)) {
-			String parentMetadataCode = HierarchicalValueListItem.PARENT;
-			if (isHierarchical() && recordVO.get(parentMetadataCode) != null) {
-				String parentRecordId = recordVO.get(parentMetadataCode);
-				view.navigate().to().displaySchemaRecord(parentRecordId);
-			} else {
-				view.navigate().to().listSchemaRecords(schemaCode);
-			}
-		}
-	}
-
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		Record restrictedRecord = recordServices().getDocumentById(params);
@@ -140,10 +124,6 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 		} else {
 			return user.hasReadAccess().on(restrictedRecord);
 		}
-	}
-
-	public boolean isSequenceTable() {
-		return !sequenceServices.getAvailableSequences(recordVO.getId()).isEmpty();
 	}
 
 	private boolean tryDelete(RecordVO recordVO) {
@@ -178,10 +158,6 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 
 	public boolean isEditButtonVisible() {
 		return isEditButtonVisible(recordVO);
-	}
-
-	public boolean isDeleteButtonVisible() {
-		return isDeleteButtonVisible(recordVO);
 	}
 
 	public void addSubRecordButtonClicked() {
