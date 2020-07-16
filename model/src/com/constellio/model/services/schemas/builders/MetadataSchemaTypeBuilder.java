@@ -78,15 +78,16 @@ public class MetadataSchemaTypeBuilder {
 		this.defaultSchema = MetadataSchemaBuilder.createDefaultSchema(this, typesBuilder, initialize);
 	}
 
-	public MetadataSchemaTypeBuilder createNewSchemaType(CollectionInfo collectionInfo, String code,
-														 MetadataSchemaTypesBuilder typesBuilder,
-														 ModelLayerFactory modelLayerFactory) {
+	public static MetadataSchemaTypeBuilder createNewSchemaType(CollectionInfo collectionInfo, String code,
+																MetadataSchemaTypesBuilder typesBuilder,
+																ModelLayerFactory modelLayerFactory) {
 		return createNewSchemaType(collectionInfo, code, typesBuilder, modelLayerFactory, true);
 	}
 
-	public MetadataSchemaTypeBuilder createNewSchemaType(CollectionInfo collectionInfo, String code,
-														 MetadataSchemaTypesBuilder typesBuilder,
-														 ModelLayerFactory modelLayerFactory, boolean initialize) {
+	public static MetadataSchemaTypeBuilder createNewSchemaType(CollectionInfo collectionInfo, String code,
+																MetadataSchemaTypesBuilder typesBuilder,
+																ModelLayerFactory modelLayerFactory,
+																boolean initialize) {
 		MetadataSchemaTypeBuilder builder = new MetadataSchemaTypeBuilder();
 		builder.modelLayerFactory = modelLayerFactory;
 		builder.classProvider = typesBuilder.getClassProvider();
@@ -101,7 +102,7 @@ public class MetadataSchemaTypeBuilder {
 		return builder;
 	}
 
-	private Map<Language, String> configureLabels(String code, MetadataSchemaTypesBuilder typesBuilder) {
+	private static Map<Language, String> configureLabels(String code, MetadataSchemaTypesBuilder typesBuilder) {
 		Map<Language, String> label = new HashMap<>();
 		for (Language language : typesBuilder.getLanguages()) {
 			label.put(language, code);
@@ -109,9 +110,9 @@ public class MetadataSchemaTypeBuilder {
 		return label;
 	}
 
-	public MetadataSchemaTypeBuilder modifySchemaType(MetadataSchemaType schemaType,
-													  ModelLayerFactory modelLayerFactory,
-													  ClassProvider classProvider) {
+	public static MetadataSchemaTypeBuilder modifySchemaType(MetadataSchemaType schemaType,
+															 ModelLayerFactory modelLayerFactory,
+															 ClassProvider classProvider) {
 		MetadataSchemaTypeBuilder builder = new MetadataSchemaTypeBuilder();
 		builder.modelLayerFactory = modelLayerFactory;
 		builder.readOnlyLocked = schemaType.isReadOnlyLocked();

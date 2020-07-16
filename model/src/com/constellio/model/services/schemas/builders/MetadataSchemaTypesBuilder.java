@@ -73,8 +73,13 @@ public class MetadataSchemaTypesBuilder {
 		this.collectionInfo = collectionInfo;
 	}
 
-	public MetadataSchemaTypesBuilder modify(MetadataSchemaTypes types, ModelLayerFactory modelLayerFactory,
-											 ClassProvider classProvider) {
+	public MetadataSchemaTypesBuilder(CollectionInfo collectionInfo, ModelLayerFactory modelLayerFactory) {
+		this.collectionInfo = collectionInfo;
+		this.modelLayerFactory = modelLayerFactory;
+	}
+
+	public static MetadataSchemaTypesBuilder modify(MetadataSchemaTypes types, ModelLayerFactory modelLayerFactory,
+													ClassProvider classProvider) {
 		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaTypesBuilder(types.getCollectionInfo(), modelLayerFactory, types.getVersion(),
 				classProvider, types.getLanguages());
 		for (MetadataSchemaType type : types.getSchemaTypes()) {
@@ -84,10 +89,10 @@ public class MetadataSchemaTypesBuilder {
 		return typesBuilder;
 	}
 
-	public MetadataSchemaTypesBuilder createWithVersion(CollectionInfo collectionInfo,
-														ModelLayerFactory modelLayerFactory, int version,
-														ClassProvider classProvider,
-														List<Language> languages) {
+	public static MetadataSchemaTypesBuilder createWithVersion(CollectionInfo collectionInfo,
+															   ModelLayerFactory modelLayerFactory, int version,
+															   ClassProvider classProvider,
+															   List<Language> languages) {
 		return new MetadataSchemaTypesBuilder(collectionInfo, modelLayerFactory, version, classProvider, languages);
 	}
 
