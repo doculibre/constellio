@@ -3741,6 +3741,23 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		assertThat(referencedRecordId).isEqualTo(logicallyDeletedRecordId);
 	}
 
+	@Test
+	public void givenImportParentDataWithCustomMetadataReferencingChildThenImported() throws Exception {
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAReferenceMetadataToZeSchema());
+		zeSchemaTypeRecords.add(defaultSchemaData()
+				.setId("parentRecord")
+				.addField("referenceMetadata", "childRecord"));
+		zeSchemaTypeRecords.add(defaultSchemaData()
+				.setId("childRecord")
+				.addField("parentReferenceFromZeSchemaToZeSchema", "parentRecord"));
+		bulkImport(importDataProvider, progressionListener, admin);
+		assertThat(recordWithLegacyId("parentRecord")).isNotNull();
+		assertThat(recordWithLegacyId("childRecord")).isNotNull();
+	}
+
+
 	private void validateCorrectlyImported() {
 		Record record43 = recordWithLegacyId("43");
 		Record record42 = recordWithLegacyId("42");
