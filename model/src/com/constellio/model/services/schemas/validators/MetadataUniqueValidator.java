@@ -54,7 +54,7 @@ public class MetadataUniqueValidator implements Validator<Record> {
 				MetadataValueType type = metadata.getType();
 				boolean isText = type == MetadataValueType.STRING || type == MetadataValueType.TEXT;
 				boolean isTextAndEmpty = false;
-				if (isText) {
+				if (isText && value != null) {
 					isTextAndEmpty = value.toString().isEmpty();
 				}
 
