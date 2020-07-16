@@ -58,20 +58,37 @@ public class MetadataSchemaTypeBuilder {
 	private SchemasIdSequence metadatasIdSequence;
 	private RecordCacheType recordCacheType;
 	SchemasIdSequence schemasIdSequence;
+	private ModelLayerFactory modelLayerFactory;
 
 	private MetadataSchemaType lastVersion;
 
 	MetadataSchemaTypeBuilder() {
 	}
 
-	static MetadataSchemaTypeBuilder createNewSchemaType(CollectionInfo collectionInfo, String code,
-														 MetadataSchemaTypesBuilder typesBuilder) {
-		return createNewSchemaType(collectionInfo, code, typesBuilder, true);
+	MetadataSchemaTypeBuilder(CollectionInfo collectionInfo, ModelLayerFactory modelLayerFactory, String code,
+							  MetadataSchemaTypesBuilder typesBuilder, boolean initialize) {
+		this.modelLayerFactory = modelLayerFactory;
+		this.classProvider = typesBuilder.getClassProvider();
+		this.code = code;
+		this.collectionInfo = collectionInfo;
+		this.setLabels(configureLabels(code, typesBuilder));
+		this.customSchemas = new HashSet<>();
+		this.dataStore = "records";
+		this.recordCacheType = RecordCacheType.FULLY_CACHED;
+		this.defaultSchema = MetadataSchemaBuilder.createDefaultSchema(this, typesBuilder, initialize);
 	}
 
-	static MetadataSchemaTypeBuilder createNewSchemaType(CollectionInfo collectionInfo, String code,
-														 MetadataSchemaTypesBuilder typesBuilder, boolean initialize) {
+	public MetadataSchemaTypeBuilder createNewSchemaType(CollectionInfo collectionInfo, String code,
+														 MetadataSchemaTypesBuilder typesBuilder,
+														 ModelLayerFactory modelLayerFactory) {
+		return createNewSchemaType(collectionInfo, code, typesBuilder, modelLayerFactory, true);
+	}
+
+	public MetadataSchemaTypeBuilder createNewSchemaType(CollectionInfo collectionInfo, String code,
+														 MetadataSchemaTypesBuilder typesBuilder,
+														 ModelLayerFactory modelLayerFactory, boolean initialize) {
 		MetadataSchemaTypeBuilder builder = new MetadataSchemaTypeBuilder();
+		builder.modelLayerFactory = modelLayerFactory;
 		builder.classProvider = typesBuilder.getClassProvider();
 		builder.code = code;
 		builder.collectionInfo = collectionInfo;
@@ -84,7 +101,7 @@ public class MetadataSchemaTypeBuilder {
 		return builder;
 	}
 
-	private static Map<Language, String> configureLabels(String code, MetadataSchemaTypesBuilder typesBuilder) {
+	private Map<Language, String> configureLabels(String code, MetadataSchemaTypesBuilder typesBuilder) {
 		Map<Language, String> label = new HashMap<>();
 		for (Language language : typesBuilder.getLanguages()) {
 			label.put(language, code);
@@ -92,9 +109,11 @@ public class MetadataSchemaTypeBuilder {
 		return label;
 	}
 
-	public static MetadataSchemaTypeBuilder modifySchemaType(MetadataSchemaType schemaType,
-															 ClassProvider classProvider) {
+	public MetadataSchemaTypeBuilder modifySchemaType(MetadataSchemaType schemaType,
+													  ModelLayerFactory modelLayerFactory,
+													  ClassProvider classProvider) {
 		MetadataSchemaTypeBuilder builder = new MetadataSchemaTypeBuilder();
+		builder.modelLayerFactory = modelLayerFactory;
 		builder.readOnlyLocked = schemaType.isReadOnlyLocked();
 		builder.classProvider = classProvider;
 		builder.code = schemaType.getCode();
@@ -522,5 +541,9 @@ public class MetadataSchemaTypeBuilder {
 		for (MetadataSchemaBuilder schema : sortedCustomSchemas) {
 			schema.resetAllIds(sequenceForSchemaAndTypeId, schemasIdSequence);
 		}
+	}
+
+	public ModelLayerFactory getModelLayerFactory() {
+		return this.modelLayerFactory;
 	}
 }

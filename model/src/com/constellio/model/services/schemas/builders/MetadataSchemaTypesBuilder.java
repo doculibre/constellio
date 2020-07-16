@@ -56,39 +56,49 @@ public class MetadataSchemaTypesBuilder {
 	private ClassProvider classProvider;
 	private List<Language> languages = new ArrayList<>();
 	private SchemasIdSequence schemasTypeIdSequence;
+	private ModelLayerFactory modelLayerFactory;
 
-	private MetadataSchemaTypesBuilder(CollectionInfo collectionInfo, int version, ClassProvider classProvider,
+	private MetadataSchemaTypesBuilder(CollectionInfo collectionInfo, ModelLayerFactory modelLayerFactory, int version,
+									   ClassProvider classProvider,
 									   List<Language> languages) {
 		super();
 		this.collectionInfo = collectionInfo;
 		this.version = version;
 		this.classProvider = classProvider;
 		this.languages = Collections.unmodifiableList(languages);
+		this.modelLayerFactory = modelLayerFactory;
 	}
 
-	public static MetadataSchemaTypesBuilder modify(MetadataSchemaTypes types, ClassProvider classProvider) {
-		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaTypesBuilder(types.getCollectionInfo(), types.getVersion(),
+	public MetadataSchemaTypesBuilder(CollectionInfo collectionInfo) {
+		this.collectionInfo = collectionInfo;
+	}
+
+	public MetadataSchemaTypesBuilder modify(MetadataSchemaTypes types, ModelLayerFactory modelLayerFactory,
+											 ClassProvider classProvider) {
+		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaTypesBuilder(types.getCollectionInfo(), modelLayerFactory, types.getVersion(),
 				classProvider, types.getLanguages());
 		for (MetadataSchemaType type : types.getSchemaTypes()) {
-			typesBuilder.schemaTypes.add(MetadataSchemaTypeBuilder.modifySchemaType(type, classProvider));
+			MetadataSchemaTypeBuilder metadataSchemaTypeBuilder = new MetadataSchemaTypeBuilder();
+			typesBuilder.schemaTypes.add(metadataSchemaTypeBuilder.modifySchemaType(type, modelLayerFactory, classProvider));
 		}
 		return typesBuilder;
 	}
 
-	public static MetadataSchemaTypesBuilder createWithVersion(CollectionInfo collectionInfo, int version,
-															   ClassProvider classProvider,
-															   List<Language> languages) {
-		return new MetadataSchemaTypesBuilder(collectionInfo, version, classProvider, languages);
+	public MetadataSchemaTypesBuilder createWithVersion(CollectionInfo collectionInfo,
+														ModelLayerFactory modelLayerFactory, int version,
+														ClassProvider classProvider,
+														List<Language> languages) {
+		return new MetadataSchemaTypesBuilder(collectionInfo, modelLayerFactory, version, classProvider, languages);
 	}
 
-	public MetadataSchemaTypes build(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
+	public MetadataSchemaTypes build(DataStoreTypesFactory typesFactory) {
 
 		validateAutomaticMetadatas();
 		List<String> dependencies = validateNoCyclicDependenciesBetweenSchemas();
 
 		List<MetadataSchemaType> buildedSchemaTypes = new ArrayList<>();
 		for (MetadataSchemaTypeBuilder schemaType : schemaTypes) {
-			buildedSchemaTypes.add(schemaType.build(typesFactory, this, modelLayerFactory));
+			buildedSchemaTypes.add(schemaType.build(typesFactory, this, this.modelLayerFactory));
 		}
 
 		List<String> referenceDefaultValues = new ArrayList<>();
@@ -130,12 +140,12 @@ public class MetadataSchemaTypesBuilder {
 	}
 
 	public MetadataSchemaTypeBuilder createNewSchemaType(String code, boolean initialize) {
-		MetadataSchemaTypeBuilder typeBuilder;
+		MetadataSchemaTypeBuilder typeBuilder = new MetadataSchemaTypeBuilder();
 		if (hasSchemaType(code)) {
 			throw new MetadataSchemaTypesBuilderRuntimeException.SchemaTypeExistent(code);
 		}
 
-		typeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType(collectionInfo, code, this, initialize);
+		typeBuilder = typeBuilder.createNewSchemaType(collectionInfo, code, this, getModelLayerFactory(), initialize);
 
 		schemaTypes.add(typeBuilder);
 		return typeBuilder;
@@ -590,5 +600,9 @@ public class MetadataSchemaTypesBuilder {
 		}
 
 		return newSchemaTypes;
+	}
+
+	public ModelLayerFactory getModelLayerFactory() {
+		return this.modelLayerFactory;
 	}
 }

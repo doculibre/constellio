@@ -48,13 +48,14 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 	MetadataSchemaTypesBuilder typesBuilder;
 	@Mock TaxonomiesManager taxonomiesManager;
 	@Mock ModelLayerFactory modelLayerFactory;
+	CollectionInfo zeCollectionInfo;
 
 	@Before
 	public void setUp() {
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 		typesFactory = new FakeDataStoreTypeFactory();
 
-		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, "zeUltimateCollection", "fr", Arrays.asList("fr"));
+		this.zeCollectionInfo = new CollectionInfo((byte) 0, "zeUltimateCollection", "fr", Arrays.asList("fr"));
 		typesBuilder = getMetadataSchemaTypesBuilder(zeCollectionInfo);
 
 		zeType = typesBuilder.createNewSchemaType("zeType");
@@ -72,7 +73,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 
 	@NotNull
 	private MetadataSchemaTypesBuilder getMetadataSchemaTypesBuilder(CollectionInfo zeCollectionInfo) {
-		return MetadataSchemaTypesBuilder.createWithVersion(zeCollectionInfo, 0, new DefaultClassProvider(),
+		return (new MetadataSchemaTypesBuilder(zeCollectionInfo)).createWithVersion(zeCollectionInfo, modelLayerFactory, 0, new DefaultClassProvider(),
 				Arrays.asList(Language.French));
 	}
 
@@ -80,7 +81,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 	public void whenBuildingThenSetCollection()
 			throws Exception {
 
-		assertThat(typesBuilder.build(typesFactory, modelLayerFactory).getCollection()).isEqualTo("zeUltimateCollection");
+		assertThat(typesBuilder.build(typesFactory).getCollection()).isEqualTo("zeUltimateCollection");
 
 	}
 
@@ -88,8 +89,8 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 	public void whenModifyThenSetCollection()
 			throws Exception {
 
-		MetadataSchemaTypes types = typesBuilder.build(typesFactory, modelLayerFactory);
-		assertThat(MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider()).getCollection())
+		MetadataSchemaTypes types = typesBuilder.build(typesFactory);
+		assertThat((new MetadataSchemaTypesBuilder(zeCollectionInfo)).modify(types, modelLayerFactory, new DefaultClassProvider()).getCollection())
 				.isEqualTo("zeUltimateCollection");
 
 	}
@@ -152,7 +153,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithReferenceToAnotherSchema.defineReferences().set(anotherType);
 		metadataWithCopiedEntry.defineDataEntry().asCopied(metadataWithReferenceToAnotherSchema, anotherMetadata);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 
 	}
 
@@ -168,7 +169,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithReferenceToAnotherSchema.defineReferences().set(anotherType);
 		metadataWithCopiedEntry.defineDataEntry().asCopied(metadataWithReferenceToAnotherSchema, anotherMetadata);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 
 	}
 
@@ -183,7 +184,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithReferenceToAnotherSchema.defineReferences().set(anotherType);
 		metadataWithCopiedEntry.defineDataEntry().asCopied(metadataWithReferenceToAnotherSchema, anotherMetadata);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 
 	}
 
@@ -198,7 +199,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithReferenceToAnotherSchema.defineReferences().set(anotherType);
 		metadataWithCopiedEntry.defineDataEntry().asCopied(metadataWithReferenceToAnotherSchema, anotherMetadata);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 
 	}
 
@@ -213,7 +214,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithReferenceToAnotherSchema.defineReferences().set(anotherType);
 		metadataWithCopiedEntry.defineDataEntry().asCopied(metadataWithReferenceToAnotherSchema, anotherMetadata);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 
 	}
 
@@ -228,7 +229,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithReferenceToAnotherSchema.defineReferences().set(anotherType);
 		metadataWithCopiedEntry.defineDataEntry().asCopied(metadataWithReferenceToAnotherSchema, anotherMetadata);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 
 	}
 
@@ -243,7 +244,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithReferenceToAnotherSchema.defineReferences().set(anotherType);
 		metadataWithCopiedEntry.defineDataEntry().asCopied(metadataWithReferenceToAnotherSchema, anotherMetadata);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 
 	}
 
@@ -258,7 +259,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithReferenceToAnotherSchema.defineReferences().set(anotherType);
 		metadataWithCopiedEntry.defineDataEntry().asCopied(metadataWithReferenceToAnotherSchema, anotherMetadata);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 
 	}
 
@@ -273,7 +274,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithReferenceToAnotherSchema.defineReferences().set(anotherType);
 		metadataWithCopiedEntry.defineDataEntry().asCopied(metadataWithReferenceToAnotherSchema, anotherMetadata);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 
 	}
 
@@ -288,7 +289,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithReferenceToAnotherSchema.defineReferences().set(anotherType);
 		metadataWithCopiedEntry.defineDataEntry().asCopied(metadataWithReferenceToAnotherSchema, anotherMetadata);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test
@@ -302,7 +303,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithReferenceToAnotherSchema.defineReferences().set(anotherType);
 		metadataWithCopiedEntry.defineDataEntry().asCopied(metadataWithReferenceToAnotherSchema, anotherMetadata);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	// Calculated metadata validation tests
@@ -315,7 +316,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithCalculatedEntry.defineDataEntry().asCalculated(
 				com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderTestCalculatorUtils.DummyNumberCalculator.class);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test
@@ -329,7 +330,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 
 		assertThat(metadataWithCalculatedEntry.getType()).isEqualTo(MetadataValueType.STRING);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 
 	}
 
@@ -344,7 +345,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 
 		assertThat(metadataWithCalculatedEntry.getType()).isEqualTo(MetadataValueType.STRING);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CannotCalculateDifferentValueTypeInValueMetadata.class)
@@ -356,7 +357,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithCalculatedEntry.defineDataEntry().asCalculated(
 				com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderTestCalculatorUtils.DummyTextCalculator.class);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test
@@ -368,7 +369,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		givenZeDefaultSchemaMetadata("dependency2", NUMBER).setMultivalue(false);
 		metadataWithCalculatedEntry.defineDataEntry().asCalculated(DummyNumberCalculator2.class);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CalculatorDependencyHasInvalidValueType.class)
@@ -380,7 +381,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		givenZeDefaultSchemaMetadata("dependency2", STRING).setMultivalue(false);
 		metadataWithCalculatedEntry.defineDataEntry().asCalculated(DummyNumberCalculator2.class);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test
@@ -394,7 +395,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		givenZeDefaultSchemaMetadata("localDependencyMeta", NUMBER).setMultivalue(false);
 		metadataWithCalculatedEntry.defineDataEntry().asCalculated(DummyReferenceNumberCalculator.class);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CannotUseACustomMetadataForCalculation.class)
@@ -408,7 +409,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		givenZeDefaultSchemaMetadata("localDependencyMeta", NUMBER).setMultivalue(false);
 		metadataWithCalculatedEntry.defineDataEntry().asCalculated(DummyReferenceNumberCalculator.class);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CalculatorDependencyHasInvalidValueType.class)
@@ -422,7 +423,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		givenZeDefaultSchemaMetadata("localDependencyMeta", NUMBER).setMultivalue(false);
 		metadataWithCalculatedEntry.defineDataEntry().asCalculated(DummyReferenceNumberCalculator.class);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.NoAllowedReferences.class)
@@ -435,7 +436,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		givenZeDefaultSchemaMetadata("localDependencyMeta", NUMBER).setMultivalue(false);
 		metadataWithCalculatedEntry.defineDataEntry().asCalculated(DummyReferenceNumberCalculator.class);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.NoAllowedReferences.class)
@@ -448,7 +449,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		givenZeDefaultSchemaMetadata("localDependencyMeta", NUMBER).setMultivalue(false);
 		metadataWithCalculatedEntry.defineDataEntry().asCalculated(DummyReferenceNumberCalculator.class);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.InvalidDependencyMetadata.class)
@@ -461,7 +462,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		givenZeDefaultSchemaMetadata("localDependencyMeta", NUMBER).setMultivalue(false);
 		metadataWithCalculatedEntry.defineDataEntry().asCalculated(DummyReferenceNumberCalculator.class);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 
@@ -474,7 +475,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithCalculatedEntry.defineDataEntry().asCalculated(
 				com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderTestCalculatorUtils.DummyTextListCalculator.class);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test
@@ -486,7 +487,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithCalculatedEntry.defineDataEntry().asCalculated(
 				com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderTestCalculatorUtils.DummyTextListCalculator.class);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CannotCalculateASingleValueInAMultiValueMetadata.class)
@@ -498,7 +499,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithCalculatedEntry.defineDataEntry().asCalculated(
 				com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderTestCalculatorUtils.DummyTextCalculator.class);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test
@@ -510,7 +511,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithCalculatedEntry.defineDataEntry().asCalculated(
 				com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderTestCalculatorUtils.DummyTextCalculator.class);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CannotCalculateAMultiValueInASingleValueMetadata.class)
@@ -522,7 +523,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithCalculatedEntry.defineDataEntry().asCalculated(
 				com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderTestCalculatorUtils.DummyTextListCalculator.class);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test
@@ -535,7 +536,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		zeSchemaMetadata.defineReferences().set(anotherType);
 		anotherSchemaMetadata.defineReferences().set(zeType);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CyclicDependenciesInSchemas.class)
@@ -549,7 +550,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		zeSchemaMetadata.defineReferences().set(anotherType);
 		anotherSchemaMetadata.defineReferences().set(zeType);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test
@@ -564,7 +565,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		secondSchemaMetadata.defineReferences().set(aThirdType);
 		thirdSchemaMetadata.defineReferences().set(zeType);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CyclicDependenciesInSchemas.class)
@@ -580,7 +581,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		secondSchemaMetadata.defineReferences().set(aThirdType);
 		thirdSchemaMetadata.defineReferences().set(zeType);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test
@@ -595,7 +596,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		secondSchemaMetadata.defineReferences().add(aThirdTypeCustomSchema);
 		thirdSchemaMetadata.defineReferences().add(zeTypeCustomSchema);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CyclicDependenciesInSchemas.class)
@@ -611,7 +612,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		secondSchemaMetadata.defineReferences().add(aThirdTypeCustomSchema);
 		thirdSchemaMetadata.defineReferences().add(zeTypeCustomSchema);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test
@@ -626,7 +627,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		secondSchemaMetadata.defineReferences().add(aThirdTypeCustomSchema);
 		thirdSchemaMetadata.defineReferences().add(zeTypeCustomSchema);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CyclicDependenciesInSchemas.class)
@@ -642,7 +643,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		secondSchemaMetadata.defineReferences().add(aThirdTypeCustomSchema);
 		thirdSchemaMetadata.defineReferences().add(zeTypeCustomSchema);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 	}
 
 	@Test
@@ -746,7 +747,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		metadataWithReferenceToAnotherSchema.defineReferences().add(anotherTypeCustomSchema);
 		metadataWithCopiedEntry.defineDataEntry().asCopied(metadataWithReferenceToAnotherSchema, anotherMetadata);
 
-		typesBuilder.build(typesFactory, modelLayerFactory);
+		typesBuilder.build(typesFactory);
 
 	}
 

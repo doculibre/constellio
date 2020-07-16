@@ -75,8 +75,8 @@ public class MetadataSchemaXMLReader3 {
 		Element rootElement = document.getRootElement();
 		int version = Integer.valueOf(rootElement.getAttributeValue("version")) - 1;
 		List<Language> languages = getLanguages(rootElement);
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder
-				.createWithVersion(collectionInfo, version, classProvider, languages);
+		MetadataSchemaTypesBuilder typesBuilder = (new MetadataSchemaTypesBuilder(collectionInfo))
+				.createWithVersion(collectionInfo, modelLayerFactory, version, classProvider, languages);
 		for (Element schemaTypeElement : rootElement.getChildren("type")) {
 			parseSchemaType(typesBuilder, schemaTypeElement, typesFactory, modelLayerFactory);
 		}
