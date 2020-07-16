@@ -5,6 +5,7 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -49,7 +50,15 @@ public class MetadataUniqueValidator implements Validator<Record> {
 		for (Metadata metadata : metadatas) {
 			if (metadata.isUniqueValue() && record.isModified(metadata)) {
 				Object value = record.get(metadata);
-				if (value != null) {
+
+				MetadataValueType type = metadata.getType();
+				boolean isText = type == MetadataValueType.STRING || type == MetadataValueType.TEXT;
+				boolean isTextAndEmpty = false;
+				if (isText) {
+					isTextAndEmpty = value.toString().isEmpty();
+				}
+
+				if (value != null && !isTextAndEmpty) {
 					String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(metadata);
 					LogicalSearchCondition condition = from(schemaTypes.getSchemaType(schemaTypeCode)).where(metadata)
 							.isEqualTo(value).andWhere(Schemas.IDENTIFIER).isNotEqual(record.getId());
