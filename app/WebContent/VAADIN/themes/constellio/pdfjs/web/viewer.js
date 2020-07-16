@@ -2115,25 +2115,24 @@ function webViewerInitialized() {
   if ('annotationsconfig' in params) {
     var annotationsConfigUrl = decodeURIComponent(params.annotationsconfig);
     if (annotationsConfigUrl) {
+      var createAnnotationsManager = function(customAnnotationsConfig) {
+          var signatureDataStore = new SignatureDataStore(customAnnotationsConfig);
+          PDFViewerApplication.signatureDataStore = signatureDataStore;
+          var signatureOptionsContainer = document.getElementById('signatureOptions'); 
+          PDFViewerApplication.pdfAnnotationsManager = new PDFAnnotationsManager(customAnnotationsConfig, signatureDataStore, signatureOptionsContainer, null);
+      };
       $.ajax(annotationsConfigUrl)
       .done(function(data, textStatus, jqXHR) {
         var customAnnotationsConfig = JSON.parse(data);
-        var signatureDataStore = new SignatureDataStore(customAnnotationsConfig);
-        PDFViewerApplication.signatureDataStore = signatureDataStore;
-        PDFViewerApplication.pdfAnnotationsManager = new PDFAnnotationsManager(customAnnotationsConfig, signatureDataStore, null);
+        createAnnotationsManager(customAnnotationsConfig);
       })
       .fail(function(jqXHR, textStatus, errorThrown) {
         console.error("Error while trying to get pdf annotations config");
         console.error(errorThrown);
-        
-        var signatureDataStore = new SignatureDataStore();
-        PDFViewerApplication.signatureDataStore = signatureDataStore;
-        PDFViewerApplication.pdfAnnotationsManager = new PDFAnnotationsManager(null, signatureDataStore);
+        createAnnotationsManager();
       });  
     } else {
-      var signatureDataStore = new SignatureDataStore();
-      PDFViewerApplication.signatureDataStore = signatureDataStore;
-      PDFViewerApplication.pdfAnnotationsManager = new PDFAnnotationsManager(null, signatureDataStore);
+      createAnnotationsManager();
     }
   }
   
@@ -2409,33 +2408,22 @@ function webViewerCertify() {
   pdfAnnotationsManager.certifyPDFSignatures();
 }
 function webViewerSign() {
-  var dropZoneManager = PDFViewerApplication.pdfAnnotationsManager.getCurrentDropZoneManager();
-  if (dropZoneManager) {
-    var signatureDataStore = PDFViewerApplication.signatureDataStore;
-    var signaturePicker = new SignatureAnnotationPicker(signatureDataStore, dropZoneManager);
-    signaturePicker.openPicker();
+  var pdfAnnotationsManager = PDFViewerApplication.pdfAnnotationsManager;
+  var signatureOptionsElement = document.getElementById("signatureOptions");
+  if (signatureOptionsElement.classList.contains("hidden")) {
+    signatureOptionsElement.classList.remove("hidden");
+    pdfAnnotationsManager.openSignaturePicker();
   } else {
-    console.error("No drop zone manager");
+    signatureOptionsElement.classList.add("hidden");
   }
 }
 function webViewerSignatureZone() {
-  var dropZoneManager = PDFViewerApplication.pdfAnnotationsManager.getCurrentDropZoneManager();
-  if (dropZoneManager) {
-    var signatureDataStore = PDFViewerApplication.signatureDataStore;
-    var signaturePicker = new SignatureAnnotationPicker(signatureDataStore, dropZoneManager);
-    signaturePicker.signHereAnnotationPicked();
-  } else {
-    console.error("No drop zone manager");
-  }
+  var pdfAnnotationsManager = PDFViewerApplication.pdfAnnotationsManager;
+  pdfAnnotationsManager.defineSignHereAnnotation();
 }
 function webViewerTextZone() {
-  var dropZoneManager = PDFViewerApplication.pdfAnnotationsManager.getCurrentDropZoneManager();
-  if (dropZoneManager) {
-    var textAnnotation = new TextAnnotation();
-    dropZoneManager.defineAnnotation(textAnnotation);
-  } else {
-    console.error("No drop zone manager");
-  }
+  var pdfAnnotationsManager = PDFViewerApplication.pdfAnnotationsManager;
+  pdfAnnotationsManager.defineTextAnnotation();
 }
 function webViewerDownload() {
   PDFViewerApplication.download();

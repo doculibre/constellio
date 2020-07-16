@@ -24,6 +24,18 @@ TextAnnotation.prototype.setText = function(text) {
 	this.text = text;
 	if (this.textNode) {
 		this.textNode.nodeValue = text;
+		this.convertTextToImage();
+	}
+};
+
+TextAnnotation.prototype.getImageUrl = function() {
+	return this.imageUrl;	
+};
+
+TextAnnotation.prototype.setImageUrl = function(imageUrl) {
+	this.imageUrl = imageUrl;
+	if (this.htmlElement) {
+		this.htmlElement.style.backgroundImage = "url(" + this.imageUrl + ")"; 
 	}
 };
 
@@ -61,8 +73,60 @@ TextAnnotation.prototype.bind = function(htmlElement) {
 	
 	if (this.imageUrl) {
 		htmlElement.style.backgroundImage = "url(" + this.imageUrl + ")";
+	} else if (this.getText()) {
+		this.convertTextToImage();
 	}
+};	
+
+TextAnnotation.prototype.convertTextToImage = function() {
+	var self = this;
+	setTimeout(function() {
+		if (self.textElement && self.text) {		
+			var imageScale = 5;
+	
+			var type = self.getType();
+			var bigCanvas = $("<div>").appendTo('body');  // This will be the 3x sized canvas we're going to render
+			bigCanvas[0].classList.add(type);
+			bigCanvas[0].classList.add(type + "-copy-canvas");
+			var scaledElement = $(self.textElement).clone()
+			.css({
+				'display': '',
+				'transform': 'scale('+ imageScale + ',' + imageScale + ')',
+				'transform-origin': '0 0'
+			})
+			.appendTo(bigCanvas);
+	
+			var oldWidth = scaledElement.width();
+			var oldHeight = scaledElement.height();
+	
+			var newWidth = oldWidth * imageScale;
+			var newHeight = oldHeight * imageScale;
+	
+			bigCanvas.css({
+				'width': newWidth,
+				'height': newHeight
+			});
+			html2canvas(bigCanvas, {
+				onrendered: function(canvas) {
+					var imageUrl = canvas.toDataURL("image/png");
+					self.imageUrl = imageUrl;
+					if (imageUrl) {
+						self.imageUrl = imageUrl;
+						self.htmlElement.style.backgroundImage = "url(" + imageUrl + ")";
+					} else {
+						self.imageUrl = null;
+						self.htmlElement.style.backgroundImage = "";
+					}
+					self.onTextConvertedToImage(self.imageUrl);
+					bigCanvas.remove();
+				}
+			});
+		}
+	}, 100);
 };
+
+TextAnnotation.prototype.onTextConvertedToImage = function(imageUrl) {
+};	
 
 TextAnnotation.prototype.isSameHtmlElement = function(htmlElement) {
 	var sameHtmlElement = Annotation.prototype.isSameHtmlElement.call(this, htmlElement);

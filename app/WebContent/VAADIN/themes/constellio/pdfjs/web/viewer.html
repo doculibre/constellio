@@ -57,6 +57,7 @@ See https://github.com/adobe-type-tools/cmap-resources
       <script src="./annotation-base.js"></script>
       <script src="./annotation-editor-base.js"></script>
       <script src="./annotation-editor-text.js"></script>
+      <script src="./annotation-editor-signature-text.js"></script>
       <script src="./annotation-editor-signature-pad.js"></script>
       <script src="./annotation-text.js"></script>
       <script src="./annotation-image.js"></script>
@@ -66,7 +67,6 @@ See https://github.com/adobe-type-tools/cmap-resources
       <script src="./annotation-signature-image.js"></script>
       <script src="./annotation-signature-text.js"></script>
       <script src="./annotation-dropzone.js"></script>
-      <script src="./signature-picker.js"></script>
       <script src="./annotation-signature-picker.js"></script>
       <script src="./pdf-annotations.js"></script>
       <script src="./pdf-annotations-services.js"></script>
@@ -130,20 +130,31 @@ See https://github.com/adobe-type-tools/cmap-resources
           </div>
         </div>  <!-- findbar -->
 
-          <div class="findbar hidden signatureOptions doorHanger" id="signatureOptions">
-              <div id="signatureOptionsContainer" style="height:auto;">
+          <div class="signatureOptions hidden doorHanger" id="signatureOptions">
+              <div class="signatureOptionsContainer" id="signatureOptionsContainer" style="height:auto;">
 
-                  <div id="signatureOptionContainer" style="float:initial;">
-                      <img id="signatureOptionImage" src="https://via.placeholder.com/200x100"/>
-                      <button id="removeSignatureButton" title="Remove signature" data-l10n-id="remove_signature">
-                          <span data-l10n-id="remove_signature_label">Remove signature</span>
+                  <div class="signatureOptionContainer" id="signatureOptionContainer" style="float:initial;">
+                      <img class="signatureThumbnail" id="signatureThumbnail"
+                           src="https://via.placeholder.com/200x100"/>
+                      <button class="signatureAddButton" id="signatureAddButton" title="Add signature"
+                              data-l10n-id="signature_add">
+                          <span data-l10n-id="signature_add">Add signature</span>
+                      </button>
+                      <button class="signatureDeleteButton" id="signatureDeleteButton" title="Delete signature"
+                              data-l10n-id="signature_delete">
+                          <span data-l10n-id="signature_delete">Delete signature</span>
                       </button>
                   </div>
 
-                  <div id="initialsOptionContainer" style="float:initial;">
-                      <img id="initialsOptionImage" src="https://via.placeholder.com/200x100"/>
-                      <button id="removeInitialsButton" title="Remove initials" data-l10n-id="remove_initials">
-                          <span data-l10n-id="remove_initials_label">Remove initials</span>
+                  <div class="initialsOptionContainer" id="initialsOptionContainer" style="float:initial;">
+                      <img class="initialsThumbnail" id="initialsThumbnail" src="https://via.placeholder.com/200x100"/>
+                      <button class="initialsAddButton" id="initialsAddButton" title="Add initials"
+                              data-l10n-id="initials_add">
+                          <span data-l10n-id="initials_add">Add initials</span>
+                      </button>
+                      <button class="initialsDeleteButton" id="initialsDeleteButton" title="Delete initials"
+                              data-l10n-id="initials_delete">
+                          <span data-l10n-id="initials_delete">Delete initials</span>
                       </button>
                   </div>
 
@@ -182,14 +193,14 @@ See https://github.com/adobe-type-tools/cmap-resources
 
               <button id="secondarySignatureZone" class="secondaryToolbarButton signatureZone visibleMediumView tooltip"
                       title="New signature zone"
-                      tabindex="53" data-l10n-id="signatureZone">
-              <span data-l10n-id="signature_zone_label">New signature zone</span>
+                      tabindex="53" data-l10n-id="buttons.newSignHereAnnotation.tooltip">
+                  <span data-l10n-id="buttons.newSignHereAnnotation">New signature zone</span>
             </button>
 
               <button id="secondaryTextZone" class="secondaryToolbarButton textZone visibleMediumView tooltip"
                       title="New text zone"
-                      tabindex="53" data-l10n-id="textZone">
-              <span data-l10n-id="text_zone_label">New text zone</span>
+                      tabindex="53" data-l10n-id="buttons.newTextAnnotation.tooltip">
+                  <span data-l10n-id="buttons.newTextAnnotation.tooltip">New text zone</span>
               </button>
 
 <!--  
@@ -265,14 +276,14 @@ See https://github.com/adobe-type-tools/cmap-resources
 
                   <button id="signatureZone" class="toolbarButton signatureZone hiddenMediumView tooltip"
                           title="New signature zone" tabindex="33"
-                          data-l10n-id="signatureZone">
-                  <span data-l10n-id="signature_zone_label">New signature zone</span>
+                          data-l10n-id="buttons.newSignHereAnnotation.tooltip">
+                      <span data-l10n-id="buttons.newSignHereAnnotation">New signature zone</span>
                 </button>
 
                   <button id="textZone" class="toolbarButton textZone hiddenMediumView tooltip" title="New text zone"
                           tabindex="33"
-                          data-l10n-id="textZone">
-                  <span data-l10n-id="text_zone_label">New text zone</span>
+                          data-l10n-id="buttons.newTextAnnotation.tooltip">
+                      <span data-l10n-id="buttons.newTextAnnotation">New text zone</span>
                 </button>
 
                 <div class="toolbarButtonSpacer"></div>

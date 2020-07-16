@@ -2,6 +2,7 @@
 
 function SignatureTextAnnotation(text, x, y, width, height) {
 	TextAnnotation.call(this, text, x, y, width, height);
+	this.setEditor(new SignatureTextAnnotationEditor(this.getText())); 
 }
 
 SignatureTextAnnotation.prototype = Object.create(TextAnnotation.prototype);

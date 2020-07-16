@@ -235,12 +235,23 @@
 	cursor: pointer;
 }  
 
-.annotation-editor-window-save-button {
+.annotation-editor-window-apply-button {
 	margin: 20px 10px 10px 10px;
 }
 
 .text-annotation-editor-input {
 	width: 100%;
+	text-align: center;
+	border-color: #197de1;
+	border-width: 1px;
+	border-style: solid;
+	background-color: transparent;
+}
+
+.signature-text-annotation-editor-input {
+	font-family: Jannet;
+	font-weight: bold;
+	font-size: 16pt;
 }
 
 .signature-pad-annotation-editor-container canvas {

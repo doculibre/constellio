@@ -541,21 +541,21 @@ html[dir='rtl'] #toolbarSidebar {
               0 0 1px hsla(0,0%,0%,.1);
 }
 
-#toolbarContainer, .findbar, .secondaryToolbar {
+#toolbarContainer, .findbar, .signatureOptions, .secondaryToolbar {
   position: relative;
   height: 32px;
   background-color: #474747; /* fallback */
   background-image: url(images/texture.png),
                     linear-gradient(hsla(0,0%,32%,.99), hsla(0,0%,27%,.95));
 }
-html[dir='ltr'] #toolbarContainer, .findbar, .secondaryToolbar {
+html[dir='ltr'] #toolbarContainer, .findbar, .signatureOptions, .secondaryToolbar {
   box-shadow: inset 1px 0 0 hsla(0,0%,100%,.08),
               inset 0 1px 1px hsla(0,0%,0%,.15),
               inset 0 -1px 0 hsla(0,0%,100%,.05),
               0 1px 0 hsla(0,0%,0%,.15),
               0 1px 1px hsla(0,0%,0%,.1);
 }
-html[dir='rtl'] #toolbarContainer, .findbar, .secondaryToolbar {
+html[dir='rtl'] #toolbarContainer, .findbar, .signatureOptions, .secondaryToolbar {
   box-shadow: inset -1px 0 0 hsla(0,0%,100%,.08),
               inset 0 1px 1px hsla(0,0%,0%,.15),
               inset 0 -1px 0 hsla(0,0%,100%,.05),
@@ -619,7 +619,7 @@ html[dir='rtl'] #toolbarContainer, .findbar, .secondaryToolbar {
   animation: progressIndeterminate 950ms linear infinite;
 }
 
-.findbar, .secondaryToolbar {
+.findbar, .signatureOptions, .secondaryToolbar {
   top: 32px;
   position: absolute;
   z-index: 10000;
@@ -634,26 +634,94 @@ html[dir='rtl'] #toolbarContainer, .findbar, .secondaryToolbar {
   cursor: default;
 }
 
-.findbar {
+.signatureOptionsContainer {
+  width: 100%;
+  background-color: white;
+  margin-bottom: 8px;
+  margin-top: 8px;
+}
+
+.signatureOptionContainer {
+  border-bottom: 1px solid black;
+}
+
+.signatureOptionContainer, .initialsOptionContainer {
+  position: relative;
+  clear: both;
+  min-height: 40px;
+  vertical-align: middle;
+  width: 100%;
+}
+
+.signatureOptionContainer.existing, .initialsOptionContainer.existing {
+  background-color: #d1e0ff;
+}  
+
+.signatureThumbnail, .initialsThumbnail, 
+.signatureAddButton, .initialsAddButton, 
+.signatureDeleteButton, .initialsDeleteButton {
+  cursor: pointer;
+  border: none;
+  background-color: transparent;
+}  
+
+.signatureThumbnail, .initialsThumbnail {    
+  max-width: 250px;
+  height: auto;
+  max-height: 60px;
+  padding-left: 8px;
+}
+
+.signatureAddButton, .initialsAddButton,
+.signatureDeleteButton, .initialsDeleteButton {
+  position: absolute;
+  right: 10px;
+  height: 100%;
+}
+
+.signatureAddButton, .initialsAddButton {
+  width: 100%;
+  text-align: right;
+}  
+
+.signatureAddButton::after, .initialsAddButton::after {
+  content: url(images/buttons/add_circle.png);
+  float: right;
+  margin-left: 4px;
+}  
+
+.signatureDeleteButton::before, .initialsDeleteButton::before {
+  content: url(images/buttons/remove_circle.png);
+}   
+
+.findbar, .signatureOptions {
   min-width: 300px;
 }
 .findbar > div {
   height: 32px;
 }
-.findbar.wrapContainers > div {
-  clear: both;
-}
-.findbar.wrapContainers > div#findbarMessageContainer {
+.signatureOptions > div {
   height: auto;
 }
-html[dir='ltr'] .findbar {
+.findbar.wrapContainers > div, 
+.signatureOptions.wrapContainers > div {
+  clear: both;
+}
+.findbar.wrapContainers > div#findbarMessageContainer, 
+.signatureOptions.wrapContainers > div#signatureOptionsMessageContainer {
+  height: auto;
+}
+html[dir='ltr'] .findbar,
+html[dir='ltr'] .signatureOptions {
   left: 68px;
 }
-html[dir='rtl'] .findbar {
+html[dir='rtl'] .findbar,
+html[dir='rtl'] .signatureOptions {
   right: 68px;
 }
 
-.findbar label {
+.findbar label, 
+.signatureOptions label {
   -webkit-user-select: none;
   -moz-user-select: none;
 }
@@ -796,7 +864,8 @@ html[dir='ltr'] .findbar * {
 html[dir='rtl'] #toolbarViewerLeft > *,
 html[dir='rtl'] #toolbarViewerMiddle > *,
 html[dir='rtl'] #toolbarViewerRight > *,
-html[dir='rtl'] .findbar * {
+html[dir='rtl'] .findbar *,
+html[dir='rtl'] .signatureOptions * {
   position: relative;
   float: right;
 }
@@ -2254,10 +2323,12 @@ html[dir='rtl'] #documentPropertiesOverlay .row > * {
   .toolbarButtonSpacer {
     width: 0;
   }
-  html[dir='ltr'] .findbar {
+  html[dir='ltr'] .findbar,
+  html[dir='ltr'] .signatureOptions {
     left: 38px;
   }
-  html[dir='rtl'] .findbar {
+  html[dir='rtl'] .findbar,
+  html[dir='rtl'] .signatureOptions {
     right: 38px;
   }
 }
