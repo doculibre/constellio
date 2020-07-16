@@ -1,14 +1,11 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
 import com.constellio.app.modules.rm.ui.pages.extrabehavior.SecurityWithNoUrlParamSupport;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
-import com.constellio.app.ui.pages.management.sequence.SequenceServices;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.User;
@@ -29,7 +26,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 @SuppressWarnings("serial")
 public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<DisplaySchemaRecordView> implements SecurityWithNoUrlParamSupport {
 
-	private transient SequenceServices sequenceServices;
 	private transient RecordServices recordServices;
 	private transient ModelLayerCollectionExtensions extensions;
 
@@ -64,9 +60,6 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 
 
 	private void initTransientObjects() {
-		ConstellioFactories constellioFactories = view.getConstellioFactories();
-		SessionContext sessionContext = view.getSessionContext();
-		sequenceServices = new SequenceServices(constellioFactories, sessionContext);
 		recordServices = modelLayerFactory.newRecordServices();
 		extensions = modelLayerFactory.getExtensions().forCollection(collection);
 	}
