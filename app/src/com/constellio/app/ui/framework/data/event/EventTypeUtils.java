@@ -142,6 +142,8 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.shareFolder");
 		} else if (eventType.equals(EventType.BATCH_PROCESS_CREATED)) {
 			return $("ListEventsView.batchProcessEvents.created");
+		} else if (eventType.equals(EventType.SIGN_DOCUMENT)) {
+			return $("ListEventsView.signature");
 		} else {
 			throw new UnsupportedEventTypeRuntimeException(eventType);
 		}

@@ -11,6 +11,7 @@ import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
+import com.constellio.model.entities.records.wrappers.ExternalAccessUser;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -68,6 +69,28 @@ public class EventFactory {
 		Event event = schemasRecords.newEvent();
 		setDefaultMetadata(event, user);
 		event.setType(EventType.CLOSE_SESSION);
+		return event;
+	}
+
+	public Event newSignedRecordEvent(Record record, User user, String reason, LocalDateTime eventDateTime) {
+		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);
+		Event event = schemasRecords.newEvent();
+
+		event.setUsername(user.getUsername());
+		String ipAddress = user.getLastIPAddress();
+		event.setIp(ipAddress);
+
+		event.setType(EventType.SIGN_DOCUMENT);
+		event.setCreatedOn(eventDateTime);
+
+		setRecordMetadata(event, record);
+		if (reason != null) {
+			event.setReason(reason);
+		}
+
+		if (user instanceof ExternalAccessUser) {
+			event.setDelta(((ExternalAccessUser) user).getUsername() + " " + ((ExternalAccessUser) user).getExternalAccessUrl());
+		}
 		return event;
 	}
 

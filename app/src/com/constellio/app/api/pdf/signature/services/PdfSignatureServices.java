@@ -40,6 +40,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.joda.time.LocalDateTime;
 
 import java.awt.*;
 import java.io.File;
@@ -223,6 +224,7 @@ public class PdfSignatureServices {
 			}
 
 			uploadNewVersion(newDocumentVersionFile, record, metadata, user);
+			modelLayerFactory.newLoggingServices().logSignedRecord(record, user, LocalDateTime.now());
 		} finally {
 			for (File tempFile : tempFiles) {
 				fileService.deleteQuietly(tempFile);
