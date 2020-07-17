@@ -101,6 +101,7 @@ import static com.constellio.app.services.schemas.bulkImport.RecordsImportValida
 import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.RecordCacheType.FULLY_CACHED;
 import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
@@ -3740,6 +3741,24 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		String referencedRecordId = importedRecord.get(zeSchema.referenceMetadata());
 		assertThat(referencedRecordId).isEqualTo(logicallyDeletedRecordId);
 	}
+
+	@Test
+	public void givenImportParentDataWithCustomMetadataReferencingChildThenImported() throws Exception {
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.with((c) -> c.getDefaultSchema("zeSchemaType").create("USRref").setType(REFERENCE)
+						.defineReferencesTo(c.getSchemaType("zeSchemaType"))));
+		zeSchemaTypeRecords.add(defaultSchemaData()
+				.setId("parentRecord")
+				.addField("USRref", "childRecord"));
+		zeSchemaTypeRecords.add(defaultSchemaData()
+				.setId("childRecord")
+				.addField("parentReferenceFromZeSchemaToZeSchema", "parentRecord"));
+		bulkImport(importDataProvider, progressionListener, admin);
+		assertThat(recordWithLegacyId("parentRecord")).isNotNull();
+		assertThat(recordWithLegacyId("childRecord")).isNotNull();
+	}
+
 
 	private void validateCorrectlyImported() {
 		Record record43 = recordWithLegacyId("43");
