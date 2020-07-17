@@ -112,6 +112,11 @@ public class BaseTable extends Table implements SelectionComponent {
 		init();
 	}
 
+	@Override
+	public boolean isSelectable() {
+		return false;
+	}
+
 	private void init() {
 		addStyleName("base-table");
 		if (isSelectColumn()) {
