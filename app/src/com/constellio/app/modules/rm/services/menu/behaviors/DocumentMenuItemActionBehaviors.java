@@ -1025,6 +1025,7 @@ public class DocumentMenuItemActionBehaviors {
 		params.add("message" + EmailToSend.PARAMETER_SEPARATOR +
 				   $("DocumentMenuItemActionBehaviors.signatureRequestMessage", sender.getTitle(), docText, expiration));
 		params.add("link" + EmailToSend.PARAMETER_SEPARATOR + getUrlFromExternalAccess(accessUrl, language));
+		params.add("linkMessage" + EmailToSend.PARAMETER_SEPARATOR + $("DocumentMenuItemActionBehaviors.signatureRequestLinkMessage"));
 		params.add("closure" + EmailToSend.PARAMETER_SEPARATOR +
 				   $("DocumentMenuItemActionBehaviors.signatureRequestClosure"));
 

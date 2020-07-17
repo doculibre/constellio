@@ -189,6 +189,9 @@ public class EventTypeUtils implements Serializable {
 				metadataCodes.add(receiverMetadata.getCode());
 				Metadata descriptionMetadata = metadataSchema.getMetadata(Event.REASON);
 				metadataCodes.add(descriptionMetadata.getCode());
+			} else if (eventType.equals(EventType.SIGN_DOCUMENT)) {
+				metadataCodes.add(Event.USERNAME);
+				metadataCodes.add(Event.IP);
 			}
 		} else if (isUserEvent(eventType) ||
 				   isGroupEvent(eventType)) {

@@ -11,7 +11,6 @@ import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
-import com.constellio.model.entities.records.wrappers.ExternalAccessUser;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -88,9 +87,6 @@ public class EventFactory {
 			event.setReason(reason);
 		}
 
-		if (user instanceof ExternalAccessUser) {
-			event.setDelta(((ExternalAccessUser) user).getUsername() + " " + ((ExternalAccessUser) user).getExternalAccessUrl());
-		}
 		return event;
 	}
 
