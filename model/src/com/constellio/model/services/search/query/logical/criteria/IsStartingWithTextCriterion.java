@@ -26,7 +26,7 @@ public class IsStartingWithTextCriterion extends LogicalSearchValueCondition {
 	@Override
 	public String getSolrQuery(DataStoreField dataStoreField) {
 		String correctedText = CriteriaUtils.toSolrStringValue(text, dataStoreField);
-		return dataStoreField.getDataStoreCode() + ":" + correctedText + "*";
+		return dataStoreField.getDataStoreCode() + ":" + correctedText + "* OR " + dataStoreField.getDataStoreCode() + ":" + correctedText;
 	}
 
 	@Override
