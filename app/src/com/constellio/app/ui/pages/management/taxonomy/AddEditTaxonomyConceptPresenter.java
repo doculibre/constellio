@@ -94,21 +94,17 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 	public void saveButtonClicked(RecordVO recordVO, boolean isReindexationNeeded) {
 		try {
 			Record record = toRecord(recordVO);
-			if (!record.isSaved()) {
-				record.set(Schemas.CREATED_BY, this.getCurrentUser().getId());
-			} else {
-				record.set(Schemas.MODIFIED_BY, this.getCurrentUser().getId());
-			}
-
 			recordServices().recalculate(record);
 
 
 			if (isReindexationNeeded) {
-				recordServices().executeWithoutImpactHandling(new Transaction().update(record));
+				Transaction transaction = new Transaction();
+				transaction.setUser(getCurrentUser());
+				recordServices().executeWithoutImpactHandling(transaction.update(record));
 				appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 				view.navigate().to().taxonomyManagement(taxonomyCode, conceptId);
 			} else {
-				addOrUpdateWithoutUser(record);
+				addOrUpdate(record);
 				view.navigate().to().taxonomyManagement(taxonomyCode, conceptId);
 			}
 		} catch (Exception e) {
