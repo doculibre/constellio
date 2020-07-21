@@ -10,5 +10,9 @@ SignatureTextAnnotationEditor.prototype.constructor = SignatureTextAnnotationEdi
 SignatureTextAnnotationEditor.prototype.getFormHtmlElement = function(annotation, actionButtonsElement, saveButton, cancelButton) {	
 	var textFieldElement = TextAnnotationEditor.prototype.getFormHtmlElement.call(this, annotation, actionButtonsElement, saveButton, cancelButton);
 	textFieldElement.classList.add("signature-text-annotation-editor-input");
+	textFieldElement.spellcheck=false;
+	$(textFieldElement).keyup(function () {
+		$(this).removeAccentedChar();
+	});		
 	return textFieldElement;
 };

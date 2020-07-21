@@ -10,14 +10,14 @@
 	position: absolute;
 	z-index: 2;
 	box-sizing: border-box;
-    border: 1px solid transparent;
+    outline: 1px solid transparent;
 	margin: 1px;
 }
 
 .annotation-movable, .annotation-resizable, .annotation-baked:hover, .annotation-baked:focus {
-	border-color: #197de1;
-	border-width: 1px;
-	border-style: solid;
+	outline-color: #197de1;
+	outline-width: 1px;
+	outline-style: solid;
 }
 
 .annotation-resizable::after {
@@ -78,10 +78,30 @@
 
 .signature-text-annotation-copy-canvas span {
 	position: relative;
-	top: -30px;
 	vertical-align: top;
 	padding-bottom: 10px;
 }
+
+/* Chrome CSS Hack */
+@media screen and (-webkit-min-device-pixel-ratio:0) { 
+    .signature-text-annotation-copy-canvas span { 
+		top: -70px; 
+	} 
+}
+
+/* IE CSS Hack */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+    .signature-text-annotation-copy-canvas span { 
+		top: 0px;
+	} 
+ }
+
+/* Firefox CSS Hack */
+ @-moz-document url-prefix() {
+    .signature-text-annotation-copy-canvas span { 
+		top: -30px;
+	} 
+  }
 
 .annotation-delete-link {
 	z-index: 4;
