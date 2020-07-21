@@ -69,7 +69,7 @@ public class SignatureExternalAccessDao {
 		documentMenuItemActionBehaviors = new DocumentMenuItemActionBehaviors(collection, appLayerFactory);
 	}
 
-	public String accessExternalSignature(String accessId, String token, String language)
+	public String accessExternalSignature(String accessId, String token, String language, String ipAddress)
 			throws SignatureExternalAccessServiceException {
 
 		if (StringUtils.isBlank(accessId)) {
@@ -127,7 +127,7 @@ public class SignatureExternalAccessDao {
 		MetadataSchema userSchema = types.getDefaultSchema(User.SCHEMA_TYPE);
 		Record tempUserRecord = recordServices.newRecordWithSchema(userSchema, UUID.randomUUID().toString());
 		Roles roles = rolesManager.getCollectionRoles(recordToAccess.getCollection());
-		ExternalAccessUser user = new ExternalAccessUser(tempUserRecord, types, roles, signatureAccess);
+		ExternalAccessUser user = new ExternalAccessUser(tempUserRecord, types, roles, signatureAccess, ipAddress);
 		Locale locale = new Locale(language);
 		return pdfJSServices.getExternalViewerUrl(recordToAccess, metadata, user, locale, null, null, true);
 	}

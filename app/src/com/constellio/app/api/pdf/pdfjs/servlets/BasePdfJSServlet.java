@@ -103,7 +103,8 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 			Record tempUserRecord = recordServices.newRecordWithSchema(userSchema, UUID.randomUUID().toString());
 			Roles roles = rolesManager.getCollectionRoles(collection);
 			ExternalAccessUrl externalAccessUrl = new ExternalAccessUrl(recordServices.getDocumentById(accessId), types);
-			user = new ExternalAccessUser(tempUserRecord, types, roles, externalAccessUrl);
+			String ipAddress = request.getRemoteAddr();
+			user = new ExternalAccessUser(tempUserRecord, types, roles, externalAccessUrl, ipAddress);
 		} else {
 			user = null;
 		}

@@ -24,7 +24,7 @@ public class SignatureExternalAccessWebServlet extends HttpServlet {
 
 		try {
 			String location = service.accessExternalSignature(req.getParameter(PARAM_ID), req.getParameter(PARAM_TOKEN),
-					req.getParameter(PARAM_LANGUAGE));
+					req.getParameter(PARAM_LANGUAGE), req.getRemoteAddr());
 
 			resp.setStatus(HttpServletResponse.SC_OK);
 			resp.sendRedirect(location);
