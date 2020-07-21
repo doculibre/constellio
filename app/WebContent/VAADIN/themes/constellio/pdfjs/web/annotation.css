@@ -101,7 +101,14 @@
     .signature-text-annotation-copy-canvas span { 
 		top: -30px;
 	} 
-  }
+}
+
+/* Safari 7.1+ CSS Hack */
+_::-webkit-full-page-media, _:future, :root .safari_only {
+    .signature-text-annotation-copy-canvas span { 
+		top: 0px;
+	}   
+}
 
 .annotation-delete-link {
 	z-index: 4;
