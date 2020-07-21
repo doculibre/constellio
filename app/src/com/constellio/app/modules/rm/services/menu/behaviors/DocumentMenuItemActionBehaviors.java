@@ -505,8 +505,8 @@ public class DocumentMenuItemActionBehaviors {
 								}
 							}
 						} catch (Throwable e) {
-							log.warn("Error when trying to move this document to folder " + newParentId, e);
-							showErrorMessage("DocumentContextMenu.changeParentFolderException");
+							log.error("Error when trying to move this document to folder " + newParentId, e);
+							showErrorMessage($("DocumentContextMenu.changeParentFolderException"));
 						}
 						getWindow().close();
 					}
