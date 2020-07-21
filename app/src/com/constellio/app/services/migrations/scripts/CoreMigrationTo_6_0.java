@@ -59,7 +59,7 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 			}
 
 			try {
-				modelLayerFactory.newUserServices().getUser("admin");
+				modelLayerFactory.newUserServices().getUserInfos("admin");
 			} catch (UserServicesRuntimeException_NoSuchUser e) {
 				createAdminUser(modelLayerFactory);
 			}

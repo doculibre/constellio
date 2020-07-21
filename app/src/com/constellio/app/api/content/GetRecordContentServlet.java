@@ -11,13 +11,13 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -97,7 +97,7 @@ public class GetRecordContentServlet extends HttpServlet {
 		Metadata contentMetadata = schema.get(metadataCode);
 		Content content = record.get(contentMetadata);
 
-		UserCredential userCredentials = authenticator.authenticate(request);
+		SystemWideUserInfos userCredentials = authenticator.authenticate(request);
 		if (userCredentials == null && accessId == null) {
 			throw new ServletException("User not authenticated");
 		} else {

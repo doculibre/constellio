@@ -71,6 +71,7 @@ import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_C
 import static com.constellio.model.entities.records.wrappers.Group.wrapNullable;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_ON;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
+import static com.constellio.model.entities.security.global.UserCredentialStatus.DELETED;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -295,6 +296,43 @@ public class UserServices {
 		return userCredentialsManager.getUserCredentialsInGlobalGroup(groupCode);
 	}
 
+	public SystemWideUserInfos getUserInfos(String username) {
+		UserCredential credential = userCredentialsManager.getUserCredential(username);
+		if (credential == null) {
+			throw new UserServicesRuntimeException_NoSuchUser(username);
+		}
+
+
+		return new SystemWideUserInfos()
+				.setUserCredentialId(credential.getId())
+				.setUsername(credential.getUsername())
+				.setFirstName(credential.getFirstName())
+				.setLastName(credential.getLastName())
+				.setEmail(credential.getEmail())
+				.setPersonalEmails(credential.getPersonalEmails())
+				.setServiceKey(credential.getServiceKey())
+				.setSystemAdmin(credential.isSystemAdmin())
+				.setStatus(credential.getStatus())
+				.setCollections(credential.getCollections())
+				.setGlobalGroups(credential.getGlobalGroups())
+				.setDomain(credential.getDomain())
+				.setMsExchangeDelegateList(credential.getMsExchDelegateListBL())
+				.setDn(credential.getDn())
+				.setPhone(credential.getPhone())
+				.setFax(credential.getFax())
+				.setJobTitle(credential.getJobTitle())
+				.setAddress(credential.getAddress())
+				.setAgentStatus(credential.getAgentStatus())
+				.setHasAgreedToPrivacyPolicy(credential.hasAgreedToPrivacyPolicy())
+				.setDoNotReceiveEmails(credential.isNotReceivingEmails())
+				.setEnableFacetsApplyButton(credential.isApplyFacetsEnabled())
+				.setHasReadLastAlert(credential.hasReadLastAlert())
+				.setElectronicSignature(credential.getElectronicSignature())
+				.setElectronicInitials(credential.getElectronicInitials())
+				.setAzureUsername(credential.getAzureUsername())
+				.setAccessTokens(credential.getAccessTokens());
+	}
+
 	public UserCredential getUser(String username) {
 		UserCredential credential = userCredentialsManager.getUserCredential(username);
 		if (credential == null) {
@@ -404,8 +442,12 @@ public class UserServices {
 	}
 
 	public void removeUserCredentialAndUser(UserCredential userCredential) {
-		userCredential = userCredential.setStatus(UserCredentialStatus.DELETED);
+		userCredential = userCredential.setStatus(DELETED);
 		addUpdateUserCredential(userCredential);
+	}
+
+	public void removeUserCredentialAndUser(SystemWideUserInfos userCredential) {
+		addUpdateUserCredential(addEditRequest(userCredential.getUsername()).setStatus(DELETED));
 	}
 
 	public void setUserCredentialAndUserStatusPendingApproval(UserCredential userCredential) {
@@ -465,6 +507,12 @@ public class UserServices {
 
 	}
 
+	public void logicallyRemoveGroupHierarchy(SystemWideUserInfos systemWideUserInfos, GlobalGroup globalGroup) {
+		permissionValidateCredentialOnGroup(systemWideUserInfos);
+		logicallyRemoveGroupHierarchyWithoutUserValidation(globalGroup);
+
+	}
+
 	private void logicallyRemoveGroupHierarchyWithoutUserValidation(GlobalGroup globalGroup) {
 		List<String> collections = collectionsListManager.getCollections();
 		List<UserCredential> users = getGlobalGroupActifUsers(globalGroup.getCode());
@@ -517,6 +565,11 @@ public class UserServices {
 		UserCredential modifiedUser = user.setServiceKey(secondaryUniqueIdGenerator.next());
 		addUpdateUserCredential(modifiedUser);
 		return modifiedUser.getServiceKey();
+	}
+
+	public String giveNewServiceToken(SystemWideUserInfos user) {
+		String username = user.getUsername();
+		return giveNewServiceToken(getUser(username));
 	}
 
 	public void sync(UserCredential user) {
@@ -801,6 +854,13 @@ public class UserServices {
 	}
 
 
+	private void permissionValidateCredentialOnGroup(SystemWideUserInfos userCredential) {
+		if (!has(userCredential).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_GROUPS_ACTIVATION)) {
+			throw new UserServicesRuntimeException_UserPermissionDeniedToDelete(userCredential.getUsername());
+		}
+	}
+
+
 	public void removeUserFromGlobalGroup(String username, String globalGroupCode) {
 		UserCredential user = getUser(username);
 		List<String> newGlobalGroups = new ArrayList<>();
@@ -933,6 +993,11 @@ public class UserServices {
 		return has(userCredential.getUsername());
 	}
 
+	public CredentialUserPermissionChecker has(SystemWideUserInfos userCredential) {
+		return has(userCredential.getUsername());
+	}
+
+
 	public CredentialUserPermissionChecker has(String username) {
 		List<User> users = new ArrayList<>();
 		UserCredential user = getUser(username);
@@ -1025,7 +1090,7 @@ public class UserServices {
 		Predicate<UserCredential> filter = new Predicate<UserCredential>() {
 			@Override
 			public boolean apply(UserCredential input) {
-				return input.getStatus().equals(UserCredentialStatus.DELETED);
+				return input.getStatus().equals(DELETED);
 			}
 		};
 		List<UserCredential> userCredentials = this.getAllUserCredentials();

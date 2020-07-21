@@ -11,9 +11,9 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.batchprocess.ListBatchProcessesPresenter;
 import com.constellio.model.entities.batchprocess.BatchProcessStatus;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
@@ -107,7 +107,7 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 		CollectionsListManager collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		List<String> collections = collectionsListManager.getCollectionsExcludingSystem();
 		String username = sessionContext.getCurrentUser().getUsername();
-		UserCredential userCredentials = userServices.getUser(username);
+		SystemWideUserInfos userCredentials = userServices.getUserInfos(username);
 
 		if (systemBatchProcesses) {
 			containerPropertyIds.add(USERNAME);

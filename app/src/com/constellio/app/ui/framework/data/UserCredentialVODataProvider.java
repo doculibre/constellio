@@ -6,6 +6,7 @@ import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 
 import java.io.IOException;
@@ -122,9 +123,9 @@ public class UserCredentialVODataProvider extends AbstractDataProvider {
 	}
 
 	public UserCredentialVO getUserCredentialVO(String username) {
-		UserCredential userCredential;
+		SystemWideUserInfos userCredential;
 		try {
-			userCredential = userServices.getUser(username);
+			userCredential = userServices.getUserInfos(username);
 		} catch (Exception e) {
 			return null;
 		}

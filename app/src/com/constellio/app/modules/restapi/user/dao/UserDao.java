@@ -19,6 +19,7 @@ public class UserDao extends BaseDao {
 
 	public UserSignatureContentDto getContent(String username, String metadataCode) {
 		try {
+			//Refact : Seams ok
 			UserCredential userCredentials = userServices.getUser(username);
 			Content content = getMetadataValue(userCredentials.getWrappedRecord(), metadataCode);
 			if (content == null) {

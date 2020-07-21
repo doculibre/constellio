@@ -5,6 +5,7 @@ import com.constellio.app.modules.restapi.core.util.MapUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ public class ValidationDao extends BaseDao {
 			return Collections.emptyList();
 		}
 
+		//
 		UserCredential userCredential = userServices.getUser(username);
 		if (userCredential == null) {
 			return Collections.emptyList();
@@ -50,7 +52,7 @@ public class ValidationDao extends BaseDao {
 			return Collections.emptyMap();
 		}
 
-		UserCredential userCredential = userServices.getUser(username);
+		SystemWideUserInfos userCredential = userServices.getUserInfos(username);
 		if (userCredential == null) {
 			return Collections.emptyMap();
 		}

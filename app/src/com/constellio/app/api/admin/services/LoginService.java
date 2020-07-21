@@ -2,7 +2,7 @@ package com.constellio.app.api.admin.services;
 
 import com.constellio.app.client.AdminServicesConstants;
 import com.constellio.app.client.entities.UserResource;
-import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import org.joda.time.LocalDateTime;
 
 import javax.ws.rs.FormParam;
@@ -52,7 +52,7 @@ public class LoginService {
 	public UserResource schema(
 			@Context HttpHeaders httpHeaders) {
 		String user = AdminServiceAuthenticator.getAuthenticatedUser(httpHeaders);
-		return toUserData(AdminServicesUtils.modelServicesFactory().newUserServices().getUser(user));
+		return toUserData(AdminServicesUtils.modelServicesFactory().newUserServices().getUserInfos(user));
 	}
 
 	@POST
@@ -77,7 +77,7 @@ public class LoginService {
 		return Response.status(status).cacheControl(cc);
 	}
 
-	private UserResource toUserData(UserCredential userCredential) {
+	private UserResource toUserData(SystemWideUserInfos userCredential) {
 		UserResource userResource = new UserResource();
 		userResource.setUsername(userCredential.getUsername());
 		userResource.setFirstName(userCredential.getFirstName());

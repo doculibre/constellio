@@ -19,6 +19,7 @@ import com.constellio.model.services.search.query.logical.FreeTextQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.authentification.AuthenticationService;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
@@ -343,7 +344,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 		FreeTextSearchServices freeTextSearchServices = getModelLayerFactory().newFreeTextSearchServices();
 		SolrParams solrParams = new ModifiableSolrParams().set("q", "search_txt_fr:perdu");
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		UserCredential refreshedUser = userServices.getUser(user.getUsername());
+		SystemWideUserInfos refreshedUser = userServices.getUserInfos(user.getUsername());
 		List<String> records = new ArrayList<>();
 		QueryResponse response = freeTextSearchServices.search(new FreeTextQuery(solrParams).filteredByUser(refreshedUser));
 		for (SolrDocument result : response.getResults()) {
