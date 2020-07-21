@@ -8,6 +8,7 @@ import com.constellio.app.ui.pages.management.authorizations.TransferPermissionP
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.fieldgroup.PropertyId;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
@@ -35,7 +36,7 @@ public class TransferPermissionsButton extends WindowButton {
 	private RecordVO sourceUser;
 
 	public TransferPermissionsButton(String caption, String windowCaption, TransferPermissionPresenter presenter) {
-		super(caption, windowCaption);
+		super(caption, windowCaption, WindowConfiguration.modalDialog("550px", "400px"));
 		this.presenter = presenter;
 	}
 
@@ -43,6 +44,8 @@ public class TransferPermissionsButton extends WindowButton {
 	@Override
 	protected Component buildWindowContent() {
 		VerticalLayout mainLayout = new VerticalLayout();
+		mainLayout.setSpacing(true);
+
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 		label = new Label($("TransferPermissionsButton.chooseDestinationUsers"));
 		buildUsersSearchField();
@@ -53,7 +56,19 @@ public class TransferPermissionsButton extends WindowButton {
 		configureButtonsLayout(buttonsLayout);
 
 		mainLayout.addComponents(label, users, removeUserAccessCheckbox);
+		VerticalLayout spacer = new VerticalLayout();
+		mainLayout.addComponent(spacer);
+		mainLayout.setExpandRatio(spacer, 1);
+
 		mainLayout.addComponent(buttonsLayout);
+
+
+		mainLayout.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
+
+		mainLayout.setSizeFull();
+		mainLayout.setMargin(true);
+
+
 		return mainLayout;
 	}
 
