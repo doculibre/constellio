@@ -37,6 +37,7 @@ import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Table;
@@ -189,6 +190,11 @@ public class BaseTable extends Table implements SelectionComponent {
 	}
 
 	@Override
+	public boolean isSelectable() {
+		return false;
+	}
+
+	@Override
 	public void setPageLength(int pageLength) {
 		this.customPageLength = pageLength;
 		super.setPageLength(pageLength);
@@ -216,8 +222,12 @@ public class BaseTable extends Table implements SelectionComponent {
 				}
 				//				int adjustedFirstIndex = pagingCurrentPageFirstItemIndex - ((currentPage - 1) * getPageLength());
 				super.setCurrentPageFirstItemIndex(pagingCurrentPageFirstItemIndex);
-			}
+			} 
 		}
+	}
+
+	private void scrollToTop() {
+		JavaScript.getCurrent().execute("document.getElementById('" + getId() + "').scrollIntoView();");
 	}
 
 	//	public void addRefreshRenderedCellsEventListener(RefreshRenderedCellsEvent refreshRenderedCellsEvent) {
@@ -660,6 +670,7 @@ public class BaseTable extends Table implements SelectionComponent {
 			for (PageChangeListener listener : pageChangeListeners) {
 				listener.pageChanged(event);
 			}
+			scrollToTop();
 		}
 	}
 
