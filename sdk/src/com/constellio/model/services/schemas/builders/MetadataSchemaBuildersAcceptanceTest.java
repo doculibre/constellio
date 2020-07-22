@@ -102,8 +102,8 @@ public class MetadataSchemaBuildersAcceptanceTest extends ConstellioTest {
 
 	public MetadataSchemaTypeBuilder createMetadataSchemaTypeBuilder() {
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", asList("fr"));
-		MetadataSchemaTypeBuilder typeBuilder = MetadataSchemaTypeBuilder
-				.createNewSchemaType(zeCollectionInfo, "zetype", typesBuilder);
+		MetadataSchemaTypeBuilder typeBuilder = (new MetadataSchemaTypeBuilder())
+				.createNewSchemaType(zeCollectionInfo, "zetype", typesBuilder, getModelLayerFactory());
 		typeBuilder.getDefaultSchema().create(theMetadataCode).addLabel(Language.French, "zeMetadata")
 				.setType(MetadataValueType.STRING);
 		typeBuilder.createCustomSchema(theCustomSchemaCode);

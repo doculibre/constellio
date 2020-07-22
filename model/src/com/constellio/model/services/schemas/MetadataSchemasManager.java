@@ -169,7 +169,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 					throw new ImpossibleRuntimeException("Invalid format version '" + formatVersion + "'");
 				}
 
-				MetadataSchemaTypes builtTypes = typesBuilder.build(typesFactory, modelLayerFactory);
+				MetadataSchemaTypes builtTypes = typesBuilder.build(typesFactory);
 
 				return builtTypes;
 			}
@@ -243,7 +243,8 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	}
 
 	public MetadataSchemaTypesBuilder modify(String collection) {
-		return MetadataSchemaTypesBuilder.modify(getSchemaTypes(collection), getClassProvider());
+		return (new MetadataSchemaTypesBuilder(getSchemaTypes(collection).getCollectionInfo()))
+				.modify(getSchemaTypes(collection), modelLayerFactory, getClassProvider());
 	}
 
 	private ClassProvider getClassProvider() {
@@ -322,7 +323,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 			throws OptimisticLocking {
 		List<String> typesRequiringCacheReload = schemaTypesBuilder.getTypesRequiringCacheReload();
 		List<String> newSchemaTypes = schemaTypesBuilder.getNewSchemaTypes();
-		MetadataSchemaTypes schemaTypes = schemaTypesBuilder.build(typesFactory, modelLayerFactory);
+		MetadataSchemaTypes schemaTypes = schemaTypesBuilder.build(typesFactory);
 
 		Document document = new MetadataSchemaXMLWriter3().write(schemaTypes);
 		List<SchemaTypesAlterationImpact> impacts = calculateImpactsOf(schemaTypesBuilder);
