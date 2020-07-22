@@ -15,7 +15,7 @@ import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotCon
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager.LDAPSynchProgressionInfo;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -160,10 +160,10 @@ public class LDAPConfigManagementPresenter extends
 	}
 
 	public void deleteUsedUserButtonClick() {
-		List<UserCredential> nonDeletedUser = userServices().safePhysicalDeleteAllUnusedUserCredentials();
+		List<SystemWideUserInfos> nonDeletedUser = userServices().safePhysicalDeleteAllUnusedUserCredentials();
 		if (nonDeletedUser.size() > 0) {
 			String message = $("ldap.authentication.unDeletedUser") + "<br>";
-			for (UserCredential userCredential : nonDeletedUser) {
+			for (SystemWideUserInfos userCredential : nonDeletedUser) {
 				message += userCredential.getUsername() + "<br>";
 			}
 			this.view.showMessage(message);

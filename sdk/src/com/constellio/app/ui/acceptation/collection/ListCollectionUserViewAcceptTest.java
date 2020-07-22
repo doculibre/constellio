@@ -9,8 +9,8 @@ import com.constellio.app.ui.tools.RecordContainerWebElement;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.UiTest;
@@ -67,10 +67,10 @@ public class ListCollectionUserViewAcceptTest extends ConstellioTest {
 		assertThat(groups.countRows()).isEqualTo(1);
 		assertThat(groups.hasRowWithValueInColumn(GROUP_CODE, GROUPCODE_COLUMN)).isTrue();
 
-		List<UserCredential> test_users = records.getUsers().getAllUsers();
+		List<SystemWideUserInfos> test_users = records.getUsers().getAllUsers();
 		RecordContainerWebElement users = page.getUserTable();
 		assertThat(users.countRows()).isEqualTo(test_users.size());
-		for (UserCredential user : test_users) {
+		for (SystemWideUserInfos user : test_users) {
 			String fullName = user.getFirstName() + " " + user.getLastName();
 			assertThat(users.hasRowWithValueInColumn(fullName, USERNAME_COLUMN)).isTrue();
 		}

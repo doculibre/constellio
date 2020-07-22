@@ -45,7 +45,7 @@ public class UserRestfulServiceGETInitialsAcceptanceTest extends BaseRestfulServ
 		ContentVersionDataSummary versionDataSummary = contentManager.upload(file);
 		Content content = contentManager.createSystemContent(file.getName(), versionDataSummary);
 
-		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
+		UserCredential userCredentials = userServices.getUserConfigs(users.bobIn(zeCollection).getUsername());
 		userCredentials.setElectronicInitials(content);
 		userServices.addUpdateUserConfigs(userCredentials);
 
@@ -66,7 +66,7 @@ public class UserRestfulServiceGETInitialsAcceptanceTest extends BaseRestfulServ
 	public void validateService()
 			throws Exception {
 
-		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
+		UserCredential userCredentials = userServices.getUserConfigs(users.bobIn(zeCollection).getUsername());
 		assertThat(userCredentials.getElectronicInitials()).isNotNull();
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
@@ -84,7 +84,7 @@ public class UserRestfulServiceGETInitialsAcceptanceTest extends BaseRestfulServ
 
 	@Test
 	public void validateServiceWithEmptyData() {
-		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
+		UserCredential userCredentials = userServices.getUserConfigs(users.bobIn(zeCollection).getUsername());
 		userCredentials.setElectronicInitials(null);
 		userServices.addUpdateUserConfigs(userCredentials);
 

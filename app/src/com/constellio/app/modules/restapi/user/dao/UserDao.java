@@ -20,7 +20,7 @@ public class UserDao extends BaseDao {
 	public UserSignatureContentDto getContent(String username, String metadataCode) {
 		try {
 			//Refact : Seams ok
-			UserCredential userCredentials = userServices.getUser(username);
+			UserCredential userCredentials = userServices.getUserConfigs(username);
 			Content content = getMetadataValue(userCredentials.getWrappedRecord(), metadataCode);
 			if (content == null) {
 				throw new SignatureNoContentException();
@@ -53,13 +53,13 @@ public class UserDao extends BaseDao {
 		}
 
 		Content content = contentManager.createSystemContent(filename, versionDataSummary);
-		UserCredential userCredentials = userServices.getUser(username);
+		UserCredential userCredentials = userServices.getUserConfigs(username);
 		userCredentials.set(metadataCode, content);
 		userServices.addUpdateUserConfigs(userCredentials);
 	}
 
 	public void deleteContent(String username, String metadataCode) {
-		UserCredential userCredentials = userServices.getUser(username);
+		UserCredential userCredentials = userServices.getUserConfigs(username);
 		userCredentials.set(metadataCode, null);
 		userServices.addUpdateUserConfigs(userCredentials);
 	}

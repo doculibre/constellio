@@ -95,7 +95,7 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 		userServices.addUpdateGlobalGroup(globalGroup);
 
 		userServices.addGlobalGroupsInCollection(collection);
-		userServices.addUserToCollection(users.alice(), collection);
+		userServices.addUserToCollection(alice, collection);
 
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 		Record record = recordServices.newRecordWithSchema(types.getDefaultSchema("task"));

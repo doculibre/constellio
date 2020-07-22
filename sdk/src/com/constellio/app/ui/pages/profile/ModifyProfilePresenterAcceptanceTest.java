@@ -31,69 +31,69 @@ import static org.mockito.Mockito.when;
 
 public class ModifyProfilePresenterAcceptanceTest extends ConstellioTest {
 
-    LocalDateTime shishOClock = new LocalDateTime().plusDays(1);
+	LocalDateTime shishOClock = new LocalDateTime().plusDays(1);
 
-    Users users = new Users();
-    @Mock
-    ModifyProfileView view;
-    SDKViewNavigation viewNavigation;
-    @Mock UserCredentialVO chuckCredentialVO;
-    RMTestRecords records = new RMTestRecords(zeCollection);
-    SearchServices searchServices;
-    ModifyProfilePresenter presenter;
-    SessionContext sessionContext;
-    @Mock
-    UIContext uiContext;
-    LocalDate nowDate = new LocalDate();
-    RMEventsSearchServices rmEventsSearchServices;
-    RolesManager rolesManager;
+	Users users = new Users();
+	@Mock
+	ModifyProfileView view;
+	SDKViewNavigation viewNavigation;
+	@Mock UserCredentialVO chuckCredentialVO;
+	RMTestRecords records = new RMTestRecords(zeCollection);
+	SearchServices searchServices;
+	ModifyProfilePresenter presenter;
+	SessionContext sessionContext;
+	@Mock
+	UIContext uiContext;
+	LocalDate nowDate = new LocalDate();
+	RMEventsSearchServices rmEventsSearchServices;
+	RolesManager rolesManager;
 
-    RMSchemasRecordsServices rmSchemasRecordsServices;
-    MetadataSchemasManager metadataSchemasManager;
-    RecordServices recordServices;
-    ProfileVO profileVO;
-    UserServices userServices;
+	RMSchemasRecordsServices rmSchemasRecordsServices;
+	MetadataSchemasManager metadataSchemasManager;
+	RecordServices recordServices;
+	ProfileVO profileVO;
+	UserServices userServices;
 
-    @Before
-    public void setUp()
-            throws Exception {
-        prepareSystem(
-                withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
-                        .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
-        );
-        //inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
-        userServices = getModelLayerFactory().newUserServices();
-        users = new Users();
-        users.setUp(userServices);
-        inCollection(zeCollection).setCollectionTitleTo("Collection de test");
+	@Before
+	public void setUp()
+			throws Exception {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+		//inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
+		userServices = getModelLayerFactory().newUserServices();
+		users = new Users();
+		users.setUp(userServices);
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
-        profileVO = new ProfileVO(users.bobIn(zeCollection).getUsername(), "bob", "Gratton", "bob@constellio.com", "bob@hotmail.com\nbob@gmail.com", "3333333",
-                RMNavigationConfiguration.LAST_VIEWED_FOLDERS, DefaultTabInFolderDisplay.METADATA, "taxo1", null, null, null, false);
-        profileVO.setLoginLanguageCode("fr");
+		profileVO = new ProfileVO(users.bobIn(zeCollection).getUsername(), "bob", "Gratton", "bob@constellio.com", "bob@hotmail.com\nbob@gmail.com", "3333333",
+				RMNavigationConfiguration.LAST_VIEWED_FOLDERS, DefaultTabInFolderDisplay.METADATA, "taxo1", null, null, null, false);
+		profileVO.setLoginLanguageCode("fr");
 
-        sessionContext = FakeSessionContext.forRealUserIncollection(users.chuckNorrisIn(zeCollection));
-        sessionContext.setCurrentLocale(Locale.FRENCH);
+		sessionContext = FakeSessionContext.forRealUserIncollection(users.chuckNorrisIn(zeCollection));
+		sessionContext.setCurrentLocale(Locale.FRENCH);
 
-        viewNavigation = new SDKViewNavigation(view);
-        when(view.getSessionContext()).thenReturn(sessionContext);
-        when(view.getCollection()).thenReturn(zeCollection);
-        when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-        when(view.getUIContext()).thenReturn(uiContext);
+		viewNavigation = new SDKViewNavigation(view);
+		when(view.getSessionContext()).thenReturn(sessionContext);
+		when(view.getCollection()).thenReturn(zeCollection);
+		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
+		when(view.getUIContext()).thenReturn(uiContext);
 
-        presenter = new ModifyProfilePresenter(view);
-        presenter.saveButtonClicked(profileVO, new HashMap<String, Object>());
+		presenter = new ModifyProfilePresenter(view);
+		presenter.saveButtonClicked(profileVO, new HashMap<String, Object>());
 
-        rolesManager = getModelLayerFactory().getRolesManager();
+		rolesManager = getModelLayerFactory().getRolesManager();
 
-        givenTimeIs(nowDate);
-    }
+		givenTimeIs(nowDate);
+	}
 
-    @Test
-    public void whenSaveButtonClickedThenUpdateUserCredentialAndUser()
-            throws Exception {
+	@Test
+	public void whenSaveButtonClickedThenUpdateUserCredentialAndUser()
+			throws Exception {
 
-        presenter.saveButtonClicked(profileVO, new HashMap<String, Object>());
+		presenter.saveButtonClicked(profileVO, new HashMap<String, Object>());
 
-        assertThat(userServices.getUser(bobGratton).getPersonalEmails()).containsOnly("bob@hotmail.com", "bob@gmail.com");
-    }
+		assertThat(userServices.getUserConfigs(bobGratton).getPersonalEmails()).containsOnly("bob@hotmail.com", "bob@gmail.com");
+	}
 }

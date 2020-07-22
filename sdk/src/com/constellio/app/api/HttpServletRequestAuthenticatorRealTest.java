@@ -1,7 +1,6 @@
 package com.constellio.app.api;
 
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
@@ -38,7 +37,7 @@ public class HttpServletRequestAuthenticatorRealTest extends ConstellioTest {
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		usersRecords.setUp(userServices);
 		User bob = usersRecords.bobIn(zeCollection);
-		UserCredential userCredentialBob = usersRecords.bob();
+		SystemWideUserInfos userCredentialBob = usersRecords.bob();
 		userServices.givenSystemAdminPermissionsToUser(userCredentialBob);
 		String bobPassword = updateBobPassword(userCredentialBob);
 
@@ -46,14 +45,14 @@ public class HttpServletRequestAuthenticatorRealTest extends ConstellioTest {
 		bobToken = getToken(bob, bobServiceKey, bobPassword);
 	}
 
-	private String updateBobPassword(UserCredential userCredentialBob) {
+	private String updateBobPassword(SystemWideUserInfos userCredentialBob) {
 		AuthenticationService authService = getModelLayerFactory().newAuthenticationService();
 		String bobPassword = "p2";
 		authService.changePassword(userCredentialBob.getUsername(), bobPassword);
 		return bobPassword;
 	}
 
-	private String getServiceKey(UserServices userServices, UserCredential userCredentialBob) {
+	private String getServiceKey(UserServices userServices, SystemWideUserInfos userCredentialBob) {
 		return userServices.giveNewServiceToken(userCredentialBob);
 	}
 

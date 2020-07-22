@@ -702,7 +702,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigateToListRetentionRulesPossible()).isTrue();
 
 		//Removing user from zeCollection
-		userServices.removeUserFromCollection(userServices.getUser(sasquatch), "zeCollection");
+		userServices.removeUserFromCollection(sasquatch, "zeCollection");
 		assertThat(navigateToCategoriesPlanPossible()).isFalse();
 		assertThat(navigateToListRetentionRulesPossible()).isTrue();
 

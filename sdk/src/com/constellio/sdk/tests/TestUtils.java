@@ -36,6 +36,7 @@ import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
@@ -401,9 +402,9 @@ public class TestUtils {
 		return ids;
 	}
 
-	public static List<String> usernamesOf(List<UserCredential> users) {
+	public static List<String> usernamesOf(List<SystemWideUserInfos> users) {
 		List<String> ids = new ArrayList<>();
-		for (UserCredential user : users) {
+		for (SystemWideUserInfos user : users) {
 			ids.add(user.getUsername());
 		}
 		return ids;

@@ -3,6 +3,8 @@ package com.constellio.model.services.users;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.security.global.AgentStatus;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
@@ -19,6 +21,7 @@ public class SystemWideUserInfos {
 	private String firstName;
 	private String lastName;
 	private String email;
+	private String title;
 	private List<String> personalEmails = new ArrayList<>();
 	private String serviceKey;
 	private Boolean systemAdmin;
@@ -357,5 +360,24 @@ public class SystemWideUserInfos {
 
 	public boolean isActiveUser() {
 		return getStatus() == UserCredentialStatus.ACTIVE || getStatus() == null;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public SystemWideUserInfos setTitle(String title) {
+		this.title = title;
+		return this;
+	}
+
+	@Override
+	public int hashCode() {
+		return HashCodeBuilder.reflectionHashCode(this);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return EqualsBuilder.reflectionEquals(this, obj);
 	}
 }
