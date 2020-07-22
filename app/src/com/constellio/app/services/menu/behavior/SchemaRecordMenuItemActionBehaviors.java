@@ -1,6 +1,7 @@
 package com.constellio.app.services.menu.behavior;
 
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.framework.buttons.ListSequencesButton;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
@@ -10,6 +11,8 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SchemaRecordMenuItemActionBehaviors {
 
@@ -77,5 +80,9 @@ public class SchemaRecordMenuItemActionBehaviors {
 				throw exception;
 			}
 		}
+	}
+
+	public void sequences(Record record, MenuItemActionBehaviorParams params) {
+		new ListSequencesButton(record.getId(), $("DisplaySchemaRecordView.sequences")).click();
 	}
 }

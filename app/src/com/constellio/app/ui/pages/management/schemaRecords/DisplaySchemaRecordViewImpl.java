@@ -7,7 +7,6 @@ import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.ListSequencesButton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
@@ -107,7 +106,7 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		addStyleName("display-schema-record-view");
-		
+
 		mainLayout = new VerticalLayout();
 		mainLayout.setWidth("100%");
 		mainLayout.setSpacing(true);
@@ -205,7 +204,12 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<Button>();
+		return new RecordVOActionButtonFactory(recordVO, this, Collections.emptyList()).build();
+	}
+
+	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		List<Button> quickActionMenuButtons = new ArrayList<>();
 		if (presenter.isEditButtonVisible()) {
 			editButton = new EditButton(false) {
 				@Override
@@ -213,33 +217,7 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 					presenter.editButtonClicked();
 				}
 			};
-			if (!nestedView) {
-				actionMenuButtons.add(editButton);
-			}
-		}
-		if (presenter.isDeleteButtonVisible()) {
-			deleteButton = new DeleteButton(false) {
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.deleteButtonClicked();
-				}
-			};
-			actionMenuButtons.add(deleteButton);
-		}
-		if (presenter.isSequenceTable()) {
-			actionMenuButtons.add(new ListSequencesButton(recordVO.getId(), $("DisplaySchemaRecordView.sequences")));
-		}
-
-
-		//		return actionMenuButtons;
-		return new RecordVOActionButtonFactory(recordVO, this, Collections.emptyList()).build();
-	}
-
-	@Override
-	protected List<Button> getQuickActionMenuButtons() {
-		List<Button> quickActionMenuButtons = new ArrayList<>();
-		if (nestedView) {
-			if (presenter.isEditButtonVisible()) {
+			if (nestedView) {
 				quickActionMenuButtons.add(editButton);
 			}
 		}
