@@ -75,7 +75,7 @@ public class MetadataSchemaTypeBuilder {
 		this.customSchemas = new HashSet<>();
 		this.dataStore = "records";
 		this.recordCacheType = RecordCacheType.FULLY_CACHED;
-		this.defaultSchema = MetadataSchemaBuilder.createDefaultSchema(this, typesBuilder, initialize);
+		this.defaultSchema = MetadataSchemaBuilder.createDefaultSchema(modelLayerFactory, this, typesBuilder, initialize);
 	}
 
 	public static MetadataSchemaTypeBuilder createNewSchemaType(CollectionInfo collectionInfo, String code,
@@ -97,7 +97,7 @@ public class MetadataSchemaTypeBuilder {
 		builder.customSchemas = new HashSet<>();
 		builder.dataStore = "records";
 		builder.recordCacheType = RecordCacheType.FULLY_CACHED;
-		builder.defaultSchema = MetadataSchemaBuilder.createDefaultSchema(builder, typesBuilder, initialize);
+		builder.defaultSchema = MetadataSchemaBuilder.createDefaultSchema(modelLayerFactory, builder, typesBuilder, initialize);
 
 		return builder;
 	}

@@ -1,14 +1,12 @@
 package com.constellio.app.modules.rm.services;
 
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.SchemaExtension;
-import com.constellio.model.extensions.behaviors.SchemaExtension.SchemaInCreationBeforeSaveEvent;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -31,9 +29,6 @@ public class ValueListItemSchemaTypeBuilder {
 
 	public ValueListItemSchemaTypeBuilder(MetadataSchemaTypesBuilder metadataSchemaTypesBuilder) {
 		this.metadataSchemaTypesBuilder = metadataSchemaTypesBuilder;
-
-		//extensions = metadataSchemaTypesBuilder.getModelLayerFactory().getExtensions()
-		//		.forCollection(metadataSchemaTypesBuilder.getCollection()).schemaExtensions.getExtensions();
 	}
 
 	public MetadataSchemaTypeBuilder createValueListItemSchema(String code, Map<Language, String> labels,
@@ -116,15 +111,6 @@ public class ValueListItemSchemaTypeBuilder {
 			if (labels.containsKey(language)) {
 				titleMetadata.addLabel(language, $("init.valuelist.default.title", language.getLocale()));
 			}
-		}
-
-		// FIXME Chuck Norris won't be happy
-		extensions = ConstellioFactories.getInstance().getModelLayerFactory().getExtensions()
-				.forCollection(metadataSchemaTypesBuilder.getCollection()).schemaExtensions.getExtensions();
-
-		for (SchemaExtension extension : extensions) {
-			extension.schemaInCreationBeforeSave(
-					new SchemaInCreationBeforeSaveEvent(defaultSchemaBuilder, options.isMultilingual(), languages));
 		}
 
 		return typeBuilder;

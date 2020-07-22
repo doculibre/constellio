@@ -41,7 +41,6 @@ public class SchemaExtension {
 	@Getter
 	public static class SchemaInCreationBeforeSaveEvent {
 		private MetadataSchemaBuilder defaultSchemaBuilder;
-		private boolean multilingual;
 		private List<Language> languages;
 	}
 }
