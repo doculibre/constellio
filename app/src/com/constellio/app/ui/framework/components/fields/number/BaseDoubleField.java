@@ -51,7 +51,7 @@ public class BaseDoubleField extends BaseTextField {
 				valueToValidate = getConverter().convertToModel(fieldValue,
 						getModelType(), getLocale());
 			} catch (ConversionException e) {
-				throw new InvalidValueException(e.getMessage());
+				throw new InvalidValueException(this.getCaption());
 			}
 		}
 	}
