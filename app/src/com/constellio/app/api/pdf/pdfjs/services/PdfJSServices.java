@@ -31,8 +31,8 @@ import com.constellio.model.services.contents.ContentManagerRuntimeException.Con
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.pdf.pdfjs.signature.PdfJSAnnotations;
-import com.constellio.model.services.pdf.signature.PdfSignatureAnnotation;
+import com.constellio.model.services.pdf.PdfAnnotation;
+import com.constellio.model.services.pdf.pdfjs.PdfJSAnnotations;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
@@ -48,6 +48,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Base64;
 import java.util.Date;
@@ -181,7 +182,11 @@ public class PdfJSServices {
 			params.append("&accessId=" + externalAccessUser.getExternalAccessUrl().getId());
 		}
 		if (urlPrefix != null) {
-			params.append("&urlPrefix=" + urlPrefix);
+			try {
+				params.append("&urlPrefix=" + URLEncoder.encode(urlPrefix, "UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				throw new RuntimeException(e);
+			}
 		}
 		return params.toString();
 	}
@@ -380,8 +385,8 @@ public class PdfJSServices {
 				pdDocument = PDDocument.load(pdfInputStream);
 
 				String bakeUserInfo = getUserSignatureInfo(user);
-				List<PdfSignatureAnnotation> signatureAnnotations = annotations.getSignatureAnnotations(pdDocument, true);
-				for (PdfSignatureAnnotation signatureAnnotation : signatureAnnotations) {
+				List<PdfAnnotation> signatureAnnotations = annotations.getAnnotationsToSaveWithSignature(pdDocument, true);
+				for (PdfAnnotation signatureAnnotation : signatureAnnotations) {
 					if (signatureAnnotation.getUserId() == null && !(user instanceof ExternalAccessUser)) {
 						signatureAnnotation.setUserId(user.getId());
 					}
@@ -396,7 +401,7 @@ public class PdfJSServices {
 				annotations.setVersion(newAnnotationsVersion);
 
 				Date bakeDate = new Date();
-				annotations.markSignatureAnnotationsAsBaked(bakeUserInfo, bakeDate);
+				annotations.markAnnotationsToSaveWithSignatureAsBaked(bakeUserInfo, bakeDate);
 				saveAnnotations(record, metadata, user, annotations);
 
 				if (user instanceof ExternalAccessUser) {
@@ -454,6 +459,12 @@ public class PdfJSServices {
 			urlPrefix = constellioUrl;
 			if (StringUtils.endsWith(urlPrefix, "/")) {
 				urlPrefix = StringUtils.substringBeforeLast(urlPrefix, "/");
+			}
+		} else {
+			try {
+				urlPrefix = URLDecoder.decode(urlPrefix, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				throw new RuntimeException(e);
 			}
 		}
 

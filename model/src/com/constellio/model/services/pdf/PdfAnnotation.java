@@ -1,25 +1,25 @@
-package com.constellio.model.services.pdf.signature;
+package com.constellio.model.services.pdf;
 
 import java.awt.*;
 
-public class PdfSignatureAnnotation implements Comparable<PdfSignatureAnnotation> {
+public class PdfAnnotation implements Comparable<PdfAnnotation> {
 
 	private int page;
 	private Rectangle position;
 	private String userId;
 	private String username;
 	private String imageData;
-	private boolean initials;
+	private boolean signature;
 	private boolean baked;
 
-	public PdfSignatureAnnotation(int page, Rectangle position, String userId, String username, String imageData,
-								  boolean initials, boolean baked) {
+	public PdfAnnotation(int page, Rectangle position, String userId, String username, String imageData,
+						 boolean signature, boolean baked) {
 		this.page = page;
 		this.position = position;
 		this.userId = userId;
 		this.username = username;
 		this.imageData = imageData;
-		this.initials = initials;
+		this.signature = signature;
 		this.baked = baked;
 	}
 
@@ -51,8 +51,8 @@ public class PdfSignatureAnnotation implements Comparable<PdfSignatureAnnotation
 		return imageData;
 	}
 
-	public boolean isInitials() {
-		return initials;
+	public boolean isSignature() {
+		return signature;
 	}
 
 	public boolean isBaked() {
@@ -64,7 +64,7 @@ public class PdfSignatureAnnotation implements Comparable<PdfSignatureAnnotation
 	}
 
 	@Override
-	public int compareTo(PdfSignatureAnnotation other) {
+	public int compareTo(PdfAnnotation other) {
 		int result;
 
 		result = compare(page, other.getPage());

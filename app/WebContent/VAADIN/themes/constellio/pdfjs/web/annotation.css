@@ -10,12 +10,14 @@
 	position: absolute;
 	z-index: 2;
 	box-sizing: border-box;
+    outline: 1px solid transparent;
+	margin: 1px;
 }
 
 .annotation-movable, .annotation-resizable, .annotation-baked:hover, .annotation-baked:focus {
-	border-color: #197de1;
-	border-width: 1px;
-	border-style: solid;
+	outline-color: #197de1;
+	outline-width: 1px;
+	outline-style: solid;
 }
 
 .annotation-resizable::after {
@@ -28,18 +30,19 @@
 	color: #197de1;
 }
 
-.image-annotation, .signature-pad-annotation {
+.image-annotation, .text-annotation, .signature-text-annotation, .signature-pad-annotation {
     background-size: 100% 100%; /* background-size: 100% auto; */
     background-position: center top;
     background-repeat: no-repeat;
 }
 
 .text-annotation {
-	display: table;
+	/*display: table;*/
 	text-align: center;
+	vertical-align: middle;
 }	
 
-.text-annotation span {
+.text-annotation span, .signature-text-annotation span {
 	display: table-cell;
 	vertical-align: middle;
 }
@@ -63,6 +66,48 @@
 	font-family: Jannet;
 	font-weight: bold;
 	font-size: 16pt;
+	/*padding-bottom: 10px;*/
+}
+
+/*
+.text-annotation-copy-canvas, .signature-text-annotation-copy-canvas {
+	border: 1px solid transparent;
+	margin: 1px;
+}
+*/
+
+.signature-text-annotation-copy-canvas span {
+	position: relative;
+	vertical-align: top;
+	padding-bottom: 10px;
+}
+
+/* Chrome CSS Hack */
+@media screen and (-webkit-min-device-pixel-ratio:0) { 
+    .signature-text-annotation-copy-canvas span { 
+		top: -70px; 
+	} 
+}
+
+/* IE CSS Hack */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+    .signature-text-annotation-copy-canvas span { 
+		top: 0px;
+	} 
+ }
+
+/* Firefox CSS Hack */
+ @-moz-document url-prefix() {
+    .signature-text-annotation-copy-canvas span { 
+		top: -30px;
+	} 
+}
+
+/* Safari 7.1+ CSS Hack */
+_::-webkit-full-page-media, _:future, :root .safari_only {
+    .signature-text-annotation-copy-canvas span { 
+		top: 0px;
+	}   
 }
 
 .annotation-delete-link {
@@ -217,12 +262,23 @@
 	cursor: pointer;
 }  
 
-.annotation-editor-window-save-button {
+.annotation-editor-window-apply-button {
 	margin: 20px 10px 10px 10px;
 }
 
 .text-annotation-editor-input {
 	width: 100%;
+	text-align: center;
+	border-color: #197de1;
+	border-width: 1px;
+	border-style: solid;
+	background-color: transparent;
+}
+
+.signature-text-annotation-editor-input {
+	font-family: Jannet;
+	font-weight: bold;
+	font-size: 16pt;
 }
 
 .signature-pad-annotation-editor-container canvas {

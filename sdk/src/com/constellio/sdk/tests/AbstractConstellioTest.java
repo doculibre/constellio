@@ -1001,6 +1001,14 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		}
 	}
 
+	protected void givenConfig(SystemConfiguration config, File value) {
+		ensureNotUnitTest();
+		StreamFactory<InputStream> streamFactory = value == null ? null : getModelLayerFactory().getIOServicesFactory().newIOServices().newInputStreamFactory(value, "config-" + config.getCode());
+		if (getModelLayerFactory().getSystemConfigurationsManager().setValue(config, streamFactory)) {
+			getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(true);
+		}
+	}
+
 	protected void waitUntilTrue(AtomicBoolean atomicBoolean) {
 		while (!atomicBoolean.get()) {
 			try {

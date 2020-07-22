@@ -53,7 +53,7 @@ AnnotationDropZoneManager.prototype.loadAnnotation = function(annotation) {
 		
 		var defaultRemove = annotation.remove;
 		if (!defaultRemove) {
-			defaultRemove = annotation.__proto__.remove;
+			defaultRemove = Object.getPrototypeOf(annotation).remove;
 		}		
 		annotation.remove = function(e) {
 			defaultRemove.call(annotation)
@@ -63,7 +63,7 @@ AnnotationDropZoneManager.prototype.loadAnnotation = function(annotation) {
 
 		var defaultGetSaveCallback = annotation.getSaveCallback;
 		if (!defaultGetSaveCallback) {
-			defaultGetSaveCallback = annotation.__proto__.getSaveCallback;
+			defaultGetSaveCallback = Object.getPrototypeOf(annotation).getSaveCallback;
 		}		
 		annotation.getSaveCallback = function() {
 			defaultGetSaveCallback.call(annotation)
@@ -121,6 +121,8 @@ AnnotationDropZoneManager.prototype.dropZoneMouseDown = function(e) {
 };
 
 AnnotationDropZoneManager.prototype.dropZoneMouseUp = function(e) {
+	var draggedMouse = this.draggingMouse;
+
 	this.pressingMouse = false;
 	this.draggingMouse = false;	
 	
@@ -128,6 +130,9 @@ AnnotationDropZoneManager.prototype.dropZoneMouseUp = function(e) {
 	if (this.resizing) {
 		dropZone.removeClass("annotation-resizing");
 		this.resizing = false;
+		if (this.currentAnnotation && draggedMouse) {
+			this.onAnnotationResized(this.currentAnnotation);
+		}
 	}
 	if (this.moving) {
 		dropZone.removeClass("annotation-moving");
@@ -195,7 +200,9 @@ AnnotationDropZoneManager.prototype.annotationMouseUp = function(annotation, e) 
 		var draggedMouse = this.draggingMouse;
 		
 		if (!this.draggingMouse) {
-			annotation.annotationClicked(e);
+			if (e.button == 0) {
+				annotation.annotationClicked(e);
+			}
 		} else {
 			this.draggingMouse = false;	
 		}

@@ -10,7 +10,7 @@ import com.constellio.app.modules.restapi.resource.service.ResourceService;
 import com.constellio.app.modules.restapi.validation.ValidationService;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.pdf.signature.PdfSignatureAnnotation;
+import com.constellio.model.services.pdf.PdfAnnotation;
 
 import javax.inject.Inject;
 
@@ -45,7 +45,7 @@ public class CertificationService extends ResourceService {
 												 Record document) throws Exception {
 		try {
 
-			PdfSignatureAnnotation pdfSignatureAnnotation = certificationDao.createCertification(user, certification, flushMode, document);
+			PdfAnnotation pdfSignatureAnnotation = certificationDao.createCertification(user, certification, flushMode, document);
 
 			return new CertificationAdaptor().adapt(pdfSignatureAnnotation, document.getId());
 

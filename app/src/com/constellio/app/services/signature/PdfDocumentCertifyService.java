@@ -32,6 +32,7 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.pdf.PdfAnnotation;
 import com.constellio.model.services.pdf.pdtron.AnnotationLockManager;
 import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_CannotEditAnnotationWithoutLock;
 import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_CannotEditOtherUsersAnnoations;
@@ -39,7 +40,6 @@ import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLEx
 import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
 import com.constellio.model.services.pdf.pdtron.PdfTronXMLService;
 import com.constellio.model.services.pdf.signature.CreateVisibleSignature;
-import com.constellio.model.services.pdf.signature.PdfSignatureAnnotation;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -269,7 +269,7 @@ public class PdfDocumentCertifyService {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public void certifyAndSign(String fileAsStr, List<PdfSignatureAnnotation> signatures)
+	public void certifyAndSign(String fileAsStr, List<PdfAnnotation> signatures)
 			throws PdfSignatureException {
 
 		String filePath = createTempFileFromBase64("docToSign.pdf", fileAsStr);
@@ -304,7 +304,7 @@ public class PdfDocumentCertifyService {
 		Collections.sort(signatures);
 
 		File signedDocument = null;
-		for (PdfSignatureAnnotation signature : signatures) {
+		for (PdfAnnotation signature : signatures) {
 			String signaturePath = createTempFileFromBase64("signature", signature.getImageData());
 			if (StringUtils.isBlank(signaturePath)) {
 				throw new PdfSignatureException_CannotReadSignatureFileException();

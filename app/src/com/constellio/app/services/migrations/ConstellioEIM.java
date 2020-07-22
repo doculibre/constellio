@@ -101,13 +101,16 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_89;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_2_11;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_2_7;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3_14;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_0;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_10;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_11;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_12;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_13;
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3_14;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -214,6 +217,9 @@ public class ConstellioEIM {
 		scripts.add(new CoreMigrationTo_9_0_3());
 		scripts.add(new CoreMigrationTo_9_1_0());
 		scripts.add(new CoreMigrationTo_9_1_10());
+		scripts.add(new CoreMigrationTo_9_1_11());
+		scripts.add(new CoreMigrationTo_9_1_12());
+		scripts.add(new CoreMigrationTo_9_1_13());
 		return scripts;
 	}
 

@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.services.menu.behaviors;
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
@@ -72,19 +73,24 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.ExternalAccessUrl;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.ExternalAccessUrlStatus;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
+import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.emails.EmailServicesException.CannotSendEmailException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.logging.SearchEventServices;
@@ -109,6 +115,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -135,6 +142,7 @@ import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DW
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static java.util.Arrays.asList;
+import static org.apache.calcite.sql.advise.SqlAdvisor.LOGGER;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -889,17 +897,23 @@ public class DocumentMenuItemActionBehaviors {
 	public void generateExternalSignatureUrl(Document document, MenuItemActionBehaviorParams params) {
 		Button generateWindow = new WindowButton($("DocumentMenuItemActionBehaviors.generateSignatureAccess"),
 				$("DocumentMenuItemActionBehaviors.generateSignatureAccess"),
-				WindowButton.WindowConfiguration.modalDialog("570px", "240px")) {
+				WindowButton.WindowConfiguration.modalDialog("570px", "305px")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout mainLayout = new VerticalLayout();
 				mainLayout.setSpacing(true);
 
 				BaseTextField nameField = new BaseTextField();
-				nameField.setCaption($("DocumentMenuItemActionBehaviors.externalUserFullnam"));
+				nameField.setCaption($("DocumentMenuItemActionBehaviors.externalUserFullname"));
 				nameField.setRequired(true);
 				nameField.setWidth("100%");
 				mainLayout.addComponent(nameField);
+
+				BaseTextField mailField = new BaseTextField();
+				mailField.setCaption($("DocumentMenuItemActionBehaviors.externalUserEmail"));
+				mailField.setRequired(true);
+				mailField.setWidth("100%");
+				mainLayout.addComponent(mailField);
 
 				JodaDateField dateField = new JodaDateField();
 				dateField.setCaption($("DocumentMenuItemActionBehaviors.expirationDate"));
@@ -911,15 +925,18 @@ public class DocumentMenuItemActionBehaviors {
 					protected void buttonClick(ClickEvent event) {
 						if (nameField.getValue() == null) {
 							nameField.setRequiredError($("requiredField"));
+						} else if (mailField.getValue() == null) {
+							mailField.setRequiredError($("requiredField"));
 						} else if (dateField.getConvertedValue() == null) {
 							dateField.setRequiredError($("requiredField"));
 						} else {
 							try {
 								Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
-								String url = createExternalSignatureUrl(document.getId(), nameField.getValue(),
-										(LocalDate) dateField.getConvertedValue(), locale.getLanguage(), params.getUser());
-								CopyToClipBoard.copyToClipBoard(url);
-							} catch (RecordServicesException e) {
+								createExternalSignatureUrl(document.getId(), nameField.getValue(),
+										mailField.getValue(), (LocalDate) dateField.getConvertedValue(),
+										locale.getLanguage(), params.getUser());
+								params.getView().showMessage($("EmailServerConfigView.results.success"));
+							} catch (Exception e) {
 								params.getView().showErrorMessage($("DocumentMenuItemActionBehaviors.errorGeneratingAccess"));
 							}
 
@@ -937,14 +954,15 @@ public class DocumentMenuItemActionBehaviors {
 		generateWindow.click();
 	}
 
-	public String createExternalSignatureUrl(String documentId, String externalUserFullname, LocalDate expirationDate,
-											 String language, User user)
-			throws RecordServicesException {
+	public String createExternalSignatureUrl(String documentId, String externalUserFullname, String externalUserEmail,
+											 LocalDate expirationDate, String language, User user)
+			throws RecordServicesException, CannotSendEmailException {
 		ExternalAccessUrl accessUrl = rm.newSignatureExternalAccessUrl()
 				.setToken(UUID.randomUUID().toString())
 				.setAccessRecord(documentId)
 				.setStatus(ExternalAccessUrlStatus.OPEN)
 				.setFullname(externalUserFullname)
+				.setEmail(externalUserEmail)
 				.setExpirationDate(expirationDate);
 		accessUrl.setCreatedBy(user.getId());
 		accessUrl.setCreatedOn(new LocalDateTime());
@@ -953,7 +971,65 @@ public class DocumentMenuItemActionBehaviors {
 		transaction.add(accessUrl);
 
 		recordServices.execute(transaction);
+
+		if (StringUtil.isNotBlank(externalUserEmail)) {
+			sendExternalAccessMail(user, accessUrl, language, 1);
+		}
+
 		return getUrlFromExternalAccess(accessUrl, language);
+	}
+
+	private void sendExternalAccessMail(User sender, ExternalAccessUrl accessUrl, String language, int attempt)
+			throws CannotSendEmailException {
+		try {
+			EmailToSend emailToSend = newEmailToSend();
+
+			EmailAddress userAddress = new EmailAddress(accessUrl.getFullname(), accessUrl.getEmail());
+			emailToSend.setTemplate(RMEmailTemplateConstants.EXTERNAL_SIGNATURE_REQUEST);
+			emailToSend.setTo(Arrays.asList(userAddress));
+			emailToSend.setSendOn(TimeProvider.getLocalDateTime());
+			emailToSend.setSubject($("DocumentMenuItemActionBehaviors.signatureRequest"));
+			emailToSend.setParameters(buildSignatureRequestParameters(sender, accessUrl, language));
+
+			recordServices.add(emailToSend);
+		} catch (RecordServicesException e) {
+			if (attempt > 3) {
+				throw new CannotSendEmailException();
+			} else {
+				LOGGER.warn("Attempt #" + attempt + " to send email failed, retrying...", e);
+				sendExternalAccessMail(sender, accessUrl, language, attempt + 1);
+			}
+		}
+	}
+
+	private EmailToSend newEmailToSend() {
+		MetadataSchemaTypes schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+		MetadataSchema schema = schemaTypes.getSchemaType(EmailToSend.SCHEMA_TYPE).getDefaultSchema();
+		Record emailToSendRecord = recordServices.newRecordWithSchema(schema);
+		return new EmailToSend(emailToSendRecord, schemaTypes);
+	}
+
+	private List<String> buildSignatureRequestParameters(User sender, ExternalAccessUrl accessUrl, String language) {
+		List<String> params = new ArrayList<>();
+
+		Document document = rm.getDocument(accessUrl.getAccessRecord());
+		String docText = " \"" + document.getTitle() + "\" (" + document.getId() + ")";
+
+		String dateFormat = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_FORMAT);
+		String expiration = accessUrl.getExpirationDate().toString(dateFormat);
+
+		params.add("title" + EmailToSend.PARAMETER_SEPARATOR +
+				   $("DocumentMenuItemActionBehaviors.signatureRequest"));
+		params.add("greetings" + EmailToSend.PARAMETER_SEPARATOR +
+				   $("DocumentMenuItemActionBehaviors.signatureRequestGreetings", accessUrl.getFullname()));
+		params.add("message" + EmailToSend.PARAMETER_SEPARATOR +
+				   $("DocumentMenuItemActionBehaviors.signatureRequestMessage", sender.getTitle(), docText, expiration));
+		params.add("link" + EmailToSend.PARAMETER_SEPARATOR + getUrlFromExternalAccess(accessUrl, language));
+		params.add("linkMessage" + EmailToSend.PARAMETER_SEPARATOR + $("DocumentMenuItemActionBehaviors.signatureRequestLinkMessage"));
+		params.add("closure" + EmailToSend.PARAMETER_SEPARATOR +
+				   $("DocumentMenuItemActionBehaviors.signatureRequestClosure"));
+
+		return params;
 	}
 
 	private String getUrlFromExternalAccess(ExternalAccessUrl externalAccess, String language) {
