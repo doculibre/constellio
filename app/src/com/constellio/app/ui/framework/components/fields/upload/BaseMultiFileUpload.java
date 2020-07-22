@@ -21,7 +21,6 @@ import com.vaadin.server.StreamVariable.StreamingEndEvent;
 import com.vaadin.server.StreamVariable.StreamingErrorEvent;
 import com.vaadin.server.StreamVariable.StreamingProgressEvent;
 import com.vaadin.server.StreamVariable.StreamingStartEvent;
-import com.vaadin.server.WebBrowser;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
@@ -420,14 +419,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 	}
 
 	protected boolean supportsFileDrops() {
-		boolean supportsFileDrops;
-		WebBrowser browser = getUI().getPage().getWebBrowser();
-		if (browser.isWindowsPhone() || browser.isIOS() || browser.isAndroid()) {
-			supportsFileDrops = false;
-		} else {
-			supportsFileDrops = true;
-		}
-		return supportsFileDrops;
+		return ResponsiveUtils.isFileDropSupported();
 	}
 
 	abstract protected void handleFile(File file, String fileName,

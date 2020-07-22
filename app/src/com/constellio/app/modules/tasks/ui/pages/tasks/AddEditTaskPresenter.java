@@ -14,6 +14,7 @@ import com.constellio.app.modules.tasks.extensions.api.params.TaskFormParams;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormRetValue;
 import com.constellio.app.modules.tasks.extensions.param.PromptUserParam;
 import com.constellio.app.modules.tasks.model.utils.DateUtils;
+import com.constellio.app.modules.tasks.TaskConfigs;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
@@ -121,6 +122,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private ListAddRemoveWorkflowInclusiveDecisionFieldImpl listAddRemoveWorkflowInclusiveDecision;
 	private TaskDecisionField field;
 	private TasksSchemasRecordsServices tasksSchemasRecordsServices;
+	private TaskConfigs taskConfigs;
 	private static Logger LOGGER = LoggerFactory.getLogger(AddEditTaskPresenter.class);
 	List<String> finishedOrClosedStatuses;
 	private RMModuleExtensions rmModuleExtensions;
@@ -146,6 +148,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		finishedOrClosedStatuses = getFinishedOrClosedStatuses();
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		taskConfigs = new TaskConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 	}
 
@@ -403,7 +406,10 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				task.setAssignee(getCurrentUser().getId());
 			}
 
-			task.setDueDate(TimeProvider.getLocalDate());
+			int defaultDueDate = taskConfigs.getDefaultDueDate();
+			if (defaultDueDate > -1) {
+				task.setDueDate(TimeProvider.getLocalDate().plusDays(defaultDueDate));
+			}
 			parentId = paramsMap.get("parentId");
 			task.setParentTask(parentId);
 
