@@ -19,7 +19,7 @@ public class RecordVOToCaptionConverter implements Converter<String, RecordVO> {
 			throws com.vaadin.data.util.converter.Converter.ConversionException {
 		String caption;
 		if (value != null) {
-			caption = SchemaCaptionUtils.getCaptionForRecordVO(value, locale);
+			caption = SchemaCaptionUtils.getCaptionForRecordVO(value, locale, true);
 		} else {
 			caption = "";
 		}

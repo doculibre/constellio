@@ -1,14 +1,18 @@
 package com.constellio.model.services.records.cache.offHeapCollections;
 
-import com.constellio.model.services.records.RecordId;
+import com.constellio.data.dao.dto.records.RecordId;
 
 import java.util.List;
 
 public interface SortedIdsList {
 
+	void add(RecordId id);
+
 	void add(String id);
 
 	void add(int id);
+
+	void remove(RecordId id);
 
 	void remove(String id);
 
@@ -32,7 +36,13 @@ public interface SortedIdsList {
 
 	int size();
 
+	default boolean isEmpty() {
+		return size() > 0;
+	}
+
 	void clear();
+
+	boolean isSupportingLegacyId();
 
 	long valuesHeapLength();
 

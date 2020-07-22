@@ -237,7 +237,9 @@ public class BatchProcessingPresenterService {
 													   Object defaultValue, String inputMask,
 													   Set<String> customAttributes, boolean isMultiLingual,
 													   Locale locale, Map<String, Object> customParameters,
-													   CollectionInfoVO collectionInfoVO, boolean sortable) {
+													   CollectionInfoVO collectionInfoVO, boolean sortable,
+													   boolean summaryMetadata, Integer maxLength,
+													   String measurementUnit, Map<Locale, String> helpMessages) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -256,7 +258,7 @@ public class BatchProcessingPresenterService {
 									   metadataDisplayType,
 									   metadataSortingType,
 									   allowedReferences,
-									   enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable) :
+									   enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable, summaryMetadata, maxLength, measurementUnit, helpMessages) :
 							   null;
 					}
 				};
@@ -369,7 +371,9 @@ public class BatchProcessingPresenterService {
 													   Object defaultValue, String inputMask,
 													   Set<String> customAttributes, boolean isMultiLingual,
 													   Locale locale, Map<String, Object> customParameters,
-													   CollectionInfoVO collectionInfoVO, boolean sortable) {
+													   CollectionInfoVO collectionInfoVO, boolean sortable,
+													   boolean summaryMetadata, Integer maxLength,
+													   String measurementUnit, Map<Locale, String> helpMessages) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -402,7 +406,7 @@ public class BatchProcessingPresenterService {
 								metadataDisplayType,
 								metadataSortingType,
 								allowedReferences,
-								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable);
+								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable, summaryMetadata, maxLength, measurementUnit, helpMessages);
 					}
 				};
 			}

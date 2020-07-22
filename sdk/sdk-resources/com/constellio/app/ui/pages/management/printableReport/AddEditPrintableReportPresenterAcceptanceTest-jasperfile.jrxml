@@ -7,7 +7,8 @@
               name="Blank_A4" columnCount="2" printOrder="Horizontal" pageWidth="595" pageHeight="842" columnWidth="240"
               columnSpacing="80" leftMargin="17" rightMargin="17" topMargin="0" bottomMargin="0"
               uuid="3ed38d6e-3973-4c9f-974e-2c1664703ecf">
-    <property name="com.jaspersoft.studio.data.defaultdataadapter" value="Folder_Adapter.xml"/>
+    <property name="com.jaspersoft.studio.com.constellio.importscript.data.defaultdataadapter"
+              value="Folder_Adapter.xml"/>
     <property name="com.jaspersoft.studio.unit." value="pixel"/>
     <property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
     <property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>

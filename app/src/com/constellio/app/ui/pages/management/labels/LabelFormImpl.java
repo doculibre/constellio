@@ -8,12 +8,16 @@ import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.pages.base.SessionContext;
 
 public abstract class LabelFormImpl extends RecordForm implements LabelForm {
-	public LabelFormImpl(RecordVO record) {
-		super(record);
+	private ConstellioFactories constellioFactories;
+
+	public LabelFormImpl(RecordVO record, ConstellioFactories constellioFactories) {
+		super(record, constellioFactories);
+		this.constellioFactories = constellioFactories;
 	}
 
-	public LabelFormImpl(RecordVO record, RecordFieldFactory factory) {
-		super(record, factory);
+	public LabelFormImpl(RecordVO record, RecordFieldFactory factory, ConstellioFactories constellioFactories) {
+		super(record, factory, constellioFactories);
+		this.constellioFactories = constellioFactories;
 	}
 
 	@Override
@@ -23,7 +27,7 @@ public abstract class LabelFormImpl extends RecordForm implements LabelForm {
 
 	@Override
 	public ConstellioFactories getConstellioFactories() {
-		return ConstellioFactories.getInstance();
+		return this.constellioFactories;
 	}
 
 	@Override

@@ -25,7 +25,9 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
@@ -77,6 +79,8 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.validators.MaskedMetadataValidator;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRuntimeException;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -128,6 +132,8 @@ public class RecordsImportServicesExecutor {
 	private static final String CYCLIC_DEPENDENCIES_ERROR = "cyclicDependencies";
 	private static final String CONTENT_NOT_FOUND_ERROR = "contentNotFound";
 	private static final String HASH_NOT_FOUND_IN_VAULT = "hashNotFoundInVault";
+	private static final String HASH_NOT_FOUND_IN_VAULT_WITHOUT_FILEPATH = "hashNotFoundInVaultWithoutFilePath";
+
 	private static final String CONTENT_NOT_IMPORTED_ERROR = "contentNotImported";
 	private static final String RECORD_PREPARATION_ERROR = "recordPreparationError";
 	private static final String UNRESOLVED_DEPENDENCY_DURING_SECOND_PHASE = "unresolvedDependencyDuringSecondPhase";
@@ -137,6 +143,11 @@ public class RecordsImportServicesExecutor {
 	private static final String ID_MUST_BE_LOWER_THAN_SEQUENCE_TABLE = "idMustBeLowerThanSequenceTable";
 	private static final String ID_ALREADY_USED_BY_RECORD_OF_OTHER_TYPE = "idAlreadyUsedByRecordsOfOtherType";
 	private static final String ID_ALREADY_USED_BY_RECORD_OF_OTHER_COLLECTION = "idAlreadyUsedByRecordsOfOtherCollection";
+
+	private static final String AUTHORIZATION_TARGET_ID_CANNOT_BE_NULL = "authorizationTargetIdCannotBeNull";
+	private static final String PRINCIPALS_USER_CANNOT_BE_NULL = "principalsUserCannotBeNull";
+	private static final String PRINCIPALS_GROUP_CANNOT_BE_NULL = "principalsGroupCannotBeNull";
+
 
 	public static final String RECORD_SERVICE_EXEPTION = "recordServiceException";
 
@@ -682,7 +693,7 @@ public class RecordsImportServicesExecutor {
 										.iterator(); iterator.hasNext(); ) {
 									ContentImportVersion version = iterator.next();
 									String url = version.getUrl();
-									if (!url.toLowerCase().startsWith("imported://")) {
+									if (!url.toLowerCase().startsWith("imported://") && !url.toLowerCase().startsWith("hash:")) {
 										StreamFactory<InputStream> inputStreamStreamFactory = urlResolver
 												.resolve(url, version.getFileName());
 
@@ -887,6 +898,65 @@ public class RecordsImportServicesExecutor {
 			}
 		}
 
+		if (Authorization.SCHEMA_TYPE.equals(typeImportContext.schemaType)) {
+			String target = toImport.getValue(Authorization.TARGET);
+			List<String> principals = toImport.getValue(Authorization.PRINCIPALS);
+
+			if (target != null) {
+				if (typeBatchImportContext.options.isImportAsLegacyId()) {
+					String targetSchemaType = toImport.getValue(Authorization.TARGET_SCHEMA_TYPE);
+					String id = resolverCache.resolve(targetSchemaType, target);
+					if (id == null) {
+						Map<String, Object> parameters = new HashMap<>();
+						parameters.put("target", target);
+						errors.add(RecordsImportServices.class, AUTHORIZATION_TARGET_ID_CANNOT_BE_NULL, parameters);
+						//TODO Charles! Lancer une erreur et ajouter un test dans RecordsImportServicesRealTest
+					} else {
+						record.set(defaultSchema.get(Authorization.TARGET), id);
+					}
+				}
+			}
+
+			if (principals != null) {
+				UserServices userServices = modelLayerFactory.newUserServices();
+				List<String> convertedPrincipals = new ArrayList<>();
+
+				for (String principal : principals) {
+					String principalSchemaType = StringUtils.substringBefore(principal, ":");
+					String principalValue = StringUtils.substringAfter(principal, ":");
+
+					if (User.SCHEMA_TYPE.equals(principalSchemaType)) {
+						try {
+							User principalUser = userServices.getUserInCollection(principalValue, collection);
+							convertedPrincipals.add(principalUser.getId());
+						} catch (UserServicesRuntimeException e) {
+							Map<String, Object> parameters = new HashMap<>();
+							parameters.put("principal", principal);
+							errors.add(RecordsImportServices.class, PRINCIPALS_USER_CANNOT_BE_NULL, parameters);
+							throw new SkippedBecauseOfFailedDependency();
+						}
+					}
+
+					if (Group.SCHEMA_TYPE.equals(principalSchemaType)) {
+						Group principalGroup = userServices.getGroupInCollection(principalValue, collection);
+						if (principalGroup == null) {
+							Map<String, Object> parameters = new HashMap<>();
+							parameters.put("principal", principal);
+							errors.add(RecordsImportServices.class, PRINCIPALS_GROUP_CANNOT_BE_NULL, parameters);
+							throw new SkippedBecauseOfFailedDependency();
+						}
+						convertedPrincipals.add(principalGroup.getId());
+
+					}
+
+				}
+
+				record.set(defaultSchema.get(Authorization.PRINCIPALS), convertedPrincipals);
+			}
+
+
+		}
+
 		extensions.callRecordImportBuild(typeImportContext.schemaType,
 				new BuildParams(record, types, toImport, typeBatchImportContext.options,
 						params.isAllowingReferencesToNonExistingUsers()));
@@ -931,10 +1001,15 @@ public class RecordsImportServicesExecutor {
 
 				Comment comment = new Comment();
 				comment.setMessage(hashMap.get(COMMENT_MESSAGE));
-				comment.setUser(userName == null ? null : userService.getUserInCollection(userName, collection));
+				try {
+					comment.setUser(userName == null ? null : userService.getUserInCollection(userName, collection));
+
+				} catch (UserServicesRuntimeException_UserIsNotInCollection ignored) {
+					//Seems to be already supporting nulls
+				}
 
 				if (hashMap.get(COMMENT_DATE_TIME) != null) {
-					comment.setDateTime(LocalDateTime.parse(hashMap.get(COMMENT_DATE_TIME)));
+					comment.setCreationDateTime(LocalDateTime.parse(hashMap.get(COMMENT_DATE_TIME)));
 				}
 
 				commentList.add(comment);
@@ -949,7 +1024,7 @@ public class RecordsImportServicesExecutor {
 			comment.setMessage(hashMap.get(COMMENT_MESSAGE));
 			comment.setUser(userService.getUserInCollection(userName, collection));
 
-			if (comment.getDateTime() != null) {
+			if (comment.getCreationDateTime() != null) {
 				LocalDate.parse(hashMap.get(COMMENT_DATE_TIME));
 			}
 
@@ -1119,6 +1194,18 @@ public class RecordsImportServicesExecutor {
 						contentVersionDataSummary = factory.get();
 					}
 
+				} else if (version.getUrl().toLowerCase().startsWith("hash:")) {
+					String hash = version.getUrl().substring(5);
+					try {
+						contentVersionDataSummary = contentManager.getContentVersionSummary(hash).getContentVersionDataSummary();
+					} catch (ContentManagerRuntimeException_NoSuchContent e) {
+						e.printStackTrace();
+						Map<String, Object> params = new HashMap<>();
+						params.put("hash", e.getId());
+						errors.add(RecordsImportServices.class, HASH_NOT_FOUND_IN_VAULT_WITHOUT_FILEPATH, params);
+						return null;
+					}
+
 				} else {
 					contentVersionDataSummary = typeBatchImportContext.bulkUploader.get(version.getUrl());
 				}
@@ -1262,7 +1349,7 @@ public class RecordsImportServicesExecutor {
 	}
 
 	private boolean isReferenceInReversedOrder(Metadata metadata) {
-		List<String> schemaTypes = schemasManager.getSchemaTypes(metadata.getCollection()).getSchemaTypesSortedByDependency();
+		List<String> schemaTypes = schemasManager.getSchemaTypes(metadata.getCollection()).getSchemaTypesCodesSortedByDependency();
 		int schemaTypeDependencyIndex = schemaTypes.indexOf(metadata.getSchemaTypeCode());
 		int targettingSchemaTypeDependencyIndex = schemaTypes.indexOf(metadata.getReferencedSchemaTypeCode());
 		return schemaTypeDependencyIndex < targettingSchemaTypeDependencyIndex;
@@ -1311,7 +1398,7 @@ public class RecordsImportServicesExecutor {
 
 		validateAvailableSchemaTypes(availableSchemaTypes);
 
-		for (String schemaType : types.getSchemaTypesSortedByDependency()) {
+		for (String schemaType : types.getSchemaTypesCodesSortedByDependency()) {
 			if (availableSchemaTypes.contains(schemaType)) {
 				importedSchemaTypes.add(schemaType);
 			}
@@ -1320,6 +1407,11 @@ public class RecordsImportServicesExecutor {
 		if (importedSchemaTypes.contains(Event.SCHEMA_TYPE)) {
 			importedSchemaTypes.remove(Event.SCHEMA_TYPE);
 			importedSchemaTypes.add(Event.SCHEMA_TYPE);
+		}
+
+		if (importedSchemaTypes.contains(Authorization.SCHEMA_TYPE)) {
+			importedSchemaTypes.remove(Authorization.SCHEMA_TYPE);
+			importedSchemaTypes.add(Authorization.SCHEMA_TYPE);
 		}
 
 		return importedSchemaTypes;

@@ -47,6 +47,7 @@ import java.util.Map;
 
 import static com.constellio.app.ui.application.ConstellioUI.getCurrent;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public class SearchResultDisplay extends VerticalLayout {
 
@@ -81,6 +82,7 @@ public class SearchResultDisplay extends VerticalLayout {
 	private String query;
 	private Map<String, String> extraParam;
 	boolean noLinks;
+	private boolean noElevationAndExclusion;
 
 	private Component titleLink;
 
@@ -88,12 +90,18 @@ public class SearchResultDisplay extends VerticalLayout {
 
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
 							   AppLayerFactory appLayerFactory, String query, boolean noLinks) {
-		this(searchResultVO, componentFactory, appLayerFactory, query, null, noLinks);
+		this(searchResultVO, componentFactory, appLayerFactory, query, null, noLinks, false);
 	}
 
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
 							   AppLayerFactory appLayerFactory, String query, Map<String, String> extraParam,
 							   boolean noLinks) {
+		this(searchResultVO, componentFactory, appLayerFactory, query, extraParam, noLinks, false);
+	}
+
+	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
+							   AppLayerFactory appLayerFactory, String query, Map<String, String> extraParam,
+							   boolean noLinks, boolean noElevationAndExclusion) {
 		this.searchResultVO = searchResultVO;
 		this.componentFactory = componentFactory;
 		this.appLayerFactory = appLayerFactory;
@@ -102,6 +110,7 @@ public class SearchResultDisplay extends VerticalLayout {
 				getAppLayerFactory().getModelLayerFactory());
 		this.query = query;
 		this.noLinks = noLinks;
+		this.noElevationAndExclusion = noElevationAndExclusion;
 		searchConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSearchConfigurationsManager();
 
 		this.sessionContext = getCurrent().getSessionContext();
@@ -121,10 +130,20 @@ public class SearchResultDisplay extends VerticalLayout {
 	}
 
 	private void init() {
+		RecordVO recordVO = searchResultVO.getRecordVO();
+
+		if (recordVO == null) {
+			Label elementDeleted = new Label("<strong>" + $("SearchResultDisplay.elementDeletedDuringSearch") + "</strong>");
+			elementDeleted.setContentMode(ContentMode.HTML);
+			addComponent(elementDeleted);
+			return;
+		}
+
 		setWidth("50px");
 
 		addStyleName(RECORD_STYLE);
-		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(searchResultVO.getRecordVO().getSchema().getCode());
+
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(recordVO.getSchema().getCode());
 		String schemaStyleName = RECORD_STYLE + "-" + schemaTypeCode;
 		addStyleName(schemaStyleName);
 
@@ -160,8 +179,8 @@ public class SearchResultDisplay extends VerticalLayout {
 		CredentialUserPermissionChecker userHas = getAppLayerFactory().getModelLayerFactory().newUserServices()
 				.has(currentSessionContext.getCurrentUser().getUsername());
 
-		if (!Strings.isNullOrEmpty(query) && Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
-			&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
+		if (!noElevationAndExclusion && (!Strings.isNullOrEmpty(query) && Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
+										 && userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT))) {
 			//			titleLink.setWidth("90%");
 
 			addStyleName("search-result-with-elevation-buttons");
@@ -246,7 +265,10 @@ public class SearchResultDisplay extends VerticalLayout {
 					}
 				}
 			}
-			this.addComponent(addSearchResultMetadatas(sb));
+			Label label = addSearchResultMetadatas(sb);
+			if (label != null) {
+				this.addComponent(label);
+			}
 		} else {
 			for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
 				if (recordVO.getMetadataCodes().contains(metadataValue.getMetadata().getCode())) {
@@ -255,7 +277,13 @@ public class SearchResultDisplay extends VerticalLayout {
 						Component value = componentFactory.build(recordVO, metadataValue);
 						if (value != null) {
 							value.addStyleName("metadata-value");
-							Label caption = new Label(metadataVO.getLabel() + ":");
+							String captionText = metadataVO.getLabel();
+							if (isRightToLeft()) {
+								captionText = ":" + captionText;
+							} else {
+								captionText += ":";
+							}
+							Label caption = new Label(captionText);
 							caption.addStyleName("metadata-caption");
 							addComponents(caption, value);
 						}
@@ -279,8 +307,14 @@ public class SearchResultDisplay extends VerticalLayout {
 		if (stringDisplayValue != null) {
 			sb.append("<div class=\"search-result-metadata\">");
 			sb.append("<div class=\"metadata-caption\">");
+			if (isRightToLeft()) {
+				sb.append(":");
+			}
 			sb.append(label);
-			sb.append(":</div><div class=\"metadata-value\">");
+			if (!isRightToLeft()) {
+				sb.append(":");
+			}
+			sb.append("</div><div class=\"metadata-value\">");
 			sb.append(stringDisplayValue);
 			sb.append("</div>");
 			sb.append("</div>");
@@ -293,6 +327,10 @@ public class SearchResultDisplay extends VerticalLayout {
 
 	@Override
 	public void addLayoutClickListener(LayoutClickListener layoutListener) {
+		if (searchResultVO.isDeleted()) {
+			return;
+		}
+
 		super.addLayoutClickListener(layoutListener);
 
 		Button button = ComponentTreeUtils.getFirstChild(titleLink, Button.class);

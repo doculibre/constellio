@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.management.email;
 import com.constellio.app.ui.entities.EmailServerConfigVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.StringListComponent;
+import com.constellio.app.ui.framework.components.fields.EditablePasswordField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.conf.email.EmailServerConfiguration;
 import com.vaadin.navigator.ViewChangeListener;
@@ -12,7 +13,6 @@ import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Panel;
-import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
@@ -34,7 +34,7 @@ public class EmailServerConfigViewImpl extends BaseViewImpl implements EmailServ
 	private TextField userField;
 	private TextField defaultEmailSenderField;
 	private TextField testEmailField;
-	private PasswordField passwordField;
+	private EditablePasswordField passwordField;
 
 	private StringListComponent propertiesField;
 	private TextArea testAuthentication;
@@ -176,7 +176,7 @@ public class EmailServerConfigViewImpl extends BaseViewImpl implements EmailServ
 		defaultEmailSenderField.setNullRepresentation("");
 		layout.addComponent(defaultEmailSenderField);
 
-		passwordField = new PasswordField($("EmailServerConfigView.password"));
+		passwordField = new EditablePasswordField($("EmailServerConfigView.password"));
 		passwordField.setValue(password);
 		passwordField.setRequired(false);
 		layout.addComponent(passwordField);

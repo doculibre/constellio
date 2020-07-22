@@ -5,7 +5,6 @@ import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.CloudTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -19,7 +18,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @CloudTest
-@SlowTest
+// Confirm @SlowTest
 public class ZookeeperBackupAcceptanceTest extends ConstellioTest {
 	private String zkHost;
 	private PropertiesDataLayerConfiguration props;

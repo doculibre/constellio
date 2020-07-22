@@ -41,7 +41,7 @@ public class EditDecommissioningListViewImpl extends BaseViewImpl implements Edi
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		return new RecordForm(decommissioningList) {
+		return new RecordForm(decommissioningList, EditDecommissioningListViewImpl.this.getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO recordVO)
 					throws ValidationException {

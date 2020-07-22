@@ -2,12 +2,16 @@ package com.constellio.app.ui.framework.components.viewers;
 
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.viewers.audio.AudioViewer;
 import com.constellio.app.ui.framework.components.viewers.document.DocumentViewer;
 import com.constellio.app.ui.framework.components.viewers.image.ImageViewer;
+import com.constellio.app.ui.framework.components.viewers.image.TiffImageViewer;
+import com.constellio.app.ui.framework.components.viewers.pdftron.PdfTronViewer;
 import com.constellio.app.ui.framework.components.viewers.video.VideoViewer;
+import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import org.apache.commons.io.FilenameUtils;
@@ -23,16 +27,34 @@ public class ContentViewer extends CustomComponent {
 
 	private Component viewerComponent;
 	private List<VisibilityChangeListener> imageViewerVisibilityChangeListenerList;
-	private boolean didVisibilityChangeWhileAttaching = false;
+	String searchTerm;
 
-	public ContentViewer(RecordVO recordVO, String metadataCode, ContentVersionVO contentVersionVO) {
+	public ContentViewer(AppLayerFactory appLayerFactory, RecordVO recordVO, String metadataCode,
+						 ContentVersionVO contentVersionVO) {
 		imageViewerVisibilityChangeListenerList = new ArrayList<>();
 		setId(UUID.randomUUID().toString());
+
+		String licenseForPdftron = PdfTronViewer.getPdfTronKey(appLayerFactory);
+
 		if (contentVersionVO != null) {
 			String fileName = contentVersionVO.getFileName();
 			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 
-			if (Arrays.asList(ImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
+			if (Toggle.TIFF_VIEWER.isEnabled() && Arrays.asList(TiffImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
+				TiffImageViewer tiffImageViewer = new TiffImageViewer(recordVO, Document.CONTENT, contentVersionVO) {
+					@Override
+					public void setVisible(boolean newVisibility) {
+						boolean wasVisible = this.isVisible();
+						super.setVisible(newVisibility);
+
+						if (newVisibility != wasVisible) {
+							fireImageViewerVisibilityChangeListerners(newVisibility);
+						}
+					}
+				};
+
+				viewerComponent = tiffImageViewer;
+			} else if (Arrays.asList(ImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
 				ImageViewer imageViewer = new ImageViewer(recordVO, Document.CONTENT, contentVersionVO) {
 					@Override
 					public void setVisible(boolean newVisibility) {
@@ -52,6 +74,12 @@ public class ContentViewer extends CustomComponent {
 			} else if (Arrays.asList(VideoViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
 				VideoViewer videoViewer = new VideoViewer(contentVersionVO);
 				viewerComponent = videoViewer;
+				//			} else if (EmailViewer.isSupported(fileName)) {
+				//				EmailViewer emailViewer = new EmailViewer(recordVO, Document.CONTENT, contentVersionVO);
+				//				viewerComponent = emailViewer;
+			} else if ((Toggle.ENABLE_PDFTRON_TRIAL.isEnabled() || StringUtils.isNotBlank(licenseForPdftron)) && (DocumentViewer.isSupported(fileName) || Arrays.asList(PdfTronViewer.SUPPORTED_EXTENTION).contains(extension))) {
+				PdfTronViewer pdfTronViewer = new PdfTronViewer(recordVO.getId(), contentVersionVO, metadataCode, false, licenseForPdftron);
+				viewerComponent = pdfTronViewer;
 			} else if (DocumentViewer.isSupported(fileName)) {
 				DocumentViewer documentViewer;
 				if (recordVO instanceof DocumentVO) {
@@ -71,9 +99,31 @@ public class ContentViewer extends CustomComponent {
 		}
 	}
 
+	public void setSearchTerm(String searchTerm) {
+		this.searchTerm = searchTerm;
+
+		if (viewerComponent instanceof PdfTronViewer) {
+			((PdfTronViewer) viewerComponent).setSearchTerm(searchTerm);
+		}
+	}
+
+	public void releaseRessource() {
+		if (viewerComponent instanceof PdfTronViewer) {
+			((PdfTronViewer) viewerComponent).releaseRessource();
+		}
+	}
+
+	public void setSpecialCaseHeight(String height) {
+		if (viewerComponent instanceof PdfTronViewer) {
+			viewerComponent.setHeight(height);
+		}
+	}
+
 	public void refresh() {
 		if (viewerComponent instanceof ImageViewer) {
 			((ImageViewer) viewerComponent).show();
+		} else if (viewerComponent instanceof PdfTronViewer) {
+			((PdfTronViewer) viewerComponent).showWebViewer();
 		}
 	}
 
@@ -117,6 +167,7 @@ public class ContentViewer extends CustomComponent {
 //			JavaScript.getCurrent().execute(js);
 //		}
 	}
+
 
 	public boolean isVerticalScroll() {
 		return viewerComponent instanceof DocumentViewer;

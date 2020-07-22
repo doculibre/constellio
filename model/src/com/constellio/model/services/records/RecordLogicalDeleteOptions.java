@@ -1,17 +1,31 @@
 package com.constellio.model.services.records;
 
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+
+import java.util.function.Consumer;
 
 public class RecordLogicalDeleteOptions {
 
 	LogicallyDeleteTaxonomyRecordsBehavior behaviorForRecordsAttachedToTaxonomy = LogicallyDeleteTaxonomyRecordsBehavior.KEEP_RECORDS;
 	private boolean checkForValidationError = true;
+	private Consumer<RecordUpdateOptions> transactionOptionsConsumer;
 
 	RecordsFlushing recordsFlushing = RecordsFlushing.NOW();
 
 	boolean skipValidations;
 
 	boolean skipRefresh;
+
+	public Consumer<RecordUpdateOptions> getTransactionOptionsConsumer() {
+		return transactionOptionsConsumer;
+	}
+
+	public RecordLogicalDeleteOptions setTransactionOptionsConsumer(
+			Consumer<RecordUpdateOptions> transactionOptionsConsumer) {
+		this.transactionOptionsConsumer = transactionOptionsConsumer;
+		return this;
+	}
 
 	public LogicallyDeleteTaxonomyRecordsBehavior getBehaviorForRecordsAttachedToTaxonomy() {
 		return behaviorForRecordsAttachedToTaxonomy;

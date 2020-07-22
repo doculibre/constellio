@@ -123,6 +123,16 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
+	public Record getRecordSummaryById(String collection, String id, boolean callExtensions) {
+		Record foundRecord = getRecordsCache().getCache(collection).getSummary(id);
+		if (foundRecord == null) {
+			foundRecord = recordServices.getRecordSummaryById(collection, id, callExtensions);
+		}
+
+		return foundRecord;
+	}
+
+	@Override
 	public List<Record> getRecordsById(String collection,
 									   List<String> ids, boolean callExtensions) {
 

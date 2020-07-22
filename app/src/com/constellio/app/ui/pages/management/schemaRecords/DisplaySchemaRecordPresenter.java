@@ -163,7 +163,6 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 		return success;
 	}
 
-	@SuppressWarnings("deprecation")
 	private boolean isEditButtonVisible(RecordVO recordVO) {
 		Record record = recordVO.getRecord();
 		User user = getCurrentUser();

@@ -6,14 +6,17 @@ import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServi
 import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.StorageSpaceRecordActionsServices;
 import com.constellio.app.modules.rm.services.menu.behaviors.RMRecordsMenuItemBehaviors;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.actions.TaskRecordActionsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.menu.ActionDisplayOption;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemActionState;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
@@ -38,8 +41,10 @@ import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServi
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_DELETE;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNPUBLISH;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BORROW;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BORROW_REQUEST;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CANCEL_RETURN;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CHECKIN;
-import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CHECKOUT;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_COPY;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CREATE_PDF;
@@ -50,6 +55,9 @@ import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServi
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_MOVE;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_PRINT_LABEL;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_REMOVE_SELECTION;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_RETURN;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_RETURN_REMAINDER;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_RETURN_REQUEST;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_SEND_EMAIL;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.DISABLED;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
@@ -256,6 +264,73 @@ public class RMRecordsMenuItemServices {
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
 						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_BORROW:
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+						actionPossible = documentRecordActionsServices.isCheckOutActionPossible(record, user);
+					} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+						actionPossible = folderRecordActionsServices.isBorrowActionPossible(record, user);
+					} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+						actionPossible = containerRecordActionsServices.isBorrowActionPossible(record, user);
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_BORROW_REQUEST:
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+						actionPossible = folderRecordActionsServices.isBorrowRequestActionPossible(record, user);
+					} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+						actionPossible = containerRecordActionsServices.isBorrowRequestActionPossible(record, user);
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_RETURN:
+			case RMRECORDS_CANCEL_RETURN:
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+						actionPossible = documentRecordActionsServices.isCheckInActionPossible(record, user);
+					} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+						actionPossible = folderRecordActionsServices.isReturnActionPossible(record, user);
+					} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+						actionPossible = containerRecordActionsServices.isCheckInActionPossible(record, user);
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_RETURN_REQUEST:
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+						actionPossible = folderRecordActionsServices.isReturnRequestActionPossible(record, user);
+					} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+						actionPossible = containerRecordActionsServices.isReturnRequestActionPossible(record, user);
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_RETURN_REMAINDER:
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+						actionPossible = documentRecordActionsServices.isSendReturnReminderActionPossible(record, user);
+					} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+						actionPossible = folderRecordActionsServices.isSendReturnReminderActionPossible(record, user);
+					} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+						actionPossible = containerRecordActionsServices.isSendReturnReminderActionPossible(record, user);
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"), ActionDisplayOption.REQUIRE_VISIBLE_FOR_ONE_RECORD);
 			case RMRECORDS_ADD_SELECTION:
 				sessionContext = params.getView() != null ? params.getView().getSessionContext() : null;
 				if (sessionContext != null &&
@@ -314,24 +389,24 @@ public class RMRecordsMenuItemServices {
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
 						$("RMRecordsMenuItemServices.actionImpossible"));
-			case RMRECORDS_CHECKOUT:
-				int ignoredCount = 0;
-				for (Record record : records) {
-					boolean actionPossible = false;
-					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
-						actionPossible = documentRecordActionsServices.isCheckOutActionPossible(record, user);
-						if (!actionPossible) {
-							actionPossible = documentRecordActionsServices.isCurrentBorrower(record, user);
-							if (actionPossible) {
-								ignoredCount++;
-							}
-						}
-					}
-					possibleCount += actionPossible ? 1 : 0;
-				}
-				return calculateCorrectActionState(possibleCount - ignoredCount,
-						ignoredCount == possibleCount && ignoredCount != 0 ? ignoredCount : (records.size() - possibleCount),
-						$("RMRecordsMenuItemServices.actionImpossible"));
+			//			case RMRECORDS_CHECKOUT:
+			//				int ignoredCount = 0;
+			//				for (Record record : records) {
+			//					boolean actionPossible = false;
+			//					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+			//						actionPossible = documentRecordActionsServices.isCheckOutActionPossible(record, user);
+			//						if (!actionPossible) {
+			//							actionPossible = documentRecordActionsServices.isCurrentBorrower(record, user);
+			//							if (actionPossible) {
+			//								ignoredCount++;
+			//							}
+			//						}
+			//					}
+			//					possibleCount += actionPossible ? 1 : 0;
+			//				}
+			//				return calculateCorrectActionState(possibleCount - ignoredCount,
+			//						ignoredCount == possibleCount && ignoredCount != 0 ? ignoredCount : (records.size() - possibleCount),
+			//						$("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_CHECKIN:
 				for (Record record : records) {
 					boolean actionPossible = false;
@@ -380,6 +455,15 @@ public class RMRecordsMenuItemServices {
 						case StorageSpace.SCHEMA_TYPE:
 							actionPossible = storageSpaceRecordActionsServices.isGenerateReportActionPossible(record, user);
 							break;
+
+						case RetentionRule.SCHEMA_TYPE:
+							actionPossible = true;
+							break;
+
+						case Category.SCHEMA_TYPE:
+							actionPossible = true;
+							break;
+
 					}
 					possibleCount += actionPossible ? 1 : 0;
 				}
@@ -395,7 +479,12 @@ public class RMRecordsMenuItemServices {
 	}
 
 	private MenuItemActionState calculateCorrectActionState(int possibleCount, int notPossibleCount, String reason) {
-		if (possibleCount > 0 && notPossibleCount == 0) {
+		return calculateCorrectActionState(possibleCount, notPossibleCount, reason, ActionDisplayOption.REQUIRE_VISIBLE_FOR_ALL_RECORDS);
+	}
+
+	private MenuItemActionState calculateCorrectActionState(int possibleCount, int notPossibleCount, String reason,
+															ActionDisplayOption displayOption) {
+		if (possibleCount > 0 && (displayOption == ActionDisplayOption.REQUIRE_VISIBLE_FOR_ONE_RECORD || notPossibleCount == 0)) {
 			return new MenuItemActionState(VISIBLE);
 		} else if (possibleCount == 0 && notPossibleCount > 0) {
 			return new MenuItemActionState(HIDDEN, reason);
@@ -456,6 +545,42 @@ public class RMRecordsMenuItemServices {
 						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).printLabels(ids, params));
 				break;
+			case RMRECORDS_BORROW:
+				menuItemAction = buildMenuItemAction(RMRECORDS_BORROW, state,
+						$("DocumentContextMenu.checkOut"), FontAwesome.LOCK, -1, 700,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).checkOut(ids, params));
+				break;
+			case RMRECORDS_BORROW_REQUEST:
+				menuItemAction = buildMenuItemAction(RMRECORDS_BORROW_REQUEST, state,
+						$("RMRequestTaskButtonExtension.borrowRequest"), null, -1, 720,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).checkOutRequest(ids, params));
+				break;
+			case RMRECORDS_RETURN:
+				menuItemAction = buildMenuItemAction(RMRECORDS_RETURN, state,
+						$("DocumentContextMenu.checkIn"), FontAwesome.UNLOCK, -1, 740,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).checkIn(ids, params));
+				break;
+			case RMRECORDS_CANCEL_RETURN:
+				menuItemAction = buildMenuItemAction(RMRECORDS_CANCEL_RETURN, state,
+						$("DocumentContextMenu.cancelCheckOut"), null, -1, 750,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).checkIn(ids, params));
+				break;
+			case RMRECORDS_RETURN_REQUEST:
+				menuItemAction = buildMenuItemAction(RMRECORDS_RETURN_REQUEST, state,
+						$("RMRequestTaskButtonExtension.returnRequest"), null, -1, 760,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).checkInRequest(ids, params));
+				break;
+			case RMRECORDS_RETURN_REMAINDER:
+				menuItemAction = buildMenuItemAction(RMRECORDS_RETURN_REMAINDER, state,
+						$("SendReturnReminderEmailButton.reminderReturn"), null, -1, 780,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).sendReturnRemainder(ids, params));
+				break;
 			case RMRECORDS_ADD_SELECTION:
 				menuItemAction = buildMenuItemAction(RMRECORDS_ADD_SELECTION, state,
 						$("SearchView.addToSelection"), SELECTION_ICON_RESOURCE, -1, 800,
@@ -478,11 +603,6 @@ public class RMRecordsMenuItemServices {
 				menuItemAction = buildMenuItemAction(RMRECORDS_BATCH_DELETE, state,
 						$("deleteWithIcon"), null, -1, 1000,
 						getRecordsLimit(actionType), (ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).batchDelete(ids, params));
-				break;
-			case RMRECORDS_CHECKOUT:
-				menuItemAction = buildMenuItemAction(RMRECORDS_CHECKOUT, state,
-						$("DocumentContextMenu.checkOut"), FontAwesome.LOCK, -1, 1100,
-						getRecordsLimit(actionType), (ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).checkoutDocuments(ids, params));
 				break;
 			case RMRECORDS_CREATE_TASK:
 				menuItemAction = buildMenuItemAction(RMRECORDS_CREATE_TASK, state,
@@ -569,18 +689,23 @@ public class RMRecordsMenuItemServices {
 		RMRECORDS_SEND_EMAIL(singletonList(Document.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_CREATE_PDF(singletonList(Document.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_PRINT_LABEL(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
+		RMRECORDS_BORROW(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, false),
+		RMRECORDS_BORROW_REQUEST(asList(Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, false),
+		RMRECORDS_RETURN(asList(Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, false),
+		RMRECORDS_CANCEL_RETURN(asList(Document.SCHEMA_TYPE), 100000, false),
+		RMRECORDS_RETURN_REQUEST(asList(Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, false),
+		RMRECORDS_RETURN_REMAINDER(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, false),
 		RMRECORDS_ADD_SELECTION(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_REMOVE_SELECTION(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_DOWNLOAD_ZIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_BATCH_DELETE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
-		RMRECORDS_CONSULT_LINK(asList(RMTask.SCHEMA_TYPE, Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE,
-				ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE), 10000, true),
-		RMRECORDS_CHECKOUT(asList(Document.SCHEMA_TYPE), 25, false),
+		RMRECORDS_CONSULT_LINK(asList(RMTask.SCHEMA_TYPE, Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE), 10000, true),
+		//RMRECORDS_CHECKOUT(asList(Document.SCHEMA_TYPE), 25, false),
 		RMRECORDS_CHECKIN(asList(Document.SCHEMA_TYPE), 25, false),
-		RMRECORDS_CREATE_TASK(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000, true),
-		RMRECORDS_BATCH_UNSHARE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000, true),
+		RMRECORDS_CREATE_TASK(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000, false),
+		RMRECORDS_BATCH_UNSHARE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000, false),
 		RMRECORDS_BATCH_UNPUBLISH(asList(Document.SCHEMA_TYPE), 10000, false),
-		RMRECORDS_GENERATE_REPORT(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE,
+		RMRECORDS_GENERATE_REPORT(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Task.SCHEMA_TYPE,
 				ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE), 10000, false);
 
 		private final List<String> schemaTypes;

@@ -1,10 +1,9 @@
 package com.constellio.model.services.records.cache.cacheIndexConditions;
 
+import com.constellio.data.dao.dto.records.IntegerRecordId;
+import com.constellio.data.dao.dto.records.RecordId;
+import com.constellio.data.dao.dto.records.StringRecordId;
 import com.constellio.data.utils.LazyIterator;
-import com.constellio.model.services.records.IntegerRecordId;
-import com.constellio.model.services.records.RecordId;
-import com.constellio.model.services.records.StringRecordId;
-import com.constellio.model.services.records.cache.MetadataIndexCacheDataStore;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;
 
@@ -26,23 +25,23 @@ public class UnionSortedIdsStreamerTest extends ConstellioTest {
 		SortedIdsStreamer s2 = createFromRecordIds(ids(1, 2, 3, 5, 6, 8, "42", "48"));
 		SortedIdsStreamer s3 = createFromRecordIds(ids(1, 3, 5, 6, 8, "42"));
 
-		assertThat(streamer(s1, s2, s3).stream(null).collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45", "48"));
-		assertThat(streamer(s1, s3, s2).stream(null).collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45", "48"));
-		assertThat(streamer(s2, s1, s3).stream(null).collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45", "48"));
-		assertThat(streamer(s2, s3, s1).stream(null).collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45", "48"));
-		assertThat(streamer(s3, s1, s2).stream(null).collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45", "48"));
-		assertThat(streamer(s3, s2, s1).stream(null).collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45", "48"));
+		assertThat(streamer(s1, s2, s3).stream().collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45", "48"));
+		assertThat(streamer(s1, s3, s2).stream().collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45", "48"));
+		assertThat(streamer(s2, s1, s3).stream().collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45", "48"));
+		assertThat(streamer(s2, s3, s1).stream().collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45", "48"));
+		assertThat(streamer(s3, s1, s2).stream().collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45", "48"));
+		assertThat(streamer(s3, s2, s1).stream().collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45", "48"));
 
-		assertThat(streamer(s1, s2).stream(null).collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45", "48"));
-		assertThat(streamer(s2, s1).stream(null).collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45", "48"));
+		assertThat(streamer(s1, s2).stream().collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45", "48"));
+		assertThat(streamer(s2, s1).stream().collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45", "48"));
 
-		assertThat(streamer(s1, s3).stream(null).collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45"));
-		assertThat(streamer(s3, s1).stream(null).collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45"));
+		assertThat(streamer(s1, s3).stream().collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45"));
+		assertThat(streamer(s3, s1).stream().collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45"));
 
-		assertThat(streamer(s2, s1, s2, s1, s2, s1).stream(null).collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45", "48"));
+		assertThat(streamer(s2, s1, s2, s1, s2, s1).stream().collect(toList())).isEqualTo(ids(1, 2, 3, 5, 6, 7, 8, 9, "42", "45", "48"));
 
-		assertThat(streamer(s1).stream(null).collect(toList())).isEqualTo(ids(1, 2, 3, 5, 7, 8, 9, "42", "45"));
-		assertThat(streamer(s1, s1).stream(null).collect(toList())).isEqualTo(ids(1, 2, 3, 5, 7, 8, 9, "42", "45"));
+		assertThat(streamer(s1).stream().collect(toList())).isEqualTo(ids(1, 2, 3, 5, 7, 8, 9, "42", "45"));
+		assertThat(streamer(s1, s1).stream().collect(toList())).isEqualTo(ids(1, 2, 3, 5, 7, 8, 9, "42", "45"));
 
 	}
 
@@ -54,7 +53,7 @@ public class UnionSortedIdsStreamerTest extends ConstellioTest {
 		SortedIdsStreamer s1 = new SortedIdsStreamer() {
 
 			@Override
-			public Iterator<RecordId> iterator(MetadataIndexCacheDataStore dataStore) {
+			public Iterator<RecordId> iterator() {
 				return new LazyIterator<RecordId>() {
 
 					int value;
@@ -71,7 +70,7 @@ public class UnionSortedIdsStreamerTest extends ConstellioTest {
 		SortedIdsStreamer s2 = new SortedIdsStreamer() {
 
 			@Override
-			public Iterator<RecordId> iterator(MetadataIndexCacheDataStore dataStore) {
+			public Iterator<RecordId> iterator() {
 				return new LazyIterator<RecordId>() {
 
 					int value;
@@ -88,7 +87,7 @@ public class UnionSortedIdsStreamerTest extends ConstellioTest {
 		SortedIdsStreamer s3 = new SortedIdsStreamer() {
 
 			@Override
-			public Iterator<RecordId> iterator(MetadataIndexCacheDataStore dataStore) {
+			public Iterator<RecordId> iterator() {
 				return new LazyIterator<RecordId>() {
 
 					int value;
@@ -104,7 +103,7 @@ public class UnionSortedIdsStreamerTest extends ConstellioTest {
 
 		for (int i = 0; i < 100; i++) {
 			System.out.println(i);
-			assertThat(streamer(s1, s2, s3).hasResults(null)).isTrue();
+			assertThat(streamer(s1, s2, s3).hasResults()).isTrue();
 			System.out.println(counter);
 			counter = 0;
 		}
@@ -114,7 +113,6 @@ public class UnionSortedIdsStreamerTest extends ConstellioTest {
 	public static UnionSortedIdsStreamer streamer(SortedIdsStreamer... streamers) {
 		return new UnionSortedIdsStreamer(asList(streamers));
 	}
-
 
 	public static List<RecordId> ids(Object... idsOfVariousTypes) {
 		List<RecordId> ids = new ArrayList<>();

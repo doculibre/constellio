@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class Transaction {
 
@@ -354,8 +355,9 @@ public class Transaction {
 		}
 	}
 
-	public void addReferencedRecord(Record record) {
-		referencedRecords.put(record.getId(), record);
+	public Transaction addReferencedRecord(Supplier<Record> record) {
+		referencedRecords.put(record.get().getId(), record.get());
+		return this;
 	}
 
 	public Map<String, Record> getReferencedRecords() {

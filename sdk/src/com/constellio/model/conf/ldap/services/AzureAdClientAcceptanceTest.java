@@ -5,6 +5,8 @@ import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import com.constellio.sdk.tests.annotations.InternetTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -19,7 +21,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
+ *
  */
+@InternetTest
 public class AzureAdClientAcceptanceTest extends ConstellioTest {
 
 	@Mock
@@ -34,13 +38,14 @@ public class AzureAdClientAcceptanceTest extends ConstellioTest {
 		when(ldapServerConfiguration.getClientId()).thenReturn("69ab5806-25cf-4d80-a818-5b7cb7df1681");
 		when(ldapServerConfiguration.getTenantName()).thenReturn("adgrics.onmicrosoft.com");
 		when(ldapUserSyncConfiguration.getClientId()).thenReturn("bec3eab8-7c58-4263-b439-71ae66faa656");
-		when(ldapUserSyncConfiguration.getClientSecret()).thenReturn("keAVWBUg69oq5pVEKXw1IrPsFuQD8GU4J1D2XGj0Bx0=");
+		when(ldapUserSyncConfiguration.getClientSecret()).thenReturn("");
 
 		when(ldapUserSyncConfiguration.isGroupAccepted(any("".getClass()))).thenReturn(true);
 		when(ldapUserSyncConfiguration.isUserAccepted(any("".getClass()))).thenReturn(true);
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void testGetUserNameList()
 			throws Exception {
 		AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration);
@@ -52,6 +57,7 @@ public class AzureAdClientAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void testGetGroupNameList()
 			throws Exception {
 		AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration);
@@ -63,6 +69,7 @@ public class AzureAdClientAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void testGetGroupsAndTheirUsers()
 			throws Exception {
 		AzureAdClient.RequestHelper.maxResults = 1;
@@ -81,6 +88,7 @@ public class AzureAdClientAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void testGetUsersAndTheirGroups()
 			throws Exception {
 		AzureAdClient.RequestHelper.maxResults = 2;
@@ -100,6 +108,7 @@ public class AzureAdClientAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void testAuthenticiate()
 			throws Exception {
 		new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration)

@@ -16,7 +16,6 @@ import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
-import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
+import static org.junit.Assume.assumeTrue;
 
 public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 
@@ -62,7 +62,7 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 			public void alter(InMemoryDataLayerConfiguration configuration) {
 				configuration.setSecondTransactionLogEnabled(true);
 				configuration.setSecondTransactionLogMode(SecondTransactionLogType.KAFKA);
-				configuration.setSecondTransactionLogMergeFrequency(Duration.standardSeconds(5));
+				configuration.setSecondTransactionLogMergeFrequency(Duration.standardMinutes(5));
 				configuration.setSecondTransactionLogBackupCount(3);
 				configuration.setReplayTransactionStartVersion(0L);
 				configuration.setKafkaServers("localhost:9092");
@@ -80,7 +80,7 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 	}
 
 	// @LoadTest
-	@Test
+	//@Test
 	public void whenMultipleThreadsAreAdding5000RecordsThenAllRecordsAreLogged()
 			throws Exception {
 		runAdding(2000000);
@@ -172,5 +172,9 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 		// }
 		//
 		// verify(log, never()).prepare(anyString(), any(BigVaultServerTransaction.class));
+	}
+
+	private void assumeKafkaConfigured() {
+		assumeTrue("Kafka", false);
 	}
 }

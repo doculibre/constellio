@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 public class AllowedReferencesValidatorTest extends ConstellioTest {
@@ -116,7 +119,8 @@ public class AllowedReferencesValidatorTest extends ConstellioTest {
 		when(metadataWithAlistOfReference.getAllowedReferences()).thenReturn(oneAllowedReferences);
 		when(metadataWithAChildOfReference.getAllowedReferences()).thenReturn(oneAllowedReferences);
 
-		validator = new AllowedReferencesValidator(schemaTypes, metadatas, recordProvider, false);
+		validator = spy(new AllowedReferencesValidator(schemaTypes, metadatas, recordProvider, false));
+		doReturn(true).when(validator).possibleProblemsDetectedUsingCache(any(Record.class), any(Metadata.class));
 	}
 
 	@Test

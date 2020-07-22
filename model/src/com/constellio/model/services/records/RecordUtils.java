@@ -19,7 +19,6 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.schemas.MetadataListFilter;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 import com.constellio.model.utils.DependencyUtils;
@@ -39,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
@@ -260,7 +260,7 @@ public class RecordUtils {
 			keyListMap.add(schemaUtils.getSchemaTypeCode(record.getSchemaCode()), record);
 		}
 
-		List<String> typesSortedByDependency = schemaTypes.getSchemaTypesSortedByDependency();
+		List<String> typesSortedByDependency = schemaTypes.getSchemaTypesCodesSortedByDependency();
 		for (String schemaTypeCode : typesSortedByDependency) {
 			MetadataSchemaType type = schemaTypes.getSchemaType(schemaTypeCode);
 			List<Record> records = keyListMap.get(schemaTypeCode);
@@ -596,12 +596,9 @@ public class RecordUtils {
 		Set<String> idsWithPossibleRemovedChildren = new HashSet<>();
 		for (Record record : records) {
 
-			List<Metadata> metadatas = record.getModifiedMetadatas(types).only(new MetadataListFilter() {
-				@Override
-				public boolean isReturned(Metadata metadata) {
-					return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
-				}
-			});
+			List<Metadata> metadatas = record.getModifiedMetadataList(types).stream().filter((m) -> {
+				return m.isTaxonomyRelationship() || m.isChildOfRelationship();
+			}).collect(Collectors.toList());
 
 			for (Metadata metadata : metadatas) {
 				for (String newReference : record.<String>getValues(metadata)) {
@@ -684,18 +681,15 @@ public class RecordUtils {
 		List<String> ids = new ArrayList<>();
 
 		Record record = recordProvider.getRecordSummary(newReference);
+
 		if (record.isSaved()) {
 			if (!collectedIds.contains(record.getId())) {
 				ids.add(record.getId());
 				collectedIds.add(record.getId());
-				List<Metadata> metadatas = types.getSchemaOf(record).getMetadatas().only(new MetadataListFilter() {
-					@Override
-					public boolean isReturned(Metadata metadata) {
-						return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
-					}
-				});
+			}
 
-				for (Metadata metadata : metadatas) {
+			for (Metadata metadata : types.getSchemaOf(record).getMetadatas()) {
+				if (metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship()) {
 					for (String aReference : record.<String>getValues(metadata)) {
 						if (!ids.contains(aReference)) {
 							ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider, collectedIds));
@@ -704,6 +698,7 @@ public class RecordUtils {
 				}
 			}
 		}
+
 		return ids;
 	}
 
@@ -796,49 +791,6 @@ public class RecordUtils {
 		}
 
 		throw new ImpossibleRuntimeException("Invalid key : " + key);
-	}
-
-	public static String toStringId(int intId) {
-
-		//Since this transformation is done very often, we are using this faster approach instead of StringUtils.leftPad
-
-		if (intId < 10_000) {
-			if (intId < 0) {
-				throw new IllegalArgumentException("Negative ids are not supported");
-
-			} else if (intId < 10) {
-				return "0000000000" + intId;
-
-			} else if (intId < 100) {
-				return "000000000" + intId;
-
-			} else if (intId < 1000) {
-				return "00000000" + intId;
-
-			} else {
-				return "0000000" + intId;
-			}
-		} else {
-			if (intId < 100_000) {
-				return "000000" + intId;
-
-			} else if (intId < 1_000_000) {
-				return "00000" + intId;
-
-			} else if (intId < 10_000_000) {
-				return "0000" + intId;
-
-			} else if (intId < 100_000_000) {
-				return "000" + intId;
-
-			} else if (intId < 1_000_000_000) {
-				return "00" + intId;
-
-			} else {
-				return "0" + intId;
-			}
-		}
-
 	}
 
 	public static List<Record> compareRecords(List<Record> records, List<Metadata> comparedMetadatas) {

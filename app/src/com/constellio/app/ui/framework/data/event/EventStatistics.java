@@ -5,9 +5,14 @@ import java.io.Serializable;
 public class EventStatistics implements Serializable {
 	private String label;
 	private Float value;
+	private String type;
 
 	public void setLabel(String label) {
 		this.label = label;
+	}
+
+	public String getLabel() {
+		return label;
 	}
 
 	public Float getValue() {
@@ -18,8 +23,11 @@ public class EventStatistics implements Serializable {
 		this.value = value;
 	}
 
-	public String getLabel() {
+	public void setType(String type) {
+		this.type = type;
+	}
 
-		return label;
+	public String getType() {
+		return this.type;
 	}
 }

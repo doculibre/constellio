@@ -8,6 +8,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
@@ -49,6 +50,16 @@ public class EventFactory {
 		setDefaultMetadata(event, user);
 		event.setIp(user.getLastIPAddress());
 		event.setType(EventType.OPEN_SESSION);
+		return event;
+	}
+
+	public Event newFailedLoginEvent(String username, String ip) {
+		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+		Event event = schemasRecords.newEvent();
+		event.setCreatedOn(TimeProvider.getLocalDateTime());
+		event.setUsername(username);
+		event.setIp(ip);
+		event.setType(EventType.ATTEMPTED_OPEN_SESSION);
 		return event;
 	}
 
@@ -120,7 +131,8 @@ public class EventFactory {
 
 	private void setRecordMetadata(Event event, Record record) {
 		event.setRecordId(record.getId());
-		String principalPath = record.get(Schemas.PRINCIPAL_PATH);
+		String principalPath = record.get(metadataSchemasManager.getSchemaOf(record).get(Schemas.PRINCIPAL_PATH.getLocalCode()));
+
 		event.setEventPrincipalPath(principalPath);
 		Object title = record.get(Schemas.TITLE);
 		if (title != null) {
@@ -131,7 +143,7 @@ public class EventFactory {
 	private void setDefaultMetadata(Event event, User user) {
 		event.setUsername(user.getUsername());
 		List<String> roles = user.getAllRoles();
-		event.setUserRoles(StringUtils.join(roles.toArray(), "; "));
+		//event.setUserRoles(StringUtils.join(roles.toArray(), "; "));
 		event.setCreatedOn(TimeProvider.getLocalDateTime());
 		String ipAddress = user.getLastIPAddress();
 		event.setIp(ipAddress);
@@ -148,7 +160,8 @@ public class EventFactory {
 		String recordSchemaType = schemaUtils.getSchemaTypeCode(recordSchema);
 
 		if (record.isSaved()) {
-			if (record.isModified(Schemas.LOGICALLY_DELETED_STATUS)) {
+			if (record.isModified(Schemas.LOGICALLY_DELETED_STATUS)
+				|| record.isModified(Schemas.LOGICALLY_DELETED_ON)) {
 				event.setType(EventType.DELETE + "_" + recordSchemaType);
 			} else {
 				event.setType(EventType.MODIFY + "_" + recordSchemaType);

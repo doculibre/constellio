@@ -100,5 +100,9 @@ public abstract class BaseBreadcrumbTrail extends CustomComponent implements Bre
 		return ConstellioUI.getCurrent().navigate();
 	}
 
+	public void click(BreadcrumbItem item) {
+		itemClick(item);
+	}
+
 	protected abstract void itemClick(BreadcrumbItem item);
 }

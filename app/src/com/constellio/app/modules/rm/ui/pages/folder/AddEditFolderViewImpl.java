@@ -13,6 +13,7 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.Layout;
+import com.vaadin.ui.VerticalLayout;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -23,6 +24,8 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 	private FolderFormImpl recordForm;
 
 	private AddEditFolderPresenter presenter;
+
+	private VerticalLayout mainComponent;
 
 	public AddEditFolderViewImpl() {
 		this(null);
@@ -90,11 +93,31 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 		return true;
 	}
 
+	protected boolean isSaveConfirmationMessage() {
+		return true;
+	}
+
 	protected FolderFormImpl newForm() {
-		recordForm = new FolderFormImpl(recordVO) {
+		recordForm = new FolderFormImpl(recordVO, getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject) {
 				presenter.saveButtonClicked();
+			}
+
+			@Override
+			public void forceCancelSaveOfForm(ForceCancelSaveOfFormParams forceCancelSaveOfFormParams) {
+				if (presenter.isMainCategoryEnteredAutomaticlyAssigned(forceCancelSaveOfFormParams.getRecord())) {
+					forceCancelSaveOfFormParams.doNotShowConfirmationMessage();
+				}
+			}
+
+			@Override
+			public SaveAction showConfirmationMessage() {
+				if (isSaveConfirmationMessage()) {
+					return super.showConfirmationMessage();
+				} else {
+					return SaveAction.undefined;
+				}
 			}
 
 			@Override
@@ -104,6 +127,9 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 				} else {
 					for (Field field : fieldGroup.getFields()) {
 						field.setRequired(false);
+						if (!field.isValid()) {
+							return true;
+						}
 					}
 					return false;
 				}
@@ -125,7 +151,12 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 				if (field != null) {
 					boolean wasVisible = field.isVisible();
 					if (wasVisible != visible) {
-						field.setVisible(visible);
+						Layout layout = recordForm.getFieldLayout(field);
+
+						if (layout != null) {
+							field.setVisible(visible);
+							layout.setVisible(visible);
+						}
 					}
 				}
 			}
@@ -166,9 +197,16 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 		return recordForm;
 	}
 
+
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		return newForm();
+		mainComponent = new VerticalLayout();
+		mainComponent.addStyleName("add-edit-folder-main-component");
+		mainComponent.setWidth("100%");
+
+		recordForm = newForm();
+		mainComponent.addComponent(recordForm);
+		return mainComponent;
 	}
 
 	@Override

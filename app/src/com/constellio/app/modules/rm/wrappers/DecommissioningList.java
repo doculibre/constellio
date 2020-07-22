@@ -34,7 +34,7 @@ public class DecommissioningList extends RecordWrapper {
 	public static final String ANALOGICAL_MEDIUM = "analogicalMedium";
 	public static final String ELECTRONIC_MEDIUM = "electronicMedium";
 	public static final String APPROVAL_REQUEST_DATE = "approvalRequestDate";
-	public static final String APPROVAL_REQUEST = "approvalRequest";
+	public static final String APPROVAL_REQUESTER = "approvalRequest";
 	public static final String APPROVAL_DATE = "approvalDate";
 	public static final String APPROVAL_USER = "approvalUser";
 	public static final String PROCESSING_DATE = "processingDate";
@@ -52,12 +52,14 @@ public class DecommissioningList extends RecordWrapper {
 	public static final String UNIFORM_RULE = "uniformRule";
 	public static final String UNIFORM = "uniform";
 	public static final String ORIGIN_ARCHIVISTIC_STATUS = "originArchivisticStatus";
+	public static final String VALIDATION_REQUESTER = "validationRequester";
 	public static final String VALIDATIONS = "validations";
 	public static final String PENDING_VALIDATIONS = "pendingValidations";
 	public static final String COMMENTS = "comments";
 	public static final String DOCUMENTS_REPORT_CONTENT = "documentsReportContent";
 	public static final String FOLDERS_REPORT_CONTENT = "foldersReportContent";
 	public static final String CONTENTS = "contents";
+	public static final String CURRENT_BATCH_PROCESS_ID = "currentBatchProcess";
 
 	// Disabled fields
 	public static final String VALIDATION_DATE = "validationDate";    // never used, disabled in 5.1.0
@@ -133,6 +135,26 @@ public class DecommissioningList extends RecordWrapper {
 		return this;
 	}
 
+	//Validation Requester
+	public String getValidationRequester() {
+		return get(VALIDATION_REQUESTER);
+	}
+
+	public DecommissioningList setValidationRequester(String validationRequester) {
+		set(VALIDATION_REQUESTER, validationRequester);
+		return this;
+	}
+
+	public DecommissioningList setValidationRequester(Record validationRequester) {
+		set(VALIDATION_REQUESTER, validationRequester);
+		return this;
+	}
+
+	public DecommissioningList setValidationRequester(User validationRequester) {
+		set(VALIDATION_REQUESTER, validationRequester);
+		return this;
+	}
+
 	//Validations
 	public List<DecomListValidation> getValidations() {
 		return getList(VALIDATIONS);
@@ -178,23 +200,23 @@ public class DecommissioningList extends RecordWrapper {
 		return this;
 	}
 
-	//ApprovalRequest
-	public String getApprovalRequest() {
-		return get(APPROVAL_REQUEST);
+	//ApprovalRequester
+	public String getApprovalRequester() {
+		return get(APPROVAL_REQUESTER);
 	}
 
-	public DecommissioningList setApprovalRequest(String approvalRequest) {
-		set(APPROVAL_REQUEST, approvalRequest);
+	public DecommissioningList setApprovalRequester(String approvalRequester) {
+		set(APPROVAL_REQUESTER, approvalRequester);
 		return this;
 	}
 
-	public DecommissioningList setApprovalRequest(Record approvalRequest) {
-		set(APPROVAL_REQUEST, approvalRequest);
+	public DecommissioningList setApprovalRequester(Record approvalRequester) {
+		set(APPROVAL_REQUESTER, approvalRequester);
 		return this;
 	}
 
-	public DecommissioningList setApprovalRequest(User approvalRequest) {
-		set(APPROVAL_REQUEST, approvalRequest);
+	public DecommissioningList setApprovalRequester(User approvalRequester) {
+		set(APPROVAL_REQUESTER, approvalRequester);
 		return this;
 	}
 
@@ -225,6 +247,15 @@ public class DecommissioningList extends RecordWrapper {
 
 	public DecommissioningList setApprovalUser(User approvalUser) {
 		set(APPROVAL_USER, approvalUser);
+		return this;
+	}
+
+	public String getCurrentBatchProcessId() {
+		return get(CURRENT_BATCH_PROCESS_ID);
+	}
+
+	public DecommissioningList setCurrentBatchProcessId(String batchProcessId) {
+		set(CURRENT_BATCH_PROCESS_ID, batchProcessId);
 		return this;
 	}
 

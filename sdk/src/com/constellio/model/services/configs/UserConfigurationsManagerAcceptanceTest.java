@@ -7,7 +7,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.structures.TableProperties;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +19,7 @@ import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class UserConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 	private String anotherCollection = "anotherCollection";

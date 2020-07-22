@@ -38,6 +38,8 @@ public class EventType {
 
 	public static final String CLOSE_SESSION = "close_session";
 
+	public static final String ATTEMPTED_OPEN_SESSION = "attempted_open_session";
+
 	public static final String VIEW_FOLDER = "view_folder";
 
 	public static final String VIEW_DOCUMENT = "view_document";

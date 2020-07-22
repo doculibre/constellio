@@ -1,13 +1,13 @@
 package com.constellio.model.services.records.cache.offHeapCollections;
 
-import com.constellio.model.services.records.IntegerRecordId;
-import com.constellio.model.services.records.RecordId;
+import com.constellio.data.dao.dto.records.IntegerRecordId;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.RecordUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.constellio.model.services.records.RecordUtils.toStringId;
+import static com.constellio.data.dao.dto.records.RecordDTOUtils.toStringId;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.SortedIntIdsList_ID;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.allocateMemory;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.copyAdding;
@@ -26,6 +26,17 @@ public class SortedIntIdsList implements SortedIdsList {
 	int size;
 
 	short capacity;
+
+
+	@Override
+	public synchronized void add(RecordId id) {
+		if (id.isInteger()) {
+			add(id.intValue());
+
+		} else {
+			throw new UnsupportedOperationException("List does not support legacy String ids");
+		}
+	}
 
 	@Override
 	public synchronized void add(String id) {
@@ -82,6 +93,13 @@ public class SortedIntIdsList implements SortedIdsList {
 
 
 	@Override
+	public synchronized void remove(RecordId id) {
+		if (id.isInteger()) {
+			remove(id.intValue());
+		}
+	}
+
+	@Override
 	public synchronized void remove(String id) {
 		int intId = RecordUtils.toIntKey(id);
 		if (intId != RecordUtils.KEY_IS_NOT_AN_INT) {
@@ -113,6 +131,11 @@ public class SortedIntIdsList implements SortedIdsList {
 		address = 0;
 		size = 0;
 		capacity = 0;
+	}
+
+	@Override
+	public boolean isSupportingLegacyId() {
+		return false;
 	}
 
 	@Override

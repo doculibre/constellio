@@ -58,6 +58,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static com.constellio.data.dao.services.contents.ContentDao.MoveToVaultOption.ONLY_IF_INEXISTING;
+
 public class PdfGeneratorAsyncTask implements AsyncTask {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PdfGeneratorAsyncTask.class);
@@ -192,7 +194,6 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 					if (contentManager.hasContentPreview(hash)) {
 						documentPreviewIn = contentManager.getContentPreviewInputStream(hash, getClass().getSimpleName() + hash + ".PdfGenerator");
 					} else {
-
 						// The document's preview is about to be generated
 						record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, true);
 						try {
@@ -299,14 +300,24 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 		Map<String, Object> messageParams = new HashMap<>();
 		messageParams.put("id", document.getId());
 		messageParams.put("messageKey", message);
-		params.logError(document.getId(), messageParams);
+
+		if (params instanceof PdfGeneratorMergeTaskParam) {
+			((PdfGeneratorMergeTaskParam) params).throwError(document.getId(), messageParams);
+		} else {
+			params.logError(document.getId(), messageParams);
+		}
 	}
 
 	private void logGlobalError(AsyncTaskExecutionParams params, String message) throws ValidationException {
 		Map<String, Object> messageParams = new HashMap<>();
 		messageParams.put("id", GLOBAL_ERROR_KEY);
 		messageParams.put("messageKey", message);
-		params.logError(GLOBAL_ERROR_KEY, messageParams);
+
+		if (params instanceof PdfGeneratorMergeTaskParam) {
+			((PdfGeneratorMergeTaskParam) params).throwError(GLOBAL_ERROR_KEY, messageParams);
+		} else {
+			params.logError(GLOBAL_ERROR_KEY, messageParams);
+		}
 	}
 
 	@Override
@@ -437,7 +448,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 		try {
 			inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION);
 			File file = conversionManager.convertToPDF(inputStream, filename, tempFolder);
-			contentDao.moveFileToVault(file, hash + ".preview");
+			contentDao.moveFileToVault(hash + ".preview", file, ONLY_IF_INEXISTING);
 		} catch (Throwable t) {
 			LOGGER.warn("Cannot convert content '" + filename + "' with hash '" + hash + "'", t);
 		} finally {

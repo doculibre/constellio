@@ -9,7 +9,6 @@ import com.constellio.model.services.search.SearchServiceAcceptanceTestSchemas;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.internal.AssumptionViolatedException;
@@ -20,7 +19,7 @@ import java.util.Arrays;
 
 import static org.mockito.Mockito.spy;
 
-@SlowTest
+// Confirm @SlowTest
 public class SolrSafeConstellioAcceptanceTest extends ConstellioTest {
 	private static Logger LOGGER = LoggerFactory.getLogger(SolrSafeConstellioAcceptanceTest.class);
 	protected SearchServiceAcceptanceTestSchemas schema = new SearchServiceAcceptanceTestSchemas(zeCollection);

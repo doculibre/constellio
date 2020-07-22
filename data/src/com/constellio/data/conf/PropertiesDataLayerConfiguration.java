@@ -1,15 +1,19 @@
 package com.constellio.data.conf;
 
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.Duration;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 import static com.constellio.data.conf.SolrServerType.HTTP;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 
 public class PropertiesDataLayerConfiguration extends PropertiesConfiguration implements DataLayerConfiguration {
 
@@ -184,6 +188,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return (SolrServerType) getRequiredEnum(RECORD_TYPE, SolrServerType.class);
 	}
 
+	@Override
+	public boolean isCopyingRecordsInSearchCollection() {
+		return getBoolean("dao.records.copyInSearchCollection", false);
+	}
+
 	public String getRecordsDaoHttpSolrServerUrl() {
 		return getRequiredString("dao.records.http.url");
 	}
@@ -194,6 +203,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	public boolean isRecordsDaoHttpSolrServerFaultInjectionEnabled() {
 		return getBoolean("dao.records.http.faultInjection", false);
+	}
+
+	@Override
+	public boolean useSolrTupleStreamsIfSupported() {
+		return getBoolean("dao.records.useTuppleStreamsIfSupported", true);
 	}
 
 	public ContentDaoType getContentDaoType() {
@@ -247,6 +261,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
+	public int getSequentialIdReservedBatchSize() {
+		return getInt("idGenerator.sequential.reservedBatchSize", 1000);
+	}
+
+	@Override
 	public IdGeneratorType getSecondaryIdGeneratorType() {
 		return (IdGeneratorType) getEnum("secondaryIdGenerator.type", IdGeneratorType.UUID_V1);
 	}
@@ -263,7 +282,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	@Override
 	public SecondTransactionLogType getSecondTransactionLogMode() {
-		return (SecondTransactionLogType) getRequiredEnum("secondTransactionLog.mode", SecondTransactionLogType.class);
+		return (SecondTransactionLogType) getEnum("secondTransactionLog.mode", SecondTransactionLogType.XML);
 	}
 
 	@Override
@@ -278,6 +297,12 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	@Override
 	public CacheType getCacheType() {
 		return (CacheType) getEnum("dao.cache", CacheType.MEMORY);
+	}
+
+	@Override
+	public List<String> getSubvaults() {
+		String commaSeparatedSubvaults = getString("dao.contents.filesystem.subvaults", null);
+		return StringUtils.isBlank(commaSeparatedSubvaults) ? emptyList() : asList(commaSeparatedSubvaults.split(","));
 	}
 
 	@Override
@@ -341,6 +366,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return getBoolean("writeZZRecords", false);
 	}
 
+
 	@Override
 	public HashingEncoding getHashingEncoding() {
 		return (HashingEncoding) getEnum("hashing.encoding", HashingEncoding.BASE64);
@@ -361,6 +387,16 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	@Override
 	public boolean isInRollbackTestMode() {
 		return getBoolean("secondTransactionLog.checkRollback", false);
+	}
+
+	@Override
+	public boolean isAsyncSQLSecondTransactionLogInsertion() {
+		return getBoolean("secondTransactionLog.sql.async", true);
+	}
+
+	@Override
+	public boolean isReplaySQLSecondTransactionLogDuringOfficeHours() {
+		return getBoolean("secondTransactionLog.sql.replayTransactionsDuringOfficeHours", false);
 	}
 
 	@Override
@@ -410,6 +446,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
+	public boolean areTiffFilesConvertedForPreview() {
+		return getBoolean("conversion.tiffConversion.enabled", true);
+	}
+
+	@Override
 	public String getMicrosoftSqlServerUrl() {
 		return getString("sql.server.url", null);
 	}
@@ -444,10 +485,6 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return getInt("sql.server.loginTimeout", 0);
 	}
 
-	@Override
-	public boolean areTiffFilesConvertedForPreview() {
-		return getBoolean("conversion.tiffConversion.enabled", true);
-	}
 
 	@Override
 	public int getSolrMinimalReplicationFactor() {
@@ -463,4 +500,5 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	public boolean isSystemDistributed() {
 		return getElectionServiceType() != ElectionServiceType.STANDALONE;
 	}
+
 }

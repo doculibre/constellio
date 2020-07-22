@@ -194,8 +194,7 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenSearchTasksAssignedToCharlesThenReturnTaskWithCharlesInAssignationGroupCandidates()
-			throws Exception {
+	public void whenSearchTasksAssignedToCharlesThenReturnTaskWithCharlesInAssignationGroupCandidates() {
 		List<Record> results = searchServices
 				.search(tasksSearchServices.getTasksAssignedToUserQuery(charles));
 		assertThat(results.size()).isEqualTo(1);
@@ -203,8 +202,7 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenBobWhenSearchRecentlyCompletedTasksThenReturnCompletedTasksVisibleToBob()
-			throws Exception {
+	public void givenBobWhenSearchRecentlyCompletedTasksThenReturnCompletedTasksVisibleToBob() {
 		List<Record> results = searchServices
 				.search(tasksSearchServices.getRecentlyCompletedTasks(bob));
 		assertThat(results.size()).isEqualTo(1);
@@ -213,8 +211,17 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenBobWhenSearchRecentlyClosedTasksThenReturnClosedTasksVisibleToBob()
-			throws Exception {
+	public void givenBobWhenSearchRecentlyClosedTasksThenReturnClosedTasksVisibleToBob() {
+		List<Record> results = searchServices
+				.search(tasksSearchServices.getRecentlyClosedTasks(bob));
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results).extracting("title")
+				.containsAll(asList("taskAssignedByBobToChuckClosed"));
+	}
+
+	@Test
+	public void whenSearchRecentlyCompletedTasksByChuckThenThenReturnAllCompletedTasksVisibleToChuck() {
 		List<Record> results = searchServices
 				.search(tasksSearchServices.getRecentlyClosedTasks(bob));
 		assertThat(results.size()).isEqualTo(1);
@@ -228,17 +235,17 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 		List<Record> completed = searchServices
 				.search(tasksSearchServices.getRecentlyCompletedTasks(chuck));
 		assertThat(completed.size()).isEqualTo(2);
-		assertThat(completed).extracting("title")
-				.containsAll(asList("taskAssignedByChuckToAliceFinished", "taskAssignedByBobToChuckFinished"));
+		assertThat(completed).extracting("title").containsAll(asList(
+				"taskAssignedByChuckToAliceFinished", "taskAssignedByBobToChuckFinished"));
 	}
 
 	@Test
-	public void whenSearchRecentlyClosedTasksByChuckThenReturnAllClosedTaskVisibleToChuck() {
-		List<Record> completed = searchServices
+	public void whenSearchRecentlyClosedTasksByChuckThenThenReturnAllClosedTasksVisibleToChuck() {
+		List<Record> results = searchServices
 				.search(tasksSearchServices.getRecentlyClosedTasks(chuck));
-		assertThat(completed.size()).isEqualTo(2);
-		assertThat(completed).extracting("title")
-				.containsAll(asList("taskAssignedByChuckToAliceClosed", "taskAssignedByBobToChuckClosed"));
+		assertThat(results.size()).isEqualTo(2);
+		assertThat(results).extracting("title").containsAll(asList("taskAssignedByChuckToAliceClosed",
+				"taskAssignedByBobToChuckClosed"));
 	}
 
 	@Test

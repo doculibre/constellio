@@ -1,6 +1,7 @@
 package com.constellio.app.services.records;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
@@ -68,9 +69,9 @@ public class SavedSearchRecordsCachesHook implements RecordsCachesHook {
 	}
 
 	@Override
-	public Record getById(String id) {
+	public Record getById(RecordId id) {
 		for (Record aSavedSearch : lastSavedSearches) {
-			if (aSavedSearch != null && aSavedSearch.getId().equals(id)) {
+			if (aSavedSearch != null && aSavedSearch.getId().equals(id.stringValue())) {
 				return aSavedSearch.getCopyOfOriginalRecord();
 			}
 		}

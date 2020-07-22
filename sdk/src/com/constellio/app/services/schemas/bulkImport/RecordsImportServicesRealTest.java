@@ -19,6 +19,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
@@ -277,7 +278,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		prepareSystem(
-				withZeCollection().withAllTest(users)
+				withZeCollection()
+						.withAllTest(users)
 		);
 		givenConfig(ConstellioEIMConfigs.LEGACY_IDENTIFIER_INDEXED_IN_MEMORY, true);
 		admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
@@ -285,6 +287,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		data.put(zeSchema.typeCode(), zeSchemaTypeRecords);
 		data.put(anotherSchema.typeCode(), anotherSchemaTypeRecords);
 		data.put(thirdSchema.typeCode(), thirdSchemaTypeRecords);
+
 		importDataProvider = new DummyImportDataProvider(data);
 
 		contentManager = getModelLayerFactory().getContentManager();
@@ -806,6 +809,45 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			assertThat(frenchMessages(e)).containsOnly(
 					"Ze type de schéma 4 : La métadonnée «parentReferenceFromZeSchemaToZeSchema» utilise une métadonnée «invalidMetadata» qui n'existe pas ou qui n'est pas acceptée pour obtenir un enregistrement référencé",
 					"Ze type de schéma 5 : La métadonnée «parentReferenceFromZeSchemaToZeSchema» utilise une métadonnée «otherInvalidMetadata» qui n'existe pas ou qui n'est pas acceptée pour obtenir un enregistrement référencé");
+		}
+	}
+
+
+	@Test
+	public void givenAnImportedAuthorizationRecordWithInvalidTargetIdThenValidationErrorThrown()
+			throws Exception {
+		final String INVALID_TARGET_ID = "invalid_target_id";
+		final String VALID_TARGET_ID = "valid_target_id";
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata(whichIsUnique)
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+		);
+
+		ImportDataBuilder authorizationWithValidTarget = defaultSchemaData().setId("1")
+				.addField("roles", Arrays.asList("U"))
+				.addField(Authorization.TARGET_SCHEMA_TYPE, zeSchema.typeCode())
+				.addField("target", VALID_TARGET_ID);
+
+		ImportDataBuilder authorizationWithInvalidTarget = defaultSchemaData().setId("2")
+				.addField("roles", Arrays.asList("U"))
+				.addField(Authorization.TARGET_SCHEMA_TYPE, zeSchema.typeCode())
+				.addField("target", INVALID_TARGET_ID);
+
+		ImportDataBuilder targetRecord = defaultSchemaData().setId(VALID_TARGET_ID);
+
+		importDataProvider.add(zeSchema.typeCode(), targetRecord);
+		importDataProvider.add(Authorization.SCHEMA_TYPE, authorizationWithValidTarget);
+		importDataProvider.add(Authorization.SCHEMA_TYPE, authorizationWithInvalidTarget);
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin);
+			fail("An exception was expected");
+		} catch (ValidationException e) {
+			assertThat(recordServices.getRecordsById(zeCollection, Arrays.asList(VALID_TARGET_ID, INVALID_TARGET_ID))).isEmpty();
+			assertThat(frenchMessages(e))
+					.containsOnly("Autorisation 2 : L'enregistrement avec l'ancien identfiant «invalid_target_id» ciblé par l'autorisation n'existe pas.");
 		}
 	}
 

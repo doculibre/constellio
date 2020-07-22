@@ -1,6 +1,7 @@
 package com.constellio.model.services.batch.controller;
 
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.services.Stats;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.threads.ConstellioThread;
 import com.constellio.data.utils.BatchBuilderIterator;
@@ -37,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
@@ -102,7 +104,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		}
 	}
 
-	void process()
+	private void process()
 			throws Exception {
 
 		if (modelLayerFactory.getDataLayerFactory().getLeaderElectionService().isCurrentNodeLeader()
@@ -111,7 +113,10 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			//	&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()
 		) {
 			final BatchProcess batchProcess = batchProcessesManager.getCurrentBatchProcess();
+
 			if (batchProcess != null) {
+				Stats.CallStatCompiler callStatCompiler = Stats.compilerFor(batchProcess.getClass().getSimpleName());
+				long start = new Date().getTime();
 				try {
 					final BatchProcessState state = new BatchProcessState();
 					if (batchProcess instanceof RecordBatchProcess) {
@@ -152,6 +157,12 @@ public class BatchProcessControllerThread extends ConstellioThread {
 							}
 
 							@Override
+							public void resetProgression() {
+								state.setCurrentlyProcessed(0);
+								batchProcessesManager.updateBatchProcessState(batchProcess.getId(), state);
+							}
+
+							@Override
 							public void setProgressionUpperLimit(long progressionUpperLimit) {
 								state.setTotalToProcess(progressionUpperLimit);
 								batchProcessesManager.updateBatchProcessState(batchProcess.getId(), state);
@@ -172,8 +183,11 @@ public class BatchProcessControllerThread extends ConstellioThread {
 				} catch (Exception e) {
 					batchProcessesManager.markAsFinished(batchProcess, 1);
 					throw e;
+				} finally {
+					callStatCompiler.logCall(new Date().getTime() - start);
 				}
 			}
+
 		}
 		waitUntilNotified();
 	}

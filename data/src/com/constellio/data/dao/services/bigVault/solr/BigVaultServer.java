@@ -68,8 +68,14 @@ public class BigVaultServer implements Cloneable {
 	private static final int HTTP_ERROR_404_NOT_FOUND = 404;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(BigVaultServer.class);
-	public static int MAX_FAIL_ATTEMPT = 10;
-	private final int waitedMillisecondsBetweenAttempts = 500;
+
+	private static final int NORMAL_RESILIENCE_MODE_ATTEMPTS = 10;
+
+	//First 40 attempts should take about 30 minutes, the next 24 attempts will take about 120 min (5 minutes each)
+	private static final int HIGH_RESILIENCE_MODE_ATTEMPTS = 40 + 24;
+
+	private static int MAX_FAIL_ATTEMPT = NORMAL_RESILIENCE_MODE_ATTEMPTS;
+
 	private BigVaultLogger bigVaultLogger;
 	private DataLayerSystemExtensions extensions;
 	private DataLayerConfiguration configurations;
@@ -111,17 +117,28 @@ public class BigVaultServer implements Cloneable {
 		this.listeners.add(listener);
 	}
 
+	private static String cachedVersion;
+
 	public String getVersion() {
-		SolrRequest request = new GenericSolrRequest(SolrRequest.METHOD.GET, "/admin/system", new ModifiableSolrParams());
-		try {
-			NamedList<Object> response = server.request(request);
-			NamedList<Object> luceneResponse = (NamedList<Object>) response.get("lucene");
-			return luceneResponse.get("solr-spec-version").toString();
-		} catch (SolrServerException | IOException e) {
-			throw new SolrInternalError(e);
-		} catch (NullPointerException e) {
+
+		if (cachedVersion == null) {
+			synchronized (this) {
+				if (cachedVersion == null) {
+					SolrRequest request = new GenericSolrRequest(SolrRequest.METHOD.GET, "/admin/system", new ModifiableSolrParams());
+					try {
+						NamedList<Object> response = server.request(request);
+						NamedList<Object> luceneResponse = (NamedList<Object>) response.get("lucene");
+						cachedVersion = luceneResponse.get("solr-spec-version").toString();
+					} catch (Throwable t) {
+						t.printStackTrace();
+						cachedVersion = "";
+					}
+
+				}
+			}
 		}
-		return "";
+
+		return cachedVersion;
 	}
 
 	public void unregisterListener(BigVaultServerListener listener) {
@@ -156,6 +173,7 @@ public class BigVaultServer implements Cloneable {
 			throws BigVaultException.CouldNotExecuteQuery {
 		int currentAttempt = 0;
 		long start = new Date().getTime();
+
 		final QueryResponse response = tryQuery(params, currentAttempt);
 		if (response.getResults() != null) {
 			final int resultsSize = response.getResults().size();
@@ -163,7 +181,7 @@ public class BigVaultServer implements Cloneable {
 		long end = new Date().getTime();
 
 		final long qtime = end - start;
-		extensions.afterQuery(params, queryName, qtime, response.getResults() == null ? 0 : response.getResults().size());
+		extensions.afterQuery(params, queryName, qtime, response.getResults() == null ? 0 : response.getResults().size(), response.getDebugMap());
 
 		for (BigVaultServerListener listener : this.listeners) {
 			if (listener instanceof BigVaultServerQueryListener) {
@@ -254,9 +272,10 @@ public class BigVaultServer implements Cloneable {
 	private QueryResponse handleQueryException(SolrParams params, int currentAttempt, Exception solrServerException)
 			throws BigVaultException.CouldNotExecuteQuery {
 		if (currentAttempt < MAX_FAIL_ATTEMPT) {
+			int sleep = waitedMillisecondsBeforeNextAttempt(currentAttempt);
 			LOGGER.warn("Solr thrown an unexpected exception, retrying the query '{}' in {} milliseconds...",
-					SolrUtils.toString(params), waitedMillisecondsBetweenAttempts, solrServerException);
-			sleepBeforeRetrying(solrServerException);
+					SolrUtils.toString(params), sleep, solrServerException);
+			sleepBeforeRetrying(sleep);
 
 			return tryQuery(params, currentAttempt + 1);
 		} else {
@@ -315,13 +334,13 @@ public class BigVaultServer implements Cloneable {
 
 			} catch (RemoteSolrException | RouteException solrServerException) {
 				int code = getExceptionCode(solrServerException);
-				return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt + 1, solrServerException, code);
+				return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt, solrServerException, code);
 
 			} catch (SolrServerException | IOException e) {
 				if (e.getCause() != null && e.getCause() instanceof RemoteSolrException) {
 					RemoteSolrException remoteSolrException = (RemoteSolrException) e.getCause();
 					int code = getExceptionCode(remoteSolrException);
-					return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt + 1, remoteSolrException,
+					return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt, remoteSolrException,
 							code);
 				}
 
@@ -376,10 +395,11 @@ public class BigVaultServer implements Cloneable {
 			throw new SolrInternalError(transaction, exception);
 
 		} else {
+			int sleep = waitedMillisecondsBeforeNextAttempt(currentAttempt);
 			LOGGER.warn("Solr thrown an unexpected exception, while handling addAll. Retrying in {} milliseconds...",
-					waitedMillisecondsBetweenAttempts, exception);
-			sleepBeforeRetrying(exception);
-			return retryAddAll(transaction, currentAttempt + 1, exception);
+					sleep, exception);
+			sleepBeforeRetrying(sleep);
+			return retryAddAll(transaction, currentAttempt, exception);
 		}
 	}
 
@@ -389,7 +409,7 @@ public class BigVaultServer implements Cloneable {
 				"Document not found for update");
 	}
 
-	private TransactionResponseDTO retryAddAll(BigVaultServerTransaction transaction, int currentAttempt, Exception e)
+	TransactionResponseDTO retryAddAll(BigVaultServerTransaction transaction, int currentAttempt, Exception e)
 			throws CouldNotExecuteQuery, OptimisticLocking {
 		if (currentAttempt < MAX_FAIL_ATTEMPT) {
 			return tryAddAll(transaction, currentAttempt + 1);
@@ -418,10 +438,9 @@ public class BigVaultServer implements Cloneable {
 
 		for (SolrInputDocument updatedDoc : transaction.getUpdatedDocuments()) {
 			String updatedDocId = (String) updatedDoc.getFieldValue("id");
+			recordsWithNewVersion.add(updatedDocId);
 			if (id.equals(updatedDocId)) {
 				break;
-			} else {
-				recordsWithNewVersion.add(updatedDocId);
 			}
 		}
 
@@ -639,10 +658,12 @@ public class BigVaultServer implements Cloneable {
 			} catch (SolrServerException | IOException | RemoteSolrException solrServerException) {
 				commitSemaphore.release();
 				released = true;
+
 				if (currentAttempt < MAX_FAIL_ATTEMPT) {
+					int sleep = waitedMillisecondsBeforeNextAttempt(currentAttempt);
 					LOGGER.warn("Solr thrown an unexpected exception, retrying the softCommit... in {} milliseconds",
-							waitedMillisecondsBetweenAttempts, solrServerException);
-					sleepBeforeRetrying(solrServerException);
+							sleep, solrServerException);
+					sleepBeforeRetrying(sleep);
 					trySoftCommit(currentAttempt + 1, methodEnteranceTimeStamp);
 				} else {
 					throw solrServerException;
@@ -693,15 +714,14 @@ public class BigVaultServer implements Cloneable {
 		return fileSystem;
 	}
 
-	private void sleepBeforeRetrying(Exception e) {
-
-		//		if (!e.getMessage().contains("Random injected fault")) {
-		//			try {
-		//				Thread.sleep(waitedMillisecondsBetweenAttempts);
-		//			} catch (InterruptedException e2) {
-		//				throw new RuntimeException(e2);
-		//			}
-		//		}
+	private void sleepBeforeRetrying(int sleep) {
+		if (sleep > 0) {
+			try {
+				Thread.sleep(sleep);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 	private Map<String, Object> newAtomicSet(Object value) {
@@ -798,5 +818,40 @@ public class BigVaultServer implements Cloneable {
 		TupleStream tupleStream = solrServerFactory.newTupleStream(name, props);
 		tupleStream.setStreamContext(streamContext);
 		return tupleStream;
+	}
+
+	private int waitedMillisecondsBeforeNextAttempt(int currentAttempt) {
+		if (currentAttempt <= 10) {
+			return 0;
+
+			//Only with high resilience mode, next 10 attempts are made over 1 minute
+		} else if (currentAttempt <= 20) {
+			return 6000;
+
+			//Only with high resilience mode, next 10 attempts are made over 10 minute
+		} else if (currentAttempt <= 30) {
+			return 60000;
+
+			//Only with high resilience mode, next 10 attempts are made over 20 minute
+		} else if (currentAttempt <= 40) {
+			return 2 * 60000;
+
+			//Only with high resilience mode, next attempts are made every 5 minutes
+		} else {
+			return 5 * 60_000;
+		}
+	}
+
+	public void setResilienceModeToNormal() {
+		MAX_FAIL_ATTEMPT = NORMAL_RESILIENCE_MODE_ATTEMPTS;
+	}
+
+	public void setResilienceModeToHigh() {
+		MAX_FAIL_ATTEMPT = HIGH_RESILIENCE_MODE_ATTEMPTS;
+
+	}
+
+	public void setResilienceModeToZero() {
+		MAX_FAIL_ATTEMPT = 0;
 	}
 }

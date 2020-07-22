@@ -401,17 +401,11 @@ public class MetadataSchemaTypesBuilder {
 		for (MetadataBuilder metadataBuilder : getAllCalculatedMetadatas()) {
 			CalculatedDataEntry calculatedDataEntry = (CalculatedDataEntry) metadataBuilder.getDataEntry();
 			if (!(calculatedDataEntry.getCalculator() instanceof InitializedMetadataValueCalculator)) {
-				validateCalculatedMultivalue(metadataBuilder, calculatedDataEntry);
-				MetadataValueType valueTypeMetadataCalculated = calculatedDataEntry.getCalculator().getReturnType();
 				List<? extends Dependency> dependencies = calculatedDataEntry.getCalculator().getDependencies();
 				boolean needToBeInitialized = calculatedDataEntry.getCalculator() instanceof InitializedMetadataValueCalculator;
 				if (!needToBeInitialized && (dependencies == null || dependencies.size() == 0)) {
 					//					throw new MetadataSchemaTypesBuilderRuntimeException.NoDependenciesInCalculator(calculatedDataEntry
 					//							.getCalculator().getClass().getName());
-				}
-				if (metadataBuilder.getType() != valueTypeMetadataCalculated) {
-					throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateDifferentValueTypeInValueMetadata(
-							metadataBuilder.getCode(), metadataBuilder.getType(), valueTypeMetadataCalculated);
 				}
 
 				metadataBuilder.markAsDependencyOfAutomaticMetadata();
@@ -422,17 +416,6 @@ public class MetadataSchemaTypesBuilder {
 							calculatedDataEntry.getCalculator().getClass(), metadataBuilder.getCode(), e.getMetadataCode(), e);
 				}
 			}
-		}
-	}
-
-	private void validateCalculatedMultivalue(MetadataBuilder metadataBuilder,
-											  CalculatedDataEntry calculatedDataEntry) {
-		if (metadataBuilder.isMultivalue() && !calculatedDataEntry.getCalculator().isMultiValue()) {
-			throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateASingleValueInAMultiValueMetadata(
-					metadataBuilder.getCode(), calculatedDataEntry.getCalculator().getClass().getName());
-		} else if (!metadataBuilder.isMultivalue() && calculatedDataEntry.getCalculator().isMultiValue()) {
-			throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateAMultiValueInASingleValueMetadata(
-					metadataBuilder.getCode(), calculatedDataEntry.getCalculator().getClass().getName());
 		}
 	}
 

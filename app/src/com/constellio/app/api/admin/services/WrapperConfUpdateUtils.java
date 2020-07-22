@@ -14,7 +14,7 @@ import java.io.StringReader;
 
 public class WrapperConfUpdateUtils {
 
-	// Should not be used without changing parameter number because we already have a second item.
+	// Set an important TLS attribute - DO NOT REMOVE
 	public static void setSettingAdditionalEphemeralDHKeySize(File originalFile, FileService fileService) {
 		if(!originalFile.exists()) {
 			return;

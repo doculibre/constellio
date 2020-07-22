@@ -104,6 +104,16 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 
 		authorizationsServices.add(authorizationForUsers(users.robinIn(zeCollection))
 				.on(folder1Doc).givingReadAccess(), users.adminIn(zeCollection));
+
+		assertThat(getModelLayerFactory().getTaxonomyRecordsHookRetriever(zeCollection)
+				.hasUserAccessToSomethingInPrincipalConcept(users.robinIn(zeCollection), records.getUnit10a().getWrappedRecord(), false, false))
+				.isTrue();
+
+		assertThat(getModelLayerFactory().getTaxonomyRecordsHookRetriever(zeCollection)
+				.hasUserAccessToSomethingInPrincipalConcept(users.robinIn(zeCollection), records.getUnit10().getWrappedRecord(), false, false))
+				.isTrue();
+
+
 		waitForBatchProcess();
 
 		session = newCMISSessionAsUserInZeCollection(robin);

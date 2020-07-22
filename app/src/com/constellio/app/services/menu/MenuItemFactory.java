@@ -2,6 +2,7 @@ package com.constellio.app.services.menu;
 
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.contextmenu.ConfirmDialogContextMenuItemClickListener;
+import com.constellio.data.dao.services.Stats;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.google.common.base.Strings;
@@ -34,7 +35,9 @@ public class MenuItemFactory {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
 						if (menuItemAction.getCommand() != null) {
-							menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
+							Stats.compilerFor(menuItemAction.getCaption() + ":click").log(() -> {
+								menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
+							});
 						}
 					}
 				});
@@ -55,8 +58,10 @@ public class MenuItemFactory {
 				menuItemCommand = new Command() {
 					@Override
 					public void menuSelected(MenuItem selectedItem) {
-						menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
-						callback.actionExecuted(menuItemAction, selectedItem);
+						Stats.compilerFor(menuItemAction.getCaption() + ":click").log(() -> {
+							menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
+							callback.actionExecuted(menuItemAction, selectedItem);
+						});
 					}
 				};
 			} else {
@@ -78,8 +83,10 @@ public class MenuItemFactory {
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					if (menuItemAction.getCommand() != null) {
-						menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
-						callback.actionExecuted(menuItemAction, event.getComponent());
+						Stats.compilerFor(menuItemAction.getCaption() + ":click").log(() -> {
+							menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
+							callback.actionExecuted(menuItemAction, event.getComponent());
+						});
 					}
 				}
 			};

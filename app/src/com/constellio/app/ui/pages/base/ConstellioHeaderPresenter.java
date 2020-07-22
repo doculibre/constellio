@@ -309,13 +309,16 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 	public List<MetadataSchemaVO> getSchemaOfSelectedType() {
 		MetadataSchemaToVOBuilder builder = new MetadataSchemaToVOBuilder();
-
+		SearchCriteriaPresenterUtils searchCriteriaPresenterUtils = new SearchCriteriaPresenterUtils(
+				ConstellioUI.getCurrentSessionContext());
 		List<MetadataSchemaVO> result = new ArrayList<>();
 		MetadataSchemaTypes types = types();
 		MetadataSchemaType type = types.getSchemaType(getSchemaType());
 		if (types != null) {
 			for (MetadataSchema schema : type.getAllSchemas()) {
-				result.add(builder.build(schema, VIEW_MODE.DISPLAY, header.getSessionContext()));
+				if (searchCriteriaPresenterUtils.showMetadataSchema(schema)) {
+					result.add(builder.build(schema, VIEW_MODE.DISPLAY, header.getSessionContext()));
+				}
 			}
 		}
 		return result;

@@ -7,7 +7,6 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -24,7 +23,7 @@ import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-@SlowTest
+// Confirm @SlowTest
 public class SearchServiceStreamingAcceptanceTest extends ConstellioTest {
 
 	SearchServiceAcceptanceTestSchemas schema = new SearchServiceAcceptanceTestSchemas(zeCollection);

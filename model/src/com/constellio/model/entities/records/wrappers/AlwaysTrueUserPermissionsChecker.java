@@ -1,6 +1,9 @@
 package com.constellio.model.entities.records.wrappers;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.security.SecurityModelAuthorization;
+
+import java.util.function.Predicate;
 
 public class AlwaysTrueUserPermissionsChecker extends UserPermissionsChecker {
 	protected AlwaysTrueUserPermissionsChecker(User user) {
@@ -26,4 +29,11 @@ public class AlwaysTrueUserPermissionsChecker extends UserPermissionsChecker {
 	public boolean onSomething() {
 		return true;
 	}
+
+	@Override
+	public boolean onAnyRecord(Predicate<SecurityModelAuthorization> predicate, boolean includingGlobal) {
+		return true;
+	}
+
+
 }

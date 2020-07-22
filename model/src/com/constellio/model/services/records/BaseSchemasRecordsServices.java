@@ -173,6 +173,10 @@ public class BaseSchemasRecordsServices implements Serializable {
 		return modelLayerFactory.newRecordServices().getById(schemaType, id);
 	}
 
+	public Record getSummary(MetadataSchemaType schemaType, String id) {
+		return modelLayerFactory.newRecordServices().getRecordSummaryById(schemaType.getCollection(), id);
+	}
+
 	public Record getByLegacyId(MetadataSchemaType schemaType, String id) {
 		LogicalSearchCondition condition = from(schemaType).where(Schemas.LEGACY_ID).isEqualTo(id);
 		return modelLayerFactory.newSearchServices().searchSingleResult(condition);
@@ -234,6 +238,7 @@ public class BaseSchemasRecordsServices implements Serializable {
 	protected <T> Stream<T> streamFromCache(LogicalSearchCondition condition, Function<Record, T> wrapperFunction) {
 		return modelLayerFactory.newSearchServices().stream(new LogicalSearchQuery(condition)).map(wrapperFunction);
 	}
+
 
 	protected <T> Iterator<T> iterateFromCache(MetadataSchemaType schemaType, Function<Record, T> wrapperFunction) {
 		List<Record> records = modelLayerFactory.newRecordServices().getRecordsCaches()

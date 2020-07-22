@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.components.container;
 import com.constellio.app.modules.rm.ui.components.container.fields.ContainerStorageSpaceLookupField;
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerPresenter;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -39,16 +40,17 @@ public abstract class ContainerFormImpl extends RecordForm implements ContainerF
 	private static Double getCapacityFromrecordVOIfAvalible(RecordVO recordVO) {
 		MetadataVO metadataVOOrNull = recordVO.getMetadataOrNull(ContainerRecord.CAPACITY);
 
-		if(metadataVOOrNull == null) {
+		if (metadataVOOrNull == null) {
 			return null;
 		} else {
 			return recordVO.get(ContainerRecord.CAPACITY);
 		}
 	}
 
-	public ContainerFormImpl(RecordVO record, final AddEditContainerPresenter presenter) {
+	public ContainerFormImpl(RecordVO record, final AddEditContainerPresenter presenter,
+							 ConstellioFactories constellioFactories) {
 		this(record, new ContainerFieldFactory(getTypeFromRecordIfAvalible(record),
-				getCapacityFromrecordVOIfAvalible(record), presenter));
+				getCapacityFromrecordVOIfAvalible(record), presenter), constellioFactories);
 		if (presenter.isMultipleMode()) {
 			WindowButton newSaveButton = new WindowButton(saveButton.getCaption(), saveButton.getCaption()) {
 				@Override
@@ -97,14 +99,15 @@ public abstract class ContainerFormImpl extends RecordForm implements ContainerF
 		}
 	}
 
-	private ContainerFormImpl(final RecordVO recordVO, RecordFieldFactory formFieldFactory) {
-		super(recordVO, buildFields(recordVO, formFieldFactory), formFieldFactory);
+	private ContainerFormImpl(final RecordVO recordVO, RecordFieldFactory formFieldFactory,
+							  ConstellioFactories constellioFactories) {
+		super(recordVO, buildFields(recordVO, formFieldFactory), formFieldFactory, constellioFactories);
 	}
 
 	private static List<FieldAndPropertyId> buildFields(RecordVO recordVO, RecordFieldFactory formFieldFactory) {
 		List<FieldAndPropertyId> fieldsAndPropertyIds = new ArrayList<FieldAndPropertyId>();
 		for (MetadataVO metadataVO : recordVO.getFormMetadatas()) {
-			if(!recordVO.getMetadataCodes().contains(metadataVO.getCode()))  {
+			if (!recordVO.getMetadataCodes().contains(metadataVO.getCode())) {
 				continue;
 			}
 			Field<?> field = formFieldFactory.build(recordVO, metadataVO);

@@ -100,7 +100,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		User currentUser;
 		if (mainComponent instanceof DisplayFolderViewImpl) {
 			DisplayFolderViewImpl view = (DisplayFolderViewImpl) mainComponent;
-			folder = rmSchemas.getFolder(view.getRecord().getId());
+			folder = rmSchemas.getFolderSummary(view.getSummaryRecord().getId());
 			if (folder.getContainer() != null) {
 				container = rmSchemas.getContainerRecord(folder.getContainer());
 			} else {
@@ -246,7 +246,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 						$("RMRequestTaskButtonExtension.borrowDuration"));
 
 				borrowDurationField.setValue(String.valueOf(
-						new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).getBorrowingDurationDays()));
+						new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).getFolderBorrowingDurationDays()));
 				HorizontalLayout buttonLayout = new HorizontalLayout();
 
 				BaseButton borrowFolderButton = new BaseButton($("RMRequestTaskButtonExtension.confirmBorrowFolder")) {
@@ -676,7 +676,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		User currentUser;
 		if (baseView instanceof DisplayFolderViewImpl) {
 			DisplayFolderViewImpl view = (DisplayFolderViewImpl) baseView;
-			folder = rmSchemas.getFolder(view.getRecord().getId());
+			folder = rmSchemas.getFolderSummary(view.getSummaryRecord().getId());
 			if (folder.getContainer() != null) {
 				container = rmSchemas.getContainerRecord(folder.getContainer());
 			} else {

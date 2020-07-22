@@ -6,6 +6,8 @@ import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisp
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataModifiableParams;
 import com.constellio.app.api.extensions.DocumentViewButtonExtension;
 import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
+import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention;
+import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention.ExtraTabInfo;
 import com.constellio.app.api.extensions.FieldBindingExtention;
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
 import com.constellio.app.api.extensions.LabelTemplateExtension;
@@ -19,6 +21,7 @@ import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.api.extensions.RecordSecurityExtension;
 import com.constellio.app.api.extensions.RecordTextInputDataProviderExtension;
+import com.constellio.app.api.extensions.ReportTemplateExtension;
 import com.constellio.app.api.extensions.SIPExtension;
 import com.constellio.app.api.extensions.SchemaTypesPageExtension;
 import com.constellio.app.api.extensions.SearchCriterionExtension;
@@ -29,6 +32,7 @@ import com.constellio.app.api.extensions.TaxonomyPageExtension;
 import com.constellio.app.api.extensions.XmlGeneratorExtension;
 import com.constellio.app.api.extensions.params.AddComponentToSearchResultParams;
 import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
+import com.constellio.app.api.extensions.params.AddFieldsInReportXMLParams;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.params.CanConsultTaxonomyParams;
 import com.constellio.app.api.extensions.params.CanManageTaxonomyParams;
@@ -38,11 +42,13 @@ import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitEx
 import com.constellio.app.api.extensions.params.DocumentViewButtonExtensionParam;
 import com.constellio.app.api.extensions.params.ExportCollectionInfosSIPIsTaxonomySupportedParams;
 import com.constellio.app.api.extensions.params.ExtraMetadataToGenerateOnReferenceParams;
+import com.constellio.app.api.extensions.params.ExtraTabForSimpleSearchResultParams;
 import com.constellio.app.api.extensions.params.FieldBindingExtentionParam;
 import com.constellio.app.api.extensions.params.FilterCapsuleParam;
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
 import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
 import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
+import com.constellio.app.api.extensions.params.IsRecordExportableParams;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandParams;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
 import com.constellio.app.api.extensions.params.MetadataDisplayCustomValueExtentionParams;
@@ -98,6 +104,8 @@ import com.constellio.app.extensions.sequence.CollectionSequenceExtension;
 import com.constellio.app.extensions.treenode.TreeNodeExtension;
 import com.constellio.app.extensions.ui.TabSheetInDisplayAndFormExtention;
 import com.constellio.app.extensions.ui.TabSheetInDisplayAndFormExtention.TabSheetInDisplayAndFormExtentionParams;
+import com.constellio.app.extensions.ui.ViewableRecordVOTablePanelExtension;
+import com.constellio.app.extensions.ui.ViewableRecordVOTablePanelExtension.ViewableRecordVOTablePanelExtensionParams;
 import com.constellio.app.modules.rm.extensions.params.RMSchemaTypesPageExtensionExclusionByPropertyParams;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -106,6 +114,7 @@ import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
+import com.constellio.app.ui.framework.components.fields.SignatureRecordField;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -193,6 +202,8 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<LabelTemplateExtension> labelTemplateExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<ReportTemplateExtension> reportTemplateExtensions = new VaultBehaviorsList<>();
+
 	public VaultBehaviorsList<DocumentViewButtonExtension> documentViewButtonExtension = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<ListSchemaExtention> listSchemaCommandExtensions = new VaultBehaviorsList<>();
@@ -225,6 +236,9 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<SchemaMetadataExtension> schemaMetadataExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<ExtraTabForSimpleSearchResultExtention> extraTabsForSimpleSearchResultExtentions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<ViewableRecordVOTablePanelExtension> viewableRecordVOTablePanelExtensions = new VaultBehaviorsList<>();
 
 	//Key : schema type code
 	//Values : record's code
@@ -255,6 +269,7 @@ public class AppLayerCollectionExtensions {
 		return availableSequences;
 	}
 
+
 	public void onWriteRecord(OnWriteRecordParams params) {
 		for (RecordExportExtension recordExportExtension : recordExportExtensions) {
 			recordExportExtension.onWriteRecord(params);
@@ -266,6 +281,16 @@ public class AppLayerCollectionExtensions {
 		for (XmlGeneratorExtension xmlGeneratorExtension1 : xmlGeneratorExtensions) {
 			xmlGeneratorExtension1.getExtraMetadataToGenerateOnReference(extraMetadataToGenerateOnReferenceParams);
 		}
+	}
+
+	public List<ExtraTabInfo> getExtraTabForSimpleSearchResult(ExtraTabForSimpleSearchResultParams params) {
+		List<ExtraTabInfo> extraTabInfoList = new ArrayList<>();
+
+		for (ExtraTabForSimpleSearchResultExtention extraTabForSimpleSearchResultExtention : extraTabsForSimpleSearchResultExtentions) {
+			extraTabInfoList.addAll(extraTabForSimpleSearchResultExtention.getExtraTabs(params));
+		}
+
+		return extraTabInfoList;
 	}
 
 	public Map<String, Object> convertStructureToMap(ConvertStructureToMapParams params) {
@@ -299,6 +324,16 @@ public class AppLayerCollectionExtensions {
 			String icon = recordAppExtension.getIconPathForRecordVO(params);
 			if (icon != null) {
 				return icon;
+			}
+		}
+		return null;
+	}
+
+	public Resource getThumbnailResourceForRecordVO(GetIconPathParams params) {
+		for (RecordAppExtension recordAppExtension : recordAppExtensions) {
+			Resource thumbnailResource = recordAppExtension.getThumbnailResourceForRecordVO(params);
+			if (thumbnailResource != null) {
+				return thumbnailResource;
 			}
 		}
 		return null;
@@ -753,6 +788,12 @@ public class AppLayerCollectionExtensions {
 		return dynamicFieldMetadatas;
 	}
 
+	public void addFieldsInReportXML(AddFieldsInReportXMLParams params) {
+		for (ReportTemplateExtension extension : reportTemplateExtensions) {
+			extension.addFieldsInReportXML(params);
+		}
+	}
+
 	public void addFieldsInLabelXML(AddFieldsInLabelXMLParams params) {
 		for (LabelTemplateExtension extension : labelTemplateExtensions) {
 			extension.addFieldsInLabelXML(params);
@@ -806,7 +847,8 @@ public class AppLayerCollectionExtensions {
 				return component;
 			}
 		}
-		return new MetadataFieldFactory().build(metadataFieldExtensionParams.getMetadataVO());
+		RecordVO recordVO = metadataFieldExtensionParams.getRecordVO();
+		return new MetadataFieldFactory().build(metadataFieldExtensionParams.getMetadataVO(), recordVO != null ? recordVO.getId() : null);
 	}
 
 	public Object getMetadataDisplayCustomValueExtention(
@@ -909,6 +951,14 @@ public class AppLayerCollectionExtensions {
 		return additionnalFields;
     }
 
+	public List<SignatureRecordField> getSignatureFields(RecordFieldsExtensionParams params) {
+		List<SignatureRecordField> signatureFields = new ArrayList<>();
+		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
+			signatureFields.addAll(extension.getSignatureFields(params));
+		}
+		return signatureFields;
+	}
+
 	public void fieldBindingExtentions(FieldBindingExtentionParam fieldBindingExtentionParam) {
 		for (FieldBindingExtention fieldBindingExtention : fieldBindingExtentions) {
 			fieldBindingExtention.baseFormFieldBinding(fieldBindingExtentionParam);
@@ -923,6 +973,16 @@ public class AppLayerCollectionExtensions {
 			}
 		});
 	}
+
+	public boolean isSchemaTypeExportable(final MetadataSchemaType schemaType, final String collection) {
+		return recordExportExtensions.getBooleanValue(true, new BooleanCaller<RecordExportExtension>() {
+			@Override
+			public ExtensionBooleanResult call(RecordExportExtension extension) {
+				return extension.isExportable(new IsRecordExportableParams(schemaType));
+			}
+		});
+	}
+
 	public void postRecordFieldFactoryBuild(RecordFieldFactoryPostBuildExtensionParams params) {
 		for (RecordFieldFactoryExtension extension : recordFieldFactoryExtensions) {
 			extension.postBuild(params);
@@ -993,4 +1053,33 @@ public class AppLayerCollectionExtensions {
 
 		return actionTabToIgnore;
 	}
+
+	public Boolean isDisplayInWindowOnSelection(ViewableRecordVOTablePanelExtensionParams params) {
+		Boolean displayInWindowOnSelection = null;
+		for (ViewableRecordVOTablePanelExtension extension : viewableRecordVOTablePanelExtensions) {
+			displayInWindowOnSelection = extension.isDisplayInWindowOnSelection(params);
+		}
+		return displayInWindowOnSelection;
+	}
+
+	public Boolean isViewerSelectionPossible(ViewableRecordVOTablePanelExtensionParams params) {
+		Boolean viewerSelectionPossible = null;
+		for (ViewableRecordVOTablePanelExtension extension : viewableRecordVOTablePanelExtensions) {
+			viewerSelectionPossible = extension.isViewerSelectionPossible(params);
+		}
+		return viewerSelectionPossible;
+	}
+
+	public boolean navigateFromViewerToRecordVO(
+			ViewableRecordVOTablePanelExtensionParams params) {
+		boolean navigationHandledByExtension = false;
+		for (ViewableRecordVOTablePanelExtension extension : viewableRecordVOTablePanelExtensions) {
+			navigationHandledByExtension = extension.navigateFromViewerToRecordVO(params);
+			if (navigationHandledByExtension) {
+				break;
+			}
+		}
+		return navigationHandledByExtension;
+	}
+
 }

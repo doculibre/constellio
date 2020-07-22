@@ -5,7 +5,6 @@ import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.common.SolrInputDocument;
@@ -29,7 +28,7 @@ import java.util.zip.GZIPInputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class SolrBinaryStreamBackupAcceptanceTest extends ConstellioTest {
 
 	private String solrUrl;

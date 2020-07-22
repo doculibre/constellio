@@ -10,7 +10,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CalculatorIsUsingAnForbiddenMetadata;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_ExceptionWhileCalculating;
-import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -30,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
@@ -519,9 +519,9 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 
 			DynamicDependencyValues values = parameters.get(dynamicLocalDependency);
 
-			MetadataList allMetadatas = values.getAvailableMetadatas();
+			List<Metadata> allMetadatas = values.getAvailableMetadatas();
 
-			List<String> codes = new ArrayList<>(allMetadatas.toLocalCodesList());
+			List<String> codes = new ArrayList<>(allMetadatas.stream().map((m) -> m.getLocalCode()).collect(Collectors.toList()));
 			Collections.sort(codes);
 			return StringUtils.join(codes, ",");
 		}
@@ -562,9 +562,9 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 
 			DynamicDependencyValues values = parameters.get(dynamicLocalDependency);
 
-			MetadataList allMetadatas = values.getAvailableMetadatasWithAValue();
+			List<Metadata> allMetadatas = values.getAvailableMetadatasWithAValue();
 
-			List<String> codes = new ArrayList<>(allMetadatas.toLocalCodesList());
+			List<String> codes = new ArrayList<>(allMetadatas.stream().map((m) -> m.getLocalCode()).collect(Collectors.toList()));
 			Collections.sort(codes);
 			return StringUtils.join(codes, ",");
 		}
@@ -660,7 +660,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 
 			DynamicDependencyValues values = parameters.get(dynamicLocalDependency);
 
-			MetadataList allMetadatas = values.getAvailableMetadatasWithAValue();
+			List<Metadata> allMetadatas = values.getAvailableMetadatasWithAValue();
 
 			double sum = 0;
 			for (Metadata metadata : allMetadatas) {

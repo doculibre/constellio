@@ -1,5 +1,7 @@
 package com.constellio.model.services.records.cache;
 
+import com.constellio.data.dao.dto.records.RecordId;
+import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Record;
@@ -9,14 +11,20 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.records.cache.cacheIndexHook.IndexedCalculatedKeysHookHandler;
+import com.constellio.model.services.records.cache.cacheIndexHook.IndexedCalculatedKeysHookHandler.RecordCountHookHandler;
+import com.constellio.model.services.records.cache.cacheIndexHook.IndexedCalculatedKeysHookHandler.RecordIdsHookHandler;
+import com.constellio.model.services.records.cache.cacheIndexHook.MetadataIndexCacheDataStoreHook;
+import com.constellio.model.services.records.cache.cacheIndexHook.RecordCountHookDataIndexRetriever;
+import com.constellio.model.services.records.cache.cacheIndexHook.RecordIdsHookDataIndexRetriever;
 import com.constellio.model.services.records.cache.locks.SimpleReadLockMechanism;
 import com.constellio.model.services.records.cache.offHeapCollections.SortedIdsList;
 import com.constellio.model.services.records.cache.offHeapCollections.SortedIntIdsList;
 import com.constellio.model.services.records.cache.offHeapCollections.SortedStringIdsList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.rometools.utils.Strings;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,13 +52,46 @@ public class MetadataIndexCacheDataStore {
 
 	private SimpleReadLockMechanism lockMechanism = new SimpleReadLockMechanism();
 
+	private KeyListMap<Byte, IndexedCalculatedKeysHookHandler> hooks = new KeyListMap<>();
+
+	private MetadataSchemasManager schemasManager;
+
 	private CollectionsListManager collectionsListManager;
-	private MetadataSchemasManager metadataSchemasManager;
+
+	private Map<Short, MetadataIndex>[][] cacheIndexMaps = new Map[256][];
 
 	public MetadataIndexCacheDataStore(ModelLayerFactory modelLayerFactory) {
-		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 	}
+
+	public void onTypesModified(MetadataSchemaTypes types) {
+		for (IndexedCalculatedKeysHookHandler hookHandler : hooks.get(types.getCollectionInfo().getCollectionId())) {
+			hookHandler.onTypesModified(types);
+		}
+
+	}
+
+	public <K> RecordCountHookDataIndexRetriever<K> registerRecordCountHook(byte collectionId,
+																			MetadataIndexCacheDataStoreHook hook) {
+
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(collectionId);
+		RecordCountHookHandler handler = new RecordCountHookHandler(hook, types);
+		hooks.add(collectionId, handler);
+		return new RecordCountHookDataIndexRetriever(handler.getMap());
+	}
+
+
+	public <K> RecordIdsHookDataIndexRetriever<K> registerRecordIdsHook(
+			byte collectionId, MetadataIndexCacheDataStoreHook hook) {
+
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(collectionId);
+		RecordIdsHookHandler handler = new RecordIdsHookHandler<>(hook, types);
+		hooks.add(collectionId, handler);
+		return new RecordIdsHookDataIndexRetriever<>(handler.getMap());
+
+	}
+
 
 	private static class MetadataIndex {
 
@@ -112,6 +153,53 @@ public class MetadataIndexCacheDataStore {
 			}
 		}
 
+
+		void add(Object value, RecordId id) {
+			int hashcode = value.hashCode();
+			SortedIdsList list = map.get(hashcode);
+			if (list == null) {
+				list = new SortedIntIdsList();
+				map.put(hashcode, list);
+			}
+
+			if (!id.isInteger()) {
+				if (list instanceof SortedIntIdsList) {
+					list = new SortedStringIdsList((SortedIntIdsList) list);
+					map.put(hashcode, list);
+				}
+				list.add(id);
+			} else {
+				list.add(id);
+			}
+		}
+
+		void add(List<Object> values, RecordId id) {
+			if (values != null) {
+				for (Object value : values) {
+					if (value != null) {
+						add(value, id);
+					}
+				}
+			}
+		}
+
+		void remove(Object value, RecordId id) {
+			SortedIdsList list = map.get(value.hashCode());
+			if (list != null) {
+				list.remove(id);
+			}
+		}
+
+		void remove(List<Object> values, RecordId id) {
+			if (values != null) {
+				for (Object value : values) {
+					if (value != null) {
+						remove(value, id);
+					}
+				}
+			}
+		}
+
 		private boolean isEmpty() {
 			return map.isEmpty();
 		}
@@ -148,9 +236,13 @@ public class MetadataIndexCacheDataStore {
 			SortedIdsList list = map.get(value.hashCode());
 			return list == null ? 0 : list.size();
 		}
-	}
 
-	private Map<Short, MetadataIndex>[][] cacheIndexMaps = new Map[256][];
+		public void clear() {
+			this.map.values().stream().forEach(SortedIdsList::clear);
+			this.map.clear();
+
+		}
+	}
 
 	public Stream<String> stream(MetadataSchemaType schemaType, Metadata metadata, Object value) {
 		return search(schemaType, metadata, value).stream();
@@ -165,7 +257,7 @@ public class MetadataIndexCacheDataStore {
 
 		ensureSearchable(metadata);
 
-		if (value == null || ((value instanceof String) && Strings.isBlank((String) value))) {
+		if (value == null || ((value instanceof String) && StringUtils.isBlank((String) value))) {
 			return Collections.emptyList();
 		}
 
@@ -197,7 +289,7 @@ public class MetadataIndexCacheDataStore {
 
 		ensureSearchable(metadata);
 
-		if (value == null || ((value instanceof String) && Strings.isBlank((String) value))) {
+		if (value == null || ((value instanceof String) && StringUtils.isBlank((String) value))) {
 			return Collections.emptyList();
 		}
 
@@ -233,7 +325,7 @@ public class MetadataIndexCacheDataStore {
 		try {
 			ensureSearchable(metadata);
 
-			if (value == null || ((value instanceof String) && Strings.isBlank((String) value))) {
+			if (value == null || ((value instanceof String) && StringUtils.isBlank((String) value))) {
 				return -1;
 			}
 
@@ -246,6 +338,8 @@ public class MetadataIndexCacheDataStore {
 	}
 
 	public void addUpdate(Record oldVersion, Record newVersion, MetadataSchemaType schemaType, MetadataSchema schema) {
+		List<Runnable> actions = prepareActionsToAjustKeys(oldVersion, newVersion, schema);
+
 		lockMechanism.obtainSchemaTypeWritingPermit(schemaType);
 		try {
 
@@ -267,9 +361,35 @@ public class MetadataIndexCacheDataStore {
 
 			}
 
+			actions.forEach((a) -> a.run());
+
 		} finally {
 			lockMechanism.releaseSchemaTypeWritingPermit(schemaType);
 		}
+
+
+	}
+
+	@NotNull
+	private List<Runnable> prepareActionsToAjustKeys(Record oldVersion, Record newVersion, MetadataSchema schema) {
+		List<Runnable> actions = new ArrayList<>();
+		List<IndexedCalculatedKeysHookHandler> hookHandlers = hooks.getNestedMap().get(schema.getCollectionInfo().getCollectionId());
+		if (hookHandlers != null) {
+			if (oldVersion == null) {
+				for (IndexedCalculatedKeysHookHandler hookHandler : hookHandlers) {
+					actions.addAll(hookHandler.handleRecordInsert(newVersion));
+				}
+			} else if (newVersion == null) {
+				for (IndexedCalculatedKeysHookHandler hookHandler : hookHandlers) {
+					actions.addAll(hookHandler.handleRecordRemoval(oldVersion));
+				}
+			} else {
+				for (IndexedCalculatedKeysHookHandler hookHandler : hookHandlers) {
+					actions.addAll(hookHandler.handleRecordModification(oldVersion, newVersion));
+				}
+			}
+		}
+		return actions;
 	}
 
 	private void updateRecordMetadata(Record oldVersion, Record newVersion, MetadataSchemaType schemaType,
@@ -280,7 +400,7 @@ public class MetadataIndexCacheDataStore {
 		if (newVersion.getCollectionInfo().getCollectionId() != schemaType.getCollectionInfo().getCollectionId()) {
 			throw new IllegalArgumentException("New version and schema type have different collection id");
 		}
-		if (!oldVersion.getId().equals(newVersion.getId())) {
+		if (!oldVersion.getRecordId().equals(newVersion.getRecordId())) {
 			throw new IllegalArgumentException("Records have different ids");
 		}
 
@@ -293,11 +413,11 @@ public class MetadataIndexCacheDataStore {
 
 		if (!LangUtils.isEqual(newValue, oldValue)) {
 			if (!metadataIndexMap.isEmpty()) {
-				removeRecordIdToMapByValue(oldValue, oldVersion.getId(), metadataIndexMap, currentMetadata);
+				removeRecordIdToMapByValue(oldValue, oldVersion.getRecordId(), metadataIndexMap, currentMetadata);
 			}
 
 			if (!isNewValueNull) {
-				addRecordIdToMapByValue(newValue, newVersion.getId(), metadataIndexMap, currentMetadata);
+				addRecordIdToMapByValue(newValue, newVersion.getRecordId(), metadataIndexMap, currentMetadata);
 			}
 		}
 	}
@@ -310,7 +430,7 @@ public class MetadataIndexCacheDataStore {
 		MetadataIndex metadataIndexMap = getMetadataIndexMap(schemaType, currentMetadata, false);
 
 		if (!metadataIndexMap.isEmpty()) {
-			removeRecordIdToMapByValue(oldVersion.get(currentMetadata), oldVersion.getId(), metadataIndexMap, currentMetadata);
+			removeRecordIdToMapByValue(oldVersion.get(currentMetadata), oldVersion.getRecordId(), metadataIndexMap, currentMetadata);
 		}
 	}
 
@@ -323,7 +443,7 @@ public class MetadataIndexCacheDataStore {
 		if (!isObjectNullOrEmpty(newValue)) {
 			MetadataIndex metadataIndexMap = getMetadataIndexMap(schemaType, currentMetadata, true);
 
-			addRecordIdToMapByValue(newValue, newVersion.getId(), metadataIndexMap, currentMetadata);
+			addRecordIdToMapByValue(newValue, newVersion.getRecordId(), metadataIndexMap, currentMetadata);
 		}
 	}
 
@@ -427,7 +547,7 @@ public class MetadataIndexCacheDataStore {
 		}
 	}
 
-	private void removeRecordIdToMapByValue(Object value, String recordId, MetadataIndex metadataIndex,
+	private void removeRecordIdToMapByValue(Object value, RecordId recordId, MetadataIndex metadataIndex,
 											Metadata metadata) {
 		if (isObjectNullOrEmpty(value)) {
 			return;
@@ -445,7 +565,7 @@ public class MetadataIndexCacheDataStore {
 	}
 
 
-	private void addRecordIdToMapByValue(Object value, String recordId, MetadataIndex metadataIndex,
+	private void addRecordIdToMapByValue(Object value, RecordId recordId, MetadataIndex metadataIndex,
 										 Metadata metadata) {
 		if (isObjectNullOrEmpty(value)) {
 			return;
@@ -461,10 +581,46 @@ public class MetadataIndexCacheDataStore {
 		}
 	}
 
+	public void close() {
+		lockMechanism.obtainSystemWideWritingPermit();
+		try {
+			for (Map.Entry<Byte, List<IndexedCalculatedKeysHookHandler>> entry : this.hooks.getMapEntries()) {
+				for (IndexedCalculatedKeysHookHandler hookHandler : entry.getValue()) {
+					hookHandler.clear();
+				}
+
+			}
+			this.hooks.clear();
+
+			for (int i = 0; i < this.cacheIndexMaps.length; i++) {
+				Map<Short, MetadataIndex>[] collectionIndexes = this.cacheIndexMaps[i];
+
+				if (collectionIndexes != null) {
+					for (int j = 0; j < collectionIndexes.length; j++) {
+						Map<Short, MetadataIndex> indexes = collectionIndexes[j];
+						if (indexes != null) {
+							indexes.values().stream().forEach((index) -> {
+								index.clear();
+							});
+							indexes.clear();
+						}
+					}
+				}
+			}
+		} finally {
+			lockMechanism.releaseSystemWideWritingPermit();
+		}
+	}
+
+
 	public void clear(CollectionInfo collectionInfo) {
 		lockMechanism.obtainCollectionWritingPermit(collectionInfo.getCollectionId());
 		try {
 			cacheIndexMaps[collectionInfo.getCollectionIndex()] = null;
+
+			for (IndexedCalculatedKeysHookHandler handler : this.hooks.get(collectionInfo.getCollectionId())) {
+				handler.clear();
+			}
 
 		} finally {
 			lockMechanism.releaseCollectionWritingPermit(collectionInfo.getCollectionId());
@@ -496,6 +652,7 @@ public class MetadataIndexCacheDataStore {
 			for (String collectionCode : collectionsListManager.getCollections()) {
 
 				buildCollectionCachedIndexedStats(stats, collectionCode);
+				buildCollectionHookStats(stats, collectionCode);
 			}
 			return stats;
 		} finally {
@@ -510,7 +667,7 @@ public class MetadataIndexCacheDataStore {
 		int collectionIndex = collectionsListManager.getCollectionInfo(collectionCode).getCollectionIndex();
 		Map<Short, MetadataIndex>[] cacheIndexMap = this.cacheIndexMaps[collectionIndex];
 		if (cacheIndexMap != null) {
-			for (MetadataSchemaType schemaType : metadataSchemasManager.getSchemaTypes(collectionCode).getSchemaTypes()) {
+			for (MetadataSchemaType schemaType : schemasManager.getSchemaTypes(collectionCode).getSchemaTypes()) {
 				Map<Short, MetadataIndex> metadataIndexes = cacheIndexMap[schemaType.getId()];
 				if (metadataIndexes != null) {
 
@@ -522,6 +679,20 @@ public class MetadataIndexCacheDataStore {
 					}
 
 				}
+			}
+
+		}
+	}
+
+	private void buildCollectionHookStats(List<MetadataIndexCacheDataStoreStat> stats, String collectionCode) {
+
+
+		byte collectionId = collectionsListManager.getCollectionInfo(collectionCode).getCollectionId();
+		List<IndexedCalculatedKeysHookHandler> hookHandlers = this.hooks.get(collectionId);
+		if (hookHandlers != null) {
+
+			for (IndexedCalculatedKeysHookHandler hookHandler : hookHandlers) {
+				stats.add(hookHandler.computerMetadataIndexCacheDataStoreStat());
 			}
 
 		}

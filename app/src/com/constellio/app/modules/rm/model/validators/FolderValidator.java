@@ -176,7 +176,7 @@ public class FolderValidator implements RecordValidator {
 					LogicalSearchQuery query = new LogicalSearchQuery().setQueryExecutionMethod(QueryExecutionMethod.ENSURE_INDEXED_METADATA_USED);
 					MetadataSchemaType folderSchemaType = params.getTypes().getSchemaType(Folder.SCHEMA_TYPE);
 					query.setCondition(from(folderSchemaType)
-							.where(Schemas.PATH_PARTS).isEqualTo(folder.getId())
+							.where(Schemas.PRINCIPALS_ANCESTORS_INT_IDS).isEqualTo(folder.getId())
 							.andWhere(folderSchemaType.getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.TYPE)).isNotIn(folder.getAllowedFolderTypes()));
 					if (params.getSearchServices().hasResults(query)) {
 						Map<String, Object> parameters = new HashMap<>();

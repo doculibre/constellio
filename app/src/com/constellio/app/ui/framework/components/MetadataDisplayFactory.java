@@ -41,7 +41,6 @@ import com.vaadin.server.ResourceReference;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -203,7 +202,7 @@ public class MetadataDisplayFactory implements Serializable {
 						if (!url.startsWith("http://") && !url.startsWith("https://")) {
 							url = "http://" + url;
 						}
-						Link link = new BaseLink(url, new ExternalResource(url));
+						BaseLink link = new BaseLink(url, new ExternalResource(url));
 						link.setTargetName("_blank");
 						displayComponent = link;
 					} else {
@@ -230,7 +229,7 @@ public class MetadataDisplayFactory implements Serializable {
 					break;
 				case CONTENT:
 					ContentVersionVO contentVersionVO = (ContentVersionVO) displayValue;
-					displayComponent = new ContentVersionDisplay(recordVO, contentVersionVO, new BaseUpdatableContentVersionPresenter());
+					displayComponent = new ContentVersionDisplay(recordVO, contentVersionVO, metadata.getLocalCode(), new BaseUpdatableContentVersionPresenter());
 					break;
 				case REFERENCE:
 					switch (metadataInputType) {

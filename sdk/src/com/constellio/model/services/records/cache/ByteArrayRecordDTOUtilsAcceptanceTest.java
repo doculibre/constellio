@@ -41,7 +41,9 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -70,11 +72,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 import static org.mockito.Mockito.mock;
 
+//@RunWith(Parameterized.class)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 	TestsSchemasSetup setup = new TestsSchemasSetup(zeCollection);
 	TestsSchemasSetup.ZeSchemaMetadatas zeSchema = setup.new ZeSchemaMetadatas();
 	TestsSchemasSetup.AnotherSchemaMetadatas anotherSchema = setup.new AnotherSchemaMetadatas();
+
+	String mode;
+	static String persited = "persisted";
+	static String memory = "memory";
+
 
 	User john;
 
@@ -83,6 +92,25 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	ReindexingServices reindexingServices;
 	ContentManager contentManager;
 	Random random = new Random();
+
+	//	@Parameterized.Parameters(name = "{0}")
+	//	public static Collection<Object[]> testCases() {
+	//		return Arrays.asList(new Object[][]{{memory}, {persited}});
+	//	}
+
+	//	public ByteArrayRecordDTOUtilsAcceptanceTest(String mode) {
+	//		this.mode = mode;
+	//	}
+	//
+	//	@Before
+	//	public void setUp() throws Exception {
+	//		CacheRecordDTOUtils.SAVE_INT_DATE_METADATAS_IN_MEMORY = mode.equals(memory);
+	//	}
+	//
+	//	@After
+	//	public void tearDown() throws Exception {
+	//		CacheRecordDTOUtils.SAVE_INT_DATE_METADATAS_IN_MEMORY = true;
+	//	}
 
 	private void init() {
 		UserServices userServices = getModelLayerFactory().newUserServices();
@@ -2564,16 +2592,22 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 			}
 			return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
 					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
-					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
+					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory, RecordDTO.MAIN_SORT_UNDEFINED);
 		} else {
+			ByteArrayRecordDTO recordDTO = new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
+					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(),
+					type.getCode(), type.getId(), schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory, -1);
 			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
-				SummaryCacheSingletons.dataStore.get(instanceId).saveIntKey(intId, bytesArray.bytesToPersist);
+				ByteArrayRecordDTOWithIntegerId byteArrayRecordDTO = new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
+						instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(),
+						type.getCode(), type.getId(), schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory, -1);
+				SummaryCacheSingletons.dataStore.get(instanceId).saveIntKeyPersistedAndMemoryData(intId, bytesArray.bytesToPersist, byteArrayRecordDTO);
 			} else {
 				//SummaryCacheSingletons.dataStore.removeIntKey(intId);
 			}
 			return new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
 					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(),
-					type.getCode(), type.getId(), schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
+					type.getCode(), type.getId(), schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory, RecordDTO.MAIN_SORT_UNDEFINED);
 		}
 
 	}

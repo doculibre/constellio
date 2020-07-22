@@ -53,6 +53,7 @@ import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.QueryCounter;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.TestUtils;
+import com.constellio.sdk.tests.annotations.IntermittentFailureTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import org.joda.time.LocalDate;
@@ -1288,7 +1289,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void whenExecutingWithMoreThan1000RecordsAndMergeOptimisticLockingResolutionThenOk()
 			throws Exception {
@@ -1309,7 +1310,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 				newTransactionWithNRecords(1001).setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE));
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void whenExecutingWithMoreThan1001RecordsAndThrowExceptionOptimisticLockingResolutionThenOk()
 			throws Exception {
@@ -1335,7 +1336,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 				newTransactionWithNRecords(100001).setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION));
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void whenExecutingASyncWithMoreThan1000RecordsAndMergeOptimisticLockingResolutionThenOk()
 			throws Exception {
@@ -1357,7 +1358,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 				newTransactionWithNRecords(1001).setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE));
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void whenExecutingASyncWithMoreThan1001RecordsAndThrowExceptionOptimisticLockingResolutionThenOk()
 			throws Exception {
@@ -1555,6 +1556,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@IntermittentFailureTest
 	public void whenMarkAnInexistentRecordForReindexingThenException()
 			throws Exception {
 

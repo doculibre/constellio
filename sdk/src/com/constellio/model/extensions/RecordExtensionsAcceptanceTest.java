@@ -5,6 +5,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
@@ -31,6 +32,7 @@ import org.mockito.Mock;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static java.util.Collections.emptyMap;
@@ -172,17 +174,17 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 
 		assertThat(recordInModificationArgs.getAllValues().get(0).getRecord().getId())
 				.isEqualTo(existingAnotherSchemaRecord.getId());
-		assertThat(recordInModificationArgs.getAllValues().get(0).getModifiedMetadatas().toMetadatasCodesList())
+		assertThat(recordInModificationArgs.getAllValues().get(0).getModifiedMetadatas().stream().map(Metadata::getCode).collect(Collectors.toList()))
 				.containsOnly("anotherSchemaType_default_title");
 		assertThat(recordInModificationArgs.getAllValues().get(1).getRecord().getId())
 				.isEqualTo(existingAnotherSchemaRecord.getId());
-		assertThat(recordInModificationArgs.getAllValues().get(1).getModifiedMetadatas().toMetadatasCodesList())
+		assertThat(recordInModificationArgs.getAllValues().get(1).getModifiedMetadatas().stream().map(Metadata::getCode).collect(Collectors.toList()))
 				.containsOnly("anotherSchemaType_default_title");
 		assertThat(recordInModificationArgs.getAllValues().get(2).getRecord().getId()).isEqualTo(existingZeSchemaRecord.getId());
-		assertThat(recordInModificationArgs.getAllValues().get(2).getModifiedMetadatas().toMetadatasCodesList())
+		assertThat(recordInModificationArgs.getAllValues().get(2).getModifiedMetadatas().stream().map(Metadata::getCode).collect(Collectors.toList()))
 				.containsOnly("zeSchemaType_default_title");
 		assertThat(recordInModificationArgs.getAllValues().get(3).getRecord().getId()).isEqualTo(existingZeSchemaRecord.getId());
-		assertThat(recordInModificationArgs.getAllValues().get(3).getModifiedMetadatas().toMetadatasCodesList())
+		assertThat(recordInModificationArgs.getAllValues().get(3).getModifiedMetadatas().stream().map(Metadata::getCode).collect(Collectors.toList()))
 				.containsOnly("zeSchemaType_default_title");
 
 		assertThat(recordModifiedArgs.getAllValues().get(0).getRecord().getId()).isEqualTo(existingAnotherSchemaRecord.getId());

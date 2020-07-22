@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -24,6 +25,7 @@ public class Document extends RMObject {
 	public static final String KEYWORDS = "keywords";
 	public static final String DESCRIPTION = "description";
 	public static final String CONTENT = "content";
+	public static final String FILENAME = "filename";
 	public static final String CONTENT_CHECKED_OUT_BY = "contentCheckedOutBy";
 	public static final String CONTENT_CHECKED_OUT_DATE = "contentCheckedOutDate";
 	public static final String IS_CHECKOUT_ALERT_SENT = "isCheckoutAlertSent";
@@ -71,6 +73,7 @@ public class Document extends RMObject {
 	public static final String HAS_CONTENT = "hasContent";
 	public static final String IS_MODEL = "isModel";
 	public static final String CONTENT_HASHES = "contentHashes";
+	public static final String LINKED_TO = "linkedTo";
 
 	public Document(Record record,
 					MetadataSchemaTypes types) {
@@ -459,5 +462,18 @@ public class Document extends RMObject {
 		} else {
 			return true;
 		}
+	}
+
+	public boolean isSummary() {
+		return getWrappedRecord().getLoadedFieldsMode() != RecordDTOMode.FULLY_LOADED;
+	}
+
+	public List<Folder> getLinkedTo() {
+		return get(LINKED_TO);
+	}
+
+	public Document setLinkedTo(String folder) {
+		set(LINKED_TO, folder);
+		return this;
 	}
 }

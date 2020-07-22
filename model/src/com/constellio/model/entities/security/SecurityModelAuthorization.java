@@ -1,5 +1,6 @@
 package com.constellio.model.entities.security;
 
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.Authorization;
 
@@ -29,6 +30,10 @@ public class SecurityModelAuthorization {
 		this.details = details;
 		this.securableRecord = securableRecord;
 		this.groupAuthorizationsInheritance = groupAuthorizationsInheritance;
+	}
+
+	public RecordId getTargetRecordId() {
+		return RecordId.toId(details.getTarget());
 	}
 
 	public void addUserId(String userId) {

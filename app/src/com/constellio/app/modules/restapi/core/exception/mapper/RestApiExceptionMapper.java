@@ -28,6 +28,7 @@ public class RestApiExceptionMapper extends BaseRestApiExceptionMapper implement
 			errorResponse.setDescription(ex.getStatus().getReasonPhrase());
 			errorResponse.setMessage(i18n.$(ex.getValidationError(), locale));
 		} else if (e instanceof WebApplicationException) {
+			log.error(e.getMessage(), e);
 			WebApplicationException ex = (WebApplicationException) e;
 
 			errorResponse.setCode(ex.getResponse().getStatusInfo().getStatusCode());

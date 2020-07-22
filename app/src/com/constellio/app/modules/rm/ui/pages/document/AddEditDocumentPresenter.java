@@ -58,6 +58,8 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.Layout;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.NotImplementedException;
@@ -396,7 +398,6 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			}
 		} catch (final IcapException e) {
 			view.showErrorMessage(e.getMessage());
-
 			return;
 		}
 
@@ -516,11 +517,21 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 					if (!recordIdForEmailSchema.equals(recordIdForDocumentType)) {
 						documentTypeField.setFieldValue(recordIdForEmailSchema);
 						contentVersionVO.setMajorVersion(true);
-						contentField.setVisible(false);
-						documentTypeField.setVisible(false);
+						setVisible(contentField, false);
+						setVisible(documentTypeField, false);
 						reloadFormAfterDocumentTypeChange();
 					}
 				}
+			}
+		}
+	}
+
+	private void setVisible(CustomDocumentField field, boolean isVisible) {
+		field.setVisible(isVisible);
+		if (field instanceof Field<?>) {
+			Layout fieldLayout = view.getForm().getFieldLayout((Field<?>) field);
+			if (fieldLayout != null) {
+				fieldLayout.setVisible(isVisible);
 			}
 		}
 	}
@@ -638,7 +649,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 						document.getWrappedRecord().set(matchingMetadata, voMetadataValue);
 					} else if (voMetadataValue == null && defaultValue == null) {
 						document.getWrappedRecord().set(matchingMetadata, voMetadataValue);
-					} else if (voMetadataValue != null && !voMetadataValue.equals(voDefaultValue)) {
+					} else if ((voMetadataValue != null || (voDefaultValue instanceof List && !((List) voDefaultValue).isEmpty()))
+							   && !voMetadataValue.equals(voDefaultValue)) {
 						document.getWrappedRecord().set(matchingMetadata, voMetadataValue);
 					}
 				}
@@ -846,7 +858,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			DocumentCopyRuleField copyRuleField = getCopyRuleField();
 			if (copyRuleField != null) {
 				boolean copyRuleFieldVisible = areDocumentRetentionRulesEnabled() && documentVO.getList(Document.APPLICABLE_COPY_RULES).size() > 1;
-				copyRuleField.setVisible(copyRuleFieldVisible);
+				setVisible(copyRuleField, copyRuleFieldVisible);
 				if (copyRuleFieldVisible) {
 					copyRuleField.setFieldChoices(documentVO.<CopyRetentionRuleInRule>getList(Document.APPLICABLE_COPY_RULES));
 				}

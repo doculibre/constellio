@@ -1,19 +1,15 @@
 package com.constellio.app.ui.framework.components.viewers.panel;
 
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.extensions.records.params.GetIconPathParams;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
-import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
-import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.vaadin.data.Container;
 import com.vaadin.data.Container.ItemSetChangeNotifier;
@@ -21,20 +17,23 @@ import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
 import com.vaadin.data.util.IndexedContainer;
+import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Image;
+import com.vaadin.ui.Label;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
 public class ViewableRecordVOContainer extends IndexedContainer implements ItemSetChangeNotifier, RecordVOContainer {
 
 	public final static String THUMBNAIL_PROPERTY = "thumbnail";
-
 	public final static String SEARCH_RESULT_PROPERTY = "searchResult";
 	public final static int THUMBNAIL_WIDTH = 80;
 	
@@ -47,6 +46,10 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 	public ViewableRecordVOContainer(RecordVOContainer recordVOContainer) {
 		this.recordVOContainer = recordVOContainer;
 		addCompressedProperties();
+	}
+
+	protected boolean isShowThumbnailCol() {
+		return true;
 	}
 
 	public RecordVOContainer getRecordVOContainer() {
@@ -66,10 +69,15 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 		for (Object propertyId : propertyIds) {
 			removeContainerProperty(propertyId);
 		}
-		if (!ResponsiveUtils.isPhone()) {
+		if (isRightToLeft()) {
+			addContainerProperty(SEARCH_RESULT_PROPERTY, Component.class, null);
+		}
+		if (!ResponsiveUtils.isPhone() && isShowThumbnailCol()) {
 			addContainerProperty(THUMBNAIL_PROPERTY, Image.class, null);
 		}
-		addContainerProperty(SEARCH_RESULT_PROPERTY, Component.class, null);
+		if (!isRightToLeft()) {
+			addContainerProperty(SEARCH_RESULT_PROPERTY, Component.class, null);
+		}
 	}
 
 	@Override
@@ -86,8 +94,8 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 		}
 		return result;
 	}
-	
-	private Property<Image> newThumbnailProperty(final Object itemId) {
+
+	protected Property<Image> newThumbnailProperty(final Object itemId) {
 		return new AbstractProperty<Image>() {
 			@Override
 			public Image getValue() {
@@ -105,6 +113,12 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 				return Image.class;
 			}
 		};
+	}
+
+	protected Property<Label> newDragProperty(final Object itemId) {
+		Label dragLabel = new Label("");
+		dragLabel.addStyleName("viewable-record-row-drag");
+		return new ObjectProperty<Label>(dragLabel);
 	}
 
 	private Property<Component> newSearchResultProperty(final Object itemId) {
@@ -130,42 +144,19 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 
 	public static Image getThumbnail(RecordVO recordVO) {
 		Image image = new Image(null);
-		String schemaTypeCode = recordVO.getSchema().getTypeCode();
-		if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			final ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
-			if (contentVersionVO != null) {
-				String filename = contentVersionVO.getFileName();
-				String recordId = recordVO.getId();
-				String metadataCode = recordVO.getMetadata(Document.CONTENT).getLocalCode();
-				String version = contentVersionVO.getVersion();
-
-				if (ConstellioResourceHandler.hasContentThumbnail(recordId, metadataCode, version)) {
-					Resource thumbnailResource = ConstellioResourceHandler.createThumbnailResource(recordId, metadataCode, version, filename);
-					image.setSource(thumbnailResource);
-				} else {
-					Resource thumbnailResource = new ThemeResource("images/icons/64/document_64.png");
-					image.setSource(thumbnailResource);
-				}
-			} else {
-				Resource thumbnailResource = new ThemeResource("images/icons/64/document_64.png");
-				image.setSource(thumbnailResource);
-			}
-		} else if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			ThemeResource iconResource = (ThemeResource) FileIconUtils.getIconForRecordVO(recordVO);
-			String resourceId = iconResource.getResourceId();
-			resourceId = resourceId.replace(".png", "_64.png");
-			Resource thumbnailResource = new ThemeResource(resourceId);
-			image.setSource(thumbnailResource);
-		} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			Resource thumbnailResource = new ThemeResource("images/icons/64/box_64.png");
-			image.setSource(thumbnailResource);
-		} else if (schemaTypeCode.toLowerCase().contains("task")) {
-			Resource thumbnailResource = new ThemeResource("images/icons/64/task_64.png");
-			image.setSource(thumbnailResource);
+		Resource thumbnailResource;
+		if (recordVO != null) {
+			String collection = recordVO.getSchema().getCollection();
+			AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
+			thumbnailResource = appLayerFactory.getExtensions().forCollection(collection).getThumbnailResourceForRecordVO(
+					new GetIconPathParams(recordVO, false));
 		} else {
-			Resource thumbnailResource = new ThemeResource("images/icons/64/default_64.png");
-			image.setSource(thumbnailResource);
+			thumbnailResource = null;
 		}
+		if (thumbnailResource == null) {
+			thumbnailResource = new ThemeResource("images/icons/64/default_64.png");
+		}
+		image.setSource(thumbnailResource);
 		return image;
 	}
 	

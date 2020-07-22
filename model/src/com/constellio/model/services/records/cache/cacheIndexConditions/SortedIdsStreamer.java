@@ -1,25 +1,25 @@
 package com.constellio.model.services.records.cache.cacheIndexConditions;
 
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.utils.LangUtils;
-import com.constellio.model.services.records.RecordId;
-import com.constellio.model.services.records.cache.MetadataIndexCacheDataStore;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public interface SortedIdsStreamer {
 
-	Iterator<RecordId> iterator(MetadataIndexCacheDataStore dataStore);
+	Iterator<RecordId> iterator();
 
-	default boolean hasResults(MetadataIndexCacheDataStore dataStore) {
-		return iterator(dataStore).hasNext();
+	default boolean hasResults() {
+		return iterator().hasNext();
 	}
 
-	default int countResults(MetadataIndexCacheDataStore dataStore) {
-		Iterator<RecordId> iterator = iterator(dataStore);
+	default int countResults() {
+		Iterator<RecordId> iterator = iterator();
 		int results = 0;
 		while (iterator.hasNext()) {
 			iterator.next();
@@ -29,8 +29,12 @@ public interface SortedIdsStreamer {
 		return results;
 	}
 
-	default Stream<RecordId> stream(MetadataIndexCacheDataStore dataStore) {
-		return LangUtils.stream(iterator(dataStore));
+	default Stream<RecordId> stream() {
+		return LangUtils.stream(iterator());
+	}
+
+	default List<RecordId> list() {
+		return LangUtils.stream(iterator()).collect(Collectors.toList());
 	}
 
 	default SortedIdsStreamer and(SortedIdsStreamer... streamers) {

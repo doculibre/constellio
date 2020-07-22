@@ -199,5 +199,4 @@ public class FolderAdaptor extends ResourceAdaptor<FolderDto> {
 		}
 		return null;
 	}
-
 }

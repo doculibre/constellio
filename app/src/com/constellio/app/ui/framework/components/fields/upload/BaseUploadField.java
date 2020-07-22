@@ -69,7 +69,7 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 		setSizeFull();
 
 		mainLayout = new VerticalLayout();
-		mainLayout.addStyleName(STYLE_NAME + "-layout");
+		mainLayout.addStyleName(STYLE_NAME + "d-layout");
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 

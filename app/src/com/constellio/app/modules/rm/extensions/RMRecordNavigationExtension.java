@@ -5,6 +5,7 @@ import com.constellio.app.extensions.records.RecordNavigationExtensionUtils;
 import com.constellio.app.extensions.records.params.NavigationParams;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -108,6 +109,8 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 			constellioNavigator.displayRetentionRule(recordId);
 		} else if (Category.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			constellioNavigator.displayCategory(recordId);
+		} else if (AdministrativeUnit.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			constellioNavigator.displayAdminUnit(recordId);
 		} else {
 			throw new UnsupportedOperationException("No navigation for schema type code " + schemaTypeCode);
 		}
@@ -123,6 +126,8 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 		} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			viewForSchemaTypeCode = true;
 		} else if (Category.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			viewForSchemaTypeCode = true;
+		} else if (AdministrativeUnit.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			viewForSchemaTypeCode = true;
 		} else {
 			viewForSchemaTypeCode = RetentionRule.SCHEMA_TYPE.equals(schemaTypeCode);

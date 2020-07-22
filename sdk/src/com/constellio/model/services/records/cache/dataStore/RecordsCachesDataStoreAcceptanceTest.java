@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache.dataStore;
 
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.ThreadList;
@@ -9,7 +10,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.exceptions.CollectionIdNotSetRuntimeException;
-import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTOUtilsAcceptanceTest;
@@ -169,7 +169,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		});
 		initTestVariables();
 
-		dataStore.structureCacheUsingExistingIds(asList(RecordId.toId(1), RecordId.toId(2), RecordId.toId(3), RecordId.toId(6)).iterator());
+		dataStore.getIntIdsDataStore().structureCacheUsingExistingIds(asList(RecordId.toId(1), RecordId.toId(2), RecordId.toId(3), RecordId.toId(6)).iterator());
 
 		assertThat(dataStore.getIntIdsDataStore().ids.stream().collect(toList()))
 				.containsExactly(1, 2, 3, 6);
@@ -212,6 +212,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		defineSchemasManager().using(setup.withABooleanMetadata(whichIsEssentialInSummary));
 
+
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
@@ -220,6 +221,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		});
 		initTestVariables();
 
+		assertThat(dataStore.intIdsDataStore.collection.stream().collect(toList())).isEmpty();
 		ByteArrayRecordDTO dto1, dto2, dto3, dto6, dto7, dto8, dto10, dto12;
 		dto1 = create(new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), SUMMARY));
 		dto3 = create(new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), SUMMARY));

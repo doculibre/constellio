@@ -4,10 +4,12 @@ import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.PageItem;
+import com.constellio.app.entities.navigation.PageItem.CustomItem;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
@@ -73,7 +75,14 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 		NavigationConfig navigationConfig = manager.getNavigationConfig(collection);
 		List<String> tabs = new ArrayList<>();
 		for (PageItem tab : navigationConfig.getFragments(HomeView.TABS)) {
-			tabs.add(tab.getCode());
+			if (tab instanceof CustomItem) {
+				ComponentState tabState = ((CustomItem) tab).getStateFor(user, appLayerFactory);
+				if (tabState == ComponentState.ENABLED) {
+					tabs.add(tab.getCode());
+				}
+			} else {
+				tabs.add(tab.getCode());
+			}
 		}
 
 		StartTabFieldImpl defaultPageLength = new StartTabFieldImpl(tabs);

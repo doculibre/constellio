@@ -9,7 +9,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.assertj.core.api.ListAssert;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -21,7 +20,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchab
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class ArabicSearchServiceAcceptanceTest extends ConstellioTest {
 	private static final LocalDateTime DATE_TIME4 = new LocalDateTime(2003, 7, 15, 22, 40);
 	private static final LocalDateTime DATE_TIME3 = new LocalDateTime(2002, 8, 15, 22, 40);

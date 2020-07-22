@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.navigation;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.NavigationItem.Active;
+import com.constellio.app.entities.navigation.PageItem.CustomItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
@@ -15,6 +16,7 @@ import com.constellio.app.modules.rm.ui.components.contextmenu.DocumentContextMe
 import com.constellio.app.modules.rm.ui.pages.agent.AgentRequestViewImpl;
 import com.constellio.app.modules.rm.ui.pages.agent.AgentSetupViewImpl;
 import com.constellio.app.modules.rm.ui.pages.agent.ListAgentLogsViewImpl;
+import com.constellio.app.modules.rm.ui.pages.borrowing.ListBorrowingsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.cart.CartViewImpl;
 import com.constellio.app.modules.rm.ui.pages.cart.CartsListViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersByAdministrativeUnitsViewImpl;
@@ -33,6 +35,7 @@ import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.email.AddEmailAndEmailAttachmentsToFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.email.AddEmailAttachmentsToFolderViewImpl;
+import com.constellio.app.modules.rm.ui.pages.externallink.ListExternalLinksViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
@@ -46,22 +49,29 @@ import com.constellio.app.modules.rm.ui.pages.retentionRule.DisplayRetentionRule
 import com.constellio.app.modules.rm.ui.pages.retentionRule.ListRetentionRulesViewImpl;
 import com.constellio.app.modules.rm.ui.pages.retentionRule.SearchRetentionRulesViewImpl;
 import com.constellio.app.modules.rm.ui.pages.shareManagement.ShareContentListViewImpl;
+import com.constellio.app.modules.rm.ui.pages.trigger.AddEditTriggerViewImpl;
+import com.constellio.app.modules.rm.ui.pages.trigger.RecordTriggerManagerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.userDocuments.ListUserDocumentsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.AgentViewGroup;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewGroup;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.migrations.CoreNavigationConfiguration;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
-import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.data.TreeNode;
+import com.constellio.app.ui.framework.data.trees.DefaultLazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.trees.LegacyTreeNodesDataProviderAdapter;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.MainLayout;
@@ -80,8 +90,10 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
+import com.vaadin.ui.Component;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TableListener;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
@@ -95,6 +107,7 @@ import java.util.Map;
 
 import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
 import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 
 public class RMNavigationConfiguration implements Serializable {
 
@@ -109,6 +122,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String CHECKED_OUT_DOCUMENTS = "checkedOutDocuments";
 	public static final String SHARED_ITEMS = "sharedDocuments";
 	public static final String TAXONOMIES = "taxonomies";
+	public static final String FAVORITES_HOME_TAB = "favorites";
 
 	public static final String UNIFORM_SUBDIVISIONS = "uniformSubdivisions";
 	public static final String UNIFORM_SUBDIVISIONS_ICON = "images/icons/config/uniform-subdivision.png";
@@ -119,6 +133,9 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String ADMINISTRATIVE_UNIT_ICON = "images/icons/config/administrative-unit.png";
 	public static final String CLASSIFICATION_PLAN = "classificationPlan";
 	public static final String CLASSIFICATION_PLAN_ICON = "images/icons/config/classification-plan.png";
+
+	public static final String BORROWINGS = "borrowings";
+	public static final String BORROWINGS_ICON = "images/icons/config/borrowing-audit.png";
 
 	public static final String ARCHIVES_MANAGEMENT = "archiveManagement";
 	public static final String USER_DOCUMENTS = "userDocuments";
@@ -144,6 +161,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String DOCUMENT_DECOMMISSIONING_LIST_DISPLAY = "documentDecommissioningList";
 	public static final String DECOMMISSIONING_LIST_EDIT = "editDecommissioningList";
 	public static final String EDIT_DOCUMENT = "editDocument";
+	public static final String RENAME_CONTENT = "renameContent";
 	public static final String DUPLICATE_FOLDER = "duplicateFolder";
 	public static final String DISPLAY_DOCUMENT = "displayDocument";
 	public static final String ADD_EMAIL_ATTACHMENTS_TO_FOLDER = "addEmailAttachmentsToFolder";
@@ -160,6 +178,10 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String SHARE_MANAGEMENT = "shareManagement";
 	public static final String SHARES = "shares";
 	public static final String SHARES_ICON = "images/icons/config/paper_jet2.png";
+	public static final String LIST_BORROWINGS = "listBorrowings";
+	public static final String RECORD_TRIGGER_MANAGER = "triggerRecordManager";
+	public static final String ADD_EDIT_TRIGGER_TO_RECORD = "addEditTriggerToRecord";
+	public static final String LIST_EXTERNAL_LINKS = "listExternalLinks";
 
 
 	public static void configureNavigation(NavigationConfig config) {
@@ -206,6 +228,10 @@ public class RMNavigationConfiguration implements Serializable {
 		service.register(LIST_RETENTION_RULES, ListRetentionRulesViewImpl.class);
 		service.register(RETENTION_RULES_SEARCH, SearchRetentionRulesViewImpl.class);
 		service.register(LIST_USER_DOCUMENTS, ListUserDocumentsViewImpl.class);
+		service.register(LIST_BORROWINGS, ListBorrowingsViewImpl.class);
+		service.register(RECORD_TRIGGER_MANAGER, RecordTriggerManagerViewImpl.class);
+		service.register(ADD_EDIT_TRIGGER_TO_RECORD, AddEditTriggerViewImpl.class);
+		service.register(LIST_EXTERNAL_LINKS, ListExternalLinksViewImpl.class);
 		service.register(SHARE_MANAGEMENT, ShareContentListViewImpl.class);
 
 	}
@@ -217,7 +243,7 @@ public class RMNavigationConfiguration implements Serializable {
 				View currentView = ConstellioUI.getCurrent().getCurrentView();
 				if (currentView instanceof DisplayFolderView) {
 					DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
-					String parentFolderId = displayFolderView.getRecord().getId();
+					String parentFolderId = displayFolderView.getSummaryRecord().getId();
 					navigate.to(RMViews.class).addFolder(parentFolderId);
 				} else {
 					navigate.to(RMViews.class).addFolder();
@@ -244,7 +270,7 @@ public class RMNavigationConfiguration implements Serializable {
 				View currentView = ConstellioUI.getCurrent().getCurrentView();
 				if (currentView instanceof DisplayFolderView) {
 					DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
-					String folderId = displayFolderView.getRecord().getId();
+					String folderId = displayFolderView.getSummaryRecord().getId();
 					navigate.to(RMViews.class).newDocument(folderId);
 				} else {
 					navigate.to(RMViews.class).newDocument();
@@ -262,7 +288,7 @@ public class RMNavigationConfiguration implements Serializable {
 				View currentView = ConstellioUI.getCurrent().getCurrentView();
 				if (currentView instanceof DisplayFolderView) {
 					DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
-					String folderId = displayFolderView.getRecord().getId();
+					String folderId = displayFolderView.getSummaryRecord().getId();
 					navigate.to(RMViews.class).addDocument(folderId);
 				} else {
 					navigate.to(RMViews.class).addDocument();
@@ -291,8 +317,8 @@ public class RMNavigationConfiguration implements Serializable {
 	private static void configureHomeFragments(NavigationConfig config) {
 		RecordTree taxonomyTree = new RecordTree(TAXONOMIES) {
 			@Override
-			public List<RecordLazyTreeDataProvider> getDataProviders(AppLayerFactory appLayerFactory,
-																	 SessionContext sessionContext) {
+			public List<LazyTreeDataProvider<String>> getDataProviders(AppLayerFactory appLayerFactory,
+																	   SessionContext sessionContext) {
 				TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(appLayerFactory.getModelLayerFactory(), sessionContext);
 				if (getDefaultDataProvider() == -1) {
 					int defaultTab = tabSheet.getDefaultTab();
@@ -307,14 +333,24 @@ public class RMNavigationConfiguration implements Serializable {
 				menu.addContextMenuTreeListener(new TreeListener() {
 					@Override
 					public void onContextMenuOpenFromTreeItem(ContextMenuOpenedOnTreeItemEvent event) {
-						String recordId = (String) event.getItemId();
-						menu.openFor(recordId);
+						String recordPath = (String) event.getItemId();
+
+						String openRecordId = null;
+						TreeNode treeNode = DefaultLazyTreeDataProvider.toTreeNodeSupportingLegacyProviders(recordPath);
+						if (LegacyTreeNodesDataProviderAdapter.PROVIDER_ID.equals(treeNode.getProviderType())
+							&& Document.SCHEMA_TYPE.equals(treeNode.getNodeType())) {
+							openRecordId = treeNode.getId();
+
+						}
+
+						menu.openFor(openRecordId);
 					}
 				});
 				menu.addContextMenuTableListener(new TableListener() {
 					@Override
 					public void onContextMenuOpenFromRow(ContextMenuOpenedOnTableRowEvent event) {
-						String recordId = (String) event.getItemId();
+						String recordPath = (String) event.getItemId();
+						String recordId = recordPath.contains("|") ? substringAfterLast(recordPath, "|") : recordPath;
 						menu.openFor(recordId);
 					}
 
@@ -362,6 +398,18 @@ public class RMNavigationConfiguration implements Serializable {
 			public Map<String, RecordVODataProvider> getDataProvider(AppLayerFactory appLayerFactory,
 																	 SessionContext sessionContext) {
 				return new SharedDocumentsAndFoldersProvider(appLayerFactory, sessionContext).getDataProviders();
+			}
+		});
+		config.add(HomeView.TABS, new CustomItem(FAVORITES_HOME_TAB) {
+			@Override
+			public Component buildCustomComponent(ConstellioFactories factories, SessionContext context,
+												  ItemClickListener itemClickListener) {
+				return new RMFavoritesTabSheet(factories.getAppLayerFactory(), context);
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory modelLayerFactory) {
+				return ComponentState.visibleIf(!user.getList(RMUser.FAVORITES_DISPLAY_ORDER).isEmpty());
 			}
 		});
 	}
@@ -439,6 +487,17 @@ public class RMNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.hasAny(RMPermissionsTo.MANAGE_RETENTIONRULE, RMPermissionsTo.CONSULT_RETENTIONRULE).globally());
+			}
+		});
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(BORROWINGS, BORROWINGS_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to(RMViews.class).listBorrowings();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return visibleIf(user.has(RMPermissionsTo.MANAGE_BORROWINGS).globally());
 			}
 		});
 		config.replace(AdminView.COLLECTION_SECTION,

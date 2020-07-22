@@ -7,7 +7,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.sdk.tests.ConstellioTestWithGlobalContext;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -23,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-@SlowTest
+// Confirm @SlowTest
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JSPFConstellioPluginManagerRealTest extends ConstellioTestWithGlobalContext {
 

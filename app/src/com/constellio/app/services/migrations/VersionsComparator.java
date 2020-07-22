@@ -27,6 +27,22 @@ public class VersionsComparator implements Comparator<String> {
 			versionTwo = versionTwo.replace("beta.", "beta").replace("beta", "beta.");
 		}
 
+		if (versionOne.contains("build")) {
+			versionOne = versionOne.replace("build.", "build").replace("build", "build.");
+		}
+
+		if (versionTwo.contains("build")) {
+			versionTwo = versionTwo.replace("build.", "build").replace("build", "build.");
+		}
+
+		if (versionOne.contains("rc")) {
+			versionOne = versionOne.replace("rc.", "rc").replace("rc", "rc.");
+		}
+
+		if (versionTwo.contains("rc")) {
+			versionTwo = versionTwo.replace("rc.", "rc").replace("rc", "rc.");
+		}
+
 		String[] version1VersionAndSubVersion = versionOne.split("-");
 		String[] version2VersionAndSubVersion = versionTwo.split("-");
 
@@ -68,12 +84,12 @@ public class VersionsComparator implements Comparator<String> {
 	}
 
 	private int parseVersionDigit(String str) {
-		if ("beta".equals(str)) {
+		if ("beta".equals(str) || "rc".equals(str) || "build".equals(str)) {
 			return -1;
 		} else {
 			try {
 				return Integer.parseInt(str);
-			} catch (Exception e)  {
+			} catch (Exception e) {
 				return 0;
 			}
 		}

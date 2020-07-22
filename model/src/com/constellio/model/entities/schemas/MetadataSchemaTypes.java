@@ -39,9 +39,11 @@ public class MetadataSchemaTypes implements Serializable {
 	private final List<MetadataSchemaType> schemaTypesById;
 
 	private final List<MetadataSchemaType> schemaTypes;
+
 	private final Map<String, MetadataSchemaType> schemaTypesMap;
 
-	private final List<String> schemaTypesSortedByDependency;
+	private final List<String> schemaTypeCodesSortedByDependency;
+	private final List<MetadataSchemaType> schemaTypesSortedByDependency;
 	private List<String> referenceDefaultValues;
 	private MetadataList searchableMetadatas;
 	private final Set<String> typeParentOfOtherTypes;
@@ -51,27 +53,42 @@ public class MetadataSchemaTypes implements Serializable {
 	private final MetadataNetwork metadataNetwork;
 
 	private final CollectionInfo collectionInfo;
+	private final Map<String, List<MetadataSchemaType>> classifiedSchemaTypes;
 
 
 	public MetadataSchemaTypes(CollectionInfo collectionInfo, int version, List<MetadataSchemaType> schemaTypes,
-							   List<String> schemaTypesSortedByDependency, List<String> referenceDefaultValues,
+							   List<String> schemaTypeCodesSortedByDependency, List<String> referenceDefaultValues,
 							   List<Language> languages,
 							   MetadataNetwork metadataNetwork) {
 		super();
 		this.version = version;
 		this.schemaTypes = Collections.unmodifiableList(schemaTypes);
-		this.schemaTypesSortedByDependency = schemaTypesSortedByDependency;
+		this.schemaTypeCodesSortedByDependency = schemaTypeCodesSortedByDependency;
 		this.referenceDefaultValues = referenceDefaultValues;
 		this.searchableMetadatas = getSearchableMetadatas(schemaTypes);
 		this.schemaTypesMap = toUnmodifiableMap(schemaTypes);
+		this.schemaTypesSortedByDependency = buildSchemaTypesSortedByDependency(schemaTypeCodesSortedByDependency, schemaTypesMap);
 		this.languages = Collections.unmodifiableList(languages);
 		this.typeParentOfOtherTypes = buildTypeParentOfOtherTypes(schemaTypes);
 		this.schemaTypesById = buildTypesById(schemaTypes);
+		this.classifiedSchemaTypes = buildClassifiedSchemaTypes(schemaTypesSortedByDependency);
 		this.metadataNetwork = metadataNetwork;
 		this.collectionInfo = collectionInfo;
 		for (MetadataSchemaType schemaType : schemaTypes) {
 			schemaType.setBuiltSchemaTypes(this);
 		}
+	}
+
+	private List<MetadataSchemaType> buildSchemaTypesSortedByDependency(List<String> schemaTypeCodesSortedByDependency,
+																		Map<String, MetadataSchemaType> schemaTypesMap) {
+
+		List<MetadataSchemaType> schemaTypes = new ArrayList<>();
+
+		for (String code : schemaTypeCodesSortedByDependency) {
+			schemaTypes.add(schemaTypesMap.get(code));
+		}
+
+		return schemaTypes;
 	}
 
 	private static Map<String, List<MetadataSchemaType>> buildClassifiedSchemaTypes(
@@ -105,6 +122,7 @@ public class MetadataSchemaTypes implements Serializable {
 		return listMap.getNestedMap();
 	}
 
+
 	private List<MetadataSchemaType> buildTypesById(List<MetadataSchemaType> schemaTypes) {
 		MetadataSchemaType[] types = new MetadataSchemaType[LIMIT_OF_TYPES_IN_COLLECTION];
 
@@ -115,11 +133,16 @@ public class MetadataSchemaTypes implements Serializable {
 		return Collections.unmodifiableList(Arrays.asList(types));
 	}
 
+	public List<MetadataSchemaType> getClassifiedSchemaTypesIn(String schemaTypeCode) {
+		List<MetadataSchemaType> types = classifiedSchemaTypes.get(schemaTypeCode);
+		return types == null ? Collections.emptyList() : types;
+	}
+
 	public CollectionInfo getCollectionInfo() {
 		return collectionInfo;
 	}
 
-	private MetadataList getSearchableMetadatas(List<MetadataSchemaType> schemaTypes) {
+	public static MetadataList getSearchableMetadatas(List<MetadataSchemaType> schemaTypes) {
 		MetadataList searchableMetadatas = new MetadataList();
 		Set<String> searchableMetadatasDataStoreCodes = new HashSet<>();
 		for (MetadataSchemaType schemaType : schemaTypes) {
@@ -209,6 +232,49 @@ public class MetadataSchemaTypes implements Serializable {
 
 	public List<MetadataSchemaType> getSchemaTypes() {
 		return schemaTypes;
+	}
+
+	public List<MetadataSchemaType> getSchemaTypesInDisplayOrder() {
+		//TODO : Improve this ugly coupling!!!
+		List<MetadataSchemaType> schemaTypesInDisplayOrder = new ArrayList<>();
+
+		MetadataSchemaType folderSchemaType = null;
+		MetadataSchemaType documentSchemaType = null;
+		MetadataSchemaType taskSchemaType = null;
+
+		for (MetadataSchemaType type : getSchemaTypes()) {
+			switch (type.getCode()) {
+				case "folder":
+					folderSchemaType = type;
+
+					break;
+				case "document":
+					documentSchemaType = type;
+
+					break;
+				case "userTask":
+					taskSchemaType = type;
+
+					break;
+				default:
+					schemaTypesInDisplayOrder.add(type);
+					break;
+			}
+		}
+
+		if (folderSchemaType != null) {
+			schemaTypesInDisplayOrder.add(folderSchemaType);
+		}
+
+		if (documentSchemaType != null) {
+			schemaTypesInDisplayOrder.add(documentSchemaType);
+		}
+
+		if (taskSchemaType != null) {
+			schemaTypesInDisplayOrder.add(taskSchemaType);
+		}
+
+		return schemaTypesInDisplayOrder;
 	}
 
 	public MetadataSchemaType getSchemaType(String schemaTypeCode) {
@@ -301,7 +367,11 @@ public class MetadataSchemaTypes implements Serializable {
 		return new MetadataList(metadatas).unModifiable();
 	}
 
-	public List<String> getSchemaTypesSortedByDependency() {
+	public List<String> getSchemaTypesCodesSortedByDependency() {
+		return schemaTypeCodesSortedByDependency;
+	}
+
+	public List<MetadataSchemaType> getSchemaTypesSortedByDependency() {
 		return schemaTypesSortedByDependency;
 	}
 
@@ -344,11 +414,11 @@ public class MetadataSchemaTypes implements Serializable {
 		return referenceDefaultValues;
 	}
 
+	@Deprecated
 	public List<MetadataSchemaType> getSchemaTypesWithCodesSortedByDependency(Set<String> returnedTypeCodes) {
 		List<MetadataSchemaType> returnedMetadataSchemaTypes = new ArrayList<>();
-		for (String typeCode : getSchemaTypesSortedByDependency()) {
-			if (returnedTypeCodes.contains(typeCode)) {
-				MetadataSchemaType type = getSchemaType(typeCode);
+		for (MetadataSchemaType type : getSchemaTypesSortedByDependency()) {
+			if (returnedTypeCodes.contains(type.getCode())) {
 				returnedMetadataSchemaTypes.add(type);
 			}
 		}

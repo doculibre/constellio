@@ -2,16 +2,21 @@ package com.constellio.model.services.taxonomies;
 
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 public interface LinkableConceptFilter {
 
 	boolean isLinkable(LinkableConceptFilterParams params);
 
-	interface LinkableConceptFilterParams {
+	@AllArgsConstructor
+	class LinkableConceptFilterParams {
 
-		Record getRecord();
+		@Getter
+		Record record;
 
-		Taxonomy getTaxonomy();
+		@Getter
+		Taxonomy taxonomy;
 
 	}
 }

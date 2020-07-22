@@ -16,7 +16,7 @@ public class RMDownloadContentVersionLinkExtension implements DownloadContentVer
 
 	@Override
 	public Component getDownloadLink(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption,
-									 UpdatableContentVersionPresenter presenter) {
+									 String metadataCode, UpdatableContentVersionPresenter presenter) {
 		Component downloadLink;
 		if (!isDocumentOrUserDocument(recordVO)) {
 			// Do not enable agent for non-rm entities
@@ -25,9 +25,9 @@ public class RMDownloadContentVersionLinkExtension implements DownloadContentVer
 
 		String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 		if (agentURL != null) {
-			downloadLink = new ConstellioAgentLink(agentURL, recordVO, contentVersionVO, caption, presenter);
+			downloadLink = new ConstellioAgentLink(agentURL, recordVO, contentVersionVO, caption, true, presenter, metadataCode);
 		} else {
-			downloadLink = new DownloadContentVersionLink(recordVO, contentVersionVO, caption, presenter);
+			downloadLink = new DownloadContentVersionLink(recordVO, contentVersionVO, caption, presenter, metadataCode, false);
 		}
 		return downloadLink;
 	}

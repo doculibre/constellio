@@ -10,6 +10,7 @@ import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -19,10 +20,14 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordAutomaticMetadataServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -34,6 +39,8 @@ import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
 
 @SuppressWarnings("serial")
 public class RecordToVOBuilder implements Serializable {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(RecordToVOBuilder.class);
 
 	Map<String, MetadataSchemaVO> cachedSchemaVOs = new HashMap<>(1);
 	Map<String, User> cachedUsers = new HashMap<>(1);
@@ -95,21 +102,34 @@ public class RecordToVOBuilder implements Serializable {
 			if (metadataVO.isSynthetic()) {
 				continue;
 			}
-
 			Metadata metadata;
 			if (metadataVO.getId() != 0) {
-				metadata = schema.getMetadataById(metadataVO.getId());
+				metadata = schema.getSchemaType().getMetadataById(metadataVO.getId());
 
 			} else {
-				metadata = schema.getMetadata(metadataCode);
+				metadata = schema.getSchemaType().getMetadata(metadataCode);
+			}
+
+			if (record.getRecordDTO() != null &&
+				record.getLoadedFieldsMode() == RecordDTOMode.SUMMARY && !SchemaUtils.isSummary(metadata)) {
+				continue;
 			}
 
 			Object recordVOValue;
+			try {
+				if (metadata.isMultiLingual() && metadataVO.getLocale() != null) {
+					recordVOValue = record.get(metadata, metadataVO.getLocale());
+				} else {
+					recordVOValue = record.get(metadata, sessionContext.getCurrentLocale());
 
-			if (metadata.isMultiLingual() && metadataVO.getLocale() != null) {
-				recordVOValue = record.get(metadata, metadataVO.getLocale());
-			} else {
-				recordVOValue = record.get(metadata, sessionContext.getCurrentLocale());
+				}
+			} catch (IllegalArgumentException e) {
+				if (viewMode == VIEW_MODE.DISPLAY || viewMode == FORM) {
+					throw new RuntimeException("Could not load metadata '" + metadata + "'", e);
+
+				} else {
+					recordVOValue = metadata.isMultivalue() ? Collections.emptyList() : null;
+				}
 			}
 
 			if (recordVOValue instanceof Content) {

@@ -98,8 +98,9 @@ public class LoggingServices {
 		executeTransaction(event);
 	}
 
-	public void deletePermission(Authorization authorization, User user) {
-		Event event = eventFactory.eventPermission(authorization, null, user, null, EventType.DELETE_PERMISSION);
+	public void deletePermission(Authorization authorization, User user, boolean isShared) {
+		Event event = eventFactory.eventPermission(authorization, null, user,
+				null, isShared ? EventType.DELETE_SHARE : EventType.DELETE_PERMISSION);
 		executeTransaction(event);
 	}
 
@@ -171,6 +172,10 @@ public class LoggingServices {
 
 	public void login(User user) {
 		executeTransaction(eventFactory.newLoginEvent(user));
+	}
+
+	public void failingLogin(String attemptedUsername, String ip) {
+		executeTransaction(eventFactory.newFailedLoginEvent(attemptedUsername, ip));
 	}
 
 	public void logout(User user) {
@@ -258,6 +263,8 @@ public class LoggingServices {
 		if (Toggle.AUDIT_EVENTS.isEnabled()) {
 			Transaction transaction = new Transaction();
 			transaction.setRecordFlushing(RecordsFlushing.ADD_LATER());
+			transaction.getRecordUpdateOptions().setSkipFindingRecordsToReindex(true);
+			transaction.getRecordUpdateOptions().setUpdateCalculatedMetadatas(false);
 			transaction.addUpdate(record);
 			try {
 				modelLayerFactory.newRecordServices().execute(transaction);
@@ -266,6 +273,10 @@ public class LoggingServices {
 				throw new RuntimeException(e.getMessage());
 			}
 		}
+	}
+
+	public void logDeleteRecordWithJustification(Record record, User user, String reason) {
+		executeTransaction(eventFactory.newRecordEvent(record, user, EventType.DELETE, reason));
 	}
 
 	public void completeBorrowRequestTask(Record record, String taskId, boolean isAccepted, User applicant,

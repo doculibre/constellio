@@ -113,7 +113,8 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 	}
 
 	private void addFoldersToChildren(ObjectInFolderList children, List<Record> childRecords) {
-		for (Record childRecord : childRecords) {
+		for (Record childSummaryRecord : childRecords) {
+			Record childRecord = modelLayerFactory.newRecordServices().realtimeGetRecordById(childSummaryRecord.getId());
 			ObjectData object = newObjectDataBuilder().build(childRecord, filter, includeAllowableActions, false, objectInfo);
 			children.getObjects().add(new ObjectInFolderDataImpl(object));
 		}

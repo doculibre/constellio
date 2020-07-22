@@ -11,7 +11,6 @@ import static com.constellio.model.services.records.cache.offHeapCollections.Off
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.allocateMemory;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.freeMemory;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.getInt;
-import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.getUnsafe;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.putInt;
 
 public class OffHeapIntList {
@@ -54,8 +53,11 @@ public class OffHeapIntList {
 	}
 
 	public void set(int index, int value) {
+		if (index < 0) {
+			throw new IllegalArgumentException("index must be >=0");
+		}
 		long address = getAdressOfIndex(index);
-		getUnsafe().putInt(address, value);
+		OffHeapMemoryAllocator.putInt(address, value);
 		lastIndex = Math.max(index, lastIndex);
 	}
 
@@ -72,7 +74,7 @@ public class OffHeapIntList {
 		for (int i = 0; i <= lastIndex; i++) {
 			int v = get(i);
 			long newAddress = readAddressOfIndex(newAddressesOfBatches, i < index ? i : (i + 1));
-			getUnsafe().putInt(newAddress, v);
+			OffHeapMemoryAllocator.putInt(newAddress, v);
 		}
 
 		clear();
@@ -83,12 +85,16 @@ public class OffHeapIntList {
 	}
 
 	public int get(int index) {
+		if (index < 0) {
+			throw new IllegalArgumentException("index must be >=0");
+		}
 		long address = getAdressOfIndex(index);
 		return getInt(address);
 	}
 
 
 	//Found on https://www.geeksforgeeks.org/binary-search/
+
 	public int binarySearch(int value) {
 		int l = 0, r = lastIndex;
 		while (l <= r) {

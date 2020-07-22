@@ -2,7 +2,6 @@ package com.constellio.data.dao.services.leaderElection;
 
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryOneTime;
@@ -16,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@SlowTest
+// Confirm @SlowTest
 public class ZookeeperLeaderElectionManagerAcceptanceTest extends ConstellioTest {
 
 	TestingServer zkTestServer;

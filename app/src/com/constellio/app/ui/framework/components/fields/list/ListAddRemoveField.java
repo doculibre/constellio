@@ -151,7 +151,13 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 				throw new InvalidValueException($("requiredField"));
 			}
 			removeStyleName(ERROR_STYLE_NAME);
+			if (addEditField != null) {
+				addEditField.removeStyleName(ERROR_STYLE_NAME);
+			}
 		} catch (InvalidValueException e) {
+			if (addEditField != null) {
+				addEditField.addStyleName(ERROR_STYLE_NAME);
+			}
 			throw e;
 		}
 	}

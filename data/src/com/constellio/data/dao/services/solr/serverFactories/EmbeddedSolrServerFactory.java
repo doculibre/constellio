@@ -65,7 +65,7 @@ public class EmbeddedSolrServerFactory implements SolrServerFactory {
 
 	@Override
 	public TupleStream newTupleStream(String core, Map<String, String> props) {
-		throw new UnsupportedOperationException("Unsupported");
+		throw new UnsupportedOperationException("unsupported");
 	}
 
 	private CoreContainer getLoadedCoreContainer()

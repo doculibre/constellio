@@ -29,13 +29,13 @@ import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
+import com.constellio.app.ui.pages.MetadataSorterUtil;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.util.CapsuleUtils;
 import com.constellio.data.dao.dto.records.FacetValue;
-import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
@@ -94,8 +94,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -110,7 +108,7 @@ import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRa
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
-public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements NewReportPresenter {
+public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements NewReportPresenter, RecordSelectionObserver {
 
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
 	public static final String SEARCH_EVENT_DWELL_TIME = "SEARCH_EVENT_DWELL_TIME";
@@ -177,6 +175,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		initSortParameters();
 		correctorExcluderManager = appLayerFactory.getCorrectorExcluderManager();
 		thesaurusManager = modelLayerFactory.getThesaurusManager();
+		highlighter = modelLayerFactory.getSystemConfigs().isSearchResultsHighlightingEnabled();
 
 	}
 
@@ -312,7 +311,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 		view.setLazyLoadedSearchResults(configs.isLazyLoadedSearchResults());
-		view.setApplyMultipleFacets(getCurrentUser().isApplyFacetsEnabled());
+
+		if (sessionContext.getCurrentUser() != null) {
+			view.setApplyMultipleFacets(getCurrentUser().isApplyFacetsEnabled());
+		}
 	}
 
 	public void resetFacetAndOrder() {
@@ -401,10 +403,13 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				view.getSessionContext(), this::getSelectedPageLength) {
 			@Override
 			public LogicalSearchQuery getQuery() {
-				LogicalSearchQuery query = getSearchQuery().setHighlighting(highlighter).setOverridedQueryParams(extraSolrParams);
+				LogicalSearchQuery query = getSearchQuery().setOverridedQueryParams(extraSolrParams)
+						.setHighlighting(highlighter);
+
 				if (facets) {
 					service.configureQueryToComputeFacets(query);
 				}
+
 				return query;
 			}
 
@@ -702,7 +707,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		//		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(
 		//				schemasDisplayManager.getReturnedFieldsForSearch(collection)));
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.allExceptContentAndLargeText());
+		if (modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+			query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
+		} else {
+			query.setReturnedMetadatas(ReturnedMetadatasFilter.allExceptContentAndLargeText());
+		}
+
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		LogicalSearchQueryFacetFilters filters = query.getFacetFilters();
@@ -727,17 +737,17 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				query.setFieldBoosts(searchBoostManager().getAllSearchBoostsByMetadataType(view.getCollection()));
 				query.setQueryBoosts(searchBoostManager().getAllSearchBoostsByQueryType(view.getCollection()));
 			}
-			if (new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isAddingSecondarySortWhenSortingByScore()) {
+			if (new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isAddingSecondarySortWhenSortingByScoreOrTitle()) {
 				return sortOrder == SortOrder.ASCENDING ?
 					   query.sortFirstOn(new ScoreLogicalSearchQuerySort(true)).sortAsc(Schemas.IDENTIFIER) :
 					   query.sortFirstOn(new ScoreLogicalSearchQuerySort(false)).sortDesc(Schemas.IDENTIFIER);
 			} else {
 				return query;
 			}
+		} else {
+			Metadata metadata = getMetadata(sortCriterion);
+			return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
 		}
-
-		Metadata metadata = getMetadata(sortCriterion);
-		return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
 	}
 
 	protected String filteredSolrOperatorsInUserSearchExpression() {
@@ -819,7 +829,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				}
 			}
 		}
-		sort(result);
+		MetadataSorterUtil.sort(result, view.getSessionContext());
 		return result;
 	}
 
@@ -898,6 +908,11 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	protected boolean saveSearch(String title, boolean publicAccess, List<String> sharedUsers,
 								 List<String> sharedGroups) {
+		if (StringUtils.isBlank(title)) {
+			view.showErrorMessage($("SearchView.errorSearchTitleEmpty"));
+			return false;
+		}
+
 		Record record = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 		SavedSearch search = new SavedSearch(record, types())
 				.setTitle(title)
@@ -1012,17 +1027,18 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
 			SearchEvent searchEvent = view.getSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+			if (searchEvent != null) {
+				searchEventServices.incrementClickCounter(searchEvent.getId());
 
-			searchEventServices.incrementClickCounter(searchEvent.getId());
+				String url = null;
+				try {
+					url = recordVO.get("url");
 
-			String url = null;
-			try {
-				url = recordVO.get("url");
-
-				String clicks = StringUtils.defaultIfBlank(url, recordVO.getId());
-				searchEventServices.updateClicks(searchEvent, clicks);
-			} catch (RecordVORuntimeException_NoSuchMetadata e) {
-				//			LOGGER.warn(e.getMessage(), e);
+					String clicks = StringUtils.defaultIfBlank(url, recordVO.getId());
+					searchEventServices.updateClicks(searchEvent, clicks);
+				} catch (RecordVORuntimeException_NoSuchMetadata e) {
+					//			LOGGER.warn(e.getMessage(), e);
+				}
 			}
 		}
 	}
@@ -1093,17 +1109,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			searchConfigurationsManager.setExcluded(collection, record);
 		}
 		view.refreshSearchResultsAndFacets();
-	}
-
-	protected void sort(List<MetadataVO> metadataVOs) {
-		Collections.sort(metadataVOs, new Comparator<MetadataVO>() {
-			@Override
-			public int compare(MetadataVO o1, MetadataVO o2) {
-				String firstLabel = AccentApostropheCleaner.removeAccents(o1.getLabel(view.getSessionContext()).toLowerCase());
-				String secondLabel = AccentApostropheCleaner.removeAccents(o2.getLabel(view.getSessionContext()).toLowerCase());
-				return firstLabel.compareTo(secondLabel);
-			}
-		});
 	}
 
 	public void fireSomeRecordsSelected() {

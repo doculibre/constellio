@@ -2,6 +2,8 @@ package com.constellio.data.extensions;
 
 import org.apache.solr.common.params.SolrParams;
 
+import java.util.Map;
+
 public interface AfterQueryParams {
 
 	SolrParams getSolrParams();
@@ -14,4 +16,5 @@ public interface AfterQueryParams {
 
 	boolean isGetByIdQuery();
 
+	Map<String, Object> getDebugMap();
 }

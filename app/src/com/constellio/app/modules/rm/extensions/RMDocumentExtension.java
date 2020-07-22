@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
 public class RMDocumentExtension extends RecordExtension {
 	private final ModelLayerFactory modelLayerFactory;
@@ -193,11 +192,10 @@ public class RMDocumentExtension extends RecordExtension {
 			boolean usedInTasks = false;
 			List<Record> tasks = new ArrayList<>();
 			if (!event.isThenPhysicallyDeleted()) {
-				tasks = searchServices.search(new LogicalSearchQuery(from(rm.userTask.schemaType())
-						.where(rm.userTask.linkedDocuments()).isContaining(asList(event.getRecord().getId()))
+				usedInTasks = searchServices.getResultsCount(new LogicalSearchQuery(from(rm.userTask.schemaType())
+						.where(rm.userTask.linkedDocuments()).isEqualTo(event.getRecord().getId())
 						.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()));
-				usedInTasks = !tasks.isEmpty();
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())) > 0;
 			}
 			if ((checkoutUserId != null && (user == null || !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)))
 				|| usedInTasks) {

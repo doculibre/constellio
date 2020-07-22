@@ -2,13 +2,13 @@ package com.constellio.model.services.taxonomies.queryHandlers;
 
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordHierarchyServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.LogicalSearchQueryExecutorInCache;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 
@@ -22,7 +22,7 @@ public class TaxonomiesSearchServicesBaseQueryHandler {
 	protected MetadataSchemasManager metadataSchemasManager;
 	protected RecordServices recordServices;
 	protected SchemaUtils schemaUtils = new SchemaUtils();
-	protected ConceptNodesTaxonomySearchServices conceptNodesTaxonomySearchServices;
+	protected RecordHierarchyServices recordHierarchyServices;
 	protected RecordsCaches caches;
 	protected TaxonomiesSearchServicesCache cache;
 	protected ModelLayerExtensions extensions;
@@ -35,7 +35,7 @@ public class TaxonomiesSearchServicesBaseQueryHandler {
 		this.taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.recordServices = modelLayerFactory.newRecordServices();
-		this.conceptNodesTaxonomySearchServices = new ConceptNodesTaxonomySearchServices(modelLayerFactory);
+		this.recordHierarchyServices = new RecordHierarchyServices(modelLayerFactory);
 		this.caches = modelLayerFactory.getRecordsCaches();
 		this.cache = modelLayerFactory.getTaxonomiesSearchServicesCache();
 		this.extensions = modelLayerFactory.getExtensions();

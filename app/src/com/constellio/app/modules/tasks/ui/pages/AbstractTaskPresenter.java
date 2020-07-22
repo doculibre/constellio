@@ -18,6 +18,8 @@ import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.tasks.data.trees.TaskFoldersTreeNodesDataProvider;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -34,6 +36,7 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -53,6 +56,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.vaadin.ui.Label;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -178,8 +182,8 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 		String collection = sessionContext.getCurrentCollection();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		User currentUser = rm.getUser(sessionContext.getCurrentUser().getId());
-		
-		newComment.setDateTime(new LocalDateTime());
+
+		newComment.setCreationDateTime(new LocalDateTime());
 		newComment.setUser(currentUser);
 		
 		Task task = rm.getRMTask(taskVO.getId());
@@ -201,6 +205,45 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 	public RecordVO getDocumentVO(String linkedDocumentId) {
 		Record record = getRecord(linkedDocumentId);
 		return new RecordToVOBuilder().build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
+	}
+
+	@Override
+	public void commentDeleted(Comment commentToDelete, List<Comment> comments, RecordVO taskVO) {
+		comments.remove(commentToDelete);
+		updateComments(comments, taskVO);
+	}
+
+	@Override
+	public boolean commentCreatedByCurrentUser(Comment comment) {
+		return getCurrentUser().getId().equals(comment.getUserId());
+	}
+
+	@Override
+	public void commentModified(Comment commentToModify, RecordVO taskVO, List<Comment> comments, String newValue) {
+		comments.remove(commentToModify);
+		commentToModify.setModificationDateTime(new LocalDateTime());
+		commentToModify.setMessage(newValue);
+
+		comments.add(commentToModify);
+		updateComments(comments, taskVO);
+	}
+
+	private void updateComments(List<Comment> newComments, RecordVO taskVO) {
+		TasksSchemasRecordsServices tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		ConstellioEIMConfigs eimConfigs = appLayerFactory.getModelLayerFactory().getSystemConfigs();
+
+		Task task = tasksSchemasRecordsServices.getTask(taskVO.getId());
+		task.setComments(newComments);
+		try {
+			if (eimConfigs.isAddCommentsWhenReadAuthorization()) {
+				recordServices().update(task, new RecordUpdateOptions().setSkipUserAccessValidation(true));
+			} else {
+				recordServices().update(task);
+			}
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 
 	public boolean userHasPermissionOn(RecordVO recordVO) {
@@ -337,4 +380,15 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 		return newDocumentRecordIds;
 	}
 
+	public Label getDelegatedTaskAlertState() {
+		String delegateUserId = getCurrentUser().get(TaskUser.DELEGATION_TASK_USER);
+		if (StringUtils.isBlank(delegateUserId)) {
+			return new Label();
+		} else {
+			TasksSchemasRecordsServices tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
+			return new Label($("TaskManagementView.tasksDelegatedToUser", tasksSchemasRecordsServices.getUser(delegateUserId).getUsername()));
+		}
+	}
+
+	;
 }

@@ -1,5 +1,6 @@
 package com.constellio.model.services.taxonomies;
 
+import com.constellio.model.entities.records.Record;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -187,7 +188,8 @@ public class MemoryTaxonomiesSearchServicesCacheTest extends ConstellioTest {
 		cache.insert("chuck", "001", "mode1", null);
 
 		assertThat(cache.getCachedValue(null, "001", "mode1")).isEqualTo(null);
-		assertThat(cache.getCachedValue("chuck", null, "mode1")).isEqualTo(null);
+		assertThat(cache.getCachedValue("chuck", (String) null, "mode1")).isEqualTo(null);
+		assertThat(cache.getCachedValue("chuck", (Record) null, "mode1")).isEqualTo(null);
 		assertThat(cache.getCachedValue("chuck", "001", null)).isEqualTo(null);
 
 		cache.invalidateRecord(null);

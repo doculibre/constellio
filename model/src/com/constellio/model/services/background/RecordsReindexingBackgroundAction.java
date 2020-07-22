@@ -50,7 +50,8 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 	}
 
 	protected boolean isOfficeHours() {
-		return TimeProvider.getLocalDateTime().getHourOfDay() >= 7
+		return new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER
+			   && TimeProvider.getLocalDateTime().getHourOfDay() >= 7
 			   && TimeProvider.getLocalDateTime().getHourOfDay() <= 18;
 	}
 
@@ -59,7 +60,8 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 
 		boolean officeHours = isOfficeHours();
 
-		if (ReindexingServices.getReindexingInfos() == null &&
+		if (!Toggle.PERFORMANCE_TESTING.isEnabled()
+			&& ReindexingServices.getReindexingInfos() == null &&
 			(modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized() ||
 			 !modelLayerFactory.getConfiguration().isSummaryCacheEnabled())) {
 			boolean found = false;

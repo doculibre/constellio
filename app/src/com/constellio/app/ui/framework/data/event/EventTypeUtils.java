@@ -20,6 +20,8 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.openedSessions");
 		} else if (eventType.equals(EventType.VIEW_FOLDER)) {
 			return $("ListEventsView.foldersView");
+		} else if (eventType.equals(EventType.ATTEMPTED_OPEN_SESSION)) {
+			return $("ListEventsView.failedLogins");
 		} else if (eventType.equals(EventType.CREATE_FOLDER)) {
 			return $("ListEventsView.foldersCreation");
 		} else if (eventType.equals(EventType.MODIFY_FOLDER)) {
@@ -199,7 +201,15 @@ public class EventTypeUtils implements Serializable {
 		if (isBatchProcessEvent(eventType)) {
 			metadataCodes.addAll(getEventBatchProcessMetadata(metadataSchema));
 		}
+		if (isAuthenticationEvent(eventType)) {
+			metadataCodes.add(Event.USERNAME);
+			metadataCodes.add(Event.IP);
+		}
 		return metadataCodes;
+	}
+
+	private static boolean isAuthenticationEvent(String eventType) {
+		return asList(EventType.ATTEMPTED_OPEN_SESSION).contains(eventType);
 	}
 
 	private static boolean isBatchProcessEvent(String eventType) {

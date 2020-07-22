@@ -1,13 +1,18 @@
 package com.constellio.model.entities.security;
 
 import com.constellio.data.utils.KeyListMap;
+import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.AuthorizationDetailsFilter;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -15,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@Slf4j
 public class SingletonSecurityModel implements SecurityModel {
 
 	GroupAuthorizationsInheritance groupAuthorizationsInheritance;
@@ -54,6 +60,14 @@ public class SingletonSecurityModel implements SecurityModel {
 	String collection;
 	List<String> securableRecordSchemaTypes;
 
+	/**
+	 * Cache for retrieveUserTokens, which is called a lot!
+	 */
+	Map<Integer, KeySetMap<String, String>> cachedUserTokens = new HashMap<>();
+
+	private boolean noNegativeAuth;
+
+	private long version;
 
 	public static SingletonSecurityModel empty(String collection) {
 		return new SingletonSecurityModel(collection);
@@ -86,19 +100,28 @@ public class SingletonSecurityModel implements SecurityModel {
 		this.principalsGivingAccessToPrincipal = principalsGivingAccessToPrincipal;
 		this.groupsGivingAccessToGroup = groupsGivingAccessToGroup;
 		this.groupsGivingAccessToUser = groupsGivingAccessToUser;
+		this.version = new Date().getTime();
 		initAuthsMaps(authorizationDetails);
+
 	}
 
 	protected void initAuthsMaps(List<Authorization> authorizationDetails) {
+		cachedUserTokens = new HashMap<>();
+		directAndInheritedAuthorizationsByPrincipalId = new HashMap<>();
 		for (Authorization authorizationDetail : authorizationDetails) {
 			insertAuthorizationInMemoryMaps(authorizationDetail);
+			try {
+				noNegativeAuth &= !authorizationDetail.isNegative();
+			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+				log.warn("negative metadata does not exist", e);
+			}
 		}
 	}
+
 
 	private void insertAuthorizationInMemoryMaps(Authorization authorizationDetail) {
 
 		try {
-			directAndInheritedAuthorizationsByPrincipalId.clear();
 			boolean securableRecord = securableRecordSchemaTypes.contains(authorizationDetail.getTargetSchemaType());
 			SecurityModelAuthorization securityModelAuthorization = new SecurityModelAuthorization(
 					authorizationDetail, securableRecord, groupAuthorizationsInheritance);
@@ -148,6 +171,63 @@ public class SingletonSecurityModel implements SecurityModel {
 
 
 	@Override
+	public KeySetMap<String, String> retrieveUserTokens(User user, boolean includeSpecifics,
+														AuthorizationDetailsFilter filter) {
+
+		KeySetMap<String, String> tokens = null;
+		int cacheKey = 0;
+
+		if (filter.getCacheKey() != -1) {
+			cacheKey = user.getWrappedRecordId().intValue() * 8;
+			if (cacheKey > 0) {
+				cacheKey += includeSpecifics ? 5 : 0;
+				cacheKey += filter.getCacheKey();
+			} else {
+				cacheKey -= includeSpecifics ? 5 : 0;
+				cacheKey -= filter.getCacheKey();
+			}
+			tokens = cachedUserTokens.get(cacheKey);
+		}
+
+
+		if (tokens == null) {
+			tokens = computeRetrieveUserTokens(user, includeSpecifics, filter);
+
+			if (cacheKey != 0) {
+				synchronized (cachedUserTokens) {
+					cachedUserTokens.put(cacheKey, tokens);
+				}
+			}
+		}
+
+		return tokens;
+	}
+
+	@Override
+	public boolean hasNoNegativeAuth() {
+		return noNegativeAuth;
+	}
+
+	@Override
+	public long getVersion() {
+		return 0;
+	}
+
+	KeySetMap<String, String> computeRetrieveUserTokens(User user, boolean includeSpecifics,
+														AuthorizationDetailsFilter filter) {
+		KeySetMap<String, String> tokens = new KeySetMap<>();
+		for (SecurityModelAuthorization auth : getAuthorizationsToPrincipal(user.getId(), true)) {
+			if (auth.getDetails().isActiveAuthorization() && filter.isIncluded(auth.getDetails())
+				&& (!Authorization.isSecurableSchemaType(auth.getDetails().getTargetSchemaType()) || includeSpecifics)) {
+				tokens.add(auth.getDetails().getTarget(), auth.getDetails().getId());
+			}
+		}
+
+
+		return tokens;
+	}
+
+	@Override
 	public boolean isGroupActive(String groupId) {
 		return Boolean.TRUE.equals(globalGroupEnabledMap.get(groupId));
 	}
@@ -176,7 +256,9 @@ public class SingletonSecurityModel implements SecurityModel {
 						}
 					}
 				}
-				directAndInheritedAuthorizationsByPrincipalId.put(principalId, returnedAuths);
+				synchronized (directAndInheritedAuthorizationsByPrincipalId) {
+					directAndInheritedAuthorizationsByPrincipalId.put(principalId, returnedAuths);
+				}
 			}
 
 			return returnedAuths;
@@ -187,8 +269,6 @@ public class SingletonSecurityModel implements SecurityModel {
 	}
 
 	private void removeAuthWithId(String authId, List<SecurityModelAuthorization> auths) {
-		directAndInheritedAuthorizationsByPrincipalId.clear();
-
 		Iterator<SecurityModelAuthorization> authsIterator = auths.iterator();
 		while (authsIterator.hasNext()) {
 			if (authId.equals(authsIterator.next().getDetails().getId())) {
@@ -200,6 +280,8 @@ public class SingletonSecurityModel implements SecurityModel {
 	}
 
 	public synchronized void removeAuth(String authId) {
+		directAndInheritedAuthorizationsByPrincipalId = new HashMap<>();
+		cachedUserTokens = new HashMap<>();
 		removeAuthWithId(authId, authorizations);
 
 		SecurityModelAuthorization auth = authorizationsById.remove(authId);
@@ -213,9 +295,12 @@ public class SingletonSecurityModel implements SecurityModel {
 		}
 
 		removeAuthWithId(authId, authorizationsByTargets.get(auth.getDetails().getTarget()));
+		this.version = new Date().getTime();
 	}
 
 	public synchronized void updateCache(List<Authorization> newAuths, List<Authorization> modifiedAuths) {
+		cachedUserTokens = new HashMap<>();
+		directAndInheritedAuthorizationsByPrincipalId = new HashMap<>();
 		for (Authorization auth : newAuths) {
 			insertAuthorizationInMemoryMaps(auth);
 		}
@@ -227,5 +312,6 @@ public class SingletonSecurityModel implements SecurityModel {
 		for (Authorization auth : modifiedAuths) {
 			insertAuthorizationInMemoryMaps(auth);
 		}
+		this.version = new Date().getTime();
 	}
 }

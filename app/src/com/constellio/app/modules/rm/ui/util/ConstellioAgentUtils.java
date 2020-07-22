@@ -261,9 +261,9 @@ public class ConstellioAgentUtils {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 
 		Record record = recordVO.getRecord();
-		if (record == null) {
-			record = recordServices.getDocumentById(recordVO.getId());
-		}
+		//		if (record == null || record.getRecordDTOMode() != RecordDTOMode.FULLY_LOADED) {
+		//			record = recordServices.getDocumentById(recordVO.getId());
+		//		}
 		String schemaCode = record.getSchemaCode();
 		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 

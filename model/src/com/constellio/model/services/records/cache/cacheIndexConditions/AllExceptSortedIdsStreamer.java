@@ -1,8 +1,7 @@
 package com.constellio.model.services.records.cache.cacheIndexConditions;
 
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.utils.LazyIterator;
-import com.constellio.model.services.records.RecordId;
-import com.constellio.model.services.records.cache.MetadataIndexCacheDataStore;
 
 import java.util.Iterator;
 
@@ -19,10 +18,9 @@ public class AllExceptSortedIdsStreamer implements SortedIdsStreamer {
 	}
 
 	@Override
-	public Iterator<RecordId> iterator(MetadataIndexCacheDataStore dataStore) {
-		Iterator<RecordId> sourceIterator = source.iterator(dataStore);
-		RecordExistingIdsIteratorConsumer exceptIteratorConsumer = new RecordExistingIdsIteratorConsumer(
-				except.iterator(dataStore));
+	public Iterator<RecordId> iterator() {
+		Iterator<RecordId> sourceIterator = source.iterator();
+		RecordExistingIdsIteratorConsumer exceptIteratorConsumer = new RecordExistingIdsIteratorConsumer(except.iterator());
 		return new LazyIterator<RecordId>() {
 			@Override
 			protected RecordId getNextOrNull() {

@@ -1,11 +1,23 @@
 package com.constellio.app.ui.framework.components.viewers.document;
 
+import com.constellio.app.api.pdf.pdfjs.services.PdfJSServices;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
+import com.constellio.app.ui.pages.base.PresenterService;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.io.ConversionManager;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ResourceReference;
@@ -26,6 +38,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class DocumentViewer extends CustomComponent {
@@ -44,9 +57,9 @@ public class DocumentViewer extends CustomComponent {
 		conversionManager = ConstellioFactories.getInstance().getDataLayerFactory().getConversionManager();
 	}
 
-	public static String[] CONVERSION_EXTENSIONS = ArrayUtils.removeElements(conversionManager.getSupportedExtensions(), new String[]{"pdf"});
+	public static String[] CONVERSION_EXTENSIONS = ArrayUtils.removeElements(conversionManager.getPreviewSupportedExtensions(), new String[]{"pdf"});
 
-	public static String[] SUPPORTED_EXTENSIONS = ArrayUtils.add(conversionManager.getSupportedExtensions(), "pdf");
+	public static String[] SUPPORTED_EXTENSIONS = ArrayUtils.add(conversionManager.getAllSupportedExtensions(), "pdf");
 
 	private static final int DEFAULT_WIDTH = 750;
 
@@ -163,7 +176,7 @@ public class DocumentViewer extends CustomComponent {
 				ResourceReference contentResourceReference = ResourceReference.create(contentResource, this, "DocumentViewer.file");
 				String contentURL = contentResourceReference.getURL();
 
-				String localeStr = getLocale().getLanguage();
+				Locale locale = getLocale();
 				String contentPathPrefix;
 				if (VaadinService.getCurrentRequest() != null) {
 					String contextPath = VaadinService.getCurrentRequest().getContextPath();
@@ -175,7 +188,51 @@ public class DocumentViewer extends CustomComponent {
 					contentPathPrefix = "../../../../../";
 				}
 
-				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/pdfjs/web/viewer.html?locale=" + localeStr + "&file=" + contentPathPrefix + contentURL + "\" width=\"100%\" height=\"100%\" allowfullscreen webkitallowfullscreen></iframe>";
+				ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+				AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
+				ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+				UserServices userServices = modelLayerFactory.newUserServices();
+				PresenterService presenterService = new PresenterService(modelLayerFactory);
+				PdfJSServices pdfJSServices = new PdfJSServices(appLayerFactory);
+				SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+
+				User user = presenterService.getCurrentUser(sessionContext);
+				String username = user.getUsername();
+				UserCredential userCredentials = userServices.getUserCredential(username);
+				String serviceKey = userCredentials.getServiceKey();
+				if (serviceKey == null) {
+					serviceKey = userServices.giveNewServiceToken(userCredentials);
+					userServices.addUpdateUserCredential(userCredentials);
+				}
+				String tokenAttributeName = "document_viewer_token";
+				String token = ConstellioUI.getCurrent().getAttribute(tokenAttributeName);
+				if (token == null || userServices.isAuthenticated(serviceKey, token)) {
+					token = userServices.generateToken(username);
+					ConstellioUI.getCurrent().setAttribute(tokenAttributeName, token);
+					final String finalToken = token;
+					// Token only valid while current UI is alive
+					ConstellioUI.getCurrent().addDetachListener(new DetachListener() {
+						@Override
+						public void detach(DetachEvent event) {
+							ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+							ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+							UserServices userServices = modelLayerFactory.newUserServices();
+							userServices.removeToken(finalToken);
+						}
+					});
+				}
+
+				String viewerUrl;
+				if (recordVO != null) {
+					Record record = presenterService.getRecord(recordVO.getId());
+					MetadataSchema metadataSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record);
+					Metadata metadata = metadataSchema.get(metadataCode);
+					viewerUrl = pdfJSServices.getInternalViewerUrl(record, metadata, user, locale, contentPathPrefix, contentPathPrefix + contentURL, serviceKey, token);
+				} else {
+					viewerUrl = pdfJSServices.getInternalViewerUrl(null, null, user, locale, contentPathPrefix, contentPathPrefix + contentURL, serviceKey, token);
+				}
+
+				String iframeHTML = "<iframe src = \"" + viewerUrl + "\" width=\"100%\" height=\"100%\" allowfullscreen webkitallowfullscreen></iframe>";
 				compositionRoot = new Label(iframeHTML, ContentMode.HTML);
 				compositionRoot.setWidth(widthStr);
 				compositionRoot.setHeight(heightStr);

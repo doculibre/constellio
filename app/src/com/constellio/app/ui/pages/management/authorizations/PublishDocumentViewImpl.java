@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.management.authorizations;
 
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
@@ -28,17 +29,19 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 
 	private final PublishDocumentPresenter presenter;
 	private RecordVO record;
+	MenuItemActionBehaviorParams params;
 	private boolean deleteButtonVisible;
 
-	@PropertyId("publishStartDate") private JodaDateField publishStartDate;
-	@PropertyId("publishEndDate") private JodaDateField publishEndDate;
+	@PropertyId("publishingStartDate") private JodaDateField publishStartDate;
+	@PropertyId("publishingExpirationDate") private JodaDateField publishEndDate;
 
 	public PublishDocumentViewImpl() {
 		presenter = new PublishDocumentPresenter(this);
 	}
 
-	public PublishDocumentViewImpl(RecordVO record) {
-		this.record = record;
+	public PublishDocumentViewImpl(MenuItemActionBehaviorParams params) {
+		this.params = params;
+		this.record = params.getRecordVO();
 		presenter = new PublishDocumentPresenter(this);
 	}
 
@@ -82,6 +85,8 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 					Document document = presenter.publishDocument(record.getId(), publishStartDate.getValue(), publishEndDate.getValue());
 					closeWindow();
 					linkToDocument(document);
+					params.getView().refreshActionMenu();
+					params.getView().partialRefresh();
 				} catch (RecordServicesException e) {
 					closeWindow();
 				}
@@ -115,13 +120,17 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 	}
 
 	private void buildDateFields() {
+		boolean isDateFieldsRequired = presenter.isDateFieldValuesRequired();
+
 		publishStartDate = new JodaDateField();
 		publishStartDate.setCaption($("AuthorizationsView.startDate"));
 		publishStartDate.setId("startDate");
+		publishStartDate.setRequired(isDateFieldsRequired);
 
 		publishEndDate = new JodaDateField();
 		publishEndDate.setCaption($("AuthorizationsView.endDate"));
 		publishEndDate.setId("endDate");
+		publishEndDate.setRequired(isDateFieldsRequired);
 	}
 
 	public void linkToDocument(Document document) {

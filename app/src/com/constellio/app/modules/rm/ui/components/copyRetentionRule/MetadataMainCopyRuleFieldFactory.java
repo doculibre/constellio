@@ -23,7 +23,7 @@ public class MetadataMainCopyRuleFieldFactory extends MetadataFieldFactory {
 	}
 
 	@Override
-	public Field<?> build(MetadataVO metadata, Locale locale) {
+	public Field<?> build(MetadataVO metadata, String recordId, Locale locale) {
 		Field<?> field;
 		if (StringUtils.isBlank(retentionRule)) {
 			field = new MetadataMainCopyRuleInactiveFieldImpl();

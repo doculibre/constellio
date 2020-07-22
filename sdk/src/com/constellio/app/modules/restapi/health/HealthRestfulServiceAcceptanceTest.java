@@ -2,6 +2,7 @@ package com.constellio.app.modules.restapi.health;
 
 import com.constellio.app.modules.restapi.RestApiConfigs;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.IntermittentFailureTest;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
@@ -12,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class HealthRestfulServiceAcceptanceTest extends ConstellioTest {
 
 	private final static String ALLOWED_HEADERS =
-			"X-Requested-With,Content-Type,Accept,Origin,Constellio-Flushing-Mode,Host,If-Match,ETag";
+			"X-Requested-With,Content-Type,Accept,Origin,Constellio-Flushing-Mode,Host,If-Match,ETag,Authorization";
 	private final static String EXPOSED_HEADERS = "ETag";
 
 	@Test
@@ -108,6 +109,7 @@ public class HealthRestfulServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@IntermittentFailureTest
 	public void testGetHealth() {
 		prepareSystemWithoutHyperTurbo(withZeCollection().withConstellioRMModule().withConstellioRestApiModule());
 

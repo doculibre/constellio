@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.LabelVO;
@@ -104,7 +105,7 @@ public class AddEditLabelViewImpl extends BaseViewImpl implements AddEditLabelVi
 			RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 			this.recordVO = voBuilder.build(r, RecordVO.VIEW_MODE.FORM, getSessionContext());
 		}
-		recordForm = new LabelFormImpl(recordVO, new LabelRecordFieldFactory()) {
+		recordForm = new LabelFormImpl(recordVO, new LabelRecordFieldFactory(), getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {
@@ -168,8 +169,8 @@ public class AddEditLabelViewImpl extends BaseViewImpl implements AddEditLabelVi
 	}
 
 	class LabelForm extends RecordForm {
-		public LabelForm(RecordVO record) {
-			super(record);
+		public LabelForm(RecordVO record, ConstellioFactories constellioFactories) {
+			super(record, constellioFactories);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -197,7 +198,7 @@ public class AddEditLabelViewImpl extends BaseViewImpl implements AddEditLabelVi
 					field = createComboBox(metadataVO);
 					break;
 				default:
-					field = new MetadataFieldFactory().build(metadataVO, locale);
+					field = new MetadataFieldFactory().build(metadataVO, recordVO != null ? recordVO.getId() : null, locale);
 					if (metadataVO.codeMatches(Printable.JASPERFILE)) {
 						field.addValidator(new Validator() {
 							@Override

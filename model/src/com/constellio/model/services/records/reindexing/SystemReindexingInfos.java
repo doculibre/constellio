@@ -1,5 +1,7 @@
 package com.constellio.model.services.records.reindexing;
 
+import java.util.function.Supplier;
+
 public class SystemReindexingInfos {
 
 	private String collection;
@@ -10,11 +12,15 @@ public class SystemReindexingInfos {
 
 	private long total;
 
-	public SystemReindexingInfos(String collection, String schemaTypeLabel, long progression, long total) {
+	private Supplier<SystemReindexingConsumptionInfos> consumptionSupplier;
+
+	public SystemReindexingInfos(String collection, String schemaTypeLabel, long progression, long total,
+								 Supplier<SystemReindexingConsumptionInfos> consumptionSupplier) {
 		this.collection = collection;
 		this.schemaTypeLabel = schemaTypeLabel;
 		this.progression = progression;
 		this.total = total;
+		this.consumptionSupplier = consumptionSupplier;
 	}
 
 	public String getCollection() {
@@ -31,5 +37,9 @@ public class SystemReindexingInfos {
 
 	public long getTotal() {
 		return total;
+	}
+
+	public Supplier<SystemReindexingConsumptionInfos> getConsumptionSupplier() {
+		return consumptionSupplier;
 	}
 }

@@ -34,6 +34,7 @@ import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +46,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
@@ -346,6 +348,17 @@ public class MetadataSchemaBuilder {
 		return this.create(code).setUndeletable(true);
 	}
 
+	public MetadataBuilder createIfInexisting(String code, Consumer<MetadataBuilder> metadataConsumer) {
+		if (!hasMetadata(code)) {
+			MetadataBuilder metadataBuilder = create(code);
+			metadataConsumer.accept(metadataBuilder);
+			return metadataBuilder;
+		} else {
+			return get(code);
+		}
+
+	}
+
 	public MetadataBuilder create(String metadataLocaleCode) {
 
 		String metadataLocalCode = new SchemaUtils().toLocalMetadataCode(metadataLocaleCode);
@@ -390,11 +403,24 @@ public class MetadataSchemaBuilder {
 			id = typeBuilder.nextSchemaId();
 		}
 
+		Set<String> typesWithSummaryCache = getTypesWithSummaryCache(typesBuilder);
+
 		MetadataSchema metadataSchema = new MetadataSchema(id, this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(),
 				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators),
-				schemaTypeBuilder.getDataStore(), this.isActive(), modelLayerFactory.getSystemConfigs());
+				schemaTypeBuilder.getDataStore(), this.isActive(), modelLayerFactory.getSystemConfigs(), typesWithSummaryCache);
 		return metadataSchema;
+	}
+
+	@NotNull
+	private Set<String> getTypesWithSummaryCache(MetadataSchemaTypesBuilder typesBuilder) {
+		Set<String> typesWithSummaryCache = new HashSet<>();
+		for (MetadataSchemaTypeBuilder aTypeBuilder : typesBuilder.getTypes()) {
+			if (aTypeBuilder.getRecordCacheType() != null && aTypeBuilder.getRecordCacheType().isSummaryCache()) {
+				typesWithSummaryCache.add(aTypeBuilder.getCode());
+			}
+		}
+		return typesWithSummaryCache;
 	}
 
 	public String getTypeCode() {
@@ -613,7 +639,7 @@ public class MetadataSchemaBuilder {
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
 		MetadataSchema metadataSchema = new MetadataSchema(this.getId(), this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(), inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators)
-				, schemaTypeBuilder.getDataStore(), this.isActive(), modelLayerFactory.getSystemConfigs());
+				, schemaTypeBuilder.getDataStore(), this.isActive(), modelLayerFactory.getSystemConfigs(), getTypesWithSummaryCache(typesBuilder));
 		return metadataSchema;
 	}
 

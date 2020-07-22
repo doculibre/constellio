@@ -10,15 +10,16 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.UserVO;
-import com.constellio.app.ui.framework.components.fields.BasePasswordField;
 import com.constellio.app.ui.framework.components.fields.BaseRichTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.BooleanOptionGroup;
+import com.constellio.app.ui.framework.components.fields.EditablePasswordField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateTimeField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeOptionGroup;
+import com.constellio.app.ui.framework.components.fields.exception.ValidationException.ToManyCharacterException;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveCommentField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveDoubleField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveEnumWithSmallCodeComboBox;
@@ -47,15 +48,19 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.vaadin.data.Validator;
 import com.vaadin.ui.AbstractTextField;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Field;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public class MetadataFieldFactory implements Serializable {
@@ -70,18 +75,18 @@ public class MetadataFieldFactory implements Serializable {
 		this.isViewOnly = isViewOnly;
 	}
 
-	public final Field<?> build(MetadataVO metadata) {
-		return build(metadata, null);
+	public final Field<?> build(MetadataVO metadata, String recordId) {
+		return build(metadata, recordId, null);
 	}
 
-	public Field<?> build(MetadataVO metadata, Locale locale) {
+	public Field<?> build(MetadataVO metadata, String recordId, Locale locale) {
 		Field<?> field;
 
 		boolean multivalue = metadata.isMultivalue();
 		if (multivalue) {
-			field = newMultipleValueField(metadata);
+			field = newMultipleValueField(metadata, recordId);
 		} else {
-			field = newSingleValueField(metadata);
+			field = newSingleValueField(metadata, recordId);
 		}
 		// FIXME Temporary workaround for inconsistencies
 		if (metadata.getJavaType() == null) {
@@ -93,10 +98,13 @@ public class MetadataFieldFactory implements Serializable {
 		return field;
 	}
 
-	protected void postBuild(Field<?> field, MetadataVO metadata) {
+	protected void postBuild(final Field<?> field, MetadataVO metadata) {
 		boolean readOnly = metadata.isReadOnly();
 		boolean required = metadata.isRequired();
-		String caption = metadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale());
+
+		String caption = metadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale(), true, true);
+
+		addMaxLengthValidator(field, metadata);
 
 		field.setId(metadata.getCode());
 		field.setCaption(caption);
@@ -107,8 +115,57 @@ public class MetadataFieldFactory implements Serializable {
 		}
 	}
 
+	private void addMaxLengthValidator(Field<?> field, MetadataVO metadata) {
+		if (metadata.getMaxLength() != null && metadata.isMaxLenghtSupported()) {
+			if (!isToManyCharactersValidatorPresent(field)) {
+				field.addValidator(new ToManyCharactersValidator(metadata));
+			}
+		}
+	}
+
+	private boolean isToManyCharactersValidatorPresent(Field<?> field) {
+		for (Validator validator : field.getValidators()) {
+			if (validator instanceof ToManyCharactersValidator) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public class ToManyCharactersValidator implements Validator {
+		private MetadataVO metadataVO;
+
+		public ToManyCharactersValidator(MetadataVO metadataVO) {
+			this.metadataVO = metadataVO;
+		}
+
+		@Override
+		public void validate(Object value) throws InvalidValueException {
+			if (value == null) {
+				return;
+			}
+
+			if (!metadataVO.isMultivalue()) {
+				addToManyCharacterExceptionWhenApplicable(metadataVO, (String) value);
+			} else {
+				for (String currentValue : (Collection<String>) value) {
+					addToManyCharacterExceptionWhenApplicable(metadataVO, currentValue);
+				}
+			}
+		}
+	}
+
+	private void addToManyCharacterExceptionWhenApplicable(MetadataVO metadata, String currentValue) {
+		if (currentValue.length() > metadata.getMaxLength()) {
+			String message = $("invalidFieldValueToManyCharacter",
+					metadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale(), false, false));
+			throw new ToManyCharacterException(message);
+		}
+	}
+
 	@SuppressWarnings({"rawtypes", "unchecked"})
-	protected Field<?> newSingleValueField(MetadataVO metadata) {
+	protected Field<?> newSingleValueField(MetadataVO metadata, String recordId) {
 		Field<?> field;
 
 		String collection = metadata.getCollection();
@@ -153,13 +210,24 @@ public class MetadataFieldFactory implements Serializable {
 					}
 					break;
 				case TEXT:
-					switch (metadataInputType) {
-						case RICHTEXT:
-							field = new BaseRichTextArea();
-							break;
-						default:
-							field = new BaseTextArea();
-							break;
+					if (metadataInputType != null) {
+						switch (metadataInputType) {
+							case RICHTEXT:
+								String richInputMask = metadata.getInputMask();
+								BaseRichTextArea richTextArea = new BaseRichTextArea();
+								richTextArea.setInputMask(richInputMask);
+								field = richTextArea;
+								break;
+							default:
+								String inputMask = metadata.getInputMask();
+								BaseTextArea textArea = new BaseTextArea();
+								textArea.setInputMask(inputMask);
+								field = textArea;
+								break;
+						}
+					} else {
+						field = new BaseTextArea();
+						break;
 					}
 					break;
 				case REFERENCE:
@@ -228,7 +296,7 @@ public class MetadataFieldFactory implements Serializable {
 					break;
 				case STRING:
 					if (MetadataInputType.PASSWORD.equals(metadataInputType)) {
-						field = new BasePasswordField();
+						field = new EditablePasswordField();
 					} else {
 						String inputMask = metadata.getInputMask();
 						BaseTextField textField = new BaseTextField();
@@ -240,10 +308,10 @@ public class MetadataFieldFactory implements Serializable {
 					// Two input types : CONTENTS OR CONTENT_CHECK_IN_CHECK_OUT
 					switch (metadataInputType) {
 						case CONTENT_CHECK_IN_CHECK_OUT:
-							field = new ContentVersionUploadField();
+							field = new ContentVersionUploadField(recordId, metadata.getLocalCode());
 							break;
 						default:
-							field = new ContentVersionUploadField();
+							field = new ContentVersionUploadField(recordId, metadata.getLocalCode());
 							((ContentVersionUploadField) field).setMajorVersionFieldVisible(false);
 							break;
 					}
@@ -261,7 +329,7 @@ public class MetadataFieldFactory implements Serializable {
 	}
 
 	@SuppressWarnings({"rawtypes", "unchecked"})
-	protected Field<?> newMultipleValueField(MetadataVO metadata) {
+	protected Field<?> newMultipleValueField(MetadataVO metadata, String recordId) {
 		Field<?> field;
 
 		String collection = metadata.getCollection();
@@ -309,13 +377,17 @@ public class MetadataFieldFactory implements Serializable {
 					}
 					break;
 				case TEXT:
-					switch (metadataInputType) {
-						case RICHTEXT:
-							field = new ListAddRemoveRichTextArea();
-							break;
-						default:
-							field = new ListAddRemoveTextArea();
-							break;
+					if (metadataInputType != null) {
+						switch (metadataInputType) {
+							case RICHTEXT:
+								field = new ListAddRemoveRichTextArea();
+								break;
+							default:
+								field = new ListAddRemoveTextArea();
+								break;
+						}
+					} else {
+						field = new ListAddRemoveTextArea();
 					}
 					break;
 				case REFERENCE:
@@ -386,10 +458,10 @@ public class MetadataFieldFactory implements Serializable {
 				case CONTENT:
 					switch (metadataInputType) {
 						case CONTENT_CHECK_IN_CHECK_OUT:
-							field = new ContentVersionUploadField(true, false, isViewOnly);
+							field = new ContentVersionUploadField(true, false, isViewOnly, recordId, metadata.getLocalCode());
 							break;
 						default:
-							field = new ContentVersionUploadField(true, true, isViewOnly);
+							field = new ContentVersionUploadField(true, true, isViewOnly, recordId, metadata.getLocalCode());
 							((ContentVersionUploadField) field).setMajorVersionFieldVisible(false);
 							break;
 					}

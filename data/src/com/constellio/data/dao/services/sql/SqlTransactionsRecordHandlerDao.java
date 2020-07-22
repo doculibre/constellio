@@ -1,10 +1,8 @@
 package com.constellio.data.dao.services.sql;
 
-import com.constellio.data.dao.dto.records.TransactionSqlDTO;
-import org.apache.commons.dbutils.QueryRunner;
+import com.constellio.data.dao.dto.sql.TransactionSqlDTO;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
-import org.apache.commons.dbutils.handlers.ScalarHandler;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -16,7 +14,7 @@ public class SqlTransactionsRecordHandlerDao extends BeanListHandler<Transaction
 
 	private Connection connection;
 
-	public SqlTransactionsRecordHandlerDao(Connection connection){
+	public SqlTransactionsRecordHandlerDao(Connection connection) {
 		super(TransactionSqlDTO.class);
 		this.connection = connection;
 

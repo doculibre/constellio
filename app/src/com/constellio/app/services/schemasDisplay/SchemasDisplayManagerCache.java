@@ -197,7 +197,7 @@ public class SchemasDisplayManagerCache implements Serializable {
 		if (metadata.getInheritance() == null) {
 			config = new MetadataDisplayConfig(collection, metadataCode, false, getDefaultMetadataInputType(
 					metadataCode, metadataSchemasManager), false, "",
-					getDefaultMetadataDisplayType(), getDefaultMetadataSortingType());
+					getDefaultMetadataDisplayType(), null, getDefaultMetadataSortingType());
 		} else {
 			MetadataDisplayConfig inheritedConfig = getMetadata(metadata.getInheritance().getCode(), metadataSchemasManager);
 			config = MetadataDisplayConfig.inheriting(metadataCode, inheritedConfig);

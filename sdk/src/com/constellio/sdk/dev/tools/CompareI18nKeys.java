@@ -46,6 +46,29 @@ public class CompareI18nKeys {
 		return result.toString();
 	}
 
+	public static String getComparisonMessage(Language language, ListComparisonResults<String> comparisonResults,
+											  String keysFileName) {
+		StringBuilder result = new StringBuilder("");
+		String languageFilename = keysFileName + "_" + language.getCode() + ".properties";
+		result.append("Keys in " + keysFileName + ".properties that are not in " + languageFilename);
+
+		List<String> removedItems = new ArrayList<>(comparisonResults.getRemovedItems());
+		List<String> newItems = new ArrayList<>(comparisonResults.getNewItems());
+
+		Collections.sort(removedItems);
+		Collections.sort(newItems);
+
+		for (String key : removedItems) {
+			result.append("\n\t" + key);
+		}
+
+		result.append("\n\n\nKeys in " + languageFilename + " that are not in " + keysFileName + ".properties");
+		for (String key : newItems) {
+			result.append("\n\t" + key);
+		}
+		return result.toString();
+	}
+
 	public static ListComparisonResults<String> compare(Language language)
 			throws Exception {
 		FoldersLocator foldersLocator = new FoldersLocator();
@@ -54,6 +77,22 @@ public class CompareI18nKeys {
 		List<String> defaultKeys = loadI18nKeysWithValue(new File(i18nFolder, "i18n.properties"));
 		List<String> englishKeys = loadI18nKeysWithValue(new File(i18nFolder, languageFilename));
 		return LangUtils.compare(defaultKeys, englishKeys);
+	}
+
+	public static ListComparisonResults<String> compareKeys(Language language, File i18nParentFolder,
+															String keysFileName)
+			throws Exception {
+		String languageFilename = keysFileName + "_" + language.getCode() + ".properties";
+		List<String> defaultKeys = loadI18nKeysWithValue(new File(i18nParentFolder, keysFileName + ".properties"));
+		List<String> englishKeys = loadI18nKeysWithValue(new File(i18nParentFolder, languageFilename));
+		return LangUtils.compare(defaultKeys, englishKeys);
+	}
+
+	public static ListComparisonResults<String> compareKeys(File i18nArabicFile, File i18nFrenchFile)
+			throws Exception {
+		List<String> defaultKeys = loadI18nKeysWithValue(i18nFrenchFile);
+		List<String> arabicKeys = loadI18nKeysWithValue(i18nArabicFile);
+		return LangUtils.compare(defaultKeys, arabicKeys);
 	}
 
 	private static List<String> loadI18nKeysWithValue(File file)

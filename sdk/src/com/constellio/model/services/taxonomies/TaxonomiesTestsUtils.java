@@ -7,10 +7,12 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
@@ -24,6 +26,7 @@ import static com.constellio.model.entities.security.global.AuthorizationAddRequ
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaxonomiesTestsUtils {
 
@@ -80,6 +83,8 @@ public class TaxonomiesTestsUtils {
 		Group legends = userServices.getGroupInCollection("legends", "zeCollection");
 		Group heroes = userServices.getGroupInCollection("heroes", "zeCollection");
 
+		assertThat(document1_1.getList(Schemas.ATTACHED_ANCESTORS)).containsOnly("d11", "f1", "unitId_20");
+		assertThat(RecordId.toStringIds(document1_1.getList(Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS))).containsOnly("d11", "f1", "unitId_20");
 
 		AuthorizationsServices authServices = appLayerFactory.getModelLayerFactory().newAuthorizationsServices();
 		String auth1 = authServices.add(authorizationForUsers(alice, bob, charles, gandalf).givingReadWriteDeleteAccess().on(administrativeUnit));
@@ -247,7 +252,8 @@ public class TaxonomiesTestsUtils {
 	public static boolean ajustIfBetterThanExpected(StackTraceElement[] stackTraceElements, String current,
 													String expected) {
 
-		String filePath = "/Users/francisbaril/Constellio/IdeaProjects/constellio-dev-2019/constellio/sdk/src/com/constellio/model/services/taxonomies";
+		//String filePath = "/Users/francisbaril/Constellio/IdeaProjects/constellio-dev-2019/constellio/sdk/src/com/constellio/model/services/taxonomies";
+		String filePath = "/Users/francisbaril/IdeaProjects/constellio-2019/constellio/sdk/src/com/constellio/model/services/taxonomies";
 
 		boolean betterThanExpected = isBetterThanExpected(current, expected);
 		if (betterThanExpected) {

@@ -84,8 +84,13 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 			});
 			recordsIterator = selectedRecordObjects.iterator();
 		} else if (searchQuery != null) {
-			searchQuery.setReturnedMetadatas(ReturnedMetadatasFilter.all());
-			recordsIterator = modelLayerFactory.newSearchServices().recordsIteratorKeepingOrder(searchQuery, 200);
+			if (orderedEnabledReportedMetadataList.stream().allMatch((m) -> m.isStoredInSummaryCache())) {
+				recordsIterator = modelLayerFactory.newSearchServices().recordsIteratorKeepingOrder(
+						new LogicalSearchQuery(searchQuery).setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields()), 2000);
+			} else {
+				recordsIterator = modelLayerFactory.newSearchServices().recordsIteratorKeepingOrder(
+						new LogicalSearchQuery(searchQuery).setReturnedMetadatas(ReturnedMetadatasFilter.all()), 200);
+			}
 		}
 		//TODO DO Not use searchQuery
 		else if (selectedRecords == null || selectedRecords.isEmpty()) {

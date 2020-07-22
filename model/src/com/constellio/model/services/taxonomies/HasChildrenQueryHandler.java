@@ -50,7 +50,7 @@ public class HasChildrenQueryHandler {
 		if (response != null) {
 			throw new IllegalStateException("Cannot add record to check after the execution of the query");
 		}
-		Boolean cachedValue = searchServicesCache.getCachedValue(username, record.getId(), cacheMode);
+		Boolean cachedValue = searchServicesCache.getCachedValue(username, record, cacheMode);
 		cachedValues.put(record.getId(), cachedValue);
 		if (cachedValue == null) {
 			calculatedIds.add(record.getId());

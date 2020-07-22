@@ -11,11 +11,13 @@ import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
+import com.vaadin.event.ContextClickEvent;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.server.Extension;
 import com.vaadin.server.Resource;
+import com.vaadin.shared.MouseEventDetails;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.AbstractSelect.ItemDescriptionGenerator;
 import com.vaadin.ui.CheckBox;
@@ -29,7 +31,9 @@ import com.vaadin.ui.Tree.ExpandListener;
 import com.vaadin.ui.Tree.ItemStyleGenerator;
 import com.vaadin.ui.Tree.TreeDragMode;
 import com.vaadin.ui.TreeTable;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu;
 
 import java.io.Serializable;
@@ -57,7 +61,9 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 	private List<ItemClickListener> itemClickListeners = new ArrayList<ItemClickListener>();
 	
 	private Map<Object, List<Object>> loaderPropertyCache = new HashMap<>();
-	
+
+	private Map<T, String> explicitItemCaptions = new HashMap<>();
+
 	public LazyTree(LazyTreeDataProvider<T> treeDataProvider) {
 		this(treeDataProvider, false);
 	}
@@ -247,6 +253,23 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		return dataProvider;
 	}
 
+	@SuppressWarnings("unchecked")
+	public void reloadItem(T itemId) {
+		if (!isLoader(itemId)) {
+			Item item = adaptee.getItem(itemId);
+			Property<Object> captionProperty = item.getItemProperty(CAPTION_PROPERTY);
+			Component newItemCaptionComponent = getItemCaptionComponent((T) itemId);
+			if (newItemCaptionComponent != null) {
+				captionProperty.setValue(newItemCaptionComponent);
+			} else {
+				String newItemCaption = getExplicitOrDefaultItemCaption(itemId);
+				if (StringUtils.isNotBlank(newItemCaption)) {
+					captionProperty.setValue(newItemCaption);
+				}
+			}
+		}
+	}
+
 	private void addItem(T child, T parent) {
 		addItem(child, parent, true);
 	}
@@ -353,7 +376,8 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		Component itemCaptionComponent;
 		if (multiValue) {
 			if (isSelectable(object)) {
-				String itemCaption = getItemCaption(object);
+				VerticalLayout wrapper = new VerticalLayout();
+				String itemCaption = getExplicitOrDefaultItemCaption(object);
 				final CheckBox checkBox = new CheckBox(itemCaption);
 				checkBox.setValue(ensureListValue().contains(object));
 				checkBox.addValueChangeListener(new Property.ValueChangeListener() {
@@ -364,16 +388,34 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 						if (selected && !listValue.contains(object)) {
 							listValue.add(object);
 							setValue(listValue);
+							fireValueChange(true);
 						} else if (!selected && listValue.contains(object)) {
 							listValue.remove(object);
 							setValue(listValue);
+							fireValueChange(true);
 						}
 					}
 				});
 				Resource icon = getItemIcon(object);
 				checkBox.setIcon(icon);
-				
-				itemCaptionComponent = checkBox;
+
+				wrapper.addComponent(checkBox);
+				wrapper.addContextClickListener(new ContextClickEvent.ContextClickListener() {
+					@Override
+					public void contextClick(ContextClickEvent event) {
+						MouseEventDetails rightClickEvent = new MouseEventDetails();
+						rightClickEvent.setButton(event.getButton());
+						rightClickEvent.setClientX(event.getClientX());
+						rightClickEvent.setClientY(event.getClientY());
+						rightClickEvent.setRelativeX(event.getRelativeX());
+						rightClickEvent.setRelativeY(event.getRelativeY());
+						for (ItemClickListener clickListener : adaptee.getItemClickListeners()) {
+							clickListener.itemClick(new ItemClickEvent(LazyTree.this, getItem(object), object, CAPTION_PROPERTY, rightClickEvent));
+						}
+					}
+				});
+
+				itemCaptionComponent = wrapper;
 			} else {
 				itemCaptionComponent = null;
 			}
@@ -391,6 +433,11 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 			value = new ArrayList<>();
 		}
 		return value;
+	}
+
+	private String getExplicitOrDefaultItemCaption(T object) {
+		String explicitOrDefaultCaption = explicitItemCaptions.get(object);
+		return explicitOrDefaultCaption != null ? explicitOrDefaultCaption : getItemCaption(object);
 	}
 
 	public String getItemCaption(T object) {
@@ -460,6 +507,8 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 	}
 
 	public void setItemCaption(Object itemId, String caption) {
+		explicitItemCaptions.put((T) itemId, caption);
+		adaptee.fireItemSetChange();
 		adaptee.setItemCaption(itemId, caption);
 	}
 
@@ -738,7 +787,7 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 			if (isLoader(itemId)) {
 				itemCaption = getLoaderItemCaption(itemId);
 			} else {
-				itemCaption = LazyTree.this.getItemCaption((T) itemId);
+				itemCaption = LazyTree.this.getExplicitOrDefaultItemCaption((T) itemId);
 				if (itemCaption == null) {
 					itemCaption = defaultGetItemCaption(itemId);
 				}
@@ -837,6 +886,8 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 
 		void addItemClickListener(ItemClickListener itemClickListener);
 
+		List<ItemClickListener> getItemClickListeners();
+
 		void addStyleName(String treetableBorderless);
 
 		void setPageLength(int i);
@@ -852,6 +903,8 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		void setDragMode(TreeDragMode dragMode);
 
 		void setContextMenu(ContextMenu contextMenu);
+
+		void fireItemSetChange();
 
 	}
 
@@ -898,6 +951,11 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		}
 
 		@Override
+		public List<ItemClickListener> getItemClickListeners() {
+			return (List<ItemClickListener>) super.getListeners(ItemClickEvent.class);
+		}
+
+		@Override
 		public void setPageLength(int i) {
 			// Ignored
 		}
@@ -910,6 +968,11 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		@Override
 		public void setContextMenu(ContextMenu contextMenu) {
 			contextMenu.setAsTreeContextMenu(this);
+		}
+
+		@Override
+		public void fireItemSetChange() {
+			super.fireItemSetChange();
 		}
 
 		@Override
@@ -975,6 +1038,11 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		}
 
 		@Override
+		public List<ItemClickListener> getItemClickListeners() {
+			return (List<ItemClickListener>) super.getListeners(ItemClickEvent.class);
+		}
+
+		@Override
 		public void setDragMode(TreeDragMode dragMode) {
 			TableDragMode tableDragMode;
 			if (dragMode == TreeDragMode.NONE) {
@@ -1028,6 +1096,11 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		@Override
 		public void setItemIconAlternateText(Object itemId, String altText) {
 			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void fireItemSetChange() {
+			super.fireItemSetChange();
 		}
 
 	}

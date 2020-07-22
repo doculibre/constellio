@@ -45,8 +45,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -253,28 +256,40 @@ public class BorrowingServices {
 			throws RecordServicesException {
 
 		Record folderRecord = recordServices.getDocumentById(folderId);
-		Folder folder = rm.wrapFolder(folderRecord);
-		validateCanBorrow(currentUser, folder, borrowingDate);
+		borrowFolders(Collections.singletonList(folderRecord), borrowingDate, previewReturnDate, currentUser,
+				borrowerEntered, borrowingType, isCreateEvent);
+	}
+
+	public void borrowFolders(List<Record> records, LocalDate borrowingDate, LocalDate previewReturnDate,
+							  User currentUser,
+							  User borrowerEntered, BorrowingType borrowingType, boolean isCreateEvent)
+			throws RecordServicesException {
+
+		List<Folder> folders = rm.wrapFolders(records);
+		for (Folder folder : folders) {
+			validateCanBorrow(currentUser, folder, borrowingDate);
+		}
+
 		LocalDateTime borrowingDateTime;
 		if (TimeProvider.getLocalDate().equals(borrowingDate)) {
 			borrowingDateTime = TimeProvider.getLocalDateTime();
 		} else {
 			borrowingDateTime = borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime();
 		}
-		setBorrowedMetadatasToFolder(folder, borrowingDateTime,
-				previewReturnDate,
-				currentUser.getId(), borrowerEntered.getId(),
-				borrowingType);
-		recordServices.update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions().setOverwriteModificationDateAndUser(false));
+
+		for (Folder folder : folders) {
+			setBorrowedMetadatasToFolder(folder, borrowingDateTime, previewReturnDate, currentUser.getId(),
+					borrowerEntered.getId(), borrowingType);
+		}
+		recordServices.update(records, RecordUpdateOptions.validationExceptionSafeOptions().setOverwriteModificationDateAndUser(false), currentUser);
 
 		if (isCreateEvent) {
-			if (borrowingType == BorrowingType.BORROW) {
-				loggingServices
-						.borrowRecord(folderRecord, borrowerEntered, borrowingDateTime);
-			} else {
-				loggingServices
-						.consultingRecord(folderRecord, borrowerEntered,
-								borrowingDateTime);
+			for (Folder folder : folders) {
+				if (borrowingType == BorrowingType.BORROW) {
+					loggingServices.borrowRecord(folder.getWrappedRecord(), borrowerEntered, borrowingDateTime);
+				} else {
+					loggingServices.consultingRecord(folder.getWrappedRecord(), borrowerEntered, borrowingDateTime);
+				}
 			}
 		}
 	}
@@ -284,20 +299,42 @@ public class BorrowingServices {
 								User borrowerEntered, BorrowingType borrowingType, boolean isCreateEvent)
 			throws RecordServicesException {
 
-		Record record = recordServices.getDocumentById(containerId);
-		ContainerRecord containerRecord = rm.wrapContainerRecord(record);
-		validateCanBorrow(currentUser, containerRecord, borrowingDate);
-		setBorrowedMetadatasToContainer(containerRecord, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime(),
-				previewReturnDate,
-				borrowerEntered.getId());
+		Record containerRecord = recordServices.getDocumentById(containerId);
+		borrowContainers(Collections.singletonList(containerRecord), borrowingDate, previewReturnDate, currentUser,
+				borrowerEntered, borrowingType, isCreateEvent);
+	}
+
+	public void borrowContainers(List<Record> records, LocalDate borrowingDate, LocalDate previewReturnDate,
+								 User currentUser,
+								 User borrowerEntered, BorrowingType borrowingType, boolean isCreateEvent)
+			throws RecordServicesException {
+
+		List<ContainerRecord> containers = rm.wrapContainerRecords(records);
+		for (ContainerRecord container : containers) {
+			validateCanBorrow(currentUser, container, borrowingDate);
+		}
+
+		LocalDateTime borrowingDateTime;
+		if (TimeProvider.getLocalDate().equals(borrowingDate)) {
+			borrowingDateTime = TimeProvider.getLocalDateTime();
+		} else {
+			borrowingDateTime = borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime();
+		}
+
+		for (ContainerRecord container : containers) {
+			setBorrowedMetadatasToContainer(container, borrowingDateTime, previewReturnDate, borrowerEntered.getId());
+		}
 		recordServices
-				.update(containerRecord.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions().setOverwriteModificationDateAndUser(false));
+				.update(records, RecordUpdateOptions.validationExceptionSafeOptions().setOverwriteModificationDateAndUser(false), currentUser);
+
 		if (isCreateEvent) {
-			if (borrowingType == BorrowingType.BORROW) {
-				loggingServices.borrowRecord(record, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
-			} else {
-				loggingServices
-						.consultingRecord(record, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
+			for (ContainerRecord container : containers) {
+				if (borrowingType == BorrowingType.BORROW) {
+					loggingServices.borrowRecord(container.getWrappedRecord(), borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
+				} else {
+					loggingServices
+							.consultingRecord(container.getWrappedRecord(), borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
+				}
 			}
 		}
 	}
@@ -330,11 +367,21 @@ public class BorrowingServices {
 			throws RecordServicesException {
 
 		Record folderRecord = recordServices.getDocumentById(folderId);
-		Folder folder = rm.wrapFolder(folderRecord);
-		validateCanReturnFolder(currentUser, folder);
-		BorrowingType borrowingType = folder.getBorrowType();
-		setReturnedMetadatasToFolder(folder);
-		recordServices.update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
+		returnFolders(Collections.singletonList(folderRecord), currentUser, returnDate, isCreateEvent);
+	}
+
+	public void returnFolders(List<Record> records, User currentUser, LocalDate returnDate, boolean isCreateEvent)
+			throws RecordServicesException {
+
+		List<Folder> folders = rm.wrapFolders(records);
+		Map<Folder, BorrowingType> borrowingTypeMap = new HashMap<>();
+		for (Folder folder : folders) {
+			validateCanReturnFolder(currentUser, folder);
+			borrowingTypeMap.put(folder, folder.getBorrowType());
+			setReturnedMetadatasToFolder(folder);
+		}
+
+		recordServices.update(records, RecordUpdateOptions.validationExceptionSafeOptions(), currentUser);
 
 		LocalDateTime returnDateTime;
 		if (TimeProvider.getLocalDate().equals(returnDate)) {
@@ -344,8 +391,10 @@ public class BorrowingServices {
 		}
 
 		if (isCreateEvent) {
-			if (borrowingType == BorrowingType.BORROW || borrowingType == BorrowingType.CONSULTATION) {
-				loggingServices.returnRecord(folderRecord, currentUser, returnDateTime);
+			for (Entry<Folder, BorrowingType> entry : borrowingTypeMap.entrySet()) {
+				if (entry.getValue() == BorrowingType.BORROW || entry.getValue() == BorrowingType.CONSULTATION) {
+					loggingServices.returnRecord(entry.getKey().getWrappedRecord(), currentUser, returnDateTime);
+				}
 			}
 		}
 	}
@@ -354,13 +403,24 @@ public class BorrowingServices {
 			throws RecordServicesException {
 
 		Record record = recordServices.getDocumentById(containerId);
-		ContainerRecord containerRecord = rm.wrapContainerRecord(record);
-		validateCanReturnContainer(currentUser, containerRecord);
-		setReturnedMetadatasToContainer(containerRecord);
-		recordServices.update(containerRecord.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
+		returnContainers(Collections.singletonList(record), currentUser, returnDate, isCreateEvent);
+	}
+
+	public void returnContainers(List<Record> records, User currentUser, LocalDate returnDate, boolean isCreateEvent)
+			throws RecordServicesException {
+
+		List<ContainerRecord> containers = rm.wrapContainerRecords(records);
+		for (ContainerRecord container : containers) {
+			validateCanReturnContainer(currentUser, container);
+			setReturnedMetadatasToContainer(container);
+		}
+
+		recordServices.update(records, RecordUpdateOptions.validationExceptionSafeOptions(), currentUser);
 
 		if (isCreateEvent) {
-			loggingServices.returnRecord(record, currentUser, returnDate.toDateTimeAtStartOfDay().toLocalDateTime());
+			for (ContainerRecord container : containers) {
+				loggingServices.returnRecord(container.getWrappedRecord(), currentUser, returnDate.toDateTimeAtStartOfDay().toLocalDateTime());
+			}
 		}
 	}
 
@@ -385,16 +445,23 @@ public class BorrowingServices {
 	}
 
 	public void validateCanReturnContainer(User currentUser, ContainerRecord containerRecord) {
+		boolean hasPermissionToReturnOtherUsersContainer = currentUser.has(RMPermissionsTo.RETURN_OTHER_USERS_CONTAINERS)
+				.on(containerRecord);
+		boolean hasPermissionToReturnOwnContainerDirectly = currentUser.has(RMPermissionsTo.BORROW_CONTAINER).on(containerRecord)
+															&& currentUser.has(RMPermissionsTo.BORROWING_CONTAINER_DIRECTLY).on(containerRecord);
+
 		if (currentUser.hasReadAccess().on(containerRecord)) {
-			if (containerRecord.getBorrowed() == null || !containerRecord.getBorrowed()) {
+			if (!Boolean.TRUE.equals(containerRecord.getBorrowed())) {
 				throw new BorrowingServicesRunTimeException_ContainerIsNotBorrowed(containerRecord.getId());
-			} else if (!currentUser.getUserRoles().contains(RGD) && !currentUser.getId()
+			} else if (!hasPermissionToReturnOtherUsersContainer && !currentUser.getId()
+					.equals(containerRecord.getBorrower())) {
+				throw new BorrowingServicesRunTimeException_UserNotAllowedToReturnContainer(currentUser.getUsername());
+			} else if (!hasPermissionToReturnOwnContainerDirectly && currentUser.getId()
 					.equals(containerRecord.getBorrower())) {
 				throw new BorrowingServicesRunTimeException_UserNotAllowedToReturnContainer(currentUser.getUsername());
 			}
 		} else {
-			throw new BorrowingServicesRunTimeException_UserWithoutReadAccessToContainer(currentUser.getUsername(),
-					containerRecord.getId());
+			throw new BorrowingServicesRunTimeException_UserWithoutReadAccessToContainer(currentUser.getUsername(), containerRecord.getId());
 		}
 	}
 

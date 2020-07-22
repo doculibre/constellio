@@ -53,6 +53,7 @@ public class MetadataToFormVOBuilder implements Serializable {
 		boolean sortable = metadata.isSortable();
 		boolean searchable = metadata.isSearchable();
 		boolean isMultiLingual = metadata.isMultiLingual();
+		Map<Language, String> helpMessages = config.getHelpMessages();
 
 		boolean advancedSearch = config.isVisibleInAdvancedSearch();
 		boolean highlight = config.isHighlight();
@@ -78,6 +79,7 @@ public class MetadataToFormVOBuilder implements Serializable {
 		}
 
 		boolean autocomplete = metadata.isSchemaAutocomplete();
+		boolean availableInSummary = metadata.isAvailableInSummary();
 
 		Object defaultValue = metadata.getDefaultValue();
 		String inputMask = metadata.getInputMask();
@@ -86,17 +88,22 @@ public class MetadataToFormVOBuilder implements Serializable {
 		for (Entry<Language, String> entryLabels : labels.entrySet()) {
 			newLabels.put(entryLabels.getKey().getCode(), entryLabels.getValue());
 		}
+		Map<String, String> newHelpMessages = new HashMap<>();
+		for (Entry<Language, String> entryHelpMessages : helpMessages.entrySet()) {
+			newHelpMessages.put(entryHelpMessages.getKey().getCode(), entryHelpMessages.getValue());
+		}
 
 		boolean duplicable = metadata.isDuplicable();
 		boolean uniqueValue = metadata.isUniqueValue();
 
 		FormMetadataVO formMetadataVO = new FormMetadataVO(metadata.getId(), code, type, required, schemaVO, reference, newLabels, searchable,
 				multivalue, sortable,
-				advancedSearch, facet, entry, displayType, sortingType, highlight, autocomplete, enabled, metadataGroup, defaultValue,
+				advancedSearch, facet, entry, displayType, sortingType, highlight, autocomplete, availableInSummary, enabled, metadataGroup, defaultValue,
 				inputMask,
 				duplicable, uniqueValue,
 				metadata.getCustomAttributes(),
-				sessionContext, isMultiLingual);
+				sessionContext, isMultiLingual, metadata.getMaxLength(), metadata.getMeasurementUnit(), newHelpMessages);
+
 		if (metadata.getInheritance() != null) {
 			formMetadataVO.setInheritance(
 					this.build(metadata.getInheritance(), schemaVO, configManager, schemaTypeCode, sessionContext));

@@ -188,6 +188,10 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		return getSchemaTypes(record).getSchemaType(record.getTypeCode());
 	}
 
+	public MetadataSchemaType getSchemaTypeOf(RecordDTO recordDTO) {
+		return getSchemaOf(recordDTO).getSchemaType();
+	}
+
 	public List<MetadataSchemaType> getSchemaTypes(CollectionObject collectionObject, List<String> schemaTypeCodes) {
 		return getSchemaTypes(collectionObject.getCollection(), schemaTypeCodes);
 	}
@@ -337,8 +341,28 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		}
 
 		RecordsCaches caches = modelLayerFactory.getRecordsCaches();
-		if (reloadCacheIfRequired) {
-			//modelLayerFactory.markForReindexing();
+		List<String> typesWithoutRecords = new ArrayList<>();
+		for (String typeRequiringCacheReload : typesRequiringCacheReload) {
+			MetadataSchemaType schemaType = schemaTypes.getSchemaType(typeRequiringCacheReload);
+			if (!caches.stream(schemaType).findAny().isPresent()) {
+				typesWithoutRecords.add(typeRequiringCacheReload);
+				caches.markLocalCacheConfigsAsSynced(schemaType);
+			}
+		}
+
+		for (String newType : newSchemaTypes) {
+			MetadataSchemaType schemaType = schemaTypes.getSchemaType(newType);
+			if (schemaType.getCacheType().isSummaryCache()) {
+				caches.markLocalCacheConfigsAsSynced(schemaType);
+			}
+		}
+
+		if (reloadCacheIfRequired && !typesRequiringCacheReload.isEmpty()) {
+			if (typesRequiringCacheReload.size() != typesWithoutRecords.size()
+				|| modelLayerFactory.getDataLayerFactory().isDistributed()) {
+				modelLayerFactory.markLocalCachesAsRequiringRebuild();
+			}
+
 			//caches.getCache(schemaTypes.getCollection()).invalidateVolatileReloadPermanent(typesRequiringCacheReload);
 		}
 		newSchemaTypes.forEach((s) -> {

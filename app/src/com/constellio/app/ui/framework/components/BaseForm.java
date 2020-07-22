@@ -3,6 +3,8 @@ package com.constellio.app.ui.framework.components;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
+import com.constellio.app.ui.framework.components.fields.exception.ValidationException.ToManyCharacterException;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.util.ComponentTreeUtils;
@@ -38,8 +40,10 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -169,7 +173,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 			OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
 				@Override
 				public void onEnterKeyPressed() {
-					trySave();
+					saveForm();
 				}
 			};
 			if (field instanceof TextField) {
@@ -188,14 +192,15 @@ public abstract class BaseForm<T> extends CustomComponent {
 		buttonsLayout.setSpacing(true);
 
 		saveButton = new Button(getSaveButtonCaption());
-		//		saveButton.addStyleName(SAVE_BUTTON);
-		saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 		saveButton.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				trySave();
+				saveForm();
 			}
 		});
+
+		saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
 
 		cancelButton = new Button(getCancelButtonCaption());
 		cancelButton.addStyleName(CANCEL_BUTTON);
@@ -231,7 +236,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 						break usedTabsLoop;
 					}
 				}
-				if (usedTab) {
+				if (usedTab && !usedTabCaptions.contains(orderedTabCaption)) {
 					usedTabCaptions.add(orderedTabCaption);
 				}
 			}
@@ -253,6 +258,49 @@ public abstract class BaseForm<T> extends CustomComponent {
 				tabSheet.setSelectedTab(0);
 			}
 		}
+	}
+
+	private void saveForm() {
+		SaveAction saveAction = showConfirmationMessage();
+		if (saveAction == SaveAction.save) {
+			if (isActivatedByConfigAndNeedConfirmation()) {
+				createSaveConfirmButton().click();
+			} else {
+				createSaveConfirmButton().skipConfirmation();
+			}
+		} else if (saveAction == SaveAction.saveSilently) {
+			createSaveConfirmButton().skipConfirmation();
+		} else if (saveAction == SaveAction.cancelSave) {
+			cancelButton.click();
+		} else {
+			createSaveConfirmButton().skipConfirmation();
+		}
+	}
+
+	public enum SaveAction {
+		saveSilently,
+		cancelSave,
+		undefined,
+		save
+	}
+
+	public SaveAction showConfirmationMessage() {
+		return SaveAction.undefined;
+	}
+
+	@NotNull
+	private ConfirmDialogButton createSaveConfirmButton() {
+		return new ConfirmDialogButton(null, getSaveButtonCaption(), false, false) {
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("ConfirmDialog.confirmEdit");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				trySave();
+			}
+		};
 	}
 
 	@Override
@@ -474,9 +522,10 @@ public abstract class BaseForm<T> extends CustomComponent {
 			Field<?> firstFieldWithError = null;
 			StringBuilder missingRequiredFields = new StringBuilder();
 			for (Field<?> field : fieldGroup.getFields()) {
+
 				if (!field.isValid() && field.isRequired() && isEmptyValue(field.getValue())) {
 					field.setRequiredError($("requiredField"));
-					addErrorMessage(missingRequiredFields, $("requiredFieldWithName", "\"" + field.getCaption() + "\""));
+					addErrorMessage(missingRequiredFields, $("requiredFieldWithName", field.getCaption()));
 					if (firstFieldWithError == null) {
 						firstFieldWithError = field;
 					}
@@ -484,12 +533,22 @@ public abstract class BaseForm<T> extends CustomComponent {
 					try {
 						field.validate();
 					} catch (Validator.EmptyValueException e) {
+
 						addErrorMessage(missingRequiredFields, $("requiredFieldWithName", "\"" + e.getMessage() + "\""));
 						if (firstFieldWithError == null) {
 							firstFieldWithError = field;
 						}
+					} catch (ToManyCharacterException e) {
+						addErrorMessage(missingRequiredFields, e.getMessage());
+						if (firstFieldWithError == null) {
+							firstFieldWithError = field;
+						}
 					} catch (Validator.InvalidValueException e) {
-						addErrorMessage(missingRequiredFields, $("invalidFieldWithName", "\"" + e.getMessage() + "\""));
+						if (e.getCauses() != null && e.getCauses().length > 0 && e.getCauses()[0] instanceof ToManyCharacterException) {
+							addErrorMessage(missingRequiredFields, e.getCauses()[0].getMessage());
+						} else {
+							addErrorMessage(missingRequiredFields, $("invalidFieldWithName", "\"" + e.getMessage() + "\""));
+						}
 						if (firstFieldWithError == null) {
 							firstFieldWithError = field;
 						}
@@ -633,5 +692,9 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 	public VerticalLayout getFormLayout() {
 		return formLayout;
+	}
+
+	protected boolean isActivatedByConfigAndNeedConfirmation() {
+		return false;
 	}
 }

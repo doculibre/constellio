@@ -5,6 +5,9 @@ import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.events.EventBusManagerExtension;
+import com.constellio.data.events.ReceivedEventParams;
+import com.constellio.data.events.SentEventParams;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
@@ -23,7 +26,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.setups.Users;
@@ -35,6 +37,7 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
@@ -42,7 +45,7 @@ import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 
 	LocalDateTime shishOClock = new LocalDateTime();
@@ -84,6 +87,30 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		reindexingServices.reindexCollections(RECALCULATE_AND_REWRITE);
 		byte[] keyAfter = EncryptionKeyFactory.getApplicationKey(getModelLayerFactory()).getEncoded();
 		assertThat(keyAfter).isEqualTo(keyBefore);
+
+	}
+
+
+	@Test
+	public void whenReindexingThenDoNotSendEvents()
+			throws Exception {
+
+		AtomicInteger received = new AtomicInteger();
+		AtomicInteger sent = new AtomicInteger();
+		getDataLayerFactory().getExtensions().getSystemWideExtensions().eventBusManagerExtensions.add(new EventBusManagerExtension() {
+			@Override
+			public void onEventReceived(ReceivedEventParams params) {
+				received.incrementAndGet();
+			}
+
+			@Override
+			public void onEventSent(SentEventParams params) {
+				sent.incrementAndGet();
+			}
+		});
+		reindexingServices.reindexCollections(RECALCULATE_AND_REWRITE);
+		assertThat(received.get()).isEqualTo(0);
+		assertThat(sent.get()).isEqualTo(0);
 
 	}
 

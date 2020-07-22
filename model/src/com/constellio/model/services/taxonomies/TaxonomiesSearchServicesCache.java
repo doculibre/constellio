@@ -1,6 +1,10 @@
 package com.constellio.model.services.taxonomies;
 
+import com.constellio.model.entities.records.Record;
+
 public interface TaxonomiesSearchServicesCache {
+
+	void initialize(String collection);
 
 	void insert(String username, String recordId, String mode, Boolean value);
 
@@ -18,7 +22,7 @@ public interface TaxonomiesSearchServicesCache {
 	/*pour tous les users, invalide  pour ce id*/
 	void invalidateUser(String username);
 
-	Boolean getCachedValue(String username, String recordId, String mode);
+	Boolean getCachedValue(String username, Record record, String mode);
 
 	long getHeapConsumption();
 

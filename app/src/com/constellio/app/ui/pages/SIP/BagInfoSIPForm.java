@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.SIP;
 
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.BagInfoVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -46,11 +47,11 @@ public class BagInfoSIPForm extends BaseViewImpl {
 
 	MetadataFieldFactory factory = new MetadataFieldFactory() {
 		@Override
-		public Field<?> build(MetadataVO metadata, Locale locale) {
+		public Field<?> build(MetadataVO metadata, String recordId, Locale locale) {
 			if (metadata.getLocalCode().equals("title")) {
 				return null;
 			}
-			return super.build(metadata, locale);
+			return super.build(metadata, recordId, locale);
 		}
 	};
 
@@ -65,7 +66,7 @@ public class BagInfoSIPForm extends BaseViewImpl {
 	}
 
 	private BagInfoRecordForm newForm(BagInfoVO bagInfoVO) {
-		return new BagInfoRecordForm(bagInfoVO, factory) {
+		return new BagInfoRecordForm(bagInfoVO, factory, BagInfoSIPForm.this.getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject) throws ValidationException {
 				BagInfoSIPForm.this.saveButtonClick((BagInfoVO) viewObject);
@@ -163,8 +164,9 @@ public class BagInfoSIPForm extends BaseViewImpl {
 
 	static class BagInfoRecordForm extends RecordForm {
 		public BagInfoRecordForm(BagInfoVO viewObject, MetadataFieldFactory metadataFactory,
+								 ConstellioFactories constellioFactories,
 								 FieldAndPropertyId... fields) {
-			super(viewObject, metadataFactory);
+			super(viewObject, metadataFactory, constellioFactories);
 		}
 
 		@Override

@@ -1,6 +1,5 @@
 package com.constellio.app.ui.framework.components.search;
 
-import com.vaadin.lazyloadwrapper.LazyLoadWrapper;
 import com.vaadin.ui.Component;
 import org.vaadin.sliderpanel.SliderPanel;
 import org.vaadin.sliderpanel.SliderPanelBuilder;
@@ -8,6 +7,7 @@ import org.vaadin.sliderpanel.client.SliderMode;
 import org.vaadin.sliderpanel.client.SliderTabPosition;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public class FacetsSliderPanel extends SliderPanel {
 
@@ -16,13 +16,16 @@ public class FacetsSliderPanel extends SliderPanel {
 	}
 
 	private static SliderPanelBuilder builder(Component component) {
-		LazyLoadWrapper lazyLoadWrapper = new LazyLoadWrapper(component);
-		SliderPanelBuilder builder = new SliderPanelBuilder(lazyLoadWrapper)
-				.mode(SliderMode.RIGHT)
+		SliderPanelBuilder builder = new SliderPanelBuilder(component)
 				.caption($("SearchView.filter"))
 				.tabPosition(SliderTabPosition.BEGINNING)
 				.style("facets-sliderpanel")
 				.expanded(false);
+		if (isRightToLeft()) {
+			builder.mode(SliderMode.LEFT);
+		} else {
+			builder.mode(SliderMode.RIGHT);
+		}
 		return builder;
 	}
 

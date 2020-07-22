@@ -109,7 +109,7 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 
 
 	private ContainerFormImpl newForm() {
-		return new ContainerFormImpl(container, presenter) {
+		return new ContainerFormImpl(container, presenter, getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {

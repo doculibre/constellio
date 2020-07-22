@@ -8,6 +8,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -20,6 +21,7 @@ import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
+@SlowTest
 public class RMMigrationTo8_2_AcceptanceTest extends ConstellioTest {
 	@Before
 	public void init() {

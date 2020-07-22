@@ -38,4 +38,6 @@ public interface SearchView extends BaseView {
 
 	void setApplyMultipleFacets(boolean applyButtonEnabled);
 
+	BaseView getNestedView();
+
 }

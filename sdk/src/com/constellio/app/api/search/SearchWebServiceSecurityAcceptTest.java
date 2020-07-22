@@ -22,7 +22,6 @@ import com.constellio.model.services.security.authentification.AuthenticationSer
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
@@ -49,7 +48,7 @@ import static java.util.Arrays.asList;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 
 	String anotherCollection = "otherCollection";
@@ -369,7 +368,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 			fail("Exception expected");
 		} catch (RuntimeException e) {
 			assertThat(e.getMessage())
-					.contains("Invalid serviceKey/token");
+					.contains("invalid authentification information");
 		}
 	}
 
@@ -389,7 +388,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 			fail("Exception expected");
 		} catch (RuntimeException e) {
 			assertThat(e.getMessage())
-					.contains("Invalid serviceKey/token");
+					.contains("invalid authentification information");
 		}
 	}
 
@@ -407,7 +406,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 			fail("Exception expected");
 		} catch (RuntimeException e) {
 			assertThat(e.getMessage())
-					.contains("Invalid serviceKey/token");
+					.contains("invalid authentification information");
 		}
 	}
 
@@ -424,7 +423,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 			fail("Exception expected");
 		} catch (RuntimeException e) {
 			assertThat(e.getMessage())
-					.contains("Invalid serviceKey/token");
+					.contains("invalid authentification information");
 		}
 	}
 

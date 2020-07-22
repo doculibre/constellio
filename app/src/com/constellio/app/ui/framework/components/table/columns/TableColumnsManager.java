@@ -23,6 +23,7 @@ import com.vaadin.ui.Table.ColumnResizeEvent;
 import com.vaadin.ui.Table.ColumnResizeListener;
 import com.vaadin.ui.Table.HeaderClickEvent;
 import com.vaadin.ui.Table.HeaderClickListener;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -132,10 +133,14 @@ public class TableColumnsManager implements Serializable {
 			}
 
 			for (Object propertyId : propertyIds) {
-				String columnId = toColumnId(propertyId);
+				String header = table.getColumnHeader(propertyId);
+				if (StringUtils.isBlank(header)) {
+					table.setColumnCollapsible(propertyId, false);
+				}
 
+				String columnId = toColumnId(propertyId);
 				boolean collapsed = !visibleColumnIdsForUser.contains(columnId);
-				if (!collapsed || table.isColumnCollapsible(columnId)) {
+				if (table.isColumnCollapsible(propertyId) && table.isColumnCollapsed(propertyId) != collapsed) {
 					table.setColumnCollapsed(propertyId, collapsed);
 				}
 
@@ -261,7 +266,7 @@ public class TableColumnsManager implements Serializable {
 		return propertyId.toString();
 	}
 
-	private Align adjustAlignment(Align alignment) {
+	protected Align adjustAlignment(Align alignment) {
 		Align result;
 		if (isRightToLeft()) {
 			if (Align.LEFT.equals(alignment)) {

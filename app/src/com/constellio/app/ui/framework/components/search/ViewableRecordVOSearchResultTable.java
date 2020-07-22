@@ -5,13 +5,13 @@ import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
+import com.constellio.app.ui.framework.containers.LastQTime;
+import com.constellio.app.ui.framework.containers.PreLoader;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
-import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
-import com.constellio.app.ui.framework.containers.SearchResultContainer;
-import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.search.SearchPresenter;
-import com.constellio.app.ui.pages.search.SearchView;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.search.RecordSelectionObserver;
+import com.constellio.model.entities.enums.TableMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 
@@ -33,14 +33,23 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 	private Set<String> selectedRecordIds = new HashSet<>();
 	private Set<Object> deselectedItemIds = new HashSet<>();
 	private boolean allItemsSelected;
+	private BaseViewImpl searchView;
 
-	private SearchPresenter<? extends SearchView> presenter;
+	private RecordSelectionObserver recordSelectionObserver;
 
 	public ViewableRecordVOSearchResultTable(RecordVOContainer container, TableMode tableMode,
-											 SearchPresenter<? extends SearchView> presenter,
-											 RecordListMenuBar recordListMenuBar) {
-		super(container, tableMode, recordListMenuBar);
-		this.presenter = presenter;
+											 RecordSelectionObserver recordSelectionObserver,
+											 RecordListMenuBar recordListMenuBar, BaseViewImpl searchView) {
+		this(container, tableMode, recordSelectionObserver, recordListMenuBar, true, searchView);
+	}
+
+	public ViewableRecordVOSearchResultTable(RecordVOContainer container, TableMode tableMode,
+											 RecordSelectionObserver recordSelectionObserver,
+											 RecordListMenuBar recordListMenuBar, boolean canChangeTableMode,
+											 BaseViewImpl baseView) {
+		super(container, recordListMenuBar, tableMode, canChangeTableMode);
+		this.searchView = baseView;
+		this.recordSelectionObserver = recordSelectionObserver;
 		addStyleName(TABLE_STYLE);
 		addStyleName(SEARCH_RESULT_TABLE_STYLE);
 		setSelectionActionButtons();
@@ -80,7 +89,7 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 						allItemsSelected = true;
 					}
 
-					presenter.fireSomeRecordsSelected();
+					recordSelectionObserver.fireSomeRecordsSelected();
 				} else if (event.getDeselectedItemIds() != null) {
 					List<Object> deselectedItemIds = event.getDeselectedItemIds();
 
@@ -94,24 +103,28 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 						ViewableRecordVOSearchResultTable.this.deselectedItemIds.add(deselectedItemId);
 					}
 					if (selectedItemIds.isEmpty()) {
-						presenter.fireNoRecordSelected();
+						recordSelectionObserver.fireNoRecordSelected();
 					} else {
-						presenter.fireSomeRecordsSelected();
+						recordSelectionObserver.fireSomeRecordsSelected();
 					}
 				} else if (event.isAllItemsSelected()) {
+					if (recordVOContainer instanceof PreLoader) {
+						((PreLoader) recordVOContainer).loadAll();
+					}
+
 					List<String> recordIdList = recordVOContainer.getItemIds().stream().map(itemId -> getRecordVO(itemId).getId()).collect(Collectors.toList());
 
 					ViewableRecordVOSearchResultTable.this.allItemsSelected = true;
 					ViewableRecordVOSearchResultTable.this.selectedItemIds.addAll(recordVOContainer.getItemIds());
 					ViewableRecordVOSearchResultTable.this.selectedRecordIds.addAll(recordIdList);
 					ViewableRecordVOSearchResultTable.this.deselectedItemIds.clear();
-					presenter.fireSomeRecordsSelected();
+					recordSelectionObserver.fireSomeRecordsSelected();
 				} else if (event.isAllItemsDeselected()) {
 					ViewableRecordVOSearchResultTable.this.allItemsSelected = false;
 					ViewableRecordVOSearchResultTable.this.selectedItemIds.clear();
 					ViewableRecordVOSearchResultTable.this.selectedRecordIds.clear();
 					ViewableRecordVOSearchResultTable.this.deselectedItemIds.clear();
-					presenter.fireNoRecordSelected();
+					recordSelectionObserver.fireNoRecordSelected();
 				}
 			}
 
@@ -140,6 +153,9 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 			@Override
 			public boolean isSelected(Object itemId) {
 				RecordVO recordVO = getRecordVO(itemId);
+				if (recordVO == null) {
+					return false;
+				}
 				String recordId = recordVO.getId();
 				return ViewableRecordVOSearchResultTable.this.isSelectAll() || selectedRecordIds.contains(recordId);
 			}
@@ -193,12 +209,10 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 	private double getLastCallQTime() {
 		double lastCallQTime;
 		RecordVOContainer recordVOContainer = getRecordVOContainer();
-		if (recordVOContainer instanceof RecordVOLazyContainer) {
-			lastCallQTime = ((RecordVOLazyContainer) recordVOContainer).getLastCallQTime();
-		} else if (recordVOContainer instanceof SearchResultVOLazyContainer) {
-			lastCallQTime = ((SearchResultVOLazyContainer) recordVOContainer).getLastCallQTime();
+		if (recordVOContainer instanceof LastQTime) {
+			lastCallQTime = ((LastQTime) recordVOContainer).getLastCallQTime();
 		} else {
-			lastCallQTime = ((SearchResultContainer) recordVOContainer).getLastCallQTime();
+			lastCallQTime = -1;
 		}
 		return lastCallQTime;
 	}
@@ -206,6 +220,6 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 
 	@Override
 	public BaseView getMainView() {
-		return presenter.getView();
+		return searchView;
 	}
 }

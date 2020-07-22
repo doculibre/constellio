@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerPresenterParam;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.pages.extrabehavior.ProvideSecurityWithNoUrlParamSupport;
@@ -60,6 +61,7 @@ import com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsV
 import com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.EditAuthorizationButton;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
+import com.constellio.data.dao.services.Stats;
 import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.data.Container;
 import com.vaadin.data.util.BeanItemContainer;
@@ -144,6 +146,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private Component contentMetadataComponent;
 
 	private CollapsibleHorizontalSplitPanel splitPanel;
+	private String searchTerm;
+
 
 	public DisplayDocumentViewImpl() {
 		this(null, false, false);
@@ -152,11 +156,15 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public DisplayDocumentViewImpl(RecordVO recordVO, boolean nestedView, boolean inWindow) {
 		this.nestedView = nestedView;
 		this.inWindow = inWindow;
-		presenter = new DisplayDocumentPresenter(this, recordVO, nestedView, inWindow);
+		presenter = Stats.compilerFor(getClass()).log(() -> new DisplayDocumentPresenter(this, recordVO, nestedView, inWindow));
 	}
 
 	public DisplayDocumentPresenter getDisplayDocumentPresenter() {
 		return presenter;
+	}
+
+	public void setSearchTerm(String searchTerm) {
+		this.searchTerm = searchTerm;
 	}
 
 	@Override
@@ -191,7 +199,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	private ContentViewer newContentViewer() {
 		ContentVersionVO contentVersionVO = documentVO.get(Document.CONTENT);
-		final ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, contentVersionVO);
+		final ContentViewer contentViewer = new ContentViewer(presenter.getAppLayerFactory(),
+				documentVO, Document.CONTENT, contentVersionVO);
+
+		contentViewer.setSearchTerm(searchTerm);
+
 		if (inWindow && !isViewerInSeparateTab()) {
 			//			int viewerHeight = Page.getCurrent().getBrowserWindowHeight() - 125;
 			//			contentViewer.setHeight(viewerHeight + "px");
@@ -218,6 +230,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			js.append(functionId + "(splitterDivHeight);");
 			JavaScript.getCurrent().execute(js.toString());
 		}
+
 		return contentViewer;
 	}
 
@@ -234,6 +247,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					isContentViewerInSplitPanel = true;
 					contentViewer = newContentViewer;
 					Component splitPanel = createSplitPanel();
+
 					mainLayout.replaceComponent(contentMetadataComponent, splitPanel);
 					contentMetadataComponent = splitPanel;
 				}
@@ -276,17 +290,13 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		recordDisplay = new RecordDisplay(documentVO, new RMMetadataDisplayFactory(), Toggle.SEARCH_RESULTS_VIEWER.isEnabled());
 		recordDisplay.setSizeFull();
 
-		versionTable = new ContentVersionVOTable("DocumentVersions", presenter.getAppLayerFactory(), presenter.hasCurrentUserPermissionToViewFileSystemName()) {
-			@Override
-			protected boolean isSelectionColumn() {
-				return isDeleteColumn();
-			}
-
-			@Override
-			protected boolean isSelectionPossible(ContentVersionVO contentVersionVO) {
-				return true;
-			}
-
+		ContentVersionVO contentVersionVO
+				= (ContentVersionVO) documentVO.get(Document.CONTENT);
+		versionTable = new ContentVersionVOTable("DocumentVersions", new ArrayList<>(), presenter.getAppLayerFactory(),
+				presenter.hasCurrentUserPermissionToViewFileSystemName(),
+				getRecordVO().getId(),
+				Document.CONTENT,
+				presenter.canEditOldVersion() && presenter.hasWritePermission(), contentVersionVO != null ? contentVersionVO.getVersion() : null) {
 			@Override
 			protected boolean isDeleteColumn() {
 				return presenter.isDeleteContentVersionPossible();
@@ -378,6 +388,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		splitPanel.setFirstComponent(contentViewer);
 		splitPanel.setSecondComponent(tabSheet);
 		splitPanel.setSecondComponentWidth(RECORD_DISPLAY_WIDTH, RECORD_DISPLAY_WIDTH_UNIT);
+
+		if (inWindow) {
+			splitPanel.getFirstComponentContainer().setHeightUndefined();
+		}
+
 		return splitPanel;
 	}
 
@@ -413,7 +428,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					public int compare(ContentVersionVO o1, ContentVersionVO o2) {
 						return new VersionsComparator().compare(o1.getVersion(), o2.getVersion());
 					}
-
 				});
 				ContentVersionVO contentVersionVO1 = selectedContentVersions.get(0);
 				ContentVersionVO contentVersionVO2 = selectedContentVersions.get(1);
@@ -456,6 +470,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		return tabLayout;
 	}
 
+
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 		String saveSearchDecommissioningId = null;
@@ -491,17 +506,18 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		if (breadcrumbTrail != null) {
 			return breadcrumbTrail;
 		} else if (favGroupIdKey != null) {
-			return new FolderDocumentContainerBreadcrumbTrail(documentVO.getId(), null, null, favGroupIdKey, this);
+
+			return new FolderDocumentContainerBreadcrumbTrail(new FolderDocumentContainerPresenterParam(documentVO.getId(), null, null, favGroupIdKey, this));
 		} else if (saveSearchDecommissioningId != null && searchType != null) {
 			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()), searchType,
-					saveSearchDecommissioningId, presenter.getRecord().getId(), this);
+					saveSearchDecommissioningId, presenter.getRecord().getId(), this, false);
 		} else {
 			String containerId = null;
 			if (presenter.getParams() != null && presenter.getParams() instanceof Map) {
 				containerId = presenter.getParams().get("containerId");
 			}
 
-			return new FolderDocumentContainerBreadcrumbTrail(documentVO.getId(), taxonomyCode, containerId, this);
+			return new FolderDocumentContainerBreadcrumbTrail(new FolderDocumentContainerPresenterParam(documentVO.getId(), taxonomyCode, containerId, null, this));
 		}
 	}
 
@@ -558,7 +574,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					protected String toColumnId(Object propertyId) {
 						if (propertyId instanceof MetadataVO) {
 							if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
-								setColumnHeader(propertyId, "");
+								setColumnHeader(propertyId, " ");
 								setColumnWidth(propertyId, 60);
 							}
 						}
@@ -623,6 +639,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		displayDocumentButton = new DisplayButton($("DisplayDocumentView.displayDocument"), false) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
+				contentViewer.releaseRessource();
 				presenter.displayDocumentButtonClicked();
 			}
 		};
@@ -642,7 +659,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		if (((DocumentVO) documentVO).getContent() != null) {
 			downloadDocumentButton = new DownloadContentVersionLink(((DocumentVO) documentVO).getContent(),
-					$("DisplayDocumentView.downloadDocument"));
+					$("DisplayDocumentView.downloadDocument"), documentVO.getId(), Document.CONTENT, false);
 			downloadDocumentButton.addStyleName("download-document-link");
 
 			openDocumentButton.setIcon(downloadDocumentButton.getIcon());
@@ -652,6 +669,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		editDocumentButton = new EditButton($("DisplayDocumentView.editDocument")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
+				contentViewer.releaseRessource();
 				presenter.editDocumentButtonClicked();
 			}
 		};
@@ -662,15 +680,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				DocumentMenuItemActionType.DOCUMENT_DISPLAY.name(),
 				DocumentMenuItemActionType.DOCUMENT_OPEN.name(),
 				DocumentMenuItemActionType.DOCUMENT_EDIT.name());
-		List<Button> actionMenuButtons = new RecordVOActionButtonFactory(documentVO, this, excludedActionTypes).build();
-
-		return actionMenuButtons;
+		return new RecordVOActionButtonFactory(documentVO, this, excludedActionTypes).build();
 	}
 
 	@Override
 	public void refreshActionMenu() {
 		presenter.refreshActionMenuRequested();
 		super.refreshActionMenu();
+		com.vaadin.ui.JavaScript.eval("setTimeout(function () { if(typeof resetToCurrentValues  === \"function\") { resetToCurrentValues(); }}, 650)");
 	}
 
 	@Override
@@ -680,6 +697,31 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			actionMenuBarLayout.addStyleName("not-nested-action-menu-bar-layout");
 		}
 		return actionMenu;
+	}
+
+	public void setDisplayDocumentButtonState(ComponentState state) {
+		displayDocumentButton.setVisible(state.isVisible());
+		displayDocumentButton.setEnabled(state.isVisible());
+		actionButtonStateChanged(displayDocumentButton);
+	}
+
+	public void setOpenDocumentButtonState(ComponentState state) {
+		openDocumentButton.setVisible(state.isVisible());
+		openDocumentButton.setEnabled(state.isVisible());
+		actionButtonStateChanged(openDocumentButton);
+	}
+
+	public void setDownloadDocumentButtonState(ComponentState state) {
+		if (downloadDocumentButton != null) {
+			downloadDocumentButton.setVisible(state.isVisible());
+			downloadDocumentButton.setEnabled(state.isVisible());
+		}
+	}
+
+	public void setEditDocumentButtonState(ComponentState state) {
+		editDocumentButton.setVisible(state.isVisible());
+		editDocumentButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(editDocumentButton);
 	}
 
 	public void navigateToSelf() {
@@ -729,100 +771,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
-	public void setCopyDocumentButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setUploadButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setCheckInButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setAlertWhenAvailableButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setCheckOutButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setCartButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setAddToOrRemoveFromSelectionButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setGenerateMetadataButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setPublishButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setFinalizeButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setDisplayDocumentButtonState(ComponentState state) {
-		displayDocumentButton.setVisible(state.isVisible());
-		displayDocumentButton.setEnabled(state.isVisible());
-		actionButtonStateChanged(displayDocumentButton);
-	}
-
-	@Override
-	public void setOpenDocumentButtonState(ComponentState state) {
-		openDocumentButton.setVisible(state.isVisible());
-		openDocumentButton.setEnabled(state.isVisible());
-		actionButtonStateChanged(openDocumentButton);
-	}
-
-	@Override
-	public void setDownloadDocumentButtonState(ComponentState state) {
-		if (downloadDocumentButton != null) {
-			downloadDocumentButton.setVisible(state.isVisible());
-			downloadDocumentButton.setEnabled(state.isVisible());
-		}
-	}
-
-	@Override
-	public void setEditDocumentButtonState(ComponentState state) {
-		editDocumentButton.setVisible(state.isVisible());
-		editDocumentButton.setEnabled(state.isEnabled());
-		actionButtonStateChanged(editDocumentButton);
-	}
-
-	@Override
-	public void setAddDocumentButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setDeleteDocumentButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setViewAuthorizationButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setShareDocumentButtonState(ComponentState state) {
-	}
-
-	@Override
-	public void setUnshareDocumentButtonState(ComponentState state) {
-
-	}
-
-	@Override
-	public void setCreatePDFAButtonState(ComponentState state) {
-	}
-
-	@Override
 	public void setBorrowedMessage(String borrowedMessageKey, String... args) {
 		if (StringUtils.isNotBlank(borrowedMessageKey)) {
 			borrowedLabel.setVisible(true);
@@ -831,10 +779,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			borrowedLabel.setVisible(false);
 			borrowedLabel.setValue(null);
 		}
-	}
-
-	@Override
-	public void setPublishButtons(boolean published) {
 	}
 
 	@Override
@@ -943,6 +887,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void addEditWindowCloseListener(Window.CloseListener closeListener) {
 		this.editWindowCloseListeners.add(closeListener);
 	}
+
 	public void removeEditWindowCloseListener(Window.CloseListener closeListener) {
 		this.editWindowCloseListeners.add(closeListener);
 	}

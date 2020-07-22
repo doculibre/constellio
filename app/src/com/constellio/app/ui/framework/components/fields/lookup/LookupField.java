@@ -128,6 +128,14 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 		}
 	}
 
+	@Override
+	public void setReadOnly(boolean readOnly) {
+		super.setReadOnly(readOnly);
+		if (autoCompleteField != null) {
+			autoCompleteField.setReadOnly(readOnly);
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	public void setProviders(TextInputDataProvider<T> suggestInputDataProvider,
 							 LookupTreeDataProvider<T>... lookupTreeDataProviders) {
@@ -244,14 +252,14 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 			if (listValue != null) {
 				List<Object> convertedListValue = new ArrayList<>();
 				for (Object listItem : listValue) {
-			        Class<?> modelType = getModelType();
-			        try {
-			        	Object convertedListItem = ConverterUtil.convertToModel(listItem,
-			                    (Class<Object>) modelType, getConverter(), locale);
-			        	convertedListValue.add(convertedListItem);
-			        } catch (ConversionException e) {
-			            throw new ConversionException(getConversionError(modelType, e), e);
-			        }
+					Class<?> modelType = getModelType();
+					try {
+						Object convertedListItem = ConverterUtil.convertToModel(listItem,
+								(Class<Object>) modelType, getConverter(), locale);
+						convertedListValue.add(convertedListItem);
+					} catch (ConversionException e) {
+						throw new ConversionException(getConversionError(modelType, e), e);
+					}
 				}
 				convertedValue = convertedListValue;
 			} else {
@@ -264,9 +272,21 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 	@Override
 	protected void setInternalValue(Object newValue) {
 		super.setInternalValue(newValue);
-		if (!multiValue && autoCompleteField != null) {
+		if (autoCompleteField != null) {
 			autoCompleteField.removeValueChangeListener(autoCompleteChangeListener);
-			autoCompleteField.setValue(newValue);
+			if (!multiValue) {
+				autoCompleteField.setValue(newValue);
+			} else if (newValue instanceof List) {
+				List newListValue = (List) newValue;
+				boolean onlyOneElement = newListValue.size() == 1;
+				if (onlyOneElement) {
+					autoCompleteField.setValue(newListValue.get(0));
+				} else if (newListValue.isEmpty()) {
+					autoCompleteField.setValue(null);
+				}
+			} else if (newValue == null) {
+				autoCompleteField.setValue(null);
+			}
 			autoCompleteField.addValueChangeListener(autoCompleteChangeListener);
 		}
 	}
@@ -294,16 +314,16 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 			@Override
 			public List<T> suggest(String text) {
 				List<T> values = new ArrayList<>(suggestInputDataProvider.getData(text, 0, getBufferSize()));
-//				if (itemConverter != null) {
-//					Collections.sort(values, new Comparator<T>() {
-//						@Override
-//						public int compare(T o1, T o2) {
-//							String s1 = itemConverter.convertToPresentation(o1, String.class, getLocale());
-//							String s2 = itemConverter.convertToPresentation(o2, String.class, getLocale());
-//							return s1.compareTo(s2);
-//						}
-//					});
-//				}
+				//				if (itemConverter != null) {
+				//					Collections.sort(values, new Comparator<T>() {
+				//						@Override
+				//						public int compare(T o1, T o2) {
+				//							String s1 = itemConverter.convertToPresentation(o1, String.class, getLocale());
+				//							String s2 = itemConverter.convertToPresentation(o2, String.class, getLocale());
+				//							return s1.compareTo(s2);
+				//						}
+				//					});
+				//				}
 				return values;
 			}
 
@@ -396,7 +416,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 
 			@Override
 			protected boolean acceptWindowOpen(ClickEvent event) {
-				if(LookupField.this.isReadOnly()) {
+				if (LookupField.this.isReadOnly()) {
 					showReadOnlyMessage();
 					return false;
 				} else {
@@ -417,7 +437,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 	}
 
 	protected String getReadOnlyMessage() {
-		if(!StringUtils.isBlank(readOnlyMessageI18NKey)) {
+		if (!StringUtils.isBlank(readOnlyMessageI18NKey)) {
 			return $(readOnlyMessageI18NKey);
 		}
 		return $("readOnlyComponent");
@@ -562,10 +582,10 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 			if (!multiValue) {
 				super.validate();
 			} else {
-		        if (isRequired() && isEmpty()) {
-		            throw new Validator.EmptyValueException(getRequiredError());
-		        }
-		        validate(getValue());
+				if (isRequired() && isEmpty()) {
+					throw new Validator.EmptyValueException(getRequiredError());
+				}
+				validate(getValue());
 			}
 			removeStyleName(ERROR_STYLE_NAME);
 		} catch (InvalidValueException e) {

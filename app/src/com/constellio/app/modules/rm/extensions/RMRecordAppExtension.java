@@ -7,11 +7,13 @@ import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.ThemeUtils;
 import com.constellio.model.entities.records.Content;
@@ -23,6 +25,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.server.Resource;
+import com.vaadin.server.ThemeResource;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -96,7 +99,7 @@ public class RMRecordAppExtension extends RecordAppExtension {
 	private void setNiceTitle(RecordVO recordVO, Record record, String schemaTypeCode, String schemaCode,
 							  String metadataCode) {
 		Metadata metadata = types().getSchemaType(schemaTypeCode).getSchema(schemaCode).getMetadata(metadataCode);
-		String niceTitle = record.get(metadata);
+		String niceTitle = metadata.isEssentialInSummary() ? record.get(metadata) : null;
 		if (niceTitle != null) {
 			recordVO.setNiceTitle(niceTitle);
 		}
@@ -181,18 +184,18 @@ public class RMRecordAppExtension extends RecordAppExtension {
 		FolderStatus archivisticStatus = recordVO.getMetadataValue(recordVO.getMetadata(Folder.ARCHIVISTIC_STATUS)).getValue();
 		FolderMediaType folderMediaType = recordVO.getMetadataValue(recordVO.getMetadata(Folder.MEDIA_TYPE)).getValue();
 		return getArchivisticStatusFilename(archivisticStatus) + "_" + getSupportType(archivisticStatus, folderMediaType)
-				+ "_folder_" + getIsOpenOrClose(expanded);
+			   + "_folder_" + getIsOpenOrClose(expanded);
 	}
 
 	private String getFolderExtension(Folder folder, boolean expanded) {
 		FolderStatus archivisticStatus = folder.getArchivisticStatus();
 		FolderMediaType folderMediaType = folder.getMediaType();
 		return getArchivisticStatusFilename(archivisticStatus) + "_" + getSupportType(archivisticStatus, folderMediaType)
-				+ "_folder_" + getIsOpenOrClose(expanded);
+			   + "_folder_" + getIsOpenOrClose(expanded);
 	}
 
 	public static String getIsOpenOrClose(boolean expanded) {
-		if(expanded) {
+		if (expanded) {
 			return "opened";
 		} else {
 			return "closed";
@@ -204,7 +207,7 @@ public class RMRecordAppExtension extends RecordAppExtension {
 			return "empty";
 		}
 
-		switch(folderMediaType) {
+		switch (folderMediaType) {
 			case ELECTRONIC:
 				return "numerical";
 			case HYBRID:
@@ -259,7 +262,8 @@ public class RMRecordAppExtension extends RecordAppExtension {
 
 	public Resource getIconFromContent(GetIconPathParams params) {
 		RecordVO recordVO = params.getRecordVO();
-		if(Document.SCHEMA_TYPE.equals(recordVO.getSchema().getTypeCode())) {
+		String schemaTypeCode = recordVO.getSchema().getTypeCode();
+		if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			String fileName = appLayerFactory.getExtensions().forCollection(collection).getIconForRecordVO(new GetIconPathParams(recordVO, false));
 			if (fileName == null) {
 				for (MetadataValueVO metadataValueVO : recordVO.getMetadataValues()) {
@@ -275,6 +279,42 @@ public class RMRecordAppExtension extends RecordAppExtension {
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public Resource getThumbnailResourceForRecordVO(GetIconPathParams params) {
+		Resource result;
+		RecordVO recordVO = params.getRecordVO();
+		String schemaCode = recordVO.getSchemaCode();
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
+
+		if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			final ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
+			if (contentVersionVO != null) {
+				String filename = contentVersionVO.getFileName();
+				String recordId = recordVO.getId();
+				String metadataCode = recordVO.getMetadata(Document.CONTENT).getLocalCode();
+				String version = contentVersionVO.getVersion();
+
+				if (ConstellioResourceHandler.hasContentThumbnail(recordId, metadataCode, version)) {
+					result = ConstellioResourceHandler.createThumbnailResource(recordId, metadataCode, version, filename);
+				} else if (Email.SCHEMA.equals(schemaCode)) {
+					result = new ThemeResource("images/icons/64/mail_64.png");
+				} else {
+					result = new ThemeResource("images/icons/64/document_64.png");
+				}
+			} else {
+				result = new ThemeResource("images/icons/64/document_64.png");
+			}
+		} else if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			ThemeResource iconResource = (ThemeResource) FileIconUtils.getIconForRecordVO(recordVO);
+			String resourceId = iconResource.getResourceId();
+			resourceId = resourceId.replace(".png", "_64.png");
+			result = new ThemeResource(resourceId);
+		} else {
+			result = null;
+		}
+		return result;
 	}
 
 }

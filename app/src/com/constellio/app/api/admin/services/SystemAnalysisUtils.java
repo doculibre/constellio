@@ -47,6 +47,10 @@ public class SystemAnalysisUtils {
 	}
 
 	private static String findValueOfParameter(String fileUrl, String parameter, String separator) {
+		File file = new File(fileUrl);
+		if (!file.exists()) {
+			return null;
+		}
 		BufferedReader reader = null;
 		try {
 			reader = new BufferedReader(new FileReader(new File(fileUrl)));
@@ -63,6 +67,7 @@ public class SystemAnalysisUtils {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+
 		} finally {
 			try {
 				if (reader != null) {

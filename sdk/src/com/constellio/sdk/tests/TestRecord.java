@@ -4,8 +4,10 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordImpl;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
 import org.mockito.Mockito;
 
@@ -48,14 +50,26 @@ public class TestRecord extends RecordImpl {
 
 	private static MetadataSchema mockSchema(String schemaCode, String collection) {
 		MetadataSchema schema = Mockito.mock(MetadataSchema.class);
+		MetadataSchemaType schemaType = mockSchemaType(SchemaUtils.getSchemaTypeCode(schemaCode), collection);
 		when(schema.getCode()).thenReturn(schemaCode);
+		when(schema.getCollection()).thenReturn(collection);
+		when(schema.getCollectionInfo()).thenReturn(new CollectionInfo((byte) 0, collection, "fr", asList("fr")));
+		when(schema.getSchemaType()).thenReturn(schemaType);
+		when(schemaType.getSchema(schemaCode)).thenReturn(schema);
+		return schema;
+	}
+
+
+	private static MetadataSchemaType mockSchemaType(String schemaTypeCode, String collection) {
+		MetadataSchemaType schema = Mockito.mock(MetadataSchemaType.class);
+		when(schema.getCode()).thenReturn(schemaTypeCode);
 		when(schema.getCollection()).thenReturn(collection);
 		when(schema.getCollectionInfo()).thenReturn(new CollectionInfo((byte) 0, collection, "fr", asList("fr")));
 		return schema;
 	}
 
-	public TestRecord(RecordDTO recordDTO, CollectionInfo collectionInfo) {
-		super(recordDTO, collectionInfo);
+	public TestRecord(RecordDTO recordDTO, CollectionInfo collectionInfo, short typeId) {
+		super(recordDTO, collectionInfo, typeId);
 	}
 
 	public void markAsModified(Metadata metadata) {

@@ -11,7 +11,7 @@ import com.constellio.app.services.migrations.MigrationServices;
 import com.constellio.data.utils.Delayed;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
+import com.constellio.sdk.tests.annotations.IntermittentFailureTest;
 import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SlowTest
+// Confirm @SlowTest
 public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 	CollectionsManager collectionsManager;
 	ConstellioPluginManager pluginManager, pluginManagerOfAnotherInstance;
@@ -475,6 +475,7 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@IntermittentFailureTest
 	public void whenReenablingAModuleThenAppearAsEnabled()
 			throws Exception {
 		givenCollection("zeCollection");

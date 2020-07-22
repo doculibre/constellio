@@ -5,6 +5,7 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
+import com.constellio.data.dao.dto.records.TransactionSearchDTO;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
@@ -32,6 +33,7 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
@@ -92,6 +94,7 @@ import com.constellio.model.services.records.populators.SearchFieldsPopulator;
 import com.constellio.model.services.records.populators.SortFieldsPopulator;
 import com.constellio.model.services.records.preparation.AggregatedMetadataIncrementation;
 import com.constellio.model.services.records.preparation.RecordsLinksResolver;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.ModificationImpactCalculator;
 import com.constellio.model.services.schemas.ModificationImpactCalculatorResponse;
@@ -113,6 +116,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -139,18 +143,20 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	private final RecordDao recordDao;
 	private final RecordDao eventsDao;
+	private final RecordDao searchDao;
 	private final RecordDao notificationsDao;
 	private final ModelLayerFactory modelFactory;
 	private final UniqueIdGenerator uniqueIdGenerator;
 	private final RecordsCaches recordsCaches;
 
-	public RecordServicesImpl(RecordDao recordDao, RecordDao eventsDao, RecordDao notificationsDao,
+	public RecordServicesImpl(RecordDao recordDao, RecordDao eventsDao, RecordDao searchDao, RecordDao notificationsDao,
 							  ModelLayerFactory modelFactory, DataStoreTypesFactory typesFactory,
 							  UniqueIdGenerator uniqueIdGenerator,
 							  RecordsCaches recordsCaches) {
 		super(modelFactory);
 		this.recordDao = recordDao;
 		this.eventsDao = eventsDao;
+		this.searchDao = searchDao;
 		this.notificationsDao = notificationsDao;
 		this.modelFactory = modelFactory;
 		this.uniqueIdGenerator = uniqueIdGenerator;
@@ -441,9 +447,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			if (cacheType.hasPermanentCache()) {
 				try {
 					Record newRecordVersion = toRecord(recordDao.realGet(id), true);
-					if (newRecordVersion != null) {
-						recordsCaches.insert(newRecordVersion, WAS_MODIFIED);
-					}
+					recordsCaches.insert(newRecordVersion, WAS_MODIFIED);
 				} catch (NoSuchRecordWithId ignored) {
 
 				}
@@ -453,6 +457,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			}
 		});
 		flushRecords();
+
 	}
 
 	void mergeRecordsUsingRealtimeGet(Transaction transaction, OptimisticLocking exception)
@@ -517,7 +522,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 			} else {
 				try {
-					realtimeGetRecordById(record.getId());
+
+					Record recordInSolr = realtimeGetRecordById(record.getId());
+					LOGGER.warn("Record '" + record.getId() + "' already existing with version " + recordInSolr.getVersion());
 					throw new RecordServicesRuntimeException.IdAlreadyExisting(record.getId());
 				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 					//OK
@@ -590,14 +597,19 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public Record toRecord(RecordDTO recordDTO, boolean allFields) {
-		MetadataSchema schema = modelFactory.getMetadataSchemasManager().getSchemaOf(recordDTO);
-		return toRecord(schema, recordDTO, allFields);
+		if (recordDTO.getCollection() == null) {
+			return recordsCaches.getRecordSummary(recordDTO.getId());
+
+		} else {
+			MetadataSchema schema = modelFactory.getMetadataSchemasManager().getSchemaOf(recordDTO);
+			return toRecord(schema, recordDTO, allFields);
+		}
 	}
 
 	public Record toRecord(MetadataSchemaType schemaType, RecordDTO recordDTO, boolean allFields) {
 		String collection = (String) recordDTO.getFields().get("collection_s");
 		CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
-		Record record = new RecordImpl(recordDTO, collectionInfo);
+		Record record = new RecordImpl(recordDTO, collectionInfo, schemaType.getId(), recordDTO.getSchemaCode());
 
 		if (schemaType.hasEagerTransientMetadata()) {
 			Transaction tx = new Transaction("temp");
@@ -612,7 +624,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public Record toRecord(MetadataSchema schema, RecordDTO recordDTO, boolean allFields) {
 		String collection = (String) recordDTO.getFields().get("collection_s");
 		CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
-		Record record = new RecordImpl(recordDTO, collectionInfo);
+		Record record = new RecordImpl(recordDTO, collectionInfo, schema.getSchemaType().getId());
 
 		if (schema.hasEagerTransientMetadata()) {
 			Transaction tx = new Transaction("temp");
@@ -636,7 +648,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public long documentsCount() {
 		return recordDao.documentsCount();
 	}
-
 
 	@Override
 	public Record getRecordByMetadata(Metadata metadata, String value) {
@@ -741,7 +752,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			Record record = searchServices.searchSingleResult(condition);
 			if (record != null && summary) {
 				RecordDTO recordDTO = toPersistedSummaryRecordDTO(record, schemaType.getSchema(record.getSchemaCode()));
-				record = new RecordImpl(recordDTO, schemaType.getCollectionInfo());
+				record = new RecordImpl(recordDTO, schemaType.getCollectionInfo(), schemaType.getId());
 			}
 			return record;
 		}
@@ -750,12 +761,36 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 
+	@Override
+	public Record getRecordSummaryById(String collection, String id, boolean callExtensions) {
+		try {
+			//TODO Improve!!!!
+			RecordDTO recordDTO = dao(DataStore.RECORDS).get(id, callExtensions);
+			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
+
+			short typeId = metadataSchemasManager.getSchemaTypes(collectionInfo.getCollectionId()).getSchema(recordDTO.getSchemaCode()).getSchemaType().getId();
+			Record record = new RecordImpl(recordDTO, collectionInfo, typeId);
+			newAutomaticMetadataServices()
+					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
+							new Transaction(new RecordUpdateOptions()));
+
+			MetadataSchema schema = metadataSchemasManager.getSchemaOf(record);
+
+			RecordDTO summaryRecordDTO = toPersistedSummaryRecordDTO(record, schema);
+			return toRecord(summaryRecordDTO, false);
+
+		} catch (NoSuchRecordWithId e) {
+			throw new RecordServicesRuntimeException.NoSuchRecordWithId(id, DataStore.RECORDS, e);
+		}
+	}
+
 	public Record getById(String dataStore, String id, boolean callExtensions) {
 		try {
 			RecordDTO recordDTO = dao(dataStore).get(id, callExtensions);
 			String collection = (String) recordDTO.getFields().get("collection_s");
 			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
-			Record record = new RecordImpl(recordDTO, collectionInfo);
+			short typeId = metadataSchemasManager.getSchemaTypes(collectionInfo.getCollectionId()).getSchema(recordDTO.getSchemaCode()).getSchemaType().getId();
+			Record record = new RecordImpl(recordDTO, collectionInfo, typeId);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
@@ -772,8 +807,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 			RecordDTO recordDTO = dao(dataStore).realGet(id, callExtensions);
 			String collection = (String) recordDTO.getFields().get("collection_s");
 			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
-
-			Record record = new RecordImpl(recordDTO, collectionInfo);
+			short typeId = metadataSchemasManager.getSchemaTypes(collectionInfo.getCollectionId()).getSchema(recordDTO.getSchemaCode()).getSchemaType().getId();
+			Record record = new RecordImpl(recordDTO, collectionInfo, typeId);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
@@ -793,7 +828,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 			String collection = (String) recordDTO.getFields().get("collection_s");
 			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
 
-			Record record = new RecordImpl(recordDTO, collectionInfo);
+			short typeId = metadataSchemasManager.getSchemaTypes(collectionInfo.getCollectionId()).getSchema(recordDTO.getSchemaCode()).getSchemaType().getId();
+			Record record = new RecordImpl(recordDTO, collectionInfo, typeId);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
@@ -818,6 +854,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 				return recordDao;
 			case DataStore.EVENTS:
 				return eventsDao;
+			case DataStore.SEARCH:
+				return searchDao;
 
 			default:
 				throw new ImpossibleRuntimeException("Unsupported datastore : " + dataStore);
@@ -825,13 +863,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public List<Record> realtimeGetRecordById(List<String> ids, boolean callExtensions) {
-		String mainDataLanguage = modelLayerFactory.getCollectionsListManager().getMainDataLanguage();
 		List<Record> records = new ArrayList<>();
 		for (RecordDTO recordDTO : recordDao.realGet(ids, callExtensions)) {
 			String collection = (String) recordDTO.getFields().get("collection_s");
 			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
-
-			Record record = new RecordImpl(recordDTO, collectionInfo);
+			short typeId = metadataSchemasManager.getSchemaTypes(collectionInfo.getCollectionId()).getSchema(recordDTO.getSchemaCode()).getSchemaType().getId();
+			Record record = new RecordImpl(recordDTO, collectionInfo, typeId);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
@@ -926,7 +963,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 					catchValidationsErrors ? new ValidationErrors() : new DecoratedValidationsErrors(errors);
 			if (record.isDirty()) {
 				if (record.isSaved()) {
-					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
+					List<Metadata> modifiedMetadatas = record.getModifiedMetadataList(types);
 					extensions.callRecordInModificationBeforeValidationAndAutomaticValuesCalculation(
 							new RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent(record,
 									modifiedMetadatas, transactionExtensionErrors, transaction.getUser(), transaction.isOnlyBeingPrepared()), options);
@@ -985,22 +1022,24 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 							for (Metadata metadata : step.getMetadatas()) {
 								try {
-									automaticMetadataServices.updateAutomaticMetadata(context, (RecordImpl) record,
+									automaticMetadataServices.updateAutomaticMetadata(context.contextForRecord(record), (RecordImpl) record,
 											recordProvider, metadata, reindexationOptionForThisRecord, types, transaction);
 								} catch (RuntimeException e) {
 									throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), metadata, e);
 								}
 							}
 
-							MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
-							extensions.callRecordReindexed(new RecordReindexationEvent(record, modifiedMetadatas) {
-								@Override
-								public void recalculateRecord(List<String> metadatas) {
-									newAutomaticMetadataServices().updateAutomaticMetadatas(
-											(RecordImpl) record, newRecordProvider(transaction),
-											metadatas, transaction);
-								}
-							});
+							List<Metadata> modifiedMetadatas = record.getModifiedMetadataList(types);
+							if (ReindexingServices.getReindexingInfos() != null) {
+								extensions.callRecordReindexed(new RecordReindexationEvent(record, modifiedMetadatas) {
+									@Override
+									public void recalculateRecord(List<String> metadatas) {
+										newAutomaticMetadataServices().updateAutomaticMetadatas(
+												(RecordImpl) record, newRecordProvider(transaction),
+												metadatas, transaction);
+									}
+								});
+							}
 
 							validationServices.validateAccess(record, transaction);
 						}
@@ -1331,6 +1370,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 											 ? transaction.getIdsToReindex() : Collections.<String>emptySet();
 		if (!modifiedOrUnsavedRecords.isEmpty() || !idsMarkedForReindexing.isEmpty()) {
 			Map<String, TransactionDTO> transactionDTOs = createTransactionDTOs(transaction, modifiedOrUnsavedRecords);
+			if (modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().isCopyingRecordsInSearchCollection()) {
+				Map<String, TransactionSearchDTO> transactionSearches = createTransactionSearchDTOs(transaction, modifiedOrUnsavedRecords);
+				for (Map.Entry<String, TransactionSearchDTO> transactionSearchDTOEntry : transactionSearches.entrySet()) {
+
+					TransactionResponseDTO transactionResponseDTO = searchDao.executeSimple(transactionSearchDTOEntry.getValue());
+				}
+			}
 			for (Map.Entry<String, TransactionDTO> transactionDTOEntry : transactionDTOs.entrySet()) {
 				try {
 					MetadataSchemaTypes metadataSchemaTypes = modelFactory.getMetadataSchemasManager().getSchemaTypes(
@@ -1338,7 +1384,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 					List<RecordEvent> recordEvents = new ArrayList<>();
 					TransactionExecutedEvent event = prepareRecordEvents(transaction, modifiedOrUnsavedRecords, metadataSchemaTypes, recordEvents);
-
 
 					TransactionResponseDTO transactionResponseDTO;
 					if (transactionDTOEntry.getKey().equals(DataStore.RECORDS)) {
@@ -1531,6 +1576,70 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return transactions;
 	}
 
+	Map<String, TransactionSearchDTO> createTransactionSearchDTOs(Transaction transaction,
+																  List<Record> modifiedOrUnsavedRecords) {
+		Map<String, TransactionSearchDTO> transactions = new LinkedHashMap<>();
+		RecordUpdateOptions options = transaction.getRecordUpdateOptions();
+
+		String dataStore = "search";
+		String collection = transaction.getCollection();
+		List<RecordDTO> addedRecords = new ArrayList<>();
+		List<RecordDeltaDTO> modifiedRecordDTOs = new ArrayList<>();
+		ContentManager contentManager = modelFactory.getContentManager();
+		CollectionInfo collectionInfo = modelFactory.getCollectionsListManager().getCollectionInfo(collection);
+		List<FieldsPopulator> fieldsPopulators = new ArrayList<>();
+		MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+		ConstellioEIMConfigs systemConfigs = modelFactory.getSystemConfigs();
+		ParsedContentProvider parsedContentProvider = new ParsedContentProvider(contentManager,
+				transaction.getParsedContentCache());
+
+		fieldsPopulators
+				.add(new SearchFieldsPopulator(types, options.isFullRewrite(), parsedContentProvider, collectionInfo,
+						systemConfigs, modelLayerFactory.getExtensions()));
+
+		fieldsPopulators.add(new SortFieldsPopulator(types, options.isFullRewrite(), modelFactory,
+				newRecordProvider(transaction)));
+
+		Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
+			@Override
+			public EncryptionServices get() {
+				return modelLayerFactory.newEncryptionServices();
+			}
+		};
+
+		Map<String, RecordDeltaDTO> modifiedRecordDTOById = new HashMap<>();
+		for (Record record : modifiedOrUnsavedRecords) {
+			MetadataSchemaType type = modelFactory.getMetadataSchemasManager().getSchemaTypeOf(record);
+			MetadataSchema schema = type.getSchema(record.getSchemaCode());
+			if (dataStore.equals(type.getDataStore())) {
+				if (!record.isSaved()) {
+					addedRecords.add(((RecordImpl) record).toNewDocumentDTO(schema, fieldsPopulators));
+				} else {
+					RecordImpl recordImpl = (RecordImpl) record;
+					if (recordImpl.isDirty() && !transaction.getRecordUpdateOptions().isFullRewrite()) {
+						RecordDeltaDTO modifiedRecordDto = recordImpl.toRecordDeltaDTO(schema, fieldsPopulators);
+						modifiedRecordDTOById.put(modifiedRecordDto.getId(), modifiedRecordDto);
+					} else if (transaction.getRecordUpdateOptions().isFullRewrite()) {
+						addedRecords.add(((RecordImpl) record).toDocumentDTO(schema, fieldsPopulators));
+					}
+				}
+			}
+		}
+
+
+		modifiedRecordDTOs = new ArrayList<>(modifiedRecordDTOById.values());
+
+		boolean isChangingSomething = !addedRecords.isEmpty() || !modifiedRecordDTOs.isEmpty();
+
+		if (isChangingSomething) {
+			TransactionSearchDTO datastoreTransaction =
+					new TransactionSearchDTO(transaction.getId(), options.getRecordsFlushing(), addedRecords, modifiedRecordDTOs);
+			transactions.put(dataStore, datastoreTransaction);
+		}
+
+		return transactions;
+	}
+
 	public Record newRecordWithSchema(MetadataSchema schema) {
 		return newRecordWithSchema(schema, true);
 	}
@@ -1540,7 +1649,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		if ("collection_default".equals(schema.getCode())) {
 			id = schema.getCollection();
 
-		} else if (DataStore.EVENTS.equals(schema.getDataStore())) {
+		} else if (DataStore.EVENTS.equals(schema.getDataStore()) || Event.SCHEMA_TYPE.equals(schema.getSchemaType().getCode())) {
 			id = UUIDV1Generator.newRandomId();
 
 		} else if (!schema.isInTransactionLog()) {
@@ -1863,6 +1972,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 			recordDao.flush();
 			if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 				eventsDao.flush();
+			}
+			if (searchDao != null) {
+				searchDao.flush();
 			}
 			notificationsDao.flush();
 

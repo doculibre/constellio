@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.services;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
@@ -100,6 +101,14 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		super(collection, appLayerFactory.getModelLayerFactory(), locale);
 	}
 
+	public Folder getFolderSummary(String id) {
+		return wrapFolder(getSummary(folder.schemaType(), id));
+	}
+
+	public Document getDocumentSummary(String id) {
+		return wrapDocument(getSummary(document.schemaType(), id));
+	}
+
 	//
 
 	//Generic
@@ -115,6 +124,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	//
 
 	//Container record type
+
+	public MetadataSchemaType containerRecordSchemaType() {
+		return getTypes().getSchemaType(ContainerRecord.SCHEMA_TYPE);
+	}
 
 	public MetadataSchema containerRecordTypeSchema() {
 		return getTypes().getSchema(ContainerRecordType.DEFAULT_SCHEMA);
@@ -935,6 +948,9 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 				from(printable_report.schemaType()).where(SCHEMA).isEqualTo(PrintableReport.SCHEMA_NAME))));
 	}
 
+	public Folder getFolderByLegacyId(String id) {
+		return wrapFolder(getByLegacyId(Folder.SCHEMA_TYPE, id));
+	}
 
 	public List<Folder> getFolderByUnicity(String uniqueKey) {
 		if (uniqueKey == null) {

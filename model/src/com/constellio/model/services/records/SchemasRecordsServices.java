@@ -102,6 +102,10 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return credentialSchema().getMetadata(UserCredential.USERNAME);
 	}
 
+	public Metadata credentialAzureUsername() {
+		return credentialSchema().getMetadata(UserCredential.AZURE_USERNAME);
+	}
+
 	public Metadata credentialStatus() {
 		return credentialSchema().getMetadata(UserCredential.STATUS);
 	}

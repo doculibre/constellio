@@ -7,7 +7,6 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import junit.framework.Assert;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
@@ -91,49 +90,53 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 	public void whenMultipleThreadsAreCommittingMassivelyThenCombined()
 			throws Exception {
 
-		BigVaultServer.MAX_FAIL_ATTEMPT = 0;
-		ThreadList<Thread> threadList = new ThreadList<>();
-		final AtomicInteger errorsCounter = new AtomicInteger();
-		for (int i = 1; i <= 20; i++) {
-			final int threadId = i;
-			threadList.add(new Thread() {
-				@Override
-				public void run() {
-					for (int o = 1; o <= 100; o++) {
-						BigVaultServerTransaction tx = new BigVaultServerTransaction(RecordsFlushing.NOW());
+		vaultServer.setResilienceModeToZero();
+		try {
+			ThreadList<Thread> threadList = new ThreadList<>();
+			final AtomicInteger errorsCounter = new AtomicInteger();
+			for (int i = 1; i <= 20; i++) {
+				final int threadId = i;
+				threadList.add(new Thread() {
+					@Override
+					public void run() {
+						for (int o = 1; o <= 100; o++) {
+							BigVaultServerTransaction tx = new BigVaultServerTransaction(RecordsFlushing.NOW());
 
-						SolrInputDocument doc = new SolrInputDocument();
-						doc.setField("id", threadId + "-" + o);
-						doc.setField("type_s", "test");
-						tx.setNewDocuments(asList(doc));
+							SolrInputDocument doc = new SolrInputDocument();
+							doc.setField("id", threadId + "-" + o);
+							doc.setField("type_s", "test");
+							tx.setNewDocuments(asList(doc));
 
-						try {
-							vaultServer.addAndCommit(tx);
+							try {
+								vaultServer.addAndCommit(tx);
 
-						} catch (SolrServerException e) {
-							errorsCounter.incrementAndGet();
-							e.printStackTrace();
-							throw new RuntimeException(e);
-						} catch (IOException e) {
-							errorsCounter.incrementAndGet();
-							e.printStackTrace();
-							throw new RuntimeException(e);
+							} catch (SolrServerException e) {
+								errorsCounter.incrementAndGet();
+								e.printStackTrace();
+								throw new RuntimeException(e);
+							} catch (IOException e) {
+								errorsCounter.incrementAndGet();
+								e.printStackTrace();
+								throw new RuntimeException(e);
+							}
 						}
 					}
-				}
-			});
+				});
+			}
+
+
+			threadList.startAll();
+
+			threadList.joinAll();
+
+			ModifiableSolrParams params = new ModifiableSolrParams();
+			params.set("q", "type_s:test");
+
+			assertThat(errorsCounter.get()).isEqualTo(0);
+			assertThat(vaultServer.query(params).getResults().getNumFound()).isEqualTo(2000);
+		} finally {
+			vaultServer.setResilienceModeToNormal();
 		}
-
-		threadList.startAll();
-
-		threadList.joinAll();
-
-		ModifiableSolrParams params = new ModifiableSolrParams();
-		params.set("q", "type_s:test");
-
-		assertThat(errorsCounter.get()).isEqualTo(0);
-		assertThat(vaultServer.query(params).getResults().getNumFound()).isEqualTo(2000);
-
 	}
 
 	private void updateExpectingAnOptimisticLocking(SolrInputDocument... documents) {
@@ -354,7 +357,7 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 		assertThat(getVersionOf(dakota)).isNotEqualTo(dakotaVersion);
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void givenAThreadCausingOptimisticLockingAndAnotherAddingWithoutProblemsThenOnlySecondRecordIsModified()
 			throws Exception {
@@ -425,14 +428,14 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 		assertThat(getValueOf(dakota)).isEqualTo("" + numberOfIterations);
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void givenFlushIsNowWhenTwoThreadsAreModifyingTheSameDocumentThenNoConflict()
 			throws Exception {
 		givenTwoThreadsAreModifyingTheSameDocumentThenNoConflict(NOW());
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void givenFlushIsWithin2SecWhenTwoThreadsAreModifyingTheSameDocumentThenNoConflict()
 			throws Exception {

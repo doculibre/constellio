@@ -2,12 +2,11 @@ package com.constellio.app.api.admin.services;
 
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.DriverTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.After;
 import org.junit.Test;
 
 // Comment to test commit
-@SlowTest
+// Confirm @SlowTest
 @DriverTest
 public class AllAdminServicesAcceptTest extends ConstellioTest {
 

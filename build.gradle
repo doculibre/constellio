@@ -17,10 +17,10 @@ subprojects {
     }
 
     configurations.all {
-		exclude group: 'com.google.gwt', module: 'gwt-dev'
-		exclude group: 'com.google.gwt', module: 'gwt-user'
-		exclude group: 'com.vaadin.external.gwt', module: 'gwt-elemental'
-		exclude group: 'com.vaadin.external.gwt', module: 'gwt-dev'
+        exclude group: 'com.google.gwt', module: 'gwt-dev'
+        exclude group: 'com.google.gwt', module: 'gwt-user'
+        exclude group: 'com.vaadin.external.gwt', module: 'gwt-elemental'
+        exclude group: 'com.vaadin.external.gwt', module: 'gwt-dev'
 
         resolutionStrategy {
             force "org.apache.james:apache-mime4j:${version_mime}"
@@ -86,8 +86,8 @@ subprojects {
         compile "org.glassfish.jersey.media:jersey-media-multipart:2.27"
         compile "com.fasterxml.jackson.datatype:jackson-datatype-joda:2.9.5"
         compile "io.swagger.core.v3:swagger-jaxrs2:2.0.8"
-		compile "com.j256.ormlite:ormlite-core:5.1"
-		compile "com.j256.ormlite:ormlite-jdbc:5.1"
+        compile "com.j256.ormlite:ormlite-core:5.1"
+        compile "com.j256.ormlite:ormlite-jdbc:5.1"
         compile "mysql:mysql-connector-java:5.1.20"
         compile "javax.annotation:javax.annotation-api:1.3.1"
         compile "javax.xml.ws:jaxws-api:2.3.0"
@@ -98,7 +98,7 @@ subprojects {
         compile 'com.sun.mail:javax.mail:1.6.2'
         compile 'com.microsoft.azure:adal4j:1.6.3'
         compile 'com.nimbusds:oauth2-oidc-sdk:4.5'
-        compile "com.microsoft.graph:microsoft-graph:1.5.0"
+        compile 'com.microsoft.graph:microsoft-graph-core:1.0.0'
         compile group: 'com.github.bbottema', name: 'emailaddress-rfc2822', version: '1.1.2'
         compile group: 'net.markenwerk', name: 'utils-mail-dkim', version: '1.1.10'
         compile group: 'org.mapdb', name: 'mapdb', version: '3.0.7'
@@ -106,7 +106,11 @@ subprojects {
         compile name: 'mets-api'
         compile 'com.ithit.webdav:webdav-server:4.2.2812'
         compile 'com.ithit.webdav.integration:servlet-integration:4.2.2812'
-        
+        compile 'de.jollyday:jollyday:0.5.10'
+        compile "msgraph-sdk-java:msgraph-sdk-java"
+        compile 'com.auth0:java-jwt:3.9.0'
+
+
         testCompile 'nl.jqno.equalsverifier:equalsverifier:1.4.1'
     }
 
@@ -172,7 +176,9 @@ war {
                              ":constellio-plugins:plugin020", ":constellio-plugins:plugin027", ":constellio-plugins:plugin028", ":constellio-plugins:plugin030",
                              ":constellio-plugins:plugin032", ":constellio-plugins:plugin033", ":constellio-plugins:plugin034", ":constellio-plugins:plugin035",
                              ":constellio-plugins:plugin036", ":constellio-plugins:plugin038", ":constellio-plugins:plugin039", ":constellio-plugins:plugin040",
-                             ":constellio-plugins:plugin041", ":constellio-plugins:plugin042", ":constellio-plugins:plugin044"]
+                             ":constellio-plugins:plugin041", ":constellio-plugins:plugin042", ":constellio-plugins:plugin044", ":constellio-plugins:plugin045",
+                             ":constellio-plugins:plugin046", ":constellio-plugins:plugin047", ":constellio-plugins:plugin048", ":constellio-plugins:plugin051"]
+
         def installPlugins = [":constellio-plugins:plugin023", ":constellio-plugins:plugin025"]
 
         from(files(updatePlugins.collect { project(it).jar.outputs.files })) {

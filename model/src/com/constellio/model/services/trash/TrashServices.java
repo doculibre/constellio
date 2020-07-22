@@ -6,6 +6,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.extensions.events.schemas.PreparePhysicalDeleteFromTrashParams;
 import com.constellio.model.extensions.events.schemas.SchemaEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords;
@@ -179,7 +180,7 @@ public class TrashServices {
 					returnMap.put(recordId, record.getTitle());
 				}
 			} catch (Throwable e) {
-				LOGGER.warn("record not deleted correctly from trash");
+				LOGGER.warn("record not deleted correctly from trash", e);
 				returnMap.put(recordId, record.getTitle());
 			}
 		}
@@ -222,11 +223,14 @@ public class TrashServices {
 
 	public boolean handleRecordPhysicalDelete(Record recordToDelete, User currentUser) {
 		try {
-			recordServices().physicallyDelete(recordToDelete, currentUser,
-					new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
+			ModelLayerCollectionExtensions extension = modelLayerFactory.getExtensions()
+					.forCollection(collection);
+			RecordPhysicalDeleteOptions deleteOptions = new RecordPhysicalDeleteOptions().setMostReferencesToNull(true);
+			extension.preparePhysicalDeleteFromTrash(new PreparePhysicalDeleteFromTrashParams(recordToDelete, currentUser, deleteOptions));
+			recordServices().physicallyDelete(recordToDelete, currentUser, deleteOptions);
 			return true;
-
 		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
+			LOGGER.warn("Error while physically deleting record " + recordToDelete.getIdTitle(), e);
 			try {
 				recordServices().update(recordToDelete.set(Schemas.ERROR_ON_PHYSICAL_DELETION, true),
 						RecordUpdateOptions.userModificationsSafeOptions().setValidationsEnabled(false));

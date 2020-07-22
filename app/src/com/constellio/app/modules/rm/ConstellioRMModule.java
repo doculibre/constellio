@@ -36,7 +36,6 @@ import com.constellio.app.modules.rm.extensions.RMRequestTaskButtonExtension;
 import com.constellio.app.modules.rm.extensions.RMSchemaTypesPageExtension;
 import com.constellio.app.modules.rm.extensions.RMSchemasLogicalDeleteExtension;
 import com.constellio.app.modules.rm.extensions.RMSearchPageExtension;
-import com.constellio.app.modules.rm.extensions.RMSelectionPanelExtension;
 import com.constellio.app.modules.rm.extensions.RMSystemCheckExtension;
 import com.constellio.app.modules.rm.extensions.RMTaskRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
@@ -46,6 +45,7 @@ import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
 import com.constellio.app.modules.rm.extensions.RemoveClickableNotificationsWhenChangingPage;
 import com.constellio.app.modules.rm.extensions.SessionContextRecordExtension;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.extensions.api.RMSchemaDisplayExtension;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.modules.rm.extensions.app.RMAdministrativeUnitRecordFieldFactoryExtension;
 import com.constellio.app.modules.rm.extensions.app.RMAdvancedSearchMenuItemActionsExtension;
@@ -70,6 +70,7 @@ import com.constellio.app.modules.rm.extensions.schema.RMExcelReportSchemaExtens
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
 import com.constellio.app.modules.rm.extensions.ui.RMConstellioUIExtention;
 import com.constellio.app.modules.rm.extensions.ui.RMDocumentPathCriterionExtension;
+import com.constellio.app.modules.rm.extensions.ui.RMViewableRecordVOTablePanelExtension;
 import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
@@ -81,6 +82,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.background.AlertDocumentBorrowingPeriodBackgroundAction;
+import com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -91,6 +93,9 @@ import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.servlet.ConstellioImportRecordsServlet;
+import com.constellio.app.servlet.ConstellioUploadContentInVaultServlet;
+import com.constellio.app.start.ApplicationStarter;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
@@ -101,6 +106,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.security.GlobalSecuredTypeCondition;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -251,18 +258,29 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo9_0());
 		scripts.add(new RMMigrationTo9_0_0_1());
 		scripts.add(new RMMigrationTo8_2_1_5());
-		scripts.add(new RMMigrationTo9_0_0_3());
 		scripts.add(new RMMigrationTo9_0_0_4());
 		scripts.add(new RMMigrationTo9_0_0_44());
 		scripts.add(new RMMigrationTo9_0_0_33());
 		scripts.add(new RMMigrationTo9_0_0_42());
 		scripts.add(new RMMigrationTo9_0_0_45());
+		scripts.add(new RMMigrationTo9_0_0_45_1());
 		scripts.add(new RMMigrationTo9_0_0_47());
-		scripts.add(new RMMigrationTo9_0_0_60());
+		scripts.add(new RMMigrationTo9_1_0_12());
+		scripts.add(new RMMigrationTo9_1_0_13());
 		scripts.add(new RMMigrationTo9_0_0_60_1());
 		scripts.add(new RMMigrationTo9_0_3_11());
 		scripts.add(new RMMigrationTo9_0_3_12());
+		scripts.add(new RMMigrationTo9_0_3_13());
 		//scripts.add(new RMMigrationTo9_0_666());
+		scripts.add(new RMMigrationTo9_1_0());
+		scripts.add(new RMMigrationTo9_1_0_14());
+		scripts.add(new RMMigrationTo9_1_0_20());
+		scripts.add(new RMMigrationTo9_1_0_21());
+		scripts.add(new RMMigrationTo9_1_0_22());
+		scripts.add(new RMMigrationTo9_1_0_23());
+		scripts.add(new RMMigrationTo9_1_0_24());
+		scripts.add(new RMMigrationTo9_1_10());
+		scripts.add(new RMMigrationTo9_1_10_1());
 
 		return scripts;
 	}
@@ -325,6 +343,13 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				.configure(repeatingAction("alertDocumentBorrowingPeriod", action)
 						.executedEvery(standardHours(2)).handlingExceptionWith(CONTINUE));
 
+		ApplicationStarter.registerServlet("/signatureExternalAccess", new SignatureExternalAccessWebServlet());
+		FilterHolder filterHolder = new FilterHolder(new CrossOriginFilter());
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,POST,GET");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "content-type,access-control-allow-origin,authorization");
+		filterHolder.setInitParameter(CrossOriginFilter.CHAIN_PREFLIGHT_PARAM, "false");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
+		ApplicationStarter.registerFilter("/signatureExternalAccess", filterHolder);
 	}
 
 
@@ -371,10 +396,23 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 	private void setupAppLayerSystemExtensions(AppLayerFactory appLayerFactory) {
 		AppLayerSystemExtensions extensions = appLayerFactory.getExtensions().getSystemWideExtensions();
 		extensions.constellioUIExtentions.add(new RMConstellioUIExtention(appLayerFactory));
+		extensions.schemaDisplayExtensions.add(new RMSchemaDisplayExtension());
+
+		ApplicationStarter.registerServlet("/rm/uploadRecords", new ConstellioImportRecordsServlet());
 	}
 
 	private void setupAppLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
+		ApplicationStarter.registerServlet("/" + ConstellioRMModule.ID + "/uploadContentInVault",
+				new ConstellioUploadContentInVaultServlet());
+		ApplicationStarter.registerServlet("/" + ConstellioRMModule.ID + "/importRecords",
+				new ConstellioImportRecordsServlet());
+
+		ApplicationStarter.registerServlet("/" + ConstellioRMModule.ID + "/uploadContentInVault",
+				new ConstellioUploadContentInVaultServlet());
+		ApplicationStarter.registerServlet("/" + ConstellioRMModule.ID + "/uploadRecords",
+				new ConstellioImportRecordsServlet());
+
 
 		extensions.schemaTypeAccessExtensions.add(new RMGenericRecordPageExtension());
 		extensions.schemaTypeAccessExtensions.add(new LabelSchemaRestrictionPageExtension());
@@ -395,7 +433,6 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.pagesComponentsExtensions.add(new RMRequestTaskButtonExtension(collection, appLayerFactory));
 		extensions.pagesComponentsExtensions.add(new RemoveClickableNotificationsWhenChangingPage());
 		extensions.pagesComponentsExtensions.add(new RMListSchemaTypeExtension());
-		extensions.selectionPanelExtensions.add(new RMSelectionPanelExtension(appLayerFactory, collection));
 		extensions.schemaTypesPageExtensions.add(new RMSchemaTypesPageExtension());
 		extensions.recordDisplayFactoryExtensions.add(new RMRecordDisplayFactoryExtension(appLayerFactory, collection));
 		extensions.listSchemaCommandExtensions.add(new RMListSchemaExtention());
@@ -407,6 +444,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.pagesComponentsExtensions.add(new RMManageAuthorizationsPageExtension(collection, appLayerFactory));
 		extensions.sipExtensions.add(new RMSIPExtension(collection, appLayerFactory));
 		extensions.searchCriterionExtensions.add(new RMDocumentPathCriterionExtension(appLayerFactory, collection));
+		extensions.viewableRecordVOTablePanelExtensions.add(new RMViewableRecordVOTablePanelExtension(appLayerFactory, collection));
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);

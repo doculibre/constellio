@@ -112,9 +112,9 @@ public class Metadata implements DataStoreField {
 		this.allowedReferences = null;
 		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false,
 				multivalue, false, false, false, false, false,
-				false, false, false, false, false,
+				false, false, false, false, false, false,
 				false, multiLingual, false, new HashSet<String>(), false,
-				false, PERSISTED, false, false);
+				false, PERSISTED, false, false, null, null);
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.encryptionServicesFactory = null;
@@ -422,6 +422,14 @@ public class Metadata implements DataStoreField {
 		return getInheritedMetadataBehaviors().isTaxonomyRelationship();
 	}
 
+	public Integer getMaxLength() {
+		return getInheritedMetadataBehaviors().getMaxLength();
+	}
+
+	public String getMeasurementUnit() {
+		return getInheritedMetadataBehaviors().getMeasurementUnit();
+	}
+
 	public boolean isSearchable() {
 		return getInheritedMetadataBehaviors().isSearchable();
 	}
@@ -444,6 +452,10 @@ public class Metadata implements DataStoreField {
 
 	public boolean isEssentialInSummary() {
 		return getInheritedMetadataBehaviors().isEssentialInSummary();
+	}
+
+	public boolean isAvailableInSummary() {
+		return getInheritedMetadataBehaviors().isAvailableInSummary();
 	}
 
 	public boolean isEncrypted() {
@@ -472,6 +484,18 @@ public class Metadata implements DataStoreField {
 
 	public StringSortFieldNormalizer getSortFieldNormalizer() {
 		return hasNormalizedSortField() ? new DefaultStringSortFieldNormalizer() : null;
+	}
+
+	private Metadata cachedSortMetadata;
+
+	public Metadata getSortMetadata() {
+		if (cachedSortMetadata == null) {
+			String dataStoreCode = this.getDataStoreCode().replace("_s", "_sort_s");
+			String schemaCode = this.getCode().replace("_" + this.getLocalCode(), "");
+			cachedSortMetadata = new Metadata(this.id, schemaCode, dataStoreCode, STRING, this.isMultivalue(),
+					this.isMultiLingual());
+		}
+		return cachedSortMetadata;
 	}
 
 	public Object getDefaultValue() {
@@ -597,7 +621,7 @@ public class Metadata implements DataStoreField {
 	}
 
 	public Metadata getSortField() {
-		return hasNormalizedSortField() ? Schemas.getSortMetadata(this) : null;
+		return hasNormalizedSortField() ? getSortMetadata() : null;
 	}
 
 	public boolean isSameValueThan(Metadata otherMetadata) {
@@ -664,12 +688,16 @@ public class Metadata implements DataStoreField {
 
 	}
 
-	Metadata cachedSortMetadata;
-
-	public Metadata getSortMetadata() {
-		if (cachedSortMetadata == null) {
-			cachedSortMetadata = Schemas.getSortMetadata(this);
+	public boolean isSame(Metadata otherMetadata) {
+		if (otherMetadata == null) {
+			return false;
 		}
-		return cachedSortMetadata;
+
+		if (id == 0 || otherMetadata.id == 0) {
+			return isSameLocalCode(otherMetadata);
+
+		} else {
+			return id == otherMetadata.id;
+		}
 	}
 }

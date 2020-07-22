@@ -20,12 +20,13 @@ import com.vaadin.ui.Button;
 import java.util.List;
 
 public class DecommissionBreadcrumbTrail extends TitleBreadcrumbTrail implements UIContextProvider {
-	
+
 	private DecommissionBreadcrumbTrailPresenter presenter;
 
-	public DecommissionBreadcrumbTrail(String title, SearchType type, String searchId, String recordId, BaseView view) {
+	public DecommissionBreadcrumbTrail(String title, SearchType type, String searchId, String recordId, BaseView view,
+									   boolean forceBaseItemEnabled) {
 		super(view, null);
-		this.presenter = new DecommissionBreadcrumbTrailPresenter(title, type, searchId, recordId, this);
+		this.presenter = new DecommissionBreadcrumbTrailPresenter(title, type, searchId, recordId, this, forceBaseItemEnabled);
 	}
 
 	@Override

@@ -7,9 +7,7 @@ import lombok.Getter;
 @Getter
 public class CacheLoadingProgression {
 
-	String loadedSchemaType;
-
-	String collection;
+	String stepName;
 
 	long current;
 

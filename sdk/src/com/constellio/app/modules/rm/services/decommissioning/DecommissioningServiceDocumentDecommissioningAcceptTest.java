@@ -11,7 +11,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +29,8 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	@Before
 	public void setUp()
 			throws Exception {
+
+		givenBackgroundThreadsEnabled();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
@@ -143,6 +144,8 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 		givenTimeIs(processingDate);
 
 		service.decommission(records.getList31(), processingUser);
+		waitForBatchProcess();
+
 		verifyProcessed(processingDate, processingUser, records.getList31());
 		for (Document document : getListDocuments(records.getList31())) {
 			assertThat(document.getActualTransferDateEntered()).isEqualTo(processingDate);
@@ -156,6 +159,8 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 		givenTimeIs(processingDate);
 
 		service.decommission(records.getList34(), processingUser);
+		waitForBatchProcess();
+
 		verifyProcessed(processingDate, processingUser, records.getList34());
 		for (Document document : getListDocuments(records.getList34())) {
 			assertThat(document.getActualDepositDateEntered()).isEqualTo(processingDate);
@@ -169,6 +174,8 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 		givenTimeIs(processingDate);
 
 		service.decommission(records.getList33(), processingUser);
+		waitForBatchProcess();
+
 		verifyProcessed(processingDate, processingUser, records.getList33());
 		for (Document document : getListDocuments(records.getList33())) {
 			assertThat(document.getActualDepositDateEntered()).isEqualTo(processingDate);
@@ -182,6 +189,8 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 		givenTimeIs(processingDate);
 
 		service.decommission(records.getList35(), processingUser);
+		waitForBatchProcess();
+
 		verifyProcessed(processingDate, processingUser, records.getList35());
 		for (Document document : getListDocuments(records.getList35())) {
 			assertThat(document.getActualDestructionDateEntered()).isEqualTo(processingDate);
@@ -197,6 +206,8 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 		getConfigurationManager().setValue(RMConfigs.DELETE_DOCUMENT_RECORDS_WITH_DESTRUCTION, true);
 
 		service.decommission(records.getList35(), processingUser);
+		waitForBatchProcess();
+
 		verifyProcessed(processingDate, processingUser, records.getList35());
 		for (Document document : getListDocuments(records.getList35())) {
 			assertThat(document.getActualDestructionDateEntered()).isEqualTo(processingDate);
@@ -211,6 +222,8 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 		givenTimeIs(processingDate);
 
 		service.decommission(records.getList36(), processingUser);
+		waitForBatchProcess();
+
 		verifyProcessed(processingDate, processingUser, records.getList36());
 		for (Document document : getListDocuments(records.getList36())) {
 			assertThat(document.getActualDestructionDateEntered()).isEqualTo(processingDate);
@@ -226,6 +239,8 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 		getConfigurationManager().setValue(RMConfigs.DELETE_DOCUMENT_RECORDS_WITH_DESTRUCTION, true);
 
 		service.decommission(records.getList36(), processingUser);
+		waitForBatchProcess();
+
 		verifyProcessed(processingDate, processingUser, records.getList36());
 		for (Document document : getListDocuments(records.getList36())) {
 			assertThat(document.getActualDestructionDateEntered()).isEqualTo(processingDate);
@@ -234,11 +249,13 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenListToTransferWhenCreatePDFaOnTransferThenPDFaCreated() throws Exception {
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(records.getList31(), records.getChuckNorris());
+		waitForBatchProcess();
+
 		for (Document document : getListDocuments(records.getList31())) {
 			if (document.getContent() != null) {
 				assertThat(document.getContent().getCurrentVersion().getMimetype()).isEqualTo("application/pdf");
@@ -247,11 +264,13 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenListToDepositWhenCreatePDFaOnTransferThenPDFaCreated() throws Exception {
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(records.getList34(), records.getChuckNorris());
+		waitForBatchProcess();
+
 		for (Document document : getListDocuments(records.getList34())) {
 			if (document.getContent() != null) {
 				assertThat(document.getContent().getCurrentVersion().getMimetype()).isEqualTo("application/pdf");
@@ -260,11 +279,13 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenListToDepositWhenCreatePDFaOnDepositThenPDFaCreated() throws Exception {
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(records.getList33(), records.getChuckNorris());
+		waitForBatchProcess();
+
 		for (Document document : getListDocuments(records.getList33())) {
 			if (document.getContent() != null) {
 				assertThat(document.getContent().getCurrentVersion().getMimetype()).isEqualTo("application/pdf");

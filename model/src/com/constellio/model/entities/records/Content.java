@@ -57,6 +57,8 @@ public interface Content extends ModifiableStructure {
 
 	Content replaceCurrentVersionContent(User user, ContentVersionDataSummary contentVersionDataSummary);
 
+	Content replaceCurrentVersionContent(ContentVersion contentVersion);
+
 	LocalDateTime getCheckoutDateTime();
 
 	String getCheckoutUserId();
@@ -82,8 +84,8 @@ public interface Content extends ModifiableStructure {
 	boolean isEmptyVersion();
 
 	boolean isCheckedOut();
-
 	// TODO Write a test
+
 	boolean isDeleteContentVersionPossible(String version);
 
 	Set<String> getHashOfAllVersions();

@@ -18,7 +18,6 @@ import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
 import com.constellio.app.ui.pages.search.SaveSearchListener;
 import com.constellio.app.ui.pages.search.SearchViewImpl;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
-import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.fieldgroup.PropertyId;
@@ -343,8 +342,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 			return new BaseForm<DecommissioningListParams>(
 					new DecommissioningListParams(), this, title, description) {
 				@Override
-				protected void saveButtonClick(DecommissioningListParams params)
-						throws ValidationException {
+				protected void saveButtonClick(DecommissioningListParams params) {
 					getWindow().close();
 					params.setSelectedRecordIds(getSelectedRecordIds());
 					if (presenter.isDecommissioningListWithSelectedFolders()) {
@@ -386,7 +384,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new DecommissionBreadcrumbTrail(getTitle(),  presenter.getSearchType(), null, presenter.decommissioningListId, this);
+		return new DecommissionBreadcrumbTrail(getTitle(), presenter.getSearchType(), null, presenter.decommissioningListId, this, false);
 	}
 
 	public SearchType getSearchType() {

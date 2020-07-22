@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.contextmenu;
 
-import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -15,7 +14,6 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
 import com.constellio.app.ui.framework.containers.RefreshableContainer;
@@ -53,26 +51,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	private ContentVersionVO contentVersionVO;
 	private UpdateContentVersionWindowImpl updateWindow;
 	private String borrowedMessage;
-	private boolean displayDocumentButtonVisible;
-	private boolean openDocumentButtonVisible;
-	private boolean downloadDocumentButtonVisible;
-	private boolean editDocumentButtonVisible;
-	private boolean deleteDocumentButtonVisible;
-	private boolean addAuthorizationButtonVisible;
-	private boolean shareDocumentButtonVisible;
-	private boolean createPDFAButtonVisible;
-	private boolean uploadButtonVisible;
-	private boolean checkInButtonVisible;
-	private boolean alertWhenAvailableButtonVisible;
-	private boolean checkOutButtonVisible;
-	private boolean metadataReportButtonVisible;
-	//private boolean cancelCheckOutButtonVisible;
-	private boolean finalizeButtonVisible;
-	private boolean addToCartButtonVisible;
-	private boolean publishButtonVisible;
-	private boolean addToOrRemoveFromSelectionButtonVisible;
 
-	private DocumentActionsPresenterUtils<DocumentContextMenu> presenterUtils;
 	protected DocumentContextMenuPresenter presenter;
 
 	public DocumentContextMenuImpl() {
@@ -115,6 +94,10 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	@Override
 	public void buildMenuItems() {
 		removeAllItems();
+
+		if (StringUtils.isNotBlank(borrowedMessage)) {
+			addItem(borrowedMessage);
+		}
 
 		// FIXME quick test only
 		RecordServices recordServices = getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newRecordServices();
@@ -233,89 +216,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		updateWindow.open(checkingIn);
 	}
 
-	@Override
-	public void setCopyDocumentButtonState(ComponentState state) {
-	}
 
-	@Override
-	public void setEditDocumentButtonState(ComponentState state) {
-		editDocumentButtonVisible = state.isEnabled();
-	}
-
-	@Override
-	public void setAddDocumentButtonState(ComponentState state) {
-		//not supported
-	}
-
-	@Override
-	public void setDeleteDocumentButtonState(ComponentState state) {
-		deleteDocumentButtonVisible = state.isEnabled();
-	}
-
-	@Override
-	public void setViewAuthorizationButtonState(ComponentState state) {
-		addAuthorizationButtonVisible = state.isEnabled();
-	}
-
-	@Override
-	public void setCreatePDFAButtonState(ComponentState state) {
-		createPDFAButtonVisible = state.isEnabled();
-	}
-
-	@Override
-	public void setShareDocumentButtonState(ComponentState state) {
-		shareDocumentButtonVisible = state.isEnabled();
-	}
-
-	@Override
-	public void setUnshareDocumentButtonState(ComponentState state) {
-		shareDocumentButtonVisible = state.isEnabled();
-	}
-
-	@Override
-	public void setUploadButtonState(ComponentState state) {
-		uploadButtonVisible = state.isEnabled();
-	}
-
-	@Override
-	public void setCheckInButtonState(ComponentState state) {
-		checkInButtonVisible = state.isEnabled();
-	}
-
-	@Override
-	public void setAlertWhenAvailableButtonState(ComponentState state) {
-		alertWhenAvailableButtonVisible = state.isEnabled();
-	}
-
-	@Override
-	public void setCheckOutButtonState(ComponentState state) {
-		checkOutButtonVisible = state.isEnabled();
-	}
-
-	@Override
-	public void setCartButtonState(ComponentState state) {
-		addToCartButtonVisible = state.isVisible();
-	}
-
-	@Override
-	public void setAddToOrRemoveFromSelectionButtonState(ComponentState state) {
-		addToOrRemoveFromSelectionButtonVisible = state.isVisible();
-	}
-
-	@Override
-	public void setGenerateMetadataButtonState(ComponentState state) {
-		metadataReportButtonVisible = presenter.hasMetadataReport();
-	}
-
-	@Override
-	public void setPublishButtonState(ComponentState state) {
-		publishButtonVisible = state.isVisible();
-	}
-
-	@Override
-	public void setFinalizeButtonState(ComponentState state) {
-		finalizeButtonVisible = state.isVisible();
-	}
 
 	@Override
 	public void setContentVersionVO(ContentVersionVO contentVersionVO) {
@@ -346,21 +247,6 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		if (visible) {
 			super.open(x, y);
 		}
-	}
-
-	@Override
-	public void setDisplayDocumentButtonState(ComponentState state) {
-		this.displayDocumentButtonVisible = state.isVisible() && state.isEnabled();
-	}
-
-	@Override
-	public void setOpenDocumentButtonState(ComponentState state) {
-		this.openDocumentButtonVisible = state.isVisible() && state.isEnabled();
-	}
-
-	@Override
-	public void setDownloadDocumentButtonState(ComponentState state) {
-		this.downloadDocumentButtonVisible = state.isVisible() && state.isEnabled();
 	}
 
 	@Override

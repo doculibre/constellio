@@ -115,6 +115,7 @@ import com.vaadin.navigator.ViewProvider;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class NavigatorConfigurationService implements Serializable {
 	public static final String HOME = "";
@@ -386,5 +387,9 @@ public class NavigatorConfigurationService implements Serializable {
 
 	public void register(String code, Class<? extends BaseViewImpl> clazz) {
 		viewProviders.add(new ClassBasedViewProvider(code, clazz));
+	}
+
+	public List<String> getViewProviders() {
+		return viewProviders.stream().map(v -> v.toString()).collect(Collectors.toList());
 	}
 }

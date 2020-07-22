@@ -1,8 +1,21 @@
 package com.constellio.app.services.migrations;
 
+import com.constellio.app.api.content.GetRecordContentServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.CertifyPdfJSSignaturesServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSAnnotationsConfigServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSAnnotationsServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSSignatureServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.RemovePdfJSSignatureServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSAnnotationsServlet;
+import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSSignatureServlet;
+import com.constellio.app.api.search.CachedSearchWebService;
+import com.constellio.app.api.systemManagement.services.SystemInfoWebService;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.extensions.ui.AppSupportedExtensionExtension;
+import com.constellio.app.services.extensions.AppRecordExtension;
 import com.constellio.app.services.extensions.core.CoreSearchFieldExtension;
 import com.constellio.app.services.extensions.core.CoreUserProfileFieldsExtension;
+import com.constellio.app.services.extensions.core.CoreUserProfileSignatureFieldsExtension;
 import com.constellio.app.services.extensions.core.CoreUserRecordExtension;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_1;
@@ -84,12 +97,24 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_40;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_417;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_427;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_428;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_89;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_2_11;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_2_7;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3_14;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3_22;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_1;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_2;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_0;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_10;
+import com.constellio.app.start.ApplicationStarter;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -183,12 +208,47 @@ public class ConstellioEIM {
 		scripts.add(new CoreMigrationTo_9_0_2_7());
 		scripts.add(new CoreMigrationTo_9_0_2_11());
 		scripts.add(new CoreMigrationTo_9_0_3_14());
+		scripts.add(new CoreMigrationTo_9_0_3_22());
 
+		scripts.add(new CoreMigrationTo_9_0_42_1());
+		scripts.add(new CoreMigrationTo_9_0_1_89());
+		scripts.add(new CoreMigrationTo_9_0_42_2());
+		scripts.add(new CoreMigrationTo_9_0_3());
+		scripts.add(new CoreMigrationTo_9_1_0());
+		scripts.add(new CoreMigrationTo_9_1_10());
 		return scripts;
 	}
 
 	public List<SystemConfiguration> getConfigurations() {
 		return ConstellioEIMConfigs.configurations;
+	}
+
+	static public void start(AppLayerFactory appLayerFactory) {
+		ApplicationStarter.registerServlet("/cachedSelect", new CachedSearchWebService());
+		FilterHolder filterHolder = new FilterHolder(new CrossOriginFilter());
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,GET");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "content-type,access-control-allow-origin,token,serviceKey");
+		filterHolder.setInitParameter(CrossOriginFilter.CHAIN_PREFLIGHT_PARAM, "false");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
+		ApplicationStarter.registerFilter("/cachedSelect", filterHolder);
+
+		ApplicationStarter.registerServlet("/systemInfo", new SystemInfoWebService());
+		filterHolder = new FilterHolder(new CrossOriginFilter());
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,GET");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "content-type,access-control-allow-origin,token,serviceKey");
+		filterHolder.setInitParameter(CrossOriginFilter.CHAIN_PREFLIGHT_PARAM, "false");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
+		ApplicationStarter.registerFilter("/systemInfo", filterHolder);
+
+		ApplicationStarter.registerServlet("/getRecordContent", new GetRecordContentServlet());
+
+		ApplicationStarter.registerServlet(CertifyPdfJSSignaturesServlet.PATH, new CertifyPdfJSSignaturesServlet());
+		ApplicationStarter.registerServlet(GetPdfJSAnnotationsConfigServlet.PATH, new GetPdfJSAnnotationsConfigServlet());
+		ApplicationStarter.registerServlet(GetPdfJSAnnotationsServlet.PATH, new GetPdfJSAnnotationsServlet());
+		ApplicationStarter.registerServlet(GetPdfJSSignatureServlet.PATH, new GetPdfJSSignatureServlet());
+		ApplicationStarter.registerServlet(RemovePdfJSSignatureServlet.PATH, new RemovePdfJSSignatureServlet());
+		ApplicationStarter.registerServlet(SavePdfJSAnnotationsServlet.PATH, new SavePdfJSAnnotationsServlet());
+		ApplicationStarter.registerServlet(SavePdfJSSignatureServlet.PATH, new SavePdfJSSignatureServlet());
 	}
 
 	static public void start(AppLayerFactory appLayerFactory, String collection) {
@@ -200,21 +260,29 @@ public class ConstellioEIM {
 	private static void configureBaseExtensions(AppLayerFactory appLayerFactory, String collection) {
 		configureBaseAppLayerExtensions(appLayerFactory, collection);
 		configureBaseModelLayerExtensions(appLayerFactory, collection);
-		configureBaseDataLayerExtensions(appLayerFactory, collection);
+		configureBaseDataLayerExtensions(appLayerFactory);
+
 	}
 
 	private static void configureBaseAppLayerExtensions(AppLayerFactory appLayerFactory, String collection) {
 		appLayerFactory.getExtensions().forCollection(collection)
 				.pagesComponentsExtensions.add(new CoreUserProfileFieldsExtension(collection, appLayerFactory));
+		appLayerFactory.getExtensions().forCollection(collection)
+				.pagesComponentsExtensions.add(new CoreUserProfileSignatureFieldsExtension(collection, appLayerFactory));
 	}
 
 	private static void configureBaseModelLayerExtensions(AppLayerFactory appLayerFactory, String collection) {
-		appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection)
+		ModelLayerFactory modelFactory = appLayerFactory.getModelLayerFactory();
+		modelFactory.getExtensions().forCollection(collection)
 				.schemaExtensions.add(new CoreSearchFieldExtension(collection, appLayerFactory));
-		appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection)
+
+		modelFactory.getExtensions().forCollection(collection).recordExtensions.add(new AppRecordExtension(appLayerFactory, collection));
+		modelFactory.getExtensions().forCollection(collection)
 				.recordExtensions.add(new CoreUserRecordExtension(collection, appLayerFactory.getModelLayerFactory()));
 	}
 
-	private static void configureBaseDataLayerExtensions(AppLayerFactory appLayerFactory, String collection) {
+	private static void configureBaseDataLayerExtensions(AppLayerFactory appLayerFactory) {
+		DataLayerSystemExtensions dataLayerSystemExtensions = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getExtensions().getSystemWideExtensions();
+		dataLayerSystemExtensions.supportedExtensionExtensions.add(new AppSupportedExtensionExtension(appLayerFactory));
 	}
 }

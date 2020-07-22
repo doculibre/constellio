@@ -1,11 +1,6 @@
 package com.constellio.app.ui.pages.imports;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.importExport.records.RecordExportOptions;
 import com.constellio.app.services.importExport.records.RecordExportServices;
 import com.constellio.app.services.importExport.settings.SettingsExportOptions;
@@ -19,20 +14,17 @@ import com.constellio.app.services.importExport.systemStateExport.SystemStateExp
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporter;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.ExportAudit;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -41,8 +33,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.search.RecordsOfSchemaTypesIterator;
-import com.constellio.model.services.search.SearchServices;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
@@ -73,8 +63,6 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 	private static final Logger LOGGER = Logger.getLogger(ExportPresenter.class);
 
-	public static final String RECORDS_EXPORT_TEMP_DDV = "ddv";
-
 	public static final String EXPORT_FOLDER_RESOURCE = "ExportPresenterFolder";
 
 	private transient SystemStateExporter exporter;
@@ -93,8 +81,8 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS);
 	}
 
-	void exportWithoutContentsButtonClicked() {
-		export(false);
+	void exportWithoutContentsButtonClicked(boolean fastSaveState) {
+		export(false, fastSaveState);
 	}
 
 	void exportWithoutContentsXMLButtonClicked(boolean isSameCollection, String schemaTypeCode,
@@ -136,11 +124,13 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		ids.addAll(documentIds);
 		ids.addAll(containerIds);
 
+		//PATH_PARTS replacement
 		List<Iterator<Record>> recordsIterator = new ArrayList<Iterator<Record>>();
 		for (String id : ids) {
 			recordsIterator.add(searchServices().recordsIterator(fromAllSchemasIn(collection).whereAnyCondition(
 					where(Schemas.IDENTIFIER).isEqualTo(id),
-					where(Schemas.PATH_PARTS).isEqualTo(id))
+					where(Schemas.PRINCIPAL_CONCEPTS_INT_IDS).isEqualTo(RecordId.id(id).intValue()),
+					where(Schemas.SECONDARY_CONCEPTS_INT_IDS).isEqualTo(RecordId.id(id).intValue()))
 			));
 		}
 
@@ -169,6 +159,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				}
 			};
 			StreamResource resource = new StreamResource(streamSource, filename);
+			resource.setCacheTime(0);
 			resource.setMIMEType("application/xml");
 			Resource downloadedResource = DownloadLink.wrapForDownload(resource);
 			Page.getCurrent().open(downloadedResource, null, false);
@@ -180,7 +171,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 	void exportCompleteClicked() {
 		try {
-			String filename = "exportedComplete-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
+			String filename = "exportedComplete-" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date()) + ".zip";
 			StreamResource.StreamSource streamSource = new StreamResource.StreamSource() {
 				@Override
 				public InputStream getStream() {
@@ -193,6 +184,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				}
 			};
 			StreamResource resource = new StreamResource(streamSource, filename);
+			resource.setCacheTime(0);
 			resource.setMIMEType("application/zip");
 			Resource downloadedResource = DownloadLink.wrapForDownload(resource);
 			Page.getCurrent().open(downloadedResource, null, false);
@@ -202,90 +194,23 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		}
 	}
 
-	void exportAdministrativeUnitXMLButtonClicked(boolean isSameCollection, List<String> unitIds) {
-		RecordExportOptions options = new RecordExportOptions();
-		options.setForSameSystem(isSameCollection);
-
-		List<String> paths = new ArrayList<>();
-		for (String unit : unitIds) {
-			paths.add((String) ((List) recordServices().getDocumentById(unit).get(Schemas.PATH)).get(0));
-		}
-
-		MetadataSchemaType decommissioningListSchemaType = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-				.getSchemaTypes(collection).getSchemaType(DecommissioningList.SCHEMA_TYPE);
-		SearchResponseIterator<Record> recordsIterator = searchServices().recordsIterator(
-				fromAllSchemasIn(collection).where(Schemas.PATH).isStartingWithTextFromAny(paths)
-						.orWhere(decommissioningListSchemaType.getDefaultSchema().get(DecommissioningList.ADMINISTRATIVE_UNIT))
-						.isIn(unitIds));
-
-		options.setRecordsToExportIterator(recordsIterator);
+	void exportAdministrativeUnitXMLButtonClicked(boolean isSameCollection, List<String> unitIds,
+												  boolean includeAuthorizations) {
+		RecordExportOptions options = new ExportPresenterServices(collection, appLayerFactory)
+				.buildOptionsForExportingAdministrativeUnitsAndItsContent(isSameCollection, unitIds, includeAuthorizations);
 		exportToXML(options);
 	}
 
-	public void exportToolsToXMLButtonClicked(boolean isSameCollection) {
-		RecordExportOptions options = new RecordExportOptions();
-		options.setForSameSystem(isSameCollection);
-		List<Taxonomy> enabledTaxonomies = new ArrayList<>(modelLayerFactory.getTaxonomiesManager().getEnabledTaxonomies(collection));
-		removeUnwantedTaxonomiesForExportation(enabledTaxonomies);
-		List<String> exportedSchemaTypes = new ArrayList<>(
-				asList(AdministrativeUnit.SCHEMA_TYPE, Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
-						StorageSpace.SCHEMA_TYPE));
-		for (Taxonomy taxonomy : enabledTaxonomies) {
-			List<String> linkedSchemaTypes = taxonomy.getSchemaTypes();
-			for (String schemaType : linkedSchemaTypes) {
-				if (!exportedSchemaTypes.contains(schemaType)) {
-					exportedSchemaTypes.add(schemaType);
-				}
-			}
-		}
 
-		addValueListsSchemaTypes(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection), exportedSchemaTypes);
-
-		options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(modelLayerFactory, collection, exportedSchemaTypes));
+	public void exportToolsToXMLButtonClicked(boolean isSameCollection, boolean includeAuthorizations) {
+		RecordExportOptions options = new ExportPresenterServices(collection, appLayerFactory)
+				.buildOptionsForExportingTools(isSameCollection, includeAuthorizations, appCollectionExtentions);
 		exportToXML(options);
-	}
-
-	private void addValueListsSchemaTypes(MetadataSchemaTypes metadataSchemaTypes, List<String> schemaTypeList) {
-		// Code
-		// Itération sur les type de schema.
-		for (MetadataSchemaType metadata : metadataSchemaTypes.getSchemaTypes()) {
-			if (metadata.getCode().toLowerCase().startsWith(RECORDS_EXPORT_TEMP_DDV)) {
-				if (!isSchemaCodePresent(schemaTypeList, metadata.getCode())) {
-					schemaTypeList.add(metadata.getCode());
-				}
-			}
-		}
-	}
-
-
-	private static boolean isSchemaCodePresent(List<String> schemaCodeList, String schemaCode) {
-		boolean isSchemaCodePresent = false;
-
-		for (String currentSchemaCode : schemaCodeList) {
-			isSchemaCodePresent = schemaCode.equals(currentSchemaCode);
-			if (isSchemaCodePresent) {
-				break;
-			}
-		}
-
-		return isSchemaCodePresent;
-	}
-
-	private void removeUnwantedTaxonomiesForExportation(List<Taxonomy> taxonomies) {
-		if (taxonomies != null) {
-			List<String> unwantedTaxonomies = appCollectionExtentions.getUnwantedTaxonomiesForExportation();
-			Iterator<Taxonomy> iterator = taxonomies.iterator();
-			while (iterator.hasNext()) {
-				if (unwantedTaxonomies.contains(iterator.next().getCode())) {
-					iterator.remove();
-				}
-			}
-		}
 	}
 
 
 	private void exportToXML(RecordExportOptions options) {
-		String filename = "exportedData-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
+		String filename = "exportedData-" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date()) + ".zip";
 
 		ExportAudit newExportAudit = createNewExportAudit();
 		File zip = null;
@@ -331,15 +256,25 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		return exportAudit;
 	}
 
-	void exportWithContentsButtonClicked() {
-		export(false);
+	void exportWithContentsButtonClicked(boolean fastSaveState) {
+		export(false, fastSaveState);
 	}
 
-	private void export(boolean onlyTools) {
+	private void export(boolean onlyTools, boolean fastSaveState) {
 
 		String exportedIdsStr = view.getExportedIds();
 
-		String filename = "systemstate-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
+		StringBuilder filenameSB = new StringBuilder();
+		filenameSB.append("systemstate-");
+		if (fastSaveState) {
+			filenameSB.append("fast-");
+		} else {
+			filenameSB.append("regular-");
+		}
+		filenameSB.append(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+		filenameSB.append(".zip");
+		String filename = filenameSB.toString();
+		
 		File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
 				.newTemporaryFolder(EXPORT_FOLDER_RESOURCE);
 		File file = new File(folder, filename);
@@ -354,7 +289,6 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				List<String> verifiedIds = new ArrayList<>();
 
 				RecordServices recordServices = modelLayerFactory.newRecordServices();
-				SearchServices searchServices = modelLayerFactory.newSearchServices();
 
 				for (String id : ids) {
 					try {
@@ -391,6 +325,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 							modelLayerFactory.getSystemConfigurationsManager());
 
 					SystemStateExportParams params = new SystemStateExportParams();
+					params.setUseWeeklyExport(fastSaveState);
 					if (constellioEIMConfigs.isIncludeContentsInSavestate()) {
 						params.setExportAllContent();
 					} else {
@@ -471,7 +406,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		return appLayerFactory.getModulesManager().isModuleEnabled(collection, new ConstellioRMModule());
 	}
 
-	public void exportToolsButtonClicked() {
-		export(true);
+	public void exportToolsButtonClicked(boolean fastSaveState) {
+		export(true, fastSaveState);
 	}
 }

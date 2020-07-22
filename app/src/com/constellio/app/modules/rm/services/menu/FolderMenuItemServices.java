@@ -30,12 +30,14 @@ import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_DISPLAY;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_EDIT;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_GENERATE_REPORT;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_LIST_EXTERNAL_LINKS;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_MOVE;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_PRINT_LABEL;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_REMOVE_FROM_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_RETURN;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_RETURN_REMAINDER;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_SHARE;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_TRIGGER_MANAGEMENT;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_UNSHARE;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
@@ -164,7 +166,7 @@ public class FolderMenuItemServices {
 		if (!filteredActionTypes.contains(FOLDER_RETURN_REMAINDER.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_RETURN_REMAINDER.name(),
 					isMenuItemActionPossible(FOLDER_RETURN_REMAINDER.name(), folder, user, params),
-					$("DisplayFolderView.reminderReturnFolder"), null, -1, 1500,
+					$("SendReturnReminderEmailButton.reminderReturn"), null, -1, 1500,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).sendReturnRemainder(folder, params)));
 		}
 
@@ -203,10 +205,32 @@ public class FolderMenuItemServices {
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).removeFromSelection(folder, params)));
 		}
 
+		if (!filteredActionTypes.contains(FOLDER_TRIGGER_MANAGEMENT.name())) {
+			menuItemActions.add(buildMenuItemAction(FOLDER_TRIGGER_MANAGEMENT.name(),
+					isMenuItemActionPossible(FOLDER_TRIGGER_MANAGEMENT.name(), folder, user, params),
+					$("DisplayFolderView.recordTriggerManager"), FontAwesome.COGS, -1, 2100,
+					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).navigateToRecordTriggerManager(folder, params)));
+		}
+
+		if (!filteredActionTypes.contains(FOLDER_LIST_EXTERNAL_LINKS.name())) {
+			menuItemActions.add(buildMenuItemAction(FOLDER_LIST_EXTERNAL_LINKS.name(),
+					isMenuItemActionPossible(FOLDER_LIST_EXTERNAL_LINKS.name(), folder, user, params),
+					$("DisplayFolderView.externalLink"), FontAwesome.CLOUD, -1, 2200,
+					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).listExternalLinks(folder, params)));
+		}
+
+
+		//		if (!filteredActionTypes.contains(FOLDER_LIST_EXTERNAL_LINKS.name())) {
+		//			menuItemActions.add(buildMenuItemAction(FOLDER_LIST_EXTERNAL_LINKS.name(),
+		//					isMenuItemActionPossible(FOLDER_LIST_EXTERNAL_LINKS.name(), folder, user, params),
+		//					$("DisplayFolderView.externalLink"), FontAwesome.CLOUD, -1, 1900,
+		//					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).listExternalLinks(folder, params)));
+		//		}
+
 		if (!filteredActionTypes.contains(FOLDER_CREATE_TASK.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_CREATE_TASK.name(),
 					isMenuItemActionPossible(FOLDER_CREATE_TASK.name(), folder, user, params),
-					$("DisplayFolderView.createTask"), FontAwesome.TASKS, -1, 1900,
+					$("DisplayFolderView.createTask"), FontAwesome.TASKS, -1, 2300,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).createTask(folder, params)));
 		}
 
@@ -247,8 +271,7 @@ public class FolderMenuItemServices {
 			case FOLDER_RETURN:
 				return folderRecordActionsServices.isReturnActionPossible(record, user);
 			case FOLDER_RETURN_REMAINDER:
-				return Boolean.TRUE.equals(folder.getBorrowed()) &&
-					   !user.getId().equals(folder.getBorrowUserEntered());
+				return folderRecordActionsServices.isSendReturnReminderActionPossible(record, user);
 			case FOLDER_AVAILABLE_ALERT:
 				return Boolean.TRUE.equals(folder.getBorrowed()) &&
 					   !user.getId().equals(folder.getBorrowUserEntered());
@@ -264,6 +287,11 @@ public class FolderMenuItemServices {
 				return params.getView() != null &&
 					   (params.getView().getSessionContext().getSelectedRecordIds() != null &&
 						params.getView().getSessionContext().getSelectedRecordIds().contains(record.getId()));
+			case FOLDER_TRIGGER_MANAGEMENT:
+				return false;
+			//return folderRecordActionsServices.isEditRecordTriggerPossible(record, user);
+			case FOLDER_LIST_EXTERNAL_LINKS:
+				return folderRecordActionsServices.isListExternalLinksActionPossible(record, user);
 			case FOLDER_CREATE_TASK:
 				return folderRecordActionsServices.isCreateTaskActionPossible(record, user);
 			default:
@@ -306,6 +334,8 @@ public class FolderMenuItemServices {
 		FOLDER_GENERATE_REPORT,
 		FOLDER_ADD_TO_SELECTION,
 		FOLDER_REMOVE_FROM_SELECTION,
+		FOLDER_TRIGGER_MANAGEMENT,
+		FOLDER_LIST_EXTERNAL_LINKS,
 		FOLDER_CREATE_TASK;
 	}
 

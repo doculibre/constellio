@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -58,16 +59,17 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 				throw e;
 			}
 		}
-		modelLayerFactory.newLoggingServices().shareDocument(presenterService().getRecord(recordId), getCurrentUser());
+
 		view.showMessage($("ShareContentView.shared"));
 		view.returnFromPage();
 	}
 
 	public void authorizationModifyRequested(AuthorizationVO authorizationVO) {
 		authorizationVO.setSharedBy(getCurrentUser().getId());
-		AuthorizationModificationRequest authorization = toAuthorizationModify(authorizationVO);
-		authorizationsServices().execute(authorization);
-		modelLayerFactory.newLoggingServices().shareDocument(presenterService().getRecord(recordId), getCurrentUser());
+		AuthorizationModificationRequest request = toAuthorizationModify(authorizationVO);
+		Authorization authorization = authorizationsServices().getAuthorization(request.getCollection(), request.getAuthorizationId());
+
+		modelLayerFactory.newLoggingServices().modifyPermission(authorization, null, getRecordVO().getRecord(), getCurrentUser(), true);
 		view.showMessage($("ShareContentView.modifiedShare"));
 		view.returnFromPage();
 	}
@@ -155,6 +157,11 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 			authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 		}
 		return authorizationsServices;
+	}
+
+	protected boolean isDateFieldValuesRequired() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager())
+				.isDateFieldValuesRequiredInShareContent();
 	}
 
 	@Override

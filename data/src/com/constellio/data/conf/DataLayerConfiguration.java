@@ -4,12 +4,15 @@ import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRepla
 import org.joda.time.Duration;
 
 import java.io.File;
+import java.util.List;
 
 public interface DataLayerConfiguration {
 
 	void validate();
 
 	SolrServerType getRecordsDaoSolrServerType();
+
+	boolean isCopyingRecordsInSearchCollection();
 
 	String getRecordsDaoHttpSolrServerUrl();
 
@@ -41,6 +44,8 @@ public interface DataLayerConfiguration {
 
 	CacheType getCacheType();
 
+	List<String> getSubvaults();
+
 	String getCacheUrl();
 
 	String getSettingsZookeeperAddress();
@@ -54,6 +59,8 @@ public interface DataLayerConfiguration {
 	boolean isSecondTransactionLogEnabled();
 
 	boolean isWriteZZRecords();
+
+	boolean useSolrTupleStreamsIfSupported();
 
 	HashingEncoding getHashingEncoding();
 
@@ -103,6 +110,10 @@ public interface DataLayerConfiguration {
 
 	Duration getSolrEventBusSendingServiceTypePollAndRetrieveFrequency();
 
+	boolean areTiffFilesConvertedForPreview();
+
+	int getSequentialIdReservedBatchSize();
+
 	String getMicrosoftSqlServerUrl();
 
 	String getMicrosoftSqlServerDatabase();
@@ -117,7 +128,9 @@ public interface DataLayerConfiguration {
 
 	int getMicrosoftSqlServerloginTimeout();
 
-	boolean areTiffFilesConvertedForPreview();
+	boolean isAsyncSQLSecondTransactionLogInsertion();
+
+	boolean isReplaySQLSecondTransactionLogDuringOfficeHours();
 
 	int getSolrMinimalReplicationFactor();
 

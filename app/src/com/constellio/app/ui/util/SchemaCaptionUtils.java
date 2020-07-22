@@ -57,11 +57,11 @@ public class SchemaCaptionUtils implements Serializable {
 				caption = applyPattern(captionFormat, record, locale);
 
 				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
-					if (isRightToLeft()) {
-						caption = caption + " " + captionForSchemaTypeCode;
-					} else {
+					//					if (isRightToLeft()) {
+					//						caption = caption + " " + captionForSchemaTypeCode;
+					//					} else {
 						caption = captionForSchemaTypeCode + " " + caption;
-					}
+					//					}
 				}
 			} catch (NoSuchRecordWithId e) {
 				caption = "";
@@ -73,7 +73,11 @@ public class SchemaCaptionUtils implements Serializable {
 		return caption;
 	}
 
-	public static String getCaptionForRecord(Record record, Locale locale) {
+	public static String getCaptionForRecord(Record record) {
+		return getCaptionForRecord(record, ConstellioUI.getCurrentSessionContext().getCurrentLocale(), true);
+	}
+
+	public static String getCaptionForRecord(Record record, Locale locale, boolean withIcon) {
 		String caption;
 		if (record != null) {
 			try {
@@ -89,7 +93,7 @@ public class SchemaCaptionUtils implements Serializable {
 				}
 
 				caption = applyPattern(captionFormat, record, locale);
-				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
+				if (StringUtils.isNotBlank(captionForSchemaTypeCode) && withIcon) {
 					//					if (isRightToLeft()) {
 					//						caption = caption + " " + captionForSchemaTypeCode;
 					//					} else {
@@ -107,7 +111,7 @@ public class SchemaCaptionUtils implements Serializable {
 		return caption;
 	}
 
-	public static String getShortCaptionForRecord(Record record, Locale locale) {
+	public static String getShortCaptionForRecord(Record record, Locale locale, boolean withIcon) {
 		String caption;
 		if (record != null) {
 			try {
@@ -127,12 +131,12 @@ public class SchemaCaptionUtils implements Serializable {
 				}
 
 				caption = applyPattern(captionFormat, record, locale);
-				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
-					if (isRightToLeft()) {
-						caption = caption + " " + captionForSchemaTypeCode;
-					} else {
+				if (StringUtils.isNotBlank(captionForSchemaTypeCode) && withIcon) {
+					//					if (isRightToLeft()) {
+					//						caption = caption + " " + captionForSchemaTypeCode;
+					//					} else {
 						caption = captionForSchemaTypeCode + " " + caption;
-					}
+					//					}
 				}
 			} catch (NoSuchRecordWithId e) {
 				caption = "";
@@ -144,7 +148,7 @@ public class SchemaCaptionUtils implements Serializable {
 		return caption;
 	}
 
-	public static String getCaptionForRecordVO(RecordVO recordVO, Locale locale) {
+	public static String getCaptionForRecordVO(RecordVO recordVO, Locale locale, boolean withIcon) {
 		String caption;
 		if (recordVO != null) {
 			try {
@@ -160,7 +164,7 @@ public class SchemaCaptionUtils implements Serializable {
 				}
 
 				caption = applyPattern(captionFormat, recordVO, locale, PREFERRING);
-				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
+				if (StringUtils.isNotBlank(captionForSchemaTypeCode) && withIcon) {
 					if (isRightToLeft()) {
 						caption = caption + " " + captionForSchemaTypeCode;
 					} else {

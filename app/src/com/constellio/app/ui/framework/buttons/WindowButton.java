@@ -77,6 +77,7 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 
 			if (acceptWindowOpen(event)) {
 				Component windowContent = buildWindowContent();
+
 				if (windowContent != null) {
 					windowContent.addStyleName(WINDOW_CONTENT_STYLE_NAME);
 					if (!windowContent.getStyleName().contains("scroll")) {

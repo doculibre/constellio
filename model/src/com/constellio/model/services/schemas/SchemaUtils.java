@@ -34,8 +34,10 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.Schemas.CREATED_ON;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.entities.schemas.Schemas.MIGRATION_DATA_VERSION;
+import static com.constellio.model.entities.schemas.Schemas.MODIFIED_ON;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 
 public class SchemaUtils {
@@ -307,23 +309,22 @@ public class SchemaUtils {
 			case DATE:
 			case DATE_TIME:
 			case STRING:
-				summary = metadata.isEssentialInSummary() || metadata.isUniqueValue()
+				summary = metadata.isEssentialInSummary() || metadata.isUniqueValue() || metadata.isAvailableInSummary()
 						  || LEGACY_ID.isSameLocalCode(metadata)
-						  || TITLE.isSameLocalCode(metadata) || metadata.isEssentialInSummary()
+						  || CREATED_ON.isSameLocalCode(metadata) || MODIFIED_ON.isSameLocalCode(metadata)
+						  || TITLE.isSameLocalCode(metadata)
 						  || metadata.isCacheIndex() || Schemas.TOKENS.getLocalCode().equals(metadata.getLocalCode())
-						  || Schemas.ALL_REMOVED_AUTHS.getLocalCode().equals(metadata.getLocalCode())
-						  || Schemas.ATTACHED_ANCESTORS.getLocalCode().equals(metadata.getLocalCode());
-				;
+						  || Schemas.ALL_REMOVED_AUTHS.getLocalCode().equals(metadata.getLocalCode());
 				break;
 
 			case STRUCTURE:
 			case CONTENT:
 				//TODO Based on summary flag, support these typestype
-				summary = metadata.isEssentialInSummary();
+				summary = metadata.isEssentialInSummary() || metadata.isAvailableInSummary();
 				break;
 
 			case TEXT:
-				summary = metadata.isEssentialInSummary();
+				summary = metadata.isEssentialInSummary() || metadata.isAvailableInSummary();
 				break;
 
 			case INTEGER:
@@ -410,9 +411,9 @@ public class SchemaUtils {
 		return typeCode1.equals(typeCode2) && localCode1.equals(localCode2);
 	}
 
-	public boolean isDependentMetadata(Metadata calculatedMetadata, Metadata otherMetadata,
-									   DynamicLocalDependency dependency) {
-		return !calculatedMetadata.getLocalCode().equals(otherMetadata.getLocalCode())
+	public static boolean isDependentMetadata(Metadata calculatedMetadata, Metadata otherMetadata,
+											  DynamicLocalDependency dependency) {
+		return !calculatedMetadata.isSame(otherMetadata)
 			   && (dependency.isIncludingGlobalMetadatas() || !otherMetadata.isGlobal())
 			   && dependency.isDependentOf(otherMetadata, calculatedMetadata);
 	}

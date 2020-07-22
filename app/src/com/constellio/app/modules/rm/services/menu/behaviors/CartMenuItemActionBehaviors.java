@@ -20,10 +20,11 @@ import com.constellio.app.modules.rm.services.menu.behaviors.ui.CartBatchProcess
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMMessageUtil;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
+import com.constellio.app.modules.rm.ui.buttons.BorrowWindowButton;
+import com.constellio.app.modules.rm.ui.buttons.RenameDialogButton;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.ui.pages.cart.CartView;
-import com.constellio.app.modules.rm.ui.pages.cart.RenameDialog;
 import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -71,6 +72,7 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
@@ -90,6 +92,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -132,7 +135,7 @@ public class CartMenuItemActionBehaviors {
 	}
 
 	public void rename(Cart cart, MenuItemActionBehaviorParams params) {
-		RenameDialog button = new RenameDialog(null,
+		RenameDialogButton button = new RenameDialogButton(null,
 				$("CartView.reNameCartGroup"),
 				$("CartView.reNameCartGroup"), false) {
 			@Override
@@ -184,34 +187,6 @@ public class CartMenuItemActionBehaviors {
 			}
 		}, filename);
 		Page.getCurrent().open(resource, null, false);
-	}
-
-	public void batchDuplicate(Cart cart, MenuItemActionBehaviorParams params) {
-		if (!cartActionsServices.isBatchDuplicateActionPossible(cart.getWrappedRecord(), params.getUser())) {
-			params.getView().showErrorMessage($("CartView.cannotDuplicate"));
-			return;
-		}
-		List<Folder> folders = cartUtil.getCartFolders(cart.getId());
-		for (Folder folder : folders) {
-			if (!rmModuleExtensions.isCopyActionPossibleOnFolder(folder, params.getUser())) {
-				params.getView().showErrorMessage($("CartView.actionBlockedByExtension"));
-				return;
-			}
-		}
-
-		try {
-			DecommissioningService service = new DecommissioningService(params.getView().getCollection(), appLayerFactory);
-			for (Folder folder : folders) {
-				if (!folder.isLogicallyDeletedStatus()) {
-					service.duplicateStructureAndSave(folder, params.getUser());
-				}
-			}
-			params.getView().showMessage($("CartView.duplicated"));
-		} catch (RecordServicesException.ValidationException e) {
-			params.getView().showErrorMessage($(e.getErrors()));
-		} catch (Exception e) {
-			params.getView().showErrorMessage(e.getMessage());
-		}
 	}
 
 	public void documentBatchProcessing(Cart cart, MenuItemActionBehaviorParams params) {
@@ -306,7 +281,12 @@ public class CartMenuItemActionBehaviors {
 			button = new DeleteButton(false) {
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					deletionRequested(null, cart, params);
+					try {
+						deletionRequested(null, cart, params);
+					} catch (RecordDeleteServicesRuntimeException e) {
+						params.getView().showMessage(i18n.$("deletionFailed") + "\n" + MessageUtils.toMessage(e));
+						return;
+					}
 				}
 
 				@Override
@@ -320,7 +300,12 @@ public class CartMenuItemActionBehaviors {
 			button = new DeleteWithJustificationButton(false) {
 				@Override
 				protected void deletionConfirmed(String reason) {
-					deletionRequested(reason, cart, params);
+					try {
+						deletionRequested(reason, cart, params);
+					} catch (RecordDeleteServicesRuntimeException e) {
+						params.getView().showMessage(i18n.$("deletionFailed") + "\n" + MessageUtils.toMessage(e));
+						return;
+					}
 				}
 
 				@Override
@@ -711,6 +696,20 @@ public class CartMenuItemActionBehaviors {
 		};
 
 		reportGeneratorButton.click();
+	}
+
+	public void borrow(Cart cart, MenuItemActionBehaviorParams params) {
+		borrow(Arrays.asList(cart), params);
+	}
+
+	public void borrow(List<Cart> carts, MenuItemActionBehaviorParams params) {
+		List<Record> records = new ArrayList<>();
+		for (Cart cart : carts) {
+			records.add(cart.getWrappedRecord());
+		}
+
+		Button borrowButton = new BorrowWindowButton(records, params);
+		borrowButton.click();
 	}
 
 	private class CartNewReportPresenter implements NewReportPresenter {

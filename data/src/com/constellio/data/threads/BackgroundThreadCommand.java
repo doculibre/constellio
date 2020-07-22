@@ -1,5 +1,6 @@
 package com.constellio.data.threads;
 
+import com.constellio.data.dao.services.Stats;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.systemLogger.SystemLogger;
@@ -64,8 +65,7 @@ public class BackgroundThreadCommand implements Runnable {
 					throw new RuntimeException(e);
 				}
 				try {
-					runAndHandleException();
-
+					Stats.compilerFor(threadName).log(this::runAndHandleException);
 				} finally {
 					tasksSemaphore.release();
 				}

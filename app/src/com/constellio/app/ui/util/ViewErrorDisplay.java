@@ -33,7 +33,7 @@ public class ViewErrorDisplay {
 				}
 				if (invalidValueException instanceof EmptyValueException) {
 					baseTextField.setRequiredError($(REQUIRED_FIELD));
-					errorFields.append($("requiredFieldWithName", "\"" + baseTextField.getCaption() + "\""));
+					errorFields.append($("requiredFieldWithName", baseTextField.getCaption()));
 				} else {
 					errorFields.append(invalidValueException.getMessage());
 				}

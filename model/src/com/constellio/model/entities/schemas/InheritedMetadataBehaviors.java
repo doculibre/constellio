@@ -23,12 +23,18 @@ public class InheritedMetadataBehaviors implements Serializable {
 	final boolean essential;
 	final boolean encrypted;
 	final boolean essentialInSummary;
+	final boolean availableInSummary;
 	final boolean multiLingual;
 	final boolean markedForDeletion;
 	final boolean reverseDependency;
 	final boolean relationshipProvidingSecurity;
 	final boolean dependencyOfAutomaticMetadata;
 	final boolean cacheIndex;
+
+	final Integer maxLength;
+
+	final String measurementUnit;
+
 	final MetadataTransiency volatility;
 	final Set<String> customAttributes;
 
@@ -37,11 +43,12 @@ public class InheritedMetadataBehaviors implements Serializable {
 									  boolean uniqueValue, boolean childOfRelationship, boolean taxonomyRelationship,
 									  boolean sortable,
 									  boolean searchable, boolean schemaAutocomplete, boolean essential,
-									  boolean encrypted, boolean essentialInSummary,
+									  boolean encrypted, boolean essentialInSummary, boolean availableInSummary,
 									  boolean multiLingual, boolean markedForDeletion, Set<String> customAttributes,
 									  boolean reverseDependency,
 									  boolean relationshipProvidingSecurity, MetadataTransiency volatility,
-									  boolean dependencyOfAutomaticMetadata, boolean cacheIndex) {
+									  boolean dependencyOfAutomaticMetadata, boolean cacheIndex, Integer maxLength,
+									  String measurementUnit) {
 		this.undeletable = undeletable;
 		this.multivalue = multivalue;
 		this.systemReserved = systemReserved;
@@ -55,6 +62,7 @@ public class InheritedMetadataBehaviors implements Serializable {
 		this.essential = essential;
 		this.encrypted = encrypted;
 		this.essentialInSummary = essentialInSummary;
+		this.availableInSummary = availableInSummary;
 		this.multiLingual = multiLingual;
 		this.markedForDeletion = markedForDeletion;
 		this.customAttributes = Collections.unmodifiableSet(customAttributes);
@@ -63,6 +71,8 @@ public class InheritedMetadataBehaviors implements Serializable {
 		this.volatility = volatility == null ? MetadataTransiency.PERSISTED : volatility;
 		this.dependencyOfAutomaticMetadata = dependencyOfAutomaticMetadata;
 		this.cacheIndex = cacheIndex;
+		this.maxLength = maxLength;
+		this.measurementUnit = measurementUnit;
 	}
 
 	public boolean isReverseDependency() {
@@ -79,6 +89,10 @@ public class InheritedMetadataBehaviors implements Serializable {
 
 	public boolean isEssentialInSummary() {
 		return essentialInSummary;
+	}
+
+	public boolean isAvailableInSummary() {
+		return availableInSummary;
 	}
 
 	@Override
@@ -153,6 +167,14 @@ public class InheritedMetadataBehaviors implements Serializable {
 
 	public boolean isDependencyOfAutomaticMetadata() {
 		return dependencyOfAutomaticMetadata;
+	}
+
+	public Integer getMaxLength() {
+		return maxLength;
+	}
+
+	public String getMeasurementUnit() {
+		return measurementUnit;
 	}
 
 	public Set<String> getCustomAttributes() {

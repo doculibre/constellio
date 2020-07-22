@@ -137,6 +137,11 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 			protected boolean isAccepted(MetadataSchemaType type) {
 				return codes.contains(type.getCode());
 			}
+
+			@Override
+			protected boolean isExcludedIfNotConfigurable() {
+				return false;
+			}
 		};
 	}
 

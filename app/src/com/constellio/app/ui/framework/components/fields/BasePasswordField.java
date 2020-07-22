@@ -40,4 +40,14 @@ public class BasePasswordField extends PasswordField {
 		newValue = StringUtils.trim(newValue);
 		super.setValue(newValue);
 	}
+
+	@Override
+	public void setInternalValue(String newValue) {
+		super.setInternalValue(newValue);
+	}
+
+	@Override
+	public void fireValueChange(boolean repaintIsNotNeeded) {
+		super.fireValueChange(repaintIsNotNeeded);
+	}
 }

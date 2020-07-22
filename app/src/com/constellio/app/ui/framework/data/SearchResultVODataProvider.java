@@ -15,6 +15,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.cache.SerializableSearchCache;
 import com.constellio.model.services.search.cache.SerializedCacheSearchService;
@@ -190,10 +191,22 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		List<Record> subListOfRecords = records.subList(startIndex, Math.min(startIndex + numberOfItems, records.size()));
 
 		int searchResultIndex = startIndex;
-		for (Record record : subListOfRecords) {
-			RecordVO recordVO = voBuilder.build(record, VIEW_MODE.SEARCH, sessionContext);
-			SearchResultVO searchResultVO = new SearchResultVO(searchResultIndex, recordVO, response.getHighlighting(recordVO.getId()));
-			results.add(searchResultVO);
+		for (Record recordId : subListOfRecords) {
+			Record recordSummary = null;
+			boolean recordNotFound = false;
+			try {
+				recordSummary = modelLayerFactory.newRecordServices().realtimeGetRecordSummaryById(recordId.getId());
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				recordNotFound = true;
+			}
+			if (!recordNotFound) {
+				RecordVO recordVO = voBuilder.build(recordSummary, VIEW_MODE.SEARCH, sessionContext);
+				SearchResultVO searchResultVO = new SearchResultVO(searchResultIndex, recordVO, response.getHighlighting(recordVO.getId()));
+				results.add(searchResultVO);
+			} else {
+				results.add(new SearchResultVO(searchResultIndex, true));
+			}
+
 			searchResultIndex++;
 		}
 

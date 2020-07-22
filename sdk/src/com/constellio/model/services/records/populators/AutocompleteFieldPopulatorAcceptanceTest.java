@@ -85,12 +85,9 @@ public class AutocompleteFieldPopulatorAcceptanceTest extends ConstellioTest {
 		MetadataSchema schema = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory()).folder.schema();
 		Metadata metadata = schema.get(Schemas.ATTACHED_ANCESTORS.getLocalCode());
 
-		assertThat(metadata.isStoredInSummaryCache()).isTrue();
+		assertThat(metadata.isStoredInSummaryCache()).isFalse();
 
 		Record record = getModelLayerFactory().newCachelessRecordServices().getDocumentById("arabicFolderTest");
-		assertThat(record.<String>getList(metadata)).isNotEmpty();
-
-		record = getModelLayerFactory().getRecordsCaches().getRecordSummary("arabicFolderTest");
 		assertThat(record.<String>getList(metadata)).isNotEmpty();
 
 		assertThatRecordsWithFullWordInAutocompleteField("إدارة").containsOnly("arabicFolderTest");

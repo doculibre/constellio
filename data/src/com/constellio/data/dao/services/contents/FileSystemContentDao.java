@@ -33,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -60,7 +61,13 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	DataLayerSystemExtensions extensions;
 
+	List<String> subvaults;
+
 	public FileSystemContentDao(DataLayerFactory dataLayerFactory) {
+		this(dataLayerFactory, Collections.emptyList());
+	}
+
+	public FileSystemContentDao(DataLayerFactory dataLayerFactory, List<String> subVaults) {
 		this.ioServices = dataLayerFactory.getIOServicesFactory().newIOServices();
 		this.configuration = dataLayerFactory.getDataLayerConfiguration();
 		this.extensions = dataLayerFactory.getExtensions().getSystemWideExtensions();
@@ -76,6 +83,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 			replicatedRootRecoveryFolder = new File(replicatedRootFolder, RECOVERY_FOLDER);
 			createRootRecoveryDirectory();
 		}
+		this.subvaults = subVaults;
 	}
 
 	public File getRootFolder() {
@@ -97,7 +105,8 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		}
 
 		try {
-			if (!new File(filePath).exists()) {
+			File file = new File(filePath);
+			if (!file.exists() || file.lastModified() <= fileToCopy.lastModified()) {
 				FileUtils.copyFile(fileToCopy, new File(filePath));
 			}
 			isFileToCoped = true;
@@ -117,7 +126,12 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		}
 
 		try {
-			FileUtils.moveFile(fileToBeMoved, target);
+			if (target.exists()) {
+				FileUtils.copyFile(fileToBeMoved, target);
+				FileUtils.deleteQuietly(fileToBeMoved);
+			} else {
+				FileUtils.moveFile(fileToBeMoved, target);
+			}
 			isFileMoved = true;
 		} catch (FileExistsException e) {
 			isFileMoved = true;
@@ -164,19 +178,25 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	}
 
 	@Override
-	public void moveFileToVault(File file, String newContentId) {
-		File target = getFileOf(newContentId);
+	public void moveFileToVault(String relativePath, File file, MoveToVaultOption... options) {
+		File target = getFileOf(relativePath);
 		boolean isFileMovedInTheVault;
 		boolean isFileReplicated = false;
 
 		boolean isExecutedReplication = false;
 
-		if (!target.exists()) {
+		boolean onlyIfInexsting = false;
+		for (MoveToVaultOption option : options) {
+			onlyIfInexsting |= option == MoveToVaultOption.ONLY_IF_INEXISTING;
+		}
+
+		boolean targetWasExisting = target.exists();
+		if (!targetWasExisting || !onlyIfInexsting) {
 			isFileMovedInTheVault = moveFile(file, target);
 
 			if (!(replicatedRootFolder == null || target.equals(getReplicatedVaultFile(target)))) {
 				isExecutedReplication = true;
-				if (!getReplicatedVaultFile(target).exists()) {
+				if (!getReplicatedVaultFile(target).exists() || targetWasExisting) {
 					if (isFileMovedInTheVault) {
 						isFileReplicated = fileCopy(target, getReplicatedVaultFile(target).getAbsolutePath());
 					} else {
@@ -192,12 +212,17 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 			} else if (!isFileMovedInTheVault && !isExecutedReplication) {
 				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVault(file);
 			} else if (!isFileMovedInTheVault) {
-				addFileNotMovedInTheVault(newContentId);
+				addFileNotMovedInTheVault(relativePath);
 			} else if (!isFileReplicated && isExecutedReplication) {
-				addFileNotReplicated(newContentId);
+				addFileNotReplicated(relativePath);
 			}
-			extensions.onVaultUpload(new ContentDaoUploadParams(newContentId, file.length(), true));
+			extensions.onVaultUpload(new ContentDaoUploadParams(relativePath, file.length(), true));
 		}
+	}
+
+	@Override
+	public IOServices getIOServices() {
+		return ioServices;
 	}
 
 	public void addFileNotMovedInTheVault(String id) {
@@ -385,6 +410,25 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		}
 	}
 
+
+	@Override
+	public void deleteFileNameContaining(String contentId, String filter) {
+		File file = getFileOf(contentId);
+
+		File parent = file.getParentFile();
+
+		// Content id so we don't delete all the annotations in the directory
+		File[] filesToDelete = parent.listFiles((dir, name) -> name.startsWith(contentId) && name.contains(filter));
+
+		for (File currentFileToDelete : filesToDelete) {
+			currentFileToDelete.delete();
+
+			if (replicatedRootFolder != null) {
+				getReplicatedVaultFile(file).delete();
+			}
+		}
+	}
+
 	@Override
 	public LocalDateTime getLastModification(String contentId) {
 		File file = getFileOf(contentId);
@@ -437,7 +481,6 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 			if (replicatedRootFolder != null) {
 				return getContentInputStreamFactory(id, getReplicatedVaultFile(file));
 			}
-
 			throw e;
 		}
 	}
@@ -554,9 +597,9 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		}
 	}
 
-	public File getFileOf(String contentId) {
+	public String getLocalRelativePath(String contentId) {
 		if (contentId.contains("/")) {
-			return new File(rootFolder, contentId.replace("/", File.separator));
+			return contentId.replace("/", File.separator);
 
 		} else {
 			if (configuration.getContentDaoFileSystemDigitsSeparatorMode() == DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS) {
@@ -576,15 +619,38 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 				}
 
 				name.append(toCaseInsensitive(contentId));
-				return new File(rootFolder, name.toString());
+				File file = new File(rootFolder, name.toString());
+				String relativePath = name.toString();
+
+				if (!subvaults.isEmpty() && !file.exists()) {
+					for (String subvault : subvaults) {
+						String subVauleRelativePath = subvault + File.separator + name.toString();
+						File subVaultFile = new File(rootFolder, subVauleRelativePath);
+
+						if (subVaultFile.exists()) {
+							file = subVaultFile;
+							relativePath = subVauleRelativePath;
+						}
+					}
+				}
+
+				return relativePath;
 
 			} else {
 				String folderName = contentId.substring(0, 2);
-				File folder = new File(rootFolder, folderName);
-				return new File(folder, contentId);
+				return folderName + File.separator + contentId;
 			}
 		}
+	}
 
+	public File getFileOf(String contentId) {
+		return new File(rootFolder, getLocalRelativePath(contentId));
+	}
+
+	@Override
+	public DaoFile getFile(String id) {
+		File file = getFileOf(id);
+		return new DaoFile(id, file.getName(), file.length(), file.lastModified(), this);
 	}
 
 	private String toCaseInsensitive(char character) {

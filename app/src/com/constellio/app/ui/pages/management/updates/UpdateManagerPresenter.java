@@ -175,6 +175,11 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		view.navigate().to().serviceMonitoring();
 	}
 
+	public void restartAndRebuildCache() {
+		appLayerFactory.newApplicationService().markCacheForRebuild();
+		restart();
+	}
+
 	public void restartAndReindex(boolean repopulate) {
 		if (FoldersLocator.usingAppWrapper()) {
 			File systemLogFile = getSystemLogFile();
@@ -220,6 +225,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 			}
 		} else {
 			appLayerFactory.newApplicationService().markForReindexing();
+			appLayerFactory.newApplicationService().markCacheForRebuildIfRequired();
 			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 			Record eventRestarting = rm.newEvent()
 					.setType(EventType.RESTARTING)
@@ -390,8 +396,13 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		}
 	}
 
+	public boolean isRestartWithCacheRebuildEnabled() {
+		return true;
+	}
+
 	private boolean recoveryModeEnabled() {
-		return appLayerFactory.getModelLayerFactory().getSystemConfigs().isInUpdateProcess();
+		return !appLayerFactory.getModelLayerFactory().getDataLayerFactory().isDistributed()
+			   && appLayerFactory.getModelLayerFactory().getSystemConfigs().isInUpdateProcess();
 	}
 
 	public boolean isUpdateEnabled() {

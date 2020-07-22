@@ -11,10 +11,12 @@ import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.ui.Table;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 import static java.util.Arrays.asList;
 
 public class DefaultFavoritesTable extends BaseTable {
@@ -165,6 +167,19 @@ public class DefaultFavoritesTable extends BaseTable {
 				}
 				visibleColumnIds.addAll(asList(CartItem.TITLE, CartItem.MODIFIED_ON, CartItem.DISPLAY_BUTTON));
 				return visibleColumnIds;
+			}
+
+			@Override
+			public void manage(Table table, String tableId) {
+				super.manage(table, tableId);
+				Object[] visibleColumns = table.getVisibleColumns();
+				List<Object> visibleColumnsList = new ArrayList<>(Arrays.asList(visibleColumns));
+				if (visibleColumnsList.contains(CartItem.DISPLAY_BUTTON)) {
+					int columnIndex = isRightToLeft() ? 0 : visibleColumnsList.size() - 1;
+					visibleColumnsList.remove(CartItem.DISPLAY_BUTTON);
+					visibleColumnsList.add(columnIndex, CartItem.DISPLAY_BUTTON);
+				}
+				table.setVisibleColumns(visibleColumnsList.toArray());
 			}
 		};
 	}

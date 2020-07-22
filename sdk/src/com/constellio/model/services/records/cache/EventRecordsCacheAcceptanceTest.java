@@ -163,7 +163,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		//
 		//
 		//
-		//			collection1Cache.configureCache(volatileCache(zeCollectionSchemaWithVolatileCache.type(), 4));
+		//			collection1Cache.configureCache(volatileCache(hookedCollection1Schema.type(), 4));
 		//			collection1Cache.configureCache(permanentCache(zeCollectionSchemaWithPermanentCache.type()));
 		//			collection2Cache.configureCache(volatileCache(anotherCollectionSchemaWithVolatileCache.type(), 3));
 		//

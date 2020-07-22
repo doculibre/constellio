@@ -11,13 +11,23 @@ public class FolderBreadCrumbItem implements BreadcrumbItem {
 	private String folderId;
 	private SchemaPresenterUtils schemaPresenterUtils;
 	private String recordId;
-	private Boolean forcedEnabled;
+	boolean forceEnableBaseItem;
+
+	public FolderBreadCrumbItem(String folderId, SchemaPresenterUtils schemaPresenterUtils, String recordId,
+								boolean forceEnableBaseItem) {
+		this.folderId = folderId;
+		this.schemaPresenterUtils = schemaPresenterUtils;
+		this.recordId = recordId;
+		this.forceEnableBaseItem = forceEnableBaseItem;
+	}
 
 	public FolderBreadCrumbItem(String folderId, SchemaPresenterUtils schemaPresenterUtils, String recordId) {
 		this.folderId = folderId;
 		this.schemaPresenterUtils = schemaPresenterUtils;
 		this.recordId = recordId;
+		this.forceEnableBaseItem = false;
 	}
+
 
 	public final String getFolderId() {
 		return folderId;
@@ -36,7 +46,7 @@ public class FolderBreadCrumbItem implements BreadcrumbItem {
 		boolean readAccess = user.hasReadAccess().on(record);
 
 		if (folderId.equals(recordId)) {
-			enabled = Boolean.TRUE.equals(forcedEnabled) && readAccess;
+			enabled = Boolean.TRUE.equals(forceEnableBaseItem) && readAccess;
 		} else {
 			enabled = readAccess;
 		}
@@ -44,12 +54,13 @@ public class FolderBreadCrumbItem implements BreadcrumbItem {
 		return enabled;
 	}
 
+
 	public Boolean getForcedEnabled() {
-		return forcedEnabled;
+		return forceEnableBaseItem;
 	}
 
 	public FolderBreadCrumbItem setForcedEnabled(Boolean forcedEnabled) {
-		this.forcedEnabled = forcedEnabled;
+		this.forceEnableBaseItem = forcedEnabled;
 		return this;
 	}
 }

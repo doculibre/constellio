@@ -14,6 +14,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static com.constellio.data.dao.services.contents.ContentDao.MoveToVaultOption.ONLY_IF_INEXISTING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -77,7 +78,7 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 
 		try {
 			String fileHash1 = hashingService.getHashFromFile(tempFile1);
-			fileSystemContentDao.moveFileToVault(tempFile1, fileHash1);
+			fileSystemContentDao.moveFileToVault(fileHash1, tempFile1, ONLY_IF_INEXISTING);
 
 			fail("Une exception doit être levé.");
 		} catch (FileSystemContentDaoRuntimeException e) {
@@ -101,9 +102,9 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 		Mockito.doCallRealMethod().doReturn(false).doReturn(false).doCallRealMethod()
 				.when(fileSystemContentDao).fileCopy((File) Mockito.any(), Mockito.anyString());
 
-		fileSystemContentDao.moveFileToVault(tempFile1, fileHash1);
-		fileSystemContentDao.moveFileToVault(tempFile2, fileHash2);
-		fileSystemContentDao.moveFileToVault(tempFile3, fileHash3);
+		fileSystemContentDao.moveFileToVault(fileHash1, tempFile1, ONLY_IF_INEXISTING);
+		fileSystemContentDao.moveFileToVault(fileHash2, tempFile2, ONLY_IF_INEXISTING);
+		fileSystemContentDao.moveFileToVault(fileHash3, tempFile3, ONLY_IF_INEXISTING);
 
 		ioServices.deleteQuietly(tempFile1);
 		ioServices.deleteQuietly(tempFile2);
@@ -151,7 +152,7 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 		String fileHash1 = hashingService.getHashFromFile(tempFile1);
 
 		try {
-			fileSystemContentDao.moveFileToVault(tempFile1, fileHash1);
+			fileSystemContentDao.moveFileToVault(fileHash1, tempFile1, ONLY_IF_INEXISTING);
 			fail("The file vault move should fail.");
 		} catch (FileSystemContentDaoRuntimeException e) {
 			// Ok the exception is expected.
@@ -310,6 +311,11 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 			ioServices.closeQuietly(tempFileInputStream);
 			ioServices.deleteQuietly(tempFile1);
 		}
+	}
+
+	@Test
+	public void whenMovingFromVaultThen() {
+
 	}
 
 	private int getNumberOfNonEmptyLines(String folderPath) throws IOException {

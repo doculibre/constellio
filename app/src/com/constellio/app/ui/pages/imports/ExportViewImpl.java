@@ -18,6 +18,7 @@ import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
@@ -55,6 +56,8 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 	private Button exportLogs;
 
 	private Button exportTools;
+
+	private CheckBox fastSaveStateCheckBox;
 
 	private VerticalLayout toolLayout = new VerticalLayout();
 	private VerticalLayout idsLayout = new VerticalLayout();
@@ -160,23 +163,26 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		idsField = new BaseTextArea($("ExportView.exportedIds"));
 		idsField.setWidth("100%");
 
+		fastSaveStateCheckBox = new CheckBox($("ExportView.fastSaveState"));
+		fastSaveStateCheckBox.setValue(true);
+
 		exportWithoutContentsButton = new BaseButton($("ExportView.exportNoContents")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.exportWithoutContentsButtonClicked();
+				presenter.exportWithoutContentsButtonClicked(fastSaveStateCheckBox.getValue());
 			}
 		};
 		exportTools = new BaseButton($("ExportView.exportTools")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.exportToolsButtonClicked();
+				presenter.exportToolsButtonClicked(fastSaveStateCheckBox.getValue());
 			}
 		};
 
 		exportWithContentsButton = new BaseButton($("ExportView.exportAllContents")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.exportWithContentsButtonClicked();
+				presenter.exportWithContentsButtonClicked(fastSaveStateCheckBox.getValue());
 			}
 		};
 		exportLogs = new BaseButton($("ExportView.exportLogs")) {
@@ -187,7 +193,7 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		};
 		exportWithContentsButton.setVisible(false);
 
-		othersLayout = new VerticalLayout(idsField, exportWithoutContentsButton, exportWithContentsButton, exportTools,
+		othersLayout = new VerticalLayout(idsField, fastSaveStateCheckBox, exportWithoutContentsButton, exportWithContentsButton, exportTools,
 				exportLogs);
 		othersLayout.setSizeFull();
 		othersLayout.setSpacing(true);
@@ -228,24 +234,27 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		toolLayout = new VerticalLayout();
 		toolLayout.setSizeFull();
 		toolLayout.setSpacing(true);
+		final CheckBox exportAuthorizationsCheckbox = new CheckBox($("ExportView.exportAuthorizationsCheckbox"));
 		BaseButton exportTools = new BaseButton($("ExportView.exportTools")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
+				boolean includeAuthorizations = exportAuthorizationsCheckbox.getValue();
 				if (SAME_COLLECTION.equals(collectionOptions.getValue())) {
 					ConfirmDialog.show(ConstellioUI.getCurrent(), $("ExportView.confirmTitle"), buildConfirmMessage(), $("Ok"), $("cancel"), new ConfirmDialog.Listener() {
 						@Override
 						public void onClose(ConfirmDialog dialog) {
 							if (dialog.isConfirmed()) {
-								presenter.exportToolsToXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()));
+								presenter.exportToolsToXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), includeAuthorizations);
 							}
 						}
 					});
 				} else {
-					presenter.exportToolsToXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()));
+					presenter.exportToolsToXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), includeAuthorizations);
 				}
 			}
 		};
 		toolLayout.addComponent(exportTools);
+		toolLayout.addComponent(exportAuthorizationsCheckbox);
 		return toolLayout;
 	}
 
@@ -318,25 +327,28 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		administrativeUnitLayout.setSizeFull();
 		administrativeUnitLayout.setSpacing(true);
 		final ListAddRemoveRecordLookupField administrativeUnitField = new ListAddRemoveRecordLookupField(AdministrativeUnit.SCHEMA_TYPE);
+		final CheckBox exportAuthorizationsCheckbox = new CheckBox($("ExportView.exportAuthorizationsCheckbox"));
 		administrativeUnitField.setCaption($("ExportView.administrativeUnit"));
 		BaseButton exportButton = new BaseButton($("ExportView.exportNoContents")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
+				boolean includeAuthorizations = exportAuthorizationsCheckbox.getValue();
 				if (SAME_COLLECTION.equals(collectionOptions.getValue())) {
 					ConfirmDialog.show(ConstellioUI.getCurrent(), $("ExportView.confirmTitle"), buildConfirmMessage(), $("Ok"), $("cancel"), new ConfirmDialog.Listener() {
 						@Override
 						public void onClose(ConfirmDialog dialog) {
 							if (dialog.isConfirmed()) {
-								presenter.exportAdministrativeUnitXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), administrativeUnitField.getValue());
+								presenter.exportAdministrativeUnitXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), administrativeUnitField.getValue(), includeAuthorizations);
 							}
 						}
 					});
 				} else {
-					presenter.exportAdministrativeUnitXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), administrativeUnitField.getValue());
+					presenter.exportAdministrativeUnitXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), administrativeUnitField.getValue(), includeAuthorizations);
 				}
 			}
 		};
 		administrativeUnitLayout.addComponents(administrativeUnitField, exportButton);
+		administrativeUnitLayout.addComponents(exportAuthorizationsCheckbox, exportButton);
 		return administrativeUnitLayout;
 	}
 

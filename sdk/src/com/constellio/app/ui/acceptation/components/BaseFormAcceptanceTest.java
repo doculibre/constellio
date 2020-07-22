@@ -94,7 +94,6 @@ public class BaseFormAcceptanceTest extends ConstellioTest {
 	}
 
 	private static class DummyViewPresenter {
-
 		protected void saveButtonClick(DummyBean dummyBean)
 				throws ValidationException {
 

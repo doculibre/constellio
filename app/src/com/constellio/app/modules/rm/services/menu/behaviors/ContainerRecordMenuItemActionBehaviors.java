@@ -7,10 +7,13 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.menu.behaviors.ui.SendReturnReminderEmailButton;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.BehaviorsUtil;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
+import com.constellio.app.modules.rm.ui.buttons.BorrowWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
+import com.constellio.app.modules.rm.ui.buttons.ReturnWindowButton;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
@@ -28,19 +31,20 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
-import com.constellio.model.services.search.SearchServices;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import org.joda.time.LocalDate;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -49,14 +53,11 @@ import static java.util.Arrays.asList;
 
 public class ContainerRecordMenuItemActionBehaviors {
 	private RMModuleExtensions rmModuleExtensions;
-	private ModelLayerCollectionExtensions extensions;
 	private String collection;
 	private AppLayerFactory appLayerFactory;
 	private ModelLayerFactory modelLayerFactory;
 	private RecordServices recordServices;
 	private RMSchemasRecordsServices rm;
-	private LoggingServices loggingServices;
-	private SearchServices searchServices;
 	private DecommissioningService decommissioningService;
 
 
@@ -64,12 +65,9 @@ public class ContainerRecordMenuItemActionBehaviors {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
-		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		this.loggingServices = modelLayerFactory.newLoggingServices();
-		this.extensions = modelLayerFactory.getExtensions().forCollection(collection);
 		this.decommissioningService = new DecommissioningService(collection, appLayerFactory);
 	}
 
@@ -119,6 +117,24 @@ public class ContainerRecordMenuItemActionBehaviors {
 				sessionContext.getCurrentCollection(), sessionContext.getCurrentUser(), params.getRecordVO());
 
 		labels.click();
+	}
+
+	public void checkIn(ContainerRecord container, MenuItemActionBehaviorParams params) {
+		Button returnButton = new ReturnWindowButton(appLayerFactory, collection,
+				Collections.singletonList(container.getWrappedRecord()), params, false);
+		returnButton.click();
+	}
+
+	public void sendReturnRemainder(ContainerRecord container, MenuItemActionBehaviorParams params) {
+		User borrower = null;
+		if (container.getBorrower() != null) {
+			borrower = rm.getUser(container.getBorrower());
+		}
+		String previewReturnDate = container.getPlanifiedReturnDate().toString();
+
+		Button reminderReturnContainerButton = new SendReturnReminderEmailButton(collection, appLayerFactory,
+				params.getView(), ContainerRecord.SCHEMA_TYPE, container.get(), borrower, previewReturnDate);
+		reminderReturnContainerButton.click();
 	}
 
 	public void addToCart(ContainerRecord container, MenuItemActionBehaviorParams params) {
@@ -184,6 +200,20 @@ public class ContainerRecordMenuItemActionBehaviors {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}
 		params.getView().navigate().to(RMViews.class).displayContainer(container.getId());
+	}
+
+	public void borrow(ContainerRecord container, MenuItemActionBehaviorParams params) {
+		borrow(Arrays.asList(container), params);
+	}
+
+	public void borrow(List<ContainerRecord> containers, MenuItemActionBehaviorParams params) {
+		List<Record> records = new ArrayList<>();
+		for (ContainerRecord container : containers) {
+			records.add(container.getWrappedRecord());
+		}
+
+		Button borrowButton = new BorrowWindowButton(records, params);
+		borrowButton.click();
 	}
 
 	public void generateReport(ContainerRecord container, MenuItemActionBehaviorParams params) {

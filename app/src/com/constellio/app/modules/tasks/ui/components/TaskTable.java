@@ -19,17 +19,16 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
-import com.constellio.app.ui.framework.components.BaseForm;
-import com.constellio.app.ui.framework.components.BaseForm.FieldAndPropertyId;
 import com.constellio.app.ui.framework.components.BaseUpdatableContentVersionPresenter;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
-import com.constellio.app.ui.framework.components.fields.BaseTextArea;
+import com.constellio.app.ui.framework.components.fields.comment.CommentsLayout;
 import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorItem;
 import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorsGroupItem;
+import com.constellio.app.ui.framework.components.fields.lookup.GroupTextInputDataProvider;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
@@ -48,7 +47,6 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
@@ -78,7 +76,6 @@ import com.vaadin.ui.Table.CellStyleGenerator;
 import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.Tree;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -87,14 +84,16 @@ import org.tepi.filtertable.FilterGenerator;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
+import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.vaadin.ui.themes.ValoTheme.LABEL_BOLD;
 
@@ -125,10 +124,14 @@ public class TaskTable extends VerticalLayout {
 
 	private TaskDetailsComponentFactory taskDetailsComponentFactory;
 
+	ConstellioEIMConfigs eimConfigs;
+
 	private final TaskPresenter presenter;
 
 	public TaskTable(RecordVODataProvider provider, TaskPresenter presenter) {
 		this.presenter = presenter;
+
+		this.eimConfigs = new ConstellioEIMConfigs(presenter.getView().getConstellioFactories().getAppLayerFactory().getModelLayerFactory());
 
 		setWidth("100%");
 		addStyleName("task-table-layout");
@@ -346,7 +349,7 @@ public class TaskTable extends VerticalLayout {
 			protected String toColumnId(Object propertyId) {
 				if (propertyId instanceof MetadataVO) {
 					if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
-						table.setColumnHeader(propertyId, "");
+						table.setColumnHeader(propertyId, " ");
 						table.setColumnWidth(propertyId, 60);
 					}
 				}
@@ -492,23 +495,23 @@ public class TaskTable extends VerticalLayout {
 				}
 			});
 
-				if (presenter.isAutoAssignButtonEnabled(taskVO)) {
-					rootItem.addItem($("TaskTable.autoAssignTask"), FontAwesome.HAND_O_RIGHT, new Command() {
-						@Override
-						public void menuSelected(MenuItem selectedItem) {
-							presenter.autoAssignButtonClicked(taskVO);
-						}
-					});
-				}
+			if (presenter.isAutoAssignButtonEnabled(taskVO)) {
+				rootItem.addItem($("TaskTable.autoAssignTask"), FontAwesome.HAND_O_RIGHT, new Command() {
+					@Override
+					public void menuSelected(MenuItem selectedItem) {
+						presenter.autoAssignButtonClicked(taskVO);
+					}
+				});
+			}
 
-				if (presenter.isCloseButtonEnabled(taskVO)) {
-					rootItem.addItem($("TaskTable.close"), FontAwesome.TIMES_CIRCLE_O, new Command() {
-						@Override
-						public void menuSelected(MenuItem selectedItem) {
-							presenter.closeButtonClicked(taskVO);
-						}
-					});
-				}
+			if (presenter.isCloseButtonEnabled(taskVO)) {
+				rootItem.addItem($("TaskTable.close"), FontAwesome.TIMES_CIRCLE_O, new Command() {
+					@Override
+					public void menuSelected(MenuItem selectedItem) {
+						presenter.closeButtonClicked(taskVO);
+					}
+				});
+			}
 
 			if (presenter.isDeleteButtonVisible(taskVO)) {
 				rootItem.addItem($("delete"), FontAwesome.TRASH_O, new ConfirmDialogMenuBarItemCommand() {
@@ -541,7 +544,7 @@ public class TaskTable extends VerticalLayout {
 
 	private ListAddRemoveCollaboratorsGroupsField buildCollaboratorGroupsField(RecordVO taskVO) {
 		boolean currentUserHasWriteAuthorisation = presenter.currentUserHasWriteAuthorization(taskVO);
-		ListAddRemoveCollaboratorsGroupsField collaboratorsGroupField = new ListAddRemoveCollaboratorsGroupsField(taskVO);
+		ListAddRemoveCollaboratorsGroupsField collaboratorsGroupField = new ListAddRemoveCollaboratorsGroupsField(taskVO, new GroupTextInputDataProvider(getInstance(), getCurrentSessionContext()));
 		collaboratorsGroupField.writeButtonIsVisible(currentUserHasWriteAuthorisation);
 		collaboratorsGroupField.setCurrentUserCanModifyDelete(presenter.currentUserHasWriteAuthorisationWithoutBeingCollaborator(taskVO));
 		return collaboratorsGroupField;
@@ -631,7 +634,7 @@ public class TaskTable extends VerticalLayout {
 		protected void reloadComments() {
 			expandLayout.removeComponent(commentsLayout);
 			reloadTask();
-			commentsLayout = newCommentsLayout();
+			commentsLayout = newCommentsLayout(taskVO.get(Task.COMMENTS), taskVO.getMetadata(Task.COMMENTS).getLabel(), true);
 			expandLayout.addComponent(commentsLayout);
 			ensureHeight(itemId);
 		}
@@ -753,7 +756,7 @@ public class TaskTable extends VerticalLayout {
 					formLayout.addStyleName("no-scroll");
 					formLayout.setSpacing(true);
 
-					final ContentVersionUploadField uploadField = new ContentVersionUploadField(true);
+					final ContentVersionUploadField uploadField = new ContentVersionUploadField(true, taskVO != null ? taskVO.getId() : null, Task.CONTENTS);
 					uploadField.setCaption($("TaskTable.details.addDocuments.files"));
 					uploadField.setMajorVersionFieldVisible(false);
 
@@ -825,7 +828,7 @@ public class TaskTable extends VerticalLayout {
 
 				for (ContentVersionVO contentVersionVO : contents) {
 					String filename = contentVersionVO.getFileName();
-					DownloadContentVersionLink downloadContentLink = new DownloadContentVersionLink(contentVersionVO, filename);
+					DownloadContentVersionLink downloadContentLink = new DownloadContentVersionLink(contentVersionVO, filename, taskVO.getId(), Task.CONTENTS, false);
 					contentsLayout.addComponent(downloadContentLink);
 				}
 				contentsComponent = contentsLayout;
@@ -854,7 +857,7 @@ public class TaskTable extends VerticalLayout {
 				Component linkComponent;
 
 				if (agentURL != null && isUserAuthorized) {
-					linkComponent = new ConstellioAgentLink(agentURL, documentVO, contentVersionVO, documentVO.getTitle(), false, new BaseUpdatableContentVersionPresenter());
+					linkComponent = new ConstellioAgentLink(agentURL, documentVO, contentVersionVO, documentVO.getTitle(), false, new BaseUpdatableContentVersionPresenter(), Document.CONTENT);
 					((ConstellioAgentLink) linkComponent).addVisitedClickListener(documentVO.getId());
 				} else {
 					linkComponent = new ReferenceDisplay(documentVO);
@@ -946,97 +949,71 @@ public class TaskTable extends VerticalLayout {
 			return linkedContentLayout;
 		}
 
-		protected Component newCommentForm(final Comment newComment, final Window window,
-										   final VerticalLayout commentsLayout) {
-			BaseTextArea commentField = new BaseTextArea();
-			commentField.setWidth("100%");
-			FieldAndPropertyId commentFieldAndPropertyId = new FieldAndPropertyId(commentField, "message");
-			BaseForm<Comment> commentForm = new BaseForm<Comment>(newComment, Arrays.asList(commentFieldAndPropertyId)) {
-				@Override
-				protected void saveButtonClick(Comment newComment) throws ValidationException {
-					if (taskCommentAdded(taskVO, newComment)) {
-						reloadComments();
-					}
-					window.close();
-					ensureHeight(itemId);
-				}
-
-				@Override
-				protected void cancelButtonClick(Comment newComment) {
-					window.close();
-				}
-			};
-			return commentForm;
-		}
-
 		protected boolean taskCommentAdded(RecordVO taskVO, Comment newComment) {
 			return presenter.taskCommentAdded(taskVO, newComment);
 		}
 
-		protected void addComment(Comment comment, VerticalLayout commentsLayout) {
-			String userId = comment.getUserId();
-			LocalDateTime commentDateTime = comment.getDateTime();
-			String commentDateTimeStr = dateTimeConverter.convertToPresentation(commentDateTime, String.class, getLocale());
-
-			Component commentUserComponent = new UserDisplay(userId);
-			commentUserComponent.addStyleName("task-details-comment-user");
-
-			Label commentDateTimeLabel = new Label(commentDateTimeStr);
-			commentDateTimeLabel.addStyleName("task-details-comment-date-time");
-
-			I18NHorizontalLayout userTimeLayout = new I18NHorizontalLayout(commentUserComponent, commentDateTimeLabel);
-			userTimeLayout.addStyleName("task-details-user-date-time");
-			userTimeLayout.setSpacing(true);
-			String message = comment.getMessage();
-			message = StringUtils.replace(message, "\n", "<br/>");
-			Label messageLabel = new Label(message, ContentMode.HTML);
-			messageLabel.addStyleName("task-details-comment-message");
-
-			commentsLayout.addComponents(userTimeLayout, messageLabel);
-		}
-
-		protected Component newAddCommentComponent(final VerticalLayout commentsLayout) {
-			WindowButton addCommentButton = new WindowButton($("TaskTable.details.addComment"), $("TaskTable.details.addComment"), WindowConfiguration.modalDialog("400px", "280px")) {
+		protected VerticalLayout newCommentsLayout(List<Comment> comments, String caption,
+												   boolean isCurrentTasksLayout) {
+			if (comments == null) {
+				return new VerticalLayout();
+			}
+			CommentsLayout commentsLayout = new CommentsLayout(comments, caption, true) {
 				@Override
-				protected Component buildWindowContent() {
-					Comment newComment = new Comment();
-					return newCommentForm(newComment, getWindow(), commentsLayout);
+				protected Locale getLocal() {
+					return getLocale();
+				}
+
+				@Override
+				protected void commentDeleted(Comment commentToDelete) {
+					presenter.commentDeleted(commentToDelete, comments, taskVO);
+					reloadComments();
+				}
+
+				@Override
+				protected void commentModified(Comment comment, String newValue) {
+					presenter.commentModified(comment, taskVO, comments, newValue);
+					reloadComments();
+				}
+
+				@Override
+				protected void commentAdded(Comment comment) {
+					if (taskCommentAdded(taskVO, comment)) {
+						reloadComments();
+					}
+					ensureHeight(itemId);
+				}
+
+				@Override
+				protected boolean deleteButtonVisible(Comment comment) {
+					return presenter.commentCreatedByCurrentUser(comment);
+				}
+
+				@Override
+				protected boolean editButtonVisible(Comment comment) {
+					return presenter.commentCreatedByCurrentUser(comment);
+				}
+
+				@Override
+				protected boolean addCommentButtonVisible() {
+					return (eimConfigs.isAddCommentsWhenReadAuthorization() || presenter.currentUserHasWriteAuthorization(taskVO)) && isCurrentTasksLayout;
+				}
+
+				@Override
+				protected Component newCommentComponent(String caption, String windowCaption, Resource icon,
+														Comment comment) {
+					if (comment == null && isCurrentTasksLayout) {
+						return decorateNewCommentComponent(super.newCommentComponent(caption, windowCaption, icon, comment));
+					} else {
+						return super.newCommentComponent(caption, windowCaption, icon, comment);
+					}
 				}
 			};
-			addCommentButton.setIcon(FontAwesome.PLUS);
-			addCommentButton.addStyleName(ValoTheme.BUTTON_LINK);
-			addCommentButton.addStyleName("task-details-add-comment-button");
-			addCommentButton.setCaptionVisibleOnMobile(false);
-			return addCommentButton;
+			return commentsLayout;
 		}
 
-		protected VerticalLayout newCommentsLayout() {
-			List<Comment> comments = taskVO.get(Task.COMMENTS);
-
-			final VerticalLayout commentsLayout = new VerticalLayout();
-			commentsLayout.setCaption(taskVO.getMetadata(Task.COMMENTS).getLabel());
-			commentsLayout.setWidth("100%");
-			commentsLayout.setSpacing(true);
-			commentsLayout.addStyleName("task-details-comments");
-
-			ConstellioEIMConfigs eimConfigs = new ConstellioEIMConfigs(presenter.getView().getConstellioFactories().getAppLayerFactory().getModelLayerFactory());
-
-			if (eimConfigs.isAddCommentsWhenReadAuthorization() || presenter.currentUserHasWriteAuthorization(taskVO)) {
-				Component addCommentsComponent = newAddCommentComponent(commentsLayout);
-				commentsLayout.addComponent(addCommentsComponent);
-				commentsLayout.setComponentAlignment(addCommentsComponent, Alignment.TOP_RIGHT);
-			}
-
-			final Label noCommentLabel = new Label($("TaskTable.details.noComment"));
-			noCommentLabel.addStyleName("task-details-no-comment");
-			if (comments.isEmpty()) {
-				commentsLayout.addComponent(noCommentLabel);
-			}
-
-			for (Comment comment : comments) {
-				addComment(comment, commentsLayout);
-			}
-			return commentsLayout;
+		protected Component decorateNewCommentComponent(Component component) {
+			return component;
 		}
 
 		protected VerticalLayout newExpandLayout() {
@@ -1047,7 +1024,7 @@ public class TaskTable extends VerticalLayout {
 
 			assigneeComponent = newAssigneeComponent();
 			descriptionComponent = newDescriptionComponent();
-			commentsLayout = newCommentsLayout();
+			commentsLayout = newCommentsLayout(taskVO.get(Task.COMMENTS), taskVO.getMetadata(Task.COMMENTS).getLabel(), true);
 			expandLayout.addComponent(assigneeComponent);
 			expandLayout.addComponent(descriptionComponent);
 			if (taskMetadataExists(Task.LINKED_FOLDERS) || taskMetadataExists(Task.LINKED_DOCUMENTS) || taskMetadataExists(Task.LINKED_CONTAINERS)) {
@@ -1167,6 +1144,12 @@ public class TaskTable extends VerticalLayout {
 		boolean currentUserHasWriteAuthorisationWithoutBeingCollaborator(RecordVO recordVO);
 
 		boolean currentUserHasWriteAuthorization(RecordVO taskVO);
+
+		void commentDeleted(Comment commentToDelete, List<Comment> comments, RecordVO taskVO);
+
+		boolean commentCreatedByCurrentUser(Comment comment);
+
+		void commentModified(Comment commentToModify, RecordVO taskVO, List<Comment> comments, String newValue);
 	}
 
 	public class TaskStyleGenerator implements CellStyleGenerator {

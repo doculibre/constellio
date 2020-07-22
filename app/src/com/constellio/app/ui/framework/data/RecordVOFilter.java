@@ -12,10 +12,13 @@ import com.vaadin.data.Item;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.tepi.filtertable.datefilter.DateInterval;
 import org.tepi.filtertable.numberfilter.NumberInterval;
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 public class RecordVOFilter implements Container.Filter {
 	private final MetadataVO propertyId;
@@ -38,9 +41,15 @@ public class RecordVOFilter implements Container.Filter {
 
 	public void addCondition(LogicalSearchQuery query) {
 		Metadata metadata = getMetadata();
-
 		switch (metadata.getType()) {
 			case TEXT:
+				if (getValue() instanceof String) {
+					String stringValue = (String) getValue();
+					if (StringUtils.isNotBlank(stringValue)) {
+						query.setCondition(query.getCondition().andWhere(metadata).isEqualTo(stringValue));
+					}
+				}
+				break;
 			case STRING:
 				if (getValue() instanceof String) {
 					String stringValue = (String) getValue();
@@ -64,6 +73,15 @@ public class RecordVOFilter implements Container.Filter {
 					}
 					if (to != null) {
 						query.setCondition(query.getCondition().andWhere(metadata).isLessOrEqualThan(new LocalDate(to.getTime())));
+					}
+				}
+				break;
+			case DATE_TIME:
+				if (getValue() instanceof Date) {
+					Date date = (Date) getValue();
+					if (date != null) {
+						query.setCondition(query.getCondition().andWhere(metadata).isGreaterOrEqualThan(new LocalDateTime(date.getTime())));
+						query.setCondition(query.getCondition().andWhere(metadata).isLessOrEqualThan(new LocalDateTime(date.getTime()).plusDays(1)));
 					}
 				}
 				break;
@@ -103,8 +121,31 @@ public class RecordVOFilter implements Container.Filter {
 					if (StringUtils.isNotBlank(stringValue)) {
 						query.setCondition(query.getCondition().andWhere(metadata).isEqualTo(value));
 					}
+				} else if (getValue() instanceof Collection) {
+					List<String> listValue = (List) getValue();
+					if (!listValue.isEmpty()) {
+						query.setCondition(query.getCondition().andWhere(metadata).isIn(listValue));
+					}
 				}
 				break;
+			case BOOLEAN:
+				if (getValue() instanceof Boolean) {
+					Boolean value = (Boolean) getValue();
+					if (value == true) {
+						query.setCondition(query.getCondition().andWhere(metadata).isTrue());
+					}
+					if (value == false) {
+						query.setCondition(query.getCondition().andWhere(metadata).isFalseOrNull());
+					}
+				}
+				break;
+			case INTEGER:
+				if (getValue() instanceof Integer) {
+					Integer value = (Integer) getValue();
+					if (value != null) {
+						query.setCondition(query.getCondition().andWhere(metadata).isEqualTo(value));
+					}
+				}
 			default:
 				break;
 		}

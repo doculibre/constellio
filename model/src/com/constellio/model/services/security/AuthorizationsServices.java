@@ -68,12 +68,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
 import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.getAuthsReceivedBy;
 import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHS;
 import static com.constellio.model.entities.schemas.Schemas.ATTACHED_ANCESTORS;
+import static com.constellio.model.entities.schemas.Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS;
 import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
@@ -475,7 +477,7 @@ public class AuthorizationsServices {
 
 		if (request.getExecutedBy() != null) {
 			try {
-				loggingServices.deletePermission(auth, request.getExecutedBy());
+				loggingServices.deletePermission(auth, request.getExecutedBy(), auth.getSharedBy() != null);
 			} catch (NoSuchAuthorizationWithId e) {
 				//No problemo
 			}
@@ -688,20 +690,20 @@ public class AuthorizationsServices {
 	 * @param record A securable record to detach
 	 * @return A mapping of previous authorization ids to the new authorizations created by this service
 	 */
-	public Map<String, String> detach(Record record) {
-		recordServices.refresh(record);
-		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
-		if (principalTaxonomy.getSchemaTypes().contains(record.getTypeCode())) {
-			throw new CannotDetachConcept(record.getId());
+	public Map<String, String> detach(Supplier<Record> record) {
+		recordServices.refresh(record.get());
+		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.get().getCollection());
+		if (principalTaxonomy.getSchemaTypes().contains(record.get().getTypeCode())) {
+			throw new CannotDetachConcept(record.get().getId());
 		}
 
-		if (Boolean.TRUE.equals(record.get(Schemas.IS_DETACHED_AUTHORIZATIONS))) {
+		if (Boolean.TRUE.equals(record.get().get(Schemas.IS_DETACHED_AUTHORIZATIONS))) {
 			return Collections.emptyMap();
 
 		} else {
 			AuthTransaction transaction = new AuthTransaction();
-			Map<String, String> originalToCopyMap = setupAuthorizationsForDetachedRecord(transaction, record);
-			transaction.add(record);
+			Map<String, String> originalToCopyMap = setupAuthorizationsForDetachedRecord(transaction, record.get());
+			transaction.add(record.get());
 			executeTransaction(transaction);
 			return originalToCopyMap;
 		}
@@ -776,15 +778,14 @@ public class AuthorizationsServices {
 
 		} else {
 			List<String> authIds = new ArrayList<>();
-			for (Authorization authorizationDetails : schemas.getAllAuthorizationsInUnmodifiableState()) {
+			for (Authorization auth : schemas.getAllAuthorizationsInUnmodifiableState()) {
 
-				boolean targettingRecordOrAncestor =
-						(record.getList(ATTACHED_ANCESTORS).contains(authorizationDetails.getTarget())
-						 || record.getId().equals(authorizationDetails.getTarget()))
-						&& !record.getList(ALL_REMOVED_AUTHS).contains(authorizationDetails.getId());
+				boolean authTargettingAnAttachedAncestor =
+						record.getList(ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS).contains(auth.getTargetRecordIntId()) ||
+						record.getId().equals(auth.getTarget());
 
-				if (targettingRecordOrAncestor) {
-					authIds.add(authorizationDetails.getId());
+				if (authTargettingAnAttachedAncestor && !record.getList(ALL_REMOVED_AUTHS).contains(auth.getId())) {
+					authIds.add(auth.getId());
 				}
 			}
 

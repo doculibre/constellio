@@ -6,14 +6,13 @@ import com.constellio.data.io.concurrent.data.DataWithVersion;
 import com.constellio.data.io.concurrent.data.TextView;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.model.services.search.SynonymFeatureAcceptanceTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class SolrServerFactoryAcceptanceTest extends SynonymFeatureAcceptanceTest {
 	private static Logger LOGGER = LoggerFactory.getLogger(SolrServerFactoryAcceptanceTest.class);
 

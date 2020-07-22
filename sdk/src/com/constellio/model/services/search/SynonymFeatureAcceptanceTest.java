@@ -7,7 +7,6 @@ import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.SolrSafeConstellioAcceptanceTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Test;
 
 import java.util.List;
@@ -16,7 +15,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class SynonymFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTest {
 	Record papa, television;
 

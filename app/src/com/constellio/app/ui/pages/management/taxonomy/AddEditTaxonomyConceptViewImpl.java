@@ -48,7 +48,7 @@ public class AddEditTaxonomyConceptViewImpl extends BaseViewImpl implements AddE
 	protected Component buildMainComponent(ViewChangeEvent event) {
 
 		RecordFieldFactory formFieldFactory = getRecordFieldFactory();
-		RecordForm recordForm = new RecordForm(recordVO, formFieldFactory) {
+		RecordForm recordForm = new RecordForm(recordVO, formFieldFactory, getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO recordVO)
 					throws ValidationException {

@@ -317,7 +317,8 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 			ContentVersionVO contentVersionVO = userDocumentVO.getContent();
 			if (contentVersionVO != null) {
 				String filename = contentVersionVO.getFileName();
-				captionComponent = new ContentVersionDisplay(recordVO, contentVersionVO, filename, presenter);
+				// We don't want to show pdftron for now because there is not mecanic to make the annotation fallow when the document is classifed.
+				captionComponent = new ContentVersionDisplay(recordVO, contentVersionVO, filename, null, presenter);
 			} else {
 				captionComponent = new Label("");
 			}

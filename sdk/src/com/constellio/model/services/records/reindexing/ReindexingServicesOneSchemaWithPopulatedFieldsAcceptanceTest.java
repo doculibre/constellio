@@ -10,7 +10,6 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.LocalDateTime;
@@ -28,7 +27,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAu
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class ReindexingServicesOneSchemaWithPopulatedFieldsAcceptanceTest extends ConstellioTest {
 
 	LocalDateTime shishOClock = new LocalDateTime();

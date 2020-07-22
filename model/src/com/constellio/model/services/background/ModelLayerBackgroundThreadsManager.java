@@ -27,8 +27,11 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 	AuthorizationWithTimeRangeTokenUpdateBackgroundAction authorizationWithTimeRangeTokenUpdateBackgroundAction;
 	FlushRecordsBackgroundAction flushRecordsBackgroundAction;
 	TemporaryFolderCleanerBackgroundAction temporaryFolderCleanerBackgroundAction;
-	BuildRecordIdListBackgroundAction buildRecordIdListBackgroundAction;
+	BuildRecordIdListAndSortValuesBackgroundAction buildRecordIdListBackgroundAction;
+	RefreshSortValuesBackgroundAction refreshSortValuesBackgroundAction;
+	IOServiceTemporaryFolderCleanerBackgroundAction ioServiceTemporaryFolderCleanerBackgroundAction;
 	FlushOldEmailToSend flushOldEmailToSend;
+	ExpireExternalAccessUrlsBackgroundAction expireExternalAccessUrls;
 
 	public ModelLayerBackgroundThreadsManager(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
@@ -75,12 +78,25 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 					.executedEvery(standardMinutes(5)).handlingExceptionWith(CONTINUE).runningOnAllInstances());
 		}
 
+		ioServiceTemporaryFolderCleanerBackgroundAction = new IOServiceTemporaryFolderCleanerBackgroundAction((modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().getTempFolder()));
+		backgroundThreadsManager.configure(repeatingAction("IOServiceTmpFilesDelete", ioServiceTemporaryFolderCleanerBackgroundAction)
+				.executedEvery(standardHours(1)).handlingExceptionWith(CONTINUE).runningOnAllInstances());
+
+
 		flushOldEmailToSend = new FlushOldEmailToSend(modelLayerFactory);
 		backgroundThreadsManager.configure(repeatingAction("flushOldEmail", flushOldEmailToSend)
 				.executedEvery(standardHours(3)).handlingExceptionWith(CONTINUE));
 
-		buildRecordIdListBackgroundAction = new BuildRecordIdListBackgroundAction(modelLayerFactory);
-		backgroundThreadsManager.configure(repeatingAction("buildRecordIdList", buildRecordIdListBackgroundAction)
+		buildRecordIdListBackgroundAction = new BuildRecordIdListAndSortValuesBackgroundAction(modelLayerFactory);
+		backgroundThreadsManager.configure(repeatingAction("buildRecordIdAndSortValuesListsInVault", buildRecordIdListBackgroundAction)
+				.executedEvery(standardHours(1)).runningOnAllInstances().handlingExceptionWith(CONTINUE));
+
+		refreshSortValuesBackgroundAction = new RefreshSortValuesBackgroundAction(modelLayerFactory);
+		backgroundThreadsManager.configure(repeatingAction("refreshSortValues", refreshSortValuesBackgroundAction)
+				.executedEvery(standardHours(1)).runningOnAllInstances().handlingExceptionWith(CONTINUE));
+
+		expireExternalAccessUrls = new ExpireExternalAccessUrlsBackgroundAction(modelLayerFactory);
+		backgroundThreadsManager.configure(repeatingAction("expireExternalAccessUrls", expireExternalAccessUrls)
 				.executedEvery(standardHours(1)).handlingExceptionWith(CONTINUE));
 
 		//Disabled for the moment
@@ -108,5 +124,9 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 
 	public AuthorizationWithTimeRangeTokenUpdateBackgroundAction getAuthorizationWithTimeRangeTokenUpdateBackgroundAction() {
 		return authorizationWithTimeRangeTokenUpdateBackgroundAction;
+	}
+
+	public ExpireExternalAccessUrlsBackgroundAction getExpireExternalAccessUrls() {
+		return expireExternalAccessUrls;
 	}
 }

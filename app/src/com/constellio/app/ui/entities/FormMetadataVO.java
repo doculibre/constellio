@@ -31,6 +31,7 @@ public class FormMetadataVO implements Serializable {
 	boolean facet;
 	boolean highlight;
 	boolean autocomplete;
+	boolean availableInSummary;
 	boolean enabled;
 	String metadataGroup;
 	MetadataInputType input;
@@ -38,6 +39,8 @@ public class FormMetadataVO implements Serializable {
 	MetadataSortingType sortingType;
 	Object defaultValue;
 	String inputMask;
+	Integer maxLength;
+	String measurementUnit;
 	String currentLanguageCode;
 	boolean duplicable;
 	Set<String> customAttributes;
@@ -45,6 +48,7 @@ public class FormMetadataVO implements Serializable {
 	boolean uniqueValue;
 	boolean isMultiLingual;
 	List<String> readAccessRoles;
+	private Map<String, String> helpMessages;
 
 	public FormMetadataVO(short id, String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO,
 						  String reference,
@@ -53,10 +57,12 @@ public class FormMetadataVO implements Serializable {
 						  boolean facet,
 						  MetadataInputType input, MetadataDisplayType displayType, MetadataSortingType sortingType,
 						  boolean highlight,
-						  boolean autocomplete, boolean enabled,
+						  boolean autocomplete, boolean availableInSummary, boolean enabled,
 						  String metadataGroup,
 						  Object defaultValue, String inputMask, boolean duplicable, boolean uniqueValue,
-						  Set<String> customAttributes, SessionContext sessionContext, boolean isMultiLingual) {
+						  Set<String> customAttributes, SessionContext sessionContext, boolean isMultiLingual,
+						  Integer maxLength, String measurementUnit,
+						  Map<String, String> helpMessages) {
 		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[2];
 		if (localCodeParsed.contains("USR")) {
 			localCodeParsed = localCodeParsed.split("USR", 2)[1];
@@ -78,6 +84,7 @@ public class FormMetadataVO implements Serializable {
 		this.displayType = displayType;
 		this.highlight = highlight;
 		this.autocomplete = autocomplete;
+		this.availableInSummary = availableInSummary;
 		this.enabled = enabled;
 		this.metadataGroup = metadataGroup;
 		this.defaultValue = defaultValue;
@@ -89,6 +96,9 @@ public class FormMetadataVO implements Serializable {
 		this.inheritance = null;
 		this.uniqueValue = uniqueValue;
 		this.isMultiLingual = isMultiLingual;
+		this.maxLength = maxLength;
+		this.measurementUnit = measurementUnit;
+		this.helpMessages = helpMessages;
 	}
 
 	public FormMetadataVO(SessionContext sessionContext) {
@@ -111,14 +121,18 @@ public class FormMetadataVO implements Serializable {
 		this.sortingType = null;
 		this.highlight = false;
 		this.autocomplete = false;
+		this.availableInSummary = false;
 		this.enabled = true;
 		this.metadataGroup = "";
 		this.inputMask = "";
+		this.maxLength = null;
+		this.measurementUnit = null;
 		this.currentLanguageCode = sessionContext.getCurrentLocale().getLanguage();
 		this.duplicable = false;
 		this.customAttributes = new HashSet<>();
 		this.inheritance = null;
 		this.isMultiLingual = false;
+		this.helpMessages = new HashMap<>();
 	}
 
 	public short getId() {
@@ -303,6 +317,14 @@ public class FormMetadataVO implements Serializable {
 		this.autocomplete = autocomplete;
 	}
 
+	public boolean isAvailableInSummary() {
+		return availableInSummary;
+	}
+
+	public void setAvailableInSummary(boolean availableInSummary) {
+		this.availableInSummary = availableInSummary;
+	}
+
 	public void setRequired(boolean required) {
 		this.required = required;
 	}
@@ -329,6 +351,22 @@ public class FormMetadataVO implements Serializable {
 
 	public void setInputMask(String inputMask) {
 		this.inputMask = inputMask;
+	}
+
+	public Integer getMaxLength() {
+		return maxLength;
+	}
+
+	public void setMaxLength(Integer maxLength) {
+		this.maxLength = maxLength;
+	}
+
+	public String getMeasurementUnit() {
+		return measurementUnit;
+	}
+
+	public void setMeasurementUnit(String measurementUnit) {
+		this.measurementUnit = measurementUnit;
 	}
 
 	public boolean isDuplicable() {
@@ -362,6 +400,22 @@ public class FormMetadataVO implements Serializable {
 
 	public void removeCustomAttribute(String attribute) {
 		customAttributes.remove(attribute);
+	}
+
+	public String getHelpMessage(String currentLanguageCode) {
+		return helpMessages.get(currentLanguageCode);
+	}
+
+	public Map<String, String> getHelpMessages() {
+		return helpMessages;
+	}
+
+	public void setHelpMessage(String currentLanguageCode, String helpMessage) {
+		this.helpMessages.put(currentLanguageCode, helpMessage);
+	}
+
+	public void setHelpMessages(Map<String, String> helpMessages) {
+		this.helpMessages = new HashMap<>(helpMessages);
 	}
 
 

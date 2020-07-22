@@ -65,5 +65,15 @@ public interface ModelLayerConfiguration {
 
 	long getRecordsVolatileCacheMemorySize();
 
+	boolean isForcingCacheLoadingFromSolr();
+
+	boolean isForcingCacheSortValuesLoadingFromSolr();
+
+	boolean isLoadingIdsFromVaultWhenPossible();
+
 	boolean isSummaryCacheEnabled();
+
+	long getReindexingThreadMaxBatchMemorySize();
+
+	boolean isPersistingStringRecordIdLegacyMapping();
 }

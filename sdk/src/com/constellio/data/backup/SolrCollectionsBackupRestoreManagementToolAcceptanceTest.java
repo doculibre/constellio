@@ -6,7 +6,6 @@ import com.constellio.model.conf.FoldersLocator;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 import com.constellio.sdk.tests.annotations.CloudTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang3.StringUtils;
@@ -30,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 
 @CloudTest
-@SlowTest
+// Confirm @SlowTest
 public class SolrCollectionsBackupRestoreManagementToolAcceptanceTest extends ConstellioTest {
 
 	private static final int OK = 0;

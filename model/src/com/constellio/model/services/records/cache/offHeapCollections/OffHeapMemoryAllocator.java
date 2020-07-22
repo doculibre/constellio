@@ -91,18 +91,22 @@ public class OffHeapMemoryAllocator {
 	}
 
 	static byte getByte(long address) {
+		validateMemoryUsage(address, Byte.BYTES);
 		return getUnsafe().getByte(address);
 	}
 
 	static short getShort(long address) {
+		validateMemoryUsage(address, Short.BYTES);
 		return getUnsafe().getShort(address);
 	}
 
 	static int getInt(long address) {
+		validateMemoryUsage(address, Integer.BYTES);
 		return getUnsafe().getInt(address);
 	}
 
 	static long getLong(long address) {
+		validateMemoryUsage(address, Long.BYTES);
 		return getUnsafe().getLong(address);
 	}
 
@@ -112,7 +116,7 @@ public class OffHeapMemoryAllocator {
 		if (addedBytesIndex < length && addedBytesLength > 0) {
 
 			for (long i = length + addedBytesLength - 1; i > addedBytesIndex + addedBytesLength - 1; i--) {
-				byte b = getUnsafe().getByte(address + i - addedBytesLength);
+				byte b = getByte(address + i - addedBytesLength);
 				putByte(address + i, b);
 			}
 
@@ -179,7 +183,7 @@ public class OffHeapMemoryAllocator {
 		//getUnsafe().copyMemory(fromAddress, toAddress, length);
 
 		for (long i = 0; i < length; i++) {
-			byte b = getUnsafe().getByte(fromAddress + i);
+			byte b = getByte(fromAddress + i);
 			putByte(toAddress + i, b);
 		}
 	}

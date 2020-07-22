@@ -36,7 +36,7 @@ public class AbstractTaxonomiesSearchServicesAcceptanceTest extends ConstellioTe
 
 						String stacktrace = substringAfter(substringAfter(ExceptionUtils.getStackTrace(new Exception()), "\n"), "\n");
 
-						if (stacktrace.contains(className)) {
+						if (stacktrace.contains(className) && (params.getQueryName() == null || !params.getQueryName().contains("*SDK*"))) {
 							queriesCount.incrementAndGet();
 							returnedDocumentsCount.addAndGet(params.getReturnedResultsCount());
 							String[] facetQuery = params.getSolrParams().getParams("facet.query");

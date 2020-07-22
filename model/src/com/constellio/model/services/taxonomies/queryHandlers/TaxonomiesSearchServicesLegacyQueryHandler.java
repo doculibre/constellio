@@ -6,6 +6,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
@@ -40,6 +41,11 @@ import static com.constellio.data.utils.LangUtils.isTrueOrNull;
 import static com.constellio.model.entities.schemas.Schemas.LINKABLE;
 import static com.constellio.model.entities.schemas.Schemas.PATH_PARTS;
 import static com.constellio.model.entities.schemas.Schemas.VISIBLE_IN_TREES;
+import static com.constellio.model.services.records.RecordHierarchyServices.directChildOf;
+import static com.constellio.model.services.records.RecordHierarchyServices.fromTypeIn;
+import static com.constellio.model.services.records.RecordHierarchyServices.notDirectChildOf;
+import static com.constellio.model.services.records.RecordHierarchyServices.recordInHierarchyOf;
+import static com.constellio.model.services.records.RecordHierarchyServices.visibleInTrees;
 import static com.constellio.model.services.schemas.SchemaUtils.getSchemaTypeCode;
 import static com.constellio.model.services.search.StatusFilter.ACTIVES;
 import static com.constellio.model.services.search.StatusFilter.DELETED;
@@ -49,11 +55,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.USE_SOLR;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsIn;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsNotIn;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.directChildOf;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.fromTypeIn;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.notDirectChildOf;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.recordInHierarchyOf;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.visibleInTrees;
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 import static java.util.Arrays.asList;
 
@@ -87,10 +88,10 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 			options.setRows(10000);
 			options.setStartRow(0);
 			if (ctx.getRecord() == null) {
-				children = conceptNodesTaxonomySearchServices.getRootConceptResponse(
+				children = recordHierarchyServices.getRootConceptResponse(
 						ctx.getTaxonomy().getCollection(), ctx.getTaxonomy().getCode(), options).getRecords();
 			} else {
-				children = conceptNodesTaxonomySearchServices.getChildConcept(ctx.getRecord(), options);
+				children = recordHierarchyServices.getChildConcept(ctx.getRecord(), options);
 			}
 
 			LogicalSearchCondition condition = fromAllSchemasIn(ctx.getTaxonomy().getCollection())
@@ -101,8 +102,16 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 					.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
 			//conceptNodesTaxonomySearchServices.returnedMetadatasForRecordsIn(ctx.getTaxonomy().getCollection(), options));
 			query.setNumberOfRows(0);
+
+			boolean codeMetadataRequired = false;
+
+			if (ctx.taxonomy.getSchemaTypes().size() == 1) {
+				MetadataSchema schema = metadataSchemasManager.getSchemaTypes(ctx.taxonomy.getCollection())
+						.getSchemaType(ctx.taxonomy.getSchemaTypes().get(0)).getDefaultSchema();
+				codeMetadataRequired = schema.hasMetadataWithCode("code") && schema.get("code").isDefaultRequirement();
+			}
 			ModelLayerCollectionExtensions collectionExtensions = extensions.forCollectionOf(ctx.getTaxonomy());
-			Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(ctx.getTaxonomy());
+			Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(ctx.getTaxonomy(), codeMetadataRequired);
 			if (sortMetadatas != null) {
 				for (Metadata sortMetadata : sortMetadatas) {
 					query.sortAsc(sortMetadata);
@@ -145,17 +154,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 
 
 				if (options.getFilter() != null && options.getFilter().getLinkableConceptsFilter() != null) {
-					conceptIsLinkable = options.getFilter().getLinkableConceptsFilter().isLinkable(new LinkableConceptFilterParams() {
-						@Override
-						public Record getRecord() {
-							return child;
-						}
-
-						@Override
-						public Taxonomy getTaxonomy() {
-							return ctx.getTaxonomy();
-						}
-					});
+					conceptIsLinkable = options.getFilter().getLinkableConceptsFilter().isLinkable(new LinkableConceptFilterParams(child, ctx.getTaxonomy()));
 				}
 
 				if ((concept && hasVisibleChildren) || (availableConcept && readAuthorizationsOnConcept && conceptIsLinkable)) {
@@ -206,17 +205,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 				boolean conceptIsLinkable = isTrueOrNull(child.get(Schemas.LINKABLE));
 
 				if (options.getFilter() != null && options.getFilter().getLinkableConceptsFilter() != null) {
-					conceptIsLinkable = options.getFilter().getLinkableConceptsFilter().isLinkable(new LinkableConceptFilterParams() {
-						@Override
-						public Record getRecord() {
-							return child;
-						}
-
-						@Override
-						public Taxonomy getTaxonomy() {
-							return ctx.getTaxonomy();
-						}
-					});
+					conceptIsLinkable = options.getFilter().getLinkableConceptsFilter().isLinkable(new LinkableConceptFilterParams(child, ctx.getTaxonomy()));
 				}
 
 				if ((readAuthorizationsOnConcept && conceptIsLinkable) || hasVisibleChildren.get()) {
@@ -244,15 +233,22 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 			return getVisibleChildrenRecords(ctx);
 		} else {
 
-			LogicalSearchQuery mainQuery = conceptNodesTaxonomySearchServices.getRootConceptsQuery(
+			LogicalSearchQuery mainQuery = recordHierarchyServices.getRootConceptsQuery(
 					ctx.getCollection(), ctx.taxonomy.getCode(), ctx.options);
 
 			mainQuery.filteredByStatus(ctx.options.getIncludeStatus())
 					.setName("getRootConcepts")
 					.setReturnedMetadatas(returnedMetadatasForRecordsIn(ctx));
 
+			boolean codeMetadataRequired = false;
+
+			if (ctx.taxonomy.getSchemaTypes().size() == 1) {
+				MetadataSchema schema = metadataSchemasManager.getSchemaTypes(ctx.taxonomy.getCollection())
+						.getSchemaType(ctx.taxonomy.getSchemaTypes().get(0)).getDefaultSchema();
+				codeMetadataRequired = schema.hasMetadataWithCode("code") && schema.get("code").isDefaultRequirement();
+			}
 			ModelLayerCollectionExtensions collectionExtensions = extensions.forCollectionOf(ctx.taxonomy);
-			Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(ctx.taxonomy);
+			Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(ctx.taxonomy, codeMetadataRequired);
 			if (sortMetadatas != null) {
 				for (Metadata sortMetadata : sortMetadatas) {
 					mainQuery.sortAsc(sortMetadata);
@@ -420,7 +416,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 		//		SearchResponseIterator<Record> rootIterator = searchServices.recordsIteratorKeepingOrder(
 		//				mainQuery.setNumberOfRows(100000).setStartRow(0), 50);
 
-		LogicalSearchQuery mainQuery = conceptNodesTaxonomySearchServices.getRootConceptsQuery(ctx.getCollection(), ctx.getTaxonomy().getCode(), ctx.getOptions());
+		LogicalSearchQuery mainQuery = recordHierarchyServices.getRootConceptsQuery(ctx.getCollection(), ctx.getTaxonomy().getCode(), ctx.getOptions());
 
 		boolean selectingAConcept =
 				ctx.getForSelectionOfSchemaType() != null && ctx.getTaxonomy().getSchemaTypes().contains(ctx.getForSelectionOfSchemaType().getCode());
@@ -629,7 +625,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 		Iterator<List<Record>> iterator;
 		int lastIteratedRecordIndex = 0;
 		if (context.isConceptOfNavigatedTaxonomy(context.record)) {
-			LogicalSearchQuery mainQuery = conceptNodesTaxonomySearchServices.childConceptsQuery(context.record, context.taxonomy, context.options, types);
+			LogicalSearchQuery mainQuery = recordHierarchyServices.childConceptsQuery(context.record, context.taxonomy, context.options, types);
 
 			FastContinueInfos continueInfos = context.options.getFastContinueInfos();
 			if (continueInfos != null) {
@@ -781,7 +777,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 
 	protected ReturnedMetadatasFilter returnedMetadatasForRecordsIn(
 			GetChildrenContext context) {
-		return conceptNodesTaxonomySearchServices.returnedMetadatasForRecordsIn(context.getCollection(), context.options);
+		return recordHierarchyServices.returnedMetadatasForRecordsIn(context.getCollection(), context.options);
 	}
 
 
@@ -806,7 +802,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 		query.filteredWith(new UserFilter() {
 
 			@Override
-			public String buildFQ(SecurityTokenManager securityTokenManager) {
+			public String buildFQ(SecurityTokenManager securityTokenManager, LogicalSearchQuery query) {
 
 				return FilterUtils.userHierarchyFilter(ctx.user, securityTokenManager, ctx.options.getRequiredAccess(),
 						ctx.forSelectionOfSchemaType, ctx.options.isShowInvisibleRecordsInLinkingMode());
@@ -931,7 +927,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 				.setStartRow(options.getStartRow())
 				.setNumberOfRows(options.getRows())
 				.setReturnedMetadatas(
-						conceptNodesTaxonomySearchServices.returnedMetadatasForRecordsIn(condition.getCollection(), options))
+						recordHierarchyServices.returnedMetadatasForRecordsIn(condition.getCollection(), options))
 				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE);
 	}
 
@@ -949,17 +945,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 			if (record.getList(Schemas.PATH_PARTS).contains(concept.getId())) {
 				boolean linkableFlag = LangUtils.isTrueOrNull(record.get(Schemas.LINKABLE));
 				boolean linkableUsingFilter = options.getFilter().getLinkableConceptsFilter()
-						.isLinkable(new LinkableConceptFilterParams() {
-							@Override
-							public Record getRecord() {
-								return record;
-							}
-
-							@Override
-							public Taxonomy getTaxonomy() {
-								return taxonomy;
-							}
-						});
+						.isLinkable(new LinkableConceptFilterParams(record, taxonomy));
 
 				if (linkableFlag && linkableUsingFilter) {
 					return true;
@@ -977,18 +963,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 
 		boolean linkable = LangUtils.isTrueOrNull(record.<Boolean>get(Schemas.LINKABLE));
 		if (linkable && options.getFilter() != null && options.getFilter().getLinkableConceptsFilter() != null) {
-			linkable = options.getFilter().getLinkableConceptsFilter().isLinkable(new LinkableConceptFilterParams() {
-				@Override
-				public Record getRecord() {
-					return record;
-				}
-
-				@Override
-				public Taxonomy getTaxonomy() {
-					return taxonomy;
-				}
-
-			});
+			linkable = options.getFilter().getLinkableConceptsFilter().isLinkable(new LinkableConceptFilterParams(record, taxonomy));
 		}
 		return linkable;
 	}

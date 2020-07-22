@@ -1,8 +1,8 @@
 package com.constellio.model.services.background;
 
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
@@ -49,13 +49,13 @@ public class BuildRecordIdListBackgroundActionTest extends ConstellioTest {
 		when(dataLayerFactory.isDistributed()).thenReturn(true);
 		when(searchServices.recordsIdIteratorExceptEvents()).thenReturn(ids.iterator());
 
-		assertThat(new BuildRecordIdListBackgroundAction(modelLayerFactory).loadRecordIds())
+		assertThat(new BuildRecordIdListAndSortValuesBackgroundAction(modelLayerFactory).loadRecordIds())
 				.isEqualTo(expectedRecordIds);
 
 		when(searchServices.recordsIdIteratorExceptEvents()).thenReturn(ids.iterator());
 		when(dataLayerFactory.isDistributed()).thenReturn(false);
 		expectedRecordIds.add(RecordId.toId(30001));
-		assertThat(new BuildRecordIdListBackgroundAction(modelLayerFactory).loadRecordIds())
+		assertThat(new BuildRecordIdListAndSortValuesBackgroundAction(modelLayerFactory).loadRecordIds())
 				.isEqualTo(expectedRecordIds);
 	}
 }

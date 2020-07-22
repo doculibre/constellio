@@ -4,6 +4,7 @@ import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
+import com.constellio.data.dao.dto.records.TransactionSearchDTO;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
@@ -56,6 +57,8 @@ public interface RecordDao {
 
 	TransactionResponseDTO execute(TransactionDTO transaction)
 			throws RecordDaoException.OptimisticLocking;
+
+	TransactionResponseDTO executeSimple(TransactionSearchDTO transaction);
 
 	//List<String> getReferencedRecordsInHierarchy(String recordId);
 

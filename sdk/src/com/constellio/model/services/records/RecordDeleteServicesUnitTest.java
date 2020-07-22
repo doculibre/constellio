@@ -12,7 +12,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModificationsBuilder;
@@ -67,6 +67,8 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 
 	@Mock AuthorizationsServices authorizationsServices;
 
+	@Mock RecordHierarchyServices recordHierarchyServices;
+
 	RecordDeleteServices recordDeleteServices;
 
 	@Mock Taxonomy principalTaxonomy;
@@ -79,6 +81,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 
 	@Mock MetadataSchemaTypes types;
 	@Mock MetadataSchemaType type1, type2;
+	@Mock MetadataSchemaType folder;
 	@Mock Metadata type1Reference1, type1Reference2, type2Reference1;
 
 	@Mock MetadataSchema schema1;
@@ -112,18 +115,18 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		recordDeleteServices = spy(new RecordDeleteServices(recordDao, modelLayerFactory));
 
 		doReturn(Arrays.asList(theRecord, aRecordInTheRecordHierarchy, anotherRecordInTheRecordHierarchy))
-				.when(recordDeleteServices)
+				.when(recordHierarchyServices)
 				.getAllRecordsInHierarchy(eq(theRecord));
 
 		doReturn(Arrays.asList(aSubPrincipalConcept, aRecordInThePrincipalConcept, aRecordInTheSubPrincipalConcept))
-				.when(recordDeleteServices).getAllRecordsInHierarchy(eq(thePrincipalConcept));
+				.when(recordHierarchyServices).getAllRecordsInHierarchy(eq(thePrincipalConcept));
 
 		doReturn(Arrays.asList(theRecord, aRecordInTheRecordHierarchy, anotherRecordInTheRecordHierarchy))
-				.when(recordDeleteServices)
+				.when(recordHierarchyServices)
 				.getAllRecordsInHierarchy(eq(theRecord), any(SortOrder.class));
 
 		doReturn(Arrays.asList(aSubPrincipalConcept, aRecordInThePrincipalConcept, aRecordInTheSubPrincipalConcept))
-				.when(recordDeleteServices).getAllRecordsInHierarchy(eq(thePrincipalConcept), any(SortOrder.class));
+				.when(recordHierarchyServices).getAllRecordsInHierarchy(eq(thePrincipalConcept), any(SortOrder.class));
 
 
 		doReturn(Arrays.asList(aSubPrincipalConcept))
@@ -156,6 +159,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 						anotherRecordInTheRecordHierarchyRecordDTO));
 
 		when(metadataSchemasManager.getSchemaTypes(zeCollection)).thenReturn(types);
+		when(metadataSchemasManager.getSchemaTypeOf(theRecord)).thenReturn(folder);
 		when(types.getSchemaTypes()).thenReturn(Arrays.asList(type1, type2));
 		when(types.getSchemaType("folder")).thenReturn(type1);
 		when(types.getSchemaType("type")).thenReturn(type1);
@@ -165,6 +169,8 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		when(type2.getAllNonParentReferences()).thenReturn(Arrays.asList(type2Reference1));
 		when(type1.hasSecurity()).thenReturn(true);
 		when(type2.hasSecurity()).thenReturn(true);
+		when(folder.getCode()).thenReturn("folder");
+		when(folder.getCacheType()).thenReturn(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
 
 		when(schema1.getMetadatas()).thenReturn(metadataList1);
 		//		when(metadataList1.iterator()).thenReturn(new Iterator<Metadata>() {
@@ -185,54 +191,6 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 
 		doReturn(contentModificationsBuilder).when(recordDeleteServices).newContentModificationsBuilder(zeCollection);
 		givenTimeIs(now);
-	}
-
-	@Test
-	public void whenRestoringThenSetLogicallyDeletedStatusToAllRecordInHierarchyAndExecuteTransaction()
-			throws Exception {
-
-		doReturn(new ValidationErrors()).when(recordDeleteServices).validateRestorable(theRecord, user);
-		doReturn("abc123").when(theRecord).getId();
-		doReturn("def456").when(aRecordInTheRecordHierarchy).getId();
-		doReturn("ghi789").when(anotherRecordInTheRecordHierarchy).getId();
-
-		ArgumentCaptor<Transaction> transaction = ArgumentCaptor.forClass(Transaction.class);
-
-		recordDeleteServices.restore(theRecord, user);
-
-		verify(theRecord).set(Schemas.LOGICALLY_DELETED_STATUS, false);
-		verify(theRecord).set(Schemas.LOGICALLY_DELETED_ON, null);
-		verify(aRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_STATUS, false);
-		verify(aRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_ON, null);
-		verify(anotherRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_STATUS, false);
-		verify(anotherRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_ON, null);
-		verify(recordServices).executeInBatch(transaction.capture());
-
-		assertThat(transaction.getValue().getRecords())
-				.containsOnly(theRecord, aRecordInTheRecordHierarchy, anotherRecordInTheRecordHierarchy);
-	}
-
-	@Test
-	public void whenLogicallyDeletingThenSetLogicallyDeletedStatusToAllRecordInHierarchyAndExecuteTransaction()
-			throws Exception {
-
-		doReturn(new ValidationErrors()).when(recordDeleteServices).validateLogicallyDeletable(theRecord, user);
-		doReturn(new ValidationErrors()).when(recordDeleteServices).validateLogicallyDeletable(theRecord, user);
-
-		ArgumentCaptor<Transaction> transaction = ArgumentCaptor.forClass(Transaction.class);
-
-		recordDeleteServices.logicallyDelete(theRecord, user);
-
-		verify(theRecord).set(Schemas.LOGICALLY_DELETED_STATUS, true);
-		verify(theRecord).set(Schemas.LOGICALLY_DELETED_ON, now);
-		verify(aRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_STATUS, true);
-		verify(aRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_ON, now);
-		verify(anotherRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_STATUS, true);
-		verify(anotherRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_ON, now);
-		verify(recordServices).executeInBatch(transaction.capture());
-
-		assertThat(transaction.getValue().getRecords())
-				.containsOnly(theRecord, aRecordInTheRecordHierarchy, anotherRecordInTheRecordHierarchy);
 	}
 
 	//REFACT 5 juillet

@@ -89,7 +89,7 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		errorLabel.addStyleName("error-label");
 		errorLabel.setVisible(false);
 
-		uploadField = new ContentVersionUploadField(false, false, isEditView) {
+		uploadField = new ContentVersionUploadField(false, false, isEditView, null, null) {
 			@Override
 			protected boolean isMajorVersionField(ContentVersionVO contentVersionVO) {
 				return false;

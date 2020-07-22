@@ -4,22 +4,22 @@ import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.menu.behaviors.ui.SendReturnReminderEmailButton;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.BehaviorsUtil;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
+import com.constellio.app.modules.rm.ui.buttons.BorrowWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
+import com.constellio.app.modules.rm.ui.buttons.ReturnWindowButton;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
@@ -28,6 +28,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -47,50 +48,36 @@ import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresente
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
-import com.constellio.app.ui.framework.components.fields.BaseComboBox;
-import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
-import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.NavigationParams;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
-import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
-import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
-import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
+import com.constellio.model.services.records.RecordHierarchyServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
-import com.constellio.model.services.search.SPEQueryResponse;
-import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.Roles;
-import com.vaadin.data.Property.ValueChangeEvent;
-import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
@@ -103,7 +90,8 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -125,17 +113,14 @@ public class FolderMenuItemActionBehaviors {
 	private RMSchemasRecordsServices rm;
 	private DecommissioningService decommissioningService;
 	private RMModuleExtensions rmModuleExtensions;
-	private SearchServices searchServices;
 	private MetadataSchemaToVOBuilder schemaVOBuilder;
 	private BorrowingServices borrowingServices;
-	private RMConfigs rmConfigs;
-	private ConstellioEIMConfigs eimConfigs;
-	private MetadataSchemaTypes schemaTypes;
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private DocumentRecordActionsServices documentRecordActionsServices;
 	private AuthorizationsServices authorizationsServices;
 
 	public static final String USER_LOOKUP = "user-lookup";
+	private RecordHierarchyServices recordHierarchyServices;
 
 	public FolderMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
@@ -145,23 +130,22 @@ public class FolderMenuItemActionBehaviors {
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		decommissioningService = new DecommissioningService(collection, appLayerFactory);
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
-		searchServices = modelLayerFactory.newSearchServices();
 		schemaVOBuilder = new MetadataSchemaToVOBuilder();
 		borrowingServices = new BorrowingServices(collection, modelLayerFactory);
-		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-		schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
 		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
+		recordHierarchyServices = new RecordHierarchyServices(modelLayerFactory);
 	}
 
 	public void getConsultationLink(Folder folder, MenuItemActionBehaviorParams params) {
+		folder = loadingFullRecordIfSummary(folder);
 		String constellioURL = getConstellioUrl(modelLayerFactory);
 		CopyToClipBoard.copyToClipBoard(constellioURL + RMUrlUtil.getPathToConsultLinkForFolder(folder.getId()));
 	}
 
-	public void addToDocument(Folder folder, MenuItemActionBehaviorParams params) {
+	public void addToDocument(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
 		Button addDocumentButton = new AddButton($("DisplayFolderView.addDocument")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -173,13 +157,14 @@ public class FolderMenuItemActionBehaviors {
 
 	public void move(Folder folder, MenuItemActionBehaviorParams params) {
 		Button moveInFolderButton = new WindowButton($("DisplayFolderView.parentFolder"),
-				$("DisplayFolderView.parentFolder"), WindowButton.WindowConfiguration.modalDialog("570px", "160px")) {
+				$("DisplayFolderView.parentFolder"), WindowButton.WindowConfiguration.modalDialog("570px", "140px")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout verticalLayout = new VerticalLayout();
 				verticalLayout.setSpacing(true);
-				final LookupFolderField field = new LookupFolderField();
+				final LookupFolderField field = new LookupFolderField(true);
 				verticalLayout.addComponent(field);
+				verticalLayout.setMargin(new MarginInfo(true, true, false, true));
 				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -235,24 +220,14 @@ public class FolderMenuItemActionBehaviors {
 				appLayerFactory, collection);
 	}
 
-	public void delete(Folder folder, MenuItemActionBehaviorParams params) {
+	public void delete(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
 		boolean needAReasonToDeleteFolder = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager())
 				.isNeedingAReasonBeforeDeletingFolders();
 
 		Button deleteFolderButton;
 
-		LogicalSearchQuery searchDocument = new LogicalSearchQuery();
-		searchDocument.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);
-
-		LogicalSearchCondition logicalSearchQuery = from(rm.document.schemaType(), rm.folder.schemaType()).where(Schemas.PATH_PARTS).isContaining(asList(folder.getId()));
-
-		searchDocument.setCondition(logicalSearchQuery);
-
-		SPEQueryResponse speQueryResponse = searchServices.query(searchDocument);
-		List<Record> folderAndDocument = new ArrayList<>(speQueryResponse.getRecords());
-
-		// Dossier qu'on essai de supprimer
-		folderAndDocument.add(0, folder.getWrappedRecord());
+		List<Record> folderAndDocument = recordHierarchyServices.getAllRecordsInHierarchy(folder.getWrappedRecord(), true);
 
 		List<RecordVO> checkoutRecords = getCheckoutRecordsAsVO(folderAndDocument, params.getView().getSessionContext());
 		if (!needAReasonToDeleteFolder) {
@@ -278,8 +253,9 @@ public class FolderMenuItemActionBehaviors {
 	}
 
 	@NotNull
-	private Button getDeleteWithJustificationButton(Folder folder, MenuItemActionBehaviorParams params,
+	private Button getDeleteWithJustificationButton(Folder folderSummary, MenuItemActionBehaviorParams params,
 													List<RecordVO> checkoutRecords) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
 		Button deleteFolderButton;
 		deleteFolderButton = new DeleteWithJustificationButton($("DisplayFolderView.deleteFolder"), false, WindowConfiguration.modalDialog("650px", null)) {
 			@Override
@@ -326,6 +302,7 @@ public class FolderMenuItemActionBehaviors {
 	}
 
 	private List<RecordVO> getCheckoutRecordsAsVO(List<Record> folderAndDocument, SessionContext sessionContext) {
+
 		List<RecordVO> checktedMessage = new ArrayList<>();
 		RecordToVOBuilder recordToVOBuilder = new RecordToVOBuilder();
 
@@ -412,7 +389,8 @@ public class FolderMenuItemActionBehaviors {
 			   + $("FolderMenuItemActionBehaviors.borrowedRecords") + "<br>";
 	}
 
-	public void copy(Folder folder, MenuItemActionBehaviorParams params) {
+	public void copy(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
 		Button duplicateFolderButton = new WindowButton($("DisplayFolderView.duplicateFolder"),
 				$("DisplayFolderView.duplicateFolderOnlyOrHierarchy"),
 				WindowConfiguration.modalDialog("50%", "20%")) {
@@ -484,7 +462,8 @@ public class FolderMenuItemActionBehaviors {
 		addAuthorizationButton.click();
 	}
 
-	public void share(Folder folder, MenuItemActionBehaviorParams params) {
+	public void share(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
 		Button shareFolderButton = new LinkButton($("DisplayFolderView.shareFolder")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -555,228 +534,56 @@ public class FolderMenuItemActionBehaviors {
 	}
 
 	public void addToCart(Folder folder, MenuItemActionBehaviorParams params) {
+		folder = loadingFullRecordIfSummary(folder);
 		CartWindowButton cartWindowButton = new CartWindowButton(folder.getWrappedRecord(), params, AddedRecordType.FOLDER);
 		cartWindowButton.addToCart();
 	}
 
-	public void borrow(Folder folder, MenuItemActionBehaviorParams params) {
-		Button borrowButton = new WindowButton($("DisplayFolderView.borrow"),
-				$("DisplayFolderView.borrow"), new WindowConfiguration(true, true, "50%", "500px")) {
-			@Override
-			protected Component buildWindowContent() {
-				final JodaDateField borrowDatefield = new JodaDateField();
-				borrowDatefield.setCaption($("DisplayFolderView.borrowDate"));
-				borrowDatefield.setRequired(true);
-				borrowDatefield.setId("borrowDate");
-				borrowDatefield.addStyleName("borrowDate");
-				borrowDatefield.setValue(TimeProvider.getLocalDate().toDate());
+	public void borrow(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
+		borrow(Arrays.asList(folder), params);
+	}
 
-				final Field<?> lookupUser = new LookupRecordField(User.SCHEMA_TYPE);
-				lookupUser.setCaption($("DisplayFolderView.borrower"));
-				lookupUser.setId("borrower");
-				lookupUser.addStyleName(USER_LOOKUP);
-				lookupUser.setRequired(true);
+	public void borrow(List<Folder> folders, MenuItemActionBehaviorParams params) {
+		List<Record> records = new ArrayList<>();
+		for (Folder folder : folders) {
+			records.add(folder.getWrappedRecord());
+		}
 
-				final ComboBox borrowingTypeField = new BaseComboBox();
-				borrowingTypeField.setCaption($("DisplayFolderView.borrowingType"));
-				for (BorrowingType borrowingType : BorrowingType.values()) {
-					borrowingTypeField.addItem(borrowingType);
-					borrowingTypeField
-							.setItemCaption(borrowingType, $("DisplayFolderView.borrowingType." + borrowingType.getCode()));
-				}
-				borrowingTypeField.setRequired(true);
-				borrowingTypeField.setNullSelectionAllowed(false);
-
-				final JodaDateField previewReturnDatefield = new JodaDateField();
-				previewReturnDatefield.setCaption($("DisplayFolderView.previewReturnDate"));
-				previewReturnDatefield.setRequired(true);
-				previewReturnDatefield.setId("previewReturnDate");
-				previewReturnDatefield.addStyleName("previewReturnDate");
-
-				final JodaDateField returnDatefield = new JodaDateField();
-				returnDatefield.setCaption($("DisplayFolderView.returnDate"));
-				returnDatefield.setRequired(false);
-				returnDatefield.setId("returnDate");
-				returnDatefield.addStyleName("returnDate");
-
-				borrowDatefield.addValueChangeListener(new ValueChangeListener() {
-					@Override
-					public void valueChange(ValueChangeEvent event) {
-						previewReturnDatefield.setValue(
-								getPreviewReturnDate(borrowDatefield.getValue(), borrowingTypeField.getValue()));
-					}
-				});
-				borrowingTypeField.addValueChangeListener(new ValueChangeListener() {
-					@Override
-					public void valueChange(ValueChangeEvent event) {
-						previewReturnDatefield.setValue(
-								getPreviewReturnDate(borrowDatefield.getValue(), borrowingTypeField.getValue()));
-					}
-				});
-
-				BaseButton borrowButton = new BaseButton($("DisplayFolderView.borrow")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						String userId = null;
-						BorrowingType borrowingType = null;
-						if (lookupUser.getValue() != null) {
-							userId = (String) lookupUser.getValue();
-						}
-						if (borrowingTypeField.getValue() != null) {
-							borrowingType = BorrowingType.valueOf(borrowingTypeField.getValue().toString());
-						}
-						LocalDate borrowLocalDate = null;
-						LocalDate previewReturnLocalDate = null;
-						LocalDate returnLocalDate = null;
-						if (borrowDatefield.getValue() != null) {
-							borrowLocalDate = LocalDate.fromDateFields(borrowDatefield.getValue());
-						}
-						if (previewReturnDatefield.getValue() != null) {
-							previewReturnLocalDate = LocalDate.fromDateFields(previewReturnDatefield.getValue());
-						}
-						if (returnDatefield.getValue() != null) {
-							returnLocalDate = LocalDate.fromDateFields(returnDatefield.getValue());
-						}
-						if (borrowFolder(folder, borrowLocalDate, previewReturnLocalDate, userId,
-								borrowingType, returnLocalDate, params)) {
-							getWindow().close();
-						}
-					}
-				};
-				borrowButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-				BaseButton cancelButton = new BaseButton($("cancel")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						getWindow().close();
-					}
-				};
-				cancelButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-				HorizontalLayout horizontalLayout = new HorizontalLayout();
-				horizontalLayout.setSpacing(true);
-				horizontalLayout.addComponents(borrowButton, cancelButton);
-
-				VerticalLayout verticalLayout = new VerticalLayout();
-				verticalLayout
-						.addComponents(borrowDatefield, borrowingTypeField, lookupUser, previewReturnDatefield, returnDatefield,
-								horizontalLayout);
-				verticalLayout.setSpacing(true);
-				verticalLayout.addStyleName("no-scroll");
-
-				return verticalLayout;
-			}
-		};
+		Button borrowButton = new BorrowWindowButton(records, params);
 		borrowButton.click();
 	}
 
-	public void returnFolder(Folder folder, MenuItemActionBehaviorParams params) {
-		Button returnButton = new WindowButton($("DisplayFolderView.returnFolder"),
-				$("DisplayFolderView.returnFolder")) {
-			@Override
-			protected Component buildWindowContent() {
-
-				final JodaDateField returnDatefield = new JodaDateField();
-				returnDatefield.setCaption($("DisplayFolderView.returnDate"));
-				returnDatefield.setRequired(false);
-				returnDatefield.setId("returnDate");
-				returnDatefield.addStyleName("returnDate");
-				returnDatefield.setValue(TimeProvider.getLocalDate().toDate());
-
-				BaseButton returnFolderButton = new BaseButton($("DisplayFolderView.returnFolder")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						LocalDate returnLocalDate = null;
-						if (returnDatefield.getValue() != null) {
-							returnLocalDate = LocalDate.fromDateFields(returnDatefield.getValue());
-						}
-						if (returnFolder(folder, returnLocalDate, params)) {
-							getWindow().close();
-						}
-					}
-				};
-				returnFolderButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-				BaseButton cancelButton = new BaseButton($("cancel")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						getWindow().close();
-					}
-				};
-				cancelButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-				HorizontalLayout horizontalLayout = new HorizontalLayout();
-				horizontalLayout.setSpacing(true);
-				horizontalLayout.addComponents(returnFolderButton, cancelButton);
-
-				VerticalLayout verticalLayout = new VerticalLayout();
-				verticalLayout
-						.addComponents(returnDatefield, horizontalLayout);
-				verticalLayout.setSpacing(true);
-
-				return verticalLayout;
-			}
-		};
+	public void returnFolder(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
+		Button returnButton = new ReturnWindowButton(appLayerFactory, collection,
+				Collections.singletonList(folder.getWrappedRecord()), params, true);
 		returnButton.click();
 	}
 
-	public void sendReturnRemainder(Folder folder, MenuItemActionBehaviorParams params) {
-		Button reminderReturnFolderButton = new BaseButton($("DisplayFolderView.reminderReturnFolder")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				try {
-					EmailToSend emailToSend = newEmailToSend();
-					String constellioUrl = eimConfigs.getConstellioUrl();
-					User borrower = null;
-					if (folder.getBorrowUserEntered() != null) {
-						borrower = rm.getUser(folder.getBorrowUserEntered());
-					} else {
-						borrower = rm.getUser(folder.getBorrowUser());
-					}
+	public void sendReturnRemainder(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
+		User borrower = null;
+		if (folder.getBorrowUserEntered() != null) {
+			borrower = rm.getUser(folder.getBorrowUserEntered());
+		} else {
+			borrower = rm.getUser(folder.getBorrowUser());
+		}
+		String previewReturnDate = folder.getBorrowPreviewReturnDate().toString();
 
-					EmailAddress borrowerAddress = new EmailAddress(borrower.getTitle(), borrower.getEmail());
-					emailToSend.setTo(Arrays.asList(borrowerAddress));
-					emailToSend.setSendOn(TimeProvider.getLocalDateTime());
-					emailToSend.setSubject($("DisplayFolderView.returnFolderReminder") + folder.getTitle());
-					emailToSend.setTemplate(RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
-					List<String> parameters = new ArrayList<>();
-					String previewReturnDate = folder.getBorrowPreviewReturnDate().toString();
-					parameters.add("previewReturnDate" + EmailToSend.PARAMETER_SEPARATOR + previewReturnDate);
-					parameters.add("borrower" + EmailToSend.PARAMETER_SEPARATOR + borrower.getUsername());
-					String borrowedFolderTitle = folder.getTitle();
-					parameters.add("borrowedFolderTitle" + EmailToSend.PARAMETER_SEPARATOR + borrowedFolderTitle);
-					boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
-					if (isAddingRecordIdInEmails) {
-						parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
-									   + folder.getTitle() + "\" (" + folder.getId() + ")");
-					} else {
-						parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
-									   + folder.getTitle() + "\"");
-					}
-
-					parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
-					parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!"
-								   + RMNavigationConfiguration.DISPLAY_FOLDER + "/" + folder.getId());
-					emailToSend.setParameters(parameters);
-
-					recordServices.add(emailToSend);
-					params.getView().showMessage($("DisplayFolderView.reminderEmailSent"));
-				} catch (RecordServicesException e) {
-					log.error("DisplayFolderView.cannotSendEmail", e);
-					params.getView().showMessage($("DisplayFolderView.cannotSendEmail"));
-				}
-			}
-		};
+		Button reminderReturnFolderButton = new SendReturnReminderEmailButton(collection, appLayerFactory,
+				params.getView(), Folder.SCHEMA_TYPE, folder.get(), borrower, previewReturnDate);
 		reminderReturnFolderButton.click();
 	}
 
-	public void sendAvailableAlert(Folder folder, MenuItemActionBehaviorParams params) {
+	public void sendAvailableAlert(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
 		Button alertWhenAvailableButton = new BaseButton($("RMObject.alertWhenAvailable")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				try {
 					List<String> usersToAlert = folder.getAlertUsersWhenAvailable();
-					String currentUserId = folder.getId();
+					String currentUserId = params.getUser().getId();
 					if (!currentUserId.equals(folder.getBorrowUser()) && !currentUserId.equals(folder.getBorrowUserEntered())) {
 						List<String> newUsersToAlert = new ArrayList<>();
 						newUsersToAlert.addAll(usersToAlert);
@@ -819,7 +626,27 @@ public class FolderMenuItemActionBehaviors {
 		}
 	}
 
-	public void generateReport(Folder folder, MenuItemActionBehaviorParams params) {
+	public void navigateToRecordTriggerManager(Folder folder, MenuItemActionBehaviorParams params) {
+
+		Navigation navigation = new Navigation();
+		BaseView currentView = params.getView();
+		Map<String, String> navigationParams = new HashMap<>();
+
+		if (currentView instanceof NavigationParams) {
+			navigationParams = ((NavigationParams) currentView).getNavigationParams();
+		} else {
+			navigationParams = params.getFormParams();
+		}
+
+		if (navigationParams == null || navigationParams.size() == 0) {
+			navigationParams.put("id", folder.getId());
+		}
+
+		navigation.to(RMViews.class).recordTriggerManager(navigationParams);
+	}
+
+	public void generateReport(Folder folderSummary, MenuItemActionBehaviorParams params) {
+		Folder folder = loadingFullRecordIfSummary(folderSummary);
 		// FIXME refactor so that we don't we need to instanciate a presenter
 		RMSelectionPanelReportPresenter reportPresenter =
 				new RMSelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
@@ -846,13 +673,11 @@ public class FolderMenuItemActionBehaviors {
 	}
 
 	public void addToSelection(Folder folder, MenuItemActionBehaviorParams params) {
-		params.getView().getSessionContext().addSelectedRecordId(folder.getId(),
-				params.getRecordVO().getSchema().getTypeCode());
+		params.getView().getSessionContext().addSelectedRecordId(folder.getId(), Folder.SCHEMA_TYPE);
 	}
 
 	public void removeFromSelection(Folder folder, MenuItemActionBehaviorParams params) {
-		params.getView().getSessionContext().removeSelectedRecordId(folder.getId(),
-				params.getRecordVO().getSchema().getTypeCode());
+		params.getView().getSessionContext().removeSelectedRecordId(folder.getId(), Folder.SCHEMA_TYPE);
 	}
 
 	protected void deleteFolder(Folder folder, String reason, MenuItemActionBehaviorParams params) {
@@ -920,49 +745,16 @@ public class FolderMenuItemActionBehaviors {
 		};
 	}
 
-	private Date getPreviewReturnDate(Date borrowDate, Object borrowingTypeValue) {
-		BorrowingType borrowingType;
-		Date previewReturnDate = TimeProvider.getLocalDate().toDate();
-		if (borrowDate != null && borrowingTypeValue != null) {
-			borrowingType = (BorrowingType) borrowingTypeValue;
-			if (borrowingType == BorrowingType.BORROW) {
-				int addDays = rmConfigs.getBorrowingDurationDays();
-				previewReturnDate = LocalDate.fromDateFields(borrowDate).plusDays(addDays).toDate();
-			} else {
-				previewReturnDate = borrowDate;
-			}
+	private Folder loadingFullRecordIfSummary(Folder folder) {
+		if (folder.isSummary()) {
+			return rm.getFolder(folder.getId());
+		} else {
+			return folder;
 		}
-		return previewReturnDate;
 	}
 
-	private boolean borrowFolder(Folder folder, LocalDate borrowingDate, LocalDate previewReturnDate, String userId,
-								 BorrowingType borrowingType, LocalDate returnDate,
-								 MenuItemActionBehaviorParams params) {
-		boolean borrowed;
-		String errorMessage = borrowingServices
-				.validateBorrowingInfos(userId, borrowingDate, previewReturnDate, borrowingType, returnDate);
-		if (errorMessage != null) {
-			params.getView().showErrorMessage($(errorMessage));
-			borrowed = false;
-		} else {
-			Record record = recordServices.getDocumentById(userId);
-			User borrowerEntered = wrapUser(record);
-			try {
-				borrowingServices.borrowFolder(folder.getId(), borrowingDate, previewReturnDate,
-						params.getUser(), borrowerEntered, borrowingType, true);
-				RMNavigationUtils.navigateToDisplayFolder(folder.getId(), params.getFormParams(),
-						appLayerFactory, collection);
-				borrowed = true;
-			} catch (RecordServicesException e) {
-				log.error(e.getMessage(), e);
-				params.getView().showErrorMessage($("DisplayFolderView.cannotBorrowFolder"));
-				borrowed = false;
-			}
-		}
-		if (returnDate != null) {
-			return returnFolder(folder, returnDate, borrowingDate, params);
-		}
-		return borrowed;
+	public void listExternalLinks(Folder folder, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to(RMViews.class).listExternalLinks(folder.getId());
 	}
 
 	private boolean returnFolder(Folder folder, LocalDate returnDate, LocalDate borrowingDate,
@@ -993,19 +785,8 @@ public class FolderMenuItemActionBehaviors {
 		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(folder.getId()));
 	}
 
-	private User wrapUser(Record record) {
-		return new User(record, schemaTypes, getCollectionRoles());
-	}
-
 	private Roles getCollectionRoles() {
 		return modelLayerFactory.getRolesManager().getCollectionRoles(collection);
 	}
-
-	private EmailToSend newEmailToSend() {
-		MetadataSchema schema = schemaTypes.getSchemaType(EmailToSend.SCHEMA_TYPE).getDefaultSchema();
-		Record emailToSendRecord = recordServices.newRecordWithSchema(schema);
-		return new EmailToSend(emailToSendRecord, schemaTypes);
-	}
-
 
 }

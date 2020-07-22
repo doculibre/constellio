@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
@@ -16,17 +17,19 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.lang3.StringUtils;
@@ -55,7 +58,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		String mainDataLanguage = appLayerFactory.getModelLayerFactory().getConfiguration().getMainDataLanguage();
-		if (mainDataLanguage != null) {
+		if (i18n.getLocale() == null && mainDataLanguage != null) {
 			Locale mainDataLocale = Language.withCode(mainDataLanguage).getLocale();
 			i18n.setLocale(mainDataLocale);
 			view.getSessionContext().setCurrentLocale(mainDataLocale);
@@ -76,6 +79,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 		UserServices userServices = modelLayerFactory.newUserServices();
 		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();
+		LoggingServices loggingServices = modelLayerFactory.newLoggingServices();
 
 		UserCredential userCredential = userServices.getUserCredential(enteredUsername);
 		String username = userCredential != null ? userCredential.getUsername() : enteredUsername;
@@ -137,6 +141,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 				view.setUsernameCookie(null);
 			}
 		} else {
+			loggingServices.failingLogin(enteredUsername, ConstellioUI.getCurrent().getPage().getWebBrowser().getAddress());
 			view.showBadLoginMessage();
 		}
 	}
@@ -197,12 +202,13 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 
-		MetadataSchema userDocumentsSchema = types.getSchema(UserDocument.DEFAULT_SCHEMA);
-		Metadata userMetadata = userDocumentsSchema.getMetadata(UserDocument.USER);
+		MetadataSchemaType userDocumentsSchemaType = types.getSchemaType(UserDocument.SCHEMA_TYPE);
+		Metadata userMetadata = userDocumentsSchemaType.getDefaultSchema().getMetadata(UserDocument.USER);
 		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(from(userDocumentsSchema).where(userMetadata).is(user.getId()));
+		query.setCondition(from(userDocumentsSchemaType).where(userMetadata).is(user.getId()));
 		query.sortDesc(Schemas.MODIFIED_ON);
-		return searchServices.getResultsCount(query) > 0;
+		query.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);
+		return searchServices.hasResults(query);
 	}
 
 	private boolean hasLastAlertPermission(User user) {

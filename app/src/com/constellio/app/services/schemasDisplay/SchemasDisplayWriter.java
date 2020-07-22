@@ -47,11 +47,13 @@ public class SchemasDisplayWriter {
 	private static final String LABELS = "labels";
 	private static final String METADATA_GROUP_CODE = "code";
 	private static final String METADATA_GROUP = "metadataGroup";
+	private static final String HELP_MESSAGE = "HelpMessage";
 
 	public static final String FORMAT_ATTRIBUTE = "format";
 	public static final String FORMAT_VERSION = SchemasDisplayReader2.FORMAT_VERSION;
 
 	public static final String LABEL_SEPARATOR = ";;";
+	public static final String HELP_MESSAGE_CODE_SEPARATOR = "_";
 
 	Document document;
 
@@ -257,6 +259,15 @@ public class SchemasDisplayWriter {
 		metadata.setAttribute(HIGHLIGHT, config.isHighlight() ? TRUE : FALSE);
 		metadata.setAttribute(METADATA_GROUP,
 				StringUtils.isBlank(config.getMetadataGroupCode()) ? "" : config.getMetadataGroupCode());
+
+		if (!config.getHelpMessages().isEmpty()) {
+			for (Entry<Language, String> helpMessageEntry : config.getHelpMessages().entrySet()) {
+				if (helpMessageEntry.getValue() != null) {
+					metadata.setAttribute(HELP_MESSAGE + HELP_MESSAGE_CODE_SEPARATOR + helpMessageEntry.getKey().getCode(),
+							helpMessageEntry.getValue());
+				}
+			}
+		}
 	}
 
 	public void resetSchema(String code) {

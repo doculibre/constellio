@@ -18,11 +18,15 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 
 	private final String id;
 
+	private RecordId recordId;
+
 	private final long version;
 
 	private final Map<String, Object> fields;
 
 	private final Map<String, Object> copyfields;
+
+	private int mainSortValue;
 
 	private RecordDTOMode mode;
 
@@ -41,29 +45,56 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 
 	public SolrRecordDTO(String id, long version, Map<String, Object> fields,
 						 Map<String, Object> copyfields, RecordDTOMode mode) {
+		this(id, version, fields, copyfields, mode, MAIN_SORT_UNDEFINED, false);
+	}
+
+	private SolrRecordDTO(String id, long version, Map<String, Object> fields,
+						  Map<String, Object> copyfields, RecordDTOMode mode, int mainSortValue, boolean creatingCopy) {
 		super();
-		if (id == null) {
+		if (!creatingCopy && id == null) {
 			throw new RecordDaoRuntimeException("DTO Cannot have a null id");
 		}
 
 		this.id = id;
+		this.mainSortValue = mainSortValue;
 		this.version = version;
-		if (fields == null && copyfields != null) {
-			this.fields = copyfields;
-			this.copyfields = null;
+
+		if (creatingCopy) {
+			this.fields = fields;
+			this.copyfields = copyfields;
+
 		} else {
-			this.fields = fields == null ? null : Collections.unmodifiableMap(fields);
-			this.copyfields = copyfields == null ? null : Collections.unmodifiableMap(copyfields);
+			if (fields == null && copyfields != null) {
+				this.fields = copyfields;
+				this.copyfields = null;
+			} else {
+				this.fields = fields == null ? null : Collections.unmodifiableMap(fields);
+				this.copyfields = copyfields == null ? null : Collections.unmodifiableMap(copyfields);
+			}
 		}
 		this.mode = mode;
 	}
+
 
 	public String getId() {
 		return id;
 	}
 
+	@Override
+	public RecordId getRecordId() {
+		if (recordId == null) {
+			recordId = RecordId.id(id);
+		}
+		return recordId;
+	}
+
 	public long getVersion() {
 		return version;
+	}
+
+	@Override
+	public int getMainSortValue() {
+		return mainSortValue;
 	}
 
 	public Map<String, Object> getFields() {
@@ -94,7 +125,11 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 	}
 
 	public SolrRecordDTO withVersion(long version) {
-		return new SolrRecordDTO(id, version, fields, copyfields, mode);
+		return new SolrRecordDTO(id, version, fields, copyfields, mode, mainSortValue, true);
+	}
+
+	public SolrRecordDTO withMainSortValue(int mainSortValue) {
+		return new SolrRecordDTO(id, version, fields, copyfields, mode, mainSortValue, true);
 	}
 
 	private static List<String> alwaysCopiedFields = asList("collection_s", "schema_s");

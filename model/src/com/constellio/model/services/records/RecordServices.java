@@ -1,6 +1,7 @@
 package com.constellio.model.services.records;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
@@ -78,9 +79,18 @@ public interface RecordServices {
 	<T extends Supplier<Record>> void update(List<T> records, User user)
 			throws RecordServicesException;
 
+	<T extends Supplier<Record>> void update(List<T> records, RecordUpdateOptions options, User user)
+			throws RecordServicesException;
+
 	Record getRecordByMetadata(Metadata metadata, String value);
 
 	Record getRecordSummaryByMetadata(Metadata metadata, String value);
+
+	default Record getRecordSummaryById(String collection, String id) {
+		return getRecordSummaryById(collection, id, true);
+	}
+
+	Record getRecordSummaryById(String collection, String id, boolean callExtensions);
 
 	default Record realtimeGetById(MetadataSchemaType schemaType, String id, Long version, boolean callExtensions) {
 		return realtimeGetById(schemaType.getDataStore(), id, version, callExtensions);
@@ -123,6 +133,11 @@ public interface RecordServices {
 	default Record realtimeGetRecordById(String id) {
 		return realtimeGetRecordById(id, true);
 	}
+
+	default Record realtimeGetRecordById(RecordId id) {
+		return realtimeGetRecordById(id.stringValue(), true);
+	}
+
 
 	default Record realtimeGetRecordById(String id, Long version) {
 		return realtimeGetRecordById(id, version, true);
@@ -235,5 +250,4 @@ public interface RecordServices {
 	SecurityModel getSecurityModel(String collection);
 
 	boolean isValueAutomaticallyFilled(Metadata metadata, Supplier<Record> record);
-
 }

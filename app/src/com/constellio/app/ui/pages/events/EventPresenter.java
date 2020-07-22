@@ -135,7 +135,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		if (metadataCodes == null) {
 			metadataCodes = EventTypeUtils.getDisplayedMetadataCodes(defaultSchema(), getEventType());
 			schemaVO = new MetadataSchemaToVOBuilder()
-					.build(defaultSchema(), VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
+					.build(rmSchemasRecordsServices().eventSchema(), VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
 		}
 		RecordVODataProvider eventsDataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory,
 				view.getSessionContext()) {
@@ -327,7 +327,11 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 					return rmSchemasEventsServices().newFindEventByDateRangeQuery(currentUser, eventType, startDate, endDate);
 				}
 			default:
-				return rmSchemasEventsServices().newFindEventByDateRangeQuery(currentUser, eventType, startDate, endDate);
+				if (EventType.ATTEMPTED_OPEN_SESSION.equals(eventType)) {
+					return rmSchemasEventsServices().newFindFailedLoginsByDateRangeQuery(currentUser, startDate, endDate);
+				} else {
+					return rmSchemasEventsServices().newFindEventByDateRangeQuery(currentUser, eventType, startDate, endDate);
+				}
 		}
 	}
 

@@ -14,7 +14,7 @@ import com.constellio.data.dao.services.contents.ContentDaoRuntimeException;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.records.RecordDao;
-import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
+import com.constellio.data.dao.services.recovery.TransactionLogRecovery;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotFlushTransaction;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotRegroupAndMoveInVault;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException;
@@ -55,6 +55,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.STOP;
 
@@ -97,15 +98,17 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 	private DataLayerSystemExtensions dataLayerSystemExtensions;
 
-	private final TransactionLogRecoveryManager transactionLogRecoveryManager;
+	private final TransactionLogRecovery transactionLogXmlRecoveryManager;
 	private boolean automaticRegroup = true;
+
+	private AtomicLong loggedTransactions = new AtomicLong();
 
 	public XMLSecondTransactionLogManager(DataLayerConfiguration configuration, IOServices ioServices,
 										  RecordDao recordDao,
 										  ContentDao contentDao, BackgroundThreadsManager backgroundThreadsManager,
 										  DataLayerLogger dataLayerLogger,
 										  DataLayerSystemExtensions dataLayerSystemExtensions,
-										  TransactionLogRecoveryManager transactionLogRecoveryManager) {
+										  TransactionLogRecovery transactionLogXmlRecoveryManager) {
 		this.configuration = configuration;
 		this.folder = configuration.getSecondTransactionLogBaseFolder();
 		this.ioServices = ioServices;
@@ -115,7 +118,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		this.backgroundThreadsManager = backgroundThreadsManager;
 		this.dataLayerLogger = dataLayerLogger;
 		this.dataLayerSystemExtensions = dataLayerSystemExtensions;
-		this.transactionLogRecoveryManager = transactionLogRecoveryManager;
+		this.transactionLogXmlRecoveryManager = transactionLogXmlRecoveryManager;
 	}
 
 	@Override
@@ -135,14 +138,14 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 						.handlingExceptionWith(STOP).executedEvery(configuration.getSecondTransactionLogMergeFrequency()));
 
 		if (bigVaultServer.countDocuments() == 0) {
-			regroupAndMoveInVault();
+			regroupAndMove();
 			destroyAndRebuildSolrCollection();
 		}
 	}
 
 	@Override
 	public void destroyAndRebuildSolrCollection() {
-		this.transactionLogRecoveryManager.disableRollbackModeDuringSolrRestore();
+		this.transactionLogXmlRecoveryManager.disableRollbackModeDuringSolrRestore();
 		File recoveryFolder = ioServices.newTemporaryFolder(RECOVERY_FOLDER);
 		try {
 			List<File> tLogs = recoverTransactionLogs(recoveryFolder);
@@ -158,8 +161,8 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	}
 
 	@Override
-	public void moveTLOGToBackup() {
-		regroupAndMoveInVault();
+	public void transactionLOGReindexationStartStrategy() {
+		regroupAndMove();
 		File tlogsFolder = contentDao.getFileOf("tlogs/");
 		Collection<File> tlogs = FileUtils.listFiles(tlogsFolder, new String[]{"tlog"}, false);
 		String backupFolderId = "tlogs_bck/" + TimeProvider.getLocalDateTime().toString("yyyy-MM-dd-HH-mm-ss") + ".zip";
@@ -176,7 +179,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	}
 
 	@Override
-	public void deleteLastTLOGBackup() {
+	public void transactionLOGReindexationCleanupStrategy() {
 		List<String> backups;
 
 		while ((backups = contentDao.getFolderContents("tlogs_bck")).size() > configuration
@@ -216,6 +219,16 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 				e.printStackTrace();
 			}
 		}
+	}
+
+	@Override
+	public boolean isAlive() {
+		return !this.exceptionOccured && started;
+	}
+
+	@Override
+	public long getLoggedTransactionCount() {
+		return loggedTransactions.get();
 	}
 
 	public String getLastTLOGBackup() {
@@ -261,7 +274,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 			@Override
 			public void run() {
 				if (isAutomaticRegroup()) {
-					regroupAndMoveInVault();
+					regroupAndMove();
 				}
 			}
 		};
@@ -344,6 +357,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 			throw new RuntimeException("Source does not exist");
 		}
 		Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
+		loggedTransactions.incrementAndGet();
 	}
 
 	private List<String> readFileToLines(File file) {
@@ -444,7 +458,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	}
 
 	@Override
-	public synchronized String regroupAndMoveInVault() {
+	public synchronized String regroupAndMove() {
 		List<String> transactionLogs = getFlushedTransactionsSortedByName();
 		if (transactionLogs.isEmpty()) {
 			return null;
@@ -461,7 +475,6 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		} catch (ContentDaoRuntimeException | IOException e) {
 			exceptionOccured = true;
 			throw new SecondTransactionLogRuntimeException_CouldNotRegroupAndMoveInVault(e);
-
 		} finally {
 			ioServices.deleteQuietly(tempFile);
 		}
@@ -583,7 +596,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		return automaticRegroup;
 	}
 
-	public void setAutomaticRegroupAndMoveInVaultEnabled(boolean automaticMode) {
+	public void setAutomaticRegroupAndMoveEnabled(boolean automaticMode) {
 		this.automaticRegroup = automaticMode;
 	}
 

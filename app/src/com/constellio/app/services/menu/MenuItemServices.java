@@ -380,6 +380,20 @@ public class MenuItemServices {
 				.build();
 	}
 
+	public static MenuItemAction buildMenuItemAction(String type, boolean possible, String caption, Resource icon,
+													 int group, int priority, Consumer<List<String>> command) {
+		return MenuItemAction.builder()
+				.type(type)
+				.state(new MenuItemActionState(possible ? VISIBLE : HIDDEN))
+				.caption(caption)
+				.icon(icon)
+				.group(group)
+				.priority(priority)
+				.command(command)
+				.recordsLimit(1)
+				.build();
+	}
+
 	private int getRecordsLimit(RecordsMenuItemActionType menuItemActionType) {
 		return menuItemActionType.getRecordsLimit();
 	}

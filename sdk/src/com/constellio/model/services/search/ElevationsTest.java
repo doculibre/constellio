@@ -135,7 +135,7 @@ public class ElevationsTest extends ConstellioTest {
 	public void givenAddedQueryElevationRemovedThenNotFound() {
 		Random random = new Random();
 
-		List<QueryElevation> queryElevations = buildMultipleQueryElevations(random.nextInt(10) + 1);
+		List<QueryElevation> queryElevations = buildMultipleQueryElevations(10);
 		for (QueryElevation qe : queryElevations) {
 			elevations.addOrUpdate(qe);
 		}

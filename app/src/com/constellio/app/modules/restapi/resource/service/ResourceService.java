@@ -46,7 +46,7 @@ public abstract class ResourceService extends BaseService {
 		validateParameters(host, id, serviceKey, method, date, expiration, null, null, null, signature);
 
 		Record record = getRecord(id, eTag, false);
-		User user = getUser(serviceKey, record.getCollection());
+		User user = getUserByServiceKey(serviceKey, record.getCollection());
 		validationService.validateUserAccess(user, record, method);
 
 		MetadataSchema schema = getDao().getMetadataSchema(record);

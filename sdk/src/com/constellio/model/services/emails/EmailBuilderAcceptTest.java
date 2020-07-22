@@ -13,7 +13,6 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,6 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
@@ -187,7 +187,7 @@ public class EmailBuilderAcceptTest extends ConstellioTest {
 	}
 
 	@InternetTest
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void realSendTest()
 			throws Exception {
@@ -232,10 +232,6 @@ public class EmailBuilderAcceptTest extends ConstellioTest {
 		parameters = new ArrayList<>();
 		String content = CONTENT + EmailToSend.PARAMETER_SEPARATOR + CONTENT_VALUE;
 		String signature = SIGNATURE + ":" + SIGNATURE_VALUE;
-		//String pathLogo = getTestResourceFile("logo_eim_203x30.png").getPath();
-		//String pathBackGroundImg = getTestResourceFile("back-const-1920x1358.jpg").getPath();
-		//String logo = "logo:'cid:" + pathLogo + "'";
-		//String backgroundImg = "backgroundImg:'cid:" + pathBackGroundImg + "'";
 		String inxestentParameter = "inxestent" + EmailToSend.PARAMETER_SEPARATOR + "Ze inxestent";
 		parameters.add(TEMPLATE_TITLE + EmailToSend.PARAMETER_SEPARATOR + TEMPLATE_TITLE_VALUE_WIHT_HTML_CODE);
 		parameters.add(content);
@@ -244,9 +240,8 @@ public class EmailBuilderAcceptTest extends ConstellioTest {
 		parameters.add("completeTask" + EmailToSend.PARAMETER_SEPARATOR + "http://localhost:7070/constellio/");
 		parameters.add("previewReturnDate" + EmailToSend.PARAMETER_SEPARATOR + LocalDate.now());
 		parameters.add("borrower" + EmailToSend.PARAMETER_SEPARATOR + chuckNorris);
-		parameters.add("borrowedFolderTitle" + EmailToSend.PARAMETER_SEPARATOR + "dossier école");
-		//parameters.add(logo);
-		//parameters.add(backgroundImg);
+		parameters.add("borrowedRecordTitle" + EmailToSend.PARAMETER_SEPARATOR + "dossier école");
+		parameters.add("borrowedRecordType" + EmailToSend.PARAMETER_SEPARATOR + $("SendReturnReminderEmailButton.folder"));
 	}
 
 	public EmailToSend newEmailToSend()

@@ -66,8 +66,11 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.Layout;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -124,6 +127,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	private Map<String, String> params;
 	private RMModuleExtensions rmModuleExtensions;
 	private transient MediumTypeService mediumTypeService;
+	private String mainCopyRuleEnteredAutomaticlyAssigned;
+	private boolean isMainCopyRuleEnteredAutomaticalyCannotBeAssigned;
+	private MetadataSchemasManager metadataSchemasManager;
 
 	public AddEditFolderPresenter(AddEditFolderView view, RecordVO recordVO) {
 		super(view, Folder.DEFAULT_SCHEMA);
@@ -131,6 +137,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				.forCollection(view.getCollection()).forModule(ConstellioRMModule.ID);
 
 		initTransientObjects();
+
+		metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 
 		if (recordVO != null) {
 			FolderVO folderVO;
@@ -578,6 +586,16 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		} else {
 			field.setRequired(false);
 		}
+		Layout fieldLayout = view.getForm().getFieldLayout((Field<?>) field);
+		if (fieldLayout != null) {
+			fieldLayout.setVisible(visible);
+		}
+
+		field.setVisible(visible);
+	}
+
+	public void setFieldVisible(CustomFolderField<?> field, boolean visible) {
+		view.getForm().getFieldLayout((Field<?>) field).setVisible(visible);
 		field.setVisible(visible);
 	}
 
@@ -632,8 +650,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	protected FolderParentFolderField adjustParentFolderField() {
-		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
-		parentFolderField.setVisible(alwaysShowParentField || folderHadAParent);
+		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getField(Folder.PARENT_FOLDER);
+		setFieldVisible(parentFolderField, alwaysShowParentField || folderHadAParent);
 
 		return parentFolderField;
 	}
@@ -706,9 +724,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				uniformSubdivisionField.setFieldValue(null);
 			}
 			if (new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areUniformSubdivisionEnabled()) {
-				uniformSubdivisionField.setVisible(true);
+				setFieldVisible(uniformSubdivisionField, true);
 			} else {
-				uniformSubdivisionField.setVisible(false);
+				setFieldVisible(uniformSubdivisionField, false);
 			}
 
 			String parentFolderId = parentFolderField.getFieldValue();
@@ -779,10 +797,11 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		} else {
 			if (categoryField == null) {
 				if (retentionRuleField != null) {
-					retentionRuleField.setVisible(false);
+					setFieldVisible(retentionRuleField, false);
 				}
 
 				if (uniformSubdivisionField != null) {
+					setFieldVisible(uniformSubdivisionField, false);
 					uniformSubdivisionField.setRequired(false);
 				}
 			}
@@ -840,6 +859,24 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 	}
 
+	public boolean isMainCategoryEnteredAutomaticlyAssigned(Record record) {
+		if (mainCopyRuleEnteredAutomaticlyAssigned != null) {
+			List<Metadata> modifiedMetadataList = record.getModifiedMetadataList(metadataSchemasManager.getSchemaTypes(view.getCollection()));
+
+			if (modifiedMetadataList != null && modifiedMetadataList.size() == 1) {
+				Metadata modifedMetadata = modifiedMetadataList.get(0);
+
+				String mainCopyRuleIdEntered = record.get(modifedMetadata);
+				if (modifedMetadata.getCode().equals(rmSchemasRecordsServices.folder.mainCopyRuleIdEntered().getCode())
+					&& mainCopyRuleIdEntered != null && mainCopyRuleIdEntered.equals(mainCopyRuleEnteredAutomaticlyAssigned)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
 	private void adjustCopyRetentionRuleField() {
 		FolderCopyRuleField field = (FolderCopyRuleField) view.getForm().getCustomField(Folder.MAIN_COPY_RULE_ID_ENTERED);
 		if (field == null) {
@@ -855,6 +892,13 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			field.setFieldValue(null);
 		} else if (applicableCopyRules.size() == 1) {
 			CopyRetentionRule mainCopyRule = applicableCopyRules.get(0);
+
+			if (mainCopyRuleEnteredAutomaticlyAssigned == null && folderVO.getMainCopyRuleIdEntered() == null && !isMainCopyRuleEnteredAutomaticalyCannotBeAssigned) {
+				mainCopyRuleEnteredAutomaticlyAssigned = mainCopyRule.getId();
+			}
+
+			isMainCopyRuleEnteredAutomaticalyCannotBeAssigned = true;
+
 			folderVO.setMainCopyRuleEntered(mainCopyRule.getId());
 			field.setFieldValue(mainCopyRule.getId());
 		} else if (folder.getMainCopyRule() != null) {
@@ -881,7 +925,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		} else {
 			fieldVisible = false;
 		}
-		field.setVisible(fieldVisible);
+		setFieldVisible(field, fieldVisible);
 	}
 
 	boolean isTransferDateInputPossibleForUser() {
@@ -892,7 +936,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	void adjustLinearSizeField() {
 		FolderLinearSizeField linearSizeField = (FolderLinearSizeField) view.getForm().getCustomField(Folder.LINEAR_SIZE);
 		if (linearSizeField != null) {
-			linearSizeField.setVisible(true);//folderVO.getContainer() != null);
+			setFieldVisible(linearSizeField, true);//folderVO.getContainer() != null);
 		}
 	}
 

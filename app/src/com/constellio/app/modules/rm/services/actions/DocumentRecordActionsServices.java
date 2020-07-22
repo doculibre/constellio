@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.io.ConversionManager;
@@ -18,7 +19,10 @@ import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -30,7 +34,11 @@ public class DocumentRecordActionsServices {
 	private AuthorizationsServices authorizationService;
 	private String collection;
 	private RecordServices recordServices;
+	private ConversionManager conversionManager;
 	private transient ModelLayerCollectionExtensions modelLayerCollectionExtensions;
+
+	public static final String MSG_FILE_EXT = "msg";
+	public static final String EML_FILE_EXT = "eml";
 
 	public DocumentRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -38,6 +46,7 @@ public class DocumentRecordActionsServices {
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.authorizationService = appLayerFactory.getModelLayerFactory().newAuthorizationsServices();
 		this.modelLayerCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
+		conversionManager = ConstellioFactories.getInstance().getDataLayerFactory().getConversionManager();
 		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 	}
 
@@ -63,7 +72,7 @@ public class DocumentRecordActionsServices {
 	}
 
 	public boolean isMoveActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) && isEditActionPossible(record, user) &&
+		return isEditActionPossible(record, user) &&
 			   rmModuleExtensions.isMoveActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
@@ -83,6 +92,13 @@ public class DocumentRecordActionsServices {
 		return hasUserWriteAccess(record, user) &&
 			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isEditActionPossibleOnDocument(rm.wrapDocument(record), user);
+	}
+
+	public boolean isRenameActionPossible(Record record, User user) {
+		return hasUserWriteAccess(record, user) &&
+			   rm.wrapDocument(record).hasContent() &&
+			   !record.isLogicallyDeleted() &&
+			   rmModuleExtensions.isRenameActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isRenameContentActionPossible(Record record, User user) {
@@ -199,7 +215,7 @@ public class DocumentRecordActionsServices {
 	}
 
 	public boolean isCreatePdfActionPossible(Record record, User user) {
-		Document document = rm.getDocument(record.getId());
+		Document document = rm.wrapDocument(record);
 
 		if ((!isCheckOutPossible(document) && !isEmailConvertibleToPDF(document)) ||
 			document.getContent() == null ||
@@ -208,7 +224,7 @@ public class DocumentRecordActionsServices {
 			return false;
 		}
 
-		return rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rm.wrapDocument(record), user);
+		return rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(document, user);
 	}
 
 	private boolean isEmailConvertibleToPDF(Document document) {
@@ -293,6 +309,30 @@ public class DocumentRecordActionsServices {
 		return false;
 	}
 
+	public boolean isExtractingÀttachementsActionPossible(Record record) {
+		Document document = rm.wrapDocument(record);
+
+		if (document.getContent() != null) {
+			String fileName = document.getContent().getCurrentVersion().getFilename();
+			String ext = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
+
+			return (ext.equals(MSG_FILE_EXT) || ext.equals(EML_FILE_EXT));
+		} else {
+			return false;
+		}
+	}
+
+	public boolean isGenerateExternalSignatureUrlActionPossible(Record record, User user) {
+		Document document = rm.wrapDocument(record);
+		List<String> supportedExtensions = new ArrayList<>(Arrays.asList(conversionManager.getAllSupportedExtensions()));
+		supportedExtensions.add("pdf");
+
+		return user.hasWriteAccess().on(record) &&
+			   user.has(RMPermissionsTo.GENERATE_EXTERNAL_SIGNATURE_URL).globally() &&
+			   document.hasContent() &&
+			   FilenameUtils.isExtension(document.getContent().getCurrentVersion().getFilename(), supportedExtensions);
+	}
+
 	public boolean isCheckInActionPossible(Record record, User user) {
 		if (user.hasWriteAccess().on(record)) {
 			boolean permissionToReturnOtherUsersDocuments = user.has(RMPermissionsTo.RETURN_OTHER_USERS_DOCUMENTS)
@@ -332,6 +372,12 @@ public class DocumentRecordActionsServices {
 			}
 		}
 		return false;
+	}
+
+	public boolean isSendReturnReminderActionPossible(Record record, User user) {
+		Document document = rm.wrapDocument(record);
+		return document.hasContent() && document.getContent().isCheckedOut()
+			   && !user.getId().equals(document.getContentCheckedOutBy());
 	}
 
 	public boolean isGenerateReportActionPossible(Record record, User user) {
@@ -414,7 +460,7 @@ public class DocumentRecordActionsServices {
 
 	private boolean isDocumentLogicallyDeleted(Document document) {
 		if (document.getId() != null) {
-			return rm.getDocument(document.getId()).isLogicallyDeletedStatus();
+			return rm.getDocumentSummary(document.getId()).isLogicallyDeletedStatus();
 		} else {
 			return true;
 		}

@@ -3,7 +3,6 @@ package com.constellio.app.ui.pages.globalGroup;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
-import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
@@ -341,34 +340,6 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<Button>();
-		Button addSubGroupButton = new BaseButton($("DisplayGlobalGroupView.addSubGroup")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.addSubGroupClicked(globalGroupVO);
-			}
-		};
-		addSubGroupButton.addStyleName("DisplayGlobalGroupView.addSubGroup");
-		addSubGroupButton.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && globalGroupVO.isLocallyCreated());
-		actionMenuButtons.add(addSubGroupButton);
-		Button editButton = new EditButton(false) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.editButtonClicked(globalGroupVO);
-			}
-		};
-		editButton.setEnabled(globalGroupVO.isLocallyCreated());
-		actionMenuButtons.add(editButton);
-		Button deleteButton = new DeleteButton(false) {
-			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				presenter.deleteButtonClicked(globalGroupVO);
-			}
-		};
-		deleteButton.setEnabled((globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE) && globalGroupVO.isLocallyCreated());
-		actionMenuButtons.add(deleteButton);
-
-		//		return actionMenuButtons;
 		return new RecordVOActionButtonFactory(globalGroupVO).build();
 	}
 

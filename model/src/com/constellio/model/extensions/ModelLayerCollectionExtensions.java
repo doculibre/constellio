@@ -32,6 +32,7 @@ import com.constellio.model.extensions.events.records.TransactionExecutionBefore
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
+import com.constellio.model.extensions.events.schemas.PreparePhysicalDeleteFromTrashParams;
 import com.constellio.model.extensions.events.schemas.SchemaEvent;
 import com.constellio.model.extensions.events.schemas.SearchFieldPopulatorParams;
 import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
@@ -304,6 +305,12 @@ public class ModelLayerCollectionExtensions {
 		return currentCondition;
 	}
 
+	public void preparePhysicalDeleteFromTrash(PreparePhysicalDeleteFromTrashParams params) {
+		for (SchemaExtension extension : schemaExtensions) {
+			extension.preparePhysicalDeleteFromTrash(params);
+		}
+	}
+
 	@Deprecated
 	//Use tokens instead
 	public boolean isRecordModifiableBy(final Record record, final User user) {
@@ -361,10 +368,11 @@ public class ModelLayerCollectionExtensions {
 		return metadataChangeOnRecord;
 	}
 
-	public Metadata[] getSortMetadatas(Taxonomy taxonomy) {
-		Metadata[] sortMetadatas = new TaxonomyExtension().getSortMetadatas(taxonomy);
+	public Metadata[] getSortMetadatas(Taxonomy taxonomy, boolean codeMetadataRequired) {
+		Metadata[] sortMetadatas = new TaxonomyExtension().getSortMetadatas(taxonomy, codeMetadataRequired);
+
 		for (TaxonomyExtension extension : taxonomyExtensions) {
-			sortMetadatas = extension.getSortMetadatas(taxonomy);
+			sortMetadatas = extension.getSortMetadatas(taxonomy, codeMetadataRequired);
 		}
 		return sortMetadatas;
 	}

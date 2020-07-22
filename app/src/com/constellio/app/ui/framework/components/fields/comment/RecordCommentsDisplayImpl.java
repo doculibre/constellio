@@ -5,35 +5,15 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
-import com.constellio.app.ui.framework.components.BaseForm;
-import com.constellio.app.ui.framework.components.BaseForm.FieldAndPropertyId;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
-import com.constellio.app.ui.framework.components.fields.BaseTextArea;
-import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
-import com.constellio.app.ui.framework.components.user.UserDisplay;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.frameworks.validation.ValidationException;
-import com.vaadin.server.FontAwesome;
-import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
-import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
-import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
+import java.util.Locale;
 
 public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implements RecordCommentsDisplay {
 
@@ -104,10 +84,6 @@ public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implem
 		}
 	}
 
-	protected boolean commentAdded(Comment newComment) {
-		return presenter.commentAdded(newComment);
-	}
-
 	protected void reloadComments() {
 		mainLayout.replaceComponent(commentsLayout, commentsLayout = newCommentsLayout());
 	}
@@ -122,103 +98,43 @@ public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implem
 	}
 
 	protected VerticalLayout newCommentsLayout() {
-		List<Comment> comments = ensureComments();
-
-		final VerticalLayout commentsLayout = new VerticalLayout();
-		commentsLayout.setWidth("100%");
-		commentsLayout.setSpacing(true);
-		commentsLayout.addStyleName("record-comments");
-
-		if (presenter.addButtonVisible()) {
-			Component addCommentsComponent = newAddCommentComponent(commentsLayout);
-			commentsLayout.addComponent(addCommentsComponent);
-			commentsLayout.setComponentAlignment(addCommentsComponent, Alignment.TOP_RIGHT);
-		} else {
-			commentsLayout.addComponent(new Label(" "));
-		}
-
-		final Label noCommentLabel = new Label($("TaskTable.details.noComment"));
-		noCommentLabel.addStyleName("record-no-comment");
-		if (comments.isEmpty()) {
-			commentsLayout.addComponent(noCommentLabel);
-		}
-
-		for (Comment comment : comments) {
-			addComment(comment, commentsLayout);
-		}
-		return commentsLayout;
-	}
-
-	protected Component newCommentForm(final Comment newComment, final Window window,
-									   final VerticalLayout commentsLayout) {
-		BaseTextArea commentField = new BaseTextArea();
-		commentField.setWidth("100%");
-		FieldAndPropertyId commentFieldAndPropertyId = new FieldAndPropertyId(commentField, "message");
-		BaseForm<Comment> commentForm = new BaseForm<Comment>(newComment, Arrays.asList(commentFieldAndPropertyId)) {
+		CommentsLayout commentsLayout = new CommentsLayout(ensureComments(), recordVO.getMetadata(metadataCode).getLabel(), false) {
 			@Override
-			protected void saveButtonClick(Comment newComment) throws ValidationException {
-				if (commentAdded(newComment)) {
-					window.close();
-				}
+			protected Locale getLocal() {
+				return getLocale();
 			}
 
 			@Override
-			protected void cancelButtonClick(Comment newComment) {
-				window.close();
-			}
-		};
-		commentForm.addStyleName("add-record-comment-form");
-		return commentForm;
-	}
-
-	protected Component newAddCommentComponent(final VerticalLayout commentsLayout) {
-		addCommentButton = new WindowButton($("TaskTable.details.addComment"), $("TaskTable.details.addComment"), WindowConfiguration.modalDialog("400px", "280px")) {
-			@Override
-			protected Component buildWindowContent() {
-				Comment newComment = new Comment();
-				return newCommentForm(newComment, getWindow(), commentsLayout);
-			}
-		};
-		addCommentButton.setIcon(FontAwesome.PLUS);
-		addCommentButton.addStyleName(ValoTheme.BUTTON_LINK);
-		addCommentButton.addStyleName("record-add-comment-button");
-		addCommentButton.setCaptionVisibleOnMobile(false);
-		if (delayedReadOnly != null) {
-			addCommentButton.setVisible(!delayedReadOnly);
-		}
-		return addCommentButton;
-	}
-
-	protected void addComment(final Comment comment, VerticalLayout commentsLayout) {
-		String userId = comment.getUserId();
-		LocalDateTime commentDateTime = comment.getDateTime();
-		String commentDateTimeStr = dateTimeConverter.convertToPresentation(commentDateTime, String.class, getLocale());
-
-		Component commentUserComponent = new UserDisplay(userId);
-		commentUserComponent.addStyleName("record-comment-user");
-
-		Label commentDateTimeLabel = new Label(commentDateTimeStr);
-		commentDateTimeLabel.addStyleName("record-comment-date-time");
-
-		BaseButton deleteCommentButton = new DeleteButton(FontAwesome.TRASH_O, $("delete"), true) {
-			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
+			protected void commentDeleted(Comment comment) {
 				presenter.commentDeleted(comment);
 			}
+
+			@Override
+			protected void commentModified(Comment comment, String value) {
+				presenter.commentModified(comment, value);
+			}
+
+			@Override
+			protected void commentAdded(Comment comment) {
+				presenter.commentAdded(comment);
+			}
+
+			@Override
+			protected boolean deleteButtonVisible(Comment comment) {
+				return !isReadOnly() && presenter.commentCreatedByCurrentUser(comment);
+			}
+
+			@Override
+			protected boolean editButtonVisible(Comment comment) {
+				return !isReadOnly() && presenter.commentCreatedByCurrentUser(comment);
+			}
+
+			@Override
+			protected boolean addCommentButtonVisible() {
+				return presenter.addButtonVisible();
+			}
 		};
-		deleteCommentButton.addStyleName("delete-record-comment-button");
-		deleteCommentButton.addStyleName(ValoTheme.BUTTON_LINK);
-		deleteCommentButton.setVisible(!isReadOnly() && presenter.commentCreatedByCurrentUser(comment));
-
-		I18NHorizontalLayout userTimeLayout = new I18NHorizontalLayout(commentUserComponent, commentDateTimeLabel, deleteCommentButton);
-		userTimeLayout.addStyleName("record-comment-user-date-time");
-		userTimeLayout.setSpacing(true);
-		String message = comment.getMessage();
-		message = StringUtils.replace(message, "\n", "<br/>");
-		Label messageLabel = new Label(message, ContentMode.HTML);
-		messageLabel.addStyleName("record-comment-message");
-
-		commentsLayout.addComponents(userTimeLayout, messageLabel);
+		return commentsLayout;
 	}
 
 	@SuppressWarnings("unchecked")

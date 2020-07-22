@@ -27,7 +27,7 @@ public class FacetFieldFactory extends MetadataFieldFactory {
 	}
 
 	@Override
-	public Field<?> build(MetadataVO metadata, Locale locale) {
+	public Field<?> build(MetadataVO metadata, String recordId, Locale locale) {
 		Field<?> field;
 		String metadataCode = metadata.getCode();
 		if (metadataCode.endsWith(Facet.FIELD_DATA_STORE_CODE)) {
@@ -42,7 +42,7 @@ public class FacetFieldFactory extends MetadataFieldFactory {
 				.endsWith(Facet.LIST_QUERIES)) {
 			field = new ValuesLabelFieldImpl(presenter);
 		} else {
-			field = super.build(metadata, locale);
+			field = super.build(metadata, recordId, locale);
 		}
 		return field;
 	}

@@ -74,6 +74,7 @@ public class HttpServletRequestAuthenticatorRealTest extends ConstellioTest {
 
 	@Test
 	public void givenInvalidTokenThenNoCredentials() {
+
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(getModelLayerFactory());
 		HttpServletRequest request = mock(HttpServletRequest.class);
 		when(request.getSession()).thenReturn(mock(HttpSession.class));

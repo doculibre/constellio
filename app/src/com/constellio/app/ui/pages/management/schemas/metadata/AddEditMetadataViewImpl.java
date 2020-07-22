@@ -12,6 +12,7 @@ import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCr
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
+import com.constellio.app.ui.framework.components.fields.MultilingualRichTextField;
 import com.constellio.app.ui.framework.components.fields.MultilingualTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.breadcrumb.BreadcrumbTrailUtil;
@@ -70,6 +71,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	private CheckBox highlight;
 	@PropertyId("autocomplete")
 	private CheckBox autocomplete;
+	@PropertyId("availableInSummary")
+	private CheckBox availableInSummary;
 	@PropertyId("advancedSearch")
 	private CheckBox advancedSearchField;
 	@PropertyId("enabled")
@@ -84,10 +87,16 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	private CheckBox duplicableField;
 	@PropertyId("ParentMetadataLabel")
 	private TextField parentMetadataLabel;
+	@PropertyId("helpMessages")
+	private MultilingualRichTextField helpMessagesField;
 
 	@PropertyId("readAccessRoles")
 	private ListOptionGroup listOptionGroupRole;
 
+	@PropertyId("maxLength")
+	private BaseTextField maxLength;
+	@PropertyId("measurementUnit")
+	private BaseTextField measurementUnit;
 
 	@PropertyId("uniqueValue")
 	private CheckBox uniqueField;
@@ -139,6 +148,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		return viewLayout;
 	}
 
+	public boolean isInEditMode() {
+		return presenter.metadata != null;
+	}
+
 	private Component buildTables() {
 		formMetadataVO = presenter.getFormMetadataVO();
 
@@ -180,6 +193,9 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 					advancedSearchField.setValue(false);
 				}
 			}
+
+			enableDisableMaxLength();
+			measurementUnit.setEnabled(value == MetadataValueType.INTEGER || value == MetadataValueType.NUMBER);
 
 			if (value == MetadataValueType.CONTENT) {
 				listOptionGroupRole.setVisible(false);
@@ -256,6 +272,14 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		refType.setRequired(false);
 		//searchableField.setEnabled(false);
 		sortableField.setEnabled(true);
+		availableInSummary.setEnabled(presenter.isAvailableInSummaryFlagButtonEnabled(value));
+		availableInSummary.setValue(presenter.isAvailableInSummaryFlagAlwaysTrue(value));
+
+		enableDisableMaxLength();
+		measurementUnit.setEnabled(value == MetadataValueType.INTEGER || value == MetadataValueType.NUMBER);
+
+		maxLength.setVisible(maxLength.isEnabled());
+		measurementUnit.setVisible(measurementUnit.isEnabled());
 
 		switch (value) {
 			case BOOLEAN:
@@ -329,17 +353,11 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			case CONTENT:
 				sortableField.setValue(false);
 			case REFERENCE:
-				break;
 			case DATE:
-				break;
 			case DATE_TIME:
-				break;
 			case INTEGER:
-				break;
 			case STRING:
-				break;
 			case NUMBER:
-				break;
 			case STRUCTURE:
 				break;
 		}
@@ -357,6 +375,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		//		labelsField.setRequired(true);
 		labelsField.setId("labels");
 		labelsField.addStyleName("labels");
+
+		helpMessagesField = new MultilingualRichTextField();
+		helpMessagesField.setId("helpMessages");
+		helpMessagesField.addStyleName("helpMessages");
 
 		if (inherited) {
 			parentMetadataLabel = new TextField();
@@ -521,6 +543,18 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		autocomplete.addStyleName("autocomplete");
 		autocomplete.setEnabled(!inherited);
 
+		availableInSummary = new CheckBox();
+		availableInSummary.setCaption($("AddEditMetadataView.availableInSummary"));
+		availableInSummary.setRequired(false);
+		availableInSummary.setId("availableInSummary");
+		availableInSummary.addStyleName("availableInSummary");
+		availableInSummary.setVisible(presenter.isAvailableInSummaryFlagButtonVisible());
+		availableInSummary.setEnabled(!inherited && presenter.isAvailableInSummaryFlagButtonEnabled(
+				formMetadataVO.getValueType()));
+		if (presenter.isAvailableInSummaryFlagAlwaysTrue(formMetadataVO.getValueType())) {
+			availableInSummary.setValue(true);
+		}
+
 		duplicableField = new CheckBox();
 		duplicableField.setCaption($("AddEditMetadataView.duplicable"));
 		duplicableField.setRequired(false);
@@ -568,7 +602,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		Field<?> previousDefaultValueField = defaultValueField;
 		if (defaultValueMetadataVO != null && presenter.isDefaultValuePossible(formMetadataVO)) {
 			try {
-				defaultValueField = fieldFactory.build(defaultValueMetadataVO);
+				defaultValueField = fieldFactory.build(defaultValueMetadataVO, null);
 			} catch (Exception e) {
 				e.printStackTrace();
 				defaultValueField = null;
@@ -595,6 +629,29 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		listOptionGroupRole = new ListOptionGroup();
 		listOptionGroupRole.setCaption($("AddEditMetadataView.RoleAccess"));
 
+		maxLength = new BaseTextField();
+		maxLength.setCaption($("AddEditMetadataView.maxLength"));
+		maxLength.setRequired(false);
+		maxLength.setId("maxLength");
+
+		maxLength.setVisible(maxLength.isEnabled());
+		if (presenter.getMaxLengthFieldValue() != null && !presenter.getMaxLengthFieldValue().equals("")) {
+			formMetadataVO.setMaxLength(Integer.parseInt(presenter.getMaxLengthFieldValue()));
+			maxLength.setValue(presenter.getMaxLengthFieldValue());
+		}
+
+		measurementUnit = new BaseTextField();
+		measurementUnit.setCaption($("AddEditMetadataView.measurementUnit"));
+		measurementUnit.setRequired(false);
+		measurementUnit.setId("measurementUnit");
+		measurementUnit.setEnabled(formMetadataVO.getValueType() == MetadataValueType.INTEGER
+								   || formMetadataVO.getValueType() == MetadataValueType.NUMBER);
+		measurementUnit.setVisible(measurementUnit.isEnabled());
+		if (presenter.getMeasurementUnitFieldValue() != null && !presenter.getMeasurementUnitFieldValue().equals("")) {
+			measurementUnit.setValue(presenter.getMeasurementUnitFieldValue());
+			formMetadataVO.setMeasurementUnit(presenter.getMeasurementUnitFieldValue());
+		}
+
 		List<RoleVO> roleList = presenter.getAllCollectionRole();
 		listOptionGroupRole.setMultiSelect(true);
 		listOptionGroupRole.setImmediate(true);
@@ -613,8 +670,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		formMetadataVO.setReadAccessRoles(initialSelectedRoles);
 
 		List<Field<?>> fields = new ArrayList<>(asList((Field<?>) localcodeField, labelsField, valueType, multivalueType,
-				inputType, inputMask, metadataGroup, listOptionGroupRole, refType, requiredField, duplicableField, enabledField, searchableField, sortableField,
-				advancedSearchField, highlight, autocomplete, uniqueField, multiLingualField));
+				inputType, inputMask, maxLength, measurementUnit, metadataGroup, listOptionGroupRole, refType, requiredField, duplicableField, enabledField, searchableField, sortableField,
+				advancedSearchField, highlight, autocomplete, availableInSummary, helpMessagesField, uniqueField, multiLingualField));
 
 		for (CheckBox customAttributeField : customAttributesField) {
 			fields.add(customAttributeField);
@@ -638,6 +695,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			@Override
 			public void commit() {
 				labelsField.commit();
+				helpMessagesField.commit();
 				for (Field<?> field : fieldGroup.getFields()) {
 					try {
 						field.commit();
@@ -662,10 +720,12 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 				try {
 					labelsField.validateFields();
+					helpMessagesField.validateFields();
 				} catch (InvalidValueException e) {
 					showErrorMessage(e.getMessage());
 					return;
 				}
+
 				presenter.preSaveButtonClicked(formMetadataVO, editMode);
 			}
 
@@ -722,7 +782,30 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			disableFieldsForSystemReservedMetadatas();
 		}
 
+		enableDisableMaxLength();
+
 		return metadataForm;
+	}
+
+	public void inputTypeChanged(MetadataInputType metadataInputType) {
+		enableDisableMaxLength();
+	}
+
+	private void enableDisableMaxLength() {
+		boolean isInherited = isInEditMode();
+		MetadataInputType metadataInputType = null;
+
+		if (formMetadataVO != null && isInEditMode()) {
+			isInherited = presenter.isInherited(formMetadataVO.getCode());
+		}
+
+		if (metadataForm != null) {
+			metadataInputType = metadataForm.getViewObject().getInput();
+		}
+
+		MetadataValueType metadataValueType = (MetadataValueType) valueType.getValue();
+		maxLength.setEnabled(!isInherited && metadataInputType != null && metadataInputType != MetadataInputType.RICHTEXT && (metadataValueType == MetadataValueType.STRING || metadataValueType == MetadataValueType.TEXT));
+		maxLength.setVisible(isInherited && metadataInputType != MetadataInputType.RICHTEXT || maxLength.isEnabled());
 	}
 
 	@Override

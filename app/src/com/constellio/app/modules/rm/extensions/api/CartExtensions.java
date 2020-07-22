@@ -71,6 +71,11 @@ public class CartExtensions {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
+	public ExtensionBooleanResult isRecordBorrowActionPossible(
+			CartExtensionActionPossibleParams cartExtensionActionPossibleParams) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
 	public static class CartExtensionActionPossibleParams {
 		private Cart cart;
 		private User user;

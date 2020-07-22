@@ -1,11 +1,14 @@
 package com.constellio.model.services.records.cache;
 
+import com.constellio.data.dao.dto.records.IntegerRecordId;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
+import com.constellio.data.dao.dto.records.RecordDTOUtils;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.dao.dto.records.RecordId;
+import com.constellio.data.dao.dto.records.StringRecordId;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.MetadataSchemaProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,6 +25,7 @@ import java.util.function.Supplier;
 import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
 
 public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordDTO, Supplier<byte[]> {
+
 
 	MetadataSchemaProvider schemaProvider;
 	long version;
@@ -68,18 +72,31 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 
 		int id;
 
+		int mainSortValue;
+
 		public ByteArrayRecordDTOWithIntegerId(
 				int id, MetadataSchemaProvider schemaProvider, long version, boolean summary,
 				short tenantId, String collectionCode, byte collectionId, String typeCode, short typeId,
-				String schemaCode, short schemaId, byte[] data) {
+				String schemaCode, short schemaId, byte[] data, int mainSortValue) {
 			super(schemaProvider, version, summary, tenantId, collectionCode, collectionId, typeCode, typeId,
 					schemaCode, schemaId, data);
+			this.mainSortValue = mainSortValue;
 			this.id = id;
 		}
 
 		@Override
+		public int getMainSortValue() {
+			return mainSortValue;
+		}
+
+		@Override
 		public String getId() {
-			return RecordUtils.toStringId(id);
+			return RecordDTOUtils.toStringId(id);
+		}
+
+		@Override
+		public RecordId getRecordId() {
+			return new IntegerRecordId(id);
 		}
 
 		@Override
@@ -94,7 +111,7 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 
 		@Override
 		public byte[] get() {
-			return SummaryCacheSingletons.dataStore.get(tenantId).loadIntKey(id);
+			return SummaryCacheSingletons.dataStore.get(tenantId).loadIntKeyPersistedData(id);
 		}
 
 		@Override
@@ -121,19 +138,38 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 	public static class ByteArrayRecordDTOWithStringId extends ByteArrayRecordDTO {
 
 		String id;
+		int mainSortValue;
 
 		public ByteArrayRecordDTOWithStringId(
 				String id, MetadataSchemaProvider schemaProvider, long version, boolean summary,
 				short instanceId, String collectionCode, byte collectionId, String typeCode, short typeId,
-				String schemaCode, short schemaId, byte[] data) {
+				String schemaCode, short schemaId, byte[] data, int mainSortValue) {
 			super(schemaProvider, version, summary, instanceId, collectionCode, collectionId, typeCode, typeId,
 					schemaCode, schemaId, data);
+			this.mainSortValue = mainSortValue;
 			this.id = id;
+		}
+
+
+		@Override
+		public RecordId getRecordId() {
+			return new StringRecordId(id);
+		}
+
+		public ByteArrayRecordDTOWithStringId setMainSortValue(int mainSortValue) {
+			this.mainSortValue = mainSortValue;
+			return this;
 		}
 
 		@Override
 		public String getId() {
 			return id;
+		}
+
+
+		@Override
+		public int getMainSortValue() {
+			return mainSortValue;
 		}
 
 		@Override
@@ -222,7 +258,7 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 		}
 
 		MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
-		return CacheRecordDTOUtils.readMetadata(getId(), data, schema, (String) key, this);
+		return CacheRecordDTOUtils.readMetadata(data, schema, (String) key, this);
 	}
 
 	@Nullable
@@ -260,7 +296,7 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 	@Override
 	public Collection<Object> values() {
 		MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
-		Set<Object> values = CacheRecordDTOUtils.getStoredValues(getId(), data, schema, this);
+		Set<Object> values = CacheRecordDTOUtils.getStoredValues(data, schema, this);
 		values.add(getCollection());
 		values.add(getSchemaCode());
 		return values;
@@ -271,7 +307,7 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 	public Set<Entry<String, Object>> entrySet() {
 
 		MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
-		Set<Entry<String, Object>> entries = CacheRecordDTOUtils.toEntrySet(getId(), data, schema, this);
+		Set<Entry<String, Object>> entries = CacheRecordDTOUtils.toEntrySet(data, schema, this);
 
 		entries.add(new SimpleEntry("collection_s", getCollection()));
 		entries.add(new SimpleEntry("schema_s", getSchemaCode()));

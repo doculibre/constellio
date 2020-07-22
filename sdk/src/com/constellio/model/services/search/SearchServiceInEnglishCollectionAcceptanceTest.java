@@ -11,7 +11,6 @@ import com.constellio.model.services.search.query.logical.ongoing.OngoingLogical
 import com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -24,7 +23,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchab
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 
-@SlowTest
+// Confirm @SlowTest
 public class SearchServiceInEnglishCollectionAcceptanceTest extends ConstellioTest {
 	private static final LocalDateTime DATE_TIME4 = new LocalDateTime(2003, 7, 15, 22, 40);
 	private static final LocalDateTime DATE_TIME3 = new LocalDateTime(2002, 8, 15, 22, 40);

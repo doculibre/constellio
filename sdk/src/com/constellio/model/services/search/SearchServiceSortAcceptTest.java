@@ -11,11 +11,22 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
+import org.junit.runners.Parameterized;
 
+import java.util.Arrays;
+import java.util.Collection;
+
+import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.USE_CACHE;
+import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.USE_SOLR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 
+@RunWith(Parameterized.class)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class SearchServiceSortAcceptTest extends ConstellioTest {
 
 	RecordServices recordServices;
@@ -24,6 +35,17 @@ public class SearchServiceSortAcceptTest extends ConstellioTest {
 
 	SearchServiceAcceptanceTestSchemas schema = new SearchServiceAcceptanceTestSchemas(zeCollection);
 	SearchServiceAcceptanceTestSchemas.ZeSchemaMetadatas zeSchema = schema.new ZeSchemaMetadatas();
+
+	boolean usingCache;
+
+	public SearchServiceSortAcceptTest(String testCase) {
+		this.usingCache = testCase.equals("UsingCache");
+	}
+
+	@Parameterized.Parameters(name = "{0}")
+	public static Collection<Object[]> testCases() {
+		return Arrays.asList(new Object[][]{{"UsingCache"}, {"UsingSolr"}});
+	}
 
 	@Before
 	public void setUp()
@@ -47,15 +69,14 @@ public class SearchServiceSortAcceptTest extends ConstellioTest {
 		LocalDateTime dateTime5 = new LocalDateTime(2015, 2, 1, 1, 1, 2);
 
 		Transaction transaction = new Transaction();
-		Record record4 = transaction.add(new TestRecord(zeSchema).set(zeSchema.dateTimeMetadata(), dateTime4));
-		Record record2 = transaction.add(new TestRecord(zeSchema).set(zeSchema.dateTimeMetadata(), dateTime2));
-		Record record5 = transaction.add(new TestRecord(zeSchema).set(zeSchema.dateTimeMetadata(), dateTime5));
-		Record record3 = transaction.add(new TestRecord(zeSchema).set(zeSchema.dateTimeMetadata(), dateTime3));
-		Record recordWithNull = transaction.add(new TestRecord(zeSchema).set(zeSchema.dateTimeMetadata(), dateTime1));
+		Record record4 = transaction.add(new TestRecord(zeSchema, "rec4").set(zeSchema.dateTimeMetadata(), dateTime4));
+		Record record2 = transaction.add(new TestRecord(zeSchema, "rec2").set(zeSchema.dateTimeMetadata(), dateTime2));
+		Record record5 = transaction.add(new TestRecord(zeSchema, "rec5").set(zeSchema.dateTimeMetadata(), dateTime5));
+		Record record3 = transaction.add(new TestRecord(zeSchema, "rec3").set(zeSchema.dateTimeMetadata(), dateTime3));
+		Record recordWithNull = transaction.add(new TestRecord(zeSchema, "rec1").set(zeSchema.dateTimeMetadata(), dateTime1));
 		recordServices.execute(transaction);
 
-		assertThat(searchServices.search(findAllQuery().sortAsc(zeSchema.dateTimeMetadata())))
-				.containsExactly(recordWithNull, record2, record3, record4, record5);
+		assertThat(searchServices.search(findAllQuery().sortAsc(zeSchema.dateTimeMetadata()))).containsExactly(recordWithNull, record2, record3, record4, record5);
 		assertThat(searchServices.searchRecordIds(findAllQuery().sortAsc(zeSchema.dateTimeMetadata())))
 				.containsExactly(recordWithNull.getId(), record2.getId(), record3.getId(), record4.getId(), record5.getId());
 		assertThat(searchServices.search(findAllQuery().sortDesc(zeSchema.dateTimeMetadata())))
@@ -174,6 +195,6 @@ public class SearchServiceSortAcceptTest extends ConstellioTest {
 
 	private LogicalSearchQuery findAllQuery() {
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(zeSchema.instance()).returnAll();
-		return new LogicalSearchQuery(condition);
+		return new LogicalSearchQuery(condition).setQueryExecutionMethod(usingCache ? USE_CACHE : USE_SOLR);
 	}
 }

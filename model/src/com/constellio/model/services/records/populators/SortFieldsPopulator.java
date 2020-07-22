@@ -85,9 +85,9 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 	}
 
 	private void populateNormalizedValue(Metadata metadata, Metadata sortMetadata,
-								  Object value, Map<String, Object> fields) {
+										 Object value, Map<String, Object> fields) {
 		StringSortFieldNormalizer normalizer = metadata.getSortFieldNormalizer();
-		if (normalizer != null) {
+		if (normalizer != null && metadata.isSortable()) {
 			Object normalizedValue;
 			if (value == null) {
 				normalizedValue = normalizer.normalizeNull();

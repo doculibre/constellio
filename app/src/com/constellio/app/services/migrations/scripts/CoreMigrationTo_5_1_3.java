@@ -5,6 +5,7 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.conf.email.EmailServerConfiguration;
@@ -41,8 +42,20 @@ public class CoreMigrationTo_5_1_3 implements MigrationScript {
 		EncryptionServices encryptionServices;
 		try {
 			if (isFirstInit(modelLayerFactory)) {
-				createKeyFile(modelLayerFactory.getConfiguration(), dataLayerFactory.getDataLayerConfiguration());
-				createKeyDocument(dataLayerFactory);
+				try {
+					createKeyFile(modelLayerFactory.getConfiguration(), dataLayerFactory.getDataLayerConfiguration());
+				} catch (Exception e) {
+					if (!Toggle.LOST_PRIVATE_KEY.isEnabled()) {
+						throw new RuntimeException(e);
+					}
+				}
+				try {
+					createKeyDocument(dataLayerFactory);
+				} catch (Exception e) {
+					if (!Toggle.LOST_PRIVATE_KEY.isEnabled()) {
+						throw new RuntimeException(e);
+					}
+				}
 				encryptionServices = modelLayerFactory.newEncryptionServices();
 				encryptLdapPassword(modelLayerFactory, encryptionServices);
 				encryptUserTokens(modelLayerFactory.getUserCredentialsManager());

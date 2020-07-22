@@ -1,5 +1,6 @@
 package com.constellio.model.entities.records.wrappers;
 
+import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.Record;
@@ -16,6 +17,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.model.entities.records.Record.GetMetadataOption.DIRECT_GET_FROM_DTO;
+import static com.constellio.model.entities.records.Record.GetMetadataOption.RARELY_HAS_VALUE;
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
@@ -36,6 +39,7 @@ public class User extends RecordWrapper {
 	//public static final String GROUPS_AUTHORIZATIONS = "groupsauthorizations";
 	//public static final String ALL_USER_AUTHORIZATIONS = "alluserauthorizations";
 	public static final String USER_TOKENS = "usertokens";
+	public static final String AZURE_USER = "azureuser";
 	public static final String COLLECTION_READ_ACCESS = "collectionReadAccess";
 	public static final String COLLECTION_WRITE_ACCESS = "collectionWriteAccess";
 	public static final String COLLECTION_DELETE_ACCESS = "collectionDeleteAccess";
@@ -155,6 +159,15 @@ public class User extends RecordWrapper {
 		return this;
 	}
 
+	public String getAzureUser() {
+		return get(AZURE_USER);
+	}
+
+	public User setAzureUser(String azureuser) {
+		set(AZURE_USER, azureuser);
+		return this;
+	}
+
 	public User setLastIPAddress(String value) {
 		set(LAST_IP_ADDRESS, value);
 		return this;
@@ -242,7 +255,8 @@ public class User extends RecordWrapper {
 	}
 
 	public boolean hasCollectionReadAccess() {
-		return getBooleanWithDefaultValue(COLLECTION_READ_ACCESS, false);
+		Boolean value = get(COLLECTION_READ_ACCESS, DIRECT_GET_FROM_DTO, RARELY_HAS_VALUE);
+		return value == null ? false : value;
 	}
 
 	public User setCollectionReadAccess(boolean access) {
@@ -251,7 +265,8 @@ public class User extends RecordWrapper {
 	}
 
 	public boolean hasCollectionWriteAccess() {
-		return getBooleanWithDefaultValue(COLLECTION_WRITE_ACCESS, false);
+		Boolean value = get(COLLECTION_WRITE_ACCESS, DIRECT_GET_FROM_DTO, RARELY_HAS_VALUE);
+		return value == null ? false : value;
 	}
 
 	public User setCollectionWriteAccess(boolean access) {
@@ -260,7 +275,8 @@ public class User extends RecordWrapper {
 	}
 
 	public boolean hasCollectionDeleteAccess() {
-		return getBooleanWithDefaultValue(COLLECTION_DELETE_ACCESS, false);
+		Boolean value = get(COLLECTION_DELETE_ACCESS, DIRECT_GET_FROM_DTO, RARELY_HAS_VALUE);
+		return value == null ? false : value;
 	}
 
 	public User setCollectionDeleteAccess(boolean access) {
@@ -361,6 +377,12 @@ public class User extends RecordWrapper {
 	}
 
 	public UserCredentialStatus getStatus() {
+		RecordDTO recordDTO = wrappedRecord.getRecordDTO();
+		if (recordDTO != null) {
+			return UserCredentialStatus.fastConvert((String) recordDTO.getFields().get("status_s"));
+
+		}
+
 		return get(STATUS);
 	}
 

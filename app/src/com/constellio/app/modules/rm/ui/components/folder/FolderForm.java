@@ -1,12 +1,13 @@
 package com.constellio.app.modules.rm.ui.components.folder;
 
-import java.io.Serializable;
-import java.util.List;
-
 import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.vaadin.ui.Field;
+import com.vaadin.ui.Layout;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * Implemented:
@@ -47,4 +48,6 @@ public interface FolderForm extends Serializable {
 	List<Field<?>> getFields();
 
 	Field getExtraField(String key);
+
+	Layout getFieldLayout(Field<?> field);
 }

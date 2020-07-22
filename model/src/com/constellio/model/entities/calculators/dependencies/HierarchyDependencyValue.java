@@ -2,6 +2,7 @@ package com.constellio.model.entities.calculators.dependencies;
 
 import com.constellio.model.entities.Taxonomy;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,17 +13,24 @@ public class HierarchyDependencyValue {
 
 	private Taxonomy taxonomy;
 
-	private List<String> paths;
-	private List<String> removedAuthorizationIds;
-	private List<String> attachedAncestors;
+	private List<String> paths = new ArrayList<>();
+	private List<String> removedAuthorizationIds = new ArrayList<>();
+	private List<String> attachedAncestors = new ArrayList<>();
 
-	public HierarchyDependencyValue(Taxonomy taxonomy, List<String> paths,
-									List<String> removedAuthorizationIds,
-									List<String> attachedAncestors) {
+	//private List<Integer> attachedPrincipalConceptsIntIds = new ArrayList<>();
+	private List<Integer> attachedPrincipalConceptsIntIdsFromParent = new ArrayList<>();
+
+	private List<Integer> principalAncestorsIntIds = new ArrayList<>();
+	private List<Integer> principalAncestorsIntIdsFromParent = new ArrayList<>();
+
+	private List<Integer> principalConceptsIntIds = new ArrayList<>();
+	private List<Integer> principalConceptsIntIdsFromParent = new ArrayList<>();
+
+	private List<Integer> secondaryConceptsIntIds = new ArrayList<>();
+	private List<Integer> secondaryConceptsIntIdsFromParent = new ArrayList<>();
+
+	public HierarchyDependencyValue(Taxonomy taxonomy) {
 		this.taxonomy = taxonomy;
-		this.paths = paths;
-		this.removedAuthorizationIds = removedAuthorizationIds;
-		this.attachedAncestors = attachedAncestors;
 	}
 
 	public Taxonomy getTaxonomy() {
@@ -39,5 +47,33 @@ public class HierarchyDependencyValue {
 
 	public List<String> getAttachedAncestors() {
 		return attachedAncestors;
+	}
+
+	public List<Integer> getAttachedPrincipalConceptsIntIdsFromParent() {
+		return attachedPrincipalConceptsIntIdsFromParent;
+	}
+
+	public List<Integer> getPrincipalAncestorsIntIds() {
+		return principalAncestorsIntIds;
+	}
+
+	public List<Integer> getPrincipalAncestorsIntIdsFromParent() {
+		return principalAncestorsIntIdsFromParent;
+	}
+
+	public List<Integer> getPrincipalConceptsIntIds() {
+		return principalConceptsIntIds;
+	}
+
+	public List<Integer> getPrincipalConceptsIntIdsFromParent() {
+		return principalConceptsIntIdsFromParent;
+	}
+
+	public List<Integer> getSecondaryConceptsIntIds() {
+		return secondaryConceptsIntIds;
+	}
+
+	public List<Integer> getSecondaryConceptsIntIdsFromParent() {
+		return secondaryConceptsIntIdsFromParent;
 	}
 }

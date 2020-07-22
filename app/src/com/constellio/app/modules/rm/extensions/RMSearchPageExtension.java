@@ -55,7 +55,7 @@ public class RMSearchPageExtension extends SearchPageExtension {
 
 	@Override
 	public SearchResultDisplay getCustomResultDisplayFor(GetCustomResultDisplayParam param) {
-		if (param.getSchemaType().equals(Document.SCHEMA_TYPE)) {
+		if (param.getSchemaType() != null && param.getSchemaType().equals(Document.SCHEMA_TYPE)) {
 			ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 			return new DocumentSearchResultDisplay(param.getSearchResultVO(), param.getComponentFactory(), appLayerFactory, param.getQuery(), configs.isNoLinksInSearchResults());
 		}

@@ -34,9 +34,9 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.records.RecordHierarchyServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserPhotosServices;
 import org.apache.commons.io.IOUtils;
@@ -73,7 +73,7 @@ public class CollectionInfosSIPWriter {
 	MetadataSchemaTypes types;
 	Language language;
 	SearchServices searchServices;
-	ConceptNodesTaxonomySearchServices taxonomySearchServices;
+	RecordHierarchyServices recordHierarchyServices;
 	TaxonomiesManager taxonomiesManager;
 	ConfigManager configManager;
 	IOServices ioServices;
@@ -97,7 +97,7 @@ public class CollectionInfosSIPWriter {
 		this.language = Language.withLocale(locale);
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		this.taxonomiesManager = appLayerFactory.getModelLayerFactory().getTaxonomiesManager();
-		this.taxonomySearchServices = new ConceptNodesTaxonomySearchServices(appLayerFactory.getModelLayerFactory());
+		this.recordHierarchyServices = new RecordHierarchyServices(appLayerFactory.getModelLayerFactory());
 		this.configManager = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getConfigManager();
 		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
 		this.progressInfo = progressInfo;

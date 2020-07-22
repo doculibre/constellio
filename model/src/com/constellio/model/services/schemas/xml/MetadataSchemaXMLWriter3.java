@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class MetadataSchemaXMLWriter3 {
 
@@ -267,6 +268,9 @@ public class MetadataSchemaXMLWriter3 {
 		if (metadata.isEssentialInSummary()) {
 			metadataElement.setAttribute("essentialInSummary", writeBoolean(metadata.isEssentialInSummary()));
 		}
+		if (metadata.isAvailableInSummary()) {
+			metadataElement.setAttribute("availableInSummary", writeBoolean(metadata.isAvailableInSummary()));
+		}
 		if (metadata.isIncreasedDependencyLevel()) {
 			metadataElement.setAttribute("increasedDependencyLevel", writeBoolean(metadata.isIncreasedDependencyLevel()));
 		}
@@ -281,6 +285,12 @@ public class MetadataSchemaXMLWriter3 {
 		}
 		if (metadata.isTaxonomyRelationship()) {
 			metadataElement.setAttribute("taxonomyRelationship", writeBoolean(metadata.isTaxonomyRelationship()));
+		}
+		if (metadata.getMaxLength() != null) {
+			metadataElement.setAttribute("maxLength", metadata.getMaxLength().toString());
+		}
+		if (metadata.getMeasurementUnit() != null) {
+			metadataElement.setAttribute("measurementUnit", metadata.getMeasurementUnit());
 		}
 		if (metadata.isRelationshipProvidingSecurity()) {
 			metadataElement.setAttribute("providingSecurity", writeBoolean(metadata.isRelationshipProvidingSecurity()));
@@ -320,7 +330,7 @@ public class MetadataSchemaXMLWriter3 {
 			utils.toElement(metadata.getDefaultValue(), metadataElement, "defaultValue");
 		}
 		if (!metadata.inheritDefaultSchema()) {
-			Element dataEntryElement = toDataEntryElement(metadata.getDataEntry());
+			Element dataEntryElement = toDataEntryElement(metadata.getDataEntry(), false);
 			if (dataEntryElement != null) {
 				metadataElement.addContent(dataEntryElement);
 			}
@@ -410,6 +420,10 @@ public class MetadataSchemaXMLWriter3 {
 			metadataElement.setAttribute("essentialInSummary", writeBoolean(metadata.isEssentialInSummary()));
 			different = true;
 		}
+		if (globalMetadataInCollection.isAvailableInSummary() != metadata.isAvailableInSummary()) {
+			metadataElement.setAttribute("availableInSummary", writeBoolean(metadata.isAvailableInSummary()));
+			different = true;
+		}
 		if (globalMetadataInCollection.isIncreasedDependencyLevel() != metadata.isIncreasedDependencyLevel()) {
 			metadataElement.setAttribute("increasedDependencyLevel", writeBoolean(metadata.isIncreasedDependencyLevel()));
 			different = true;
@@ -429,6 +443,16 @@ public class MetadataSchemaXMLWriter3 {
 		}
 		if (globalMetadataInCollection.isTaxonomyRelationship() != metadata.isTaxonomyRelationship()) {
 			metadataElement.setAttribute("taxonomyRelationship", writeBoolean(metadata.isTaxonomyRelationship()));
+			different = true;
+		}
+		if (metadata.getMaxLength() != null
+			&& !Objects.equals(globalMetadataInCollection.getMaxLength(), metadata.getMaxLength())) {
+			metadataElement.setAttribute("maxLength", metadata.getMaxLength().toString());
+			different = true;
+		}
+		if (metadata.getMeasurementUnit() != null
+			&& !Objects.equals(globalMetadataInCollection.getMeasurementUnit(), metadata.getMeasurementUnit())) {
+			metadataElement.setAttribute("measurementUnit", metadata.getMeasurementUnit());
 			different = true;
 		}
 		if (globalMetadataInCollection.isUniqueValue() != metadata.isUniqueValue()) {
@@ -479,7 +503,7 @@ public class MetadataSchemaXMLWriter3 {
 			different = true;
 		}
 		if (!metadata.getDataEntry().equals(globalMetadataInCollection.getDataEntry())) {
-			Element dataEntryElement = toDataEntryElement(metadata.getDataEntry());
+			Element dataEntryElement = toDataEntryElement(metadata.getDataEntry(), true);
 			if (dataEntryElement != null) {
 				metadataElement.addContent(dataEntryElement);
 				different = true;
@@ -684,8 +708,8 @@ public class MetadataSchemaXMLWriter3 {
 		return stringBuffer.toString();
 	}
 
-	private Element toDataEntryElement(DataEntry dataEntryValue) {
-		if (dataEntryValue.getType() == DataEntryType.MANUAL) {
+	private Element toDataEntryElement(DataEntry dataEntryValue, boolean useElementIfManual) {
+		if (dataEntryValue.getType() == DataEntryType.MANUAL && !useElementIfManual) {
 			return null;
 		}
 		Element dataEntry = new Element("dataEntry");
@@ -733,6 +757,8 @@ public class MetadataSchemaXMLWriter3 {
 			if (agregatedDataEntry.getAggregatedCalculator() != null) {
 				dataEntry.setAttribute("aggregatedCalculator", agregatedDataEntry.getAggregatedCalculator().getName());
 			}
+		} else if (dataEntryValue.getType() == DataEntryType.MANUAL) {
+			dataEntry.setText("manual");
 		}
 
 		return dataEntry;

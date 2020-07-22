@@ -10,6 +10,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.RecordVOFilter;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.dao.services.Stats;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -32,8 +33,9 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("serial")
-public class RecordVOLazyContainer extends LazyQueryContainer implements RecordVOContainer {
+public class RecordVOLazyContainer extends LazyQueryContainer implements RecordVOContainer, LastQTime {
 
+	private String statName;
 	private List<RecordVODataProvider> dataProviders;
 
 	public RecordVOLazyContainer(RecordVODataProvider dataProvider, boolean isOnlyTableMetadatasShown) {
@@ -57,6 +59,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements RecordV
 		super(new RecordVOLazyQueryDefinition(dataProviders, isOnlyTableMetadatasShown, batchSize),
 				new RecordVOLazyQueryFactory(dataProviders));
 		this.dataProviders = dataProviders;
+		this.statName = Stats.getCurrentName();
 		for (RecordVODataProvider dataProvider : dataProviders) {
 			dataProvider.setBatchSize(batchSize);
 		}
@@ -72,9 +75,11 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements RecordV
 
 	@Override
 	public void forceRefresh() {
-		for (RecordVODataProvider dataProvider : dataProviders) {
-			dataProvider.fireDataRefreshEvent();
-		}
+		Stats.compilerFor(statName).log(() -> {
+			for (RecordVODataProvider dataProvider : dataProviders) {
+				dataProvider.fireDataRefreshEvent();
+			}
+		});
 	}
 
 	public List<RecordVODataProvider> getDataProviders() {
@@ -122,10 +127,12 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements RecordV
 
 	@Override
 	public RecordVO getRecordVO(Object itemId) {
-		Integer index = (Integer) itemId;
-		RecordVODataProviderAndRecordIndex dataProviderAndRecordIndex = forRecordIndex(dataProviders, index);
-		int recordIndexForDataProvider = dataProviderAndRecordIndex.recordIndex;
-		return dataProviderAndRecordIndex.dataProvider.getRecordVO(recordIndexForDataProvider);
+		return Stats.compilerFor(statName).log(() -> {
+			Integer index = (Integer) itemId;
+			RecordVODataProviderAndRecordIndex dataProviderAndRecordIndex = forRecordIndex(dataProviders, index);
+			int recordIndexForDataProvider = dataProviderAndRecordIndex.recordIndex;
+			return dataProviderAndRecordIndex.dataProvider.getRecordVO(recordIndexForDataProvider);
+		});
 	}
 
 	public double getLastCallQTime() {
@@ -223,7 +230,17 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements RecordV
 							if (schemaVOTableMetadataVOs.contains(metadataVO)) {
 								tablePropertyMetadataVOs.add(metadataVO);
 							} else {
-								extraPropertyMetadataVOs.add(metadataVO);
+								if (modelLayerFactory.getSystemConfigs().isOnlySummaryMetadatasDisplayedInTables()
+									&& metadataVO.getSchema().getCacheType() != null
+									&& metadataVO.getSchema().getCacheType().isSummaryCache()) {
+
+									if (metadataVO.isSummaryMetadata()) {
+										extraPropertyMetadataVOs.add(metadataVO);
+									}
+
+								} else {
+									extraPropertyMetadataVOs.add(metadataVO);
+								}
 							}
 						}
 					}

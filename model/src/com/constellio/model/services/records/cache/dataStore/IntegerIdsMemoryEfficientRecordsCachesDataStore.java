@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.cache.dataStore;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.CacheStat;
@@ -11,9 +12,9 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
+import com.constellio.model.services.records.cache.PersistedSortValuesServices.SortValue;
 import com.constellio.model.services.records.cache.locks.SimpleReadLockMechanism;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapByteArrayList2;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapByteList;
@@ -32,6 +33,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 import static com.constellio.model.entities.schemas.MetadataSchemaTypes.LIMIT_OF_TYPES_IN_COLLECTION;
@@ -45,6 +48,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 	//Level 0 : Collection id (max 256 values)
 	//Level 1 : Type id (max 1000 values)
 	OffHeapIntList ids = new OffHeapIntList();
+	OffHeapIntList mainSortValues = new OffHeapIntList();
 	OffHeapLongList versions = new OffHeapLongList();
 	OffHeapShortList schema = new OffHeapShortList();
 	OffHeapShortList type = new OffHeapShortList();
@@ -68,6 +72,26 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.tenantId = modelLayerFactory.getInstanceId();
+	}
+
+	public ModelLayerFactory getModelLayerFactory() {
+		return modelLayerFactory;
+	}
+
+	public CollectionsListManager getCollectionsListManager() {
+		return collectionsListManager;
+	}
+
+	public MetadataSchemasManager getSchemasManager() {
+		return schemasManager;
+	}
+
+	public SimpleReadLockMechanism getMechanism() {
+		return mechanism;
+	}
+
+	public short getTenantId() {
+		return tenantId;
 	}
 
 	private byte collectionId(String collectionCode) {
@@ -154,6 +178,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		//Important to set the schema first, since it is the first read
 		schema.set(index, (short) 0);
 		versions.set(index, 0L);
+		mainSortValues.set(index, 0);
 		collection.set(index, (byte) 0);
 		type.set(index, (short) 0);
 		int collectionIndex = collectionId - Byte.MIN_VALUE;
@@ -229,6 +254,9 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 				fullyCachedData.add(null);
 			}
 			fullyCachedData.set(index, dto);
+		}
+		if (dto.getMainSortValue() != RecordDTO.MAIN_SORT_UNCHANGED) {
+			mainSortValues.set(index, dto.getMainSortValue());
 		}
 		versions.set(index, dto.getVersion());
 		collection.set(index, collectionId);
@@ -310,6 +338,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 			LOGGER.info("insert at index : " + insertAtIndex);
 
 			ids.insertValueShiftingAllFollowingValues(insertAtIndex, id);
+			mainSortValues.insertValueShiftingAllFollowingValues(insertAtIndex, 0);
 			versions.insertValueShiftingAllFollowingValues(insertAtIndex, 0);
 			schema.insertValueShiftingAllFollowingValues(insertAtIndex, (short) 0);
 			type.insertValueShiftingAllFollowingValues(insertAtIndex, (short) 0);
@@ -352,6 +381,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		type.set(index, (short) 0);
 		collection.set(index, (byte) 0);
 		versions.set(index, (short) 0);
+		mainSortValues.set(index, (short) 0);
 
 		if (!fullyCached) {
 			summaryCachedData.set(index, null);
@@ -468,14 +498,21 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		byte[] data = summaryCachedData.get(listIndex);
 		if (data != null) {
 			long version = versions.get(listIndex);
+			int titleSortValue = this.mainSortValues.get(listIndex);
 			MetadataSchemaType type = schemasManager.get(collectionId, typeId);
 			MetadataSchema schema = type.getSchema(schemaId);
 
 			return new ByteArrayRecordDTOWithIntegerId(id, modelLayerFactory.getMetadataSchemasManager(), version, true,
-					tenantId, schema.getCollection(), collectionId, type.getCode(), typeId, schema.getCode(), schemaId, data);
+					tenantId, schema.getCollection(), collectionId, type.getCode(), typeId, schema.getCode(), schemaId,
+					data, titleSortValue);
 
 		} else {
-			return fullyCachedData.get(listIndex);
+			int titleSortValue = this.mainSortValues.get(listIndex);
+			RecordDTO recordDTO = fullyCachedData.get(listIndex);
+			if (titleSortValue != RecordDTO.MAIN_SORT_UNDEFINED && recordDTO instanceof SolrRecordDTO) {
+				return ((SolrRecordDTO) recordDTO).withMainSortValue(titleSortValue);
+			}
+			return recordDTO;
 		}
 
 	}
@@ -633,6 +670,42 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		};
 	}
 
+	List<RecordDTO> list(byte collectionId, short typeId) {
+
+		int collectionIndex = collectionId - Byte.MIN_VALUE;
+
+		if (typesIndexes[collectionIndex] == null) {
+			return Collections.emptyList();
+		}
+
+		IntArrayList typeIndexes = typesIndexes[collectionIndex][typeId];
+
+		if (typeIndexes == null) {
+			return Collections.emptyList();
+		}
+
+		mechanism.obtainSchemaTypeReadingPermit(collectionId, typeId);
+
+		try {
+			List<RecordDTO> values = new ArrayList<>(typeIndexes.size());
+			for (int i = 0; i < typeIndexes.size(); i++) {
+
+				int index = typeIndexes.get(i);
+				if (index != -1) {
+					RecordDTO dto = getUnknownIdAtIndex(collectionId, typeId, index);
+					if (dto != null) {
+						values.add(dto);
+					}
+				}
+
+			}
+			return values;
+
+		} finally {
+			mechanism.releaseSchemaTypeReadingPermit(collectionId, typeId);
+		}
+	}
+
 
 	Iterator<RecordDTO> iterator(boolean autoClosedIterator, byte collectionId, short typeId) {
 
@@ -726,6 +799,9 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 			this.versions.clear();
 			this.versions = null;
 
+			this.mainSortValues.clear();
+			this.mainSortValues = null;
+
 			this.schema.clear();
 			this.schema = null;
 
@@ -751,6 +827,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 			//OffHeapIntList ids = new OffHeapIntList();
 			stats.add(new CacheStat("datastore.ids", ids.getHeapConsumption(), ids.getOffHeapConsumption()));
 			stats.add(new CacheStat("datastore.versions", versions.getHeapConsumption(), versions.getOffHeapConsumption()));
+			stats.add(new CacheStat("datastore.mainSortValues", mainSortValues.getHeapConsumption(), mainSortValues.getOffHeapConsumption()));
 			stats.add(new CacheStat("datastore.schemas", schema.getHeapConsumption(), schema.getOffHeapConsumption()));
 			stats.add(new CacheStat("datastore.types", type.getHeapConsumption(), type.getOffHeapConsumption()));
 			stats.add(new CacheStat("datastore.collection", collection.getHeapConsumption(), collection.getOffHeapConsumption()));
@@ -819,6 +896,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 				for (RecordId recordId : ids) {
 					this.ids.set(index, recordId.intValue());
 					this.versions.set(index, 0);
+					this.mainSortValues.set(index, 0);
 					this.collection.set(index, (byte) 0);
 					this.type.set(index, (short) 0);
 					this.schema.set(index, (short) 0);
@@ -832,4 +910,78 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		}
 		LOGGER.info("finished structuring cache using id iterator");
 	}
+
+	public void setRecordsMainSortValue(List<?> recordIds) {
+		mechanism.obtainSystemWideWritingPermit();
+		try {
+			synchronized (this) {
+				for (int i = 0; i < recordIds.size(); i++) {
+					Object o = recordIds.get(i);
+					RecordId recordId = (o instanceof RecordId) ? (RecordId) o : ((Supplier<RecordId>) o).get();
+					if (recordId.isInteger()) {
+						int index = ids.binarySearch(recordId.intValue());
+						if (index != -1) {
+							mainSortValues.set(index, i * 2 + 1);
+						}
+					}
+				}
+			}
+		} finally {
+			mechanism.releaseSystemWideWritingPermit();
+		}
+	}
+
+	public void setRecordsMainSortValueComparingValues(List<SortValue> sortValues,
+													   ToIntFunction<RecordDTO> valueHascodeFunction) {
+
+		List<RecordId> unchangedRecordIds = new ArrayList<>(sortValues.size());
+
+		for (int i = 0; i < sortValues.size(); i++) {
+
+			SortValue sortValue = sortValues.get(i);
+			RecordId recordId = sortValue.recordId();
+			if (i % 10000 == 0) {
+				LOGGER.info("Updating records sort values while comparing with current values : " + i + " / " + mainSortValues.size());
+			}
+			if (recordId.isInteger()) {
+
+				RecordDTO recordDTO = null;
+				try {
+					mechanism.obtainSystemWideReadingPermit();
+					int index = ids.binarySearch(recordId.intValue());
+
+					if (index != -1) {
+						recordDTO = get(recordId.intValue(), index);
+					}
+				} finally {
+					mechanism.releaseSystemWideReadingPermit();
+				}
+
+				if (recordDTO != null) {
+					if (sortValue.valueHash() == valueHascodeFunction.applyAsInt(recordDTO)) {
+						unchangedRecordIds.add(recordId);
+					}
+				}
+			}
+
+		}
+		LOGGER.info("Updating records sort values while comparing : finished");
+
+		setRecordsMainSortValue(unchangedRecordIds);
+	}
+
+
+	public int getMainSortValue(RecordId recordId) {
+		mechanism.obtainSystemWideReadingPermit();
+		try {
+
+			int index = ids.binarySearch(recordId.intValue());
+			return mainSortValues.get(index);
+
+		} finally {
+			mechanism.releaseSystemWideReadingPermit();
+		}
+	}
+
+
 }

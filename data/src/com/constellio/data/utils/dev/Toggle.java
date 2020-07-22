@@ -9,6 +9,12 @@ import java.util.List;
 import java.util.Map;
 
 public class Toggle {
+	public static AvailableToggle PUBLIC_TOKENS = newToggle(false);
+
+	public static AvailableToggle TEMP_FRANCIS = newToggle(true);
+
+
+	public static AvailableToggle EXPORT_SAVESTATES_USING_WITH_FAILSAFE = newToggle(true);
 
 	public static AvailableToggle SDK_CACHE_INTEGRITY_VALIDATION = newToggle(false);
 	public static AvailableToggle SDK_REQUEST_CACHE_VALIDATION = newToggle();
@@ -30,6 +36,8 @@ public class Toggle {
 
 	public static AvailableToggle LOG_REQUEST_CACHE = newToggle(false);
 	public static AvailableToggle TEST_REQUEST_CACHE = newToggle(false);
+
+	public static AvailableToggle RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS = newToggle(true);
 
 	public static AvailableToggle FASTER_REINDEXING = newToggle(false);
 
@@ -77,7 +85,7 @@ public class Toggle {
 	public static AvailableToggle USE_ONLY_SUMMARY_SOLR_RECORD_DTO = newToggle(false);
 
 	//Debug the dtos!
-	public static AvailableToggle VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION = newToggle(true);
+	public static AvailableToggle VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION = newToggle(false);
 	public static AvailableToggle DEBUG_DTOS = newToggle(false);
 
 	public static AvailableToggle MIGRATING_LEGACY_SAVESTATE = newToggle(false);
@@ -92,17 +100,43 @@ public class Toggle {
 
 	public static AvailableToggle OFF_HEAP_ADDRESS_VALIDATOR = newToggle(false);
 
-	public static AvailableToggle NO_TAXONOMIES_CACHE_INVALIDATION = newToggle(false);
+	public static AvailableToggle NO_TAXONOMIES_CACHE_INVALIDATION = newToggle(true);
 
 	public static AvailableToggle PERFORMANCE_TESTING = newToggle(false);
 
+	public static AvailableToggle CONTENT_CONVERSION = newToggle(true);
+
 	public static AvailableToggle OLD_DELETE_UNUSED_CONTENT_METHOD = newToggle(false);
 
-	public static AvailableToggle TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER = newToggle(false);
+	public static AvailableToggle TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER = newToggle(true);
+	public static AvailableToggle FORCE_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER = newToggle(false);
+
+	public static AvailableToggle DEBUG_TAXONOMY_RECORDS_HOOK = newToggle(false);
+
+	public static AvailableToggle DETACHABLE_RECORDS = newToggle(true);
+
+	public static AvailableToggle DEBUG_SOLR_TIMINGS = newToggle(false);
 
 	public static AvailableToggle STRUCTURE_CACHE_BASED_ON_EXISTING_IDS = newToggle(true);
+	public static AvailableToggle STRUCTURE_CACHE_BASED_ON_EXISTING_IDS_ON_DEV_STATION = newToggle(false);
+
+	public static AvailableToggle ENABLE_PDFTRON_TRIAL = newToggle(false);
+
+	public static AvailableToggle USE_MEMORY_STRING_ID_MAPPING = newToggle(false);
+	public static AvailableToggle DOCUMENT_RETENTION_RULES = newToggle(false);
+
+	public static AvailableToggle COUNT_CACHE_FILESYSTEM_METADATA_USAGE = newToggle(false);
+
+	public static AvailableToggle TIFF_VIEWER = newToggle(false);
+	public static AvailableToggle SDK_PANEL_LOG_CALLS = newToggle(false);
 
 	public static AvailableToggle IGNORE_CONFIGS_WHEN_SYNCHRONIZING_AZURE_RELATED_USERS_AND_GROUPS = newToggle(false);
+
+	public static AvailableToggle ENABLE_OFFICE365_EXCLUSIVE = newToggle(false);
+
+	public static AvailableToggle ENABLE_SIGNATURE = newToggle(false);
+
+
 
 	// ------------------------------------------------
 

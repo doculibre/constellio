@@ -5,8 +5,6 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
-import com.constellio.app.modules.rm.ui.components.content.DocumentContentVersionWindowImpl;
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
@@ -52,10 +50,12 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.base.NavigationParams;
 import com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.AuthorizationSource;
 import com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.Authorizations;
 import com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.EditAuthorizationButton;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
+import com.constellio.data.dao.services.Stats;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.data.Container;
@@ -90,6 +90,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.sliderpanel.client.SliderPanelListener;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -104,19 +105,19 @@ import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_FOL
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.DisplayMode.PRINCIPALS;
 
-public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler, BrowserWindowResizeListener {
+public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler, BrowserWindowResizeListener, NavigationParams {
 
 	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
 
 	public static final String STYLE_NAME = "display-folder";
 
 	public static final String USER_LOOKUP = "user-lookup";
-	private RecordVO recordVO;
+	private RecordVO summaryRecordVO;
 	private String taxonomyCode;
 	private VerticalLayout mainLayout;
 	private ContentVersionUploadField uploadField;
 	private TabSheet tabSheet;
-	private RecordDisplay recordDisplay;
+	private Component recordDisplay;
 	private FacetsSliderPanel facetsSliderPanel;
 	private Component folderContentComponent;
 	private ViewableRecordVOTablePanel viewerPanel;
@@ -126,6 +127,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private DisplayFolderPresenter presenter;
 	private RMModuleExtensions rmModuleExtensions;
 	private boolean dragNDropAllowed;
+	private boolean dragRowsEnabled;
 	private Button displayFolderButton, editFolderButton, addDocumentButton;
 	private Label borrowedLabel;
 	private StringAutocompleteField<String> searchField;
@@ -144,6 +146,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private RecordVODataProvider sharesDataProvider;
 
 	private FacetsPanel facetsPanel;
+	private boolean facetsPanelLoaded;
 
 	private boolean nestedView;
 
@@ -158,7 +161,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	public DisplayFolderViewImpl(RecordVO recordVO, boolean nestedView, boolean inWindow) {
 		this.nestedView = nestedView;
 		this.inWindow = inWindow;
-		presenter = new DisplayFolderPresenter(this, recordVO, nestedView, inWindow);
+
+		presenter = Stats.compilerFor(getClass().getSimpleName()).log(() -> {
+			return new DisplayFolderPresenter(this, recordVO, nestedView, inWindow);
+		});
 		rmModuleExtensions = getConstellioFactories().getAppLayerFactory()
 				.getExtensions().forCollection(getCollection()).forModule(ConstellioRMModule.ID);
 	}
@@ -192,13 +198,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
-	public RecordVO getRecord() {
-		return recordVO;
+	public RecordVO getSummaryRecord() {
+		return summaryRecordVO;
 	}
 
 	@Override
-	public void setRecord(RecordVO recordVO) {
-		this.recordVO = recordVO;
+	public void setSummaryRecord(RecordVO recordVO) {
+		this.summaryRecordVO = recordVO;
 	}
 
 	@Override
@@ -213,7 +219,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 
-		uploadField = new ContentVersionUploadField() {
+		uploadField = new ContentVersionUploadField(null, null) {
 			@Override
 			public boolean fireValueChangeWhenEqual() {
 				return true;
@@ -237,7 +243,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			}
 		});
 
-		recordDisplay = new RecordDisplay(recordVO, new RMMetadataDisplayFactory(), Toggle.SEARCH_RESULTS_VIEWER.isEnabled());
+		recordDisplay = new RecordDisplay(presenter.getRecordVOForDisplay(), new RMMetadataDisplayFactory(), Toggle.SEARCH_RESULTS_VIEWER.isEnabled());
 		folderContentComponent = new CustomComponent();
 		tasksComponent = new CustomComponent();
 		sharesComponent = new CustomComponent();
@@ -297,7 +303,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		contentAndFacetsLayout.setExpandRatio(tabSheet, 1);
 
 		mainLayout.addComponents(borrowedLabel, uploadField, contentAndFacetsLayout);
-		presenter.selectInitialTabForUser();
 		return mainLayout;
 	}
 
@@ -379,7 +384,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		}};
 
 		excludedActionTypes.addAll(rmModuleExtensions.getFilteredActionsForFolders());
-		return new RecordVOActionButtonFactory(recordVO, excludedActionTypes).build();
+		return new RecordVOActionButtonFactory(summaryRecordVO, excludedActionTypes).build();
 	}
 
 	@Override
@@ -409,12 +414,24 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
+	public RecordVODataProvider getFolderContentDataProvider() {
+		return folderContentDataProvider;
+	}
+
+	@Override
 	public void setFolderContent(RecordVODataProvider dataProvider) {
 		this.folderContentDataProvider = dataProvider;
 	}
 
 	@Override
 	public void selectMetadataTab() {
+
+		if (!(recordDisplay instanceof RecordDisplay)) {
+			RecordDisplay newRecordDisplay = new RecordDisplay(presenter.getLazyFullFolderVO(), new RMMetadataDisplayFactory());
+			tabSheet.replaceComponent(recordDisplay, newRecordDisplay);
+			recordDisplay = newRecordDisplay;
+		}
+
 		tabSheet.setSelectedTab(recordDisplay);
 	}
 
@@ -459,7 +476,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					presenter.facetClosed(id);
 				}
 			};
-			refreshFacets(folderContentDataProvider);
 
 			viewerPanel = new ViewableRecordVOTablePanel(recordVOContainer) {
 				@Override
@@ -468,7 +484,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 
 				@Override
-				protected boolean isNested() {
+				public boolean isNested() {
 					return nestedView;
 				}
 
@@ -476,6 +492,24 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				public void setQuickActionButtonsVisible(boolean visible) {
 					super.setQuickActionButtonsVisible(visible);
 					DisplayFolderViewImpl.this.setQuickActionButtonsVisible(visible);
+				}
+
+				@Override
+				public boolean isDropSupported() {
+					return dragNDropAllowed;
+				}
+
+				@Override
+				public boolean isRowDragSupported() {
+					return !isNested() && dragRowsEnabled;
+				}
+
+				@Override
+				protected void recordsDroppedOn(List<RecordVO> sourceRecordVOs, RecordVO targetRecordVO,
+												Boolean above) {
+					if (dragNDropAllowed) {
+						presenter.recordsDroppedOn(sourceRecordVOs, targetRecordVO);
+					}
 				}
 
 				@Override
@@ -548,6 +582,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					contentAndFacetsLayout.removeComponent(facetsSliderPanel);
 				}
 				facetsSliderPanel = new FacetsSliderPanel(facetsPanel);
+				facetsSliderPanel.addListener((SliderPanelListener) expand -> {
+					if (expand && !facetsPanelLoaded) {
+						refreshFacets(folderContentDataProvider);
+						facetsPanelLoaded = true;
+					}
+				});
 				contentAndFacetsLayout.addComponent(facetsSliderPanel);
 			}
 
@@ -691,7 +731,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 						protected String toColumnId(Object propertyId) {
 							if (propertyId instanceof MetadataVO) {
 								if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
-									setColumnHeader(propertyId, "");
+									setColumnHeader(propertyId, " ");
 									setColumnWidth(propertyId, 60);
 								}
 							}
@@ -805,11 +845,17 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	//}
 
 	@Override
+	public void setDragRowsEnabled(boolean enabled) {
+		this.dragRowsEnabled = enabled;
+	}
+
+	@Override
 	public void drop(DragAndDropEvent event) {
 		if (dragNDropAllowed) {
 			uploadField.drop(event);
 		}
 	}
+
 	@Override
 	public void showVersionUpdateWindow(final RecordVO recordVO, ContentVersionVO contentVersionVO) {
 		final Map<RecordVO, MetadataVO> record = new HashMap<>();
@@ -843,12 +889,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		}
 	}
 
-	@Override
-	public void openDocumentContentVersiontWindow(DocumentVO documentVO, ContentVersionVO contentVersionVO) {
-		documentVersionWindow
-				.setContent(new DocumentContentVersionWindowImpl(documentVO, contentVersionVO, presenter.getParams()));
-		UI.getCurrent().addWindow(documentVersionWindow);
-	}
 
 	@Override
 	public void closeDocumentContentVersionWindow() {
@@ -868,6 +908,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);
 		Page.getCurrent().open(downloadedResource, null, false);
 	}
+
 	@Override
 	public void setTaxonomyCode(String taxonomyCode) {
 		this.taxonomyCode = taxonomyCode;
@@ -902,13 +943,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void refreshFolderContentAndFacets() {
-
 	}
 
 	@Override
 	public void refreshFolderContent() {
 	}
-
 
 	//	@Override
 	public void refreshFacets(RecordVODataProvider dataProvider) {
@@ -944,6 +983,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public void browserWindowResized(BrowserWindowResizeEvent event) {
 		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public Map<String, String> getNavigationParams() {
+		return presenter.getParams();
 	}
 
 	@Override
@@ -1012,7 +1056,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					public boolean isVisible() {
 						return super.isVisible() &&
 							   (presenter.getUser().getId().equals(authorization.getSharedBy()) ||
-								presenter.getUser().hasAny(RMPermissionsTo.MANAGE_SHARE, MANAGE_FOLDER_AUTHORIZATIONS).on(getRecord().getRecord()));
+								presenter.getUser().hasAny(RMPermissionsTo.MANAGE_SHARE, MANAGE_FOLDER_AUTHORIZATIONS).on(getSummaryRecord().getRecord()));
 					}
 				};
 				deleteButton.setVisible(inherited || !authorization.isSynched());
@@ -1021,4 +1065,45 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		});
 		return container;
 	}
+
+	@Override
+	public Integer getSelectedFolderContentIndex() {
+		Integer selectedFolderContentIndex;
+		if (viewerPanel != null && viewerPanel.getPanelRecordIndex() != null) {
+			selectedFolderContentIndex = viewerPanel.getPanelRecordIndex();
+		} else {
+			selectedFolderContentIndex = null;
+		}
+		return selectedFolderContentIndex;
+	}
+
+	@Override
+	public RecordVO getSelectedFolderContentRecordVO() {
+		RecordVO selectedFolderContentRecordVO;
+		if (viewerPanel != null && viewerPanel.getPanelRecordVO() != null) {
+			selectedFolderContentRecordVO = viewerPanel.getPanelRecordVO();
+		} else {
+			selectedFolderContentRecordVO = null;
+		}
+		return selectedFolderContentRecordVO;
+	}
+
+	@Override
+	public DisplayFolderView getNestedDisplayFolderView() {
+		DisplayFolderView nestedDisplayFolderView;
+		if (viewerPanel != null && viewerPanel.getPanelContent() instanceof DisplayFolderViewImpl) {
+			nestedDisplayFolderView = (DisplayFolderViewImpl) viewerPanel.getPanelContent();
+		} else {
+			nestedDisplayFolderView = null;
+		}
+		return nestedDisplayFolderView;
+	}
+
+	@Override
+	public void closeViewerPanel() {
+		if (viewerPanel != null) {
+			viewerPanel.closePanel();
+		}
+	}
+	
 }

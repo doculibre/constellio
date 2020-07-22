@@ -9,14 +9,6 @@ import static com.constellio.app.services.factories.ConstellioFactories.getInsta
 
 public class RecordLazyTreeDataProvider extends BaseRecordTreeDataProvider implements LazyTreeDataProvider<String> {
 
-	private String taxonomyCode;
-
-
-	public RecordLazyTreeDataProvider(String taxonomyCode, String collection) {
-		super(getTreeDataProvider(taxonomyCode, collection));
-		this.taxonomyCode = taxonomyCode;
-	}
-
 	public RecordLazyTreeDataProvider(RecordTreeNodesDataProvider nodesDataProvider) {
 		super(nodesDataProvider);
 	}

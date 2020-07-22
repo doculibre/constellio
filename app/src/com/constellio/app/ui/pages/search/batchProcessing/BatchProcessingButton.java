@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -187,7 +188,7 @@ public class BatchProcessingButton extends WindowButton {
 		String originSchema = presenter.getOriginSchema(view.getSchemaType(), selectedType);
 		RecordFieldFactory fieldFactory = newFieldFactory();
 		return new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSchemaType(), view.getSessionContext()),
-				fieldFactory);
+				fieldFactory, ConstellioFactories.getInstance());
 	}
 
 	private RecordFieldFactory newFieldFactory() {
@@ -196,8 +197,9 @@ public class BatchProcessingButton extends WindowButton {
 	}
 
 	public class BatchProcessingForm extends RecordForm {
-		public BatchProcessingForm(RecordVO record, RecordFieldFactory recordFieldFactory) {
-			super(record, recordFieldFactory);
+		public BatchProcessingForm(RecordVO record, RecordFieldFactory recordFieldFactory,
+								   ConstellioFactories constellioFactories) {
+			super(record, recordFieldFactory, constellioFactories);
 
 			buttonsLayout.removeComponent(cancelButton);
 			buttonsLayout.removeComponent(saveButton);

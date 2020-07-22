@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.tasks.TaskConfigs;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.extensions.TaskAddEditTaskPresenterExtension;
@@ -13,6 +14,7 @@ import com.constellio.app.modules.tasks.extensions.api.TaskModuleExtensions;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormParams;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormRetValue;
 import com.constellio.app.modules.tasks.extensions.param.PromptUserParam;
+import com.constellio.app.modules.tasks.model.utils.DateUtils;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
@@ -56,6 +58,7 @@ import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.pages.home.HomeView;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.TimedCache;
@@ -71,6 +74,7 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -81,6 +85,7 @@ import com.vaadin.ui.OptionGroup;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,6 +122,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private ListAddRemoveWorkflowInclusiveDecisionFieldImpl listAddRemoveWorkflowInclusiveDecision;
 	private TaskDecisionField field;
 	private TasksSchemasRecordsServices tasksSchemasRecordsServices;
+	private TaskConfigs taskConfigs;
 	private static Logger LOGGER = LoggerFactory.getLogger(AddEditTaskPresenter.class);
 	List<String> finishedOrClosedStatuses;
 	private RMModuleExtensions rmModuleExtensions;
@@ -142,6 +148,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		finishedOrClosedStatuses = getFinishedOrClosedStatuses();
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		taskConfigs = new TaskConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 	}
 
@@ -294,7 +301,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			}
 
 			if (!task.isModel() && task.getDueDate() == null && task.getRelativeDueDate() != null && task.getAssignedOn() != null) {
-				task.setDueDate(task.getAssignedOn().plusDays(task.getRelativeDueDate()));
+				ConstellioEIMConfigs constellioEIMConfigs = appLayerFactory.getModelLayerFactory().getSystemConfigs();
+				LocalDate dueDate = DateUtils.addWorkingDays(task.getAssignedOn(), task.getRelativeDueDate(), constellioEIMConfigs.getCalendarCountry());
+				task.setDueDate(dueDate);
 			}
 
 			TaskModuleExtensions taskModuleExtensions = appLayerFactory.getExtensions().forCollection(collection)
@@ -362,7 +371,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 
 		if (task.isModel()) {
-			recordUpdateOptions = RecordUpdateOptions.userModificationsSafeOptions();
+			recordUpdateOptions = RecordUpdateOptions.userModificationsSafeOptions().setSkipUserAccessValidation(true);
 		}
 
 		if (withRequiredValidation) {
@@ -397,7 +406,10 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				task.setAssignee(getCurrentUser().getId());
 			}
 
-			task.setDueDate(TimeProvider.getLocalDate());
+			int defaultDueDate = taskConfigs.getDefaultDueDate();
+			if (defaultDueDate > -1) {
+				task.setDueDate(TimeProvider.getLocalDate().plusDays(defaultDueDate));
+			}
 			parentId = paramsMap.get("parentId");
 			task.setParentTask(parentId);
 
@@ -420,8 +432,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 
 		workflowId = paramsMap.get("workflowId");
-		taskVO = new TaskVO(new TaskToVOBuilder()
-				.build(task.getWrappedRecord(), FORM, view.getSessionContext()));
+		taskVO = new TaskToVOBuilder()
+				.build(task.getWrappedRecord(), FORM, view.getSessionContext());
 		isCompletedOrClosedOnInitialization = isCompletedOrClosedStatus(taskVO);
 		view.setRecord(taskVO);
 		if (taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + ASSIGNEE)) {
@@ -495,6 +507,15 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		adjustFollowersField();
 		adjustRequiredUSRMetadatasFields();
 		adjustFieldsForCollaborators();
+		adjustDisabledFields();
+	}
+
+	private void adjustDisabledFields() {
+		if (rmModuleExtensions != null) {
+			for (TaskAddEditTaskPresenterExtension extension : rmModuleExtensions.getTaskAddEditTaskPresenterExtension()) {
+				extension.adjustDisabledFields(view, taskVO);
+			}
+		}
 	}
 
 	private void adjustRequiredUSRMetadatasFields() {
@@ -714,6 +735,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		adjustInclusiveDecisionField();
 		adjustRelativeDueDate();
 		adjustReasonField();
+		adjustDisabledFields();
 		adjustRequiredUSRMetadatasFields();
 		adjustFieldsForCollaborators();
 	}
@@ -878,7 +900,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		List<String> assigneeCandidates = taskVO.get(Task.ASSIGNEE_USERS_CANDIDATES);
 		List<String> userGroups = getCurrentUser().getUserGroups();
 		boolean userIsCandidate = !ListUtils.intersection(assigneeGroupsCandidatesIds, userGroups).isEmpty() || assigneeCandidates.contains(currentUserId);
-		return userIsCandidate || isModel || !isEditMode() || currentUserId.equals(taskVO.get(Task.ASSIGNEE)) || currentUserId.equals(taskVO.get(Task.ASSIGNER));
+		return userIsCandidate || isModel || !isEditMode() || currentUserId.equals(taskVO.get(Task.ASSIGNEE)) || currentUserId.equals(taskVO.get(Task.ASSIGNER)) || currentUserId.equals(taskVO.get(Schemas.CREATED_BY));
 	}
 
 	private boolean currentUserHasWriteAuthorisation() {
@@ -951,5 +973,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private void navigateToPreviousPage() {
 		URI location = ConstellioUI.getCurrent().getPage().getLocation();
 		view.navigate().to(CoreViews.class).navigateTo(location.getPath(), previousPage, false);
+		if (ConstellioUI.getCurrent().getCurrentView() instanceof HomeView) {
+			String previousPageName = previousPage.replace("/", "");
+			view.navigate().to(CoreViews.class).home(previousPageName);
+		}
 	}
 }

@@ -9,6 +9,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
@@ -55,6 +56,8 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 	LoggingServices loggingServices;
 
 	RMSchemasRecordsServices rm;
+	RMSchemasRecordsServices rmSystem;
+
 	private RMTestRecords records = new RMTestRecords(zeCollection);
 
 	RMEventsSearchServices rmEventsSearchServices;
@@ -84,7 +87,9 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 				getModelLayerFactory().getMetadataSchemasManager());
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
+		rmSystem = new RMSchemasRecordsServices(Collection.SYSTEM_COLLECTION, getAppLayerFactory());
+
+		rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), Collection.SYSTEM_COLLECTION);
 		searchServices = getModelLayerFactory().newSearchServices();
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		users.setUp(userServices);
@@ -446,6 +451,26 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		assertThat(events).hasSize(1);
 		Event event = rm.wrapEvent(events.get(0));
 		event.getUsername().contains(alice.getUsername());
+	}
+
+	@Test
+	public void whenLoginAttemptFailsThenGetAttemptData()
+			throws Exception {
+		loggingServices.failingLogin("john_doe", "real.ip.address");
+		recordServices.flush();
+
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(
+				LogicalSearchQueryOperators.from(rmSystem.eventSchema()).where(
+						rm.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.ATTEMPTED_OPEN_SESSION));
+
+		List<Record> events = searchServices.search(query);
+		assertThat(events).hasSize(1);
+		Event event = rmSystem.wrapEvent(events.get(0));
+
+		assertThat(event.getUsername()).isEqualTo("john_doe");
+		assertThat((String) event.get(event.IP)).isEqualTo("real.ip.address");
 	}
 
 	private int getEventSize() {

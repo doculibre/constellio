@@ -1,6 +1,7 @@
 package com.constellio.model.utils;
 
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.batchprocess.JsonSerializable;
 import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.CannotInstanciate;
 import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.NoSuchConstructor;
 import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.UnsupportedArgument;
@@ -113,6 +114,8 @@ public class ParametrizedInstanceUtils {
 			object = LocalDate.parse(value);
 		} else if (EnumWithSmallCode.class.isAssignableFrom(childClass)) { // ENUM CHECK
 			object = EnumWithSmallCodeUtils.toEnum(childClass, value);
+		} else if (JsonSerializable.class.isAssignableFrom(childClass)) {
+			object = JsonSerializable.deserialize(value, childClass);
 		} else {
 			object = childClass.getConstructor(String.class).newInstance(value);
 		}
@@ -196,6 +199,8 @@ public class ParametrizedInstanceUtils {
 
 			if (EnumWithSmallCode.class.isAssignableFrom(parameter.getClass())) {
 				child.setText("" + EnumWithSmallCodeUtils.toSmallCode((EnumWithSmallCode) parameter));
+			} else if (JsonSerializable.class.isAssignableFrom(parameter.getClass())) {
+				child.setText(((JsonSerializable) parameter).serialize());
 			} else {
 				child.setText("" + parameter.toString());
 			}
@@ -228,7 +233,8 @@ public class ParametrizedInstanceUtils {
 			   LocalDate.class.equals(clazz) ||
 			   Boolean.class.equals(clazz) ||
 			   Long.class.equals(clazz) ||
-			   Enum.class.isAssignableFrom(clazz);
+			   Enum.class.isAssignableFrom(clazz) ||
+			   JsonSerializable.class.isAssignableFrom(clazz);
 	}
 }
 

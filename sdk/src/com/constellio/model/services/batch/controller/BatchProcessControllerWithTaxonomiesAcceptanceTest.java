@@ -10,6 +10,7 @@ import com.constellio.model.services.records.RecordLogicalDeleteOptions;
 import com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -21,7 +22,6 @@ import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.LoadTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup;
 import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.DocumentSchema;
 import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.FolderSchema;
@@ -96,7 +96,7 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void given2000FoldersWhenMovingCategoryThenAllFoldersAreReindexed()
 			throws Exception {
@@ -171,7 +171,7 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void givenAPrincipalTaxonomyIsLogicallyDeletedWhileABatchProcessIsBeingExecutedThenAllLogicallyDeletedAndAllCorrectlyMoved()
 			throws Exception {
@@ -184,7 +184,7 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 		System.out.println(">> " + getTotalReindexedFolders());
 		printRecordsNotReindexed();
 		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
-		//		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 		assertThat(getTotalReindexedFolders()).isEqualTo(nbFolders);
 	}
 

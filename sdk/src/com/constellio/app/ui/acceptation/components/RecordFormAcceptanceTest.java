@@ -94,7 +94,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 				collectionInfo.getMainSystemLocale(), collectionInfo.getSecondaryCollectionLanguesCodes(), collectionInfo.getCollectionLanguesCodes(), collectionInfo.getCollectionLocales());
 
 
-		schema = new MetadataSchemaVO("zeSchema", zeCollection, asLocaleMap("The schema", "Ze schema"), collectionInfoVO);
+		schema = new MetadataSchemaVO("zeSchema", zeCollection, asLocaleMap("The schema", "Ze schema"), collectionInfoVO, new HashMap<>());
 
 		throwExceptionOnDummyViewInit = false;
 	}
@@ -104,7 +104,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		MetadataVO metadata = new MetadataVO((short) 0, "m1", "m1", MetadataValueType.STRING, zeCollection, schema, REQUIRED, SINGLEVALUE,
 				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, null, false,
-				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);
+				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false, true, null, null, null);
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -123,7 +123,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 
 		MetadataVO metadata = new MetadataVO((short) 0, "m1", "m1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE, SINGLEVALUE,
 				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, null, false,
-				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);
+				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false, true, null, null, null);
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -140,7 +140,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 
 		MetadataVO metadata = new MetadataVO((short) 0, "m1", "m1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE, SINGLEVALUE,
 				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, null, false,
-				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);
+				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false, true, null, null, null);
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -161,7 +161,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 
 		MetadataVO metadata = new MetadataVO((short) 0, "m1", "m1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE, SINGLEVALUE,
 				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, null, false,
-				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);
+				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false, true, null, null, null);
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -205,11 +205,11 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 		MetadataVO metadata1 = new MetadataVO((short) 0, "metadata1", "metadata1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
 				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, null, false,
-				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);
+				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false, true, null, null, null);
 		MetadataVO metadata2 = new MetadataVO((short) 0, "metadata2", "metadata2", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
 				READWRITE, asLocaleMap("The m2", "Ze M2"), null, null, null, null, null, null, null, null, null, false,
-				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);
+				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false, true, null, null, null);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "metadata1InitialValue");
 		MetadataValueVO metadata2Value = new MetadataValueVO(metadata2, "metadata2InitialValue");
 
@@ -250,11 +250,11 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 		MetadataVO metadata1 = new MetadataVO((short) 0, "metadata1", "metadata1", MetadataValueType.REFERENCE, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
 				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, null, false,
-				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);
+				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false, true, null, null, null);
 		MetadataVO metadata2 = new MetadataVO((short) 0, "metadata2", "metadata2", MetadataValueType.REFERENCE, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
 				READWRITE, asLocaleMap("The m2", "Ze M2"), null, null, null, null, null, null, null, null, null, false,
-				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false);
+				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO(), false, true, null, null, null);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "metadata1InitialValue");
 		MetadataValueVO metadata2Value = new MetadataValueVO(metadata2, "metadata2InitialValue");
 
@@ -482,7 +482,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 
 			VerticalLayout verticalLayout = new VerticalLayout();
 
-			RecordForm anotherForm = new RecordForm(dummyViewRecord) {
+			RecordForm anotherForm = new RecordForm(dummyViewRecord, getConstellioFactories()) {
 				@Override
 				protected void saveButtonClick(RecordVO record)
 						throws ValidationException {
@@ -497,7 +497,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 				}
 			};
 
-			RecordForm form = new RecordForm(dummyViewRecord) {
+			RecordForm form = new RecordForm(dummyViewRecord, getConstellioFactories()) {
 				@Override
 				protected void saveButtonClick(RecordVO record)
 						throws ValidationException {

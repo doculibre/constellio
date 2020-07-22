@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.data.frameworks.extensions.ExtensionUtils.getBooleanValue;
 
@@ -79,7 +80,8 @@ public class DataLayerSystemExtensions {
 		}
 	}
 
-	public void afterQuery(final SolrParams params, final String name, final long qtime, final int resultsSize) {
+	public void afterQuery(final SolrParams params, final String name, final long qtime, final int resultsSize,
+						   Map<String, Object> debugMap) {
 		for (BigVaultServerExtension extension : bigVaultServerExtension) {
 			try {
 				extension.afterQuery(params, qtime);
@@ -110,6 +112,10 @@ public class DataLayerSystemExtensions {
 						return getById;
 					}
 
+					@Override
+					public Map<String, Object> getDebugMap() {
+						return debugMap;
+					}
 				});
 				if (getById) {
 					String id = name.substring(name.indexOf(":") + 1);
@@ -181,6 +187,15 @@ public class DataLayerSystemExtensions {
 			allExtension.addAll(extensionExtension.getAdditionalSupportedExtension());
 		}
 		return allExtension.toArray(new String[0]);
+	}
+
+	public String[] getExtentionDisabledForPreviewConvertion() {
+		List<String> allNotSupportedExtensionNoMatterWhat = new ArrayList<>();
+		for (SupportedExtensionExtension extensionExtension : supportedExtensionExtensions.getExtensions()) {
+			allNotSupportedExtensionNoMatterWhat.addAll(extensionExtension.getExtentionDisabledForPreviewConvertion());
+		}
+
+		return allNotSupportedExtensionNoMatterWhat.toArray(new String[0]);
 	}
 
 	public ExtensionConverter getConverterForSupportedExtension(String extension) {

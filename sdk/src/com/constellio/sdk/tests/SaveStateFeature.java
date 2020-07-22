@@ -44,7 +44,7 @@ public class SaveStateFeature {
 			throw new RuntimeException("Save state requires second transaction log");
 		}
 
-		dataLayerFactory.getSecondTransactionLogManager().regroupAndMoveInVault();
+		dataLayerFactory.getSecondTransactionLogManager().regroupAndMove();
 		File settingsFolder = dataLayerConfiguration.getSettingsFileSystemBaseFolder();
 		File contentFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
 

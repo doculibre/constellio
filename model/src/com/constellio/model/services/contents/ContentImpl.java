@@ -454,6 +454,13 @@ public class ContentImpl implements Content {
 				currentVersion.getFilename(), true);
 	}
 
+	@Override
+	public Content replaceCurrentVersionContent(ContentVersion contentVersion) {
+		setNewCurrentVersion(contentVersion);
+		this.dirty = true;
+		return this;
+	}
+
 	public Content updateContent(User user, ContentVersionDataSummary newVersion, boolean finalize) {
 		return updateContentWithName(user, newVersion, finalize, getCurrentVersion().getFilename());
 	}
