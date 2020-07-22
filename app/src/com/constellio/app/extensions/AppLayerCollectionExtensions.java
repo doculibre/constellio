@@ -4,74 +4,9 @@ import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataModifiableParams;
-import com.constellio.app.api.extensions.DocumentViewButtonExtension;
-import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
-import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention;
-import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention.ExtraTabInfo;
-import com.constellio.app.api.extensions.FieldBindingExtention;
-import com.constellio.app.api.extensions.GenericRecordPageExtension;
-import com.constellio.app.api.extensions.LabelTemplateExtension;
-import com.constellio.app.api.extensions.ListSchemaExtention;
-import com.constellio.app.api.extensions.MetadataDisplayCustomValueExtention;
-import com.constellio.app.api.extensions.MetadataFieldExtension;
-import com.constellio.app.api.extensions.PageExtension;
-import com.constellio.app.api.extensions.PagesComponentsExtension;
-import com.constellio.app.api.extensions.RecordDisplayFactoryExtension;
-import com.constellio.app.api.extensions.RecordExportExtension;
-import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
-import com.constellio.app.api.extensions.RecordSecurityExtension;
-import com.constellio.app.api.extensions.RecordTextInputDataProviderExtension;
-import com.constellio.app.api.extensions.ReportTemplateExtension;
-import com.constellio.app.api.extensions.SIPExtension;
-import com.constellio.app.api.extensions.SchemaTypesPageExtension;
-import com.constellio.app.api.extensions.SearchCriterionExtension;
-import com.constellio.app.api.extensions.SearchPageExtension;
-import com.constellio.app.api.extensions.SelectionPanelExtension;
-import com.constellio.app.api.extensions.SystemCheckExtension;
-import com.constellio.app.api.extensions.TaxonomyPageExtension;
-import com.constellio.app.api.extensions.XmlGeneratorExtension;
-import com.constellio.app.api.extensions.params.AddComponentToSearchResultParams;
-import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
-import com.constellio.app.api.extensions.params.AddFieldsInReportXMLParams;
-import com.constellio.app.api.extensions.params.AvailableActionsParam;
-import com.constellio.app.api.extensions.params.CanConsultTaxonomyParams;
-import com.constellio.app.api.extensions.params.CanManageTaxonomyParams;
-import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
-import com.constellio.app.api.extensions.params.ConvertStructureToMapParams;
-import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
-import com.constellio.app.api.extensions.params.DocumentViewButtonExtensionParam;
-import com.constellio.app.api.extensions.params.ExportCollectionInfosSIPIsTaxonomySupportedParams;
-import com.constellio.app.api.extensions.params.ExtraMetadataToGenerateOnReferenceParams;
-import com.constellio.app.api.extensions.params.ExtraTabForSimpleSearchResultParams;
-import com.constellio.app.api.extensions.params.FieldBindingExtentionParam;
-import com.constellio.app.api.extensions.params.FilterCapsuleParam;
-import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
-import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
-import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
-import com.constellio.app.api.extensions.params.IsRecordExportableParams;
-import com.constellio.app.api.extensions.params.ListSchemaExtraCommandParams;
-import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
-import com.constellio.app.api.extensions.params.MetadataDisplayCustomValueExtentionParams;
-import com.constellio.app.api.extensions.params.MetadataFieldExtensionParams;
-import com.constellio.app.api.extensions.params.OnWriteRecordParams;
-import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
-import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
-import com.constellio.app.api.extensions.params.RecordFieldFactoryPostBuildExtensionParams;
-import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
-import com.constellio.app.api.extensions.params.RecordSecurityParam;
-import com.constellio.app.api.extensions.params.RecordTextInputDataProviderSortMetadatasParam;
-import com.constellio.app.api.extensions.params.SearchPageConditionParam;
-import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
-import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
-import com.constellio.app.api.extensions.params.ValidateRecordsCheckParams;
-import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
-import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
-import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
-import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
-import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
-import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
-import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
-import com.constellio.app.api.extensions.taxonomies.ValidateTaxonomyDeletableParams;
+import com.constellio.app.api.extensions.*;
+import com.constellio.app.api.extensions.params.*;
+import com.constellio.app.api.extensions.taxonomies.*;
 import com.constellio.app.extensions.api.SchemaMetadataExtension;
 import com.constellio.app.extensions.api.SchemaMetadataExtension.SchemaMetadataExtensionParams;
 import com.constellio.app.extensions.api.SchemaRecordExtention;
@@ -1082,4 +1017,10 @@ public class AppLayerCollectionExtensions {
 		return navigationHandledByExtension;
 	}
 
+
+	public boolean isSequencesActionPossibleOnSchemaRecord(Record record, User user) {
+		return schemaRecordExtentions.getBooleanValue(true,
+				(behavior) -> behavior.isSequencesActionPossible(
+						new SchemaRecordExtensionActionPossibleParams(record, user)));
+	}
 }

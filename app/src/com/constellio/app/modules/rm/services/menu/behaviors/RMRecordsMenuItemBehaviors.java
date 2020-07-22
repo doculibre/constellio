@@ -48,6 +48,8 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.BaseLink;
+import com.constellio.app.ui.framework.buttons.ContainersButton;
+import com.constellio.app.ui.framework.buttons.ContainersButton.ContainersAssigner;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
@@ -1201,5 +1203,33 @@ public class RMRecordsMenuItemBehaviors {
 
 	private List<Record> getSelectedRecords(List<String> selectedRecordIds) {
 		return recordServices.getRecordsById(collection, selectedRecordIds);
+	}
+
+	public void putInContainer(List<String> ids, MenuItemActionBehaviorParams params) {
+		ContainersAssigner selector = new ContainersAssigner() {
+			@Override
+			public void putRecordsInContainer(String containerId) {
+				Transaction transaction = new Transaction();
+				if (containerId == null) {
+					log.error("Invalid null container", containerId);
+					return;
+				}
+				ContainerRecord container = rm.getContainerRecord(containerId);
+				if (container == null) {
+					log.error("Invalid null container", containerId);
+					return;
+				}
+				//TODO by batch
+				for (String recordId : ids) {
+					transaction.add(rm.getFolder(recordId).setContainer(container));
+				}
+				try {
+					recordServices.executeHandlingImpactsAsync(transaction);
+				} catch (RecordServicesException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		};
+		new ContainersButton(selector).click();
 	}
 }

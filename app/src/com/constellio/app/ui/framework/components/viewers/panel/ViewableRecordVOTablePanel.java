@@ -859,7 +859,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					indexVisible = showResultsNumberingInListView || size > maxSelectableResults;
 				}
 			} else {
-				indexVisible = size > maxSelectableResults;
+				indexVisible = true;
 			}
 		} else {
 			indexVisible = false;
