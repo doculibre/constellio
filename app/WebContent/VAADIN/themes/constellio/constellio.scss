@@ -109,7 +109,7 @@ $popup-view-z-index: 3;
 			    padding: 0 7px 0 19px;
 
 				.v-icon {
-		        	color: white; 
+		        	color: white;
 		        	font-size: 1.4em;
 		        	margin-right: 8px;
 				}
@@ -122,7 +122,7 @@ $popup-view-z-index: 3;
 					background: $v-selection-color;
 
 					.v-icon {
-			        	color: white; 
+			        	color: white;
 					}
 
 					&:hover {
@@ -1310,9 +1310,9 @@ $popup-view-z-index: 3;
 		}
 	}
 
-    .display-caption {
-    	width: 300px;
-    	word-wrap: break-word;
+	.display-caption {
+		width: 300px;
+		word-wrap: break-word;
 		border-bottom: 1px dotted #dfdfdf;
 		font-weight: bold;
 	}
@@ -1323,8 +1323,8 @@ $popup-view-z-index: 3;
     	word-break: break-word;
     	padding-left: 10px;
     }
-		
-	.v-caption-record-comments {    
+
+	.v-caption-record-comments {
 		border-bottom: 1px dotted rgb(223, 223, 223);
 		font-weight: bold;
 		width: 300px;
@@ -1400,7 +1400,7 @@ $popup-view-z-index: 3;
     	padding-top: 10px;
     	padding-left: 10px;
 
-		.v-panel {
+    	.v-panel {
     		.v-panel-content {
     			overflow-y: auto;
     		}
@@ -1458,14 +1458,14 @@ $popup-view-z-index: 3;
     .autocomplete {
     	width:100%;
 
-		.v-filterselect-input {
+        .v-filterselect-input {
         	padding-right: 0px;
         }
 
-    	.v-filterselect-button {
-    		display:none;
-    	}
-    }
+		.v-filterselect-button {
+			display: none;
+		}
+	}
 
     .link.display-value {
         padding-left: 10px;
@@ -1490,10 +1490,10 @@ $popup-view-z-index: 3;
 		color: black;
 
 		&:hover {
-    		text-decoration: none;
+			text-decoration: none;
 		}
 	}
-    	
+
     .v-lazyloadingwrapper-loading {
 	    background-color: white;
 	    border: none;
@@ -1503,10 +1503,10 @@ $popup-view-z-index: 3;
 	    //border: 2px solid silver;
 	}
 
-	.v-filterselect {
+    .v-filterselect {
     	width: 100%;
     }
-    	
+
     .v-lazyloadingwrapper-loading {
 	    background-color: white;
 	    border: none;
@@ -1515,7 +1515,7 @@ $popup-view-z-index: 3;
 	    //background-position: 50% center;
 	    //border: 2px solid silver;
 	}
-    
+
     .v-filterselect-suggestmenu {
     	.gwt-MenuItem {
     		padding-left: 0px;
@@ -1526,21 +1526,21 @@ $popup-view-z-index: 3;
     	}
     }
 
-    .filters-panel {
-    	.v-filterselect {
-    		height: 23px;
-    	}
-    }
+	.filters-panel {
+		.v-filterselect {
+			height: 23px;
+		}
+	}
 
-    .autocomplete-error, .lookup-error {
-    	.v-filterselect-input {
-	    	border-color: #ed473b !important;
+	.autocomplete-error, .lookup-error {
+		.v-filterselect-input {
+			border-color: #ed473b !important;
 			background: #fffbfb;
 			color: #6c2621;
     	}
     }
 
-    .list-add-remove-table-sortable, .metadata-groups {
+	.list-add-remove-table-sortable, .metadata-groups {
     	.v-table-table {
     		.v-table-row, .v-table-row-odd {
     			cursor: all-scroll;
@@ -1548,11 +1548,11 @@ $popup-view-z-index: 3;
     	}
     }
 
-    .list-add-remove-error {
-    	border-color: #ed473b !important;
+	.list-add-remove-error {
+		border-color: #ed473b !important;
 		background: #fffbfb;
 		color: #6c2621;
-    }
+	}
 
 	.permission-dirty {
 		background-color: orange;
@@ -1681,17 +1681,17 @@ $popup-view-z-index: 3;
 	    margin: 0 0 0 0px;
 	    box-shadow: inset 0px 5px 15px -12px rgba(0, 0, 0, 1);
 
-		background-color: #ebebeb;
+	    background-color: #ebebeb;
 
 		.thesaurus-semantic-network-title {
 			font-weight: bold;
 			font-size: 0.923em;
-		    line-height: 24px;
-		    margin: 0;
-		    font-weight: bold;
-		    background: url('images/icons/thesaurus-semantic-network.gif') left center no-repeat;
-		    padding: 8px 0 8px 40px;
-		    max-width: 900px;
+			line-height: 24px;
+			margin: 0;
+			font-weight: bold;
+			background: url('images/icons/thesaurus-semantic-network.gif') left center no-repeat;
+			padding: 8px 0 8px 40px;
+			max-width: 900px;
 		}
 
 		.thesaurus-semantic-network-columns {
@@ -1771,8 +1771,8 @@ $popup-view-z-index: 3;
 				float: left;
 				padding-bottom: 5px;
 			}
-			
-			.v-slot-action-menu-bar-layout {    
+
+			.v-slot-action-menu-bar-layout {
 			    margin-bottom: -40px;
 			}
 
@@ -1869,8 +1869,8 @@ $popup-view-z-index: 3;
 
 				.v-button {
 					padding-left: 8px;
-			    	color: white;
-			    	font-weight: normal;
+					color: white;
+					font-weight: normal;
 					text-decoration: none;
 					font-size: 14px;
 					width: 100%;
@@ -1880,20 +1880,20 @@ $popup-view-z-index: 3;
 
 					background-color: #414B56;
 					//background-image: -webkit-linear-gradient(right, #38414a 0%, #414B56 9px);
-					background-image: linear-gradient(to left,#38414a 0%, #414B56 9px);
+					background-image: linear-gradient(to left, #38414a 0%, #414B56 9px);
 				}
 
-				.v-button:hover {
+			    .v-button:hover {
 			    	color: #197de1;
 				    background-color: #3a434d;
 			    }
 
-				.v-button:after {
+			    .v-button:after {
 					box-shadow: none;
 					border: none;
 			    }
 
-				.v-disabled:hover {
+			    .v-disabled:hover {
 			    	color: white;
 				    background-color: #414B56;
 			    }
@@ -1908,13 +1908,13 @@ $popup-view-z-index: 3;
 		    	position: absolute;
 		    	top: -40px;
 		    	right: 58px;
-					    	 
+
 	  			.v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
 					content: "";
-				    position: relative;
-				    top: 5px;
-				    margin-left: -2px;
-				    opacity: 1;
+					position: relative;
+					top: 5px;
+					margin-left: -2px;
+					opacity: 1;
 				}
 
 				.v-menubar-menuitem {
@@ -1933,7 +1933,7 @@ $popup-view-z-index: 3;
 		    .display-schema-record-view {
 		    	.action-menu-bar {
 			    	top: 0px;
-			    }	
+			    }
 			}
 
 			.v-slot-action-menu-bar-layout {
@@ -2081,18 +2081,18 @@ $popup-view-z-index: 3;
 				overflow-y: hidden;
 			}
 
-		    .system-state-window-layout {
-		    	padding-top: 0px;
-		    }
+			.system-state-window-layout {
+				padding-top: 0px;
+			}
 
             .base-window-content-with-bottom-margin {
                 margin-bottom: 10px;
             }
-            
+
             .base-view {
 				padding-top: 40px;
             }
-            
+
             .header-selection-panel {
             	overflow-y: hidden;
             }
@@ -2127,31 +2127,31 @@ $popup-view-z-index: 3;
     }
 
    	.system-state-component {
-   		text-align: center;
-   		margin-bottom: 10px;
+		text-align: center;
+		margin-bottom: 10px;
 
-   		.v-slot-system-state-component-validation-error {
-   			padding: 0px 2px;
-   		}
+		.v-slot-system-state-component-validation-error {
+			padding: 0px 2px;
+		}
 
-   		.system-state-component-validation-error {
-   			background-color: white;
-   			position: relative;
-   		}
-   	}
+		.system-state-component-validation-error {
+			background-color: white;
+			position: relative;
+		}
+	}
 
-   	.system-state-component-errors {
+	.system-state-component-errors {
 		border: 2px solid lightsalmon;
-   	}
+	}
 
-   	.system-state-component-warnings {
+	.system-state-component-warnings {
 		border: 2px solid gold;
-   	}
+	}
 
-   	.system-state-component-logs {
+	.system-state-component-logs {
 		border: 2px solid yellowgreen;
    	}
-   	
+
    	.system-state-component-important-message {
    	    font-weight: bold;
 	    color: red;
@@ -2166,9 +2166,9 @@ $popup-view-z-index: 3;
 		}
 
 		.user-documents-window-minimized {
-		    position: fixed;
-		    bottom: 0;
-		    right: 0;
+			position: fixed;
+			bottom: 0;
+			right: 0;
 		}
 
 		.user-documents-window-maximized {
@@ -2477,7 +2477,7 @@ $popup-view-z-index: 3;
 		}
     }
 
-	.v-menubar-submenu.menubar-rtl {
+    .v-menubar-submenu.menubar-rtl {
     	.v-menubar-menuitem {
     		clear: both;
     		text-align: right;
@@ -2491,12 +2491,12 @@ $popup-view-z-index: 3;
     	}
     }
 
-	.header-action-menu.v-menubar-submenu.menubar-rtl, .header-collection-menu.v-menubar-submenu.menubar-rtl {
+    .header-action-menu.v-menubar-submenu.menubar-rtl, .header-collection-menu.v-menubar-submenu.menubar-rtl {
     	.v-menubar-menuitem {
     		direction: rtl;
     	}
 
-		.v-menubar-menuitem-checked {
+    	.v-menubar-menuitem-checked {
     		.v-menubar-menuitem-caption:before {
 	    		left: inherit;
 	    		right: 10px;
@@ -2505,7 +2505,7 @@ $popup-view-z-index: 3;
     }
 
 	.v-table-row-textRed {
-	    color: red;
+		color: red;
 	}
 
 	.confirm-dialog-info {
@@ -2657,7 +2657,7 @@ $popup-view-z-index: 3;
 		}
 
 		.v-radiobutton label {
-			color:#000000; 
+			color:#000000;
 		}
 
 		.facet-apply {
@@ -2670,22 +2670,22 @@ $popup-view-z-index: 3;
 
     .viewable-record-table-panel {
   		//min-height: 2000px;
-  		
+
   		.v-slot-main-component {
   			overflow-y: auto;
   		}
-  		
+
   		.main-component-wrapper {
   		}
 
-  		.v-slot-viewable-record-table-panel-view-action-menu-layout {
-		    position: absolute;
-		    top: -40px;
-		    right: -250px;
-  		}
+		.v-slot-viewable-record-table-panel-view-action-menu-layout {
+			position: absolute;
+			top: -40px;
+			right: -250px;
+		}
 
-  		.table-buttons-layout {
-  			//margin-bottom: -36px;
+		.table-buttons-layout {
+			//margin-bottom: -36px;
 			color: #197de1;
 
 			.v-button-icon-only {
@@ -2693,24 +2693,24 @@ $popup-view-z-index: 3;
 				text-align: center;
 			}
 
-  			.select-deselect-all-button {
-  				left: 16px;
-  			}
+			.select-deselect-all-button {
+				left: 16px;
+			}
 
-  			.count-label {
-			    position: relative;
-			    top: 6px;
-			    left: 10px;
-			    color: #4396ea;
-			    //color: #197de1;
-			    font-weight: 500;
-  			}
+			.count-label {
+				position: relative;
+				top: 6px;
+				left: 10px;
+				color: #4396ea;
+				//color: #197de1;
+				font-weight: 500;
+			}
 
   			.previous-button {
   				margin-left: 12px;
   				margin-right: -12px;
   			}
-  			
+
   			.list-mode-button, .table-mode-button {
   				width: 24px;
   			}
@@ -2750,12 +2750,12 @@ $popup-view-z-index: 3;
   		}
 
   		.table-buttons-layout {
-            border-bottom: 1px solid rgb(213, 213, 213);
+			border-bottom: 1px solid rgb(213, 213, 213);
 
             .v-button {
             	z-index: 2;
             }
-            
+
             .action-mode-buttons-layout {
             	float: right;
             	padding-right: 4px;
@@ -3083,16 +3083,16 @@ $popup-view-z-index: 3;
 		background-color: white;
 		font-weight: 400;
 
-		.sidebar {
+	    .sidebar {
 	    	overflow-y: hidden;
 	    }
 
 		.header {
 			//height: $header-height;
-	    	text-align: left;
-	    	background-color: #fafafa;
-	    	width: 100%;
-	    	z-index: 2;
+			text-align: left;
+			background-color: #fafafa;
+			width: 100%;
+			z-index: 2;
 			border-bottom: 1px solid gray;
 
 			.header-logo {
@@ -3213,14 +3213,14 @@ $popup-view-z-index: 3;
 					    	border: 1px solid lightgray;
 					    	padding: 2px;
 					    	text-align: center;
-					    	
+
 					    	.v-slot-list-add-remove-table {
 					    		width: 100%;
 
 								.reference-display {
 									padding-right: 0px;
 								}
-					    	}
+							}
 						}
 
 						.record-comments-layout {
@@ -3513,13 +3513,13 @@ $popup-view-z-index: 3;
 				    	z-index: 2000;
 				    	position: absolute;
 				    	right: -20px;
-				    	
+
 			  			.v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
 							content: "";
-						    position: relative;
-						    top: 5px;
-						    margin-left: -2px;
-						    opacity: 1;
+							position: relative;
+							top: 5px;
+							margin-left: -2px;
+							opacity: 1;
 						}
 
 						.v-menubar-menuitem {
@@ -3614,32 +3614,32 @@ $popup-view-z-index: 3;
 
 		// Admin RM Module
 	    .user-management {
-	    	text-align: center;
+			text-align: center;
 
-	    	.v-button {
-	    		width: 160px;
+			.v-button {
+				width: 160px;
 
-	    		.v-button-wrap {
-	    			white-space: normal;
-	    		}
-	    	}
-	    }
+				.v-button-wrap {
+					white-space: normal;
+				}
+			}
+		}
 
-	    .v-tabsheet-display-folder {
+		.v-tabsheet-display-folder {
 			position: relative;
 			//top: -38px;
-	    }
+		}
 
-    }
+	}
 
-    .v-slot-license {
-    	padding-top: 0px;
+	.v-slot-license {
+		padding-top: 0px;
 
     	.v-label {
     		text-align: center;
     	}
     }
-    
+
     .static-footer-layout {
     	padding-left: 20px;
     	padding-right: 20px;
@@ -3668,17 +3668,17 @@ $popup-view-z-index: 3;
 			padding-top: 6px;
 	    	height: 76px;
 	    	text-align: left;
-	    	
+
 	    	.v-menubar-menuitem {
 	    		top: 25%;
 	    		font-size: 0.8em;
-	    		
+
 				.v-menubar-menuitem-caption {
 					float: left;
 					text-align: left;
 				}
-	    		
-	    		.v-icon {    
+
+	    		.v-icon {
 	    			float: left;
     				margin-left: 5px;
 	    		}
@@ -3694,7 +3694,7 @@ $popup-view-z-index: 3;
 			}
 		}
 
-    	.header {
+		.header {
 			padding-right: 30px;
 
 			.header-search {
@@ -3703,14 +3703,22 @@ $popup-view-z-index: 3;
 			}
     	}
 
-		.main-component-wrapper {
+	    .main-component-wrapper {
 	    	min-height: 700px;
 	    }
 
-		.viewable-record-table {
+    	.viewable-record-table {
     		.scrollable {
     			overflow-x: hidden;
     		}
+    	}
+
+    	.stats-table-layout {
+	    	.v-table {
+		    	.v-scrollable {
+		    		overflow-x: auto;
+		    	}
+	    	}
     	}
 
 		.stats-table-layout {
@@ -3720,14 +3728,6 @@ $popup-view-z-index: 3;
 				}
 			}
 		}
-
-    	.stats-table-layout {
-	    	.v-table {
-		    	.v-scrollable {
-		    		overflow-x: auto;
-		    	}
-	    	}
-    	}
 
     	.folder-content-table {
 	    	.v-scrollable {
@@ -3742,14 +3742,14 @@ $popup-view-z-index: 3;
     	}
 
 		.batch-processes {
-	    	.v-table {
-		    	.v-scrollable {
-		    		overflow-x: auto;
-		    	}
-	    	}
-    	}
+			.v-table {
+				.v-scrollable {
+					overflow-x: auto;
+				}
+			}
+		}
 
-	    //.constellio-menu-system-state-button {
+		//.constellio-menu-system-state-button {
 	   	//	position: absolute;
 		//	bottom: 80px;
 	    //}
@@ -3808,18 +3808,18 @@ $popup-view-z-index: 3;
 			}
         }
 
-		.action-menu {
+	    .action-menu {
 	        position: fixed;
 	        top: $header-height;
 	        right: 30px;
 	        margin-top: 70px;
 	    }
 
-	    .action-menu-bar-layout {
+		.action-menu-bar-layout {
 			position: absolute;
 			right: 20px;
 	    }
-	    
+
 	    .not-nested-action-menu-bar-layout {
 	    	margin-top: -30px;
 	    }
@@ -3829,7 +3829,7 @@ $popup-view-z-index: 3;
 	  			top: 10px;
 	  			right: 50px;
 	  		}
-		}
+  		}
 
 		.viewable-record-table {
 			.v-table-table {
@@ -3839,19 +3839,19 @@ $popup-view-z-index: 3;
 					}
 				}
 			}
-		}			
-  		
+		}
+
   		.search-result-record-folder, .search-result-record-task, .search-result-record-containerRecord {
 	  		.search-result-title {
 	  			.v-icon {
 	  				display: none;
 	  			}
-	  			
+
 	  			.v-icon + span {
 	  				margin-left: auto;
 	  			}
 	  		}
-		}
+  		}
 
 		.constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar-layout .action-menu-bar {
 			top: inherit;
@@ -3879,8 +3879,8 @@ $popup-view-z-index: 3;
 					//line-height: 0.3em;
 
 					.v-icon {
-			        	//font-size: 1.4em;
-			        	font-size: 1em;
+						//font-size: 1.4em;
+						font-size: 1em;
 					}
 
 					&.selected {
@@ -3917,7 +3917,7 @@ $popup-view-z-index: 3;
     		overflow-y: hidden;
     	}
 
-		.header {
+    	.header {
 			padding-right: 30px;
 
 			.header-logo {
@@ -3930,7 +3930,7 @@ $popup-view-z-index: 3;
 				//width: 500px;
 			}
     	}
-    	
+
     	.base-display {
 			.v-slot-display-value {
 				padding-bottom: 5px;
@@ -3940,7 +3940,7 @@ $popup-view-z-index: 3;
 	    .main-component-wrapper {
 	    	min-height: 600px;
 	    }
-	    
+
 	    .v-slot-static-footer-extra-components-layout {
 	    	display: none;
 	    }
@@ -3948,7 +3948,7 @@ $popup-view-z-index: 3;
 	    .v-panel-content-content-view-wrapper {
 	    	overflow-y: hidden;
 	    }
-	    
+
     	.viewable-record-table {
     		.scrollable {
     			overflow-x: hidden;
@@ -3959,7 +3959,7 @@ $popup-view-z-index: 3;
 	    	.v-scrollable {
 	    		overflow-x: auto;
 	    	}
-		}
+    	}
 
 		.viewable-record-table {
 			.v-table-table {
@@ -3969,22 +3969,22 @@ $popup-view-z-index: 3;
 					}
 				}
 			}
-		}				
-  		
+		}
+
   		.search-result-record-folder, .search-result-record-task, .search-result-record-containerRecord {
 	  		.search-result-title {
 	  			.v-icon {
 	  				display: none;
 	  			}
-	  			
+
 	  			.v-icon + span {
 	  				margin-left: auto;
 	  			}
 	  		}
   		}
 
-        .action-menu-wrapper {
-            padding-right: 260px;
+		.action-menu-wrapper {
+			padding-right: 260px;
 
 			.back-button {
 				position: fixed;
@@ -3993,7 +3993,7 @@ $popup-view-z-index: 3;
 
 			.base-display {
 				.base-display-main-layout {
-					width:100%;
+					width: 100%;
 
 					.v-slot-list-add-remove-comment {
 						width: 100%;
@@ -4002,7 +4002,7 @@ $popup-view-z-index: 3;
 
 			}
         }
-        
+
 	    .action-menu {
 	        position: fixed;
 	        top: $header-height;
@@ -4010,11 +4010,11 @@ $popup-view-z-index: 3;
 	        margin-top: 70px;
 	    }
 
-	    .action-menu-bar-layout {
+		.action-menu-bar-layout {
 			position: absolute;
 			right: 20px;
 	    }
-	    
+
 	    .not-nested-action-menu-bar-layout {
 	    	margin-top: -30px;
 	    }
@@ -4024,7 +4024,7 @@ $popup-view-z-index: 3;
 	  			top: -60px;
 	  			right: 50px;
 	  		}
-		}
+  		}
 
 		.viewable-record-table {
 			.v-table-table {
@@ -4102,19 +4102,19 @@ $popup-view-z-index: 3;
 			.header-collection-menu {
 				top: 53px;
 				right: 116px;
-			    z-index: 1000;
-			    margin: 0;
-			    padding-top: 0px;
+				z-index: 1000;
+				margin: 0;
+				padding-top: 0px;
 			}
 
 			.header-action-menu {
 				top: 53px;
 				right: 2px;
-			    z-index: 1000;
-			    margin: 0;
+				z-index: 1000;
+				margin: 0;
 			}
     	}
-    	
+
     	.base-display {
 			.v-slot-display-caption {
 				padding-bottom: 5px;
@@ -4124,13 +4124,14 @@ $popup-view-z-index: 3;
 	    .main-component-wrapper {
 	    	min-height: 500px;
 	    }
-	    
+
 	    .v-slot-static-footer-extra-components-layout {
 	    	display: none;
 	    }
 
 		.back-button {
 			right: 0px;
+
 			.v-button-caption {
 				display: none;
 			}
@@ -4145,9 +4146,9 @@ $popup-view-z-index: 3;
 		.search-button:before {
 			content: "\f002";
 			margin-top: 5px;
-		    margin-left: -14px;
+			margin-left: -14px;
 		}
-        
+
   		.viewable-record-table {
 			.v-table-table {
 				.v-table-cell-content {
@@ -4161,7 +4162,7 @@ $popup-view-z-index: 3;
     	.v-slot-action-menu {
 	        padding: 10px;
     	}
-    	
+
     	.action-menu-bar-layout {
 		    position: absolute;
 		    right: 20px;
@@ -4192,7 +4193,7 @@ $popup-view-z-index: 3;
 		.xbreadcrumbs {
 			font-size: 16px;
 			padding-right: 40px;
-	
+
 			.v-link a span,.xbreadcrumbbutton .v-button-caption {
 				font-size: 0.9em;
 			}
@@ -4687,13 +4688,13 @@ $popup-view-z-index: 3;
 			.v-slot {
 				text-align: right;
 			}
-			
+
 			.v-slot-menubar-rtl {
 				text-align: left;
 			}
 
 		}
-	
+
 		.base-display {
 			.display-value {
 				text-align: right;
@@ -4836,12 +4837,12 @@ $popup-view-z-index: 3;
     	.search-result-facets {
     		.facet-box-viewer, .sort-box-viewer {
     			direction: rtl;
-    			
+
     			.facet-title, .sort-title {
     				direction: ltr;
 					padding-left: 0px;
 					padding-right: 13px;
-    			}
+				}
 
 				label {
 					direction: ltr;
@@ -4914,7 +4915,7 @@ $popup-view-z-index: 3;
 									text-align: right;
 								}
 							}
-						
+
 						    .main-component {
 								padding-left: initial;
 								padding-right: 5px;
@@ -4965,7 +4966,7 @@ $popup-view-z-index: 3;
 						.display-value {
 	            			padding-right: initial;
 	            			//padding-left: 300px;
-	            			
+
 	            			.agent-link {
 	            				padding-right: initial;
 	            				padding-left: 26px;
@@ -5028,12 +5029,12 @@ $popup-view-z-index: 3;
 				margin-right: 5px;
 			}
     	}
-    	
+
         .action-menu-wrapper {
             padding-right: initial;
             padding-left: 260px;
 
-			.action-menu {
+		    .action-menu {
 		    	direction: rtl;
 		        right: initial;
 		        left: 20px;
@@ -5041,14 +5042,14 @@ $popup-view-z-index: 3;
 				.v-button {
 					text-align: right;
 				}
-		    }
+			}
 
 			.base-display {
 				.v-slot-display-value {
 					.display-value {
             			padding-right: initial;
             			//padding-left: 300px;
-            			
+
             			.agent-link {
             				padding-right: initial;
             				padding-left: 26px;
