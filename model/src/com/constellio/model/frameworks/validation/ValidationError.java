@@ -15,12 +15,19 @@ public class ValidationError implements Serializable {
 	private final String errorCode;
 	private final String code;
 	private final Map<String, Object> parameters;
+	private final String additionalStack;
 
 	public ValidationError(Class<?> validatorClass, String errorCode, Map<String, Object> parameters) {
+		this(validatorClass, errorCode, parameters, null);
+	}
+
+	public ValidationError(Class<?> validatorClass, String errorCode, Map<String, Object> parameters,
+						   String additionalStack) {
 		this.validatorClass = validatorClass;
 		this.errorCode = errorCode;
 		this.code = validatorClass.getName() + "_" + errorCode;
 		this.parameters = parameters;
+		this.additionalStack = additionalStack;
 	}
 
 	public Class<?> getValidatorClass() {
@@ -118,5 +125,9 @@ public class ValidationError implements Serializable {
 
 	public void setParameter(String parameter, Object value) {
 		parameters.put(parameter, value);
+	}
+
+	public String getAdditionalStack() {
+		return additionalStack;
 	}
 }
