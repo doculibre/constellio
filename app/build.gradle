@@ -43,30 +43,6 @@ dependencies {
     compile 'org.glassfish.jersey.media:jersey-media-json-jackson:2.27'
     compile 'org.glassfish.jersey.containers:jersey-container-servlet:2.27'
     compile 'org.apache.commons:commons-jexl3:3.0'
-    compile 'org.vaadin.addons:pagedtable:0.6.5'
-    compile 'org.vaadin.addon:easyuploads:7.3.4'
-    compile 'org.vaadin.addons:animator:2.0.0'
-    compile 'org.vaadin.addons:dom:0.1.0'
-    compile 'org.vaadin.addons:listbuilder:0.7.3.v7'
-    compile 'org.vaadin.addons:contextmenu:4.5'
-    compile 'org.vaadin.addons:actionbuttontextfield:1.0.2'
-    compile 'org.vaadin.addons:googleanalyticstracker:2.1.0'
-    compile 'org.vaadin.addons:activelink:7.3.1'
-    compile 'org.vaadin.addons:popupbutton:2.6.0'
-    compile 'org.vaadin.addon:confirmdialog:2.1.2'
-    //compile 'org.vaadin.addons.lazyquerycontainer:vaadin-lazyquerycontainer:7.6.1.3'
-    compile 'org.vaadin.addons:ckeditor-wrapper-for-vaadin:7.11.0'
-    compile "org.vaadin.addons:vaadin-sliderpanel:1.5.1"
-    compile "org.vaadin.addon.oauthpopup:oauthpopup:0.1.0"
-    compile "com.vaadin:vaadin-themes:7.7.17"
-    compile "com.vaadin:vaadin-client-compiler:7.7.17"
-    compile "com.vaadin:vaadin-client:7.7.17"
-    compile "com.vaadin:vaadin-client-compiled:7.7.17"
-    compile "com.vaadin:vaadin-shared:7.7.17"
-    compile "com.vaadin:vaadin-server:7.7.17"
-    compile 'vaadin:breadcrumb:1.7.3'
-    compile 'vaadin:mediaelementjs-player:1.2.6'
-    compile 'eu.maxschuster:vaadin-autocompletetextfield:1.0-alpha-4'
     compile 'org.apache.chemistry.opencmis:chemistry-opencmis-server-bindings:1.1.0'
     compile 'org.apache.chemistry.opencmis:chemistry-opencmis-server-support:1.1.0'
     compile 'com.jgoodies:jgoodies-common:1.7.0'
@@ -76,28 +52,54 @@ dependencies {
     compile 'nl.bitwalker:UserAgentUtils:1.2.4'
     compile 'org.samba.jcifs:jcifs_gcm:322'
     compile 'au.com.bytecode:opencsv:2.4'
-
-    compile files("../libs/vaadin-breadcrumb-1.7.3.jar")
-    compile files("../libs/vaadin-filteringtable-1.0.0.v7.jar")
-    compile files("../libs/vaadin-lazy-load-wrapper-0.1-alpha.jar");
-    compile files("../libs/vaadin-lazyquerycontainer-7.6.1.3.jar")
-    compile files("../libs/vaadin-jsclipboard-1.0.12.jar")
     compile 'commons-io:commons-io:2.4'
     compile 'org.apache.commons:commons-compress:1.18'
     compile 'net.sourceforge.htmlunit:htmlunit:2.23'
     compile 'org.apache.james:apache-mime4j-core:0.8.2'
     compile "org.ow2.asm:asm:5.0.3"
-    compile "org.vaadin.addons:activelink:7.3.1"
-    compile "org.vaadin.addons:popupbutton:2.6.0"
     compile "org.asi.ui:custommenubar:1.2"
     compile "org.imgscalr:imgscalr-lib:4.2"
+    compile "com.googlecode.java-diff-utils:diffutils:1.3.0"
+    
+    compile "com.vaadin:vaadin-compatibility-themes:8.11.1"
+    //compile "com.vaadin:vaadin-compatibility-compiler:8.11.1"
+    compile "com.vaadin:vaadin-compatibility-client:8.11.1"
+    compile "com.vaadin:vaadin-compatibility-client-compiled:8.11.1"
+    compile "com.vaadin:vaadin-compatibility-shared:8.11.1"
+    compile "com.vaadin:vaadin-compatibility-server:8.11.1"
+    compile "com.vaadin:vaadin-maven-plugin:8.11.1"
+    compile 'org.vaadin.addons:pagedtable:0.7.0'
+    compile 'org.vaadin.addon:easyuploads:9.0.0'
+    compile 'org.vaadin.addons:animator:3.0.0'
+    //compile 'org.vaadin.addons:dom:0.1.0' // Vaadin 7 only
+    //compile 'org.vaadin.addons:listbuilder:1.0.0-v8-compatibility' Missing in Maven repo
+    //compile 'org.vaadin.addons:contextmenu:4.5' // Vaadin 7 only
+    //compile 'org.vaadin.addons:actionbuttontextfield:1.0.2' // Vaadin 7 only
+    compile 'org.vaadin.addons:googleanalyticstracker:3.0.0'
+    //compile 'org.vaadin.addons:activelink:7.3.1'' // Vaadin 7 only
+    compile 'org.vaadin.addons:popupbutton:3.0.0'
+    compile 'org.vaadin.addon:confirmdialog:3.2.0'
+    //compile 'org.vaadin.addons.lazyquerycontainer:vaadin-lazyquerycontainer:7.6.1.3' // Vaadin 7 only
+    //compile 'org.vaadin.addons:ckeditor-wrapper-for-vaadin:7.11.0' // Vaadin 7 only
+    compile "org.vaadin.addons:vaadin-sliderpanel:2.2.1"
+    //compile "org.vaadin.addon.oauthpopup:oauthpopup:0.1.0"  // Vaadin 7 only
+    // compile 'vaadin:breadcrumb:1.7.3' // Vaadin 7 only
+    // compile 'vaadin:mediaelementjs-player:1.2.6' // Vaadin 7 only
+    compile 'eu.maxschuster:vaadin-autocompletetextfield:3.0-alpha-2'
+    // compile "org.vaadin.addons:activelink:7.3.1" // Vaadin 7 only
+    compile "org.vaadin.addons:popupbutton:3.0.0"
+
+    //compile files("../libs/vaadin-breadcrumb-1.7.3.jar")  // Vaadin 7 only
+    compile files("../libs/vaadin-filteringtable-1.0.1.v8.jar")
+    // compile files("../libs/vaadin-lazy-load-wrapper-0.1-alpha.jar"); // Vaadin 7 only
+    // compile files("../libs/vaadin-lazyquerycontainer-7.6.1.3.jar")  // Vaadin 7 only
+    compile files("../libs/vaadin-jsclipboard-1.0.12.jar")
+    compile files("../libs/vaadin-listbuilder-1.0.0-v8-compatibility.jar")
 
     compile 'com.google.gwt:gwt-elemental:2.8.2'
     compile 'com.google.gwt:gwt-dev:2.8.2'
-
+    
     runtime 'org.projectlombok:lombok:1.18.2'
-
-    compile "com.googlecode.java-diff-utils:diffutils:1.3.0"
 }
 
 war {
