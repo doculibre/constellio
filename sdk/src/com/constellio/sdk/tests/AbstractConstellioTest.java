@@ -805,7 +805,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		givenSystemLanguageIs("fr");
 		givenCollection(collection, asList("fr", "en"));
 
-		SchemasSetup.prepareSetups(getModelLayerFactory().getMetadataSchemasManager(), getAppLayerFactory().getCollectionsManager());
+		SchemasSetup.prepareSetups(getModelLayerFactory().getMetadataSchemasManager(), getModelLayerFactory(), getAppLayerFactory().getCollectionsManager());
 		return getCurrentTestSession().getSchemaTestFeatures();
 	}
 

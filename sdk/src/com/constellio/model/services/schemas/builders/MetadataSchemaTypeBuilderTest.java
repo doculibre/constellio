@@ -60,7 +60,7 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 		when(typesBuilder.getSchemaType(anyString())).thenThrow(NoSuchSchemaType.class);
 		when(typesBuilder.getLanguages()).thenReturn(Arrays.asList(Language.French));
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, "zeUltimateCollection", "fr", Arrays.asList("fr"));
-		schemaTypeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType(zeCollectionInfo, CODE_SCHEMA_TYPE, typesBuilder)
+		schemaTypeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType(zeCollectionInfo, CODE_SCHEMA_TYPE, typesBuilder, modelLayerFactory)
 				.addLabel(Language.French, "aLabel");
 	}
 
@@ -476,7 +476,7 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 
 	private void buildAndModify() {
 		MetadataSchemaType schemaType = schemaTypeBuilder.build(typesFactory, typesBuilder, modelLayerFactory);
-		schemaTypeBuilder = MetadataSchemaTypeBuilder.modifySchemaType(schemaType, new DefaultClassProvider());
+		schemaTypeBuilder = (new MetadataSchemaTypeBuilder()).modifySchemaType(schemaType, modelLayerFactory, new DefaultClassProvider());
 	}
 
 	private void validateSchemaTypeHasCustomSchemaWithMetadata() {
