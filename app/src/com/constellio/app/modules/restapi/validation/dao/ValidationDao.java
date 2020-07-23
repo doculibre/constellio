@@ -30,7 +30,7 @@ public class ValidationDao extends BaseDao {
 		}
 
 		//
-		UserCredential userCredential = userServices.getUser(username);
+		UserCredential userCredential = userServices.getUserConfigs(username);
 		if (userCredential == null) {
 			return Collections.emptyList();
 		}

@@ -19,8 +19,8 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SecurityModelAuthorization;
 import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
@@ -67,7 +67,7 @@ public class CollectionInfosSIPWriterAcceptanceTest extends ConstellioTest {
 
 		SchemasRecordsServices system = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, getModelLayerFactory());
 		List<String> expectedFiles = new ArrayList<>();
-		for (UserCredential userCredential : system.getAllUserCredentials()) {
+		for (SystemWideUserInfos userCredential : system.getAllUserCredentials()) {
 			expectedFiles.add("data/userCredential/userCredential-" + userCredential.getId() + ".xml");
 		}
 

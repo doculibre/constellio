@@ -25,7 +25,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -65,8 +64,7 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 
 	public void addButtonClicked(UserCredentialVO userCredentialVO, String roleCode) {
 		UserServices userServices = modelLayerFactory.newUserServices();
-		UserCredential userCredential = userServices.getUserCredential(userCredentialVO.getUsername());
-		userServices.addUserToCollection(userCredential, view.getCollection());
+		userServices.addUserToCollection(userCredentialVO.getUsername(), view.getCollection());
 
 		roleUserAdditionRequested(userCredentialVO.getUsername(), roleCode);
 
@@ -93,8 +91,7 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 		UserServices userServices = modelLayerFactory.newUserServices();
 		User user = coreSchemas().getUser(entity.getId());
 		removeRoles(user);
-		UserCredential userCredential = userServices.getUserCredential(user.getUsername());
-		userServices.removeUserFromCollection(userCredential, view.getCollection());
+		userServices.removeUserFromCollection(user.getUsername(), view.getCollection());
 
 		LoggingServices loggingServices = modelLayerFactory.newLoggingServices();
 		loggingServices.removeUser(user.getWrappedRecord(), getCurrentUser());

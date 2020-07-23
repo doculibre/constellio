@@ -11,7 +11,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordServices;
@@ -27,6 +26,7 @@ import com.constellio.model.services.security.authentification.AuthenticationSer
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -70,7 +70,7 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 
 	User bob, alice;
 
-	UserCredential userCredentialBob, userCredentialAlice;
+	SystemWideUserInfos userCredentialBob, userCredentialAlice;
 
 	String authId;
 

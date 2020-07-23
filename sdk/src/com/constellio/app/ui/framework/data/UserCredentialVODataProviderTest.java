@@ -2,9 +2,9 @@ package com.constellio.app.ui.framework.data;
 
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.MockedFactories;
@@ -33,11 +33,11 @@ public class UserCredentialVODataProviderTest extends ConstellioTest {
 	UserCredentialVODataProvider dataProvider;
 	@Mock UserServices userServices;
 	@Mock UserCredentialToVOBuilder voBuilder;
-	@Mock UserCredential edouardUserCredential;
-	@Mock UserCredential dakotaUserCredential;
-	@Mock UserCredential gandalfUserCredential;
-	@Mock UserCredential chuckUserCredential;
-	@Mock UserCredential bobUserCredential;
+	@Mock SystemWideUserInfos edouardUserCredential;
+	@Mock SystemWideUserInfos dakotaUserCredential;
+	@Mock SystemWideUserInfos gandalfUserCredential;
+	@Mock SystemWideUserInfos chuckUserCredential;
+	@Mock SystemWideUserInfos bobUserCredential;
 	@Mock UserCredentialVO edouardUserCredentialVO;
 	@Mock UserCredentialVO dakotaUserCredentialVO;
 	@Mock UserCredentialVO gandalfUserCredentialVO;
@@ -45,7 +45,7 @@ public class UserCredentialVODataProviderTest extends ConstellioTest {
 	@Mock UserCredentialVO bobUserCredentialVO;
 	@Mock ModelLayerFactory modelLayerFactory;
 
-	List<UserCredential> userCredentials;
+	List<SystemWideUserInfos> userCredentials;
 
 	@Before
 	public void setUp()
@@ -89,7 +89,7 @@ public class UserCredentialVODataProviderTest extends ConstellioTest {
 		userCredentials.add(bobUserCredential);
 
 		when(mockedFactories.getModelLayerFactory().newUserServices()).thenReturn(userServices);
-		when(userServices.getUser(EDOUARD)).thenReturn(edouardUserCredential);
+		when(userServices.getUserInfos(EDOUARD)).thenReturn(edouardUserCredential);
 		when(userServices.getGlobalGroupActifUsers(HEROES)).thenReturn(
 				Arrays.asList(edouardUserCredential, dakotaUserCredential, gandalfUserCredential, chuckUserCredential,
 						bobUserCredential));

@@ -39,7 +39,7 @@ public class UserRestfulServiceDELETESignatureAcceptanceTest extends BaseRestful
 		ContentVersionDataSummary versionDataSummary = contentManager.upload(file);
 		Content content = contentManager.createSystemContent(file.getName(), versionDataSummary);
 
-		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
+		UserCredential userCredentials = userServices.getUserConfigs(users.bobIn(zeCollection).getUsername());
 		userCredentials.setElectronicSignature(content);
 		userServices.addUpdateUserConfigs(userCredentials);
 
@@ -49,7 +49,7 @@ public class UserRestfulServiceDELETESignatureAcceptanceTest extends BaseRestful
 
 	@Test
 	public void validateService() {
-		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
+		UserCredential userCredentials = userServices.getUserConfigs(users.bobIn(zeCollection).getUsername());
 		assertThat(userCredentials.getElectronicSignature()).isNotNull();
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
@@ -59,7 +59,7 @@ public class UserRestfulServiceDELETESignatureAcceptanceTest extends BaseRestful
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
-		userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
+		userCredentials = userServices.getUserConfigs(users.bobIn(zeCollection).getUsername());
 		assertThat(userCredentials.getElectronicSignature()).isNull();
 	}
 

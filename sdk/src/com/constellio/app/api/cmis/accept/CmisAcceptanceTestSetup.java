@@ -21,6 +21,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.SchemasSetup;
@@ -754,7 +755,7 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 			rolesManager.addRole(new Role(collection, "cmisRole", asList(CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION)));
 
 			Transaction transaction = new Transaction();
-			for (UserCredential userCredential : userServices.getAllUserCredentials()) {
+			for (SystemWideUserInfos userCredential : userServices.getAllUserCredentials()) {
 				if (userCredential.getCollections().contains(collection)) {
 					User user = userServices.getUserInCollection(userCredential.getUsername(), collection);
 					List<String> roles = new ArrayList<>(user.getUserRoles());

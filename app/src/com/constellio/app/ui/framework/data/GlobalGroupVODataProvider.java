@@ -5,8 +5,8 @@ import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 
 import java.io.IOException;
@@ -141,8 +141,8 @@ public class GlobalGroupVODataProvider extends AbstractDataProvider {
 	public List<GlobalGroupVO> listActiveGlobalGroupVOsFromUser(String username) {
 		List<GlobalGroupVO> newGlobalGroupVOs = new ArrayList<>();
 		for (GlobalGroupVO globalGroupVO : filteredGlobalGroupVOs) {
-			List<UserCredential> userCredentials = userServices.getGlobalGroupActifUsers(globalGroupVO.getCode());
-			for (UserCredential userCredential : userCredentials) {
+			List<SystemWideUserInfos> userCredentials = userServices.getGlobalGroupActifUsers(globalGroupVO.getCode());
+			for (SystemWideUserInfos userCredential : userCredentials) {
 				if (userCredential.getUsername().equals(username)) {
 					newGlobalGroupVOs.add(globalGroupVO);
 				}

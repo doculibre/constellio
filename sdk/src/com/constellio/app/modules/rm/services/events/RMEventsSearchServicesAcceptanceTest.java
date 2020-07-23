@@ -12,11 +12,11 @@ import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.LocalDate;
@@ -71,11 +71,11 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		Transaction transaction = new Transaction();
-		UserCredential user1 = users.dakotaLIndien();
+		SystemWideUserInfos user1 = users.dakotaLIndien();
 		RecordWrapper documentCreationByUser1 = createDocument(user1.getUsername()).setRecordId("42").setCreatedOn(testDate);
 		String expectedId = transaction
 				.add(documentCreationByUser1).getId();
-		UserCredential user2 = users.chuckNorris();
+		SystemWideUserInfos user2 = users.chuckNorris();
 		Event documentCreationByUser2 = createDocument(user2.getUsername()).setRecordId("43");
 		transaction.add(documentCreationByUser2);
 

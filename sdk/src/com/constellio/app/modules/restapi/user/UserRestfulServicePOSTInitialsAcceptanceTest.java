@@ -79,7 +79,7 @@ public class UserRestfulServicePOSTInitialsAcceptanceTest extends BaseRestfulSer
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall()).hasSize(1);
 
-		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
+		UserCredential userCredentials = userServices.getUserConfigs(users.bobIn(zeCollection).getUsername());
 		Content content = userCredentials.getElectronicInitials();
 		ContentVersion contentVersion = content.getCurrentVersion();
 

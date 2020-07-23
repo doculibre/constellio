@@ -4,9 +4,9 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.security.authentification.AuthenticationService;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
@@ -38,7 +38,7 @@ public class Users {
 
 	UserServices userServices;
 
-	public UserCredential chuckNorris() {
+	public SystemWideUserInfos chuckNorris() {
 		return getUser(chuckNorrisUsername);
 	}
 
@@ -50,8 +50,8 @@ public class Users {
 		return getUser(chuckNorrisUsername, collection);
 	}
 
-	public UserCredential admin() {
-		return userServices.getUser(admin);
+	public SystemWideUserInfos admin() {
+		return userServices.getUserInfos(admin);
 	}
 
 	public UserAddUpdateRequest adminAddUpdateRequest() {
@@ -63,7 +63,7 @@ public class Users {
 		return userServices.getUserInCollection(admin, collection);
 	}
 
-	public UserCredential alice() {
+	public SystemWideUserInfos alice() {
 		return getUser(aliceUsername);
 	}
 
@@ -76,7 +76,7 @@ public class Users {
 		return getUser(aliceUsername, collection);
 	}
 
-	public UserCredential bob() {
+	public SystemWideUserInfos bob() {
 		return getUser(bobGrattonUsername);
 	}
 
@@ -89,7 +89,7 @@ public class Users {
 		return getUser(bobGrattonUsername, collection);
 	}
 
-	public UserCredential charles() {
+	public SystemWideUserInfos charles() {
 		return getUser(charlesFrancoisXavierUsername);
 	}
 
@@ -101,7 +101,7 @@ public class Users {
 		return getUser(charlesFrancoisXavierUsername, collection);
 	}
 
-	public UserCredential dakotaLIndien() {
+	public SystemWideUserInfos dakotaLIndien() {
 		return getUser(dakotaLindienUsername);
 	}
 
@@ -118,7 +118,7 @@ public class Users {
 		return getUser(dakotaLindienUsername, collection);
 	}
 
-	public UserCredential edouardLechat() {
+	public SystemWideUserInfos edouardLechat() {
 		return getUser(edouardLechatUsername);
 	}
 
@@ -135,7 +135,7 @@ public class Users {
 		return getUser(edouardLechatUsername, collection);
 	}
 
-	public UserCredential gandalfLeblanc() {
+	public SystemWideUserInfos gandalfLeblanc() {
 		return getUser(gandalfLeblancUsername);
 	}
 
@@ -144,7 +144,7 @@ public class Users {
 	}
 
 
-	public UserCredential robin() {
+	public SystemWideUserInfos robin() {
 		return getUser(robinUsername);
 	}
 
@@ -153,7 +153,7 @@ public class Users {
 	}
 
 
-	public UserCredential sasquatch() {
+	public SystemWideUserInfos sasquatch() {
 		return getUser(sasquatchUsername);
 	}
 
@@ -178,7 +178,7 @@ public class Users {
 		return getUser(sasquatchUsername, collection);
 	}
 
-	public List<UserCredential> getAllUsers() {
+	public List<SystemWideUserInfos> getAllUsers() {
 		return Arrays.asList(
 				chuckNorris(), admin(), alice(), bob(), charles(), dakotaLIndien(), edouardLechat(), gandalfLeblanc(), robin(),
 				sasquatch());
@@ -288,8 +288,8 @@ public class Users {
 
 	}
 
-	private UserCredential getUser(String username) {
-		return userServices.getUser(username);
+	private SystemWideUserInfos getUser(String username) {
+		return userServices.getUserInfos(username);
 	}
 
 	private UserAddUpdateRequest addUpdateRequest(String username) {

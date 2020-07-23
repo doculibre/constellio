@@ -8,12 +8,12 @@ import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -78,7 +78,7 @@ public class TaskSchemasExtensionTestAssigneeAlertAcceptanceTest extends Constel
 	public void givenTaskAssigneeModifiedToHeroesThenEmailToSendToHeroesCreatedWithTaskAssignedToYouTemplate()
 			throws RecordServicesException {
 		Group heroes = users.heroesIn(zeCollection);
-		for (final UserCredential user : getModelLayerFactory().newUserServices().getGlobalGroupActifUsers(heroes.getCode())) {
+		for (final SystemWideUserInfos user : getModelLayerFactory().newUserServices().getGlobalGroupActifUsers(heroes.getCode())) {
 			UserAddUpdateRequest userReq = getModelLayerFactory().newUserServices().addEditRequest(user.getUsername());
 			userReq.setPersonalEmails(Arrays.asList(user.getUsername() + ".personal.mail@gmail.com"));
 			getModelLayerFactory().newUserServices().addUpdateUserCredential(userReq);
@@ -299,9 +299,9 @@ public class TaskSchemasExtensionTestAssigneeAlertAcceptanceTest extends Constel
 	private List<String> getGroupUsersEmails(Group group) {
 		List<String> returnList = new ArrayList<>();
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		List<UserCredential> groupUsers = userServices
+		List<SystemWideUserInfos> groupUsers = userServices
 				.getGlobalGroupActifUsers(group.getCode());
-		for (UserCredential user : groupUsers) {
+		for (SystemWideUserInfos user : groupUsers) {
 			String email = user.getEmail();
 			if (StringUtils.isNotBlank(email)) {
 				returnList.add(email);

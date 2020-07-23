@@ -82,7 +82,7 @@ public class ListGlobalGroupsPresenter extends BasePresenter<ListGlobalGroupsVie
 		String username = view.getSessionContext().getCurrentUser().getUsername();
 		UserCredential userCredential = userServices.getUserCredential(username);
 		GlobalGroup globalGroup = userServices.getGroup(globalGroupVO.getCode());
-		userServices.logicallyRemoveGroupHierarchy(userCredential, globalGroup);
+		userServices.logicallyRemoveGroupHierarchy(userCredential.getUsername(), globalGroup);
 		view.refreshTable();
 	}
 

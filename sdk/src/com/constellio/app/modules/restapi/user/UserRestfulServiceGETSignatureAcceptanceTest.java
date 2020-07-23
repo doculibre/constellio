@@ -45,7 +45,7 @@ public class UserRestfulServiceGETSignatureAcceptanceTest extends BaseRestfulSer
 		ContentVersionDataSummary versionDataSummary = contentManager.upload(file);
 		Content content = contentManager.createSystemContent(file.getName(), versionDataSummary);
 
-		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
+		UserCredential userCredentials = userServices.getUserConfigs(users.bobIn(zeCollection).getUsername());
 		userCredentials.setElectronicSignature(content);
 		userServices.addUpdateUserConfigs(userCredentials);
 
@@ -66,7 +66,7 @@ public class UserRestfulServiceGETSignatureAcceptanceTest extends BaseRestfulSer
 	public void validateService()
 			throws Exception {
 
-		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
+		UserCredential userCredentials = userServices.getUserConfigs(users.bobIn(zeCollection).getUsername());
 		assertThat(userCredentials.getElectronicSignature()).isNotNull();
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
@@ -84,7 +84,7 @@ public class UserRestfulServiceGETSignatureAcceptanceTest extends BaseRestfulSer
 
 	@Test
 	public void validateServiceWithEmptyData() {
-		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
+		UserCredential userCredentials = userServices.getUserConfigs(users.bobIn(zeCollection).getUsername());
 		userCredentials.setElectronicSignature(null);
 		userServices.addUpdateUserConfigs(userCredentials);
 

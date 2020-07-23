@@ -8,7 +8,6 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
 
@@ -57,8 +56,7 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 	public void deleteButtonClicked() {
 		UserServices userServices = modelLayerFactory.newUserServices();
 		User user = coreSchemas().getUser(recordId);
-		UserCredential userCredential = userServices.getUserCredential(user.getUsername());
-		userServices.removeUserFromCollection(userCredential, view.getCollection());
+		userServices.removeUserFromCollection(user.getUsername(), view.getCollection());
 	}
 
 	private RolesManager roleManager() {

@@ -111,7 +111,7 @@ public class ListGlobalGroupsPresenterTest extends ConstellioTest {
 
 		presenter.deleteButtonClicked(heroesGlobalGroupVO);
 
-		verify(userServices).logicallyRemoveGroupHierarchy(dakotaCredential, heroesGlobalGroup);
+		verify(userServices).logicallyRemoveGroupHierarchy(dakotaCredential.getUsername(), heroesGlobalGroup);
 		verify(globalGroupView).refreshTable();
 	}
 

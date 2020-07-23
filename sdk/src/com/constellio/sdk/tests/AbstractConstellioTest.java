@@ -237,8 +237,6 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 		TenantUtils.setTenant("2");
 		runnable.run();
-
-
 	}
 
 	protected void forEachTenants(final RunnableWithException runnable) throws Exception {

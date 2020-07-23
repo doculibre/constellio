@@ -41,7 +41,7 @@ public class SolrUserCredentialsManager {
 	}
 
 	UserCredential addEdit(String username) {
-		return (valueOrDefault(getUserCredential(username), schemas.newCredential())).setUsername(cleanUsername(username));
+		return (valueOrDefault(getUserCredential(username), schemas.newCredential()))._setUsername(cleanUsername(username));
 	}
 
 	UserCredential addEdit(String username, String firstName, String lastName, String email) {
@@ -58,7 +58,7 @@ public class SolrUserCredentialsManager {
 						  UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
 						  String dn) {
 		return addEdit(username)
-				.setUsername(cleanUsername(username))
+				._setUsername(cleanUsername(username))
 				.setFirstName(firstName)
 				.setLastName(lastName)
 				.setEmail(email)

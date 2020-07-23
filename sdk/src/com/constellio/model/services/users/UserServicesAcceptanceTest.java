@@ -82,7 +82,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 	List<String> allCollections;
 	String collection1, collection2, collection3;
-	UserCredential user, anotherUser, thirdUser;
+	SystemWideUserInfos user, anotherUser, thirdUser;
 	UserAddUpdateRequest userReq, anotherUserReq, thirdUserReq;
 	@Mock UserCredential userWithNoAccessToDeleteCollection;
 	@Mock Factory<EncryptionServices> encryptionServicesFactory;
@@ -237,7 +237,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenCollection1And2();
 		givenUserWith(noGroups, and(collection1, collection2));
 
-		userServices.removeUserFromCollection(user, collection1);
+		userServices.removeUserFromCollection(user.getUsername(), collection1);
 
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection1)
 				.where(userServices.usernameMetadata(collection1)).is(user.getUsername());
@@ -282,7 +282,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenCollection1And2();
 		givenUserWith(noGroups, and(collection1, collection2));
 
-		userServices.setUserCredentialAndUserStatusPendingApproval(user);
+		userServices.setUserCredentialAndUserStatusPendingApproval(user.getUsername());
 
 		Map<String, User> userInCollection = new HashMap<>();
 		for (String collection : Arrays.asList(collection1, collection2)) {
@@ -321,7 +321,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenCollection1And2();
 		givenUserWith(noGroups, and(collection1, collection2));
 
-		userServices.suspendUserCredentialAndUser(user);
+		userServices.suspendUserCredentialAndUser(user.getUsername());
 
 		Map<String, User> userInCollection = new HashMap<>();
 		for (String collection : Arrays.asList(collection1, collection2)) {
@@ -348,7 +348,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenUserWith(noGroups, and(collection1, collection2));
 		userServices.removeUserCredentialAndUser(user);
 
-		userServices.activeUserCredentialAndUser(user);
+		userServices.activeUserCredentialAndUser(user.getUsername());
 
 		Map<String, User> userInCollection = new HashMap<>();
 		for (String collection : Arrays.asList(collection1, collection2)) {
@@ -599,6 +599,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 				.setEmail("chuck@norris.com"));
 
 		user = userServices.getUserInCollection(chuckNorris, collection1);
+		assertThat(user.getFirstName()).isEqualTo("CHUCK");
+		assertThat(user.getLastName()).isEqualTo("NORRIS");
 		assertThat(user.getTitle()).isEqualTo("CHUCK NORRIS");
 		assertThat(user.getEmail()).isEqualTo("chuck@norris.com");
 		assertThat(userServices.getUserInCollection(chuckNorris, collection1).getAllRoles())
@@ -614,7 +616,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		userServices = spy(userServices);
 		doThrow(new UserServicesRuntimeException_CannotExcuteTransaction(new RuntimeException()))
-				.when(userServices).sync(any(UserCredential.class));
+				.when(userServices).sync(any(SystemWideUserInfos.class));
 
 		try {
 			userServices.addUserToCollection(user, collection1);
@@ -705,7 +707,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		String token = userServices.getToken(serviceKey, user.getUsername(), "1qaz2wsx");
 
-		user = userServices.getUser(user.getUsername());
+		user = userServices.getUserInfos(user.getUsername());
 		assertThat(user.getAccessTokens()).containsKey(token);
 	}
 
@@ -724,7 +726,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThat(userServices.getUser(user.getUsername()).getAccessTokens()).isNotEmpty();
 
 		Thread.sleep(6000);
-		user = userServices.getUser(user.getUsername());
+		user = userServices.getUserInfos(user.getUsername());
 		for (int i = 0; i < 2000 && !userServices.getUser(user.getUsername()).getAccessTokens().isEmpty(); i++) {
 			Thread.sleep(50);
 		}
@@ -802,10 +804,10 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenUserAndPassword();
 		String serviceKey = userServices.giveNewServiceToken(user);
 		String token = userServices.getToken(serviceKey, user.getUsername(), "1qaz2wsx");
-		user = userServices.getUser(user.getUsername());
+		user = userServices.getUserInfos(user.getUsername());
 
 		String newToken = userServices.getToken(serviceKey, token);
-		user = userServices.getUser(user.getUsername());
+		user = userServices.getUserInfos(user.getUsername());
 		assertThat(user.getAccessTokens()).containsKey(newToken);
 		assertThat(user.getAccessTokens()).doesNotContainKey(token);
 
@@ -820,7 +822,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenUserAndPassword();
 		String serviceKey = userServices.giveNewServiceToken(user);
 		String token = userServices.getToken(serviceKey, user.getUsername(), "1qaz2wsx");
-		user = userServices.getUser(user.getUsername());
+		user = userServices.getUserInfos(user.getUsername());
 
 		try {
 			userServices.getToken(serviceKey, "wrongToken");
@@ -840,7 +842,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenUserAndPassword();
 		String serviceKey = userServices.giveNewServiceToken(user);
 		String token = userServices.getToken(serviceKey, user.getUsername(), "1qaz2wsx");
-		user = userServices.getUser(user.getUsername());
+		user = userServices.getUserInfos(user.getUsername());
 
 		String username = userServices.getTokenUser(serviceKey, token);
 
@@ -886,7 +888,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		UserCredential admin = userServices.getUserCredential("admin");
 		userServices.addUserToCollection(admin, collection1);
-		userServices.removeGroupFromCollections(admin, "group1", Arrays.asList("collection1"));
+		userServices.removeGroupFromCollectionsWithoutUserValidation("group1", Arrays.asList("collection1"));
 
 		assertThat(userServices.getGroupInCollection("group1", "collection1").getWrappedRecord()
 				.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
@@ -912,7 +914,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		UserCredential admin = userServices.getUserCredential("admin");
 		userServices.addUserToCollection(admin, collection1);
-		userServices.logicallyRemoveGroupHierarchy(admin, group1);
+		userServices.logicallyRemoveGroupHierarchy(admin.getUsername(), group1);
 
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection1)
 				.where(userServices.groupCodeMetadata(collection1)).isIn(Arrays.asList(group1.getCode(), group1_1.getCode(),
@@ -951,7 +953,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.addUpdateGlobalGroup(group1_1_1);
 		UserCredential admin = userServices.getUserCredential("admin");
 		userServices.addUserToCollection(admin, collection1);
-		userServices.logicallyRemoveGroupHierarchy(admin, group1);
+		userServices.logicallyRemoveGroupHierarchy(admin.getUsername(), group1);
 
 		userServices.activateGlobalGroupHierarchy(admin, group1);
 
@@ -1024,7 +1026,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		t.add(c);
 		recordServices.execute(t);
 		userServices = getModelLayerFactory().newUserServices();
-		for (UserCredential user : users.getAllUsers()) {
+		for (SystemWideUserInfos user : users.getAllUsers()) {
 			UserAddUpdateRequest userReq = userServices.addEditRequest(user.getUsername());
 			if (!userReq.isSystemAdmin()) {
 				userReq.setStatus(UserCredentialStatus.DELETED);
@@ -1059,7 +1061,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.addUpdateUserCredential(chuck);
 
 		assertThat(userServices.safePhysicalDeleteAllUnusedGlobalGroups()).doesNotContain(g1).contains(g2, g3, g4);
-		assertThat(userServices.getGroup(g1.getCode())).isNull();
+		assertThat(userServices.getNullableGroup(g1.getCode())).isNull();
 	}
 
 	@Test
@@ -1249,7 +1251,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		Group heroes = records.getHeroes();
 		GlobalGroup heroesGlobalGroup = userServices.getGroup(heroes.getCode());
 
-		userServices.removeGroupFromCollections(userServices.getUserCredential("admin"), heroes.getCode(),
+		userServices.removeGroupFromCollectionsWithoutUserValidation(heroes.getCode(),
 				asList(heroes.getCollection()));
 		userServices.logicallyRemoveGroup(heroesGlobalGroup);
 
@@ -1327,7 +1329,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 	// ----- Setup methods
 
-	private void assertThatUserIsOnlyInCollections(UserCredential user, String... collections) {
+	private void assertThatUserIsOnlyInCollections(SystemWideUserInfos user, String... collections) {
 		List<String> expectedCollections = asList(collections);
 		for (String collection : allCollections) {
 			if (expectedCollections.contains(collection)) {
@@ -1417,7 +1419,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 				UserCredentialStatus.ACTIVE);
 		userServices.addUpdateUserCredential(userReq);
 		authenticationService.changePassword(userReq.getUsername(), "1qaz2wsx");
-		user = userServices.getUser(userReq.getUsername());
+		user = userServices.getUserInfos(userReq.getUsername());
 		userReq = userServices.addEditRequest(userReq.getUsername());
 	}
 
@@ -1425,7 +1427,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userReq = createUserCredential(
 				chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", groups, collections, UserCredentialStatus.ACTIVE).setSystemAdminEnabled();
 		userServices.addUpdateUserCredential(userReq);
-		user = userServices.getUser(userReq.getUsername());
+		user = userServices.getUserInfos(userReq.getUsername());
 		userReq = userServices.addEditRequest(userReq.getUsername());
 	}
 
@@ -1434,7 +1436,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 				"gandalf.leblanc", "Gandalf", "Leblanc", "gandalf.leblanc@doculibre.com", groups, collections,
 				UserCredentialStatus.ACTIVE);
 		userServices.addUpdateUserCredential(anotherUserReq);
-		anotherUser = userServices.getUser(anotherUserReq.getUsername());
+		anotherUser = userServices.getUserInfos(anotherUserReq.getUsername());
 		anotherUserReq = userServices.addEditRequest(anotherUserReq.getUsername());
 	}
 
@@ -1443,7 +1445,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 				"edouard.lechat", "Edouard", "Lechat", "edouard.lechat@doculibre.com", groups, collections,
 				UserCredentialStatus.ACTIVE);
 		userServices.addUpdateUserCredential(thirdUserReq);
-		thirdUser = userServices.getUser(thirdUserReq.getUsername());
+		thirdUser = userServices.getUserInfos(thirdUserReq.getUsername());
 		thirdUserReq = userServices.addEditRequest(thirdUserReq.getUsername());
 	}
 
@@ -1460,8 +1462,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		users.setUp(getModelLayerFactory().newUserServices());
 		User chuck = users.chuckNorrisIn(zeCollection);
 
-		UserCredential chuckUserCredential = userServices.getUserCredential(chuck.getUsername());
-		userServices.physicallyRemoveUserCredentialAndUsers(chuckUserCredential);
+		userServices.physicallyRemoveUserCredentialAndUsers(chuck.getUsername());
 		//OK !
 	}
 
@@ -1482,10 +1483,9 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		t.add(c);
 		recordServices.execute(t);
 
-		UserCredential chuckUserCredential = userServices.getUserCredential(chuck.getUsername());
 
 		try {
-			userServices.physicallyRemoveUserCredentialAndUsers(chuckUserCredential);
+			userServices.physicallyRemoveUserCredentialAndUsers(chuck.getUsername());
 			fail();
 		} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
 			System.out.println(e.getMessage());

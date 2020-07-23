@@ -118,7 +118,7 @@ public class UserAddUpdateRequest {
 	}
 
 	public UserAddUpdateRequest setCollections(List<String> collections) {
-		this.collections = collections;
+		this.collections = new ArrayList<>(collections);
 		return this;
 	}
 
@@ -133,7 +133,7 @@ public class UserAddUpdateRequest {
 	}
 
 	public UserAddUpdateRequest setGlobalGroups(List<String> globalGroups) {
-		this.globalGroups = globalGroups;
+		this.globalGroups = new ArrayList<>(globalGroups);
 		return this;
 	}
 

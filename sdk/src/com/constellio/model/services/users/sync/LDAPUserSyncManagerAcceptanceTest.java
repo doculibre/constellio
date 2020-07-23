@@ -11,6 +11,7 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -74,7 +75,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		ldapUserSyncManager.synchronizeIfPossible();
 		int usersCountAfterSync = userServices.getAllUserCredentials().size();
 
-		for (UserCredential userCredential : userServices.getAllUserCredentials()) {
+		for (SystemWideUserInfos userCredential : userServices.getAllUserCredentials()) {
 			String username = userCredential.getUsername();
 			assertThat(ldapConfigurationManager.getLDAPUserSyncConfiguration().isGroupAccepted(username)).isTrue();
 		}
@@ -366,7 +367,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 
 		ldapUserSyncManager.synchronizeIfPossible();
 
-		List<UserCredential> allUsers = userServices.getAllUserCredentials();
+		List<SystemWideUserInfos> allUsers = userServices.getAllUserCredentials();
 
 		assertThat(allUsers.size()).isGreaterThan(3000);
 	}

@@ -31,6 +31,7 @@ import com.constellio.model.services.factories.ModelLayerFactoryWithRequestCache
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.roles.Roles;
+import com.constellio.model.services.users.SystemWideUserInfos;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -485,7 +486,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	 * @return
 	 */
 	@Deprecated
-	public List<UserCredential> getAllUserCredentials() {
+	public List<SystemWideUserInfos> getAllUserCredentials() {
 		return modelLayerFactory.newUserServices().getAllUserCredentials();
 	}
 
