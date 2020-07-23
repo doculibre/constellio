@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.batchprocess;
 
 import com.constellio.app.services.collections.CollectionsManager;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.BatchProcessVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.BatchProcessToVOBuilder;
@@ -71,8 +72,7 @@ public class ListBatchProcessesPresenter extends BasePresenter<ListBatchProcesse
 		userBatchProcessDataProvider.clear();
 		systemBatchProcessDataProvider.clear();
 
-		User currentUser = getCurrentUser();
-		String currentUsername = currentUser.getUsername();
+		String currentUsername = ConstellioUI.getCurrentSessionContext().getCurrentUser().getUsername();
 
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
 		List<BatchProcess> displayedBatchProcesses = new ArrayList<>();
@@ -102,13 +102,15 @@ public class ListBatchProcessesPresenter extends BasePresenter<ListBatchProcesse
 				collectionAccess.put(collection, hasSystemBatchProcessAccess(collection));
 			}
 
+			BatchProcessVO batchProcessVO = voBuilder.build(batchProcess);
 			if (collectionAccess.get(collection)) {
-				BatchProcessVO batchProcessVO = voBuilder.build(batchProcess);
-				String batchProcessUsername = batchProcessVO.getUsername();
-				if (currentUsername.equals(batchProcessUsername)) {
-					userBatchProcessDataProvider.addBatchProcess(batchProcessVO);
-				}
+
 				systemBatchProcessDataProvider.addBatchProcess(batchProcessVO);
+			}
+
+			String batchProcessUsername = batchProcessVO.getUsername();
+			if (currentUsername.equals(batchProcessUsername)) {
+				userBatchProcessDataProvider.addBatchProcess(batchProcessVO);
 			}
 		}
 
