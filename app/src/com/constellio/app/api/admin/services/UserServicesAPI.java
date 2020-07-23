@@ -3,7 +3,6 @@ package com.constellio.app.api.admin.services;
 import com.constellio.app.client.entities.GlobalGroupResource;
 import com.constellio.app.client.entities.GroupResource;
 import com.constellio.app.client.entities.UserResource;
-import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.UserServices;
 import org.joda.time.LocalDateTime;
@@ -219,29 +218,4 @@ public class UserServicesAPI {
 				.setDn(null);
 	}
 
-	private UserResource toData(UserCredential userCredential) {
-		UserResource userResource = new UserResource();
-		userResource.setUsername(userCredential.getUsername());
-		userResource.setFirstName(userCredential.getFirstName());
-		userResource.setLastName(userCredential.getLastName());
-		userResource.setEmail(userCredential.getEmail());
-		userResource.setGlobalGroups(userCredential.getGlobalGroups());
-		userResource.setCollections(userCredential.getCollections());
-		userResource.setServiceKey(userCredential.getServiceKey());
-		userResource.setSystemAdmin(userCredential.isSystemAdmin());
-		Map<String, String> tokens = new HashMap<String, String>();
-		for (Entry<String, LocalDateTime> token : userCredential.getAccessTokens().entrySet()) {
-			tokens.put(token.getKey(), token.getValue().toString());
-		}
-		userResource.setTokens(tokens);
-		return userResource;
-	}
-
-	private GlobalGroupResource toGlobalGroupResource(GlobalGroup group) {
-		GlobalGroupResource resource = new GlobalGroupResource();
-		resource.setCode(group.getCode());
-		resource.setName(group.getName());
-		resource.setUsersAutomaticallyAddedToCollections(group.getUsersAutomaticallyAddedToCollections());
-		return resource;
-	}
 }

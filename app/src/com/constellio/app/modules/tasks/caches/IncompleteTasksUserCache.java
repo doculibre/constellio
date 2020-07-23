@@ -7,7 +7,6 @@ import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.caches.UserCache;
 import com.constellio.model.services.users.UserServices;
 
@@ -32,8 +31,8 @@ public class IncompleteTasksUserCache implements UserCache {
 	}
 
 	@Override
-	public void invalidateUser(UserCredential userCredential) {
-		for (User user : userServices.getUserForEachCollection(userCredential)) {
+	public void invalidateUser(String username) {
+		for (User user : userServices.getUserForEachCollection(username)) {
 			invalidateUser(user);
 		}
 	}

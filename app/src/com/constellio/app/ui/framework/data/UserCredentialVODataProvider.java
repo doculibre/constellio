@@ -3,9 +3,9 @@ package com.constellio.app.ui.framework.data;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 
 import java.io.IOException;
@@ -55,13 +55,14 @@ public class UserCredentialVODataProvider extends AbstractDataProvider {
 
 	private void loadUserCredentialVOs() {
 		List<UserCredentialVO> newUserCredentialVOs = new ArrayList<>();
-		List<UserCredential> userCredentials;
+		List<SystemWideUserInfos> userCredentials;
 		if (globalGroupCode != null) {
 			userCredentials = userServices.getGlobalGroupActifUsers(globalGroupCode);
 		} else {
 			userCredentials = userServices.getAllUserCredentials();
 		}
-		for (UserCredential userCredential : userCredentials) {
+		for (SystemWideUserInfos userCredential : userCredentials) {
+
 			UserCredentialVO userCredentialVO = voBuilder.build(userCredential);
 			newUserCredentialVOs.add(userCredentialVO);
 		}
@@ -113,8 +114,8 @@ public class UserCredentialVODataProvider extends AbstractDataProvider {
 
 	public List<UserCredentialVO> listActiveUserCredentialVOs() {
 		List<UserCredentialVO> activeUserCredentialVOs = new ArrayList<>();
-		List<UserCredential> userCredentials = userServices.getActiveUserCredentials();
-		for (UserCredential userCredential : userCredentials) {
+		List<SystemWideUserInfos> userCredentials = userServices.getActiveUserCredentials();
+		for (SystemWideUserInfos userCredential : userCredentials) {
 			UserCredentialVO userCredentialVO = voBuilder.build(userCredential);
 			activeUserCredentialVOs.add(userCredentialVO);
 		}
@@ -122,9 +123,9 @@ public class UserCredentialVODataProvider extends AbstractDataProvider {
 	}
 
 	public UserCredentialVO getUserCredentialVO(String username) {
-		UserCredential userCredential;
+		SystemWideUserInfos userCredential;
 		try {
-			userCredential = userServices.getUser(username);
+			userCredential = userServices.getUserInfos(username);
 		} catch (Exception e) {
 			return null;
 		}
@@ -166,7 +167,7 @@ public class UserCredentialVODataProvider extends AbstractDataProvider {
 
 	private List<String> listUsernamesInGlobalGroup(String globalGroupCode) {
 		List<String> usernames = new ArrayList<>();
-		for (UserCredential userCredential : userServices.getGlobalGroupActifUsers(globalGroupCode)) {
+		for (SystemWideUserInfos userCredential : userServices.getGlobalGroupActifUsers(globalGroupCode)) {
 			usernames.add(userCredential.getUsername());
 		}
 		return usernames;

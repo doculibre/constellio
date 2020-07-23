@@ -4,8 +4,8 @@ import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.MockedFactories;
@@ -33,7 +33,7 @@ public class GlobalGroupVODataProviderTest extends ConstellioTest {
 	public static final String LEGENDS_GROUP = "Legends group";
 	MockedFactories mockedFactories = new MockedFactories();
 	GlobalGroupVODataProvider dataProvider;
-	@Mock UserCredential bob, dakota;
+	@Mock SystemWideUserInfos bob, dakota;
 	@Mock UserServices userServices;
 	@Mock GlobalGroupToVOBuilder voBuilder;
 	@Mock GlobalGroup heroesGroup, heroesGroup1, legendsGroup;

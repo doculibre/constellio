@@ -14,7 +14,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -25,6 +24,7 @@ import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.search.entities.SearchBoost;
 import com.constellio.model.services.thesaurus.ResponseSkosConcept;
 import com.constellio.model.services.thesaurus.ThesaurusService;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.shaded.com.google.common.base.Objects;
@@ -58,7 +58,7 @@ import static java.util.Arrays.asList;
 
 public class SearchWebService extends AbstractSearchServlet {
 	@Override
-	protected void doGet(UserCredential user, HttpServletRequest req, HttpServletResponse resp)
+	protected void doGet(SystemWideUserInfos user, HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		ModifiableSolrParams solrParams = getModifiableSolrParams(req.getQueryString());
 		boolean searchingInEvents = "true".equals(req.getParameter(SEARCH_EVENTS));

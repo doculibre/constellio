@@ -4,10 +4,10 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.RecordCacheType;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +31,7 @@ public class CachedSearchWebService extends AbstractSearchServlet {
 	private static final String UNSUPPORTED_SCHEMA_TYPE_ERROR = "Unsupported schemaType. Must be fully cached and unsecured";
 
 	@Override
-	protected void doGet(UserCredential user, HttpServletRequest req, HttpServletResponse resp)
+	protected void doGet(SystemWideUserInfos user, HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		String collectionParam = req.getParameter(OPTIONAL_COLLECTION_PARAM);
 		String schemaTypeCode = req.getParameter(SCHEMA_TYPE_PARAM);

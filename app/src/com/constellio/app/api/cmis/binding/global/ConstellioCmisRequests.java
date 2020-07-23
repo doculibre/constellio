@@ -33,7 +33,7 @@ import com.constellio.app.api.cmis.requests.versioning.GetObjectOfLatestVersionU
 import com.constellio.app.api.cmis.requests.versioning.GetPropertiesOfLatestVersionRequest;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
@@ -113,7 +113,7 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 		List<RepositoryInfo> result = new ArrayList<RepositoryInfo>();
 
 		UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-		UserCredential userCredential = ConstellioCmisRequestFactory.authenticateUserFromContext(context, userServices);
+		SystemWideUserInfos userCredential = ConstellioCmisRequestFactory.authenticateUserFromContext(context, userServices);
 
 		CallContext callContext = getCallContext();
 

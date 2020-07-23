@@ -135,7 +135,7 @@ public class ConstellioGenerateTokenWebServletAcceptanceTest extends ConstellioT
 					String user = getModelLayerFactory().newUserServices().getUserCredentialByServiceKey(serviceKey);
 					assertThat(getModelLayerFactory().newUserServices().isAuthenticated(serviceKey, token))
 							.describedAs("can be authentified with given credentials").isTrue();
-					assertThat(getModelLayerFactory().newUserServices().getUser(user).getAccessTokens())
+					assertThat(getModelLayerFactory().newUserServices().getUserConfigs(user).getAccessTokens())
 							.describedAs("token end date").containsEntry(token, dateTime);
 
 				} catch (JDOMException e) {

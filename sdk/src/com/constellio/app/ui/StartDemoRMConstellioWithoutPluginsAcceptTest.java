@@ -73,7 +73,7 @@ public class StartDemoRMConstellioWithoutPluginsAcceptTest extends ConstellioTes
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		String token = userServices.generateToken("admin");
-		String serviceKey = userServices.getUser("admin").getServiceKey();
+		String serviceKey = userServices.getUserConfigs("admin").getServiceKey();
 		System.out.println("Admin token : \"" + token + "\", Admin service key \"" + serviceKey + "\"");
 		System.out.println("http://localhost:7070/constellio/select?token=" + token + "&serviceKey=" + serviceKey
 						   + "&fq=-type_s:index" + "&q=*:*");

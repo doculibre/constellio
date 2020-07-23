@@ -3,6 +3,8 @@ package com.constellio.model.services.users;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.security.global.AgentStatus;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
@@ -10,13 +12,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-public class UserAddUpdateRequest {
+public class SystemWideUserInfos {
 
+	private String userCredentialId;
 	private String username;
 	private String firstName;
 	private String lastName;
 	private String email;
+	private String title;
 	private List<String> personalEmails = new ArrayList<>();
 	private String serviceKey;
 	private Boolean systemAdmin;
@@ -45,7 +50,7 @@ public class UserAddUpdateRequest {
 		return username;
 	}
 
-	public UserAddUpdateRequest setUsername(String username) {
+	public SystemWideUserInfos setUsername(String username) {
 		this.username = username;
 		return this;
 	}
@@ -54,7 +59,7 @@ public class UserAddUpdateRequest {
 		return firstName;
 	}
 
-	public UserAddUpdateRequest setFirstName(String firstName) {
+	public SystemWideUserInfos setFirstName(String firstName) {
 		this.firstName = firstName;
 		return this;
 	}
@@ -63,7 +68,7 @@ public class UserAddUpdateRequest {
 		return lastName;
 	}
 
-	public UserAddUpdateRequest setLastName(String lastName) {
+	public SystemWideUserInfos setLastName(String lastName) {
 		this.lastName = lastName;
 		return this;
 	}
@@ -72,7 +77,7 @@ public class UserAddUpdateRequest {
 		return email;
 	}
 
-	public UserAddUpdateRequest setEmail(String email) {
+	public SystemWideUserInfos setEmail(String email) {
 		this.email = email;
 		return this;
 	}
@@ -81,7 +86,7 @@ public class UserAddUpdateRequest {
 		return personalEmails;
 	}
 
-	public UserAddUpdateRequest setPersonalEmails(List<String> personalEmails) {
+	public SystemWideUserInfos setPersonalEmails(List<String> personalEmails) {
 		this.personalEmails = personalEmails;
 		return this;
 	}
@@ -90,7 +95,7 @@ public class UserAddUpdateRequest {
 		return serviceKey;
 	}
 
-	public UserAddUpdateRequest setServiceKey(String serviceKey) {
+	public SystemWideUserInfos setServiceKey(String serviceKey) {
 		this.serviceKey = serviceKey;
 		return this;
 	}
@@ -99,7 +104,7 @@ public class UserAddUpdateRequest {
 		return systemAdmin;
 	}
 
-	public UserAddUpdateRequest setSystemAdmin(Boolean systemAdmin) {
+	public SystemWideUserInfos setSystemAdmin(Boolean systemAdmin) {
 		this.systemAdmin = systemAdmin;
 		return this;
 	}
@@ -108,7 +113,7 @@ public class UserAddUpdateRequest {
 		return status;
 	}
 
-	public UserAddUpdateRequest setStatus(UserCredentialStatus status) {
+	public SystemWideUserInfos setStatus(UserCredentialStatus status) {
 		this.status = status;
 		return this;
 	}
@@ -117,12 +122,12 @@ public class UserAddUpdateRequest {
 		return collections;
 	}
 
-	public UserAddUpdateRequest setCollections(List<String> collections) {
-		this.collections = new ArrayList<>(collections);
+	public SystemWideUserInfos setCollections(List<String> collections) {
+		this.collections = collections;
 		return this;
 	}
 
-	public UserAddUpdateRequest setCollections(String... collections) {
+	public SystemWideUserInfos setCollections(String... collections) {
 		this.collections = new ArrayList<>(Arrays.asList(collections));
 		return this;
 	}
@@ -132,8 +137,8 @@ public class UserAddUpdateRequest {
 		return globalGroups;
 	}
 
-	public UserAddUpdateRequest setGlobalGroups(List<String> globalGroups) {
-		this.globalGroups = new ArrayList<>(globalGroups);
+	public SystemWideUserInfos setGlobalGroups(List<String> globalGroups) {
+		this.globalGroups = globalGroups;
 		return this;
 	}
 
@@ -141,7 +146,7 @@ public class UserAddUpdateRequest {
 		return domain;
 	}
 
-	public UserAddUpdateRequest setDomain(String domain) {
+	public SystemWideUserInfos setDomain(String domain) {
 		this.domain = domain;
 		return this;
 	}
@@ -150,12 +155,12 @@ public class UserAddUpdateRequest {
 		return msExchangeDelegateList;
 	}
 
-	public UserAddUpdateRequest setMsExchangeDelegateList(List<String> msExchangeDelegateList) {
+	public SystemWideUserInfos setMsExchangeDelegateList(List<String> msExchangeDelegateList) {
 		this.msExchangeDelegateList = msExchangeDelegateList;
 		return this;
 	}
 
-	public UserAddUpdateRequest setMsExchDelegateListBL(List<String> msExchangeDelegateList) {
+	public SystemWideUserInfos setMsExchDelegateListBL(List<String> msExchangeDelegateList) {
 		this.msExchangeDelegateList = msExchangeDelegateList;
 		return this;
 	}
@@ -164,7 +169,7 @@ public class UserAddUpdateRequest {
 		return dn;
 	}
 
-	public UserAddUpdateRequest setDn(String dn) {
+	public SystemWideUserInfos setDn(String dn) {
 		this.dn = dn;
 		return this;
 	}
@@ -173,7 +178,7 @@ public class UserAddUpdateRequest {
 		return phone;
 	}
 
-	public UserAddUpdateRequest setPhone(String phone) {
+	public SystemWideUserInfos setPhone(String phone) {
 		this.phone = phone;
 		return this;
 	}
@@ -182,7 +187,7 @@ public class UserAddUpdateRequest {
 		return fax;
 	}
 
-	public UserAddUpdateRequest setFax(String fax) {
+	public SystemWideUserInfos setFax(String fax) {
 		this.fax = fax;
 		return this;
 	}
@@ -191,7 +196,7 @@ public class UserAddUpdateRequest {
 		return jobTitle;
 	}
 
-	public UserAddUpdateRequest setJobTitle(String jobTitle) {
+	public SystemWideUserInfos setJobTitle(String jobTitle) {
 		this.jobTitle = jobTitle;
 		return this;
 	}
@@ -200,7 +205,7 @@ public class UserAddUpdateRequest {
 		return address;
 	}
 
-	public UserAddUpdateRequest setAddress(String address) {
+	public SystemWideUserInfos setAddress(String address) {
 		this.address = address;
 		return this;
 	}
@@ -209,7 +214,7 @@ public class UserAddUpdateRequest {
 		return agentStatus;
 	}
 
-	public UserAddUpdateRequest setAgentStatus(AgentStatus agentStatus) {
+	public SystemWideUserInfos setAgentStatus(AgentStatus agentStatus) {
 		this.agentStatus = agentStatus;
 		return this;
 	}
@@ -218,7 +223,7 @@ public class UserAddUpdateRequest {
 		return hasAgreedToPrivacyPolicy;
 	}
 
-	public UserAddUpdateRequest setHasAgreedToPrivacyPolicy(Boolean hasAgreedToPrivacyPolicy) {
+	public SystemWideUserInfos setHasAgreedToPrivacyPolicy(Boolean hasAgreedToPrivacyPolicy) {
 		this.hasAgreedToPrivacyPolicy = hasAgreedToPrivacyPolicy;
 		return this;
 	}
@@ -227,7 +232,7 @@ public class UserAddUpdateRequest {
 		return doNotReceiveEmails;
 	}
 
-	public UserAddUpdateRequest setDoNotReceiveEmails(Boolean doNotReceiveEmails) {
+	public SystemWideUserInfos setDoNotReceiveEmails(Boolean doNotReceiveEmails) {
 		this.doNotReceiveEmails = doNotReceiveEmails;
 		return this;
 	}
@@ -236,7 +241,7 @@ public class UserAddUpdateRequest {
 		return enableFacetsApplyButton;
 	}
 
-	public UserAddUpdateRequest setEnableFacetsApplyButton(Boolean enableFacetsApplyButton) {
+	public SystemWideUserInfos setEnableFacetsApplyButton(Boolean enableFacetsApplyButton) {
 		this.enableFacetsApplyButton = enableFacetsApplyButton;
 		return this;
 	}
@@ -245,7 +250,7 @@ public class UserAddUpdateRequest {
 		return hasReadLastAlert;
 	}
 
-	public UserAddUpdateRequest setHasReadLastAlert(Boolean hasReadLastAlert) {
+	public SystemWideUserInfos setHasReadLastAlert(Boolean hasReadLastAlert) {
 		this.hasReadLastAlert = hasReadLastAlert;
 		return this;
 	}
@@ -254,7 +259,7 @@ public class UserAddUpdateRequest {
 		return electronicSignature;
 	}
 
-	public UserAddUpdateRequest setElectronicSignature(Content electronicSignature) {
+	public SystemWideUserInfos setElectronicSignature(Content electronicSignature) {
 		this.electronicSignature = electronicSignature;
 		return this;
 	}
@@ -263,7 +268,7 @@ public class UserAddUpdateRequest {
 		return electronicInitials;
 	}
 
-	public UserAddUpdateRequest setElectronicInitials(Content electronicInitials) {
+	public SystemWideUserInfos setElectronicInitials(Content electronicInitials) {
 		this.electronicInitials = electronicInitials;
 		return this;
 	}
@@ -272,7 +277,7 @@ public class UserAddUpdateRequest {
 		return azureUsername;
 	}
 
-	public UserAddUpdateRequest setAzureUsername(String azureUsername) {
+	public SystemWideUserInfos setAzureUsername(String azureUsername) {
 		this.azureUsername = azureUsername;
 		return this;
 	}
@@ -281,7 +286,7 @@ public class UserAddUpdateRequest {
 		return accessTokens;
 	}
 
-	public UserAddUpdateRequest setAccessTokens(Map<String, LocalDateTime> accessTokens) {
+	public SystemWideUserInfos setAccessTokens(Map<String, LocalDateTime> accessTokens) {
 		this.accessTokens = accessTokens;
 		return this;
 	}
@@ -296,7 +301,7 @@ public class UserAddUpdateRequest {
 
 	}
 
-	public UserAddUpdateRequest setSystemAdminEnabled() {
+	public SystemWideUserInfos setSystemAdminEnabled() {
 		return setSystemAdmin(true);
 	}
 
@@ -304,7 +309,7 @@ public class UserAddUpdateRequest {
 		return Boolean.TRUE.equals(getSystemAdmin());
 	}
 
-	public UserAddUpdateRequest addGlobalGroup(String group) {
+	public SystemWideUserInfos addGlobalGroup(String group) {
 		if (globalGroups == null) {
 			globalGroups = new ArrayList<>();
 		}
@@ -314,7 +319,7 @@ public class UserAddUpdateRequest {
 		return this;
 	}
 
-	public UserAddUpdateRequest removeGlobalGroup(String group) {
+	public SystemWideUserInfos removeGlobalGroup(String group) {
 		if (globalGroups != null) {
 			globalGroups.remove(group);
 		}
@@ -322,11 +327,57 @@ public class UserAddUpdateRequest {
 		return this;
 	}
 
-	public UserAddUpdateRequest addAccessToken(String token, LocalDateTime expiration) {
+	public SystemWideUserInfos addAccessToken(String token, LocalDateTime expiration) {
 		if (accessTokens == null) {
 			accessTokens = new HashMap<>();
 		}
 		accessTokens.put(token, expiration);
 		return this;
+	}
+
+	public boolean isNotReceivingEmails() {
+		return Boolean.TRUE.equals(getDoNotReceiveEmails());
+	}
+
+	public String getUserCredentialId() {
+		return userCredentialId;
+	}
+
+	public SystemWideUserInfos setUserCredentialId(String userCredentialId) {
+		this.userCredentialId = userCredentialId;
+		return this;
+	}
+
+	public String getId() {
+		return userCredentialId;
+	}
+
+	public Set<String> getTokenKeys() {
+		return getAccessTokens().keySet();
+
+	}
+
+
+	public boolean isActiveUser() {
+		return getStatus() == UserCredentialStatus.ACTIVE || getStatus() == null;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public SystemWideUserInfos setTitle(String title) {
+		this.title = title;
+		return this;
+	}
+
+	@Override
+	public int hashCode() {
+		return HashCodeBuilder.reflectionHashCode(this);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return EqualsBuilder.reflectionEquals(this, obj);
 	}
 }

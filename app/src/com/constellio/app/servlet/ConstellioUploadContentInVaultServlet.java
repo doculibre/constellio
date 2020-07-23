@@ -3,8 +3,8 @@ package com.constellio.app.servlet;
 import com.constellio.app.api.HttpServletRequestAuthenticator;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 
@@ -35,7 +35,7 @@ public class ConstellioUploadContentInVaultServlet extends HttpServlet {
 			InputStream inputStream = request.getInputStream();
 			File file = new File(request.getHeader("fileName"));
 			FileOutputStream fos = new FileOutputStream(file);
-			UserCredential user = authenticator.authenticateUsingUsername(request);
+			SystemWideUserInfos user = authenticator.authenticateUsingUsername(request);
 			if (user == null) {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			} else {

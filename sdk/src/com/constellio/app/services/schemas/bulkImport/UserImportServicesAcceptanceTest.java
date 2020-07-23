@@ -5,8 +5,8 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -87,7 +87,7 @@ public class UserImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(mariImportError.getCompleteErrorMessage()).contains($("legends1"));
 
 		try {
-			userServices.getUser("mari");
+			userServices.getUserInfos("mari");
 			fail("mari shouldn't exist");
 		} catch (UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser e) {
 		}
@@ -96,7 +96,7 @@ public class UserImportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private void validateBob() {
-		UserCredential bob = userServices.getUser("bob");
+		SystemWideUserInfos bob = userServices.getUserInfos("bob");
 		assertThat(bob.getFirstName()).isEqualTo("Bob 'Elvis'");
 		assertThat(bob.getLastName()).isEqualTo("Gratton");
 		assertThat(bob.getEmail()).isEqualTo("bob@doculibre.com");
@@ -107,7 +107,7 @@ public class UserImportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private void validateAlice() {
-		UserCredential alice = userServices.getUser("alice");
+		SystemWideUserInfos alice = userServices.getUserInfos("alice");
 		assertThat(alice.getFirstName()).isEqualTo("Alice");
 		assertThat(alice.getLastName()).isEqualTo("Wonderland");
 		assertThat(alice.getEmail()).isEqualTo("alice@doculibre.com");

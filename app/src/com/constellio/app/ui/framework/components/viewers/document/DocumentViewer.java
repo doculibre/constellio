@@ -201,7 +201,7 @@ public class DocumentViewer extends CustomComponent {
 				UserCredential userCredentials = userServices.getUserCredential(username);
 				String serviceKey = userCredentials.getServiceKey();
 				if (serviceKey == null) {
-					serviceKey = userServices.giveNewServiceToken(userCredentials);
+					serviceKey = userServices.giveNewServiceToken(username);
 					userServices.addUpdateUserConfigs(userCredentials);
 				}
 				String tokenAttributeName = "document_viewer_token";

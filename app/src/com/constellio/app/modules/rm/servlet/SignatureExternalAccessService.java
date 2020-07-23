@@ -11,6 +11,7 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
@@ -88,7 +89,7 @@ public class SignatureExternalAccessService {
 			return Collections.emptyMap();
 		}
 
-		UserCredential userCredential = userServices.getUser(username);
+		SystemWideUserInfos userCredential = userServices.getUserInfos(username);
 		if (userCredential == null) {
 			return Collections.emptyMap();
 		}

@@ -48,7 +48,7 @@ public class ValidationDaoTest {
 	public void setUp() {
 		initMocks(this);
 
-		when(userServices.getUser(username)).thenReturn(userCredential);
+		when(userServices.getUserConfigs(username)).thenReturn(userCredential);
 		when(userServices.getUserInCollection(username, collection)).thenReturn(user);
 
 		when(recordServices.getRecordByMetadata(metadata, serviceKey)).thenReturn(record);
@@ -87,7 +87,7 @@ public class ValidationDaoTest {
 
 	@Test
 	public void testGetUserTokensUserCredentialNull() {
-		when(userServices.getUser(username)).thenReturn(null);
+		when(userServices.getUserConfigs(username)).thenReturn(null);
 
 		List<String> tokens = validationDao.getUserTokens(serviceKey);
 		assertThat(tokens).isEmpty();

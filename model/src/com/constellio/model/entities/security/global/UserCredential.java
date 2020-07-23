@@ -55,7 +55,7 @@ public class UserCredential extends RecordWrapper {
 		return get(USERNAME);
 	}
 
-	public UserCredential setUsername(String username) {
+	public UserCredential _setUsername(String username) {
 		set(USERNAME, username);
 		return this;
 	}

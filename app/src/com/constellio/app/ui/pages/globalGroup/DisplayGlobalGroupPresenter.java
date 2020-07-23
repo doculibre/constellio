@@ -196,7 +196,7 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 		String username = view.getSessionContext().getCurrentUser().getUsername();
 		UserCredential userCredential = userServices.getUserCredential(username);
 		GlobalGroup globalGroup = userServices.getGroup(entity.getCode());
-		userServices.logicallyRemoveGroupHierarchy(userCredential, globalGroup);
+		userServices.logicallyRemoveGroupHierarchy(userCredential.getUsername(), globalGroup);
 
 		//TODO refresh table
 		view.refreshTable();

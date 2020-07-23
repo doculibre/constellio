@@ -276,7 +276,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
+				return visibleIf(userServices.getUserInfos(user.getUsername()).isSystemAdmin()
 								 || userServices.has(user).allGlobalPermissionsInAnyCollection(
 						CorePermissions.MANAGE_SYSTEM_COLLECTIONS, CorePermissions.MANAGE_SECURITY));
 			}
@@ -477,7 +477,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
+				return visibleIf(userServices.getUserInfos(user.getUsername()).isSystemAdmin()
 								 || user.hasAny(CorePermissions.ACCESS_TEMPORARY_RECORD, CorePermissions.SEE_ALL_TEMPORARY_RECORD)
 										 .globally());
 			}
@@ -516,7 +516,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
+				return visibleIf(userServices.getUserInfos(user.getUsername()).isSystemAdmin()
 								 || user.hasAny(CorePermissions.ACCESS_TEMPORARY_RECORD, CorePermissions.SEE_ALL_TEMPORARY_RECORD)
 										 .globally());
 			}

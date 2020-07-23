@@ -10,11 +10,11 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.SecurityModel;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.VisibilityStatusFilter;
 import com.constellio.model.services.security.SecurityTokenManager;
 import com.constellio.model.services.security.SecurityTokenManager.UserTokens;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 
 import java.util.Iterator;
@@ -33,7 +33,7 @@ import static com.constellio.model.entities.security.SecurityModelUtils.hasNegat
 
 public class FilterUtils {
 
-	public static String multiCollectionUserReadFilter(UserCredential userCredential, UserServices userServices,
+	public static String multiCollectionUserReadFilter(SystemWideUserInfos userCredential, UserServices userServices,
 													   SecurityTokenManager securityTokenManager) {
 		StringBuilder filter = new StringBuilder();
 		if (userCredential.getCollections().isEmpty() || !userCredential.isActiveUser()) {

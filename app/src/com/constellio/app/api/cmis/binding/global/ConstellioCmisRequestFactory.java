@@ -8,11 +8,11 @@ import com.constellio.data.services.tenant.TenantService;
 import com.constellio.data.utils.AuthCache;
 import com.constellio.data.utils.TenantUtils;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.authentification.AuthenticationService;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
@@ -124,7 +124,7 @@ public class ConstellioCmisRequestFactory extends AbstractServiceFactory {
 		mcc.put(ConstellioCmisContextParameters.USER, currentUser);
 	}
 
-	public static UserCredential authenticateUserFromContext(CallContext callContext, UserServices userServices) {
+	public static SystemWideUserInfos authenticateUserFromContext(CallContext callContext, UserServices userServices) {
 		String collection = callContext.getRepositoryId();
 		String serviceKey = callContext.getUsername();
 		String token = callContext.getPassword();
@@ -133,13 +133,13 @@ public class ConstellioCmisRequestFactory extends AbstractServiceFactory {
 
 		String cachedUsername = authCache.get(serviceKey, token);
 		if (cachedUsername != null) {
-			return userServices.getUser(cachedUsername);
+			return userServices.getUserInfos(cachedUsername);
 		} else {
 
 			try {
 				String username = userServices.getTokenUser(serviceKey, token);
 				authCache.insert(serviceKey, token, username);
-				UserCredential userCredential = userServices.getUser(username);
+				SystemWideUserInfos userCredential = userServices.getUserInfos(username);
 				if (collection != null) {
 					User user = userServices.getUserInCollection(username, collection);
 					if (!userCredential.isSystemAdmin() && !user.has(USE_EXTERNAL_APIS_FOR_COLLECTION).globally()) {
@@ -161,13 +161,13 @@ public class ConstellioCmisRequestFactory extends AbstractServiceFactory {
 		}
 	}
 
-	private UserCredential authenticate(CallContext context) {
+	private SystemWideUserInfos authenticate(CallContext context) {
 		UserServices userServices = getUserServices();
 		return authenticateUserFromContext(context, userServices);
 	}
 
 	private User getCurrentUser(CallContext context, String collection) {
-		UserCredential userCredential = authenticate(context);
+		SystemWideUserInfos userCredential = authenticate(context);
 		User currentUser = null;
 		if (userCredential != null) {
 			if (collection != null) {

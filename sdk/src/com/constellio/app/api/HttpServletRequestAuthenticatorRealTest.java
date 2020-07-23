@@ -1,8 +1,8 @@
 package com.constellio.app.api;
 
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.security.authentification.AuthenticationService;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -37,7 +37,7 @@ public class HttpServletRequestAuthenticatorRealTest extends ConstellioTest {
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		usersRecords.setUp(userServices);
 		User bob = usersRecords.bobIn(zeCollection);
-		UserCredential userCredentialBob = usersRecords.bob();
+		SystemWideUserInfos userCredentialBob = usersRecords.bob();
 		userServices.givenSystemAdminPermissionsToUser(userCredentialBob);
 		String bobPassword = updateBobPassword(userCredentialBob);
 
@@ -45,14 +45,14 @@ public class HttpServletRequestAuthenticatorRealTest extends ConstellioTest {
 		bobToken = getToken(bob, bobServiceKey, bobPassword);
 	}
 
-	private String updateBobPassword(UserCredential userCredentialBob) {
+	private String updateBobPassword(SystemWideUserInfos userCredentialBob) {
 		AuthenticationService authService = getModelLayerFactory().newAuthenticationService();
 		String bobPassword = "p2";
 		authService.changePassword(userCredentialBob.getUsername(), bobPassword);
 		return bobPassword;
 	}
 
-	private String getServiceKey(UserServices userServices, UserCredential userCredentialBob) {
+	private String getServiceKey(UserServices userServices, SystemWideUserInfos userCredentialBob) {
 		return userServices.giveNewServiceToken(userCredentialBob);
 	}
 
@@ -67,7 +67,7 @@ public class HttpServletRequestAuthenticatorRealTest extends ConstellioTest {
 		HttpServletRequest request = mock(HttpServletRequest.class);
 		when(request.getSession()).thenReturn(mock(HttpSession.class));
 
-		UserCredential credentials = authenticator.authenticate(request);
+		SystemWideUserInfos credentials = authenticator.authenticate(request);
 
 		assertThat(credentials).isNull();
 	}
@@ -82,7 +82,7 @@ public class HttpServletRequestAuthenticatorRealTest extends ConstellioTest {
 		when(request.getParameter(USER_SERVICE_KEY)).thenReturn(this.bobServiceKey);
 		when(request.getParameter(USER_TOKEN)).thenReturn(this.bobToken + "invalid");
 
-		UserCredential credentials = authenticator.authenticate(request);
+		SystemWideUserInfos credentials = authenticator.authenticate(request);
 
 		assertThat(credentials).isNull();
 	}
@@ -96,7 +96,7 @@ public class HttpServletRequestAuthenticatorRealTest extends ConstellioTest {
 		when(request.getParameter(USER_SERVICE_KEY)).thenReturn(this.bobServiceKey);
 		when(request.getParameter(USER_TOKEN)).thenReturn(this.bobToken);
 
-		UserCredential credentials = authenticator.authenticate(request);
+		SystemWideUserInfos credentials = authenticator.authenticate(request);
 
 		assertThat(credentials.getUsername()).isEqualTo("bob");
 	}
@@ -112,7 +112,7 @@ public class HttpServletRequestAuthenticatorRealTest extends ConstellioTest {
 		when(request.getUserPrincipal()).thenReturn(userPrincipal);
 		when(userPrincipal.getName()).thenReturn("bob");
 
-		UserCredential credentials = authenticator.authenticate(request);
+		SystemWideUserInfos credentials = authenticator.authenticate(request);
 		assertThat(credentials.getUsername()).isEqualTo("bob");
 	}
 }

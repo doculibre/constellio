@@ -523,7 +523,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		this.deselectedRecordsWithSchema = new HashMap<>();
 
 		UserServices userServices = modelLayerFactory.newUserServices();
-		List<String> collections = userServices.getUser(getCurrentUser().getUsername()).getCollections();
+		List<String> collections = userServices.getUserInfos(getCurrentUser().getUsername()).getCollections();
 		header.setCollections(collections);
 
 		if (sessionContext.getSelectedRecordIds().isEmpty()) {

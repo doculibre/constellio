@@ -13,7 +13,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
@@ -21,6 +20,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.trash.TrashServices;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -92,7 +92,7 @@ public class TrashServicesAcceptanceTest extends ConstellioTest {
 	private void deleteUserChuck() {
 		UserServices userServices = getModelLayerFactory()
 				.newUserServices();
-		UserCredential chuck = users.chuckNorris();
+		SystemWideUserInfos chuck = users.chuckNorris();
 		userServices.removeUserCredentialAndUser(chuck);
 	}
 
