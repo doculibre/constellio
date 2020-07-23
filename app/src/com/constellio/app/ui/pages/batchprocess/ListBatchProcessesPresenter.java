@@ -104,7 +104,6 @@ public class ListBatchProcessesPresenter extends BasePresenter<ListBatchProcesse
 
 			BatchProcessVO batchProcessVO = voBuilder.build(batchProcess);
 			if (collectionAccess.get(collection)) {
-
 				systemBatchProcessDataProvider.addBatchProcess(batchProcessVO);
 			}
 
