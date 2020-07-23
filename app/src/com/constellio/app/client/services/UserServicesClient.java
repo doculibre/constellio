@@ -27,7 +27,7 @@ public class UserServicesClient {
 	}
 
 	public String addUpdateUserCredential(UserResource userResource) {
-		return requestString("addUpdateUserCredential").post(Entity.json(userResource), String.class);
+		return requestString("execute").post(Entity.json(userResource), String.class);
 	}
 
 	public String addUpdateGlobalGroup(GlobalGroupResource resource) {

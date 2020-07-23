@@ -1,12 +1,13 @@
 package com.constellio.model.services.users;
 
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.security.global.AgentStatus;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,319 +15,322 @@ import java.util.Map;
 public class UserAddUpdateRequest {
 
 	private String username;
-	private String firstName;
-	private String lastName;
-	private String email;
-	private List<String> personalEmails = new ArrayList<>();
-	private String serviceKey;
-	private Boolean systemAdmin;
-	private UserCredentialStatus status = UserCredentialStatus.ACTIVE;
-	private List<String> collections = new ArrayList<>();
-	private List<String> globalGroups = new ArrayList<>();
-	private String domain;
-	private List<String> msExchangeDelegateList = new ArrayList<>();
-	private String dn;
-	private String phone;
-	private String fax;
-	private String jobTitle;
-	private String address;
-	private AgentStatus agentStatus;
-	private Boolean hasAgreedToPrivacyPolicy;
-	private Boolean doNotReceiveEmails;
-	private Boolean enableFacetsApplyButton;
-	private Boolean hasReadLastAlert;
-	private Content electronicSignature;
-	private Content electronicInitials;
-	private String azureUsername;
-	private Map<String, LocalDateTime> accessTokens = new HashMap<>();
+
+	private List<String> addToGroup;
+	private List<String> removeFromGroup;
+
+	private List<String> addToCollections;
+	private List<String> removeFromCollections;
+
+	private Map<String, LocalDateTime> newTokens;
+	private List<String> removedtokens;
+
+	private Map<String, Object> modifiedProperties = new HashMap<>();
+
+	private boolean dnUnicityValidationCheck = true;
+
+	List<String> currentCollections;
+	List<String> currentGroups;
+
+	public UserAddUpdateRequest(String username, List<String> currentCollections,
+								List<String> currentGroups) {
+		this.username = username;
+		this.currentCollections = new ArrayList<>(currentCollections);
+		this.currentGroups = new ArrayList<>(currentGroups);
+	}
 
 
 	public String getUsername() {
 		return username;
 	}
 
-	public UserAddUpdateRequest setUsername(String username) {
-		this.username = username;
-		return this;
-	}
-
-	public String getFirstName() {
-		return firstName;
-	}
-
 	public UserAddUpdateRequest setFirstName(String firstName) {
-		this.firstName = firstName;
+		this.modifiedProperties.put(UserCredential.FIRST_NAME, firstName);
 		return this;
-	}
-
-	public String getLastName() {
-		return lastName;
 	}
 
 	public UserAddUpdateRequest setLastName(String lastName) {
-		this.lastName = lastName;
+		this.modifiedProperties.put(UserCredential.LAST_NAME, lastName);
 		return this;
-	}
-
-	public String getEmail() {
-		return email;
 	}
 
 	public UserAddUpdateRequest setEmail(String email) {
-		this.email = email;
+		this.modifiedProperties.put(UserCredential.EMAIL, email);
 		return this;
-	}
-
-	public List<String> getPersonalEmails() {
-		return personalEmails;
 	}
 
 	public UserAddUpdateRequest setPersonalEmails(List<String> personalEmails) {
-		this.personalEmails = personalEmails;
+		this.modifiedProperties.put(UserCredential.PERSONAL_EMAILS, personalEmails);
 		return this;
-	}
-
-	public String getServiceKey() {
-		return serviceKey;
 	}
 
 	public UserAddUpdateRequest setServiceKey(String serviceKey) {
-		this.serviceKey = serviceKey;
+		this.modifiedProperties.put(UserCredential.SERVICE_KEY, serviceKey);
 		return this;
-	}
-
-	public Boolean getSystemAdmin() {
-		return systemAdmin;
 	}
 
 	public UserAddUpdateRequest setSystemAdmin(Boolean systemAdmin) {
-		this.systemAdmin = systemAdmin;
+		this.modifiedProperties.put(UserCredential.SYSTEM_ADMIN, systemAdmin);
 		return this;
-	}
-
-	public UserCredentialStatus getStatus() {
-		return status;
 	}
 
 	public UserAddUpdateRequest setStatus(UserCredentialStatus status) {
-		this.status = status;
+		this.modifiedProperties.put(UserCredential.STATUS, status);
 		return this;
 	}
 
-	public List<String> getCollections() {
-		return collections;
-	}
-
-	public UserAddUpdateRequest setCollections(List<String> collections) {
-		this.collections = new ArrayList<>(collections);
-		return this;
-	}
-
-	public UserAddUpdateRequest setCollections(String... collections) {
-		this.collections = new ArrayList<>(Arrays.asList(collections));
-		return this;
-	}
-
-
-	public List<String> getGlobalGroups() {
-		return globalGroups;
-	}
-
-	public UserAddUpdateRequest setGlobalGroups(List<String> globalGroups) {
-		this.globalGroups = new ArrayList<>(globalGroups);
-		return this;
-	}
-
-	public String getDomain() {
-		return domain;
-	}
 
 	public UserAddUpdateRequest setDomain(String domain) {
-		this.domain = domain;
+		this.modifiedProperties.put(UserCredential.DOMAIN, domain);
 		return this;
-	}
-
-	public List<String> getMsExchangeDelegateList() {
-		return msExchangeDelegateList;
 	}
 
 	public UserAddUpdateRequest setMsExchangeDelegateList(List<String> msExchangeDelegateList) {
-		this.msExchangeDelegateList = msExchangeDelegateList;
+		this.modifiedProperties.put(UserCredential.MS_EXCHANGE_DELEGATE_LIST, msExchangeDelegateList);
 		return this;
 	}
 
 	public UserAddUpdateRequest setMsExchDelegateListBL(List<String> msExchangeDelegateList) {
-		this.msExchangeDelegateList = msExchangeDelegateList;
+		this.modifiedProperties.put(UserCredential.MS_EXCHANGE_DELEGATE_LIST, msExchangeDelegateList);
 		return this;
-	}
-
-	public String getDn() {
-		return dn;
 	}
 
 	public UserAddUpdateRequest setDn(String dn) {
-		this.dn = dn;
+		this.modifiedProperties.put(UserCredential.DN, dn);
 		return this;
-	}
-
-	public String getPhone() {
-		return phone;
 	}
 
 	public UserAddUpdateRequest setPhone(String phone) {
-		this.phone = phone;
+		this.modifiedProperties.put(UserCredential.PHONE, phone);
 		return this;
-	}
-
-	public String getFax() {
-		return fax;
 	}
 
 	public UserAddUpdateRequest setFax(String fax) {
-		this.fax = fax;
+		this.modifiedProperties.put(UserCredential.FAX, fax);
 		return this;
-	}
-
-	public String getJobTitle() {
-		return jobTitle;
 	}
 
 	public UserAddUpdateRequest setJobTitle(String jobTitle) {
-		this.jobTitle = jobTitle;
+		this.modifiedProperties.put(UserCredential.JOB_TITLE, jobTitle);
 		return this;
-	}
-
-	public String getAddress() {
-		return address;
 	}
 
 	public UserAddUpdateRequest setAddress(String address) {
-		this.address = address;
+		this.modifiedProperties.put(UserCredential.ADDRESS, address);
 		return this;
-	}
-
-	public AgentStatus getAgentStatus() {
-		return agentStatus;
 	}
 
 	public UserAddUpdateRequest setAgentStatus(AgentStatus agentStatus) {
-		this.agentStatus = agentStatus;
+		this.modifiedProperties.put(UserCredential.AGENT_STATUS, agentStatus);
 		return this;
-	}
-
-	public Boolean getHasAgreedToPrivacyPolicy() {
-		return hasAgreedToPrivacyPolicy;
 	}
 
 	public UserAddUpdateRequest setHasAgreedToPrivacyPolicy(Boolean hasAgreedToPrivacyPolicy) {
-		this.hasAgreedToPrivacyPolicy = hasAgreedToPrivacyPolicy;
+		this.modifiedProperties.put(UserCredential.HAS_AGREED_TO_PRIVACY_POLICY, hasAgreedToPrivacyPolicy);
 		return this;
-	}
-
-	public Boolean getDoNotReceiveEmails() {
-		return doNotReceiveEmails;
 	}
 
 	public UserAddUpdateRequest setDoNotReceiveEmails(Boolean doNotReceiveEmails) {
-		this.doNotReceiveEmails = doNotReceiveEmails;
+		this.modifiedProperties.put(UserCredential.DO_NOT_RECEIVE_EMAILS, doNotReceiveEmails);
 		return this;
-	}
-
-	public Boolean getEnableFacetsApplyButton() {
-		return enableFacetsApplyButton;
 	}
 
 	public UserAddUpdateRequest setEnableFacetsApplyButton(Boolean enableFacetsApplyButton) {
-		this.enableFacetsApplyButton = enableFacetsApplyButton;
+		this.modifiedProperties.put(UserCredential.ENABLE_FACETS_APPLY_BUTTON, enableFacetsApplyButton);
 		return this;
-	}
-
-	public Boolean getHasReadLastAlert() {
-		return hasReadLastAlert;
 	}
 
 	public UserAddUpdateRequest setHasReadLastAlert(Boolean hasReadLastAlert) {
-		this.hasReadLastAlert = hasReadLastAlert;
+		this.modifiedProperties.put(UserCredential.HAS_READ_LAST_ALERT, hasReadLastAlert);
 		return this;
-	}
-
-	public Content getElectronicSignature() {
-		return electronicSignature;
 	}
 
 	public UserAddUpdateRequest setElectronicSignature(Content electronicSignature) {
-		this.electronicSignature = electronicSignature;
+		this.modifiedProperties.put(UserCredential.ELECTRONIC_SIGNATURE, electronicSignature);
 		return this;
-	}
-
-	public Content getElectronicInitials() {
-		return electronicInitials;
 	}
 
 	public UserAddUpdateRequest setElectronicInitials(Content electronicInitials) {
-		this.electronicInitials = electronicInitials;
+		this.modifiedProperties.put(UserCredential.ELECTRONIC_INITIALS, electronicInitials);
 		return this;
-	}
-
-	public String getAzureUsername() {
-		return azureUsername;
 	}
 
 	public UserAddUpdateRequest setAzureUsername(String azureUsername) {
-		this.azureUsername = azureUsername;
+		this.modifiedProperties.put(UserCredential.AZURE_USERNAME, azureUsername);
 		return this;
 	}
 
-	public Map<String, LocalDateTime> getAccessTokens() {
-		return accessTokens;
-	}
 
-	public UserAddUpdateRequest setAccessTokens(Map<String, LocalDateTime> accessTokens) {
-		this.accessTokens = accessTokens;
+	public UserAddUpdateRequest setCollections(List<String> newCollections) {
+		newCollections.forEach((c) -> {
+			if (!currentCollections.contains(c)) {
+				addCollection(c);
+			}
+		});
+
+		currentCollections.forEach((c) -> {
+			if (!newCollections.contains(c)) {
+				removeCollection(c);
+			}
+		});
 		return this;
 	}
 
-	public void addCollection(String collection) {
-		if (collections == null) {
-			collections = new ArrayList<>();
+	public UserAddUpdateRequest addCollection(String collection) {
+
+		if (addToCollections == null) {
+			addToCollections = new ArrayList<>();
 		}
-		if (!collections.contains(collection)) {
-			collections.add(collection);
+		if (!addToCollections.contains(collection)) {
+			addToCollections.add(collection);
+		}
+		if (removeFromCollections != null) {
+			removeFromCollections.remove(collection);
 		}
 
+		return this;
+	}
+
+	public UserAddUpdateRequest removeCollection(String collection) {
+
+		if (removeFromCollections == null) {
+			removeFromCollections = new ArrayList<>();
+		}
+		if (!removeFromCollections.contains(collection)) {
+			removeFromCollections.add(collection);
+		}
+		if (addToCollections != null) {
+			addToCollections.remove(collection);
+		}
+
+		return this;
+	}
+
+	public UserAddUpdateRequest addCollections(List<String> collections) {
+		collections.forEach(this::addCollection);
+		return this;
+	}
+
+
+	@Deprecated
+	public UserAddUpdateRequest setGlobalGroups(List<String> newGroupCodes) {
+		newGroupCodes.forEach((g) -> {
+			if (!currentGroups.contains(g)) {
+				addGlobalGroup(g);
+			}
+		});
+
+		currentGroups.forEach((g) -> {
+			if (!newGroupCodes.contains(g)) {
+				removeGlobalGroup(g);
+			}
+		});
+		return this;
+	}
+
+	public UserAddUpdateRequest addGlobalGroups(List<String> groupCodes) {
+		groupCodes.forEach(this::addGlobalGroup);
+		return this;
+	}
+
+	public UserAddUpdateRequest addGlobalGroup(String groupCode) {
+
+		if (addToGroup == null) {
+			addToGroup = new ArrayList<>();
+		}
+		if (!addToGroup.contains(groupCode)) {
+			addToGroup.add(groupCode);
+		}
+		if (removeFromGroup != null) {
+			removeFromGroup.remove(groupCode);
+		}
+
+		return this;
+	}
+
+	public UserAddUpdateRequest removeGlobalGroup(String groupCode) {
+
+		if (removeFromGroup == null) {
+			removeFromGroup = new ArrayList<>();
+		}
+		if (!removeFromGroup.contains(groupCode)) {
+			removeFromGroup.add(groupCode);
+		}
+		if (addToGroup != null) {
+			addToGroup.remove(groupCode);
+		}
+
+		return this;
 	}
 
 	public UserAddUpdateRequest setSystemAdminEnabled() {
 		return setSystemAdmin(true);
 	}
 
-	public boolean isSystemAdmin() {
-		return Boolean.TRUE.equals(getSystemAdmin());
-	}
-
-	public UserAddUpdateRequest addGlobalGroup(String group) {
-		if (globalGroups == null) {
-			globalGroups = new ArrayList<>();
-		}
-		if (!globalGroups.contains(group)) {
-			globalGroups.add(group);
-		}
-		return this;
-	}
-
-	public UserAddUpdateRequest removeGlobalGroup(String group) {
-		if (globalGroups != null) {
-			globalGroups.remove(group);
-		}
-
-		return this;
-	}
 
 	public UserAddUpdateRequest addAccessToken(String token, LocalDateTime expiration) {
-		if (accessTokens == null) {
-			accessTokens = new HashMap<>();
+		if (newTokens == null) {
+			newTokens = new HashMap<>();
 		}
-		accessTokens.put(token, expiration);
+		newTokens.put(token, expiration);
 		return this;
+	}
+
+
+	public UserAddUpdateRequest removeAccessToken(String token) {
+
+		if (removedtokens == null) {
+			removedtokens = new ArrayList<>();
+		}
+		if (!removedtokens.contains(token)) {
+			removedtokens.add(token);
+		}
+
+		return this;
+	}
+
+	public boolean isDnUnicityValidationCheck() {
+		return dnUnicityValidationCheck;
+	}
+
+	public UserAddUpdateRequest setDnUnicityValidationCheck(boolean dnUnicityValidationCheck) {
+		this.dnUnicityValidationCheck = dnUnicityValidationCheck;
+		return this;
+	}
+
+	public void set(Metadata metadata, Object value) {
+		modifiedProperties.put(metadata.getLocalCode(), value);
+	}
+
+	public void set(String localCode, Object value) {
+		modifiedProperties.put(localCode, value);
+	}
+
+	public Map<String, Object> getExtraMetadatas() {
+		return modifiedProperties;
+	}
+
+	public List<String> getAddToCollections() {
+		return addToCollections;
+	}
+
+	public List<String> getRemoveFromCollections() {
+		return removeFromCollections;
+	}
+
+	public List<String> getAddToGroup() {
+		return addToGroup;
+	}
+
+	public List<String> getRemoveFromGroup() {
+		return removeFromGroup;
+	}
+
+	public Map<String, LocalDateTime> getNewTokens() {
+		return newTokens;
+	}
+
+	public List<String> getRemovedtokens() {
+		return removedtokens;
 	}
 }

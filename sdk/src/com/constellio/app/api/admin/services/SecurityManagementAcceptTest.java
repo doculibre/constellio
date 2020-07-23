@@ -109,7 +109,7 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 		userServices.addUserToCollection(userCredentialAlice, zeCollection);
 
 		userServices.givenSystemAdminPermissionsToUser(userCredentialBob);
-		bobServiceKey = userServices.giveNewServiceToken(userCredentialBob);
+		bobServiceKey = userServices.giveNewServiceKey(userCredentialBob.getUsername());
 
 		authService.changePassword(userCredentialBob.getUsername(), bobPassword);
 

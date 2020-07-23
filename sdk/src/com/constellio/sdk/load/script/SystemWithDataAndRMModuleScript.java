@@ -176,7 +176,7 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 		}
 
 		for (UserAddUpdateRequest user : userPreparator.createUsers(groupCodes)) {
-			userServices.addUpdateUserCredential(user);
+			userServices.execute(user);
 			authenticationService.changePassword(user.getUsername(), "password");
 
 		}

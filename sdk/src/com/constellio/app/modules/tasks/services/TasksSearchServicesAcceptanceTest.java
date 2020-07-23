@@ -137,7 +137,7 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 
 		Group newGroup = userServices.getGroupInCollection(newGlobalGroup, zeCollection);
 		Group taskNewGroup = userServices.getGroupInCollection(taskNewGlobalGroup, zeCollection);
-		userServices.addUpdateUserCredential(users.charlesAddUpdateRequest().setGlobalGroups(asList(newGlobalGroup, charlesNewGlobalGroup)));
+		userServices.execute(users.charlesAddUpdateRequest().setGlobalGroups(asList(newGlobalGroup, charlesNewGlobalGroup)));
 		charles = users.charlesIn(zeCollection);
 		taskWithCharlesInAssignationGroupCandidates = tasksSchemas.newTaskWithId("taskWithCharlesInAssignationGroupCandidates")
 				.setTitle("taskWithCharlesInAssignationGroupCandidates")

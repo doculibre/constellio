@@ -13,6 +13,7 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.security.authentification.AuthenticationService;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.lang.StringUtils;
@@ -86,15 +87,16 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 				authenticationService.changePassword(entity.getUsername(), entity.getPassword());
 			}
 
-			userServices.addUpdateUserCredential(userRequest);
+			userServices.execute(userRequest);
 
+			SystemWideUserInfos userInfos = userServices.getUserInfos(entity.getUsername());
 			if (!editMode) {
-				for (String collection : userRequest.getCollections()) {
+				for (String collection : userInfos.getCollections()) {
 					User userInCollection = userServices.getUserInCollection(entity.getUsername(), collection);
 					loggingServices.addUserOrGroup(userInCollection.getWrappedRecord(), getCurrentUser(), collection);
 				}
 			} else {
-				for (String collection : userRequest.getCollections()) {
+				for (String collection : userInfos.getCollections()) {
 					User userInCollection = userServices.getUserInCollection(entity.getUsername(), collection);
 					if (entity.getCollections().contains(collection) && !collections.contains(collection)) {
 						loggingServices.addUserOrGroup(userInCollection.getWrappedRecord(), getCurrentUser(), collection);
@@ -157,13 +159,10 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 		return false;
 	}
 
-	UserAddUpdateRequest toUserRequest(UserCredentialVO userCredentialVO) {
-		List<String> globalGroups = new ArrayList<>();
+	private UserAddUpdateRequest toUserRequest(UserCredentialVO userCredentialVO) {
 		List<String> collections = new ArrayList<>();
 		Map<String, LocalDateTime> tokens = new HashMap<>();
-		if (userCredentialVO.getGlobalGroups() != null) {
-			globalGroups = userCredentialVO.getGlobalGroups();
-		}
+
 		if (userCredentialVO.getCollections() != null) {
 			collections.addAll(userCredentialVO.getCollections());
 		}
@@ -178,16 +177,15 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 			personalEmails = Arrays.asList(userCredentialVO.getPersonalEmails().split("\n"));
 		}
 
-		return userServices.addEditRequest(userCredentialVO.getUsername())
+		UserAddUpdateRequest request = userServices.addUpdate(userCredentialVO.getUsername())
 				.setFirstName(userCredentialVO.getFirstName())
 				.setLastName(userCredentialVO.getLastName())
 				.setEmail(userCredentialVO.getEmail())
 				.setPersonalEmails(personalEmails)
 				.setServiceKey(userCredentialVO.getServiceKey())
 				.setSystemAdmin(userCredentialVO.isSystemAdmin())
-				.setGlobalGroups(globalGroups)
-				.setCollections(collections)
-				.setAccessTokens(tokens)
+				.setGlobalGroups(userCredentialVO.getGlobalGroups())
+				.setCollections(new ArrayList<>(userCredentialVO.getCollections()))
 				.setStatus(status)
 				.setDomain(domain)
 				.setMsExchDelegateListBL(Arrays.asList(""))
@@ -196,6 +194,21 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 				.setAddress(userCredentialVO.getAddress())
 				.setPhone(userCredentialVO.getPhone())
 				.setFax(userCredentialVO.getFax());
+
+		Set<String> currentTokens = userServices.getUser(userCredentialVO.getUsername()).getAccessTokens().keySet();
+		for (Map.Entry<String, LocalDateTime> entry : tokens.entrySet()) {
+			if (!currentTokens.contains(entry.getKey())) {
+				request.addAccessToken(entry.getKey(), entry.getValue());
+			}
+		}
+
+		for (String currentToken : currentTokens) {
+			if (!tokens.containsKey(currentToken)) {
+				request.removeAccessToken(currentToken);
+			}
+		}
+
+		return request;
 
 	}
 

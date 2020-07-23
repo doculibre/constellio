@@ -188,7 +188,7 @@ public class UserCredentialMenuItemActionBehaviors {
 	public String getServiceKey(String username) {
 		String serviceKey = userServices.getUserInfos(username).getServiceKey();
 		if (serviceKey == null) {
-			serviceKey = userServices.giveNewServiceToken(userServices.getUserInfos(username));
+			serviceKey = userServices.giveNewServiceKey(username);
 		}
 		return serviceKey;
 	}

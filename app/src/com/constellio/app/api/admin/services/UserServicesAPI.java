@@ -3,9 +3,7 @@ package com.constellio.app.api.admin.services;
 import com.constellio.app.client.entities.GlobalGroupResource;
 import com.constellio.app.client.entities.GroupResource;
 import com.constellio.app.client.entities.UserResource;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.UserServices;
-import org.joda.time.LocalDateTime;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -16,11 +14,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 @Path("users")
 @Consumes("application/xml")
@@ -28,13 +22,13 @@ import java.util.Map.Entry;
 public class UserServicesAPI {
 
 	@POST
-	@Path("addUpdateUserCredential")
+	@Path("execute")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
 	public String addUpdateUserCredential(@Context HttpHeaders httpHeaders, UserResource userResource) {
 		throw new UnsupportedOperationException("Unsupported");
 //		UserCredential userCredential = toCredential(userResource);
-//		userServices().addUpdateUserCredential(userCredential);
+//		userServices().execute(userCredential);
 //		return "OK";
 	}
 
@@ -194,28 +188,6 @@ public class UserServicesAPI {
 
 	private UserServices userServices() {
 		return AdminServicesUtils.modelServicesFactory().newUserServices();
-	}
-
-	private UserCredential toCredential(UserResource userResource) {
-		Map<String, LocalDateTime> tokens = new HashMap<>();
-		for (Entry<String, String> token : userResource.getTokens().entrySet()) {
-			tokens.put(token.getKey(), LocalDateTime.parse(token.getValue()));
-
-		}
-
-		return userServices().addEdit(userResource.getUsername())
-				.setFirstName(userResource.getFirstName())
-				.setLastName(userResource.getLastName())
-				.setEmail(userResource.getEmail())
-				.setServiceKey(userResource.getServiceKey())
-				.setSystemAdmin(userResource.isSystemAdmin())
-				.setGlobalGroups(userResource.getGlobalGroups())
-				.setCollections(userResource.getCollections())
-				.setAccessTokens(tokens)
-				.setStatus(userResource.getStatus())
-				.setDomain(userResource.getDomain())
-				.setMsExchDelegateListBL(Arrays.asList(""))
-				.setDn(null);
 	}
 
 }

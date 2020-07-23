@@ -1,10 +1,9 @@
 package com.constellio.app.services.background;
 
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.io.IOServicesFactory;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporter;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.conf.FoldersLocator;
 import org.joda.time.LocalDate;
 
 

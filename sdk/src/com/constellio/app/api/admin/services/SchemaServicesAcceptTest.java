@@ -37,7 +37,7 @@ public class SchemaServicesAcceptTest extends ConstellioTest {
 
 		userServices.givenSystemAdminPermissionsToUser(users.bob());
 
-		String bobServiceKey = userServices.giveNewServiceToken(users.bob());
+		String bobServiceKey = userServices.giveNewServiceKey(users.bob().getUsername());
 		authService.changePassword(users.bob().getUsername(), bobPassword);
 
 		bobSession = newRestClient(bobServiceKey, users.bob().getUsername(), bobPassword);

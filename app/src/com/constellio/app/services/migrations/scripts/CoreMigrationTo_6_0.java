@@ -26,9 +26,7 @@ import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import static com.constellio.data.conf.DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS;
 import static com.constellio.data.conf.DigitSeparatorMode.TWO_DIGITS;
@@ -77,24 +75,20 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 		String email = "admin@organization.com";
 		UserCredentialStatus status = UserCredentialStatus.ACTIVE;
 		String domain = "";
-		List<String> globalGroups = new ArrayList<>();
-		List<String> collections = new ArrayList<>();
 		boolean isSystemAdmin = true;
 
 		UserServices userServices = modelLayerFactory.newUserServices();
-		UserAddUpdateRequest request = userServices.addEditRequest(username)
+		UserAddUpdateRequest request = userServices.addUpdate(username)
 				.setFirstName(firstName)
 				.setLastName(lastName)
 				.setEmail(email)
 				.setServiceKey(null)
 				.setSystemAdmin(isSystemAdmin)
-				.setGlobalGroups(globalGroups)
-				.setCollections(collections)
 				.setStatus(status)
 				.setDomain(domain)
 				.setMsExchDelegateListBL(Arrays.asList(""))
 				.setDn(null);
-		userServices.addUpdateUserCredential(request);
+		userServices.execute(request);
 		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();
 		if (authenticationService.supportPasswordChange()) {
 			authenticationService.changePassword("admin", password);

@@ -17,9 +17,7 @@ import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("serial")
@@ -95,13 +93,9 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 	}
 
 	public void addUserCredentialButtonClicked(String globalGroupCode, String username) {
-		List<String> newGlobalGroups = new ArrayList<>();
-		UserAddUpdateRequest userCredentialRequest = userServices.addEditRequest(username);
-		List<String> globalGroups = userCredentialRequest.getGlobalGroups();
-		newGlobalGroups.addAll(globalGroups);
-		newGlobalGroups.add(globalGroupCode);
-		userCredentialRequest.setGlobalGroups(newGlobalGroups);
-		userServices.addUpdateUserCredential(userCredentialRequest);
+		UserAddUpdateRequest userCredentialRequest = userServices.addUpdate(username);
+		userCredentialRequest.addGlobalGroup(globalGroupCode);
+		userServices.execute(userCredentialRequest);
 		view.refreshTable();
 	}
 

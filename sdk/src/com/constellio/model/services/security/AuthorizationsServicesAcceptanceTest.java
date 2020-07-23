@@ -2426,7 +2426,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(FOLDER3).givingReadDelete().forPrincipals(sasquatch)
 		);
 
-		userServices.addUpdateUserCredential(users.sasquatchAddUpdateRequest().setStatus(UserCredentialStatus.SUSPENDED));
+		userServices.execute(users.sasquatchAddUpdateRequest().setStatus(UserCredentialStatus.SUSPENDED));
 
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
 		assertThatAllAuthorizations().containsOnly(
@@ -2481,7 +2481,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(sasquatch)
 		);
 
-		userServices.addUpdateUserCredential(users.sasquatchAddUpdateRequest().setStatus(UserCredentialStatus.SUSPENDED));
+		userServices.execute(users.sasquatchAddUpdateRequest().setStatus(UserCredentialStatus.SUSPENDED));
 
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
 		assertThatAllAuthorizations().containsOnly(
@@ -2680,9 +2680,9 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	private void reenableLegends() {
 
 		userServices.addUpdateGlobalGroup(users.legends().setStatus(GlobalGroupStatus.ACTIVE));
-		userServices.addUpdateUserCredential(users.edouardAddUpdateRequest().addGlobalGroup("legends"));
-		userServices.addUpdateUserCredential(users.aliceAddUpdateRequest().addGlobalGroup("legends"));
-		userServices.addUpdateUserCredential(users.gandalfAddUpdateRequest().addGlobalGroup("legends"));
+		userServices.execute(users.edouardAddUpdateRequest().addGlobalGroup("legends"));
+		userServices.execute(users.aliceAddUpdateRequest().addGlobalGroup("legends"));
+		userServices.execute(users.gandalfAddUpdateRequest().addGlobalGroup("legends"));
 	}
 
 	@Test

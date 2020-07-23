@@ -1006,7 +1006,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		public UserAction isRemovedFromGroup(String group) {
-			userServices.addUpdateUserCredential(userServices.addEditRequest(username).removeGlobalGroup(group));
+			userServices.execute(userServices.addUpdate(username).removeGlobalGroup(group));
 			try {
 				waitForBatchProcess();
 			} catch (InterruptedException e) {
@@ -1016,7 +1016,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		public UserAction isAddedInGroup(String group) {
-			userServices.addUpdateUserCredential(userServices.addEditRequest(username).addGlobalGroup(group));
+			userServices.execute(userServices.addUpdate(username).addGlobalGroup(group));
 			try {
 				waitForBatchProcess();
 			} catch (InterruptedException e) {
@@ -1302,9 +1302,9 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		for (int i = 1; i <= qty; i++) {
 			System.out.println("adding user " + i + "/" + qty);
 			String username = "grim.patron." + i;
-			UserAddUpdateRequest userCredential = createUserCredential(username, "Grim", "Patron",
+			UserAddUpdateRequest userCredential = addUpdateUserCredential(username, "Grim", "Patron",
 					username + "@constellio.com", asList("legends"), asList(zeCollection), ACTIVE);
-			userServices.addUpdateUserCredential(userCredential);
+			userServices.execute(userCredential);
 			users.add(username);
 		}
 		return users;

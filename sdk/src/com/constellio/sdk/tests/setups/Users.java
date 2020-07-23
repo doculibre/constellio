@@ -11,12 +11,10 @@ import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
-import org.joda.time.LocalDateTime;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class Users {
@@ -293,7 +291,7 @@ public class Users {
 	}
 
 	private UserAddUpdateRequest addUpdateRequest(String username) {
-		return userServices.addEditRequest(username);
+		return userServices.addUpdate(username);
 	}
 
 	private User getUser(String username, String collection) {
@@ -312,21 +310,20 @@ public class Users {
 		String email = (username + "@doculibre.com").toLowerCase();
 		List<String> globalGroups = Arrays.asList(groups);
 		List<String> collections = new ArrayList<>();
-		UserAddUpdateRequest credential = userServices.addEditRequest(username)
+		UserAddUpdateRequest credential = userServices.addUpdate(username)
 				.setFirstName(firstName)
 				.setLastName(lastName)
 				.setEmail(email)
 				.setServiceKey(null)
 				.setSystemAdmin(false)
-				.setGlobalGroups(globalGroups)
-				.setCollections(collections)
-				.setAccessTokens(Collections.<String, LocalDateTime>emptyMap())
+				.addGlobalGroups(globalGroups)
+				.addCollections(collections)
 				.setStatus(UserCredentialStatus.ACTIVE)
 				.setDomain("domain")
 				.setMsExchDelegateListBL(Arrays.asList(""))
 				.setDn(null);
 
-		userServices.addUpdateUserCredential(credential);
+		userServices.execute(credential);
 	}
 
 	private void addGroup(String code, String title, String parent) {

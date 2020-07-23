@@ -12,6 +12,7 @@ import com.constellio.model.services.contents.ContentImplRuntimeException;
 import com.constellio.model.services.contents.ContentManager.ContentVersionDataSummaryResponse;
 import com.constellio.model.services.contents.ContentManagerRuntimeException;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 
 import java.io.InputStream;
 
@@ -53,14 +54,14 @@ public class UserDao extends BaseDao {
 		}
 
 		Content content = contentManager.createSystemContent(filename, versionDataSummary);
-		UserCredential userCredentials = userServices.getUserConfigs(username);
+		UserAddUpdateRequest userCredentials = userServices.addUpdate(username);
 		userCredentials.set(metadataCode, content);
-		userServices.addUpdateUserConfigs(userCredentials);
+		userServices.execute(userCredentials);
 	}
 
 	public void deleteContent(String username, String metadataCode) {
-		UserCredential userCredentials = userServices.getUserConfigs(username);
+		UserAddUpdateRequest userCredentials = userServices.addUpdate(username);
 		userCredentials.set(metadataCode, null);
-		userServices.addUpdateUserConfigs(userCredentials);
+		userServices.execute(userCredentials);
 	}
 }

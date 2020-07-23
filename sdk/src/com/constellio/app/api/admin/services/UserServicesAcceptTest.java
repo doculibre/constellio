@@ -52,8 +52,8 @@ public class UserServicesAcceptTest extends ConstellioTest {
 		userServices.givenSystemAdminPermissionsToUser(users.alice());
 		userServices.givenSystemAdminPermissionsToUser(users.bob());
 
-		aliceServiceKey = userServices.giveNewServiceToken(users.alice());
-		bobServiceKey = userServices.giveNewServiceToken(users.bob());
+		aliceServiceKey = userServices.giveNewServiceKey(users.alice().getUsername());
+		bobServiceKey = userServices.giveNewServiceKey(users.bob().getUsername());
 
 		authService.changePassword(users.alice().getUsername(), alicePassword);
 		authService.changePassword(users.bob().getUsername(), bobPassword);

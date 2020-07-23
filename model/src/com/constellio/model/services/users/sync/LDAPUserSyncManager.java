@@ -14,7 +14,6 @@ import com.constellio.model.conf.ldap.services.LDAPServices.LDAPUsersAndGroups;
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
-import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -27,13 +26,11 @@ import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 import com.constellio.model.services.users.UserUtils;
 import com.google.common.base.Joiner;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
 import org.joda.time.format.DateTimeFormat;
 import org.slf4j.Logger;
@@ -234,72 +231,69 @@ public class LDAPUserSyncManager implements StatefulService {
 		for (LDAPUser ldapUser : ldapUsers) {
 			if (!ldapUser.getName().toLowerCase().equals("admin")) {
 				UserAddUpdateRequest request = createUserCredentialsFromLdapUser(ldapUser, selectedCollectionsCodes);
-				if (request.getUsername() == null) {
-					LOGGER.error(
-							"Invalid user ignored (missing username). Id: " + ldapUser.getId() + ", Username : " + request.getUsername());
-				} else {
-					try {
-						// Keep locally created groups of existing users
-						final List<String> newUserGlobalGroups = new ArrayList<>(request.getGlobalGroups());
-						SystemWideUserInfos previousUserCredential = userServices
-								.getUserInfos(request.getUsername());
-						SystemWideUserInfos userCredentialByDn = userServices.getUserCredentialByDN(ldapUser.getId());
-						if (previousUserCredential == null) {
-							previousUserCredential = userServices.getUserCredentialByDN(ldapUser.getId());
-						}
-						if (previousUserCredential != null && userCredentialByDn != null
-							&& !previousUserCredential.getId().equals(userCredentialByDn.getId())) {
-							LOGGER.info("Two users with same DN but different username. Id: " + ldapUser.getId() + ", Usernames : " + previousUserCredential.getUsername() + " and " + userCredentialByDn.getUsername());
+
+				try {
+					// Keep locally created groups of existing users
+					final List<String> newUserGlobalGroups = new ArrayList<>();
+					SystemWideUserInfos previousUserCredential = userServices
+							.getUserInfos(request.getUsername());
+					SystemWideUserInfos userCredentialByDn = userServices.getUserCredentialByDN(ldapUser.getId());
+					if (previousUserCredential == null) {
+						previousUserCredential = userServices.getUserCredentialByDN(ldapUser.getId());
+					}
+					if (previousUserCredential != null && userCredentialByDn != null
+						&& !previousUserCredential.getId().equals(userCredentialByDn.getId())) {
+						LOGGER.info("Two users with same DN but different username. Id: " + ldapUser.getId() + ", Usernames : " + previousUserCredential.getUsername() + " and " + userCredentialByDn.getUsername());
+						try {
+							LOGGER.info(
+									"Attempting to delete username " + userCredentialByDn.getUsername());
+							userServices.physicallyRemoveUserCredentialAndUsers(userCredentialByDn.getUsername());
+						} catch (Throwable t) {
 							try {
 								LOGGER.info(
-										"Attempting to delete username " + userCredentialByDn.getUsername());
-								userServices.physicallyRemoveUserCredentialAndUsers(userCredentialByDn.getUsername());
-							} catch (Throwable t) {
+										"Could not delete username " + userCredentialByDn.getUsername() + ", attempting to delete " + previousUserCredential.getUsername() + " instead");
+								userServices.physicallyRemoveUserCredentialAndUsers(previousUserCredential.getUsername());
+								previousUserCredential = userCredentialByDn;
+							} catch (Throwable t2) {
+								UserAddUpdateRequest invalidUserCredential;
+								if (previousUserCredential.getUsername().equalsIgnoreCase(ldapUser.getName())) {
+									invalidUserCredential = userServices.addUpdate(userCredentialByDn.getUsername());
+								} else {
+									invalidUserCredential = userServices.addUpdate(previousUserCredential.getUsername());
+									previousUserCredential = userCredentialByDn;
+								}
+
 								try {
 									LOGGER.info(
-											"Could not delete username " + userCredentialByDn.getUsername() + ", attempting to delete " + previousUserCredential.getUsername() + " instead");
-									userServices.physicallyRemoveUserCredentialAndUsers(previousUserCredential);
-									previousUserCredential = userCredentialByDn;
-								} catch (Throwable t2) {
-									UserCredential invalidUserCredential;
-									if (previousUserCredential.getUsername().equalsIgnoreCase(ldapUser.getName())) {
-										invalidUserCredential = userCredentialByDn;
-									} else {
-										invalidUserCredential = previousUserCredential;
-										previousUserCredential = userCredentialByDn;
-									}
-
-									try {
-										LOGGER.info(
-												"Could not delete username " + invalidUserCredential.getUsername() + ", attempting to change DN for " + invalidUserCredential.getUsername() + " instead");
-										invalidUserCredential.setDn(ldapUser.getId() + "-duplicate");
-										RecordUpdateOptions recordUpdateOptions = new RecordUpdateOptions();
-										recordUpdateOptions.setUnicityValidationsEnabled(false);
-										recordServices.update(invalidUserCredential.getWrappedRecord(), recordUpdateOptions);
-									} catch (Throwable t3) {
-										LOGGER.error("Unable to change DN for username " + invalidUserCredential.getUsername(), t3);
-									}
+											"Could not delete username " + invalidUserCredential.getUsername() + ", attempting to change DN for " + invalidUserCredential.getUsername() + " instead");
+									invalidUserCredential.setDn(ldapUser.getId() + "-duplicate");
+									request.setDnUnicityValidationCheck(false);
+									userServices.execute(request);
+								} catch (Throwable t3) {
+									LOGGER.error("Unable to change DN for username " + invalidUserCredential.getUsername(), t3);
 								}
 							}
 						}
-						if (previousUserCredential != null) {
-							request.setServiceKey(previousUserCredential.getServiceKey());
-							request.setAccessTokens(previousUserCredential.getAccessTokens());
-							for (final String userGlobalGroup : previousUserCredential.getGlobalGroups()) {
-								final GlobalGroup previousGlobalGroup = userServices.getNullableGroup(userGlobalGroup);
-								if (previousGlobalGroup != null && previousGlobalGroup.isLocallyCreated()) {
-									newUserGlobalGroups.add(previousGlobalGroup.getCode());
-								}
-							}
-						}
-						request.setGlobalGroups(newUserGlobalGroups);
-
-						userServices.addUpdateUserCredential(request);
-						updatedUsersAndGroups.addUsername(UserUtils.cleanUsername(ldapUser.getName()));
-					} catch (Throwable e) {
-						LOGGER.error("User ignored due to error when trying to add it " + request.getUsername(), e);
 					}
+					if (previousUserCredential != null) {
+						for (final String userGlobalGroup : previousUserCredential.getGlobalGroups()) {
+							final GlobalGroup previousGlobalGroup = userServices.getNullableGroup(userGlobalGroup);
+							if (previousGlobalGroup != null && previousGlobalGroup.isLocallyCreated()) {
+								newUserGlobalGroups.add(previousGlobalGroup.getCode());
+							}
+						}
+					}
+
+					if (!newUserGlobalGroups.isEmpty()) {
+						request.addGlobalGroups(newUserGlobalGroups);
+					}
+
+					userServices.execute(request);
+					updatedUsersAndGroups.addUsername(UserUtils.cleanUsername(ldapUser.getName()));
+				} catch (Throwable e) {
+					LOGGER.error("User ignored due to error when trying to add it " + request.getUsername(), e);
 				}
+
 			}
 			if (ldapSynchProgressionInfo != null) {
 				ldapSynchProgressionInfo.processedGroupsAndUsers++;
@@ -341,13 +335,12 @@ public class LDAPUserSyncManager implements StatefulService {
 		if (ldapUser.getMsExchDelegateListBL() != null) {
 			msExchDelegateListBL.addAll(ldapUser.getMsExchDelegateListBL());
 		}
-		Set<String> collections;
+		List<String> currentCollections;
 		try {
 			SystemWideUserInfos tmpUser = userServices.getUserInfos(username);
-			collections = new HashSet<>(tmpUser.getCollections());
-			collections.addAll(selectedCollectionsCodes);
+			currentCollections = tmpUser.getCollections();
 		} catch (UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser e) {
-			collections = new HashSet<>(selectedCollectionsCodes);
+			currentCollections = Collections.emptyList();
 		}
 
 		UserCredentialStatus userStatus;
@@ -356,28 +349,22 @@ public class LDAPUserSyncManager implements StatefulService {
 		} else {
 			userStatus = UserCredentialStatus.DELETED;
 		}
-		UserAddUpdateRequest request = userServices.addEditRequest(username)
+		UserAddUpdateRequest request = userServices.addUpdate(username)
 				.setFirstName(firstName)
 				.setLastName(lastName)
 				.setEmail(email)
 				.setServiceKey(null)
 				.setSystemAdmin(false)
-				.setGlobalGroups(globalGroups)
-				.setCollections(new ArrayList<>(collections))
-				.setAccessTokens(Collections.<String, LocalDateTime>emptyMap())
+				.addGlobalGroups(globalGroups)
 				.setStatus(userStatus)
 				.setDomain("")
 				.setMsExchDelegateListBL(msExchDelegateListBL)
 				.setDn(ldapUser.getId());
 
-		try {
-			SystemWideUserInfos currentUserCredential = userServices.getUserInfos(username);
-			if (currentUserCredential.isSystemAdmin()) {
-				request = request.setSystemAdmin(true);
+		for (String selectedCollectionsCode : selectedCollectionsCodes) {
+			if (!currentCollections.contains(selectedCollectionsCode)) {
+				request.addCollection(selectedCollectionsCode);
 			}
-			request = request.setAccessTokens(currentUserCredential.getAccessTokens());
-		} catch (UserServicesRuntimeException_NoSuchUser e) {
-			//OK
 		}
 
 		return request;
