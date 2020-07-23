@@ -2,6 +2,7 @@ package com.constellio.model.services.contents;
 
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.enums.ContentCheckoutSource;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.wrappers.User;
@@ -39,6 +40,8 @@ public class ContentImpl implements Content {
 
 	private String checkoutUserId;
 
+	private Integer checkoutSource;
+
 	private Lazy<List<ContentVersion>> lazyHistory;
 	private List<ContentVersion> history;
 
@@ -46,9 +49,16 @@ public class ContentImpl implements Content {
 
 	private boolean emptyVersion;
 
-	public ContentImpl(String id, ContentVersion currentVersion, Lazy<List<ContentVersion>> lazyHistory,
+	/*public ContentImpl(String id, ContentVersion currentVersion, Lazy<List<ContentVersion>> lazyHistory,
 					   ContentVersion currentCheckedOutVersion, LocalDateTime checkoutDateTime, String checkoutUserId,
 					   boolean emptyVersion) {
+		this(id, currentVersion, lazyHistory, currentCheckedOutVersion, checkoutDateTime, checkoutUserId,
+				null, emptyVersion);
+	}*/
+
+	public ContentImpl(String id, ContentVersion currentVersion, Lazy<List<ContentVersion>> lazyHistory,
+					   ContentVersion currentCheckedOutVersion, LocalDateTime checkoutDateTime, String checkoutUserId,
+					   Integer checkoutSource, boolean emptyVersion) {
 		this.currentVersion = currentVersion;
 		this.emptyVersion = emptyVersion;
 		this.checkoutDateTime = checkoutDateTime;
@@ -58,6 +68,7 @@ public class ContentImpl implements Content {
 			this.currentCheckedOutVersion = currentCheckedOutVersion;
 		}
 		this.checkoutUserId = checkoutUserId;
+		this.checkoutSource = checkoutSource;
 		this.lazyHistory = lazyHistory;
 		this.id = id;
 	}
@@ -244,6 +255,7 @@ public class ContentImpl implements Content {
 		ensureCheckedOut();
 		this.checkoutDateTime = null;
 		this.checkoutUserId = null;
+		this.checkoutSource = null;
 		this.dirty = true;
 
 		if (emptyVersion) {
@@ -261,6 +273,7 @@ public class ContentImpl implements Content {
 		ensureCheckedOut();
 		this.checkoutDateTime = null;
 		this.checkoutUserId = null;
+		this.checkoutSource = null;
 		this.dirty = true;
 		this.currentCheckedOutVersion = null;
 
@@ -302,6 +315,7 @@ public class ContentImpl implements Content {
 		}
 		this.checkoutDateTime = null;
 		this.checkoutUserId = null;
+		this.checkoutSource = null;
 		this.currentCheckedOutVersion = null;
 		this.dirty = true;
 		return this;
@@ -313,9 +327,14 @@ public class ContentImpl implements Content {
 	}
 
 	public ContentImpl checkOut(User user) {
+		return checkOut(user, ContentCheckoutSource.CONSTELLIO.getValue());
+	}
+
+	public ContentImpl checkOut(User user, int checkoutSource) {
 		ensureNotCheckedOut();
 		this.checkoutDateTime = TimeProvider.getLocalDateTime();
 		this.checkoutUserId = user.getId();
+		this.checkoutSource = checkoutSource;
 		this.currentCheckedOutVersion = currentVersion;
 		this.dirty = true;
 		return this;
@@ -474,6 +493,10 @@ public class ContentImpl implements Content {
 		return checkoutUserId;
 	}
 
+	public Integer getCheckoutSource() {
+		return checkoutSource;
+	}
+
 	@Override
 	public boolean isDirty() {
 		return dirty;
@@ -552,6 +575,7 @@ public class ContentImpl implements Content {
 		if (currentCheckedOutVersion != null) {
 			this.checkoutDateTime = null;
 			this.checkoutUserId = null;
+			this.checkoutSource = null;
 
 			if (!currentCheckedOutVersion.getVersion().equals(currentVersion.getVersion())) {
 				String version = getVersionAfter(currentCheckedOutVersion.getVersion(), true);

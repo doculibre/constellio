@@ -1,6 +1,7 @@
 package com.constellio.model.services.contents;
 
 import com.constellio.data.utils.LazyIterator;
+import com.constellio.model.entities.enums.ContentCheckoutSource;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.ModifiableStructure;
@@ -103,6 +104,7 @@ public class ContentFactory implements StructureFactory {
 
 		String checkedOutBy = deserializeUser(toNullableString(nextLine), isAllowingUserToNotExist);
 		LocalDateTime checkedOutDateTime = toDateTime(iterator.next());
+		Integer checkedOutSource = version == 3 ? toInteger(iterator.next()) : ContentCheckoutSource.CONSTELLIO.getValue();
 
 		String lastKnownFilename = current != null ? current.getFilename() : null;
 		String lastKnownModifiedBy = current != null ? current.getModifiedBy() : null;
@@ -111,7 +113,7 @@ public class ContentFactory implements StructureFactory {
 		Lazy<List<ContentVersion>> lazyLoadedHistory = newLazyLoadedHistory(iterator, version, lastKnownFilename,
 				lastKnownModifiedBy, lastKnownMimetype, isAllowingUserToNotExist);
 
-		return new ContentImpl(id, current, lazyLoadedHistory, currentCheckedOut, checkedOutDateTime, checkedOutBy, emptyVersion);
+		return new ContentImpl(id, current, lazyLoadedHistory, currentCheckedOut, checkedOutDateTime, checkedOutBy, checkedOutSource, emptyVersion);
 	}
 
 	protected String deserializeUser(String value, boolean isAllowingUserToNotExist) {
@@ -123,6 +125,9 @@ public class ContentFactory implements StructureFactory {
 	}
 
 	private int getFactoryVersion(String string) {
+		if (string.startsWith("v3:")) {
+			return 3;
+		}
 		if (string.startsWith("v2:")) {
 			return 2;
 		} else {
@@ -178,8 +183,8 @@ public class ContentFactory implements StructureFactory {
 
 	@Override
 	public String toString(ModifiableStructure value) {
-		//Version 2
-		StringBuilder stringBuilder = new StringBuilder("v2:");
+		//Version 3
+		StringBuilder stringBuilder = new StringBuilder("v3:");
 
 		ContentImpl contentInfo = (ContentImpl) value;
 		ContentVersion current = contentInfo.getCurrentVersion();
@@ -204,6 +209,8 @@ public class ContentFactory implements StructureFactory {
 		stringBuilder.append(serializeUser(contentInfo.getCheckoutUserId()));
 		stringBuilder.append("::");
 		stringBuilder.append(toString(contentInfo.getCheckoutDateTime()));
+		stringBuilder.append("::");
+		stringBuilder.append(toString(contentInfo.getCheckoutSource()));
 		stringBuilder.append(":");
 		for (ContentVersion historyVersion : contentInfo.getHistoryVersions()) {
 			stringBuilder.append(toString(historyVersion, lastKnownFilename, lastKnownModifiedBy, lastKnownMimetype));
@@ -262,7 +269,9 @@ public class ContentFactory implements StructureFactory {
 	private ContentVersion toContentVersion(String string, int version, String lastKnownFilename,
 											String lastKnownModifiedBy,
 											String lastKnownMimetype, boolean isAllowingUserToNotExist) {
-		if (version == 2) {
+		if (version == 3) {
+			return toContentVersion3(string, lastKnownFilename, lastKnownModifiedBy, lastKnownMimetype, isAllowingUserToNotExist);
+		} else if (version == 2) {
 			return toContentVersion2(string, lastKnownFilename, lastKnownModifiedBy, lastKnownMimetype, isAllowingUserToNotExist);
 		} else {
 			return toContentVersion1(string, isAllowingUserToNotExist);
@@ -286,6 +295,12 @@ public class ContentFactory implements StructureFactory {
 		long length = Long.valueOf(lengthStr);
 		ContentVersionDataSummary contentVersionDataSummary = new ContentVersionDataSummary(hash, mimetype, length);
 		return new ContentVersion(contentVersionDataSummary, filename, version, modifiedBy, toDateTime(modifiedDateTime), null);
+	}
+
+	private ContentVersion toContentVersion3(String string, String lastKnownFilename, String lastKnownModifiedBy,
+											 String lastKnownMimetype, boolean isAllowingUserToNotExist) {
+		// ContentVersion v3 is the same as ContentVersion v2, only a field was added to Content
+		return toContentVersion2(string, lastKnownFilename, lastKnownModifiedBy, lastKnownMimetype, isAllowingUserToNotExist);
 	}
 
 	private ContentVersion toContentVersion2(String string, String lastKnownFilename, String lastKnownModifiedBy,
@@ -334,6 +349,20 @@ public class ContentFactory implements StructureFactory {
 		}
 		long timestamp = localDateTime.toDate().getTime();
 		return "" + timestamp;
+	}
+
+	private String toString(Integer checkoutSource) {
+		if (checkoutSource == null) {
+			return NULL_STRING;
+		}
+		return String.valueOf(checkoutSource);
+	}
+
+	private Integer toInteger(String checkoutSourceString) {
+		if (checkoutSourceString.equals(NULL_STRING)) {
+			return ContentCheckoutSource.CONSTELLIO.getValue();
+		}
+		return Integer.valueOf(checkoutSourceString);
 	}
 
 	private String afterEqual(String keyValue) {

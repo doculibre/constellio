@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
@@ -20,6 +13,12 @@ import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Folder extends RMObject {
 	public static final String SCHEMA_TYPE = "folder";
@@ -121,6 +120,8 @@ public class Folder extends RMObject {
 	public static final String SUMMARY = "summary";
 	public static final String HAS_CONTENT = "hasContent";
 	public static final String IS_MODEL = "isModel";
+
+	public static final String ABBREVIATION = "abbreviation";
 
 	public Folder(Record record,
 				  MetadataSchemaTypes types) {
@@ -952,6 +953,10 @@ public class Folder extends RMObject {
 
 	public boolean hasContent() {
 		return getBooleanWithDefaultValue(HAS_CONTENT, false);
+	}
+
+	public String getAbbreviation() {
+		return get(ABBREVIATION);
 	}
 }
 

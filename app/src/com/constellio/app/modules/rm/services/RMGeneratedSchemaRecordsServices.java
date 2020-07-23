@@ -1480,6 +1480,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			super(schemaCode);
 		}
 
+		public Metadata abbreviation() {
+			return metadata("abbreviation");
+		}
+
 		public Metadata activeRetentionPeriodCode() {
 			return metadata("activeRetentionPeriodCode");
 		}

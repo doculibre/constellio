@@ -53,10 +53,10 @@ public class MetadataBuilderTest extends ConstellioTest {
 		when(typesBuilder.getSchemaType(anyString())).thenThrow(NoSuchSchemaType.class);
 		when(typesBuilder.getClassProvider()).thenReturn(new DefaultClassProvider());
 		when(typesBuilder.getLanguages()).thenReturn(asList(Language.French));
-		schemaTypeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType(COLLECTION, "codeSchema", typesBuilder);
+		schemaTypeBuilder = (new MetadataSchemaTypeBuilder()).createNewSchemaType(COLLECTION, "codeSchema", typesBuilder, modelLayerFactory);
 		schemaBuilder = schemaTypeBuilder.getDefaultSchema();
 
-		anotherSchemaTypeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType(COLLECTION, "anotherSchemaType", typesBuilder);
+		anotherSchemaTypeBuilder = (new MetadataSchemaTypeBuilder()).createNewSchemaType(COLLECTION, "anotherSchemaType", typesBuilder, modelLayerFactory);
 		anotherSchemaBuilder = anotherSchemaTypeBuilder.getDefaultSchema();
 		anotherSchemaMetadataBuilder = MetadataBuilder.createMetadataWithoutInheritance("anotherSchemaMetadata",
 				anotherSchemaBuilder).setType(MetadataValueType.STRING);

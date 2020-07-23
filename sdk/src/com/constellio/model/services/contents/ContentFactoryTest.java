@@ -1,5 +1,6 @@
 package com.constellio.model.services.contents;
 
+import com.constellio.model.entities.enums.ContentCheckoutSource;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.wrappers.User;
@@ -71,11 +72,11 @@ public class ContentFactoryTest extends ConstellioTest {
 				"0.4", charlesId, teaOClock, "commentOf\nVersion::0.4");
 
 		content = new ContentImpl("zeContent", currentVersion, lazy(firstVersion, secondVersion), currentCOVersion, tockOClock,
-				dakotaId, false);
+				dakotaId, ContentCheckoutSource.CONSTELLIO.getValue(), false);
 		emptyContent = new ContentImpl("zeContent", currentVersion, lazy(firstVersion, secondVersion), currentCOVersion,
-				tockOClock, dakotaId, true);
+				tockOClock, dakotaId, ContentCheckoutSource.CONSTELLIO.getValue(), true);
 		sameInfoAsCurrentContent = new ContentImpl("zeContent", currentVersion, lazy(sameInfoAsCurrentVersion, sameInfoAsCurrentVersion2, differentInfoFromCurrentVersion, sameInfoAsCurrentVersion3), currentCOVersion, tockOClock,
-				dakotaId, false);
+				dakotaId, ContentCheckoutSource.CONSTELLIO.getValue(), false);
 
 		when(alice.getId()).thenReturn(aliceId);
 		when(bob.getId()).thenReturn(bobId);
@@ -138,6 +139,7 @@ public class ContentFactoryTest extends ConstellioTest {
 
 		assertThat(content2.getCheckoutDateTime()).isEqualTo(tockOClock);
 		assertThat(content2.getCheckoutUserId()).isEqualTo(dakotaId);
+		assertThat(content2.getCheckoutSource()).isEqualTo(ContentCheckoutSource.CONSTELLIO.getValue());
 
 		assertThat(text2).isEqualTo(text);
 	}
@@ -200,6 +202,7 @@ public class ContentFactoryTest extends ConstellioTest {
 
 		assertThat(content.getCheckoutDateTime()).isEqualTo(tockOClock);
 		assertThat(content.getCheckoutUserId()).isEqualTo(dakotaId);
+		assertThat(content.getCheckoutSource()).isEqualTo(ContentCheckoutSource.CONSTELLIO.getValue());
 
 	}
 
@@ -260,6 +263,7 @@ public class ContentFactoryTest extends ConstellioTest {
 
 		assertThat(content2.getCheckoutDateTime()).isEqualTo(tockOClock);
 		assertThat(content2.getCheckoutUserId()).isEqualTo(dakotaId);
+		assertThat(content2.getCheckoutSource()).isEqualTo(ContentCheckoutSource.CONSTELLIO.getValue());
 
 		assertThat(text2).isEqualTo(text);
 	}
@@ -438,6 +442,15 @@ public class ContentFactoryTest extends ConstellioTest {
 		Content content = ContentImpl.createSystemContent("testFileName.jpg", new ContentVersionDataSummary("zeHash", "zeMime3", zeLength3));
 		assertThat(content).isNotNull();
 		assertThat(content.getCheckoutUserId()).isNull();
+		assertThat(content.getCheckoutSource()).isNull();
 		assertThat(content.getCurrentVersion().getVersion()).isEqualTo("1.0");
+	}
+
+	@Test
+	public void givenContentInfoVersion2ThenCheckoutContentSourceCorrectlyInitialized() {
+		String text = "v2:00000000391::cf=proces.docx::co=true::f=proces.docx:h=ADIMNNRL566Z6IL7KKIPN2BBKOVN7BA3:l=31777:m=application/vnd.openxmlformats-officedocument.wordprocessingml.document:u=00000000061:t=1594674544534:v=0.1:null::f=proces.docx:h=ADIMNNRL566Z6IL7KKIPN2BBKOVN7BA3:l=31777:m=application/vnd.openxmlformats-officedocument.wordprocessingml.document:u=00000000061:t=1594674544534:v=0.1:null::00000000061::1594674575736::";
+
+		Content content = (Content) factory.build(text);
+		assertThat(content.getCheckoutSource()).isEqualTo(ContentCheckoutSource.CONSTELLIO.getValue());
 	}
 }

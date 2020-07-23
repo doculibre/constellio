@@ -40,6 +40,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ValueListServices {
+	AppLayerFactory appLayerFactory;
 	MetadataSchemasManager schemasManager;
 	SchemasDisplayManager schemasDisplayManager;
 	TaxonomiesManager taxonomiesManager;
@@ -55,6 +56,7 @@ public class ValueListServices {
 		this.uniqueIdGenerator = modelLayerFactory.getDataLayerFactory().getUniqueIdGenerator();
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.collection = collection;
+		this.appLayerFactory = appLayerFactory;
 	}
 
 	public List<MetadataSchemaType> getValueDomainTypes() {

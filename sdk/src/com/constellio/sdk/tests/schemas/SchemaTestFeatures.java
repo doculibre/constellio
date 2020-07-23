@@ -60,8 +60,8 @@ public class SchemaTestFeatures {
 		if (mocked) {
 			ModelLayerFactory modelLayerFactory = mock(ModelLayerFactory.class);
 			TaxonomiesManager taxonomiesManager = mock(TaxonomiesManager.class);
-			MetadataSchemaTypes types = spy(typesBuilder.build(new FakeDataStoreTypeFactory(), modelLayerFactory));
-			typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
+			MetadataSchemaTypes types = spy(typesBuilder.build(new FakeDataStoreTypeFactory()));
+			typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, modelLayerFactory, new DefaultClassProvider());
 			reset(manager);
 			when(manager.getSchemaTypes(collection)).thenReturn(types);
 			when(manager.getSchemaTypeOf(any(Record.class))).then(new Answer<Object>() {
@@ -101,7 +101,8 @@ public class SchemaTestFeatures {
 				}
 				manager.saveUpdateSchemaTypes(typesBuilder);
 				MetadataSchemaTypes types = manager.getSchemaTypes(collection);
-				typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
+				typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo()))
+						.modify(types, null, new DefaultClassProvider());
 				return types;
 			} catch (MetadataSchemasManagerException e) {
 				throw new RuntimeException(e);
@@ -119,7 +120,7 @@ public class SchemaTestFeatures {
 	private boolean isMockedManager(MetadataSchemasManager manager) {
 		collectionsManager = mock(CollectionsManager.class, "collectionsServices");
 		pluginManager = mock(ConstellioPluginManager.class, "pluginManager");
-		SchemasSetup.prepareSetups(manager, null);
+		SchemasSetup.prepareSetups(manager, factoriesTestFeatures.getConstellioFactories().getModelLayerFactory(), null);
 		try {
 			reset(manager);
 			return true;
@@ -135,7 +136,7 @@ public class SchemaTestFeatures {
 			pluginManager = factoriesTestFeatures.getConstellioFactories().getAppLayerFactory().getPluginManager();
 			modulesManager = factoriesTestFeatures.getConstellioFactories().getAppLayerFactory().getModulesManager();
 		}
-		SchemasSetup.prepareSetups(manager, collectionsManager);
+		SchemasSetup.prepareSetups(manager, factoriesTestFeatures.getConstellioFactories().getModelLayerFactory(), collectionsManager);
 		return this;
 	}
 
