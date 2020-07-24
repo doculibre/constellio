@@ -87,7 +87,7 @@ public class UserAddUpdateRequest {
 	}
 
 	public UserAddUpdateRequest setSyncMode(UserSyncMode syncMode) {
-		this.syncMode = syncMode;
+		this.modifiedProperties.put(UserCredential.SYNC_MODE, syncMode);
 		return this;
 	}
 

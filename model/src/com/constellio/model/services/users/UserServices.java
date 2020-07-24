@@ -28,6 +28,7 @@ import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -79,10 +80,9 @@ import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_C
 import static com.constellio.model.entities.records.wrappers.Group.wrapNullable;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_ON;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
-import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
+import static com.constellio.model.entities.security.global.UserCredentialStatus.DISABLED;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.PENDING;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.SUSPENDED;
-import static com.constellio.model.entities.security.global.UserCredentialStatus.DISABLED;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -573,7 +573,6 @@ public class UserServices {
 		for (SystemWideUserInfos userCredential :
 				userCredentials) {
 			if (userCredential.getStatus() != UserCredentialStatus.ACTIVE) {
-				userCredential.setStatus(UserCredentialStatus.DISABLED);
 				removeUserCredentialAndUser(userCredential);
 			}
 		}
@@ -601,8 +600,16 @@ public class UserServices {
 		execute(addUpdate(username).setStatus(SUSPENDED));
 	}
 
-	public void activeUserCredentialAndUser(String username) {
-		execute(addUpdate(username).setStatus(ACTIVE));
+	public void userNotSynced(String username) {
+		execute(addUpdate(username).setSyncMode(UserSyncMode.NOT_SYNCED));
+	}
+
+	public void userLocallyCreated(String username) {
+		execute(addUpdate(username).setSyncMode(UserSyncMode.LOCALLY_CREATED));
+	}
+
+	public void userSynced(String username) {
+		execute(addUpdate(username).setSyncMode(UserSyncMode.SYNCED));
 	}
 
 	private void restoreUserInBigVault(String username) {
@@ -1170,7 +1177,7 @@ public class UserServices {
 		return physicallyRemoveGlobalGroup(globalGroupsManager.getAllGroups().toArray(new SystemWideGroup[0]));
 	}
 
-	List<SystemWideGroup> physicallyRemoveGlobalGroup(SystemWideGroup... globalGroups) {
+	public List<SystemWideGroup> physicallyRemoveGlobalGroup(SystemWideGroup... globalGroups) {
 		List<SystemWideGroup> groupWithUserList = new ArrayList<>();
 		for (SystemWideGroup group : globalGroups) {
 			List<SystemWideUserInfos> userInGroup = this.getGlobalGroupActifUsers(group.getCode());
@@ -1578,5 +1585,18 @@ public class UserServices {
 
 	public void logicallyRemoveGroup(SystemWideGroup globalGroup) {
 		globalGroupsManager.logicallyRemoveGroup(globalGroup);
+	}
+
+	public void updateAllUserSyncMode() {
+		List<SystemWideUserInfos> credentials = this.getAllUserCredentials();
+
+		for (SystemWideUserInfos credential :
+				credentials) {
+			if (credential.getDn() != null) {
+				this.userSynced(credential.getUsername());
+			} else {
+				this.userLocallyCreated(credential.getUsername());
+			}
+		}
 	}
 }

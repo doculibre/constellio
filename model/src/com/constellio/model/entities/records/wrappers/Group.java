@@ -3,6 +3,7 @@ package com.constellio.model.entities.records.wrappers;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.GlobalGroupStatus;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,6 +18,9 @@ public class Group extends RecordWrapper {
 	public static final String TITLE = Schemas.TITLE_CODE;
 	public static final String PARENT = "parent";
 	public static final String ANCESTORS = "ancestors";
+	public static final String STATUS = "status";
+	public static final String HIERARCHY = "hierarchy";
+	public static final String LOCALLY_CREATED = "locallyCreated";
 
 	public Group(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -88,5 +92,22 @@ public class Group extends RecordWrapper {
 	@Override
 	public String toString() {
 		return toStringPrintingCodes(CODE, TITLE);
+	}
+
+	public GlobalGroupStatus getStatus() {
+		return get(STATUS);
+	}
+
+	public String getHierarchy() {
+		return get(HIERARCHY);
+	}
+
+	public Group setHierarchy(String path) {
+		set(HIERARCHY, path);
+		return this;
+	}
+
+	public boolean isLocallyCreated() {
+		return Boolean.TRUE.equals(get(LOCALLY_CREATED));
 	}
 }

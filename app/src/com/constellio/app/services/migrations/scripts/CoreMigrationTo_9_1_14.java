@@ -5,8 +5,12 @@ import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -39,6 +43,7 @@ public class CoreMigrationTo_9_1_14 extends MigrationHelper implements Migration
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+			//USERS
 			//Les UserCredential sans collection seront supprimés
 			UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 			userServices.safePhysicalDeleteAllUserCredentialsWithEmptyCollections();
@@ -48,9 +53,9 @@ public class CoreMigrationTo_9_1_14 extends MigrationHelper implements Migration
 			MetadataSchemaBuilder userCredentialSchema = typesBuilder.getSchemaType(UserCredential.SCHEMA_TYPE).getDefaultSchema();
 			MetadataBuilder userSyncModeBuilder = userCredentialSchema.createUndeletable("syncMode")
 					.setType(MetadataValueType.STRING).setDefaultValue(UserSyncMode.LOCALLY_CREATED);
-			//chaque utilisateur migré aura la valeur LOCALLY_CREATED si il existe une entrée dans le fichier de mot de passe, sinon SYNCED
 
-			//TODO
+			//chaque utilisateur migré aura la valeur LOCALLY_CREATED si il existe une entrée dans le fichier de mot de passe, sinon SYNCED
+			userServices.updateAllUserSyncMode();
 
 			//Les métadonnées suivantes sont retirées de UserCredential, car l'information existe dans User :
 			// firstname, lastname, email, personalEmails, collections, globalGroups, phone, fax, jobTitle, address
@@ -82,6 +87,29 @@ public class CoreMigrationTo_9_1_14 extends MigrationHelper implements Migration
 				userServices.safePhysicalDeleteAllUnusedUsers(collection);
 			}
 
+			//GROUPS
+			//GlobalGroup est supprimé.
+			List<SystemWideGroup> glGroups = userServices.getAllGlobalGroups();
+			for (SystemWideGroup group : glGroups) {
+				userServices.physicallyRemoveGlobalGroup(group);
+			}
+
+			//la métadonnée "usersAutomaticallyAddedToCollections" est supprimée
+			MetadataSchemaBuilder groupSchema = typesBuilder.getSchemaType(Group.SCHEMA_TYPE).getDefaultSchema();
+			MetadataSchemaBuilder glGroupSchema = typesBuilder.getSchemaType(GlobalGroup.SCHEMA_TYPE).getDefaultSchema();
+			glGroupSchema.deleteMetadataWithoutValidation("usersAutomaticallyAddedToCollections");
+
+			//les attributs "locallyCreated", "hierarchy" et "status" sont déplacés dans Group
+			groupSchema.createUndeletable("status")
+					.defineAsEnum(GlobalGroupStatus.class).setDefaultRequirement(true);
+			groupSchema.createUndeletable("locallyCreated")
+					.setType(MetadataValueType.BOOLEAN).setDefaultValue(true);
+			groupSchema.createUndeletable("hierarchy")
+					.setType(MetadataValueType.STRING);
+
+			List<SystemWideGroup> groups = userServices.getAllGroups();
+			//Les groupes qui ne sont pas actifs sont supprimés logiquement
+			//userServices.logicallyRemoveAllNonActiveGroups();
 		}
 	}
 }

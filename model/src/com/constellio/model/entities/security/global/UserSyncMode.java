@@ -3,7 +3,7 @@ package com.constellio.model.entities.security.global;
 import com.constellio.model.entities.EnumWithSmallCode;
 
 public enum UserSyncMode implements EnumWithSmallCode {
-	SYNCED("s"), NOTSYNCED("n"), LOCALLY_CREATED("l");
+	SYNCED("s"), NOT_SYNCED("n"), LOCALLY_CREATED("l");
 
 	private String code;
 
@@ -20,7 +20,7 @@ public enum UserSyncMode implements EnumWithSmallCode {
 				return UserSyncMode.SYNCED;
 
 			case "n":
-				return UserSyncMode.NOTSYNCED;
+				return UserSyncMode.NOT_SYNCED;
 
 			case "l":
 				return UserSyncMode.LOCALLY_CREATED;
