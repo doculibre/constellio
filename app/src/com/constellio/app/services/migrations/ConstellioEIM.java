@@ -10,9 +10,6 @@ import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSAnnotationsServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSSignatureServlet;
 import com.constellio.app.api.search.CachedSearchWebService;
 import com.constellio.app.api.systemManagement.services.SystemInfoWebService;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.extensions.ui.AppSupportedExtensionExtension;
 import com.constellio.app.services.extensions.AppRecordExtension;
@@ -105,6 +102,7 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_2_11;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_2_7;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3_14;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3_22;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_0;
@@ -112,17 +110,19 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_10;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_11;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_12;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_13;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_20;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_21;
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3_14;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_20;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3_22;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConstellioEIM {
 
@@ -225,6 +225,7 @@ public class ConstellioEIM {
 		scripts.add(new CoreMigrationTo_9_1_12());
 		scripts.add(new CoreMigrationTo_9_1_13());
 		scripts.add(new CoreMigrationTo_9_1_20());
+		scripts.add(new CoreMigrationTo_9_1_21());
 		return scripts;
 	}
 

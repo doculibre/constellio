@@ -39,14 +39,13 @@ public class SignatureExternalAccessWebServlet extends HttpServlet {
 		SignatureExternalAccessService service = new SignatureExternalAccessService();
 
 		try {
-			String url = service.createExternalSignatureUrl(req.getHeader(HEADER_PARAM_AUTH),
+			service.createExternalSignatureUrl(req.getHeader(HEADER_PARAM_AUTH),
 					req.getParameter(PARAM_SERVICE_KEY), req.getParameter(PARAM_DOCUMENT),
 					req.getParameter(PARAM_EXTERNAL_USER_FULLNAME), req.getParameter(PARAM_EXTERNAL_USER_EMAIL),
 					req.getParameter(PARAM_EXPIRATION_DATE), req.getParameter(PARAM_LANGUAGE));
 
 			resp.setStatus(HttpServletResponse.SC_OK);
-			// TODO --> Remove when Teams will be ready to send external user email.
-			resp.getOutputStream().print(url);
+			resp.getOutputStream().print("Email successfully sent");
 		} catch (SignatureExternalAccessServiceException e) {
 			resp.sendError(e.getStatus(), e.getMessage());
 		}

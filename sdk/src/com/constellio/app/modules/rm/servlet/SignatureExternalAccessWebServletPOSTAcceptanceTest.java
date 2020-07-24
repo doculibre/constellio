@@ -4,7 +4,6 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.SignatureExternalAccessUrl;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -35,15 +34,14 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.ACTION_IMPOSSIBLE;
-import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.CANNOT_SEND_EMAIL;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.INVALID_DATE_PARAM;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.INVALID_DOCUMENT_PARAM;
+import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.INVALID_USER_EMAIL_PARAM;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_DATE_PARAM;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_DOCUMENT_PARAM;
+import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_EXTERNAL_USER_EMAIL_PARAM;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_EXTERNAL_USER_FULLNAME_PARAM;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_LANGUAGE_PARAM;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.UNAUTHORIZED;
@@ -121,19 +119,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 		WebResponse response = callWebservice(bobAuth, bobKey, records.document_A19, misterXFullname, misterXEmail, getTomorrow(), validLanguage);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpServletResponse.SC_OK);
-
-		String url = response.getContentAsString();
-		String[] urlParts = url.split("\\?");
-		String[] paramStrings = urlParts[1].split("&");
-
-		Map<String, String> params = new HashMap<>();
-		for (String param : paramStrings) {
-			String[] paramParts = param.split("=");
-			params.put(paramParts[0], paramParts[1]);
-		}
-
-		SignatureExternalAccessUrl signatureAccess = rm.getSignatureExternalAccessUrl(params.get("id"));
-		assertThat(signatureAccess.getToken()).isEqualTo(params.get("token"));
+		assertThat(response.getContentAsString()).isEqualTo("Email successfully sent");
 	}
 
 	@Test
@@ -301,30 +287,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 		}
 	}
 
-	// TODO --> Remove this test when Teams will be ready to send external user email.
 	@Test
-	public void whenCallingServiceWithMissingExternalUserEmail()
-			throws Exception {
-		WebResponse response = callWebservice(bobAuth, bobKey, records.document_A19, misterXFullname, "", getTomorrow(), validLanguage);
-
-		assertThat(response.getStatusCode()).isEqualTo(HttpServletResponse.SC_OK);
-
-		String url = response.getContentAsString();
-		String[] urlParts = url.split("\\?");
-		String[] paramStrings = urlParts[1].split("&");
-
-		Map<String, String> params = new HashMap<>();
-		for (String param : paramStrings) {
-			String[] paramParts = param.split("=");
-			params.put(paramParts[0], paramParts[1]);
-		}
-
-		SignatureExternalAccessUrl signatureAccess = rm.getSignatureExternalAccessUrl(params.get("id"));
-		assertThat(signatureAccess.getToken()).isEqualTo(params.get("token"));
-	}
-
-	// TODO --> Enable this test when Teams will be ready to send external user email.
-	/*@Test
 	public void whenCallingServiceWithMissingExternalUserEmail()
 			throws Exception {
 		try {
@@ -334,7 +297,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
 			assertThat(e.getStatusMessage()).isEqualTo(MISSING_EXTERNAL_USER_EMAIL_PARAM);
 		}
-	}*/
+	}
 
 	@Test
 	public void whenCallingServiceWithInvalidExternalUserEmail()
@@ -344,7 +307,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 			fail("whenCallingServiceWithInvalidExternalUserEmail should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
-			assertThat(e.getStatusMessage()).isEqualTo(CANNOT_SEND_EMAIL);
+			assertThat(e.getStatusMessage()).isEqualTo(INVALID_USER_EMAIL_PARAM);
 		}
 	}
 

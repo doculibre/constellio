@@ -19,6 +19,7 @@ import com.constellio.model.services.emails.EmailServicesException.CannotSendEma
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
@@ -35,6 +36,7 @@ public class SignatureExternalAccessDao {
 	public static final String INVALID_DOCUMENT_PARAM = "The document does not exist.";
 	public static final String MISSING_EXTERNAL_USER_FULLNAME_PARAM = "Missing external user fullname param.";
 	public static final String MISSING_EXTERNAL_USER_EMAIL_PARAM = "Missing external user email param.";
+	public static final String INVALID_USER_EMAIL_PARAM = "Invalid user email param.";
 	public static final String MISSING_DATE_PARAM = "Missing expiration date param.";
 	public static final String INVALID_DATE_PARAM = "The expiration date is not valid.";
 	public static final String MISSING_LANGUAGE_PARAM = "Missing language param.";
@@ -178,10 +180,13 @@ public class SignatureExternalAccessDao {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, MISSING_EXTERNAL_USER_FULLNAME_PARAM);
 		}
 
-		// TODO --> Enable this validation when Teams will be ready to send external user email.
-		/*if (StringUtils.isBlank(externalUserEmail)) {
+		if (StringUtils.isBlank(externalUserEmail)) {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, MISSING_EXTERNAL_USER_EMAIL_PARAM);
-		}*/
+		}
+
+		if (!EmailValidator.isValid(externalUserEmail)) {
+			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, INVALID_USER_EMAIL_PARAM);
+		}
 
 		if (StringUtils.isBlank(expirationDate)) {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, MISSING_DATE_PARAM);
