@@ -1,6 +1,5 @@
 package com.constellio.app.modules.restapi.folder.dao;
 
-import com.constellio.app.extensions.restapi.FolderDuplicationExtension.FolderCopyExtension;
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
 import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
 import com.constellio.app.modules.restapi.core.exception.RecordCopyNotPermittedException;
@@ -24,7 +23,6 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
-import com.constellio.data.frameworks.extensions.SingleValueExtension;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -81,16 +79,8 @@ public class FolderDao extends ResourceDao {
 
 		Transaction transaction = buildTransaction(flush, user);
 
-		SingleValueExtension<FolderCopyExtension> folderCopyExtension = appLayerFactory.getExtensions().forCollection(collection).folderDuplicationExtension.getFolderCopyExtension();
-
-		Folder copyFolder;
-		if (folderCopyExtension.getValue() == null) {
-			DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
-			copyFolder = decommissioningService.duplicateStructureAndDocuments(sourceFolder, user, false);
-		} else {
-			copyFolder = folderCopyExtension.getValue().copy(new FolderCopyExtension.FolderCopyParams(sourceFolder, user));
-		}
-
+		DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
+		Folder copyFolder = decommissioningService.duplicateStructureAndDocuments(sourceFolder, user, false);
 		if (folderDto != null) {
 			updateFolderMetadataValues(copyFolder.getWrappedRecord(), null, folderSchema, folderDto, true);
 			updateCustomMetadataValues(copyFolder.getWrappedRecord(), folderSchema, folderDto.getExtendedAttributes(), true);
