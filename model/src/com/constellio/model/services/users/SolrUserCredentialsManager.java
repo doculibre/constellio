@@ -44,35 +44,6 @@ public class SolrUserCredentialsManager {
 		return (valueOrDefault(getUserCredential(username), schemas.newCredential()))._setUsername(cleanUsername(username));
 	}
 
-	UserCredential addEdit(String username, String firstName, String lastName, String email) {
-		return addEdit(username)
-				.setFirstName(firstName)
-				.setLastName(lastName)
-				.setEmail(email)
-				.setStatus(UserCredentialStatus.ACTIVE);
-	}
-
-	UserCredential create(String username, String firstName, String lastName, String email, String serviceKey,
-						  boolean systemAdmin, List<String> globalGroups, List<String> collections,
-						  Map<String, LocalDateTime> tokens,
-						  UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
-						  String dn) {
-		return addEdit(username)
-				._setUsername(cleanUsername(username))
-				.setFirstName(firstName)
-				.setLastName(lastName)
-				.setEmail(email)
-				.setServiceKey(serviceKey)
-				.setSystemAdmin(systemAdmin)
-				.setGlobalGroups(globalGroups)
-				.setCollections(collections)
-				.setAccessTokens(tokens)
-				.setStatus(status)
-				.setDomain(domain)
-				.setMsExchDelegateListBL(msExchDelegateListBL)
-				.setDn(dn);
-	}
-
 
 	void addUpdate(UserCredential userCredential) {
 		try {

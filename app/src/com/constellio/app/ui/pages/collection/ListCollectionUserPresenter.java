@@ -23,8 +23,8 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -181,14 +181,9 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 
 	public void addGlobalGroupButtonClicked(GlobalGroupVO globalGroupVO, String roleCode) {
 		UserServices userServices = modelLayerFactory.newUserServices();
-		GlobalGroup globalGroup = userServices.getGroup(globalGroupVO.getCode());
-		List<String> newCollections = new ArrayList<>();
-		newCollections.addAll(globalGroup.getUsersAutomaticallyAddedToCollections());
-		newCollections.add(view.getCollection());
-		globalGroup = globalGroup.setUsersAutomaticallyAddedToCollections(newCollections);
-		userServices.addUpdateGlobalGroup(globalGroup);
+		userServices.execute(userServices.request(globalGroupVO.getCode()).addCollection(view.getCollection()));
 
-		roleGroupAdditionRequested(globalGroup.getCode(), roleCode);
+		roleGroupAdditionRequested(globalGroupVO.getCode(), roleCode);
 
 		LoggingServices loggingServices = modelLayerFactory.newLoggingServices();
 		loggingServices.addGroup(getGroup(globalGroupVO.getCode()), getCurrentUser());
@@ -206,12 +201,11 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 
 	public void deleteGlobalGroupButtonClicked(GlobalGroupVO entity) {
 		UserServices userServices = modelLayerFactory.newUserServices();
-		GlobalGroup globalGroup = userServices.getGroup(entity.getCode());
-		List<String> newCollections = new ArrayList<>();
+		GroupAddUpdateRequest request = userServices.request(entity.getCode());
+
 		entity.getCollections().remove(view.getCollection());
-		newCollections.addAll(entity.getCollections());
-		globalGroup = globalGroup.setUsersAutomaticallyAddedToCollections(newCollections);
-		userServices.addUpdateGlobalGroup(globalGroup);
+		request.addCollections(new ArrayList<>(entity.getCollections()));
+		userServices.execute(request);
 
 		LoggingServices loggingServices = modelLayerFactory.newLoggingServices();
 		loggingServices.removeGroup(getGroup(entity.getCode()), getCurrentUser());

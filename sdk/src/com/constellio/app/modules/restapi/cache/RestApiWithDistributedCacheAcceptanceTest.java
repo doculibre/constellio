@@ -106,7 +106,7 @@ public class RestApiWithDistributedCacheAcceptanceTest extends BaseDocumentRestf
 		userServices.getUserInfos(users.bob().getUsername());
 		userServices2.getUserInfos(users.bob().getUsername());
 
-		userServices2.addUpdateUserCredential(
+		userServices2.execute(
 				users.bobAddUpdateRequest().setServiceKey(serviceKey)
 						.addAccessToken(token2, TimeProvider.getLocalDateTime().plusYears(1)));
 

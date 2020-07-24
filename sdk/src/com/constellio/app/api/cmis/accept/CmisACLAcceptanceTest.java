@@ -125,7 +125,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		recordServices.update(users.adminIn(zeCollection).setCollectionAllAccess(true));
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionReadAccess(true));
 
-		userServices.addUpdateUserCredential(users.adminAddUpdateRequest().setServiceKey("admin-key"));
+		userServices.execute(users.adminAddUpdateRequest().setServiceKey("admin-key"));
 		getModelLayerFactory().newAuthenticationService().changePassword(admin, "1qaz2wsx");
 		adminToken = userServices.generateToken(admin);
 		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
@@ -315,9 +315,9 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		List<String> users = new ArrayList<>();
 		for (int i = 1; i <= qty; i++) {
 			String username = "grim.patron." + i;
-			UserAddUpdateRequest userCredential = createUserCredential(username, "Grim", "Patron",
+			UserAddUpdateRequest userCredential = addUpdateUserCredential(username, "Grim", "Patron",
 					username + "@constellio.com", new ArrayList<String>(), asList(zeCollection), ACTIVE);
-			userServices.addUpdateUserCredential(userCredential);
+			userServices.execute(userCredential);
 			users.add(username);
 		}
 		for (String username : users) {

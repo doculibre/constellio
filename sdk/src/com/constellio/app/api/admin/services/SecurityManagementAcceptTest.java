@@ -9,7 +9,7 @@ import com.constellio.app.client.services.SecurityManagementDriver;
 import com.constellio.app.client.services.UserServicesClient;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.RecordDeleteServices;
@@ -109,7 +109,7 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 		userServices.addUserToCollection(userCredentialAlice, zeCollection);
 
 		userServices.givenSystemAdminPermissionsToUser(userCredentialBob);
-		bobServiceKey = userServices.giveNewServiceToken(userCredentialBob);
+		bobServiceKey = userServices.giveNewServiceKey(userCredentialBob.getUsername());
 
 		authService.changePassword(userCredentialBob.getUsername(), bobPassword);
 
@@ -145,9 +145,9 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 
 	private void givenGroupInCollectionAndCollectionPermissionToLegendsWhenGetGroupCollectionPermissionsThenReturnIt() {
 
-		GlobalGroup globalGroup = userServices.createGlobalGroup(
+		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup(
 				"legends", "legends", Arrays.asList(zeCollection), null, GlobalGroupStatus.ACTIVE, true);
-		userServices.addUpdateGlobalGroup(globalGroup);
+		userServices.execute(globalGroup);
 
 		GroupCollectionPermissionsResource resource = new GroupCollectionPermissionsResource();
 		resource.setGroupCode("legends");

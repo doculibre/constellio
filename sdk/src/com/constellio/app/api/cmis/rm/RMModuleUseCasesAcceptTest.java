@@ -58,8 +58,8 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 		userServices = getModelLayerFactory().newUserServices();
 		users.setUp(userServices);
 
-		userServices.addUpdateUserCredential(
-				userServices.addEditRequest(chuckNorris).setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
+		userServices.execute(
+				userServices.addUpdate(chuckNorris).setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
 		chuckNorrisToken = userServices.generateToken(chuckNorris);
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 		cmisSession = newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)

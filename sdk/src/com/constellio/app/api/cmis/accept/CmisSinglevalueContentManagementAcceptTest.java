@@ -101,10 +101,10 @@ public class CmisSinglevalueContentManagementAcceptTest extends ConstellioTest {
 		taxonomiesManager.setPrincipalTaxonomy(taxonomy, metadataSchemasManager);
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.addUpdateUserCredential(createUserCredential(
+		userServices.execute(addUpdateUserCredential(
 				"bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(), asList(zeCollection), ACTIVE).setServiceKey("bob-key").setSystemAdminEnabled());
 
-		userServices.addUpdateUserCredential(createUserCredential(
+		userServices.execute(addUpdateUserCredential(
 				"alice", "alice", "wonderland", "alice@doculibre.com", new ArrayList<String>(), asList(zeCollection), ACTIVE).setServiceKey("alice-key").setSystemAdminEnabled());
 
 		alice = userServices.getUserInCollection("alice", zeCollection);

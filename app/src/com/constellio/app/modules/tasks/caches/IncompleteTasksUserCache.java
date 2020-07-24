@@ -6,7 +6,7 @@ import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.services.caches.UserCache;
 import com.constellio.model.services.users.UserServices;
 
@@ -38,7 +38,7 @@ public class IncompleteTasksUserCache implements UserCache {
 	}
 
 	@Override
-	public void invalidateUsersInGroup(GlobalGroup globalGroup) {
+	public void invalidateUsersInGroup(SystemWideGroup globalGroup) {
 		for (Group group : userServices.getGroupForEachCollection(globalGroup)) {
 			invalidateGroup(group);
 		}

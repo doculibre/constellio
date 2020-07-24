@@ -11,11 +11,9 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class BackgroundThreadsManagerUnitTest extends ConstellioTest {
@@ -47,18 +45,6 @@ public class BackgroundThreadsManagerUnitTest extends ConstellioTest {
 
 	}
 
-	@Test
-	public void whenConfiguringThreadThenConfiguredWithCorrectInfos() {
-		backgroundThreadsManager.initialize();
-		BackgroundThreadConfiguration configuration = BackgroundThreadConfiguration.repeatingAction("zeAction", repeatedAction)
-				.executedEvery(Duration.standardMinutes(42));
-		doReturn(command).when(backgroundThreadsManager).getRunnableCommand(configuration);
-
-		backgroundThreadsManager.configure(configuration);
-
-		verify(scheduledExecutorService).scheduleWithFixedDelay(command, 0, 42 * 60, TimeUnit.SECONDS);
-
-	}
 
 	@Test(expected = BackgroundThreadsManagerRuntimeException_RepeatInfosNotConfigured.class)
 	public void whenConfiguringThreadWithoutRepeatInfosThenException() {

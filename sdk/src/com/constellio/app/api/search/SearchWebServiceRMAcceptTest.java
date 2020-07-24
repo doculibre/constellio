@@ -38,7 +38,7 @@ public class SearchWebServiceRMAcceptTest extends ConstellioTest {
 		SolrClient solrServer = newSearchClient();
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		String serviceKey = userServices.giveNewServiceToken(userCredential.getUsername());
+		String serviceKey = userServices.giveNewServiceKey(userCredential.getUsername());
 		String token = userServices.getToken(serviceKey, userCredential.getUsername(), "youshallnotpass");
 		solrParams.set("serviceKey", serviceKey);
 		solrParams.set("token", token);

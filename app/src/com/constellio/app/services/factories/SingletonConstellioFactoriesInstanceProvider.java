@@ -22,6 +22,8 @@ public class SingletonConstellioFactoriesInstanceProvider implements ConstellioF
 
 	private Map<String, Throwable> brokenFactoriesMap;
 
+	private Map<String, Thread> initThread;
+
 	SingletonConstellioFactoriesInstanceProvider() {
 		instanceByTenantId = new ConcurrentHashMap<>();
 		brokenFactoriesMap = new ConcurrentHashMap<>();
@@ -37,7 +39,7 @@ public class SingletonConstellioFactoriesInstanceProvider implements ConstellioF
 			return instanceByTenantId.get(currentTenantId);
 		}
 
-		if (!acceptingFailedFactories) {
+		if (!acceptingFailedFactories && tenantId != null) {
 			Throwable throwedException = brokenFactoriesMap.get(tenantId);
 			if (throwedException != null) {
 				throw new ConstellioFactoriesRuntimeException_TenantOffline(tenantId, throwedException);

@@ -9,7 +9,7 @@ import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
@@ -382,7 +382,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 
 		Group newGroup = userServices.getGroupInCollection(newGlobalGroup, zeCollection);
 		Group taskNewGroup = userServices.getGroupInCollection(taskNewGlobalGroup, zeCollection);
-		userServices.addUpdateUserCredential(users.aliceAddUpdateRequest().setGlobalGroups(asList(newGlobalGroup, aliceNewGlobalGroup)));
+		userServices.execute(users.aliceAddUpdateRequest().setGlobalGroups(asList(newGlobalGroup, aliceNewGlobalGroup)));
 		aliceHasWriteAccessOnZeTask = users.aliceIn(zeCollection);
 
 		recordServices.update(zeTask.setAssigneeGroupsCandidates(asList(newGroup.getId(), taskNewGroup.getId()))
@@ -394,8 +394,8 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 
 	private void addGroup(String groupCode) {
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		GlobalGroup group = userServices.createGlobalGroup(
+		GroupAddUpdateRequest group = userServices.createGlobalGroup(
 				groupCode, groupCode, new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE, true);
-		userServices.addUpdateGlobalGroup(group);
+		userServices.execute(group);
 	}
 }
