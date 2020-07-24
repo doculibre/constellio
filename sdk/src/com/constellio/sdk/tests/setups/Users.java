@@ -2,12 +2,12 @@ package com.constellio.sdk.tests.setups;
 
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.SystemWideUserInfos;
-import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
@@ -40,7 +40,7 @@ public class Users {
 		return getUser(chuckNorrisUsername);
 	}
 
-	public UserAddUpdateRequest chuckNorrisAddUpdateRequest() {
+	public com.constellio.model.services.users.UserAddUpdateRequest chuckNorrisAddUpdateRequest() {
 		return addUpdateRequest(chuckNorrisUsername);
 	}
 
@@ -52,7 +52,7 @@ public class Users {
 		return userServices.getUserInfos(admin);
 	}
 
-	public UserAddUpdateRequest adminAddUpdateRequest() {
+	public com.constellio.model.services.users.UserAddUpdateRequest adminAddUpdateRequest() {
 		return addUpdateRequest(admin);
 	}
 
@@ -65,7 +65,7 @@ public class Users {
 		return getUser(aliceUsername);
 	}
 
-	public UserAddUpdateRequest aliceAddUpdateRequest() {
+	public com.constellio.model.services.users.UserAddUpdateRequest aliceAddUpdateRequest() {
 		return addUpdateRequest(aliceUsername);
 	}
 
@@ -78,7 +78,7 @@ public class Users {
 		return getUser(bobGrattonUsername);
 	}
 
-	public UserAddUpdateRequest bobAddUpdateRequest() {
+	public com.constellio.model.services.users.UserAddUpdateRequest bobAddUpdateRequest() {
 		return addUpdateRequest(bobGrattonUsername);
 	}
 
@@ -91,7 +91,7 @@ public class Users {
 		return getUser(charlesFrancoisXavierUsername);
 	}
 
-	public UserAddUpdateRequest charlesAddUpdateRequest() {
+	public com.constellio.model.services.users.UserAddUpdateRequest charlesAddUpdateRequest() {
 		return addUpdateRequest(charlesFrancoisXavierUsername);
 	}
 
@@ -103,7 +103,7 @@ public class Users {
 		return getUser(dakotaLindienUsername);
 	}
 
-	public UserAddUpdateRequest dakotaAddUpdateRequest() {
+	public com.constellio.model.services.users.UserAddUpdateRequest dakotaAddUpdateRequest() {
 		return addUpdateRequest(dakotaLindienUsername);
 	}
 
@@ -120,7 +120,7 @@ public class Users {
 		return getUser(edouardLechatUsername);
 	}
 
-	public UserAddUpdateRequest edouardAddUpdateRequest() {
+	public com.constellio.model.services.users.UserAddUpdateRequest edouardAddUpdateRequest() {
 		return addUpdateRequest(edouardLechatUsername);
 	}
 
@@ -137,7 +137,7 @@ public class Users {
 		return getUser(gandalfLeblancUsername);
 	}
 
-	public UserAddUpdateRequest gandalfAddUpdateRequest() {
+	public com.constellio.model.services.users.UserAddUpdateRequest gandalfAddUpdateRequest() {
 		return addUpdateRequest(gandalfLeblancUsername);
 	}
 
@@ -146,7 +146,7 @@ public class Users {
 		return getUser(robinUsername);
 	}
 
-	public UserAddUpdateRequest robinAddUpdateRequest() {
+	public com.constellio.model.services.users.UserAddUpdateRequest robinAddUpdateRequest() {
 		return addUpdateRequest(robinUsername);
 	}
 
@@ -155,7 +155,7 @@ public class Users {
 		return getUser(sasquatchUsername);
 	}
 
-	public UserAddUpdateRequest sasquatchAddUpdateRequest() {
+	public com.constellio.model.services.users.UserAddUpdateRequest sasquatchAddUpdateRequest() {
 		return addUpdateRequest(sasquatchUsername);
 	}
 
@@ -182,32 +182,51 @@ public class Users {
 				sasquatch());
 	}
 
-	public GlobalGroup heroes() {
+	public SystemWideGroup heroes() {
 		return getGroup(heroes);
 	}
+
+	public GroupAddUpdateRequest heroesRequest() {
+		return getGroupRequest(heroes);
+	}
+
 
 	public Group heroesIn(String collection) {
 		return getGroup(heroes, collection);
 	}
 
-	public GlobalGroup legends() {
+	public SystemWideGroup legends() {
 		return getGroup(legends);
 	}
+
+	public GroupAddUpdateRequest legendsRequest() {
+		return getGroupRequest(legends);
+	}
+
 
 	public Group legendsIn(String collection) {
 		return getGroup(legends, collection);
 	}
 
-	public GlobalGroup sidekicks() {
+	public SystemWideGroup sidekicks() {
 		return getGroup(sidekicks);
+	}
+
+
+	public GroupAddUpdateRequest sidekicksRequest() {
+		return getGroupRequest(sidekicks);
 	}
 
 	public Group sidekicksIn(String collection) {
 		return getGroup(sidekicks, collection);
 	}
 
-	public GlobalGroup rumors() {
+	public SystemWideGroup rumors() {
 		return getGroup(rumors);
+	}
+
+	public GroupAddUpdateRequest rumorsRequest() {
+		return getGroupRequest(rumors);
 	}
 
 	public Group rumorsIn(String collection) {
@@ -290,7 +309,7 @@ public class Users {
 		return userServices.getUserInfos(username);
 	}
 
-	private UserAddUpdateRequest addUpdateRequest(String username) {
+	private com.constellio.model.services.users.UserAddUpdateRequest addUpdateRequest(String username) {
 		return userServices.addUpdate(username);
 	}
 
@@ -298,8 +317,12 @@ public class Users {
 		return userServices.getUserInCollection(username, collection);
 	}
 
-	private GlobalGroup getGroup(String code) {
+	private SystemWideGroup getGroup(String code) {
 		return userServices.getGroup(code);
+	}
+
+	private GroupAddUpdateRequest getGroupRequest(String code) {
+		return userServices.request(code);
 	}
 
 	private Group getGroup(String code, String collection) {
@@ -310,13 +333,13 @@ public class Users {
 		String email = (username + "@doculibre.com").toLowerCase();
 		List<String> globalGroups = Arrays.asList(groups);
 		List<String> collections = new ArrayList<>();
-		UserAddUpdateRequest credential = userServices.addUpdate(username)
+		com.constellio.model.services.users.UserAddUpdateRequest credential = userServices.addUpdate(username)
 				.setFirstName(firstName)
 				.setLastName(lastName)
 				.setEmail(email)
 				.setServiceKey(null)
 				.setSystemAdmin(false)
-				.addGlobalGroups(globalGroups)
+				.addToGroupsInEachCollection(globalGroups)
 				.addCollections(collections)
 				.setStatus(UserCredentialStatus.ACTIVE)
 				.setDomain("domain")
@@ -327,9 +350,9 @@ public class Users {
 	}
 
 	private void addGroup(String code, String title, String parent) {
-		GlobalGroup group = userServices.createGlobalGroup(
+		GroupAddUpdateRequest group = userServices.createGlobalGroup(
 				code, title, new ArrayList<String>(), parent, GlobalGroupStatus.ACTIVE, true);
-		userServices.addUpdateGlobalGroup(group);
+		userServices.execute(group);
 	}
 
 	public Users withPasswords(AuthenticationService authenticationService) {

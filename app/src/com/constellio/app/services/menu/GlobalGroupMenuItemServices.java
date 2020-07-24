@@ -5,9 +5,8 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.GlobalGroupMenuItemActionBehaviors;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.entities.GlobalGroupVO;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
@@ -35,7 +34,7 @@ public class GlobalGroupMenuItemServices {
 		this.core = new SchemasRecordsServices(null, appLayerFactory.getModelLayerFactory());
 	}
 
-	public List<MenuItemAction> getActionsForRecord(GlobalGroup globalGroup, User user,
+	public List<MenuItemAction> getActionsForRecord(SystemWideGroup globalGroup, User user,
 													List<String> filteredActionTypes,
 													MenuItemActionBehaviorParams params) {
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
@@ -71,23 +70,22 @@ public class GlobalGroupMenuItemServices {
 		return menuItemActions;
 	}
 
-	public boolean isMenuItemActionPossible(String menuItemActionType, GlobalGroup globalGroup, User user,
+	public boolean isMenuItemActionPossible(String menuItemActionType, SystemWideGroup globalGroup, User user,
 											MenuItemActionBehaviorParams params) {
-		Record record = globalGroup.getWrappedRecord();
 
 		switch (GlobalGroupMenuItemActionType.valueOf(menuItemActionType)) {
 			case GROUP_ADD_SUB_GROUP:
-				return globalGroupActionsServices.isAddSubGroupActionPossible(record, user);
+				return globalGroupActionsServices.isAddSubGroupActionPossible(globalGroup, user);
 			case GROUP_EDIT:
-				return globalGroupActionsServices.isEditActionPossible(record, user);
+				return globalGroupActionsServices.isEditActionPossible(globalGroup, user);
 			case GROUP_DELETE:
-				return globalGroupActionsServices.isDeleteActionPossible(record, user);
+				return globalGroupActionsServices.isDeleteActionPossible(globalGroup, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
 	}
 
-	public GlobalGroup getGlobalGroup(GlobalGroupVO globalGroupVO) {
+	public SystemWideGroup getGlobalGroup(GlobalGroupVO globalGroupVO) {
 		return core.getGlobalGroupWithCode(globalGroupVO.getCode());
 	}
 

@@ -8,6 +8,7 @@ import com.constellio.model.entities.security.global.UserCredentialStatus;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -216,24 +217,24 @@ public class UserAddUpdateRequest {
 	public UserAddUpdateRequest setGlobalGroups(List<String> newGroupCodes) {
 		newGroupCodes.forEach((g) -> {
 			if (!currentGroups.contains(g)) {
-				addGlobalGroup(g);
+				addToGroupInEachCollection(g);
 			}
 		});
 
 		currentGroups.forEach((g) -> {
 			if (!newGroupCodes.contains(g)) {
-				removeGlobalGroup(g);
+				removeFromGroupOfEachCollection(g);
 			}
 		});
 		return this;
 	}
 
-	public UserAddUpdateRequest addGlobalGroups(List<String> groupCodes) {
-		groupCodes.forEach(this::addGlobalGroup);
+	public UserAddUpdateRequest addToGroupsInEachCollection(List<String> groupCodes) {
+		groupCodes.forEach(this::addToGroupInEachCollection);
 		return this;
 	}
 
-	public UserAddUpdateRequest addGlobalGroup(String groupCode) {
+	public UserAddUpdateRequest addToGroupInEachCollection(String groupCode) {
 
 		if (addToGroup == null) {
 			addToGroup = new ArrayList<>();
@@ -248,7 +249,7 @@ public class UserAddUpdateRequest {
 		return this;
 	}
 
-	public UserAddUpdateRequest removeGlobalGroup(String groupCode) {
+	public UserAddUpdateRequest removeFromGroupOfEachCollection(String groupCode) {
 
 		if (removeFromGroup == null) {
 			removeFromGroup = new ArrayList<>();
@@ -262,6 +263,21 @@ public class UserAddUpdateRequest {
 
 		return this;
 	}
+
+
+	public UserAddUpdateRequest addToGroupsInCollection(List<String> groupCodes, String collection) {
+		throw new UnsupportedOperationException("TODO Philippe");
+	}
+
+	public UserAddUpdateRequest addToGroupInCollection(String groupCode, String collection) {
+		addToGroupsInCollection(Collections.singletonList(groupCode), collection);
+		return this;
+	}
+
+	public UserAddUpdateRequest removeFromGroupOfCollection(String groupCode, String collection) {
+		throw new UnsupportedOperationException("TODO Philippe");
+	}
+
 
 	public UserAddUpdateRequest setSystemAdminEnabled() {
 		return setSystemAdmin(true);

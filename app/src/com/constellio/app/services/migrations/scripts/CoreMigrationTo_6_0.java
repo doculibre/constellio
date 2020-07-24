@@ -8,7 +8,7 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -149,17 +149,17 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 		}
 
 		private void createGlobalGroupSchema(MetadataSchemaTypesBuilder builder) {
-			MetadataSchemaTypeBuilder credentialsTypeBuilder = builder.createNewSchemaType(GlobalGroup.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder credentialsTypeBuilder = builder.createNewSchemaType(SystemWideGroup.SCHEMA_TYPE);
 			credentialsTypeBuilder.setSecurity(false);
 			MetadataSchemaBuilder groups = credentialsTypeBuilder.getDefaultSchema();
 
 			groups.createUniqueCodeMetadata();
-			groups.createUndeletable(GlobalGroup.NAME).setType(MetadataValueType.STRING).setDefaultRequirement(true);
-			groups.createUndeletable(GlobalGroup.COLLECTIONS).setType(MetadataValueType.STRING).setMultivalue(true);
-			groups.createUndeletable(GlobalGroup.PARENT).setType(MetadataValueType.STRING);
-			groups.createUndeletable(GlobalGroup.STATUS).defineAsEnum(GlobalGroupStatus.class).setDefaultRequirement(true);
-			groups.createUndeletable(GlobalGroup.HIERARCHY).setType(MetadataValueType.STRING);
-			groups.createUndeletable(GlobalGroup.LOCALLY_CREATED).setType(MetadataValueType.BOOLEAN);
+			groups.createUndeletable(SystemWideGroup.NAME).setType(MetadataValueType.STRING).setDefaultRequirement(true);
+			groups.createUndeletable(SystemWideGroup.COLLECTIONS).setType(MetadataValueType.STRING).setMultivalue(true);
+			groups.createUndeletable(SystemWideGroup.PARENT).setType(MetadataValueType.STRING);
+			groups.createUndeletable(SystemWideGroup.STATUS).defineAsEnum(GlobalGroupStatus.class).setDefaultRequirement(true);
+			groups.createUndeletable(SystemWideGroup.HIERARCHY).setType(MetadataValueType.STRING);
+			groups.createUndeletable(SystemWideGroup.LOCALLY_CREATED).setType(MetadataValueType.BOOLEAN);
 		}
 	}
 }

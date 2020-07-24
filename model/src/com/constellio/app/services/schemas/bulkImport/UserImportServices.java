@@ -117,7 +117,7 @@ public class UserImportServices implements ImportServices {
 				.setEmail(email)
 				.setServiceKey(null)
 				.setSystemAdmin(systemAdmin == null ? null : Boolean.valueOf((String) systemAdmin))
-				.addGlobalGroups(globalGroups)
+				.addToGroupsInEachCollection(globalGroups)
 				.addCollections(collections)
 				.setStatus(userCredentialStatus);
 		try {

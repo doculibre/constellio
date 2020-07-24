@@ -1,6 +1,6 @@
 package com.constellio.app.services.schemas.bulkImport.groups;
 
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
@@ -41,7 +41,7 @@ public class GroupsImportServicesAcceptTest extends ConstellioTest {
 		assertThat(userServices.getGroupInCollection(code, "anotherCollection")).isNotNull();
 	}
 
-	private GlobalGroup getGroup(String code) {
+	private SystemWideGroup getGroup(String code) {
 		return getModelLayerFactory().newUserServices().getGroup(code);
 	}
 

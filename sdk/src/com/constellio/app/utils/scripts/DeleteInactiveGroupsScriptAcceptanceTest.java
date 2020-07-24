@@ -9,7 +9,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -48,9 +48,9 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenLogicallyCreateGlobalGroupThenGlobalGroupNotDeleted() throws Exception {
-		GlobalGroup globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
+		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
 				null, GlobalGroupStatus.ACTIVE, true);
-		userServices.addUpdateGlobalGroup(globalGroup);
+		userServices.execute(globalGroup);
 
 		new DeleteInactiveGroupsScript(getAppLayerFactory()).execute(new ConsoleScriptActionLogger(), null);
 
@@ -59,9 +59,9 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenGlobalGroupWithoutAuthorizationThenGlobalGroupDeleted() throws Exception {
-		GlobalGroup globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
+		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
 				null, GlobalGroupStatus.ACTIVE, false);
-		userServices.addUpdateGlobalGroup(globalGroup);
+		userServices.execute(globalGroup);
 
 		new DeleteInactiveGroupsScript(getAppLayerFactory()).execute(new ConsoleScriptActionLogger(), null);
 
@@ -70,9 +70,9 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenGlobalGroupWithAuthorizationThenGlobalGroupNotDeleted() throws Exception {
-		GlobalGroup globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
+		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
 				null, GlobalGroupStatus.ACTIVE, false);
-		userServices.addUpdateGlobalGroup(globalGroup);
+		userServices.execute(globalGroup);
 
 		userServices.addGlobalGroupsInCollection(zeCollection);
 
@@ -90,9 +90,9 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 		String collection = "aCollection";
 		collectionsManager.createCollectionInCurrentVersion(collection, singletonList("fr"));
 
-		GlobalGroup globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
+		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
 				null, GlobalGroupStatus.ACTIVE, false);
-		userServices.addUpdateGlobalGroup(globalGroup);
+		userServices.execute(globalGroup);
 
 		userServices.addGlobalGroupsInCollection(collection);
 		userServices.addUserToCollection(alice, collection);
@@ -114,13 +114,13 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenMultipleGlobalGroupsWithoutAuthorizationThenGlobalGroupsDeleted() throws Exception {
-		GlobalGroup globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
+		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
 				null, GlobalGroupStatus.ACTIVE, false);
-		userServices.addUpdateGlobalGroup(globalGroup);
+		userServices.execute(globalGroup);
 
-		GlobalGroup globalGroup2 = userServices.createGlobalGroup("group2", "group2Name", singletonList("user2"),
+		GroupAddUpdateRequest globalGroup2 = userServices.createGlobalGroup("group2", "group2Name", singletonList("user2"),
 				null, GlobalGroupStatus.ACTIVE, false);
-		userServices.addUpdateGlobalGroup(globalGroup2);
+		userServices.execute(globalGroup2);
 
 		userServices.addGlobalGroupsInCollection(zeCollection);
 
@@ -133,13 +133,13 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenGlobalGroupWithAuthorizationAndGlobalGroupWithoutAuthorizationThenOnlyOneGlobalGroupDeleted()
 			throws Exception {
-		GlobalGroup globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
+		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
 				null, GlobalGroupStatus.ACTIVE, false);
-		userServices.addUpdateGlobalGroup(globalGroup);
+		userServices.execute(globalGroup);
 
-		GlobalGroup globalGroup2 = userServices.createGlobalGroup("group2", "group2Name", singletonList("user2"),
+		GroupAddUpdateRequest globalGroup2 = userServices.createGlobalGroup("group2", "group2Name", singletonList("user2"),
 				null, GlobalGroupStatus.ACTIVE, false);
-		userServices.addUpdateGlobalGroup(globalGroup2);
+		userServices.execute(globalGroup2);
 
 		userServices.addGlobalGroupsInCollection(zeCollection);
 
@@ -156,9 +156,9 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenGlobalGroupWithUserAndWithAuthorizationThenGroupeNotDeleted() throws Exception {
-		GlobalGroup globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
+		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
 				null, GlobalGroupStatus.ACTIVE, false);
-		userServices.addUpdateGlobalGroup(globalGroup);
+		userServices.execute(globalGroup);
 
 		userServices.addGlobalGroupsInCollection(zeCollection);
 
@@ -175,9 +175,9 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenGlobalGroupWithUserAndWithoutAuthorizationThenUsersRemovedAndGlobalGroupDeleted()
 			throws Exception {
-		GlobalGroup globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
+		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
 				null, GlobalGroupStatus.ACTIVE, false);
-		userServices.addUpdateGlobalGroup(globalGroup);
+		userServices.execute(globalGroup);
 
 		userServices.addGlobalGroupsInCollection(zeCollection);
 

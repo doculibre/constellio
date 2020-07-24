@@ -4,7 +4,7 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -44,14 +44,14 @@ public class ListGlobalGroupsPresenterTest extends ConstellioTest {
 	@Mock GlobalGroupVO heroesGlobalGroupVO, legendsGlobalGroupVO;
 	@Mock CoreViews navigator;
 	@Mock UserCredential dakotaCredential;
-	@Mock GlobalGroup heroesGlobalGroup, legendsGlobalGroup;
+	@Mock SystemWideGroup heroesGlobalGroup, legendsGlobalGroup;
 	@Mock GlobalGroupVODataProvider globalGroupVODataProvider;
 
 	@Before
 	public void setUp()
 			throws Exception {
 
-		List<GlobalGroup> globalGroups = new ArrayList<>();
+		List<SystemWideGroup> globalGroups = new ArrayList<>();
 		globalGroups.add(heroesGlobalGroup);
 		globalGroups.add(legendsGlobalGroup);
 

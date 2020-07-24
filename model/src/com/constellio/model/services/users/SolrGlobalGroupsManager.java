@@ -5,10 +5,12 @@ import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -24,9 +26,9 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
-import static com.constellio.data.utils.LangUtils.valueOrDefault;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class SolrGlobalGroupsManager implements StatefulService {
@@ -43,72 +45,108 @@ public class SolrGlobalGroupsManager implements StatefulService {
 		schemas = SchemasRecordsServices.usingMainModelLayerFactory(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
 
-	GlobalGroup create(String code, String name, List<String> collections, String parent,
-					   GlobalGroupStatus status,
-					   boolean locallyCreated) {
-		return ((GlobalGroup) valueOrDefault(getGlobalGroupWithCode(code), schemas.newGlobalGroup()))
-				.setCode(code)
+	GroupAddUpdateRequest create(String code, String name, List<String> collections, String parent,
+								 GlobalGroupStatus status,
+								 boolean locallyCreated) {
+
+		return addUpdateRequest(code)
 				.setName(name)
-				.setUsersAutomaticallyAddedToCollections(collections)
+				.addCollections(collections)
 				.setParent(parent)
 				.setStatus(status)
 				.setLocallyCreated(locallyCreated);
 	}
 
-	GlobalGroup create(String code, String parent, GlobalGroupStatus status, boolean locallyCreated) {
+	GroupAddUpdateRequest create(String code, String parent, GlobalGroupStatus status, boolean locallyCreated) {
 		return create(code, code, Collections.<String>emptyList(), parent, status, locallyCreated);
 	}
 
-	void addUpdate(GlobalGroup group) {
-		GlobalGroup groupRecord = (GlobalGroup) group;
-		validateHierarchy(groupRecord);
+	//TODO improve!
+	void addUpdate(List<GroupAddUpdateRequest> requests) {
+		requests.forEach(this::addUpdate);
+	}
+
+	void addUpdate(GroupAddUpdateRequest request) {
+
+
+		Record record = modelLayerFactory.newRecordServices()
+				.getRecordByMetadata(schemas.globalGroupCode(), request.getCode());
+		if (record == null) {
+			record = modelLayerFactory.newRecordServices().newRecordWithSchema(schemas.globalGroupSchema());
+			record.set(Schemas.CODE, request.getCode());
+		}
+
+		GlobalGroup group = schemas.wrapOldGlobalGroup(record);
+
+		for (Map.Entry<String, Object> entry : request.getModifiedAttributes().entrySet()) {
+			group.set(entry.getKey(), entry.getValue());
+		}
+
+		validateHierarchy(group);
+
+		if (request.getRemovedCollections() != null || request.getNewCollections() != null) {
+			List<String> collections = new ArrayList<>(group.getUsersAutomaticallyAddedToCollections());
+
+			if (request.getNewCollections() != null) {
+				for (String newCollection : request.getNewCollections()) {
+					if (!collections.contains(newCollection)) {
+						collections.add(newCollection);
+					}
+				}
+			}
+			if (request.getRemovedCollections() != null) {
+				for (String removedCollection : request.getRemovedCollections()) {
+					collections.remove(removedCollection);
+				}
+			}
+
+			group.setUsersAutomaticallyAddedToCollections(collections);
+		}
+
 		try {
-			modelLayerFactory.newRecordServices().add(groupRecord);
+			modelLayerFactory.newRecordServices().add(group);
 		} catch (RecordServicesException e) {
-			String groupInfo = group != null ? group.toString() : "Null group";
-			LOGGER.warn("Error while trying to save global group: " + groupInfo);
+			throw new RuntimeException(e);
 		}
 	}
 
-	void logicallyRemoveGroup(GlobalGroup group) {
-		Transaction transaction = new Transaction();
-		for (GlobalGroup each : getGroupHierarchy((GlobalGroup) group)) {
-			RecordWrapper recordWrapper = ((GlobalGroup) each).setStatus(GlobalGroupStatus.INACTIVE)
-					.set(Schemas.LOGICALLY_DELETED_STATUS, true);
-			transaction.add(recordWrapper);
+	void logicallyRemoveGroup(SystemWideGroup group) {
+		List<GroupAddUpdateRequest> requests = new ArrayList<>();
+		for (SystemWideGroup each : getGroupHierarchy(group)) {
+			requests.add(request(each.getCode()).setStatus(GlobalGroupStatus.INACTIVE)
+					.setLogicallyDeletedStatus(true));
 		}
-		try {
-			modelLayerFactory.newRecordServices().execute(transaction);
-		} catch (RecordServicesException e) {
-			String groupInfo = group != null ? group.toString() : "Null group";
-			LOGGER.warn("Error while trying to remove global group: " + groupInfo);
-		}
+
+		addUpdate(requests);
 	}
 
-	void activateGlobalGroupHierarchy(GlobalGroup group) {
-		Transaction transaction = new Transaction();
-		for (GlobalGroup each : getGroupHierarchy((GlobalGroup) group)) {
-			RecordWrapper record = ((GlobalGroup) each).setStatus(GlobalGroupStatus.ACTIVE)
-					.set(Schemas.LOGICALLY_DELETED_STATUS, null)
-					.set(Schemas.LOGICALLY_DELETED_ON, null);
-			transaction.add(record);
-		}
-		try {
-			modelLayerFactory.newRecordServices().execute(transaction);
-		} catch (RecordServicesException e) {
-			String groupInfo = group != null ? group.toString() : "Null group";
-			LOGGER.warn("Error while trying to activate global group hierarchy: " + groupInfo);
-		}
+	GroupAddUpdateRequest request(String code) {
+		return modelLayerFactory.newUserServices().request(code);
 	}
 
-	GlobalGroup getGlobalGroupWithCode(String code) {
+	GroupAddUpdateRequest addUpdateRequest(String code) {
+		return schemas.newGlobalGroup(code);
+	}
+
+
+	void activateGlobalGroupHierarchy(SystemWideGroup group) {
+		List<GroupAddUpdateRequest> requests = new ArrayList<>();
+		for (SystemWideGroup each : getGroupHierarchy(group)) {
+			GroupAddUpdateRequest request = request(each.getCode());
+			requests.add(request.setStatus(GlobalGroupStatus.ACTIVE)
+					.setLogicallyDeletedStatus(null));
+		}
+		addUpdate(requests);
+	}
+
+	SystemWideGroup getGlobalGroupWithCode(String code) {
 		Record record = modelLayerFactory.newRecordServices()
 				.getRecordByMetadata(schemas.globalGroupCode(), code);
-		return record != null ? schemas.wrapGlobalGroup(record) : null;
+		return record != null ? wrapGlobalGroup(record) : null;
 	}
 
-	GlobalGroup getActiveGlobalGroupWithCode(String code) {
-		GlobalGroup group = getGlobalGroupWithCode(code);
+	SystemWideGroup getActiveGlobalGroupWithCode(String code) {
+		SystemWideGroup group = getGlobalGroupWithCode(code);
 		return group != null && group.getStatus() == GlobalGroupStatus.ACTIVE ? group : null;
 	}
 
@@ -116,14 +154,41 @@ public class SolrGlobalGroupsManager implements StatefulService {
 		return new LogicalSearchQuery(from(schemas.globalGroupSchemaType()).returnAll()).sortAsc(schemas.globalGroupCode());
 	}
 
-	List<GlobalGroup> getAllGroups() {
-		return schemas.wrapGlobalGroups(searchServices.search(getAllGroupsQuery()));
+	List<SystemWideGroup> getAllGroups() {
+		return wrapGlobalGroups(searchServices.search(getAllGroupsQuery()));
+	}
+
+	public List<SystemWideGroup> wrapGlobalGroups(List<Record> records) {
+		List<SystemWideGroup> result = new ArrayList<>(records.size());
+		for (Record record : records) {
+			result.add(wrapGlobalGroup(record));
+		}
+		return result;
 	}
 
 
-	List<GlobalGroup> getHierarchy(String code) {
-		GlobalGroup group = (GlobalGroup) getGlobalGroupWithCode(code);
-		return group != null ? getGroupHierarchy(group) : Collections.<GlobalGroup>emptyList();
+	public SystemWideGroup wrapGlobalGroup(Record record) {
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
+		GlobalGroup globalGroup = new GlobalGroup(record, types);
+		return SystemWideGroup.builder()
+
+
+				.id(record.getId())
+				.code(globalGroup.getCode())
+				.name(globalGroup.getCode())
+				.collections(globalGroup.getUsersAutomaticallyAddedToCollections())
+				.parent(globalGroup.getParent())
+				.groupStatus(globalGroup.getStatus())
+				.hierarchy(globalGroup.getHierarchy())
+				.toString(globalGroup.toString())
+				.logicallyDeletedStatus(globalGroup.getLogicallyDeletedStatus())
+				.logicallyDeletedOn(globalGroup.get(Schemas.LOGICALLY_DELETED_ON))
+				.build();
+	}
+
+	List<SystemWideGroup> getHierarchy(String code) {
+		SystemWideGroup group = (SystemWideGroup) getGlobalGroupWithCode(code);
+		return group != null ? getGroupHierarchy(group) : Collections.<SystemWideGroup>emptyList();
 	}
 
 	LogicalSearchQuery getActiveGroupsQuery() {
@@ -132,8 +197,8 @@ public class SolrGlobalGroupsManager implements StatefulService {
 				.sortAsc(schemas.globalGroupCode());
 	}
 
-	List<GlobalGroup> getActiveGroups() {
-		return schemas.wrapGlobalGroups(searchServices.search(getActiveGroupsQuery()));
+	List<SystemWideGroup> getActiveGroups() {
+		return wrapGlobalGroups(searchServices.search(getActiveGroupsQuery()));
 	}
 
 	LogicalSearchQuery getGroupsInCollectionQuery(String collection) {
@@ -149,10 +214,13 @@ public class SolrGlobalGroupsManager implements StatefulService {
 				@Override
 				public void doActionOnBatch(List<Record> records)
 						throws Exception {
+					List<GroupAddUpdateRequest> requests = new ArrayList<>();
+
 					Transaction transaction = new Transaction();
 					transaction.getRecordUpdateOptions().setOptimisticLockingResolution(EXCEPTION);
 					for (Record record : records) {
-						transaction.add((GlobalGroup) schemas.wrapGlobalGroup(record)).removeCollection(collection);
+						GlobalGroup globalGroup = schemas.wrapOldGlobalGroup(record);
+						requests.add(request(globalGroup.getCode()).removeCollection(collection));
 					}
 
 					modelLayerFactory.newRecordServices().execute(transaction);
@@ -174,15 +242,15 @@ public class SolrGlobalGroupsManager implements StatefulService {
 		// Nothing to be done
 	}
 
-	private List<GlobalGroup> getGroupHierarchy(GlobalGroup group) {
-		List<GlobalGroup> result = new ArrayList<>();
+	private List<SystemWideGroup> getGroupHierarchy(SystemWideGroup group) {
+		List<SystemWideGroup> result = new ArrayList<>();
 		for (Record record : searchServices.search(getGroupHierarchyQuery(group))) {
-			result.add(schemas.wrapGlobalGroup(record));
+			result.add(wrapGlobalGroup(record));
 		}
 		return result;
 	}
 
-	private LogicalSearchQuery getGroupHierarchyQuery(GlobalGroup group) {
+	private LogicalSearchQuery getGroupHierarchyQuery(SystemWideGroup group) {
 		LogicalSearchCondition condition = from(schemas.globalGroupSchemaType())
 				.where(schemas.globalGroupCode()).isEqualTo(group.getCode())
 				.orWhere(schemas.globalGroupHierarchy()).isStartingWithText(group.getHierarchy() + "/");
@@ -190,11 +258,12 @@ public class SolrGlobalGroupsManager implements StatefulService {
 	}
 
 	private void validateHierarchy(GlobalGroup group) {
+
 		if (group.getParent() == null) {
 			group.setHierarchy(group.getCode());
 			return;
 		}
-		GlobalGroup parent = (GlobalGroup) getGlobalGroupWithCode(group.getParent());
+		SystemWideGroup parent = (SystemWideGroup) getGlobalGroupWithCode(group.getParent());
 		if (parent == null) {
 			throw new GlobalGroupsManagerRuntimeException_ParentNotFound();
 		}

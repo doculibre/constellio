@@ -84,7 +84,7 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 
 	public void addGlobalGroupButtonClicked(String username, String globalGroupCode) {
 		UserAddUpdateRequest userUpdateRequest = userServices.addUpdate(username);
-		userUpdateRequest.addGlobalGroup(globalGroupCode);
+		userUpdateRequest.addToGroupInEachCollection(globalGroupCode);
 		userServices.execute(userUpdateRequest);
 		view.refreshTable();
 	}

@@ -33,7 +33,7 @@ public class UserServicesAPI {
 	}
 
 	@POST
-	@Path("addUpdateGlobalGroup")
+	@Path("execute")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
 	public String addUpdateGlobalGroup(GlobalGroupResource globalGroupResource) {
@@ -41,7 +41,7 @@ public class UserServicesAPI {
 //		GlobalGroup group = userServices().createGlobalGroup(globalGroupResource.getCode(), globalGroupResource.getName(),
 //				globalGroupResource.getUsersAutomaticallyAddedToCollections(), globalGroupResource.getParent(),
 //				globalGroupResource.getStatus(), globalGroupResource.isLocallyCreated());
-//		userServices().addUpdateGlobalGroup(group);
+//		userServices().execute(group);
 //		return "OK";
 	}
 
@@ -127,7 +127,7 @@ public class UserServicesAPI {
 	}
 
 	@POST
-	@Path("removeGlobalGroup")
+	@Path("removeFromGroupOfEachCollection")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
 	public String removeGlobalGroup(@Context HttpHeaders httpHeaders, GlobalGroupResource resource) {

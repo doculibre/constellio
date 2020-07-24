@@ -6,7 +6,7 @@ import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
 import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserServices;
@@ -40,7 +40,7 @@ public class DisplayUserCredentialPresenterTest extends ConstellioTest {
 	@Mock CoreViews navigator;
 	@Mock SolrUserCredentialsManager userCredentialsManager;
 	@Mock UserCredential dakotaCredential, newDakotaCredential;
-	@Mock GlobalGroup heroesGlobalGroup;
+	@Mock SystemWideGroup heroesGlobalGroup;
 	@Mock GlobalGroupVODataProvider globalGroupVODataProvider;
 	@Mock UserCredentialVO dakotaCredentialVO;
 	@Mock UserCredentialToVOBuilder voBuilder;
@@ -53,7 +53,7 @@ public class DisplayUserCredentialPresenterTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		List<GlobalGroup> globalGroups = new ArrayList<>();
+		List<SystemWideGroup> globalGroups = new ArrayList<>();
 		globalGroups.add(heroesGlobalGroup);
 
 		when(userCredentialView.getConstellioFactories()).thenReturn(mockedFactories.getConstellioFactories());

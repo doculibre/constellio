@@ -3,7 +3,7 @@ package com.constellio.app.ui.framework.data;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.SystemWideUserInfos;
@@ -115,7 +115,7 @@ public class GlobalGroupVODataProvider extends AbstractDataProvider {
 
 	private void loadGlobalGroupsVOs() {
 		List<GlobalGroupVO> newGlobalGroupVOs = new ArrayList<>();
-		for (GlobalGroup globalGroup : userServices.getAllGroups()) {
+		for (SystemWideGroup globalGroup : userServices.getAllGroups()) {
 			GlobalGroupVO globalGroupVO = voBuilder.build(globalGroup);
 			newGlobalGroupVOs.add(globalGroupVO);
 		}
