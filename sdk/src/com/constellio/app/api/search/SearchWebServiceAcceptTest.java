@@ -204,7 +204,7 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 
 		SolrClient solrServer = newSearchClient();
 
-		String serviceKey = userServices.giveNewServiceToken(systemAdmin.getUsername());
+		String serviceKey = userServices.giveNewServiceKey(systemAdmin.getUsername());
 		String token = userServices.getToken(serviceKey, systemAdmin.getUsername(), "youshallnotpass");
 		solrParams.set("serviceKey", serviceKey);
 		solrParams.set("token", token);

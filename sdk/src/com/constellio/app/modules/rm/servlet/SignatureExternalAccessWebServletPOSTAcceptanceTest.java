@@ -44,7 +44,6 @@ import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.I
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_DATE_PARAM;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_DOCUMENT_PARAM;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_EXTERNAL_USER_FULLNAME_PARAM;
-import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_EXTERNAL_USER_FULLNAME_PARAM;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_LANGUAGE_PARAM;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.UNAUTHORIZED;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet.HEADER_PARAM_AUTH;
@@ -91,7 +90,7 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		contentManager = getModelLayerFactory().getContentManager();
 
-		userServices.addUpdateUserCredential(users.bobAddUpdateRequest().setServiceKey(bobKey)
+		userServices.execute(users.bobAddUpdateRequest().setServiceKey(bobKey)
 				.addAccessToken(bobAuth, TimeProvider.getLocalDateTime().plusYears(1))
 				.addAccessToken(expiredAuth, TimeProvider.getLocalDateTime().minusDays(1)));
 

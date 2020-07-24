@@ -177,7 +177,7 @@ public class CollectionUserRolesPresenterAcceptanceTest extends ConstellioTest {
 
 	private void givenAliceIsInLegendsGroup() {
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.addUpdateUserCredential(users.aliceAddUpdateRequest().addGlobalGroup(users.legends().getCode()));
+		userServices.execute(users.aliceAddUpdateRequest().addToGroupInEachCollection(users.legends().getCode()));
 	}
 
 	private RoleAuthVOListVerifier verifyThat(List<RoleAuthVO> roleAuthVOs) {

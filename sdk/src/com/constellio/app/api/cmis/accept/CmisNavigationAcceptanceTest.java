@@ -57,7 +57,7 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 
-		userServices.addUpdateUserCredential(users.adminAddUpdateRequest().setServiceKey("admin-key"));
+		userServices.execute(users.adminAddUpdateRequest().setServiceKey("admin-key"));
 		userServices.addUserToCollection(users.admin(), zeCollection);
 		recordServices.update(userServices.getUserInCollection(admin, zeCollection).setCollectionWriteAccess(true));
 		getModelLayerFactory().newAuthenticationService().changePassword(admin, "1qaz2wsx");

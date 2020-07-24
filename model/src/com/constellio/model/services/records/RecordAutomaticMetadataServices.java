@@ -48,8 +48,8 @@ import com.constellio.model.entities.schemas.entries.TransactionAggregatedValues
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SingletonSecurityModel;
 import com.constellio.model.entities.security.TransactionSecurityModel;
-import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerLogger;
@@ -649,11 +649,12 @@ public class RecordAutomaticMetadataServices {
 		SchemasRecordsServices systemCollectionSchemasRecordServices = new SchemasRecordsServices(
 				Collection.SYSTEM_COLLECTION, modelLayerFactory);
 
-		if (systemCollectionCache.isConfigured(GlobalGroup.SCHEMA_TYPE)) {
-			for (Record record : searchServices.getAllRecordsInUnmodifiableState(systemCollectionSchemasRecordServices.getTypes()
-					.getSchemaType(GlobalGroup.SCHEMA_TYPE))) {
-				GlobalGroup globalGroup = systemCollectionSchemasRecordServices.wrapGlobalGroup(record);
-				if (record != null && GlobalGroupStatus.INACTIVE.equals(globalGroup.getStatus())) {
+		SchemasRecordsServices schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+
+		if (systemCollectionCache.isConfigured(SystemWideGroup.SCHEMA_TYPE)) {
+			for (Group group : schemas.getAllGroups()) {
+				SystemWideGroup globalGroup = modelLayerFactory.newUserServices().getGroup(group.getCode());
+				if (GlobalGroupStatus.INACTIVE.equals(globalGroup.getStatus())) {
 					disabledGroups.add(globalGroup.getCode());
 				}
 			}
@@ -662,9 +663,8 @@ public class RecordAutomaticMetadataServices {
 			while (newGroupsDisabled) {
 				newGroupsDisabled = false;
 
-				for (Record record : searchServices.getAllRecordsInUnmodifiableState(systemCollectionSchemasRecordServices.getTypes()
-						.getSchemaType(GlobalGroup.SCHEMA_TYPE))) {
-					GlobalGroup globalGroup = systemCollectionSchemasRecordServices.wrapGlobalGroup(record);
+				for (Group group : schemas.getAllGroups()) {
+					SystemWideGroup globalGroup = modelLayerFactory.newUserServices().getGroup(group.getCode());
 					boolean disabled = disabledGroups.contains(globalGroup.getCode());
 					if (!disabled && globalGroup.getParent() != null && disabledGroups.contains(globalGroup.getParent())) {
 						disabledGroups.add(globalGroup.getCode());

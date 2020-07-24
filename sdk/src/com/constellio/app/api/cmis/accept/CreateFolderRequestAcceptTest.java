@@ -66,8 +66,8 @@ public class CreateFolderRequestAcceptTest extends ConstellioTest {
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy1(), schemasManager);
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 
-		userServices.addUpdateUserCredential(users.bobAddUpdateRequest().setServiceKey(bobKey).setSystemAdminEnabled());
-		userServices.addUpdateUserCredential(users.chuckNorrisAddUpdateRequest().setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
+		userServices.execute(users.bobAddUpdateRequest().setServiceKey(bobKey).setSystemAdminEnabled());
+		userServices.execute(users.chuckNorrisAddUpdateRequest().setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
 
 		chuckNorrisToken = userServices.generateToken(chuckNorris);
 		bobToken = userServices.generateToken(bobGratton);

@@ -152,11 +152,11 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 					taxonomiesManager.setPrincipalTaxonomy(taxonomy, metadataSchemasManager);
 
 					UserServices userServices = getModelLayerFactory().newUserServices();
-					userServices.addUpdateUserCredential(createUserCredential(
+					userServices.execute(addUpdateUserCredential(
 							"bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(),
 							asList(zeCollection, "anotherCollection"), UserCredentialStatus.ACTIVE));
 
-					userServices.addUpdateUserCredential(createUserCredential(
+					userServices.execute(addUpdateUserCredential(
 							"alice", "alice", "wonderland", "alice@doculibre.com", new ArrayList<String>(),
 							asList(zeCollection), UserCredentialStatus.ACTIVE));
 

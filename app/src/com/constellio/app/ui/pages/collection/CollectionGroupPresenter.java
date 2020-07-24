@@ -9,7 +9,6 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
 
@@ -53,11 +52,7 @@ public class CollectionGroupPresenter extends SingleSchemaBasePresenter<Collecti
 
 	public void deleteButtonClicked(String code) {
 		UserServices userServices = modelLayerFactory.newUserServices();
-		GlobalGroup globalGroup = userServices.getGroup(code);
-		List<String> newCollections = new ArrayList<>(globalGroup.getUsersAutomaticallyAddedToCollections());
-		newCollections.remove(view.getCollection());
-		globalGroup = globalGroup.setUsersAutomaticallyAddedToCollections(newCollections);
-		userServices.addUpdateGlobalGroup(globalGroup);
+		userServices.execute(userServices.request(code).removeCollection(view.getCollection()));
 	}
 
 	private RolesManager roleManager() {

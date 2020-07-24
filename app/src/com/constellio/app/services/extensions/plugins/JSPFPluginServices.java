@@ -170,7 +170,7 @@ public class JSPFPluginServices implements PluginServices {
 	/**
 	 * Do not replace with TenantLocal, this variable must be the same for each tenants
 	 */
-	private static List<String> pluginsWithReplacementException = null;
+	static List<String> pluginsWithReplacementException = null;
 
 	@Override
 	public void replaceOldPluginVersionsByNewOnes(File pluginsDirectory,

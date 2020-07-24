@@ -11,15 +11,13 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("serial")
@@ -46,7 +44,7 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 	}
 
 	public GlobalGroupVO getGlobalGroupVO(String code) {
-		GlobalGroup globalGroup = userServices.getGroup(code);
+		SystemWideGroup globalGroup = userServices.getGroup(code);
 		GlobalGroupToVOBuilder voBuilder = new GlobalGroupToVOBuilder();
 		return voBuilder.build(globalGroup);
 	}
@@ -95,13 +93,9 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 	}
 
 	public void addUserCredentialButtonClicked(String globalGroupCode, String username) {
-		List<String> newGlobalGroups = new ArrayList<>();
-		UserAddUpdateRequest userCredentialRequest = userServices.addEditRequest(username);
-		List<String> globalGroups = userCredentialRequest.getGlobalGroups();
-		newGlobalGroups.addAll(globalGroups);
-		newGlobalGroups.add(globalGroupCode);
-		userCredentialRequest.setGlobalGroups(newGlobalGroups);
-		userServices.addUpdateUserCredential(userCredentialRequest);
+		UserAddUpdateRequest userCredentialRequest = userServices.addUpdate(username);
+		userCredentialRequest.addToGroupInEachCollection(globalGroupCode);
+		userServices.execute(userCredentialRequest);
 		view.refreshTable();
 	}
 
@@ -195,7 +189,7 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 		UserServices userServices = modelLayerFactory.newUserServices();
 		String username = view.getSessionContext().getCurrentUser().getUsername();
 		UserCredential userCredential = userServices.getUserCredential(username);
-		GlobalGroup globalGroup = userServices.getGroup(entity.getCode());
+		SystemWideGroup globalGroup = userServices.getGroup(entity.getCode());
 		userServices.logicallyRemoveGroupHierarchy(userCredential.getUsername(), globalGroup);
 
 		//TODO refresh table

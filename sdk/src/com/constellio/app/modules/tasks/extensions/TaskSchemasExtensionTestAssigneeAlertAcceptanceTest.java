@@ -79,9 +79,9 @@ public class TaskSchemasExtensionTestAssigneeAlertAcceptanceTest extends Constel
 			throws RecordServicesException {
 		Group heroes = users.heroesIn(zeCollection);
 		for (final SystemWideUserInfos user : getModelLayerFactory().newUserServices().getGlobalGroupActifUsers(heroes.getCode())) {
-			UserAddUpdateRequest userReq = getModelLayerFactory().newUserServices().addEditRequest(user.getUsername());
+			UserAddUpdateRequest userReq = getModelLayerFactory().newUserServices().addUpdate(user.getUsername());
 			userReq.setPersonalEmails(Arrays.asList(user.getUsername() + ".personal.mail@gmail.com"));
-			getModelLayerFactory().newUserServices().addUpdateUserCredential(userReq);
+			getModelLayerFactory().newUserServices().execute(userReq);
 		}
 		List<String> heroesEmails = getGroupUsersEmails(heroes);
 		assertThat(heroesEmails).isNotEmpty();

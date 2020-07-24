@@ -5,9 +5,9 @@ import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.users.UserServices;
@@ -53,7 +53,7 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 	}
 
 	public GlobalGroupVO getGlobalGroupVO(String code) {
-		GlobalGroup globalGroup = null;
+		SystemWideGroup globalGroup = null;
 		if (StringUtils.isNotBlank(code)) {
 			editMode = true;
 			this.code = code;
@@ -83,32 +83,32 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 				LOGGER.info(e.getMessage(), e);
 			}
 		}
-		GlobalGroup globalGroup = toGlobalGroup(entity);
-		userServices.addUpdateGlobalGroup(globalGroup);
+		GroupAddUpdateRequest globalGroup = toGlobalGroup(entity);
+		userServices.execute(globalGroup);
 
-		if (!isEditMode()) {
-			for (String collection : globalGroup.getUsersAutomaticallyAddedToCollections()) {
-				Group group = userServices.getGroupInCollection(entity.getCode(), collection);
-				loggingServices.addUserOrGroup(group.getWrappedRecord(), getCurrentUser(), collection);
-			}
-		} else {
-			for (String collection : globalGroup.getUsersAutomaticallyAddedToCollections()) {
-				Group group = userServices.getGroupInCollection(entity.getCode(), collection);
-				if (entity.getCollections().contains(collection) && !collections.contains(collection)) {
-					loggingServices.addUserOrGroup(group.getWrappedRecord(), getCurrentUser(), collection);
-				}
-			}
-		}
+		//		if (!isEditMode()) {
+		//			for (String collection : globalGroup.getUsersAutomaticallyAddedToCollections()) {
+		//				Group group = userServices.getGroupInCollection(entity.getCode(), collection);
+		//				loggingServices.addUserOrGroup(group.getWrappedRecord(), getCurrentUser(), collection);
+		//			}
+		//		} else {
+		//			for (String collection : globalGroup.getUsersAutomaticallyAddedToCollections()) {
+		//				Group group = userServices.getGroupInCollection(entity.getCode(), collection);
+		//				if (entity.getCollections().contains(collection) && !collections.contains(collection)) {
+		//					loggingServices.addUserOrGroup(group.getWrappedRecord(), getCurrentUser(), collection);
+		//				}
+		//			}
+		//		}
 
 		navigateToBackPage();
 	}
 
-	GlobalGroup toGlobalGroup(GlobalGroupVO globalGroupVO) {
+	GroupAddUpdateRequest toGlobalGroup(GlobalGroupVO globalGroupVO) {
 		List<String> collections = new ArrayList<>();
 		if (globalGroupVO.getCollections() != null) {
 			collections.addAll(globalGroupVO.getCollections());
 		}
-		GlobalGroup newGlobalGroup = userServices.createGlobalGroup(globalGroupVO.getCode(), globalGroupVO.getName(),
+		GroupAddUpdateRequest newGlobalGroup = userServices.createGlobalGroup(globalGroupVO.getCode(), globalGroupVO.getName(),
 				collections, globalGroupVO.getParent(), globalGroupVO.getStatus(), globalGroupVO.isLocallyCreated());
 		return newGlobalGroup;
 	}

@@ -11,6 +11,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,9 +40,9 @@ public class UserRestfulServiceDELETESignatureAcceptanceTest extends BaseRestful
 		ContentVersionDataSummary versionDataSummary = contentManager.upload(file);
 		Content content = contentManager.createSystemContent(file.getName(), versionDataSummary);
 
-		UserCredential userCredentials = userServices.getUserConfigs(users.bobIn(zeCollection).getUsername());
+		UserAddUpdateRequest userCredentials = userServices.addUpdate(users.bobIn(zeCollection).getUsername());
 		userCredentials.setElectronicSignature(content);
-		userServices.addUpdateUserConfigs(userCredentials);
+		userServices.execute(userCredentials);
 
 		queryCounter.reset();
 		commitCounter.reset();

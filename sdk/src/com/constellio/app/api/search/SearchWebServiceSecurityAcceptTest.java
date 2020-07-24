@@ -227,7 +227,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 
 		SolrClient solrServer = newSearchClient();
 
-		String serviceKey = userServices.giveNewServiceToken(systemAdmin.getUsername());
+		String serviceKey = userServices.giveNewServiceKey(systemAdmin.getUsername());
 		String token = userServices.getToken(serviceKey, systemAdmin.getUsername(), "youshallnotpass");
 		solrParams.set("serviceKey", serviceKey);
 		solrParams.set("token", token);
@@ -307,7 +307,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 
 		SolrClient solrServer = newSearchClient();
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "eventType_s:RECORD_UPDATE");
-		String serviceKey = userServices.giveNewServiceToken(systemAdmin.getUsername());
+		String serviceKey = userServices.giveNewServiceKey(systemAdmin.getUsername());
 		String token = userServices.getToken(serviceKey, systemAdmin.getUsername(), "youshallnotpass");
 		solrParams.set("serviceKey", serviceKey);
 		solrParams.set("token", token);
@@ -359,7 +359,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "search_txt_fr:perdu");
 
 		String serviceKey = userServices
-				.giveNewServiceToken(userWithBothCollectionReadAccess.getUsername());
+				.giveNewServiceKey(userWithBothCollectionReadAccess.getUsername());
 		solrParams.set("serviceKey", serviceKey);
 		solrParams.set("token", "noidea");
 		try {
@@ -378,7 +378,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "search_txt_fr:perdu");
 
 		String serviceKey = userServices
-				.giveNewServiceToken(userWithBothCollectionReadAccess.getUsername());
+				.giveNewServiceKey(userWithBothCollectionReadAccess.getUsername());
 		String anotherUserToken = userServices.generateToken(userWithZeCollectionReadAccess.getUsername());
 		solrParams.set("serviceKey", serviceKey);
 		solrParams.set("token", anotherUserToken);
@@ -398,7 +398,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "search_txt_fr:perdu");
 
 		String serviceKey = userServices
-				.giveNewServiceToken(userWithBothCollectionReadAccess.getUsername());
+				.giveNewServiceKey(userWithBothCollectionReadAccess.getUsername());
 		solrParams.set("serviceKey", serviceKey);
 		try {
 
@@ -432,7 +432,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 		SolrClient solrServer = newSearchClient();
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "schema_s:zeSchemaType*");
 
-		String serviceKey = userServices.giveNewServiceToken(user.getUsername());
+		String serviceKey = userServices.giveNewServiceKey(user.getUsername());
 		String token = userServices.getToken(serviceKey, user.getUsername(), "youshallnotpass");
 		solrParams.set("serviceKey", serviceKey);
 		solrParams.set("token", token);
@@ -450,7 +450,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 		SolrClient solrServer = newSearchClient();
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "schema_s:anotherSchemaType*");
 		solrParams.add("fq", "collection_s:zeCollection");
-		String serviceKey = userServices.giveNewServiceToken(user.getUsername());
+		String serviceKey = userServices.giveNewServiceKey(user.getUsername());
 		String token = userServices.getToken(serviceKey, user.getUsername(), "youshallnotpass");
 		solrParams.set("serviceKey", serviceKey);
 		solrParams.set("token", token);
@@ -466,7 +466,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 	private void setupUsers()
 			throws RecordServicesException, InterruptedException {
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.addUpdateUserCredential(users.chuckNorrisAddUpdateRequest().setSystemAdminEnabled());
+		userServices.execute(users.chuckNorrisAddUpdateRequest().setSystemAdminEnabled());
 
 		userWithZeCollectionReadAccess = users.alice();
 		userWithAnotherCollectionReadAccess = users.bob();

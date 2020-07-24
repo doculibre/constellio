@@ -7,7 +7,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
@@ -137,7 +137,7 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 
 		Group newGroup = userServices.getGroupInCollection(newGlobalGroup, zeCollection);
 		Group taskNewGroup = userServices.getGroupInCollection(taskNewGlobalGroup, zeCollection);
-		userServices.addUpdateUserCredential(users.charlesAddUpdateRequest().setGlobalGroups(asList(newGlobalGroup, charlesNewGlobalGroup)));
+		userServices.execute(users.charlesAddUpdateRequest().setGlobalGroups(asList(newGlobalGroup, charlesNewGlobalGroup)));
 		charles = users.charlesIn(zeCollection);
 		taskWithCharlesInAssignationGroupCandidates = tasksSchemas.newTaskWithId("taskWithCharlesInAssignationGroupCandidates")
 				.setTitle("taskWithCharlesInAssignationGroupCandidates")
@@ -149,9 +149,9 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private void addGroup(String groupCode) {
-		GlobalGroup group = userServices.createGlobalGroup(
+		GroupAddUpdateRequest group = userServices.createGlobalGroup(
 				groupCode, groupCode, new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE, true);
-		userServices.addUpdateGlobalGroup(group);
+		userServices.execute(group);
 	}
 
 	@Test

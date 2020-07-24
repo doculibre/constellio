@@ -2,10 +2,9 @@ package com.constellio.app.services.action;
 
 import com.constellio.app.extensions.AppLayerSystemExtensions;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.services.records.SchemasRecordsServices;
 
 public class GlobalGroupActionsServices {
@@ -18,26 +17,23 @@ public class GlobalGroupActionsServices {
 		this.appLayerSystemExtensions = appLayerFactory.getExtensions().getSystemWideExtensions();
 	}
 
-	public boolean isAddSubGroupActionPossible(Record record, User user) {
-		GlobalGroup group = core.wrapGlobalGroup(record);
+	public boolean isAddSubGroupActionPossible(SystemWideGroup group, User user) {
 
 		return group.getStatus() == GlobalGroupStatus.ACTIVE
 			   && group.isLocallyCreated()
-			   && appLayerSystemExtensions.isAddSubGroupActionPossibleOnGlobalGroup(core.wrapGlobalGroup(record), user);
+			   && appLayerSystemExtensions.isAddSubGroupActionPossibleOnGlobalGroup(group, user);
 	}
 
-	public boolean isEditActionPossible(Record record, User user) {
+	public boolean isEditActionPossible(SystemWideGroup group, User user) {
 
-		GlobalGroup globalGroup = core.wrapGlobalGroup(record);
-		return globalGroup.isLocallyCreated()
-			   && appLayerSystemExtensions.isEditActionPossibleOnGlobalGroup(globalGroup, user);
+		return group.isLocallyCreated()
+			   && appLayerSystemExtensions.isEditActionPossibleOnGlobalGroup(group, user);
 	}
 
-	public boolean isDeleteActionPossible(Record record, User user) {
-		GlobalGroup globalGroup = core.wrapGlobalGroup(record);
+	public boolean isDeleteActionPossible(SystemWideGroup group, User user) {
 
-		return globalGroup.getStatus() == GlobalGroupStatus.ACTIVE
-			   && globalGroup.isLocallyCreated()
-			   && appLayerSystemExtensions.isDeleteActionPossibleOnGlobalGroup(core.wrapGlobalGroup(record), user);
+		return group.getStatus() == GlobalGroupStatus.ACTIVE
+			   && group.isLocallyCreated()
+			   && appLayerSystemExtensions.isDeleteActionPossibleOnGlobalGroup(group, user);
 	}
 }

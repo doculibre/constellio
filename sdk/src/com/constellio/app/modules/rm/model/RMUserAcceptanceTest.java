@@ -42,7 +42,7 @@ public class RMUserAcceptanceTest extends ConstellioTest {
 	}
 
 	private UserAddUpdateRequest newJackBauerUserCredential() {
-		return createUserCredential("jack.bauer", "Jack", "Bauer", "jack.bauer@constellio.com",
+		return addUpdateUserCredential("jack.bauer", "Jack", "Bauer", "jack.bauer@constellio.com",
 				new ArrayList<String>(), asList(zeCollection), UserCredentialStatus.ACTIVE);
 	}
 
@@ -50,7 +50,7 @@ public class RMUserAcceptanceTest extends ConstellioTest {
 	public void whenAddUpdatingUserWithoutRolesThenAddDefaultUserRole()
 			throws Exception {
 
-		userServices.addUpdateUserCredential(newJackBauerUserCredential());
+		userServices.execute(newJackBauerUserCredential());
 		assertThat(jackBauerInZeCollection().getAllRoles()).containsOnly(RMRoles.USER);
 
 		recordServices.update(jackBauerInZeCollection().setUserRoles(asList(RMRoles.MANAGER)));

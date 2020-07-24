@@ -5,7 +5,7 @@ import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.pages.globalGroup.DisplayGlobalGroupView;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -43,7 +43,7 @@ public class GlobalGroupMenuItemActionBehaviors {
 		Map<String, String> mapParams = clone(params.getFormParams());
 		GlobalGroupVO globalGroupVO = (GlobalGroupVO) params.getObjectRecordVO();
 
-		GlobalGroup globalGroup = core.getGlobalGroupWithCode(globalGroupVO.getCode());
+		SystemWideGroup globalGroup = core.getGlobalGroupWithCode(globalGroupVO.getCode());
 
 		mapParams.put("parentGlobalGroupCode", globalGroup.getCode());
 		mapParams.remove("globalGroupCode");
@@ -58,7 +58,7 @@ public class GlobalGroupMenuItemActionBehaviors {
 		GlobalGroupVO globalGroupVO = (GlobalGroupVO) params.getObjectRecordVO();
 
 		Map<String, String> mapParams = clone(params.getFormParams());
-		GlobalGroup globalGroup = core.getGlobalGroupWithCode(globalGroupVO.getCode());
+		SystemWideGroup globalGroup = core.getGlobalGroupWithCode(globalGroupVO.getCode());
 		DisplayGlobalGroupView displayGlobalGroupView = (DisplayGlobalGroupView) params.getView();
 
 		mapParams.put("globalGroupCode", globalGroup.getCode());
@@ -69,7 +69,7 @@ public class GlobalGroupMenuItemActionBehaviors {
 	public void delete(MenuItemActionBehaviorParams params) {
 		GlobalGroupVO globalGroupVO = (GlobalGroupVO) params.getObjectRecordVO();
 
-		GlobalGroup globalGroup = core.getGlobalGroupWithCode(globalGroupVO.getCode());
+		SystemWideGroup globalGroup = core.getGlobalGroupWithCode(globalGroupVO.getCode());
 		DisplayGlobalGroupView displayGlobalGroupView = (DisplayGlobalGroupView) params.getView();
 
 		String username = params.getView().getSessionContext().getCurrentUser().getUsername();

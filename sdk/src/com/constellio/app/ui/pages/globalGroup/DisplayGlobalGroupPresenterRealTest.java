@@ -5,7 +5,7 @@ import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserServices;
@@ -43,13 +43,13 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 	@Mock CoreViews coreView;
 	@Mock SolrUserCredentialsManager userCredentialsManager;
 	@Mock UserCredential dakotaCredential, newDakotaCredential;
-	@Mock GlobalGroup heroes, legends;
+	@Mock SystemWideGroup heroes, legends;
 	@Mock GlobalGroupVODataProvider globalGroupVODataProvider;
 	@Mock UserCredentialVO dakotaCredentialVO;
 
 	DisplayGlobalGroupPresenter presenter;
 	MockedFactories mockedFactories = new MockedFactories();
-	List<GlobalGroup> globalGroups;
+	List<SystemWideGroup> globalGroups;
 
 	@Before
 	public void setUp()

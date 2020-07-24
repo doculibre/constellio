@@ -61,7 +61,7 @@ public class RestApiWithMultiTenancyAcceptanceTest extends ConstellioTest {
 
 			String token = tenantId.equals("1") ? token1 : token2;
 			String serviceKey = tenantId.equals("1") ? serviceKey1 : serviceKey2;
-			getModelLayerFactory().newUserServices().addUpdateUserCredential(users.bobAddUpdateRequest().setServiceKey(serviceKey)
+			getModelLayerFactory().newUserServices().execute(users.bobAddUpdateRequest().setServiceKey(serviceKey)
 					.addAccessToken(token, TimeProvider.getLocalDateTime().plusYears(1)));
 
 			TenantUtils.setTenant(null);

@@ -5,14 +5,14 @@ import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.conf.ldap.RegexFilter;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.users.SystemWideUserInfos;
-import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
@@ -89,7 +89,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		assertThat(importedUser.getMsExchDelegateListBL()).isEmpty();
 		assertThat(importedUser.getDn()).isEqualTo("CN=bfay,CN=Users,DC=test,DC=doculibre,DC=ca");
 
-		for (GlobalGroup group : userServices.getAllGroups()) {
+		for (SystemWideGroup group : userServices.getAllGroups()) {
 			String code = group.getName();
 			assertThat(ldapConfigurationManager.getLDAPUserSyncConfiguration().isGroupAccepted(code)).isTrue();
 		}
@@ -133,9 +133,9 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		assertThat(importedUser.getMsExchDelegateListBL()).isEqualTo(msExchDelegateListBL);
 		assertThat(importedUser.getDn()).isEqualTo("CN=indexer indexer,CN=Users,DC=test,DC=doculibre,DC=ca");
 
-		UserCredential updatedUser = importedUser.setMsExchDelegateListBL(Arrays.asList("newMSExchDelegateListBL"));
-		userServices.addUpdateUserConfigs(updatedUser);
-		updatedUser = user("indexer");
+		com.constellio.model.services.users.UserAddUpdateRequest updatedUserReq = userServices.addUpdate("indexer").setMsExchDelegateListBL(asList("newMSExchDelegateListBL"));
+		userServices.execute(updatedUserReq);
+		UserCredential updatedUser = user("indexer");
 		assertThat(updatedUser.getMsExchDelegateListBL()).isEqualTo(Arrays.asList("newMSExchDelegateListBL"));
 
 		ldapUserSyncManager.synchronizeIfPossible();
@@ -153,7 +153,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
 	}
 
-	private GlobalGroup group(String code) {
+	private SystemWideGroup group(String code) {
 		return userServices.getGroup(code);
 	}
 
@@ -161,8 +161,8 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		return userServices.getUserCredential(code);
 	}
 
-	private UserAddUpdateRequest addEditRequest(String code) {
-		return userServices.addEditRequest(code);
+	private com.constellio.model.services.users.UserAddUpdateRequest addEditRequest(String code) {
+		return userServices.addUpdate(code);
 	}
 
 	@Test
@@ -171,10 +171,9 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		LDAPUserSyncManager ldapUserSyncManager = getModelLayerFactory().getLdapUserSyncManager();
 
 		ldapUserSyncManager.synchronizeIfPossible();
-		GlobalGroup globalGroup = userServices.getGroup(group);
+		SystemWideGroup globalGroup = userServices.getGroup(group);
 		assertThat(globalGroup.getUsersAutomaticallyAddedToCollections()).isEmpty();
-		globalGroup = globalGroup.setUsersAutomaticallyAddedToCollections(asList(new String[]{zeCollection}));
-		userServices.addUpdateGlobalGroup(globalGroup);
+		userServices.execute(userServices.request(group).addCollection(zeCollection));
 		globalGroup = userServices.getGroup(group);
 		assertThat(globalGroup.getUsersAutomaticallyAddedToCollections()).containsOnly(zeCollection);
 
@@ -206,10 +205,9 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		LDAPUserSyncManager ldapUserSyncManager = getModelLayerFactory().getLdapUserSyncManager();
 
 		ldapUserSyncManager.synchronizeIfPossible();
-		GlobalGroup globalGroup = userServices.getGroup(group);
+		SystemWideGroup globalGroup = userServices.getGroup(group);
 		assertThat(globalGroup.getUsersAutomaticallyAddedToCollections()).isEmpty();
-		globalGroup = globalGroup.setUsersAutomaticallyAddedToCollections(asList(new String[]{zeCollection}));
-		userServices.addUpdateGlobalGroup(globalGroup);
+		userServices.execute(userServices.request(group).addCollection(zeCollection));
 
 		saveValidLDAPConfigWithEntrepriseCollectionSelected();
 		ldapUserSyncManager.synchronizeIfPossible();
@@ -243,11 +241,10 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		LDAPUserSyncManager ldapUserSyncManager = getModelLayerFactory().getLdapUserSyncManager();
 
 		ldapUserSyncManager.synchronizeIfPossible();
-		UserAddUpdateRequest bfayReq = userServices.addEditRequest("bfay");
-		assertThat(bfayReq.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
+		com.constellio.model.services.users.UserAddUpdateRequest bfayReq = userServices.addUpdate("bfay");
 
 		bfayReq.setStatus(UserCredentialStatus.SUSPENDED);
-		userServices.addUpdateUserCredential(bfayReq);
+		userServices.execute(bfayReq);
 
 		ldapUserSyncManager.synchronizeIfPossible();
 		UserCredential bfay = userServices.getUser("bfay");
@@ -259,9 +256,9 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		LDAPUserSyncManager ldapUserSyncManager = getModelLayerFactory().getLdapUserSyncManager();
 
 		ldapUserSyncManager.synchronizeIfPossible();
+		com.constellio.model.services.users.UserAddUpdateRequest bfayReq = userServices.addUpdate("bfay");
+		userServices.execute(bfayReq.setSystemAdminEnabled());
 		UserCredential bfay = userServices.getUser("bfay");
-		userServices.addUpdateUserConfigs(bfay.setSystemAdminEnabled());
-		bfay = userServices.getUser("bfay");
 		assertThat(bfay.isSystemAdmin()).isTrue();
 
 		ldapUserSyncManager.synchronizeIfPossible();
@@ -309,10 +306,10 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		UserCredential userCredentials = userServices.getUser(inactiveUserInLDAP);
 		assertThat(userCredentials.getStatus()).isEqualTo(UserCredentialStatus.DELETED);
 
-		UserAddUpdateRequest userCredential = createUserCredential(inactiveUserInLDAP, inactiveUserInLDAP, inactiveUserInLDAP,
+		com.constellio.model.services.users.UserAddUpdateRequest userCredential = addUpdateUserCredential(inactiveUserInLDAP, inactiveUserInLDAP, inactiveUserInLDAP,
 				inactiveUserInLDAP + "@doculibre.com", asList(new String[]{}), asList(new String[]{}),
 				UserCredentialStatus.ACTIVE);
-		userServices.addUpdateUserCredential(userCredential);
+		userServices.execute(userCredential);
 		userServices.getUser(inactiveUserInLDAP);
 
 		ldapUserSyncManager.synchronizeIfPossible();
@@ -327,15 +324,15 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		LDAPUserSyncManager ldapUserSyncManager = getModelLayerFactory().getLdapUserSyncManager();
 
 		ldapUserSyncManager.synchronizeIfPossible();
-		UserAddUpdateRequest bfayReq = userServices.addEditRequest("bfay");
-		List<String> currentGroups = bfayReq.getGlobalGroups();
+		com.constellio.model.services.users.UserAddUpdateRequest bfayReq = userServices.addUpdate("bfay");
+		List<String> currentGroups = userServices.getUserInfos("bfay").getGlobalGroups();
 		assertThat(currentGroups).containsOnly(groupB, groupC);
 		List<String> usersAutomaticallyAddedToCollections = Collections.emptyList();
-		userServices.addUpdateGlobalGroup(userServices.createGlobalGroup(
+		userServices.execute(userServices.createGlobalGroup(
 				groupA, groupA, usersAutomaticallyAddedToCollections, null, GlobalGroupStatus.ACTIVE, false));
 		bfayReq.setGlobalGroups(asList(groupA, groupB));
-		userServices.addUpdateUserCredential(bfayReq);
-		currentGroups = bfayReq.getGlobalGroups();
+		userServices.execute(bfayReq);
+		currentGroups = userServices.getUserInfos("bfay").getGlobalGroups();
 		assertThat(currentGroups).containsOnly(groupB, groupA);
 
 		ldapUserSyncManager.synchronizeIfPossible();
@@ -431,7 +428,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		final Set<String> groupNameList = new TreeSet<>(CollectionUtils.collect(userServices.getAllGroups(), new Transformer() {
 			@Override
 			public Object transform(Object input) {
-				return ((GlobalGroup) input).getName();
+				return ((SystemWideGroup) input).getName();
 			}
 		}));
 		assertThat(groupNameList).isEqualTo(new TreeSet<>(Arrays.asList(new String[]{
@@ -495,7 +492,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		final Set<String> groupNameList = new TreeSet<>(CollectionUtils.collect(userServices.getAllGroups(), new Transformer() {
 			@Override
 			public Object transform(Object input) {
-				return ((GlobalGroup) input).getName();
+				return ((SystemWideGroup) input).getName();
 			}
 		}));
 		assertThat(groupNameList).isEqualTo(new TreeSet<>(Arrays.asList(new String[]{
@@ -511,16 +508,16 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		final LDAPUserSyncManager ldapUserSyncManager = getModelLayerFactory().getLdapUserSyncManager();
 
 		final String myLocalGroupCode = "myLocalGroupCode";
-		final GlobalGroup myLocalGroup = userServices.createGlobalGroup(myLocalGroupCode, myLocalGroupCode, Arrays.asList(new String[]{zeCollection}), null, GlobalGroupStatus.ACTIVE, true);
-		userServices.addUpdateGlobalGroup(myLocalGroup);
+		final GroupAddUpdateRequest myLocalGroup = userServices.createGlobalGroup(myLocalGroupCode, myLocalGroupCode, Arrays.asList(new String[]{zeCollection}), null, GlobalGroupStatus.ACTIVE, true);
+		userServices.execute(myLocalGroup);
 
 		ldapUserSyncManager.synchronizeIfPossible();
 
 		final String myUsername = "bfay";
-		UserAddUpdateRequest myUserCredentialReq = userServices.addEditRequest(myUsername);
+		com.constellio.model.services.users.UserAddUpdateRequest myUserCredentialReq = userServices.addUpdate(myUsername);
 		userServices.addUserToCollection(myUserCredentialReq.getUsername(), zeCollection);
 		myUserCredentialReq.setGlobalGroups(Arrays.asList(new String[]{myLocalGroupCode}));
-		userServices.addUpdateUserCredential(myUserCredentialReq);
+		userServices.execute(myUserCredentialReq);
 
 		// When
 		ldapUserSyncManager.synchronizeIfPossible();

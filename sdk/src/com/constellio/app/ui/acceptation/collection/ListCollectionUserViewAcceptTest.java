@@ -52,7 +52,7 @@ public class ListCollectionUserViewAcceptTest extends ConstellioTest {
 		);
 
 		userServices = getModelLayerFactory().newUserServices();
-		userServices.addUpdateGlobalGroup(userServices.createGlobalGroup(
+		userServices.execute(userServices.createGlobalGroup(
 				GROUP_CODE, GROUP_NAME, Arrays.asList(zeCollection), null, GlobalGroupStatus.ACTIVE, true));
 		rolesManager = getModelLayerFactory().getRolesManager();
 
