@@ -107,7 +107,7 @@ public class UserImportServices implements ImportServices {
 		} else if (status.equals("s")) {
 			userCredentialStatus = UserCredentialStatus.SUSPENDED;
 		} else if (status.equals("d")) {
-			userCredentialStatus = UserCredentialStatus.DELETED;
+			userCredentialStatus = UserCredentialStatus.DISABLED;
 		} else {
 			userCredentialStatus = UserCredentialStatus.ACTIVE;
 		}

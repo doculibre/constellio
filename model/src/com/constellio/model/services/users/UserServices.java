@@ -71,7 +71,7 @@ import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_C
 import static com.constellio.model.entities.records.wrappers.Group.wrapNullable;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_ON;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
-import static com.constellio.model.entities.security.global.UserCredentialStatus.DELETED;
+import static com.constellio.model.entities.security.global.UserCredentialStatus.DISABLED;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -524,6 +524,17 @@ public class UserServices {
 		recordServices.logicallyDelete(userCredentialRecord, User.GOD);
 	}
 
+	public void logicallyRemoveAllNonActiveUsers() {
+		List<SystemWideUserInfos> userCredentials = this.getAllUserCredentials();
+		for (SystemWideUserInfos userCredential :
+				userCredentials) {
+			if (userCredential.getStatus() != UserCredentialStatus.ACTIVE) {
+				userCredential.setStatus(UserCredentialStatus.DISABLED);
+				removeUserCredentialAndUser(userCredential);
+			}
+		}
+	}
+
 	void activateGlobalGroupHierarchy(UserCredential userCredential, GlobalGroup globalGroup) {
 		permissionValidateCredentialOnGroup(userCredential);
 		activateGlobalGroupHierarchyWithoutUserValidation(globalGroup);
@@ -536,12 +547,12 @@ public class UserServices {
 	}
 
 	void removeUserCredentialAndUser(UserCredential userCredential) {
-		userCredential = userCredential.setStatus(DELETED);
+		userCredential = userCredential.setStatus(DISABLED);
 		addUpdateUserCredential(userCredential);
 	}
 
 	public void removeUserCredentialAndUser(SystemWideUserInfos userCredential) {
-		addUpdateUserCredential(addEditRequest(userCredential.getUsername()).setStatus(DELETED));
+		addUpdateUserCredential(addEditRequest(userCredential.getUsername()).setStatus(DISABLED));
 	}
 
 	public void setUserCredentialAndUserStatusPendingApproval(String username) {
@@ -1187,7 +1198,29 @@ public class UserServices {
 		Predicate<SystemWideUserInfos> filter = new Predicate<SystemWideUserInfos>() {
 			@Override
 			public boolean apply(SystemWideUserInfos input) {
-				return input.getStatus().equals(DELETED);
+				return input.getStatus().equals(DISABLED);
+			}
+		};
+		List<SystemWideUserInfos> userCredentials = this.getAllUserCredentials();
+		LOGGER.info("safePhysicalDeleteAllUnusedUsers getAllUserCredentials  : " + userCredentials.size());
+		Collection<SystemWideUserInfos> usersToDelete = Collections2.filter(userCredentials, filter);
+		LOGGER.info("safePhysicalDeleteAllUnusedUsers usersToDelete  : " + usersToDelete.size());
+		for (SystemWideUserInfos credential : usersToDelete) {
+			try {
+				safePhysicalDeleteUserCredential(credential.getUsername());
+			} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
+				nonDeletedUsers.add(credential);
+			}
+		}
+		return nonDeletedUsers;
+	}
+
+	public List<SystemWideUserInfos> safePhysicalDeleteAllUserCredentialsWithEmptyCollections() {
+		List<SystemWideUserInfos> nonDeletedUsers = new ArrayList<>();
+		Predicate<SystemWideUserInfos> filter = new Predicate<SystemWideUserInfos>() {
+			@Override
+			public boolean apply(SystemWideUserInfos input) {
+				return input.getCollections().isEmpty();
 			}
 		};
 		List<SystemWideUserInfos> userCredentials = this.getAllUserCredentials();
@@ -1456,6 +1489,7 @@ public class UserServices {
 					.setMsExchDelegateListBL(userCredential.getMsExchDelegateListBL())
 					.setPersonalEmails(userCredential.getPersonalEmails())
 					.setStatus(userCredential.getStatus())
+					.setSyncMode(userCredential.getSyncMode())
 					.setAgentStatus(userCredential.getAgentStatus());
 
 			request.setElectronicInitials(userCredential.getElectronicInitials());
@@ -1488,6 +1522,29 @@ public class UserServices {
 						userCredential.setAgreedPrivacyPolicy(false);
 					}
 				});
+	}
+
+	public void transferDomainsAndMsDelegatesFromCredentialsToUser(List<String> collections) {
+		List<User> users = new ArrayList<>();
+		for (String collection :
+				collections) {
+			users.addAll(this.getAllUsersInCollection(collection));
+		}
+		List<SystemWideUserInfos> credentials = this.getAllUserCredentials();
+
+		for (SystemWideUserInfos credential :
+				credentials) {
+			User user = users.stream().filter(usr -> usr.getUsername().equals(credential.getUsername())).findFirst().get();
+			if (user != null) {
+				user.setDomain(credential.getDomain());
+				user.setMsExchDelegateListBL(credential.getMsExchangeDelegateList());
+				try {
+					recordServices.update(user);
+				} catch (RecordServicesException e) {
+					throw new UserServicesRuntimeException_CannotExcuteTransaction(e);
+				}
+			}
+		}
 	}
 
 	public void resetHasReadLastAlertMetadataOnUsers() {

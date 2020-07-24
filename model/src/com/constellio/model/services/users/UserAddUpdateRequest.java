@@ -3,6 +3,7 @@ package com.constellio.model.services.users;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.security.global.AgentStatus;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.UserSyncMode;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ public class UserAddUpdateRequest {
 	private String serviceKey;
 	private Boolean systemAdmin;
 	private UserCredentialStatus status = UserCredentialStatus.ACTIVE;
+	private UserSyncMode syncMode = UserSyncMode.LOCALLY_CREATED;
 	private List<String> collections = new ArrayList<>();
 	private List<String> globalGroups = new ArrayList<>();
 	private String domain;
@@ -110,6 +112,15 @@ public class UserAddUpdateRequest {
 
 	public UserAddUpdateRequest setStatus(UserCredentialStatus status) {
 		this.status = status;
+		return this;
+	}
+
+	public UserSyncMode getSyncMode() {
+		return syncMode;
+	}
+
+	public UserAddUpdateRequest setSyncMode(UserSyncMode syncMode) {
+		this.syncMode = syncMode;
 		return this;
 	}
 

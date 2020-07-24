@@ -225,7 +225,7 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		manager.addUpdate(chuckUserCredential);
 		manager.addUpdate(edouardUserCredential);
 
-		chuckUserCredential = chuckUserCredential.setStatus(UserCredentialStatus.DELETED);
+		chuckUserCredential = chuckUserCredential.setStatus(UserCredentialStatus.DISABLED);
 		manager.addUpdate(chuckUserCredential);
 
 		assertThat(manager.getActiveUserCredentials()).hasSize(2);

@@ -267,9 +267,9 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		}
 		assertThat(userInCollection.get(collection1).getWrappedRecord().isActive()).isFalse();
 		assertThat(userInCollection.get(collection2).getWrappedRecord().isActive()).isFalse();
-		assertThat(userInCollection.get(collection1).getStatus()).isEqualTo(UserCredentialStatus.DELETED);
-		assertThat(userInCollection.get(collection2).getStatus()).isEqualTo(UserCredentialStatus.DELETED);
-		assertThat(userServices.getUser(user.getUsername()).getStatus()).isEqualTo(UserCredentialStatus.DELETED);
+		assertThat(userInCollection.get(collection1).getStatus()).isEqualTo(UserCredentialStatus.DISABLED);
+		assertThat(userInCollection.get(collection2).getStatus()).isEqualTo(UserCredentialStatus.DISABLED);
+		assertThat(userServices.getUser(user.getUsername()).getStatus()).isEqualTo(UserCredentialStatus.DISABLED);
 		assertThat(userServices.getAllUserCredentials()).hasSize(2);
 		assertThat(userServices.getActiveUserCredentials()).hasSize(1);
 		assertThat(userServices.getActiveUserCredentials().get(0).getUsername()).isEqualTo("admin");
@@ -785,7 +785,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		setupAfterCollectionCreation();
 		UserAddUpdateRequest admin = userServices.addEditRequest("admin");
-		admin = admin.setStatus(UserCredentialStatus.DELETED);
+		admin = admin.setStatus(UserCredentialStatus.DISABLED);
 		try {
 			userServices.addUpdateUserCredential(admin);
 		} finally {
@@ -1029,7 +1029,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		for (SystemWideUserInfos user : users.getAllUsers()) {
 			UserAddUpdateRequest userReq = userServices.addEditRequest(user.getUsername());
 			if (!userReq.isSystemAdmin()) {
-				userReq.setStatus(UserCredentialStatus.DELETED);
+				userReq.setStatus(UserCredentialStatus.DISABLED);
 				userServices.addUpdateUserCredential(userReq);
 			}
 		}

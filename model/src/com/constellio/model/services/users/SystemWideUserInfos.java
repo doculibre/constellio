@@ -3,6 +3,7 @@ package com.constellio.model.services.users;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.security.global.AgentStatus;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.UserSyncMode;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDateTime;
@@ -26,6 +27,7 @@ public class SystemWideUserInfos {
 	private String serviceKey;
 	private Boolean systemAdmin;
 	private UserCredentialStatus status = UserCredentialStatus.ACTIVE;
+	private UserSyncMode syncMode = UserSyncMode.LOCALLY_CREATED;
 	private List<String> collections = new ArrayList<>();
 	private List<String> globalGroups = new ArrayList<>();
 	private String domain;
@@ -115,6 +117,15 @@ public class SystemWideUserInfos {
 
 	public SystemWideUserInfos setStatus(UserCredentialStatus status) {
 		this.status = status;
+		return this;
+	}
+
+	public UserSyncMode getSyncMode() {
+		return syncMode;
+	}
+
+	public SystemWideUserInfos setSyncMode(UserSyncMode syncMode) {
+		this.syncMode = syncMode;
 		return this;
 	}
 
@@ -360,6 +371,10 @@ public class SystemWideUserInfos {
 
 	public boolean isActiveUser() {
 		return getStatus() == UserCredentialStatus.ACTIVE || getStatus() == null;
+	}
+
+	public boolean isSyncUser() {
+		return getSyncMode() == UserSyncMode.SYNCED || getSyncMode() == null;
 	}
 
 	public String getTitle() {

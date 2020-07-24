@@ -307,7 +307,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 
 		ldapUserSyncManager.synchronizeIfPossible();
 		UserCredential userCredentials = userServices.getUser(inactiveUserInLDAP);
-		assertThat(userCredentials.getStatus()).isEqualTo(UserCredentialStatus.DELETED);
+		assertThat(userCredentials.getStatus()).isEqualTo(UserCredentialStatus.DISABLED);
 
 		UserAddUpdateRequest userCredential = createUserCredential(inactiveUserInLDAP, inactiveUserInLDAP, inactiveUserInLDAP,
 				inactiveUserInLDAP + "@doculibre.com", asList(new String[]{}), asList(new String[]{}),

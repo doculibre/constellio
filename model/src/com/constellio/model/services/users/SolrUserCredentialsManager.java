@@ -155,7 +155,7 @@ public class SolrUserCredentialsManager {
 	}
 
 	LogicalSearchQuery getDeletedUserCredentialsQuery() {
-		return getQueryFilteredByStatus(UserCredentialStatus.DELETED);
+		return getQueryFilteredByStatus(UserCredentialStatus.DISABLED);
 	}
 
 	List<UserCredential> getDeletedUserCredentials() {

@@ -329,7 +329,7 @@ public class LDAPUserSyncManager implements StatefulService {
 		if (ldapUser.getEnabled()) {
 			userStatus = UserCredentialStatus.ACTIVE;
 		} else {
-			userStatus = UserCredentialStatus.DELETED;
+			userStatus = UserCredentialStatus.DISABLED;
 		}
 		UserAddUpdateRequest request = userServices.addEditRequest(username)
 				.setFirstName(firstName)
