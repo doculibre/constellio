@@ -186,11 +186,10 @@ public class SchemaUtils {
 		} else {
 			firstPart = metadataDataStoreCode.substring(0, indexOfUnderscore);
 		}
-
-		if (firstPart.endsWith("PId")) {
+		if (firstPart.endsWith("PId") && !isCustomMetadata(firstPart)) {
 			return firstPart.substring(0, firstPart.length() - 3);
 
-		} else if (firstPart.endsWith("Id")) {
+		} else if (firstPart.endsWith("Id") && !isCustomMetadata(firstPart)) {
 			return firstPart.substring(0, firstPart.length() - 2);
 		} else {
 			return StringUtils.substringBefore(firstPart, ".");
@@ -551,4 +550,9 @@ public class SchemaUtils {
 
 		return returnedMetadatas;
 	}
+
+	private static boolean isCustomMetadata(String metadataCode) {
+		return metadataCode.startsWith("USR");
+	}
+
 }
