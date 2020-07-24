@@ -15,8 +15,9 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
@@ -25,16 +26,15 @@ import com.constellio.model.services.factories.ModelLayerFactoryUtils;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.security.roles.RolesManager;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotExcuteTransaction;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotRemoveAdmin;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUserNameOrPassword;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -61,9 +61,6 @@ import static com.constellio.sdk.tests.TestUtils.usernamesOf;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
 
 public class UserServicesAcceptanceTest extends ConstellioTest {
 
@@ -83,7 +80,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	List<String> allCollections;
 	String collection1, collection2, collection3;
 	SystemWideUserInfos user, anotherUser, thirdUser;
-	UserAddUpdateRequest userReq, anotherUserReq, thirdUserReq;
+	com.constellio.model.services.users.UserAddUpdateRequest userReq, anotherUserReq, thirdUserReq;
 	@Mock UserCredential userWithNoAccessToDeleteCollection;
 	@Mock Factory<EncryptionServices> encryptionServicesFactory;
 	AuthenticationService authenticationService;
@@ -130,10 +127,10 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenCollection1And2();
 
 		for (int i = 0; i < 10000; i++) {
-			userReq = createUserCredential("grimPatron" + i, "Grim", "Patron", "grim.patron." + i + "@doculibre.com", noGroups,
+			userReq = addUpdateUserCredential("grimPatron" + i, "Grim", "Patron", "grim.patron." + i + "@doculibre.com", noGroups,
 					noCollections, UserCredentialStatus.ACTIVE)
 					.setSystemAdminEnabled();
-			userServices.addUpdateUserCredential(userReq);
+			userServices.execute(userReq);
 		}
 
 		for (int i = 0; i < 10000; i++) {
@@ -193,14 +190,13 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
-	@Test
+	@Test(expected = MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection.class)
 	public void whenCreatingUserInInvalidCollectionThenNotSetted()
 			throws Exception {
 
 		givenCollection1();
 		givenUserWith(noGroups, and(collection1, "invalidCollection"));
 
-		assertThatUserIsOnlyInCollections(user, collection1);
 
 	}
 
@@ -377,7 +373,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenUserWith(asList(legends), and(collection1, collection2));
 		givenAnotherUserWith(asList(legends), and(collection1, collection2));
 		givenAThirdUserWith(asList(heroes), and(collection1, collection2));
-		GlobalGroup legendsGroup = userServices.getGroup(legends);
+		SystemWideGroup legendsGroup = userServices.getGroup(legends);
 
 		Record recordLegendsCollection1 = getRecordGroupInCollection(legendsGroup, collection1);
 		Record recordLegendsCollection2 = getRecordGroupInCollection(legendsGroup, collection2);
@@ -515,7 +511,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenAnotherUserWith(groups(heroes), andNoCollections);
 		givenAThirdUserWith(groups(heroes), andNoCollections);
 
-		assertThat(userServices.getGlobalGroupActifUsers(legends)).isEmpty();
+		assertThat(userServices.getGlobalGroupActifUsers(legends)).extracting("username").isEmpty();
 		assertThat(userServices.getGlobalGroupActifUsers(heroes)).containsOnly(thirdUser, anotherUser);
 		assertThat(userServices.getUser(thirdUser.getUsername()).getGlobalGroups()).contains(heroes);
 		assertThat(userServices.getUser(anotherUser.getUsername()).getGlobalGroups()).contains(heroes);
@@ -595,7 +591,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThat(userServices.getUserInCollection(chuckNorris, collection1).getAllRoles())
 				.containsOnlyOnce("role1", "role2", "role3");
 
-		userServices.addUpdateUserCredential(userServices.addEditRequest(chuckNorris).setFirstName("CHUCK").setLastName("NORRIS")
+		userServices.execute(userServices.addUpdate(chuckNorris).setFirstName("CHUCK").setLastName("NORRIS")
 				.setEmail("chuck@norris.com"));
 
 		user = userServices.getUserInCollection(chuckNorris, collection1);
@@ -608,25 +604,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThat(searchServices.getResultsCount(from(collection1Schemas.userSchemaType()).returnAll())).isEqualTo(1);
 	}
 
-	@Test
-	public void whenAddingUserToCollectionGivenTheUserRecordWriteFailsThenRollbackTheGlobalConfig()
-			throws Exception {
-		givenCollection1();
-		givenUserAndPassword();
-
-		userServices = spy(userServices);
-		doThrow(new UserServicesRuntimeException_CannotExcuteTransaction(new RuntimeException()))
-				.when(userServices).sync(any(SystemWideUserInfos.class));
-
-		try {
-			userServices.addUserToCollection(user, collection1);
-		} catch (UserServicesRuntimeException_CannotExcuteTransaction e) {
-			assertThat(userServices.getUser(user.getUsername()).getCollections()).isEmpty();
-			return;
-		}
-
-		fail("Expected exception not thrown");
-	}
 
 	@Test
 	public void givenTwoUsersWithSameEmailThenOk()
@@ -634,11 +611,11 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenCollection1();
 		givenUserAndPassword();
 
-		UserAddUpdateRequest user2 = createUserCredential(
+		com.constellio.model.services.users.UserAddUpdateRequest user2 = addUpdateUserCredential(
 				chuckNorris + "Other", "Chuck", "Norris", "chuck.norris@doculibre.com", new ArrayList<String>(),
 				new ArrayList<String>(),
 				UserCredentialStatus.ACTIVE);
-		userServices.addUpdateUserCredential(user2);
+		userServices.execute(user2);
 
 		assertThat(userServices.getUser(chuckNorris + "Other").getEmail()).isEqualTo(user.getEmail());
 
@@ -686,16 +663,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThat(userServices.getUser(user.getUsername()).getGlobalGroups()).doesNotContain(legends);
 	}
 
-	@Test(expected = UserServicesRuntimeException_NoSuchGroup.class)
-	public void givenUserInGroupWhenRemoveUserFromInexistentGroupThenException()
-			throws Exception {
-		givenCollection1();
-		givenLegendsGroupWithAllUsersInCollections(collection1);
-		givenUserWith(asList(legends), asList(collection1));
-
-		userServices.removeUserFromGlobalGroup(user.getUsername(), "inexistentGroup");
-	}
-
 	@Test
 	public void givenUserAndPasswordWhenGetTokenThenItsReturned()
 			throws Exception {
@@ -703,7 +670,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		setupAfterCollectionCreation();
 
 		givenUserAndPassword();
-		String serviceKey = userServices.giveNewServiceToken(user);
+		String serviceKey = userServices.giveNewServiceKey(user.getUsername());
 
 		String token = userServices.getToken(serviceKey, user.getUsername(), "1qaz2wsx");
 
@@ -720,7 +687,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		setupAfterCollectionCreation();
 
 		givenUserAndPassword();
-		String serviceKey = userServices.giveNewServiceToken(user);
+		String serviceKey = userServices.giveNewServiceKey(user.getUsername());
 		String token = userServices.getToken(serviceKey, user.getUsername(), "1qaz2wsx", Duration.standardSeconds(5));
 
 		assertThat(userServices.getUser(user.getUsername()).getAccessTokens()).isNotEmpty();
@@ -760,7 +727,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		setupAfterCollectionCreation();
 
 		givenUserAndPassword();
-		String serviceKey = userServices.giveNewServiceToken(user);
+		String serviceKey = userServices.giveNewServiceKey(user.getUsername());
 
 		userServices.getToken(serviceKey, user.getUsername(), "wrongPassword");
 	}
@@ -784,10 +751,10 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		setupAfterCollectionCreation();
-		UserAddUpdateRequest admin = userServices.addEditRequest("admin");
+		com.constellio.model.services.users.UserAddUpdateRequest admin = userServices.addUpdate("admin");
 		admin = admin.setStatus(UserCredentialStatus.DELETED);
 		try {
-			userServices.addUpdateUserCredential(admin);
+			userServices.execute(admin);
 		} finally {
 			assertThat(userServices.getUserCredential("admin")).isNotNull();
 			assertThat(userServices.getUserCredential("admin").getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
@@ -802,7 +769,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		setupAfterCollectionCreation();
 
 		givenUserAndPassword();
-		String serviceKey = userServices.giveNewServiceToken(user);
+		String serviceKey = userServices.giveNewServiceKey(user.getUsername());
 		String token = userServices.getToken(serviceKey, user.getUsername(), "1qaz2wsx");
 		user = userServices.getUserInfos(user.getUsername());
 
@@ -820,7 +787,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		setupAfterCollectionCreation();
 
 		givenUserAndPassword();
-		String serviceKey = userServices.giveNewServiceToken(user);
+		String serviceKey = userServices.giveNewServiceKey(user.getUsername());
 		String token = userServices.getToken(serviceKey, user.getUsername(), "1qaz2wsx");
 		user = userServices.getUserInfos(user.getUsername());
 
@@ -840,7 +807,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		setupAfterCollectionCreation();
 
 		givenUserAndPassword();
-		String serviceKey = userServices.giveNewServiceToken(user);
+		String serviceKey = userServices.giveNewServiceKey(user.getUsername());
 		String token = userServices.getToken(serviceKey, user.getUsername(), "1qaz2wsx");
 		user = userServices.getUserInfos(user.getUsername());
 
@@ -855,15 +822,15 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenCollection1();
 
-		GlobalGroup group1 = userServices.createGlobalGroup("group1", "group1", asList(""), null, GlobalGroupStatus.ACTIVE, true);
-		GlobalGroup group1_1 = userServices.createGlobalGroup(
+		GroupAddUpdateRequest group1 = userServices.createGlobalGroup("group1", "group1", asList(""), null, GlobalGroupStatus.ACTIVE, true);
+		GroupAddUpdateRequest group1_1 = userServices.createGlobalGroup(
 				"group1_1", "group1_1", asList(""), "group1", GlobalGroupStatus.ACTIVE, true);
-		GlobalGroup group1_1_1 = userServices.createGlobalGroup(
+		GroupAddUpdateRequest group1_1_1 = userServices.createGlobalGroup(
 				"group1_1_1", "group1_1_1", asList(""), "group1_1", GlobalGroupStatus.ACTIVE, true);
 
-		userServices.addUpdateGlobalGroup(group1);
-		userServices.addUpdateGlobalGroup(group1_1);
-		userServices.addUpdateGlobalGroup(group1_1_1);
+		userServices.execute(group1);
+		userServices.execute(group1_1);
+		userServices.execute(group1_1_1);
 
 		assertThat(userServices.getChildrenOfGroupInCollection("group1", "collection1")).hasSize(1);
 		assertThat(userServices.getChildrenOfGroupInCollection("group1", "collection1").get(0).getCode()).isEqualTo("group1_1");
@@ -877,14 +844,14 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	public void givenGroupHierarchyWhenRemoveGroupFromCollectionThenRemoveHierarchy()
 			throws Exception {
 		givenCollection1();
-		GlobalGroup group1 = userServices.createGlobalGroup("group1", "group1", asList(""), null, GlobalGroupStatus.ACTIVE, true);
-		GlobalGroup group1_1 = userServices.createGlobalGroup(
+		GroupAddUpdateRequest group1 = userServices.createGlobalGroup("group1", "group1", asList(""), null, GlobalGroupStatus.ACTIVE, true);
+		GroupAddUpdateRequest group1_1 = userServices.createGlobalGroup(
 				"group1_1", "group1_1", asList(""), "group1", GlobalGroupStatus.ACTIVE, true);
-		GlobalGroup group1_1_1 = userServices.createGlobalGroup(
+		GroupAddUpdateRequest group1_1_1 = userServices.createGlobalGroup(
 				"group1_1_1", "group1_1_1", asList(""), "group1_1", GlobalGroupStatus.ACTIVE, true);
-		userServices.addUpdateGlobalGroup(group1);
-		userServices.addUpdateGlobalGroup(group1_1);
-		userServices.addUpdateGlobalGroup(group1_1_1);
+		userServices.execute(group1);
+		userServices.execute(group1_1);
+		userServices.execute(group1_1_1);
 
 		UserCredential admin = userServices.getUserCredential("admin");
 		userServices.addUserToCollection(admin, collection1);
@@ -903,14 +870,18 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenCollection1();
 
 		List emptyList = new ArrayList<>();
-		GlobalGroup group1 = userServices.createGlobalGroup("group1", "group1", emptyList, null, GlobalGroupStatus.ACTIVE, true);
-		GlobalGroup group1_1 = userServices.createGlobalGroup(
+		GroupAddUpdateRequest group1Req = userServices.createGlobalGroup("group1", "group1", emptyList, null, GlobalGroupStatus.ACTIVE, true);
+		GroupAddUpdateRequest group1_1Req = userServices.createGlobalGroup(
 				"group1_1", "group1_1", emptyList, "group1", GlobalGroupStatus.ACTIVE, true);
-		GlobalGroup group1_1_1 = userServices.createGlobalGroup(
+		GroupAddUpdateRequest group1_1_1Req = userServices.createGlobalGroup(
 				"group1_1_1", "group1_1_1", emptyList, "group1_1", GlobalGroupStatus.ACTIVE, true);
-		userServices.addUpdateGlobalGroup(group1);
-		userServices.addUpdateGlobalGroup(group1_1);
-		userServices.addUpdateGlobalGroup(group1_1_1);
+		userServices.execute(group1Req);
+		userServices.execute(group1_1Req);
+		userServices.execute(group1_1_1Req);
+
+		SystemWideGroup group1 = userServices.getGroup("group1");
+		SystemWideGroup group1_1 = userServices.getGroup("group1_1");
+		SystemWideGroup group1_1_1 = userServices.getGroup("group1_1_1");
 
 		UserCredential admin = userServices.getUserCredential("admin");
 		userServices.addUserToCollection(admin, collection1);
@@ -943,14 +914,17 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenCollection1();
 
 		List emptyList = new ArrayList<>();
-		GlobalGroup group1 = userServices.createGlobalGroup("group1", "group1", emptyList, null, GlobalGroupStatus.ACTIVE, true);
-		GlobalGroup group1_1 = userServices.createGlobalGroup(
+		GroupAddUpdateRequest group1Req = userServices.createGlobalGroup("group1", "group1", emptyList, null, GlobalGroupStatus.ACTIVE, true);
+		GroupAddUpdateRequest group1_1Req = userServices.createGlobalGroup(
 				"group1_1", "group1_1", emptyList, "group1", GlobalGroupStatus.ACTIVE, true);
-		GlobalGroup group1_1_1 = userServices.createGlobalGroup(
+		GroupAddUpdateRequest group1_1_1Req = userServices.createGlobalGroup(
 				"group1_1_1", "group1_1_1", emptyList, "group1_1", GlobalGroupStatus.ACTIVE, true);
-		userServices.addUpdateGlobalGroup(group1);
-		userServices.addUpdateGlobalGroup(group1_1);
-		userServices.addUpdateGlobalGroup(group1_1_1);
+		userServices.execute(group1Req);
+		userServices.execute(group1_1Req);
+		userServices.execute(group1_1_1Req);
+		SystemWideGroup group1 = userServices.getGroup("group1");
+		SystemWideGroup group1_1 = userServices.getGroup("group1_1");
+		SystemWideGroup group1_1_1 = userServices.getGroup("group1_1_1");
 		UserCredential admin = userServices.getUserCredential("admin");
 		userServices.addUserToCollection(admin, collection1);
 		userServices.logicallyRemoveGroupHierarchy(admin.getUsername(), group1);
@@ -1027,10 +1001,12 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		recordServices.execute(t);
 		userServices = getModelLayerFactory().newUserServices();
 		for (SystemWideUserInfos user : users.getAllUsers()) {
-			UserAddUpdateRequest userReq = userServices.addEditRequest(user.getUsername());
-			if (!userReq.isSystemAdmin()) {
-				userReq.setStatus(UserCredentialStatus.DELETED);
-				userServices.addUpdateUserCredential(userReq);
+			if (!user.getUsername().equals("admin")) {
+				com.constellio.model.services.users.UserAddUpdateRequest userReq = userServices.addUpdate(user.getUsername());
+				if (!user.isSystemAdmin()) {
+					userReq.setStatus(UserCredentialStatus.DELETED);
+					userServices.execute(userReq);
+				}
 			}
 		}
 
@@ -1047,18 +1023,20 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
-		GlobalGroup g1 = userServices.createGlobalGroup("G1", "G1", Collections.emptyList(), null, GlobalGroupStatus.INACTIVE, true),
-				g2 = userServices.createGlobalGroup("G2", "G2", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true),
-				g3 = userServices.createGlobalGroup("G3", "G3", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true),
-				g4 = userServices.createGlobalGroup("G4", "G4", Collections.emptyList(), null, GlobalGroupStatus.INACTIVE, true);
+		userServices.execute(userServices.createGlobalGroup("G1", "G1", Collections.emptyList(), null, GlobalGroupStatus.INACTIVE, true));
+		userServices.execute(userServices.createGlobalGroup("G2", "G2", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true));
+		userServices.execute(userServices.createGlobalGroup("G3", "G3", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true));
+		userServices.execute(userServices.createGlobalGroup("G4", "G4", Collections.emptyList(), null, GlobalGroupStatus.INACTIVE, true));
 
-		Transaction t = new Transaction();
-		t.addAll(asList(g1, g2, g3, g4));
-		recordServices.execute(t);
-		UserAddUpdateRequest chuck = userServices.addEditRequest(records.getChuckNorris().getUsername());
+		SystemWideGroup g1 = userServices.getGroup("G1");
+		SystemWideGroup g2 = userServices.getGroup("G2");
+		SystemWideGroup g3 = userServices.getGroup("G3");
+		SystemWideGroup g4 = userServices.getGroup("G4");
+
+		com.constellio.model.services.users.UserAddUpdateRequest chuck = userServices.addUpdate(records.getChuckNorris().getUsername());
 
 		chuck.setGlobalGroups(asList(g2.getCode(), g3.getCode(), g4.getCode()));
-		userServices.addUpdateUserCredential(chuck);
+		userServices.execute(chuck);
 
 		assertThat(userServices.safePhysicalDeleteAllUnusedGlobalGroups()).doesNotContain(g1).contains(g2, g3, g4);
 		assertThat(userServices.getNullableGroup(g1.getCode())).isNull();
@@ -1074,16 +1052,17 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
 
-		GlobalGroup g1 = userServices.createGlobalGroup("G1", "G1", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true),
-				g2 = userServices.createGlobalGroup("G2", "G2", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true);
-		Transaction t = new Transaction();
-		t.addAll(asList(g1, g2));
-		recordServices.execute(t);
-		UserAddUpdateRequest gandalf = userServices.addEditRequest(records.getGandalf_managerInABC().getUsername());
+		userServices.execute(userServices.createGlobalGroup("G1", "G1", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true));
+		userServices.execute(userServices.createGlobalGroup("G2", "G2", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true));
+
+		SystemWideGroup g1 = userServices.getGroup("G1");
+		SystemWideGroup g2 = userServices.getGroup("G2");
+
+		com.constellio.model.services.users.UserAddUpdateRequest gandalf = userServices.addUpdate(records.getGandalf_managerInABC().getUsername());
 
 		gandalf.setGlobalGroups(asList(g2.getCode()));
 
-		userServices.addUpdateUserCredential(gandalf);
+		userServices.execute(gandalf);
 
 		assertThat(userServices.physicallyRemoveGlobalGroup(g1)).isEmpty();
 
@@ -1190,9 +1169,9 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		recordServices.execute(t);
 		userServices = getModelLayerFactory().newUserServices();
 		assertThat(userServices.getUserInCollection("alice", zeCollection)).isNotNull();
-		userServices.removeUserCredentialFromCollection("alice", zeCollection);
+		userServices.removeUserFromCollection("alice", zeCollection);
 		userServices
-				.removeUserCredentialFromCollection(chuck.getUsername(), zeCollection);
+				.removeUserFromCollection(chuck.getUsername(), zeCollection);
 		userServices.safePhysicalDeleteAllUnusedUsers(zeCollection);
 		try {
 			userServices.getUserInCollection("alice", zeCollection);
@@ -1219,8 +1198,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		c.setTitle("Ze cart");
 		t.add(c);
 		recordServices.execute(t);
-		userServices.removeUserCredentialFromCollection("alice", zeCollection);
-		userServices.removeUserCredentialFromCollection(chuck.getUsername(), zeCollection);
+		userServices.removeUserFromCollection("alice", zeCollection);
+		userServices.removeUserFromCollection(chuck.getUsername(), zeCollection);
 
 		try {
 			userServices.physicallyRemoveUser(chuck, zeCollection);
@@ -1249,15 +1228,12 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
 		Group heroes = records.getHeroes();
-		GlobalGroup heroesGlobalGroup = userServices.getGroup(heroes.getCode());
+		SystemWideGroup heroesGlobalGroup = userServices.getGroup(heroes.getCode());
 
 		userServices.removeGroupFromCollectionsWithoutUserValidation(heroes.getCode(),
 				asList(heroes.getCollection()));
 		userServices.logicallyRemoveGroup(heroesGlobalGroup);
 
-		Transaction t = new Transaction();
-		t.update(((GlobalGroup) heroesGlobalGroup).getWrappedRecord());
-		recordServices.execute(t);
 
 		assertThat(userServices.getGroup(heroesGlobalGroup.getCode()).getStatus())
 				.isEqualTo(GlobalGroupStatus.INACTIVE);
@@ -1280,30 +1256,30 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		String phone = "450 444 1919";
 
-		UserAddUpdateRequest chuckCredential = users.chuckNorrisAddUpdateRequest();
+		com.constellio.model.services.users.UserAddUpdateRequest chuckCredential = users.chuckNorrisAddUpdateRequest();
 		chuckCredential.setPhone(phone);
-		userServices.addUpdateUserCredential(chuckCredential);
+		userServices.execute(chuckCredential);
 
 		assertThat(userServices.getUserCredential(chuckCredential.getUsername()).getPhone()).isEqualTo(phone);
 
 		String fax = "450 448 4448";
 		chuckCredential = users.chuckNorrisAddUpdateRequest();
 		chuckCredential.setFax(fax);
-		userServices.addUpdateUserCredential(chuckCredential);
+		userServices.execute(chuckCredential);
 
 		assertThat(userServices.getUserCredential(chuckCredential.getUsername()).getFax()).isEqualTo(fax);
 
 		String address = "647 addresse";
 		chuckCredential = users.chuckNorrisAddUpdateRequest();
 		chuckCredential.setAddress(address);
-		userServices.addUpdateUserCredential(chuckCredential);
+		userServices.execute(chuckCredential);
 
 		assertThat(userServices.getUserCredential(chuckCredential.getUsername()).getAddress()).isEqualTo(address);
 
 		String jobTitle = "Programmeur";
 		chuckCredential = users.chuckNorrisAddUpdateRequest();
 		chuckCredential.setJobTitle(jobTitle);
-		userServices.addUpdateUserCredential(chuckCredential);
+		userServices.execute(chuckCredential);
 
 		assertThat(userServices.getUserCredential(chuckCredential.getUsername()).getJobTitle()).isEqualTo(jobTitle);
 	}
@@ -1319,7 +1295,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		return recordsInGroupInCollection;
 	}
 
-	private Record getRecordGroupInCollection(GlobalGroup legendsGroup, String collection) {
+	private Record getRecordGroupInCollection(SystemWideGroup legendsGroup, String collection) {
 		LogicalSearchCondition condition;
 		condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection).where(userServices.groupCodeMetadata(collection))
 				.isEqualTo(legendsGroup.getCode());
@@ -1353,9 +1329,9 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 	private void givenHeroesGroupWithAllUsersInCollections(String... collections) {
 		heroes = "heroes";
-		GlobalGroup globalGroup = userServices.createGlobalGroup(
+		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup(
 				heroes, heroes, asList(collections), null, GlobalGroupStatus.ACTIVE, true);
-		userServices.addUpdateGlobalGroup(globalGroup);
+		userServices.execute(globalGroup);
 	}
 
 	private void givenLegendsGroup() {
@@ -1364,9 +1340,9 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 	private void givenLegendsGroupWithAllUsersInCollections(String... collections) {
 		legends = "legends";
-		GlobalGroup globalGroup = userServices.createGlobalGroup(
+		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup(
 				legends, legends, asList(collections), null, GlobalGroupStatus.ACTIVE, true);
-		userServices.addUpdateGlobalGroup(globalGroup);
+		userServices.execute(globalGroup);
 	}
 
 	private void givenCollection1() {
@@ -1414,39 +1390,39 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenUserAndPassword() {
-		userReq = createUserCredential(
+		userReq = addUpdateUserCredential(
 				chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", new ArrayList<String>(), new ArrayList<String>(),
 				UserCredentialStatus.ACTIVE);
-		userServices.addUpdateUserCredential(userReq);
+		userServices.execute(userReq);
 		authenticationService.changePassword(userReq.getUsername(), "1qaz2wsx");
 		user = userServices.getUserInfos(userReq.getUsername());
-		userReq = userServices.addEditRequest(userReq.getUsername());
+		userReq = userServices.addUpdate(userReq.getUsername());
 	}
 
 	private void givenUserWith(List<String> groups, List<String> collections) {
-		userReq = createUserCredential(
+		userReq = addUpdateUserCredential(
 				chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", groups, collections, UserCredentialStatus.ACTIVE).setSystemAdminEnabled();
-		userServices.addUpdateUserCredential(userReq);
+		userServices.execute(userReq);
 		user = userServices.getUserInfos(userReq.getUsername());
-		userReq = userServices.addEditRequest(userReq.getUsername());
+		userReq = userServices.addUpdate(userReq.getUsername());
 	}
 
 	private void givenAnotherUserWith(List<String> groups, List<String> collections) {
-		anotherUserReq = createUserCredential(
+		anotherUserReq = addUpdateUserCredential(
 				"gandalf.leblanc", "Gandalf", "Leblanc", "gandalf.leblanc@doculibre.com", groups, collections,
 				UserCredentialStatus.ACTIVE);
-		userServices.addUpdateUserCredential(anotherUserReq);
+		userServices.execute(anotherUserReq);
 		anotherUser = userServices.getUserInfos(anotherUserReq.getUsername());
-		anotherUserReq = userServices.addEditRequest(anotherUserReq.getUsername());
+		anotherUserReq = userServices.addUpdate(anotherUserReq.getUsername());
 	}
 
 	private void givenAThirdUserWith(List<String> groups, List<String> collections) {
-		thirdUserReq = createUserCredential(
+		thirdUserReq = addUpdateUserCredential(
 				"edouard.lechat", "Edouard", "Lechat", "edouard.lechat@doculibre.com", groups, collections,
 				UserCredentialStatus.ACTIVE);
-		userServices.addUpdateUserCredential(thirdUserReq);
+		userServices.execute(thirdUserReq);
 		thirdUser = userServices.getUserInfos(thirdUserReq.getUsername());
-		thirdUserReq = userServices.addEditRequest(thirdUserReq.getUsername());
+		thirdUserReq = userServices.addUpdate(thirdUserReq.getUsername());
 	}
 
 

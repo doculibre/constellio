@@ -50,8 +50,8 @@ public class ConstellioGenerateTokenWebServletAcceptanceTest extends ConstellioT
 			throws Exception {
 
 		givenTimeIs(dateTime(2014, 1, 2, 3, 0, 3));
-		getModelLayerFactory().newUserServices().addUpdateUserCredential(getModelLayerFactory().newUserServices()
-				.addEditRequest(admin).setServiceKey("adminkey"));
+		getModelLayerFactory().newUserServices().execute(getModelLayerFactory().newUserServices()
+				.addUpdate(admin).setServiceKey("adminkey"));
 		getModelLayerFactory().newAuthenticationService().changePassword(admin, "1qaz2wsx");
 		getModelLayerFactory().newAuthenticationService().changePassword(aliceWonderland, "mouhahaha");
 		getModelLayerFactory().newAuthenticationService().changePassword(bobGratton, "1qaz2wsx");

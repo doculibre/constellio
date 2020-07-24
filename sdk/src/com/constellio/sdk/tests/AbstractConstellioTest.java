@@ -119,7 +119,6 @@ import java.util.regex.Pattern;
 import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
-import static com.constellio.model.services.users.UserUtils.cleanUsername;
 import static com.constellio.sdk.tests.ConstellioTest.getInstance;
 import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
 import static com.constellio.sdk.tests.SaveStateFeatureAcceptTest.verifySameContentOfUnzippedSaveState;
@@ -1736,7 +1735,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected Session newCMISSessionAsUserInCollection(String username, String collection) {
 		ensureNotUnitTest();
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.addUpdateUserConfigs(userServices.getUser(username).setServiceKey(username + "-key"));
+		userServices.execute(userServices.addUpdate(username).setServiceKey(username + "-key"));
 		String token = userServices.generateToken(username, Duration.standardHours(72));
 		System.out.println("Logging as " + username + "-key / " + token);
 		Session session = newCmisSessionBuilder().authenticatedBy(username + "-key", token).onCollection(collection).build();
@@ -1784,12 +1783,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		this.failMessage = failMessage;
 	}
 
-	public UserAddUpdateRequest createUserCredential(String username, String firstName, String lastName, String email,
-													 List<String> globalGroups, List<String> collections,
-													 UserCredentialStatus status) {
+	public UserAddUpdateRequest addUpdateUserCredential(String username, String firstName, String lastName,
+														String email,
+														List<String> globalGroups, List<String> collections,
+														UserCredentialStatus status) {
 
-		return getModelLayerFactory().newUserServices().addEditRequest(username)
-				.setUsername(cleanUsername(username))
+		return getModelLayerFactory().newUserServices().addUpdate(username)
 				.setFirstName(firstName)
 				.setLastName(lastName)
 				.setEmail(email)
@@ -1797,7 +1796,6 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				.setSystemAdmin(false)
 				.setGlobalGroups(globalGroups)
 				.setCollections(collections)
-				.setAccessTokens(Collections.<String, LocalDateTime>emptyMap())
 				.setStatus(status)
 				.setDomain(null)
 				.setMsExchDelegateListBL(null)

@@ -15,7 +15,7 @@ import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -51,9 +51,9 @@ public class CoreMigrationTo_9_0_0_5 extends MigrationHelper implements Migratio
 				typesBuilder.getDefaultSchema(UserCredential.SCHEMA_TYPE).get(UserCredential.USERNAME).setCacheIndex(true);
 				typesBuilder.getDefaultSchema(UserCredential.SCHEMA_TYPE).get(UserCredential.STATUS).setCacheIndex(false);
 				typesBuilder.getDefaultSchema(UserCredential.SCHEMA_TYPE).get(UserCredential.SERVICE_KEY).setCacheIndex(true);
-				typesBuilder.getDefaultSchema(GlobalGroup.SCHEMA_TYPE).get(GlobalGroup.PARENT).setCacheIndex(true);
-				typesBuilder.getDefaultSchema(GlobalGroup.SCHEMA_TYPE).get(GlobalGroup.CODE).setCacheIndex(true);
-				typesBuilder.getDefaultSchema(GlobalGroup.SCHEMA_TYPE).get(GlobalGroup.STATUS).setCacheIndex(false);
+				typesBuilder.getDefaultSchema(SystemWideGroup.SCHEMA_TYPE).get(SystemWideGroup.PARENT).setCacheIndex(true);
+				typesBuilder.getDefaultSchema(SystemWideGroup.SCHEMA_TYPE).get(SystemWideGroup.CODE).setCacheIndex(true);
+				typesBuilder.getDefaultSchema(SystemWideGroup.SCHEMA_TYPE).get(SystemWideGroup.STATUS).setCacheIndex(false);
 			}
 
 			typesBuilder.getSchemaType(Event.SCHEMA_TYPE).setRecordCacheType(NOT_CACHED);

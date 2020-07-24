@@ -15,7 +15,6 @@ import com.rometools.utils.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -112,21 +111,20 @@ public class UserImportServices implements ImportServices {
 			userCredentialStatus = UserCredentialStatus.ACTIVE;
 		}
 		Object systemAdmin = toImport.getFields().get("systemAdmin");
-		UserAddUpdateRequest userCredential = userServices.addEditRequest(username)
+		UserAddUpdateRequest userCredential = userServices.addUpdate(username)
 				.setFirstName(firstName)
 				.setLastName(lastName)
 				.setEmail(email)
 				.setServiceKey(null)
 				.setSystemAdmin(systemAdmin == null ? null : Boolean.valueOf((String) systemAdmin))
-				.setGlobalGroups(globalGroups)
-				.setCollections(collections)
-				.setAccessTokens(new HashMap<>())
+				.addToGroupsInEachCollection(globalGroups)
+				.addCollections(collections)
 				.setStatus(userCredentialStatus);
 		try {
 			if (userServices.getUserCredential(username) == null && Strings.isNotEmpty(password)) {
 				passwordFileAuthenticationService.changePassword(username, password);
 			}
-			userServices.addUpdateUserCredential(userCredential);
+			userServices.execute(userCredential);
 		} catch (Exception e) {
 			LOGGER.warn(e.toString(), e);
 			Throwable cause = e.getCause();

@@ -25,6 +25,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerFactoryWithRequestCacheImpl;
@@ -155,47 +157,40 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 
 	public MetadataSchemaType globalGroupSchemaType() {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
-		return types.getSchemaType(GlobalGroup.SCHEMA_TYPE);
+		return types.getSchemaType(SystemWideGroup.SCHEMA_TYPE);
 	}
 
 	public MetadataSchema globalGroupSchema() {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
-		return types.getSchema(GlobalGroup.DEFAULT_SCHEMA);
+		return types.getSchema(SystemWideGroup.DEFAULT_SCHEMA);
 	}
 
 	public Metadata globalGroupCode() {
-		return globalGroupSchema().getMetadata(GlobalGroup.CODE);
+		return globalGroupSchema().getMetadata(SystemWideGroup.CODE);
 	}
 
 	public Metadata globalGroupHierarchy() {
-		return globalGroupSchema().getMetadata(GlobalGroup.HIERARCHY);
+		return globalGroupSchema().getMetadata(SystemWideGroup.HIERARCHY);
 	}
 
 	public Metadata globalGroupStatus() {
-		return globalGroupSchema().getMetadata(GlobalGroup.STATUS);
+		return globalGroupSchema().getMetadata(SystemWideGroup.STATUS);
 	}
 
 	public Metadata globalGroupCollections() {
-		return globalGroupSchema().getMetadata(GlobalGroup.COLLECTIONS);
+		return globalGroupSchema().getMetadata(SystemWideGroup.COLLECTIONS);
 	}
 
-	public GlobalGroup newGlobalGroup() {
-		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
-		return new GlobalGroup(create(globalGroupSchema()), types);
+	public GroupAddUpdateRequest newGlobalGroup(String code) {
+		return new GroupAddUpdateRequest(code);
 	}
 
-	public GlobalGroup wrapGlobalGroup(Record record) {
+
+	public GlobalGroup wrapOldGlobalGroup(Record record) {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
 		return new GlobalGroup(record, types);
 	}
 
-	public List<GlobalGroup> wrapGlobalGroups(List<Record> records) {
-		List<GlobalGroup> result = new ArrayList<>(records.size());
-		for (Record record : records) {
-			result.add(wrapGlobalGroup(record));
-		}
-		return result;
-	}
 
 	//Events
 
@@ -496,7 +491,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	 * @return
 	 */
 	@Deprecated
-	public List<GlobalGroup> getAllGlobalGroups() {
+	public List<SystemWideGroup> getAllGlobalGroups() {
 		return modelLayerFactory.newUserServices().getAllGlobalGroups();
 	}
 
@@ -577,11 +572,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return wrapGroup(get(id));
 	}
 
-	public GlobalGroup getGlobalGroup(String id) {
-		return wrapGlobalGroup(get(id));
-	}
-
-	public GlobalGroup getGlobalGroupWithCode(String code) {
+	public SystemWideGroup getGlobalGroupWithCode(String code) {
 		return modelLayerFactory.newUserServices().getGroup(code);
 	}
 

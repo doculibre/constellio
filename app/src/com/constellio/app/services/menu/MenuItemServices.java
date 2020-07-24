@@ -1,7 +1,12 @@
 package com.constellio.app.services.menu;
 
 import com.constellio.app.extensions.menu.MenuItemActionsExtension;
-import com.constellio.app.extensions.menu.MenuItemActionsExtension.*;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionAddMenuItemActionsForQueryParams;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionAddMenuItemActionsForRecordParams;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionAddMenuItemActionsForRecordsParams;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetActionStateForQueryParams;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetActionStateForRecordParams;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetActionStateForRecordsParams;
 import com.constellio.app.modules.rm.ui.pages.userDocuments.ListUserDocumentsViewImpl;
 import com.constellio.app.services.action.UserDocumentActionsServices;
 import com.constellio.app.services.action.UserFolderActionsServices;
@@ -18,6 +23,7 @@ import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Resource;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,7 +36,9 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.*;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.DISABLED;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.services.menu.MenuItemServices.RecordsMenuItemActionType.CLASSIFY;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.vaadin.server.FontAwesome.FOLDER_O;
@@ -52,6 +60,7 @@ public class MenuItemServices {
 	private AppLayerFactory appLayerFactory;
 
 	private SchemasRecordsServices schemasRecordsServices;
+	private UserServices userServices;
 
 	public MenuItemServices(String collection, AppLayerFactory appLayerFactory) {
 		this.menuItemActionsExtensions = appLayerFactory.getExtensions()
@@ -68,6 +77,7 @@ public class MenuItemServices {
 		this.userFolderActionsServices = new UserFolderActionsServices(collection, appLayerFactory);
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
+		this.userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 	}
 
 	public List<MenuItemAction> getActionsForRecord(Record record, MenuItemActionBehaviorParams params) {
@@ -234,10 +244,10 @@ public class MenuItemServices {
 					schemasRecordsServices.wrapUserFolder(record), params.getUser(), params));
 		} else if (record.isOfSchemaType(User.SCHEMA_TYPE)) {
 			return MenuItemActionState.visibleOrHidden(userCredentialMenuItemServices.isMenuItemActionPossible(actionType,
-					schemasRecordsServices.wrapUserCredential(record), params.getUser(), params));
+					userServices.getUser(schemasRecordsServices.wrapUser(record).getUsername()), params.getUser(), params));
 		} else if (record.isOfSchemaType(Group.SCHEMA_TYPE)) {
 			return MenuItemActionState.visibleOrHidden(globalGroupMenuItemServices.isMenuItemActionPossible(actionType,
-					schemasRecordsServices.wrapGlobalGroup(record), params.getUser(), params));
+					userServices.getGroup(schemasRecordsServices.wrapGroup(record).getCode()), params.getUser(), params));
 		} else if (record.getSchemaCode().startsWith("ddv")) {
 			return MenuItemActionState.visibleOrHidden(schemaRecordMenuItemServices.isMenuItemActionPossible(actionType,
 					record, params.getUser(), params));

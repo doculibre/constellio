@@ -12,6 +12,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,9 +46,9 @@ public class UserRestfulServiceGETInitialsAcceptanceTest extends BaseRestfulServ
 		ContentVersionDataSummary versionDataSummary = contentManager.upload(file);
 		Content content = contentManager.createSystemContent(file.getName(), versionDataSummary);
 
-		UserCredential userCredentials = userServices.getUserConfigs(users.bobIn(zeCollection).getUsername());
+		UserAddUpdateRequest userCredentials = userServices.addUpdate(users.bobIn(zeCollection).getUsername());
 		userCredentials.setElectronicInitials(content);
-		userServices.addUpdateUserConfigs(userCredentials);
+		userServices.execute(userCredentials);
 
 		queryCounter.reset();
 		commitCounter.reset();
@@ -84,14 +85,14 @@ public class UserRestfulServiceGETInitialsAcceptanceTest extends BaseRestfulServ
 
 	@Test
 	public void validateServiceWithEmptyData() {
-		UserCredential userCredentials = userServices.getUserConfigs(users.bobIn(zeCollection).getUsername());
+		UserAddUpdateRequest userCredentials = userServices.addUpdate(users.bobIn(zeCollection).getUsername());
 		userCredentials.setElectronicInitials(null);
-		userServices.addUpdateUserConfigs(userCredentials);
+		userServices.execute(userCredentials);
 
 		queryCounter.reset();
 		commitCounter.reset();
 
-		assertThat(userCredentials.getElectronicInitials()).isNull();
+		assertThat(userServices.getUser("bob").getElectronicInitials()).isNull();
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();

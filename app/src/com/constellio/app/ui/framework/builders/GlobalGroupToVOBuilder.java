@@ -1,7 +1,7 @@
 package com.constellio.app.ui.framework.builders;
 
 import com.constellio.app.ui.entities.GlobalGroupVO;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 
 import java.io.Serializable;
@@ -11,7 +11,7 @@ import java.util.Set;
 @SuppressWarnings("serial")
 public class GlobalGroupToVOBuilder implements Serializable {
 
-	public GlobalGroupVO build(GlobalGroup globalGroup) {
+	public GlobalGroupVO build(SystemWideGroup globalGroup) {
 		String code = globalGroup.getCode();
 		String name = globalGroup.getName();
 		Set<String> collections = new HashSet<>();

@@ -53,7 +53,7 @@ public class HttpServletRequestAuthenticatorRealTest extends ConstellioTest {
 	}
 
 	private String getServiceKey(UserServices userServices, SystemWideUserInfos userCredentialBob) {
-		return userServices.giveNewServiceToken(userCredentialBob);
+		return userServices.giveNewServiceKey(userCredentialBob.getUsername());
 	}
 
 	private String getToken(User bob, String bobServiceKey, String bobPassword) {

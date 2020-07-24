@@ -8,7 +8,7 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.UserServices;
 
@@ -81,7 +81,7 @@ public class ListGlobalGroupsPresenter extends BasePresenter<ListGlobalGroupsVie
 		UserServices userServices = modelLayerFactory.newUserServices();
 		String username = view.getSessionContext().getCurrentUser().getUsername();
 		UserCredential userCredential = userServices.getUserCredential(username);
-		GlobalGroup globalGroup = userServices.getGroup(globalGroupVO.getCode());
+		SystemWideGroup globalGroup = userServices.getGroup(globalGroupVO.getCode());
 		userServices.logicallyRemoveGroupHierarchy(userCredential.getUsername(), globalGroup);
 		view.refreshTable();
 	}

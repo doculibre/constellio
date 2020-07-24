@@ -8,7 +8,7 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -26,9 +26,7 @@ import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import static com.constellio.data.conf.DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS;
 import static com.constellio.data.conf.DigitSeparatorMode.TWO_DIGITS;
@@ -77,24 +75,20 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 		String email = "admin@organization.com";
 		UserCredentialStatus status = UserCredentialStatus.ACTIVE;
 		String domain = "";
-		List<String> globalGroups = new ArrayList<>();
-		List<String> collections = new ArrayList<>();
 		boolean isSystemAdmin = true;
 
 		UserServices userServices = modelLayerFactory.newUserServices();
-		UserAddUpdateRequest request = userServices.addEditRequest(username)
+		UserAddUpdateRequest request = userServices.addUpdate(username)
 				.setFirstName(firstName)
 				.setLastName(lastName)
 				.setEmail(email)
 				.setServiceKey(null)
 				.setSystemAdmin(isSystemAdmin)
-				.setGlobalGroups(globalGroups)
-				.setCollections(collections)
 				.setStatus(status)
 				.setDomain(domain)
 				.setMsExchDelegateListBL(Arrays.asList(""))
 				.setDn(null);
-		userServices.addUpdateUserCredential(request);
+		userServices.execute(request);
 		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();
 		if (authenticationService.supportPasswordChange()) {
 			authenticationService.changePassword("admin", password);
@@ -155,17 +149,17 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 		}
 
 		private void createGlobalGroupSchema(MetadataSchemaTypesBuilder builder) {
-			MetadataSchemaTypeBuilder credentialsTypeBuilder = builder.createNewSchemaType(GlobalGroup.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder credentialsTypeBuilder = builder.createNewSchemaType(SystemWideGroup.SCHEMA_TYPE);
 			credentialsTypeBuilder.setSecurity(false);
 			MetadataSchemaBuilder groups = credentialsTypeBuilder.getDefaultSchema();
 
 			groups.createUniqueCodeMetadata();
-			groups.createUndeletable(GlobalGroup.NAME).setType(MetadataValueType.STRING).setDefaultRequirement(true);
-			groups.createUndeletable(GlobalGroup.COLLECTIONS).setType(MetadataValueType.STRING).setMultivalue(true);
-			groups.createUndeletable(GlobalGroup.PARENT).setType(MetadataValueType.STRING);
-			groups.createUndeletable(GlobalGroup.STATUS).defineAsEnum(GlobalGroupStatus.class).setDefaultRequirement(true);
-			groups.createUndeletable(GlobalGroup.HIERARCHY).setType(MetadataValueType.STRING);
-			groups.createUndeletable(GlobalGroup.LOCALLY_CREATED).setType(MetadataValueType.BOOLEAN);
+			groups.createUndeletable(SystemWideGroup.NAME).setType(MetadataValueType.STRING).setDefaultRequirement(true);
+			groups.createUndeletable(SystemWideGroup.COLLECTIONS).setType(MetadataValueType.STRING).setMultivalue(true);
+			groups.createUndeletable(SystemWideGroup.PARENT).setType(MetadataValueType.STRING);
+			groups.createUndeletable(SystemWideGroup.STATUS).defineAsEnum(GlobalGroupStatus.class).setDefaultRequirement(true);
+			groups.createUndeletable(SystemWideGroup.HIERARCHY).setType(MetadataValueType.STRING);
+			groups.createUndeletable(SystemWideGroup.LOCALLY_CREATED).setType(MetadataValueType.BOOLEAN);
 		}
 	}
 }

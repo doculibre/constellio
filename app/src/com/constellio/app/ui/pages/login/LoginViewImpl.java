@@ -254,8 +254,8 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				UserServices userServices = modelLayerFactory.newUserServices();
-				userServices.addUpdateUserConfigs(userServices.getUserCredential(userInLastCollection.getUsername())
-						.setAgreedPrivacyPolicy(true));
+				userServices.execute(userServices.addUpdate(userInLastCollection.getUsername())
+						.setHasAgreedToPrivacyPolicy(true));
 				presenter.signInValidated(userInLastCollection, lastCollection);
 				window.close();
 			}
@@ -299,8 +299,8 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				UserServices userServices = modelLayerFactory.newUserServices();
-				userServices.addUpdateUserConfigs(userServices.getUserCredential(userInLastCollection.getUsername())
-						.setReadLastAlert(true));
+				userServices.execute(userServices.addUpdate(userInLastCollection.getUsername())
+						.setHasReadLastAlert(true));
 				presenter.signInValidated(userInLastCollection, lastCollection);
 				window.close();
 			}

@@ -32,7 +32,6 @@ public class SingletonConstellioFactoriesInstanceProviderAcceptanceTest extends 
 			throws Exception {
 
 		assumeNotSolrCloud();
-
 		ConstellioFactories.instanceProvider = new SingletonConstellioFactoriesInstanceProvider();
 		final File constellioProperties = tempFolder.newFile("constellio.properties");
 		FileUtils.write(constellioProperties, "");
@@ -171,7 +170,7 @@ public class SingletonConstellioFactoriesInstanceProviderAcceptanceTest extends 
 		ConstellioFactories constellioFactories = ConstellioFactories
 				.getInstance(() -> constellioProperties, configurationAndServicesDecorator);
 
-		otherThread.join();
+		otherThread.join(30_000);
 		assertThat(numberOfTimeThatAnOtherThreadHasObtainedInstances.get()).isBetween(1, 2);
 	}
 

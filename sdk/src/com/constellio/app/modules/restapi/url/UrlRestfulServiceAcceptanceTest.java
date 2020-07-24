@@ -71,7 +71,7 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
 
-		userServices.addUpdateUserCredential(
+		userServices.execute(
 				users.bobAddUpdateRequest().setServiceKey(serviceKey)
 						.addAccessToken(token, TimeProvider.getLocalDateTime().plusYears(1)));
 

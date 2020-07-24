@@ -2,7 +2,7 @@ package com.constellio.app.ui.framework.data;
 
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.SystemWideUserInfos;
@@ -36,11 +36,11 @@ public class GlobalGroupVODataProviderTest extends ConstellioTest {
 	@Mock SystemWideUserInfos bob, dakota;
 	@Mock UserServices userServices;
 	@Mock GlobalGroupToVOBuilder voBuilder;
-	@Mock GlobalGroup heroesGroup, heroesGroup1, legendsGroup;
+	@Mock SystemWideGroup heroesGroup, heroesGroup1, legendsGroup;
 	@Mock GlobalGroupVO heroesGroupVO, heroesGroupVO1, legendsGroupVO;
 	@Mock ModelLayerFactory modelLayerFactory;
 
-	List<GlobalGroup> globalGroups;
+	List<SystemWideGroup> globalGroups;
 	Set<String> collections;
 
 	@Before

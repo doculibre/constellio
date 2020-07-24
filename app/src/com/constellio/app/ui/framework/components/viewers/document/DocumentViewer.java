@@ -201,8 +201,7 @@ public class DocumentViewer extends CustomComponent {
 				UserCredential userCredentials = userServices.getUserCredential(username);
 				String serviceKey = userCredentials.getServiceKey();
 				if (serviceKey == null) {
-					serviceKey = userServices.giveNewServiceToken(username);
-					userServices.addUpdateUserConfigs(userCredentials);
+					serviceKey = userServices.giveNewServiceKey(username);
 				}
 				String tokenAttributeName = "document_viewer_token";
 				String token = ConstellioUI.getCurrent().getAttribute(tokenAttributeName);
@@ -221,7 +220,7 @@ public class DocumentViewer extends CustomComponent {
 						}
 					});
 				}
-				
+
 				String viewerUrl;
 				if (recordVO != null) {
 					Record record = presenterService.getRecord(recordVO.getId());

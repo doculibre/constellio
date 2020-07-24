@@ -68,7 +68,7 @@ public class BackgroundThreadsManager implements StatefulService {
 		}
 
 		// FIXME added a longer delay as a temp fix for multitenancy test
-		long delayBeforeTheFirstCommandExecution = 30;
+		long delayBeforeTheFirstCommandExecution = 0;
 		long executeEverySeconds = backgroundThreadConfiguration.getExecuteEvery().getStandardSeconds();
 		TimeUnit unit = TimeUnit.SECONDS;
 		Runnable command = getRunnableCommand(backgroundThreadConfiguration);
