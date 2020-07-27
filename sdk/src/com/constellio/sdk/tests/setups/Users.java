@@ -2,10 +2,11 @@ package com.constellio.sdk.tests.setups;
 
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserPhotosServices;
@@ -342,6 +343,7 @@ public class Users {
 				.addToGroupsInEachCollection(globalGroups)
 				.addCollections(collections)
 				.setStatus(UserCredentialStatus.ACTIVE)
+				.setSyncMode(UserSyncMode.LOCALLY_CREATED)
 				.setDomain("domain")
 				.setMsExchDelegateListBL(Arrays.asList(""))
 				.setDn(null);

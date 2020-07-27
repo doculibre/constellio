@@ -20,24 +20,24 @@ import com.constellio.model.services.users.UserServices;
 
 import java.util.List;
 
-public class CoreMigrationTo_9_1_14 extends MigrationHelper implements MigrationScript {
+public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "9.1.14";
+		return "9.2";
 	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory) throws Exception {
-		new SchemaAlterationFor_9_1_14(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new SchemaAlterationFor_9_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
-	class SchemaAlterationFor_9_1_14 extends MetadataSchemasAlterationHelper {
+	class SchemaAlterationFor_9_2 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationFor_9_1_14(String collection,
-											 MigrationResourcesProvider migrationResourcesProvider,
-											 AppLayerFactory appLayerFactory) {
+		protected SchemaAlterationFor_9_2(String collection,
+										  MigrationResourcesProvider migrationResourcesProvider,
+										  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -63,7 +63,7 @@ public class CoreMigrationTo_9_1_14 extends MigrationHelper implements Migration
 			userCredentialSchema.deleteMetadataWithoutValidation("lastname");
 			userCredentialSchema.deleteMetadataWithoutValidation("email");
 			userCredentialSchema.deleteMetadataWithoutValidation("personalEmails");
-			userCredentialSchema.deleteMetadataWithoutValidation("collections");
+			//userCredentialSchema.deleteMetadataWithoutValidation("collections");
 			userCredentialSchema.deleteMetadataWithoutValidation("globalGroups");
 			userCredentialSchema.deleteMetadataWithoutValidation("phone");
 			userCredentialSchema.deleteMetadataWithoutValidation("fax");
@@ -78,6 +78,8 @@ public class CoreMigrationTo_9_1_14 extends MigrationHelper implements Migration
 					.setMultivalue(true);
 			List<String> collections = appLayerFactory.getCollectionsManager().getCollectionCodes();
 			userServices.transferDomainsAndMsDelegatesFromCredentialsToUser(collections);
+			userCredentialSchema.deleteMetadataWithoutValidation("domain");
+			userCredentialSchema.deleteMetadataWithoutValidation("msExchangeDelegateList");
 
 			//Les utilisateurs qui ne sont pas actifs sont supprimés logiquement
 			userServices.logicallyRemoveAllNonActiveUsers();
@@ -107,7 +109,9 @@ public class CoreMigrationTo_9_1_14 extends MigrationHelper implements Migration
 			groupSchema.createUndeletable("hierarchy")
 					.setType(MetadataValueType.STRING);
 
-			List<SystemWideGroup> groups = userServices.getAllGroups();
+			glGroupSchema.deleteMetadataWithoutValidation("status");
+			glGroupSchema.deleteMetadataWithoutValidation("locallyCreated");
+			glGroupSchema.deleteMetadataWithoutValidation("hierarchy");
 
 			//Les groupes qui ne sont pas actifs sont supprimés logiquement
 			userServices.logicallyRemoveAllNonActiveGroups();

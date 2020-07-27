@@ -344,7 +344,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenUserWith(noGroups, and(collection1, collection2));
 		userServices.removeUserCredentialAndUser(user);
 
-		userServices.activeUserCredentialAndUser(user.getUsername());
 
 		Map<String, User> userInCollection = new HashMap<>();
 		for (String collection : Arrays.asList(collection1, collection2)) {
@@ -1216,6 +1215,42 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		} catch (UserServicesRuntimeException_UserIsNotInCollection e) {
 			//OK !
 		}
+	}
+
+	@Test
+	public void tryingToPhysicallyRemoveUserWithoutCollections()
+			throws Exception {
+		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers());
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		userServices = getModelLayerFactory().newUserServices();
+		Users users = new Users();
+		users.setUp(getModelLayerFactory().newUserServices());
+		List<String> collections = new ArrayList<>();
+		collections.add(zeCollection);
+		userServices.execute(users.adminAddUpdateRequest().setCollections(collections).setSystemAdminEnabled());
+		userServices.safePhysicalDeleteAllUserCredentialsWithEmptyCollections();
+
+		UserCredential admin = userServices.getUser("admin");
+		UserCredential chuck = userServices.getUser("chuck");
+
+		assertThat(admin).isNotNull();
+		assertThat(chuck).isNull();
+	}
+
+	@Test
+	public void tryingToUpdateToSyncAllDNUser()
+			throws Exception {
+		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers());
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		userServices = getModelLayerFactory().newUserServices();
+		Users users = new Users();
+		users.setUp(getModelLayerFactory().newUserServices());
+		userServices.safePhysicalDeleteAllUserCredentialsWithEmptyCollections();
+
 	}
 
 	@Test
