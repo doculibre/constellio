@@ -38,7 +38,7 @@ public class RecordPermissionValidatorTest extends ConstellioTest {
 
 		given(transaction.getUser()).willReturn(user);
 
-		validator = new RecordPermissionValidator(transaction, authorizationsServices);
+		validator = new RecordPermissionValidator(transaction, authorizationsServices, false);
 
 		validationErrors = new ValidationErrors();
 	}

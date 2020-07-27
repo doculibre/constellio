@@ -1098,12 +1098,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 						}
 
 						if (validations) {
-							validationServices.validateCyclicReferences(record, recordProvider, types, schema.getMetadatas());
+							validationServices.validateCyclicReferences(record, recordProvider, types, schema.getMetadatas(), transaction);
 						}
 
 					} else if (step instanceof ValidateCyclicReferencesRecordPreparationStep) {
 						if (validations) {
-							validationServices.validateCyclicReferences(record, recordProvider, types, schema.getMetadatas());
+							validationServices.validateCyclicReferences(record, recordProvider, types, schema.getMetadatas(), transaction);
 						}
 
 					} else if (step instanceof ValidateMetadatasRecordPreparationStep) {
@@ -1172,7 +1172,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 					modifiedRecords.add(record);
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
 					extensions.callRecordInModificationBeforeSave(new RecordInModificationBeforeSaveEvent(record,
-							modifiedMetadatas, transaction.getUser(), singleRecordTransaction, recordErrors) {
+							modifiedMetadatas, transaction.getUser(), singleRecordTransaction, recordErrors, transaction.getRecordUpdateOptions().isSkipValidationsIfNotEssential()) {
 						@Override
 						public void recalculateRecord(List<String> metadatas) {
 							newAutomaticMetadataServices().updateAutomaticMetadatas(
@@ -1183,7 +1183,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				} else {
 					newRecords.add(record);
 					extensions.callRecordInCreationBeforeSave(new RecordInCreationBeforeSaveEvent(
-							record, transaction.getUser(), singleRecordTransaction, recordErrors) {
+							record, transaction.getUser(), singleRecordTransaction, recordErrors, transaction.getRecordUpdateOptions().isSkipValidationsIfNotEssential()) {
 						@Override
 						public void recalculateRecord() {
 							newAutomaticMetadataServices().updateAutomaticMetadatas(

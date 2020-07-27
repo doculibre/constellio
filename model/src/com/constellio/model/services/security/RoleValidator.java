@@ -27,6 +27,11 @@ public class RoleValidator implements Validator<Role> {
 	}
 
 	@Override
+	public boolean isEssential() {
+		return true;
+	}
+
+	@Override
 	public void validate(Role role, ValidationErrors validationErrors) {
 		this.validate(role.getCode(), validationErrors);
 	}

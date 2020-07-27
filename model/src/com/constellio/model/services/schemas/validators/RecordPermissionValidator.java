@@ -19,20 +19,34 @@ public class RecordPermissionValidator implements Validator<Record> {
 
 	private Transaction transaction;
 	private AuthorizationsServices authorizationsServices;
+	private boolean skipIfNotEssential;
 
-	public RecordPermissionValidator(Transaction transaction, AuthorizationsServices authorizationsServices) {
+	public RecordPermissionValidator(Transaction transaction, AuthorizationsServices authorizationsServices,
+									 boolean skipIfNotEssential) {
 		this.transaction = transaction;
 		this.authorizationsServices = authorizationsServices;
+		this.skipIfNotEssential = skipIfNotEssential;
+	}
+
+	@Override
+	public boolean isEssential() {
+		return true;
 	}
 
 	@Override
 	public void validate(Record record, ValidationErrors validationErrors) {
-		if (transaction.getUser() != null && record.isDirty()
-			&& !(record.isModified(Schemas.LOGICALLY_DELETED_STATUS) || record.isModified(Schemas.LOGICALLY_DELETED_ON))) {
-			if (!authorizationsServices.canWrite(transaction.getUser(), record)) {
-				addValidationErrors(validationErrors, UNAUTHORIZED, record, transaction.getUser());
+		if (!skipValidation()) {
+			if (transaction.getUser() != null && record.isDirty()
+				&& !(record.isModified(Schemas.LOGICALLY_DELETED_STATUS) || record.isModified(Schemas.LOGICALLY_DELETED_ON))) {
+				if (!authorizationsServices.canWrite(transaction.getUser(), record)) {
+					addValidationErrors(validationErrors, UNAUTHORIZED, record, transaction.getUser());
+				}
 			}
 		}
+	}
+
+	private boolean skipValidation() {
+		return !isEssential() && skipIfNotEssential;
 	}
 
 	private void addValidationErrors(ValidationErrors validationErrors, String errorCode, Record record, User user) {

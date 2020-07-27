@@ -15,12 +15,15 @@ public abstract class RecordInCreationBeforeSaveEvent implements RecordEvent {
 
 	ValidationErrors validationErrors;
 
+	private final boolean skipValidationsIfNotEssential;
+
 	public RecordInCreationBeforeSaveEvent(Record record, User transactionUser, boolean singleRecordTransaction,
-										   ValidationErrors validationErrors) {
+										   ValidationErrors validationErrors, boolean skipValidationsIfNotEssential) {
 		this.record = record;
 		this.transactionUser = transactionUser;
 		this.singleRecordTransaction = singleRecordTransaction;
 		this.validationErrors = validationErrors;
+		this.skipValidationsIfNotEssential = skipValidationsIfNotEssential;
 	}
 
 	public Record getRecord() {
@@ -53,4 +56,8 @@ public abstract class RecordInCreationBeforeSaveEvent implements RecordEvent {
 	}
 
 	public abstract void recalculateRecord();
+
+	public boolean isSkipValidationsIfNotEssential() {
+		return skipValidationsIfNotEssential;
+	}
 }

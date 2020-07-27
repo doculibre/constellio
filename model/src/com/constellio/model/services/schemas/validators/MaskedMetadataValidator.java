@@ -21,20 +21,33 @@ public class MaskedMetadataValidator implements Validator<Record> {
 	public static final String MASK = "mask";
 
 	private final List<Metadata> metadatas;
+	private boolean skipIfNotEssential;
 
-	public MaskedMetadataValidator(List<Metadata> metadatas) {
+	public MaskedMetadataValidator(List<Metadata> metadatas, boolean skipIfNotEssential) {
 		this.metadatas = metadatas;
+		this.skipIfNotEssential = skipIfNotEssential;
+	}
+
+	@Override
+	public boolean isEssential() {
+		return true;
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void validate(Record record, ValidationErrors validationErrors) {
-		for (Metadata metadata : metadatas) {
-			if (StringUtils.isNotBlank(metadata.getInputMask())) {
-				Object value = record.get(metadata);
-				validateMetadata(validationErrors, metadata, value);
+		if (!skipValidation()) {
+			for (Metadata metadata : metadatas) {
+				if (StringUtils.isNotBlank(metadata.getInputMask())) {
+					Object value = record.get(metadata);
+					validateMetadata(validationErrors, metadata, value);
+				}
 			}
 		}
+	}
+
+	private boolean skipValidation() {
+		return !isEssential() && skipIfNotEssential;
 	}
 
 	public void validateMetadata(ValidationErrors validationErrors, Metadata metadata, Object value) {

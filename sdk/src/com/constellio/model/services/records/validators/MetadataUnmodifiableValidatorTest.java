@@ -29,7 +29,7 @@ public class MetadataUnmodifiableValidatorTest extends ConstellioTest {
 		List<Metadata> metadatas = new ArrayList<>();
 		metadatas.add(metadata);
 
-		validator = new MetadataUnmodifiableValidator(metadatas);
+		validator = new MetadataUnmodifiableValidator(metadatas, false);
 
 		validationErrors = new ValidationErrors();
 	}

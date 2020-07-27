@@ -63,20 +63,20 @@ public class RecordValidationServices {
 		}
 	}
 
-	public void validateCyclicReferences(Record record, RecordProvider recordProvider)
+	public void validateCyclicReferences(Record record, RecordProvider recordProvider, Transaction transaction)
 			throws RecordServicesException.ValidationException {
 
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = schemaTypes.getSchemaOf(record);
 		List<Metadata> metadatas = getManualMetadatas(schema);
-		validateCyclicReferences(record, recordProvider, schemaTypes, metadatas);
+		validateCyclicReferences(record, recordProvider, schemaTypes, metadatas, transaction);
 	}
 
 	public void validateCyclicReferences(Record record, RecordProvider recordProvider, MetadataSchemaTypes schemaTypes,
-										 List<Metadata> metadatas)
+										 List<Metadata> metadatas, Transaction transaction)
 			throws RecordServicesException.ValidationException {
 		ValidationErrors validationErrors = new ValidationErrors();
-		new CyclicHierarchyValidator(schemaTypes, metadatas, recordProvider).validate(record, validationErrors);
+		new CyclicHierarchyValidator(schemaTypes, metadatas, recordProvider, transaction.getRecordUpdateOptions().isSkipValidationsIfNotEssential()).validate(record, validationErrors);
 
 		if (!validationErrors.getValidationErrors().isEmpty()) {
 			throw new RecordServicesException.ValidationException(record, validationErrors);
@@ -144,38 +144,42 @@ public class RecordValidationServices {
 		ValidationErrors validationErrors = new ValidationErrors();
 		if (!transaction.isSkipReferenceValidation()) {
 			new AllowedReferencesValidator(schemaTypes, metadatas, recordProvider,
+					transaction.getRecordUpdateOptions().isSkipValidationsIfNotEssential(),
 					transaction.isSkippingReferenceToLogicallyDeletedValidation())
 					.validate(record, validationErrors);
 		}
-		boolean skipMeasurementUnit = transaction.getRecordUpdateOptions().isSkippingMeasurementUnitValidation();
+		boolean skipValidationsIfNotEssential = transaction.getRecordUpdateOptions().isSkipValidationsIfNotEssential();
 
-		new MetadataValueTypeValidator(metadatas).validate(record, validationErrors);
+		new MetadataValueTypeValidator(metadatas, skipValidationsIfNotEssential).validate(record, validationErrors);
 		if (!transaction.isSkippingRequiredValuesValidation()) {
 			boolean skipUSRMetadatas = transaction.getRecordUpdateOptions().isSkipUSRMetadatasRequirementValidations();
-			new ValueRequirementValidator(metadatas, skipUSRMetadatas, recordAutomaticMetadataServices, afterCalculate)
+			boolean skipIfNotEssential = transaction.getRecordUpdateOptions().isSkipValidationsIfNotEssential();
+			new ValueRequirementValidator(metadatas, skipUSRMetadatas, skipIfNotEssential, recordAutomaticMetadataServices, afterCalculate)
 					.validate(record, validationErrors);
 		}
-		new MetadataUnmodifiableValidator(metadatas).validate(record, validationErrors);
+		new MetadataUnmodifiableValidator(metadatas, skipValidationsIfNotEssential).validate(record, validationErrors);
 		if (transaction.getRecordUpdateOptions() == null || transaction.getRecordUpdateOptions().isUnicityValidationsEnabled()) {
-			new MetadataUniqueValidator(metadatas, schemaTypes, searchService).validate(record, validationErrors);
+			new MetadataUniqueValidator(metadatas, schemaTypes, searchService, skipValidationsIfNotEssential).validate(record, validationErrors);
 		}
-		new MetadataChildOfValidator(metadatas, schemaTypes).validate(record, validationErrors);
+		new MetadataChildOfValidator(metadatas, schemaTypes, skipValidationsIfNotEssential).validate(record, validationErrors);
 		if (transaction.getRecordUpdateOptions() == null || !transaction.getRecordUpdateOptions()
 				.isSkipMaskedMetadataValidations()) {
-			newMaskedMetadataValidator(metadatas).validate(record, validationErrors);
+			newMaskedMetadataValidator(metadatas, transaction.getRecordUpdateOptions().isSkipValidationsIfNotEssential()).validate(record, validationErrors);
 		}
 
-		newDateMetadataValidator(metadatas).validate(record, validationErrors);
+		newDateMetadataValidator(metadatas, skipValidationsIfNotEssential).validate(record, validationErrors);
 
 		return validationErrors;
 	}
 
-	public MaskedMetadataValidator newMaskedMetadataValidator(List<Metadata> metadatas) {
-		return new MaskedMetadataValidator(metadatas);
+	public MaskedMetadataValidator newMaskedMetadataValidator(List<Metadata> metadatas,
+															  boolean skipValidationsIfNotEssential) {
+		return new MaskedMetadataValidator(metadatas, skipValidationsIfNotEssential);
 	}
 
-	public DateMetadataValidator newDateMetadataValidator(List<Metadata> metadatas) {
-		return new DateMetadataValidator(metadatas);
+	public DateMetadataValidator newDateMetadataValidator(List<Metadata> metadatas,
+														  boolean skipValidationsIfNotEssential) {
+		return new DateMetadataValidator(metadatas, skipValidationsIfNotEssential);
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
@@ -200,8 +204,9 @@ public class RecordValidationServices {
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	ValidationErrors validateUsingSecurityValidatorsReturningErrors(Record record, Transaction transaction) {
 		final ValidationErrors validationErrors = new ValidationErrors();
+		boolean skipValidationsIfNotEssential = transaction.getRecordUpdateOptions().isSkipValidationsIfNotEssential();
 
-		new RecordPermissionValidator(transaction, authorizationServices).validate(record, validationErrors);
+		new RecordPermissionValidator(transaction, authorizationServices, skipValidationsIfNotEssential).validate(record, validationErrors);
 
 		return validationErrors;
 	}

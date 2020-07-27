@@ -16,21 +16,29 @@ public class MetadataUnmodifiableValidator implements Validator<Record> {
 	public static final String UNMODIFIABLE_METADATA = "modifiedUnmodifiableMetadata";
 
 	private final List<Metadata> metadatas;
+	private boolean skipIfNotEssential;
 
-	public MetadataUnmodifiableValidator(List<Metadata> metadatas) {
+	public MetadataUnmodifiableValidator(List<Metadata> metadatas, boolean skipIfNotEssential) {
 		this.metadatas = metadatas;
+		this.skipIfNotEssential = skipIfNotEssential;
+	}
+
+	@Override
+	public boolean isEssential() {
+		return true;
 	}
 
 	@Override
 	public void validate(Record record, ValidationErrors validationErrors) {
-
-		for (Metadata metadata : metadatas) {
-			if (metadata.isUnmodifiable()) {
-				RecordDTO recordDTO = ((RecordImpl) record).getRecordDTO();
-				if (recordDTO != null) {
-					Object currentValue = recordDTO.getFields().get(metadata.getDataStoreCode());
-					if (currentValue != null && record.isModified(metadata)) {
-						addValidationErrors(validationErrors, UNMODIFIABLE_METADATA, metadata);
+		if (!skipValidation()) {
+			for (Metadata metadata : metadatas) {
+				if (metadata.isUnmodifiable()) {
+					RecordDTO recordDTO = ((RecordImpl) record).getRecordDTO();
+					if (recordDTO != null) {
+						Object currentValue = recordDTO.getFields().get(metadata.getDataStoreCode());
+						if (currentValue != null && record.isModified(metadata)) {
+							addValidationErrors(validationErrors, UNMODIFIABLE_METADATA, metadata);
+						}
 					}
 				}
 			}
@@ -50,6 +58,10 @@ public class MetadataUnmodifiableValidator implements Validator<Record> {
 		//				}
 		//			}
 		//		}
+	}
+
+	private boolean skipValidation() {
+		return !isEssential() && skipIfNotEssential;
 	}
 
 	private void addValidationErrors(ValidationErrors validationErrors, String errorCode, Metadata metadata) {

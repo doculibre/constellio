@@ -22,13 +22,17 @@ public abstract class RecordInModificationBeforeSaveEvent extends BaseConsumable
 
 	ValidationErrors validationErrors;
 
+	boolean skipValidationsIfNotEssential;
+
 	public RecordInModificationBeforeSaveEvent(Record record, MetadataList modifiedMetadatas, User transactionUser,
-											   boolean singleRecordTransaction, ValidationErrors validationErrors) {
+											   boolean singleRecordTransaction, ValidationErrors validationErrors,
+											   boolean skipValidationsIfNotEssential) {
 		this.record = record;
 		this.modifiedMetadatas = modifiedMetadatas;
 		this.transactionUser = transactionUser;
 		this.singleRecordTransaction = singleRecordTransaction;
 		this.validationErrors = validationErrors;
+		this.skipValidationsIfNotEssential = skipValidationsIfNotEssential;
 	}
 
 	public Record getRecord() {

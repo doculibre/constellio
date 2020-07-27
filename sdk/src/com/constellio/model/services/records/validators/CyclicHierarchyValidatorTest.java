@@ -119,7 +119,7 @@ public class CyclicHierarchyValidatorTest extends ConstellioTest {
 		when(metadataWithAlistOfReference.getAllowedReferences()).thenReturn(oneAllowedReferences);
 		when(metadataWithAChildOfReference.getAllowedReferences()).thenReturn(oneAllowedReferences);
 
-		validator = new CyclicHierarchyValidator(schemaTypes, metadatas, recordProvider);
+		validator = new CyclicHierarchyValidator(schemaTypes, metadatas, recordProvider, false);
 	}
 
 	@Test

@@ -69,7 +69,7 @@ public class MetadataValueTypeValidatorTest extends ConstellioTest {
 		when(dateMetadata.getType()).thenReturn(MetadataValueType.DATE_TIME);
 		when(referenceMetadata.getType()).thenReturn(MetadataValueType.REFERENCE);
 
-		validator = new MetadataValueTypeValidator(metadatas);
+		validator = new MetadataValueTypeValidator(metadatas, false);
 
 		validationErrors = new ValidationErrors();
 	}

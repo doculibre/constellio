@@ -16,22 +16,36 @@ public class MetadataChildOfValidator implements Validator<Record> {
 
 	private final List<Metadata> metadatas;
 	private final MetadataSchemaTypes schemaTypes;
+	private boolean skipIfNotEssential;
 
-	public MetadataChildOfValidator(List<Metadata> metadatas, MetadataSchemaTypes schemaTypes) {
+	public MetadataChildOfValidator(List<Metadata> metadatas, MetadataSchemaTypes schemaTypes,
+									boolean skipIfNotEssential) {
 		this.metadatas = metadatas;
 		this.schemaTypes = schemaTypes;
+		this.skipIfNotEssential = skipIfNotEssential;
+	}
+
+	@Override
+	public boolean isEssential() {
+		return true;
 	}
 
 	@Override
 	public void validate(Record record, ValidationErrors validationErrors) {
-		List<Metadata> parentMetadatas = schemaTypes.getSchemaOf(record).getParentReferences();
-		if (!parentMetadatas.isEmpty()) {
-			try {
-				record.getNonNullValueIn(parentMetadatas);
-			} catch (RecordImplException_RecordCannotHaveTwoParents e) {
-				validationErrors.add(getClass(), MULTIPLE_PARENTS, new HashMap<String, Object>());
+		if (!skipValidation()) {
+			List<Metadata> parentMetadatas = schemaTypes.getSchemaOf(record).getParentReferences();
+			if (!parentMetadatas.isEmpty()) {
+				try {
+					record.getNonNullValueIn(parentMetadatas);
+				} catch (RecordImplException_RecordCannotHaveTwoParents e) {
+					validationErrors.add(getClass(), MULTIPLE_PARENTS, new HashMap<String, Object>());
+				}
 			}
 		}
+	}
+
+	private boolean skipValidation() {
+		return !isEssential() && skipIfNotEssential;
 	}
 
 }

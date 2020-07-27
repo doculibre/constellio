@@ -62,7 +62,7 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 
 	@Before
 	public void setup() {
-		validator = spy(new MetadataSchemaTypeValidator());
+		validator = spy(new MetadataSchemaTypeValidator(false));
 
 		configureSchemas();
 

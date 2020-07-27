@@ -32,56 +32,69 @@ public class MetadataUniqueValidator implements Validator<Record> {
 	private final List<Metadata> metadatas;
 	private final SearchServices searchServices;
 	private final MetadataSchemaTypes schemaTypes;
+	private boolean skipIfNotEssential;
 
 	public MetadataUniqueValidator(List<Metadata> metadatas, MetadataSchemaTypes schemaTypes,
-								   SearchServices searchServices) {
+								   SearchServices searchServices, boolean skipIfNotEssential) {
 		this.metadatas = metadatas;
 		this.searchServices = searchServices;
 		this.schemaTypes = schemaTypes;
+		this.skipIfNotEssential = skipIfNotEssential;
+	}
+
+	@Override
+	public boolean isEssential() {
+		return true;
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void validate(Record record, ValidationErrors validationErrors) {
-		if (!record.isActive()) {
-			return;
-		}
-		for (Metadata metadata : metadatas) {
-			if (metadata.isUniqueValue() && record.isModified(metadata)) {
-				Object value = record.get(metadata);
-				if (value != null) {
-					String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(metadata);
-					LogicalSearchCondition condition = from(schemaTypes.getSchemaType(schemaTypeCode)).where(metadata)
-							.isEqualTo(value).andWhere(Schemas.IDENTIFIER).isNotEqual(record.getId());
+		if (!skipValidation()) {
+			if (!record.isActive()) {
+				return;
+			}
+			for (Metadata metadata : metadatas) {
+				if (metadata.isUniqueValue() && record.isModified(metadata)) {
+					Object value = record.get(metadata);
+					if (value != null) {
+						String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(metadata);
+						LogicalSearchCondition condition = from(schemaTypes.getSchemaType(schemaTypeCode)).where(metadata)
+								.isEqualTo(value).andWhere(Schemas.IDENTIFIER).isNotEqual(record.getId());
 
-					if (searchServices.hasResults(new LogicalSearchQuery(condition).filteredByStatus(StatusFilter.ACTIVES))) {
-						if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
-							CalculatedDataEntry calculatedDataEntry = (CalculatedDataEntry) metadata.getDataEntry();
-							List<? extends Dependency> dependencyList = calculatedDataEntry.getCalculator().getDependencies();
+						if (searchServices.hasResults(new LogicalSearchQuery(condition).filteredByStatus(StatusFilter.ACTIVES))) {
+							if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
+								CalculatedDataEntry calculatedDataEntry = (CalculatedDataEntry) metadata.getDataEntry();
+								List<? extends Dependency> dependencyList = calculatedDataEntry.getCalculator().getDependencies();
 
-							Map<String, String> dependencyLanguageMap = new HashMap<>();
+								Map<String, String> dependencyLanguageMap = new HashMap<>();
 
-							for (Dependency dependency : dependencyList) {
-								Metadata metadataDependedOn = schemaTypes.getSchemaOf(record).get(dependency.getLocalMetadataCode());
-								for (Language language : metadataDependedOn.getLabels().keySet()) {
-									String currentValue = dependencyLanguageMap.get(language.getCode());
-									if (currentValue == null) {
-										currentValue = "";
-									} else {
-										currentValue += ", ";
+								for (Dependency dependency : dependencyList) {
+									Metadata metadataDependedOn = schemaTypes.getSchemaOf(record).get(dependency.getLocalMetadataCode());
+									for (Language language : metadataDependedOn.getLabels().keySet()) {
+										String currentValue = dependencyLanguageMap.get(language.getCode());
+										if (currentValue == null) {
+											currentValue = "";
+										} else {
+											currentValue += ", ";
+										}
+										String newValue = currentValue + metadataDependedOn.getLabel(language);
+										dependencyLanguageMap.put(language.getCode(), newValue);
 									}
-									String newValue = currentValue + metadataDependedOn.getLabel(language);
-									dependencyLanguageMap.put(language.getCode(), newValue);
 								}
+								addValidationErrors(validationErrors, dependencyLanguageMap, NON_UNIQUE_CALULATED_METADATA, value.toString());
+							} else {
+								addValidationErrors(validationErrors, value.toString(), NON_UNIQUE_METADATA, metadata);
 							}
-							addValidationErrors(validationErrors, dependencyLanguageMap, NON_UNIQUE_CALULATED_METADATA, value.toString());
-						} else {
-							addValidationErrors(validationErrors, value.toString(), NON_UNIQUE_METADATA, metadata);
 						}
 					}
 				}
 			}
 		}
+	}
+
+	private boolean skipValidation() {
+		return !isEssential() && skipIfNotEssential;
 	}
 
 	private void addValidationErrors(ValidationErrors validationErrors,

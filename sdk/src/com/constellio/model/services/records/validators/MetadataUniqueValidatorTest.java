@@ -56,7 +56,7 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 		when(metadata.getType()).thenReturn(MetadataValueType.STRING);
 		when(schemaTypes.getSchemaType("type")).thenReturn(schemaType);
 
-		validator = new MetadataUniqueValidator(metadatas, schemaTypes, searchServices);
+		validator = new MetadataUniqueValidator(metadatas, schemaTypes, searchServices, false);
 
 		validationErrors = new ValidationErrors();
 

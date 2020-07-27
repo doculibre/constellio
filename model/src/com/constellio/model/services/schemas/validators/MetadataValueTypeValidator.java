@@ -23,29 +23,42 @@ public class MetadataValueTypeValidator implements Validator<Record> {
 	public static final String WAS_VALUE_CLASS_MESSAGE_PARAM = "wasValueOfClass";
 
 	private final List<Metadata> metadatas;
+	private boolean skipIfNotEssential;
 
-	public MetadataValueTypeValidator(List<Metadata> metadatas) {
+	public MetadataValueTypeValidator(List<Metadata> metadatas, boolean skipIfNotEssential) {
 		this.metadatas = metadatas;
+		this.skipIfNotEssential = skipIfNotEssential;
+	}
+
+	@Override
+	public boolean isEssential() {
+		return true;
 	}
 
 	@Override
 	public void validate(Record record, ValidationErrors validationErrors) {
-		for (Metadata metadata : metadatas) {
-			Object value = record.get(metadata);
-			if (value != null) {
-				if (metadata.getType() == MetadataValueType.STRING) {
-					verifyTextValue(metadata, value, validationErrors);
-				} else if (metadata.getType() == MetadataValueType.BOOLEAN) {
-					verifyBooleanValue(metadata, value, validationErrors);
-				} else if (metadata.getType() == MetadataValueType.NUMBER) {
-					verifyNumberValue(metadata, value, validationErrors);
-				} else if (metadata.getType() == MetadataValueType.DATE_TIME) {
-					verifyDateValue(metadata, value, validationErrors);
-				} else if (metadata.getType() == MetadataValueType.REFERENCE) {
-					verifyReferenceValue(metadata, value, validationErrors);
+		if (!skipValidation()) {
+			for (Metadata metadata : metadatas) {
+				Object value = record.get(metadata);
+				if (value != null) {
+					if (metadata.getType() == MetadataValueType.STRING) {
+						verifyTextValue(metadata, value, validationErrors);
+					} else if (metadata.getType() == MetadataValueType.BOOLEAN) {
+						verifyBooleanValue(metadata, value, validationErrors);
+					} else if (metadata.getType() == MetadataValueType.NUMBER) {
+						verifyNumberValue(metadata, value, validationErrors);
+					} else if (metadata.getType() == MetadataValueType.DATE_TIME) {
+						verifyDateValue(metadata, value, validationErrors);
+					} else if (metadata.getType() == MetadataValueType.REFERENCE) {
+						verifyReferenceValue(metadata, value, validationErrors);
+					}
 				}
 			}
 		}
+	}
+
+	private boolean skipValidation() {
+		return !isEssential() && skipIfNotEssential;
 	}
 
 	@SuppressWarnings("rawtypes")

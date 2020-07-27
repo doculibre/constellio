@@ -23,51 +23,60 @@ public class CyclicHierarchyValidator implements Validator<Record> {
 	private final List<Metadata> metadatas;
 	private final MetadataSchemaTypes schemaTypes;
 	private final RecordProvider recordProvider;
+	private boolean skipIfNotEssential;
 
 	public CyclicHierarchyValidator(MetadataSchemaTypes schemaTypes, List<Metadata> metadatas,
-									RecordProvider recordProvider) {
+									RecordProvider recordProvider, boolean skipIfNotEssential) {
 		this.schemaTypes = schemaTypes;
 		this.metadatas = metadatas;
 		this.recordProvider = recordProvider;
+		this.skipIfNotEssential = skipIfNotEssential;
+	}
 
+	@Override
+	public boolean isEssential() {
+		return true;
 	}
 
 	@Override
 	public void validate(Record record, ValidationErrors validationErrors) {
-		for (Metadata metadata : metadatas) {
+		if (!skipValidation()) {
+			for (Metadata metadata : metadatas) {
+				if (metadata.getType() == MetadataValueType.REFERENCE && record.isModified(metadata)
+					&& record.get(metadata) != null) {
+					if (!metadata.isMultivalue()) {
+						String referenceValue = record.get(metadata);
+						Record referencedRecord = recordProvider.getRecordSummary(referenceValue);
+						MetadataSchema schema = getSchema(referencedRecord);
 
-			if (metadata.getType() == MetadataValueType.REFERENCE && record.isModified(metadata)
-				&& record.get(metadata) != null) {
-				if (!metadata.isMultivalue()) {
-					String referenceValue = record.get(metadata);
-					Record referencedRecord = recordProvider.getRecordSummary(referenceValue);
-					MetadataSchema schema = getSchema(referencedRecord);
+						List<String> ids = new ArrayList<>();
 
-					List<String> ids = new ArrayList<>();
-
-					String referencedId = referenceValue;
-					while (referencedId != null) {
-						if (ids.contains(referencedId)) {
-							referencedId = null;
-						} else {
-							ids.add(referencedId);
-							Record referencedRecordSummary = recordProvider.getRecordSummary(referencedId);
-							referencedId = referencedRecordSummary.getParentId();
-						}
-					}
-
-					if (metadata.isChildOfRelationship()) {
-						if (ids.contains(record.getId())) {
-							addValidationErrors(validationErrors, CANNOT_REFERENCE_A_DESCENDANT_IN_A_CHILD_OF_REFERENCE,
-									metadata, schema.getCode());
+						String referencedId = referenceValue;
+						while (referencedId != null) {
+							if (ids.contains(referencedId)) {
+								referencedId = null;
+							} else {
+								ids.add(referencedId);
+								Record referencedRecordSummary = recordProvider.getRecordSummary(referencedId);
+								referencedId = referencedRecordSummary.getParentId();
+							}
 						}
 
+						if (metadata.isChildOfRelationship()) {
+							if (ids.contains(record.getId())) {
+								addValidationErrors(validationErrors, CANNOT_REFERENCE_A_DESCENDANT_IN_A_CHILD_OF_REFERENCE,
+										metadata, schema.getCode());
+							}
+
+						}
 					}
 				}
-
 			}
-
 		}
+	}
+
+	private boolean skipValidation() {
+		return !isEssential() && skipIfNotEssential;
 	}
 
 	private boolean isInPrincipalPath(String recordId, String principalPath) {

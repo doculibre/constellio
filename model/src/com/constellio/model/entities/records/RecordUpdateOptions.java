@@ -52,6 +52,8 @@ public class RecordUpdateOptions {
 
 	boolean skipUserAccessValidation = false;
 
+	private boolean skipValidationsIfNotEssential = false;
+
 	public RecordUpdateOptions() {
 
 	}
@@ -151,6 +153,15 @@ public class RecordUpdateOptions {
 	public RecordUpdateOptions setSkipUSRMetadatasRequirementValidations(
 			boolean skipUSRMetadatasRequirementValidations) {
 		this.skipUSRMetadatasRequirementValidations = skipUSRMetadatasRequirementValidations;
+		return this;
+	}
+
+	public boolean isSkipValidationsIfNotEssential() {
+		return skipValidationsIfNotEssential;
+	}
+
+	public RecordUpdateOptions setSkipValidationsIfNotEssential(boolean skipValidationsIfNotEssential) {
+		this.skipValidationsIfNotEssential = skipValidationsIfNotEssential;
 		return this;
 	}
 

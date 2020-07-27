@@ -119,7 +119,7 @@ public class AllowedReferencesValidatorTest extends ConstellioTest {
 		when(metadataWithAlistOfReference.getAllowedReferences()).thenReturn(oneAllowedReferences);
 		when(metadataWithAChildOfReference.getAllowedReferences()).thenReturn(oneAllowedReferences);
 
-		validator = spy(new AllowedReferencesValidator(schemaTypes, metadatas, recordProvider, false));
+		validator = spy(new AllowedReferencesValidator(schemaTypes, metadatas, recordProvider, false, false));
 		doReturn(true).when(validator).possibleProblemsDetectedUsingCache(any(Record.class), any(Metadata.class));
 	}
 

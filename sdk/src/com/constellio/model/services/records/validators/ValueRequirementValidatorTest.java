@@ -77,7 +77,7 @@ public class ValueRequirementValidatorTest extends ConstellioTest {
 		when(recordAutomaticMetadataServices.isValueAutomaticallyFilled(any(Metadata.class), any(Record.class)))
 				.thenReturn(false);
 
-		validator = new ValueRequirementValidator(metadatas, false, recordAutomaticMetadataServices, true);
+		validator = new ValueRequirementValidator(metadatas, false, false, recordAutomaticMetadataServices, true);
 
 		validationErrors = new ValidationErrors();
 	}

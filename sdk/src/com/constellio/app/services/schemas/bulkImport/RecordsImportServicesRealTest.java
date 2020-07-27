@@ -3559,7 +3559,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 								.validateMetadata(any(ValidationErrors.class), any(Metadata.class), anyObject());
 						return maskedMetadataValidator;
 					}
-				}).when(recordValidationServicesServices).newMaskedMetadataValidator(any(List.class));
+				}).when(recordValidationServicesServices).newMaskedMetadataValidator(any(List.class), false);
 				return recordValidationServicesServices;
 			}
 		}).when(spiedRecordServices).newRecordValidationServices(any(RecordProvider.class));

@@ -64,7 +64,7 @@ public class MetadataChildOfValidatorTest extends ConstellioTest {
 		when(schema.getCode()).thenReturn("zeType_zeSchemaCode");
 		when(metadata.getType()).thenReturn(MetadataValueType.STRING);
 
-		validator = new MetadataChildOfValidator(metadatas, schemaTypes);
+		validator = new MetadataChildOfValidator(metadatas, schemaTypes, false);
 
 		validationErrors = new ValidationErrors();
 	}

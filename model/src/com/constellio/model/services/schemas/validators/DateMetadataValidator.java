@@ -20,19 +20,32 @@ public class DateMetadataValidator implements Validator<Record> {
 	public static final String VALUE = "value";
 
 	private final List<Metadata> metadatas;
+	private boolean skipIfNotEssential;
 
-	public DateMetadataValidator(List<Metadata> metadatas) {
+	public DateMetadataValidator(List<Metadata> metadatas, boolean skipIfNotEssential) {
 		this.metadatas = metadatas;
+		this.skipIfNotEssential = skipIfNotEssential;
+	}
+
+	@Override
+	public boolean isEssential() {
+		return true;
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void validate(Record record, ValidationErrors validationErrors) {
-		for (Metadata metadata : metadatas) {
-			if (metadata.getType().isDateOrDateTime() && record.isModified(metadata)) {
-				validateMetadata(validationErrors, metadata, record.get(metadata));
+		if (!skipValidation()) {
+			for (Metadata metadata : metadatas) {
+				if (metadata.getType().isDateOrDateTime() && record.isModified(metadata)) {
+					validateMetadata(validationErrors, metadata, record.get(metadata));
+				}
 			}
 		}
+	}
+
+	private boolean skipValidation() {
+		return !isEssential() && skipIfNotEssential;
 	}
 
 	public void validateMetadata(ValidationErrors validationErrors, Metadata metadata, Object value) {

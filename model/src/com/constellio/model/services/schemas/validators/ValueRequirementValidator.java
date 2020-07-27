@@ -27,33 +27,49 @@ public class ValueRequirementValidator implements Validator<Record> {
 
 	private boolean skipUSRMetadatas;
 
+	private boolean skipIfNotEssential;
+
 	private boolean afterCalculate;
 
 	private RecordAutomaticMetadataServices recordAutomaticMetadataServices;
 
 
 	public ValueRequirementValidator(List<Metadata> metadatas, boolean skipUSRMetadatas,
+									 boolean skipIfNotEssential,
 									 RecordAutomaticMetadataServices recordAutomaticMetadataServices,
 									 boolean afterCalculate) {
 		this.metadatas = metadatas;
 		this.skipUSRMetadatas = skipUSRMetadatas;
+		this.skipIfNotEssential = skipIfNotEssential;
 		this.afterCalculate = afterCalculate;
 		this.recordAutomaticMetadataServices = recordAutomaticMetadataServices;
+	}
+
+	@Override
+	public boolean isEssential() {
+		return true;
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void validate(Record record, ValidationErrors validationErrors) {
-		for (Metadata metadata : metadatas) {
-			Object value = record.get(metadata);
-			if (metadata.isDefaultRequirement()
-				&& (!metadata.getLocalCode().startsWith("USR") || !skipUSRMetadatas)
-				&& (metadata.getDataEntry().getType() != CALCULATED || isCalculatedMetadataValidated(metadata, record))
-				&& (value == null || (metadata.isMultivalue() && ((List) value).size() == 0))
-				&& metadata.isEnabled()) {
-				addValidationErrors(record.getId(), validationErrors, REQUIRED_VALUE_FOR_METADATA, metadata);
+		///ADD recordUpdateOptions
+		if (!skipValidation()) {
+			for (Metadata metadata : metadatas) {
+				Object value = record.get(metadata);
+				if (metadata.isDefaultRequirement()
+					&& (!metadata.getLocalCode().startsWith("USR") || !skipUSRMetadatas)
+					&& (metadata.getDataEntry().getType() != CALCULATED || isCalculatedMetadataValidated(metadata, record))
+					&& (value == null || (metadata.isMultivalue() && ((List) value).size() == 0))
+					&& metadata.isEnabled()) {
+					addValidationErrors(record.getId(), validationErrors, REQUIRED_VALUE_FOR_METADATA, metadata);
+				}
 			}
 		}
+	}
+
+	private boolean skipValidation() {
+		return !isEssential() && skipIfNotEssential;
 	}
 
 	private boolean isCalculatedMetadataValidated(Metadata metadata, Record record) {

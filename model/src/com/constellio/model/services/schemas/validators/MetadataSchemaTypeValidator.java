@@ -16,14 +16,30 @@ public class MetadataSchemaTypeValidator implements Validator<MetadataSchemaType
 	private static final String NO_LABEL_IN_METADATA_WITHOUT_INHERITANCE = "NoLabelInNonInheritedMetadata";
 	private static final String ALLOWED_REFERENCES_IN_NON_REFERENCE_METADATA = "AllowedReferencesInNonReferenceMetadata";
 	private static final String ALLOWED_REFERENCES_IN_REFERENCE_METADATA_NOT_SPECIFIED = "NoAllowedReferencesInReferenceMetadata";
+	private boolean skipIfNotEssential;
 	//TODO Valider que 2 métadonnées de profil custom sans héritage ne peuvent avoir le même nom
+
+	public MetadataSchemaTypeValidator(boolean skipIfNotEssential) {
+		this.skipIfNotEssential = skipIfNotEssential;
+	}
+
+	@Override
+	public boolean isEssential() {
+		return true;
+	}
 
 	@Override
 	public void validate(MetadataSchemaType schemaType, ValidationErrors validationErrors) {
-		validateDefaultSchema(schemaType.getDefaultSchema(), validationErrors);
-		for (MetadataSchema customSchema : schemaType.getCustomSchemas()) {
-			validateCustomSchema(customSchema, validationErrors);
+		if (!skipValidation()) {
+			validateDefaultSchema(schemaType.getDefaultSchema(), validationErrors);
+			for (MetadataSchema customSchema : schemaType.getCustomSchemas()) {
+				validateCustomSchema(customSchema, validationErrors);
+			}
 		}
+	}
+
+	private boolean skipValidation() {
+		return !isEssential() && skipIfNotEssential;
 	}
 
 	void validateDefaultSchema(MetadataSchema defaultSchema, ValidationErrors validationErrors) {
