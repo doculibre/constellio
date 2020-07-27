@@ -75,6 +75,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static com.constellio.model.entities.records.wrappers.Group.wrapNullable;
@@ -677,6 +678,17 @@ public class UserServices {
 		removeChildren(group, collections);
 		removeFromBigVault(group, collections);
 	}
+
+	public void logicallyRemoveAllNonActiveGroups() {
+		List<SystemWideGroup> groups = globalGroupsManager.getAllGroups();
+		List<SystemWideGroup> nonActiveGroups = groups.stream()
+				.filter(gr -> gr.getGroupStatus().equals(GlobalGroupStatus.INACTIVE))
+				.collect(Collectors.toList());
+		for (SystemWideGroup group : nonActiveGroups) {
+			this.logicallyRemoveGroup(group);
+		}
+	}
+
 
 	private void removeChildren(String group, List<String> collections) {
 		for (String collection : collections) {

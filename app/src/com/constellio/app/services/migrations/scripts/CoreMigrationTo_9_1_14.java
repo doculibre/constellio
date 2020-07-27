@@ -108,8 +108,9 @@ public class CoreMigrationTo_9_1_14 extends MigrationHelper implements Migration
 					.setType(MetadataValueType.STRING);
 
 			List<SystemWideGroup> groups = userServices.getAllGroups();
+
 			//Les groupes qui ne sont pas actifs sont supprimés logiquement
-			//userServices.logicallyRemoveAllNonActiveGroups();
+			userServices.logicallyRemoveAllNonActiveGroups();
 		}
 	}
 }
