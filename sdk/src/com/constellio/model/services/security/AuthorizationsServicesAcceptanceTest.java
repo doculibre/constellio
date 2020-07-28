@@ -2426,7 +2426,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(FOLDER3).givingReadDelete().forPrincipals(sasquatch)
 		);
 
-		userServices.execute(users.sasquatchAddUpdateRequest().setStatus(UserCredentialStatus.SUSPENDED));
+		userServices.execute(users.sasquatchAddUpdateRequest().setStatusForAllCollections(UserCredentialStatus.SUSPENDED));
 
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
 		assertThatAllAuthorizations().containsOnly(
@@ -2481,7 +2481,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(sasquatch)
 		);
 
-		userServices.execute(users.sasquatchAddUpdateRequest().setStatus(UserCredentialStatus.SUSPENDED));
+		userServices.execute(users.sasquatchAddUpdateRequest().setStatusForAllCollections(UserCredentialStatus.SUSPENDED));
 
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
 		assertThatAllAuthorizations().containsOnly(

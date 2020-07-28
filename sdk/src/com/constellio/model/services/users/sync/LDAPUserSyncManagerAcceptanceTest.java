@@ -243,7 +243,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		ldapUserSyncManager.synchronizeIfPossible();
 		com.constellio.model.services.users.UserAddUpdateRequest bfayReq = userServices.addUpdate("bfay");
 
-		bfayReq.setStatus(UserCredentialStatus.SUSPENDED);
+		bfayReq.setStatusForAllCollections(UserCredentialStatus.SUSPENDED);
 		userServices.execute(bfayReq);
 
 		ldapUserSyncManager.synchronizeIfPossible();

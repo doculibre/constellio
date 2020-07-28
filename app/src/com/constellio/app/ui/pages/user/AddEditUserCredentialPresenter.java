@@ -186,7 +186,7 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 				.setSystemAdmin(userCredentialVO.isSystemAdmin())
 				.setGlobalGroups(userCredentialVO.getGlobalGroups())
 				.setCollections(new ArrayList<>(userCredentialVO.getCollections()))
-				.setStatus(status)
+				.setStatusForAllCollections(status)
 				.setDomain(domain)
 				.setMsExchDelegateListBL(Arrays.asList(""))
 				.setDn(null)

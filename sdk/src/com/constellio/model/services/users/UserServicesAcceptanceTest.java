@@ -752,7 +752,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		setupAfterCollectionCreation();
 		com.constellio.model.services.users.UserAddUpdateRequest admin = userServices.addUpdate("admin");
-		admin = admin.setStatus(UserCredentialStatus.DELETED);
+		admin = admin.setStatusForAllCollections(UserCredentialStatus.DELETED);
 		try {
 			userServices.execute(admin);
 		} finally {
@@ -1004,7 +1004,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 			if (!user.getUsername().equals("admin")) {
 				com.constellio.model.services.users.UserAddUpdateRequest userReq = userServices.addUpdate(user.getUsername());
 				if (!user.isSystemAdmin()) {
-					userReq.setStatus(UserCredentialStatus.DELETED);
+					userReq.setStatusForAllCollections(UserCredentialStatus.DELETED);
 					userServices.execute(userReq);
 				}
 			}

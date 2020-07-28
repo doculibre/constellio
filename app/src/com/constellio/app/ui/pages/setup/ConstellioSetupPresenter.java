@@ -224,7 +224,7 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 							.setServiceKey(null)
 							.setSystemAdmin(false)
 							.addCollection(collectionCode)
-							.setStatus(UserCredentialStatus.ACTIVE)
+							.setStatusForAllCollections(UserCredentialStatus.ACTIVE)
 							.setDomain(null)
 							.setMsExchDelegateListBL(null)
 							.setDn(null);

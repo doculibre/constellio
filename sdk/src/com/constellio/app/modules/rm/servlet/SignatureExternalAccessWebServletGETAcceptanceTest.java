@@ -94,7 +94,7 @@ public class SignatureExternalAccessWebServletGETAcceptanceTest extends Constell
 	public void whenCallingServiceWithToClosedAccessStatus()
 			throws Exception {
 
-		validAccess.setStatus(ExternalAccessUrlStatus.TO_CLOSE);
+		validAccess.setStatusForAllCollections(ExternalAccessUrlStatus.TO_CLOSE);
 		recordServices.update(validAccess);
 
 		WebResponse response = callWebservice(validAccessId, validAccess.getToken(), validLanguage);

@@ -36,7 +36,7 @@ public class FilterUtils {
 	public static String multiCollectionUserReadFilter(SystemWideUserInfos userCredential, UserServices userServices,
 													   SecurityTokenManager securityTokenManager) {
 		StringBuilder filter = new StringBuilder();
-		if (userCredential.getCollections().isEmpty() || !userCredential.isActiveUser()) {
+		if (userCredential.getCollections().isEmpty() || !userCredential.isActiveInAnyCollection()) {
 			filter.append(TOKENS.getDataStoreCode());
 			filter.append(":");
 			filter.append("A38");

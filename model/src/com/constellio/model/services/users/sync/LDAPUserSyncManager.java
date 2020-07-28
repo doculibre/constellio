@@ -356,7 +356,7 @@ public class LDAPUserSyncManager implements StatefulService {
 				.setServiceKey(null)
 				.setSystemAdmin(false)
 				.addToGroupsInEachCollection(globalGroups)
-				.setStatus(userStatus)
+				.setStatusForAllCollections(userStatus)
 				.setDomain("")
 				.setMsExchDelegateListBL(msExchDelegateListBL)
 				.setDn(ldapUser.getId());

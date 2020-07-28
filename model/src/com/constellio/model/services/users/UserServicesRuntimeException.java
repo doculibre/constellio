@@ -49,6 +49,43 @@ public class UserServicesRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class UserServicesRuntimeException_AtLeastOneCollectionRequired extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_AtLeastOneCollectionRequired(String username) {
+			super("At least one collection is required for new user '" + username + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_InvalidUsername extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_InvalidUsername(String username) {
+			super("Username is invalid : '" + username + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_InvalidCollection extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_InvalidCollection(String username, String collection) {
+			super("Cannot add user in this invalid collection name '" + collection + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_FirstNameRequired extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_FirstNameRequired(String username) {
+			super("First name is required for new user '" + username + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_LastNameRequired extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_LastNameRequired(String username) {
+			super("Last name is required for new user '" + username + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_EmailRequired extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_EmailRequired(String username) {
+			super("Email is required for new user '" + username + "'");
+		}
+	}
+
+
 	public static class UserServicesRuntimeException_UserPermissionDeniedToDelete extends UserServicesRuntimeException {
 		public UserServicesRuntimeException_UserPermissionDeniedToDelete(String user) {
 			super("User " + user + " has not permission to delete");

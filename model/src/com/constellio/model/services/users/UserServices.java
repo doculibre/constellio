@@ -74,6 +74,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static com.constellio.model.entities.records.wrappers.Group.wrapNullable;
@@ -134,6 +135,14 @@ public class UserServices {
 	public void execute(String username,
 						Consumer<com.constellio.model.services.users.UserAddUpdateRequest> requestConsumer) {
 		com.constellio.model.services.users.UserAddUpdateRequest request = addUpdate(username);
+		requestConsumer.accept(request);
+		execute(request);
+	}
+
+	public void createUser(String username,
+						   Consumer<com.constellio.model.services.users.UserAddUpdateRequest> requestConsumer) {
+		com.constellio.model.services.users.UserAddUpdateRequest request = addUpdate(username);
+		request.setStatusForAllCollections(ACTIVE);
 		requestConsumer.accept(request);
 		execute(request);
 	}
@@ -576,23 +585,23 @@ public class UserServices {
 	}
 
 	void removeUserCredentialAndUser(UserCredential userCredential) {
-		execute(userCredential.getUsername(), (req) -> req.setStatus(DELETED));
+		execute(userCredential.getUsername(), (req) -> req.setStatusForAllCollections(DELETED));
 	}
 
 	public void removeUserCredentialAndUser(SystemWideUserInfos userCredential) {
-		execute(addUpdate(userCredential.getUsername()).setStatus(DELETED));
+		execute(addUpdate(userCredential.getUsername()).setStatusForAllCollections(DELETED));
 	}
 
 	public void setUserCredentialAndUserStatusPendingApproval(String username) {
-		execute(addUpdate(username).setStatus(PENDING));
+		execute(addUpdate(username).setStatusForAllCollections(PENDING));
 	}
 
 	public void suspendUserCredentialAndUser(String username) {
-		execute(addUpdate(username).setStatus(SUSPENDED));
+		execute(addUpdate(username).setStatusForAllCollections(SUSPENDED));
 	}
 
 	public void activeUserCredentialAndUser(String username) {
-		execute(addUpdate(username).setStatus(ACTIVE));
+		execute(addUpdate(username).setStatusForAllCollections(ACTIVE));
 	}
 
 	private void restoreUserInBigVault(String username) {
@@ -1213,7 +1222,7 @@ public class UserServices {
 		Predicate<SystemWideUserInfos> filter = new Predicate<SystemWideUserInfos>() {
 			@Override
 			public boolean apply(SystemWideUserInfos input) {
-				return input.getStatus().equals(DELETED);
+				return input.hasStatusInAllCollection(DELETED);
 			}
 		};
 		List<SystemWideUserInfos> userCredentials = this.getAllUserCredentials();
@@ -1524,4 +1533,21 @@ public class UserServices {
 	public void logicallyRemoveGroup(SystemWideGroup globalGroup) {
 		globalGroupsManager.logicallyRemoveGroup(globalGroup);
 	}
+
+	public Stream<SystemWideUserInfos> streamUserInfos() {
+
+		//TODO
+		return null;
+	}
+
+	public Stream<SystemWideUserInfos> streamUserInfos(String collection) {
+		//TODO
+		return null;
+	}
+
+	public Stream<User> streamUser(String collection) {
+		//TODO
+		return null;
+	}
+
 }

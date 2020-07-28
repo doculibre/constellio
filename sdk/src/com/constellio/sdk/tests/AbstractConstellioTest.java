@@ -1796,7 +1796,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				.setSystemAdmin(false)
 				.setGlobalGroups(globalGroups)
 				.setCollections(collections)
-				.setStatus(status)
+				.setStatusForAllCollections(status)
 				.setDomain(null)
 				.setMsExchDelegateListBL(null)
 				.setDn(null);
