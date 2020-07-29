@@ -191,6 +191,15 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return new GlobalGroup(record, types);
 	}
 
+	public List<GlobalGroup> wrapOldGlobalGroups(List<Record> records) {
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
+		List<GlobalGroup> groups = new ArrayList<>();
+		for (Record record : records) {
+			groups.add(new GlobalGroup(record, types));
+		}
+		return groups;
+	}
+
 
 	//Events
 
@@ -408,6 +417,14 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 
 	public UserCredential wrapUserCredential(Record record) {
 		return new UserCredential(record, getTypes());
+	}
+
+	public List<UserCredential> wrapUserCredentials(List<Record> records) {
+		List<UserCredential> users = new ArrayList<>();
+		for (Record record : records) {
+			users.add(new UserCredential(record, getTypes()));
+		}
+		return users;
 	}
 
 	public List<User> wrapUsers(List<Record> records) {

@@ -352,17 +352,11 @@ public class UserServices {
 		SystemWideUserInfos.SystemWideUserInfosBuilder infos = SystemWideUserInfos.builder()
 				.userCredentialId(credential.getId())
 				.username(credential.getUsername())
-				.firstName(credential.getFirstName())
-				.lastName(credential.getLastName())
 				.title(credential.getTitle())
-				.email(credential.getEmail())
 				.serviceKey(credential.getServiceKey())
 				.systemAdmin(credential.isSystemAdmin())
 				.status(credential.getStatus())
 				.collections(credential.getCollections())
-				.globalGroups(credential.getGlobalGroups())
-				.domain(credential.getDomain())
-				.msExchangeDelegateList(credential.getMsExchDelegateListBL())
 				.dn(credential.getDn())
 
 				.accessTokens(credential.getAccessTokens());
@@ -798,7 +792,7 @@ public class UserServices {
 		}
 		setRoles(userInCollection);
 		changeUserStatus(userInCollection, user.getUsername());
-		List<String> groupIds = getGroupIds(user.getGlobalGroups(), collection);
+		List<String> groupIds = getGroupIds(user.getGlobalGroups() != null ? user.getGlobalGroups() : new ArrayList<>(), collection);
 		List<String> UserInCollectionGroupIds = userInCollection.getUserGroups();
 		if (!hasSameGroups(groupIds, UserInCollectionGroupIds)) {
 			userInCollection.setUserGroups(groupIds);
@@ -1536,29 +1530,6 @@ public class UserServices {
 				});
 	}
 
-	public void transferDomainsAndMsDelegatesFromCredentialsToUser(List<String> collections) {
-		List<User> users = new ArrayList<>();
-		for (String collection :
-				collections) {
-			users.addAll(this.getAllUsersInCollection(collection));
-		}
-		List<SystemWideUserInfos> credentials = this.getAllUserCredentials();
-
-		for (SystemWideUserInfos credential :
-				credentials) {
-			User user = users.stream().filter(usr -> usr.getUsername().equals(credential.getUsername())).findFirst().get();
-			if (user != null) {
-				user.setDomain(credential.getDomain());
-				user.setMsExchDelegateListBL(credential.getMsExchangeDelegateList());
-				try {
-					recordServices.update(user);
-				} catch (RecordServicesException e) {
-					throw new UserServicesRuntimeException_CannotExcuteTransaction(e);
-				}
-			}
-		}
-	}
-
 	public void resetHasReadLastAlertMetadataOnUsers() {
 		SchemasRecordsServices systemSchemas = new SchemasRecordsServices(com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION, modelLayerFactory);
 		LogicalSearchQuery query = new LogicalSearchQuery(from(systemSchemas.credentialSchemaType())
@@ -1610,5 +1581,9 @@ public class UserServices {
 				this.userLocallyCreated(credential.getUsername());
 			}
 		}
+	}
+
+	public void updateUser(User user) throws RecordServicesException {
+		this.recordServices.update(user);
 	}
 }
