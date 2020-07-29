@@ -231,7 +231,7 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 
 
 					userServices.execute(adminRequest);
-					userServices.addUserToCollection("admin", collectionCode);
+					userServices.execute("admin", (req) -> req.addCollection(collectionCode));
 					User user = userServices.getUserRecordInCollection("admin", collectionCode);
 					String effectiveAdminPassword;
 					if (StringUtils.isBlank(adminPassword)) {

@@ -110,8 +110,8 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		givenCollection(zeCollection).withConstellioRMModule().withConstellioESModule();
 		givenCollection("anotherCollection").withConstellioRMModule().withConstellioESModule();
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.addUserToCollection(admin, zeCollection);
-		userServices.addUserToCollection(admin, "anotherCollection");
+		userServices.execute(admin, (req) -> req.addCollection(zeCollection));
+		userServices.execute(admin, (req) -> req.addCollection("anotherCollection"));
 		assertThat(getAppLayerFactory().getModulesManager().getEnabledModules(zeCollection)).extracting("class.name")
 				.containsOnly("com.constellio.app.modules.tasks.TaskModule", "com.constellio.app.modules.es.ConstellioESModule",
 						"com.constellio.app.modules.rm.ConstellioRMModule");
@@ -124,7 +124,7 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 						"com.constellio.app.modules.rm.ConstellioRMModule");
 
 		assertThat(userServices.getUserInfos(admin).getCollections()).containsOnly("anotherCollection");
-		userServices.addUserToCollection(admin, zeCollection);
+		userServices.execute(admin, (req) -> req.addCollection(zeCollection));
 	}
 
 	@Test
@@ -304,9 +304,9 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		givenCollection("constellio");
 		givenCollection("doculibre");
 
-		userServices.addUserToCollection(users.bob(), "constellio");
-		userServices.addUserToCollection(users.chuckNorris(), "constellio");
-		userServices.addUserToCollection(users.chuckNorris(), "doculibre");
+		userServices.execute(users.bob().getUsername(), (req) -> req.addCollection("constellio"));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addCollection("constellio"));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addCollection("doculibre"));
 
 		userServices.execute(users.legendsRequest().addCollections(
 				Arrays.asList("constellio", "doculibre")));
