@@ -4,6 +4,7 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.services.encrypt.EncryptionServicesRuntimeException.EncryptionServicesRuntimeException_InvalidKey;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -11,10 +12,14 @@ import javax.crypto.CipherOutputStream;
 import javax.crypto.KeyGenerator;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -146,15 +151,15 @@ public class EncryptionServices {
 	// Encrypt File
 	//
 
-	public File encryptWithAppKey(File toEncrypt, String encryptedFilePath) {
-		return encrypt(toEncrypt, encryptedFilePath, key, iv);
+	public File encryptWithAppKey(File toEncrypt, File encryptedFile) {
+		return encrypt(toEncrypt, encryptedFile, key, iv);
 	}
 
-	public File encrypt(File toEncrypt, String encryptedFilePath, Key key) {
-		return encrypt(toEncrypt, encryptedFilePath, key, null);
+	public File encrypt(File toEncrypt, File encryptedFile, Key key) {
+		return encrypt(toEncrypt, encryptedFile, key, null);
 	}
 
-	private File encrypt(File toEncrypt, String encryptedFilePath, Object key, byte[] iv) {
+	private File encrypt(File toEncrypt, File encryptedFile, Object key, byte[] iv) {
 		if (toEncrypt == null) {
 			return null;
 		}
@@ -174,21 +179,15 @@ public class EncryptionServices {
 			throw new RuntimeException("Cannot encrypt '" + toEncrypt.getName() + "'", e);
 		}
 
-		File encryptedFile = new File(encryptedFilePath);
-
-		try (FileInputStream in = new FileInputStream(toEncrypt);
-			 FileOutputStream out = new FileOutputStream(encryptedFile);
-			 CipherOutputStream cipherOut = new CipherOutputStream(out, cipher)) {
+		try (InputStream in = new BufferedInputStream(new FileInputStream(toEncrypt));
+			 OutputStream out = new BufferedOutputStream(new FileOutputStream(encryptedFile));
+			 OutputStream cipherOut = new BufferedOutputStream(new CipherOutputStream(out, cipher))) {
 
 			if (needGeneratedIv) {
 				out.write(iv);
 			}
 
-			byte[] buffer = new byte[2048];
-			int count;
-			while ((count = in.read(buffer)) > 0) {
-				cipherOut.write(buffer, 0, count);
-			}
+			IOUtils.copy(in, cipherOut);
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot encrypt '" + toEncrypt.getName() + "'", e);
 		}
@@ -256,23 +255,22 @@ public class EncryptionServices {
 	// Decrypt File
 	//
 
-	public File decryptWithAppKey(File toDecrypt, String decryptedFilePath) {
-		return decrypt(toDecrypt, decryptedFilePath, key, iv);
+	public File decryptWithAppKey(File toDecrypt, File decryptedFile) {
+		return decrypt(toDecrypt, decryptedFile, key, iv);
 	}
 
-	public File decrypt(File toDecrypt, String decryptedFilePath, Key key) {
-		return decrypt(toDecrypt, decryptedFilePath, key, null);
+	public File decrypt(File toDecrypt, File decryptedFile, Key key) {
+		return decrypt(toDecrypt, decryptedFile, key, null);
 	}
 
-	private File decrypt(File toDecrypt, String decryptedFilePath, Object key, byte[] iv) {
+	private File decrypt(File toDecrypt, File decryptedFile, Object key, byte[] iv) {
 		if (toDecrypt == null) {
 			return null;
 		}
 
 		boolean useGeneratedIv = iv == null;
-		File decryptedFile = new File(decryptedFilePath);
 
-		try (FileInputStream in = new FileInputStream(toDecrypt)) {
+		try (InputStream in = new BufferedInputStream(new FileInputStream(toDecrypt))) {
 			if (useGeneratedIv) {
 				iv = new byte[16];
 				in.read(iv);
@@ -282,14 +280,10 @@ public class EncryptionServices {
 			Key cipherKey = key instanceof byte[] ? new SecretKeySpec((byte[]) key, "AES") : (Key) key;
 			cipher.init(Cipher.DECRYPT_MODE, cipherKey, new IvParameterSpec(iv));
 
-			try (CipherInputStream cipherIn = new CipherInputStream(in, cipher);
-				 FileOutputStream out = new FileOutputStream(decryptedFile)) {
+			try (InputStream cipherIn = new BufferedInputStream(new CipherInputStream(in, cipher));
+				 OutputStream out = new BufferedOutputStream(new FileOutputStream(decryptedFile))) {
 
-				byte[] buffer = new byte[2048];
-				int count;
-				while ((count = cipherIn.read(buffer)) > 0) {
-					out.write(buffer, 0, count);
-				}
+				IOUtils.copy(cipherIn, out);
 			} catch (Exception e) {
 				throw new RuntimeException("Cannot decrypt '" + toDecrypt.getName() + "'", e);
 			}

@@ -69,10 +69,10 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 		File original = getTestResourceFile("textFile.txt");
 		File tempFolder = newTempFolder();
 
-		File encrypted = encryptionService.encryptWithAppKey(original, tempFolder.getPath() + "\\encrypted.txt");
+		File encrypted = encryptionService.encryptWithAppKey(original, new File(tempFolder.getPath() + "\\encrypted.txt"));
 		assertThat(getFileChecksum(encrypted)).isNotEqualTo(getFileChecksum(original));
 
-		File decrypted = encryptionService.decryptWithAppKey(encrypted, tempFolder.getPath() + "\\decrypted.txt");
+		File decrypted = encryptionService.decryptWithAppKey(encrypted, new File(tempFolder.getPath() + "\\decrypted.txt"));
 		assertThat(getFileChecksum(decrypted)).isEqualTo(getFileChecksum(original));
 
 		tempFolder.delete();
@@ -86,7 +86,7 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void whenEncryptingNullContentAsFileWithAppKey() {
-		Object encrypted = encryptionService.encryptWithAppKey(null, "");
+		Object encrypted = encryptionService.encryptWithAppKey(null, null);
 		assertThat(encrypted).isNull();
 	}
 
@@ -98,7 +98,7 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void whenDecryptingNullContentAsFileWithAppKey() {
-		Object decrypted = encryptionService.decryptWithAppKey(null, "");
+		Object decrypted = encryptionService.decryptWithAppKey(null, null);
 		assertThat(decrypted).isNull();
 	}
 
@@ -121,11 +121,11 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 		File original = getTestResourceFile("textFile.txt");
 		File tempFolder = newTempFolder();
 
-		File encrypted = encryptionService.encryptWithAppKey(original, tempFolder.getPath() + "\\encrypted.txt");
+		File encrypted = encryptionService.encryptWithAppKey(original, new File(tempFolder.getPath() + "\\encrypted.txt"));
 		assertThat(getFileChecksum(encrypted)).isNotEqualTo(getFileChecksum(original));
 
 		try {
-			File decrypted = encryptionService.decrypt(encrypted, tempFolder.getPath() + "\\decrypted.txt", encryptionService.generateAESKey());
+			File decrypted = encryptionService.decrypt(encrypted, new File(tempFolder.getPath() + "\\decrypted.txt"), encryptionService.generateAESKey());
 			assertThat(getFileChecksum(decrypted)).isNotEqualTo(getFileChecksum(original));
 		} catch (Exception ignored) {
 		}
@@ -150,11 +150,11 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 		File original = getTestResourceFile("textFile.txt");
 		File tempFolder = newTempFolder();
 
-		File encrypted = encryptionService.encrypt(original, tempFolder.getPath() + "\\encrypted.txt", encryptionService.generateAESKey());
+		File encrypted = encryptionService.encrypt(original, new File(tempFolder.getPath() + "\\encrypted.txt"), encryptionService.generateAESKey());
 		assertThat(getFileChecksum(encrypted)).isNotEqualTo(getFileChecksum(original));
 
 		try {
-			File decrypted = encryptionService.decryptWithAppKey(encrypted, tempFolder.getPath() + "\\decrypted.txt");
+			File decrypted = encryptionService.decryptWithAppKey(encrypted, new File(tempFolder.getPath() + "\\decrypted.txt"));
 			assertThat(getFileChecksum(decrypted)).isNotEqualTo(getFileChecksum(original));
 		} catch (Exception ignored) {
 		}
@@ -197,10 +197,10 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 		File original = getTestResourceFile("textFile.txt");
 		File tempFolder = newTempFolder();
 
-		File encrypted = encryptionService.encrypt(original, tempFolder.getPath() + "\\encrypted.txt", key);
+		File encrypted = encryptionService.encrypt(original, new File(tempFolder.getPath() + "\\encrypted.txt"), key);
 		assertThat(getFileChecksum(encrypted)).isNotEqualTo(getFileChecksum(original));
 
-		File decrypted = encryptionService.decrypt(encrypted, tempFolder.getPath() + "\\decrypted.txt", key);
+		File decrypted = encryptionService.decrypt(encrypted, new File(tempFolder.getPath() + "\\decrypted.txt"), key);
 		assertThat(getFileChecksum(decrypted)).isEqualTo(getFileChecksum(original));
 
 		tempFolder.delete();
@@ -218,7 +218,7 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 	public void whenEncryptingNullContentAsFileWithAES() {
 		Key key = encryptionService.generateAESKey();
 
-		Object encrypted = encryptionService.encrypt(null, "", key);
+		Object encrypted = encryptionService.encrypt(null, null, key);
 		assertThat(encrypted).isNull();
 	}
 
@@ -238,7 +238,7 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 		File original = getTestResourceFile("textFile.txt");
 
 		try {
-			encryptionService.encrypt(original, "", null);
+			encryptionService.encrypt(original, null, null);
 			fail("whenEncryptingFileWithAESWithNullKey should throw an exception");
 		} catch (Exception ignored) {
 		}
@@ -256,7 +256,7 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 	public void whenDecryptingNullContentAsFileWithAES() {
 		Key key = encryptionService.generateAESKey();
 
-		Object decrypted = encryptionService.decrypt(null, "", key);
+		Object decrypted = encryptionService.decrypt(null, null, key);
 		assertThat(decrypted).isNull();
 	}
 
@@ -276,7 +276,7 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 		File original = getTestResourceFile("textFile.txt");
 
 		try {
-			encryptionService.decrypt(original, "", null);
+			encryptionService.decrypt(original, null, null);
 			fail("whenDecryptingFileWithAESWithNullKey should throw an exception");
 		} catch (Exception ignored) {
 		}
@@ -301,11 +301,11 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 		File original = getTestResourceFile("textFile.txt");
 		File tempFolder = newTempFolder();
 
-		File encrypted = encryptionService.encrypt(original, tempFolder.getPath() + "\\encrypted.txt", encryptionService.generateAESKey());
+		File encrypted = encryptionService.encrypt(original, new File(tempFolder.getPath() + "\\encrypted.txt"), encryptionService.generateAESKey());
 		assertThat(getFileChecksum(encrypted)).isNotEqualTo(getFileChecksum(original));
 
 		try {
-			File decrypted = encryptionService.decrypt(encrypted, tempFolder.getPath() + "\\decrypted.txt", encryptionService.generateAESKey());
+			File decrypted = encryptionService.decrypt(encrypted, new File(tempFolder.getPath() + "\\decrypted.txt"), encryptionService.generateAESKey());
 			assertThat(getFileChecksum(decrypted)).isNotEqualTo(getFileChecksum(original));
 		} catch (Exception ignored) {
 		}
