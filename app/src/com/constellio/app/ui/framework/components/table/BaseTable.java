@@ -55,6 +55,7 @@ import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+import static com.constellio.app.ui.pages.trash.TrashRecordsTable.TRASH_BUTTONS;
 
 public class BaseTable extends Table implements SelectionComponent {
 
@@ -277,6 +278,10 @@ public class BaseTable extends Table implements SelectionComponent {
 		return false;
 	}
 
+	public boolean isButtonsColumn() {
+		return false;
+	}
+
 	protected ColumnGenerator newSelectColumnGenerator() {
 		return new ColumnGenerator() {
 			@Override
@@ -412,7 +417,7 @@ public class BaseTable extends Table implements SelectionComponent {
 
 	@Override
 	public void setVisibleColumns(Object... visibleColumns) {
-		if ((isSelectColumn() || isIndexColumn()) && columnGeneratorsAdded) {
+		if ((isSelectColumn() || isIndexColumn() || isMenuBarColumn() || isButtonsColumn()) && columnGeneratorsAdded) {
 			List<Object> visibleColumnsList = new ArrayList<>(Arrays.asList(visibleColumns));
 			if (isIndexColumn() && (!visibleColumnsList.contains(INDEX_PROPERTY_ID) || visibleColumnsList.get(0) != INDEX_PROPERTY_ID)) {
 				visibleColumnsList.remove(INDEX_PROPERTY_ID);
@@ -421,6 +426,16 @@ public class BaseTable extends Table implements SelectionComponent {
 			if (isSelectColumn() && (!visibleColumnsList.contains(SELECT_PROPERTY_ID) || visibleColumnsList.get(0) != SELECT_PROPERTY_ID)) {
 				visibleColumnsList.remove(SELECT_PROPERTY_ID);
 				visibleColumnsList.add(0, SELECT_PROPERTY_ID);
+			}
+			if (isButtonsColumn() && visibleColumnsList.contains(TRASH_BUTTONS)) {
+				int columnIndex = visibleColumnsList.size() - 1;
+				visibleColumnsList.remove(TRASH_BUTTONS);
+				visibleColumnsList.add(columnIndex, TRASH_BUTTONS);
+			}
+			if (isMenuBarColumn() && visibleColumnsList.contains(MENUBAR_PROPERTY_ID)) {
+				int columnIndex = visibleColumnsList.size() - 1;
+				visibleColumnsList.remove(MENUBAR_PROPERTY_ID);
+				visibleColumnsList.add(columnIndex, MENUBAR_PROPERTY_ID);
 			}
 			super.setVisibleColumns(visibleColumnsList.toArray(new Object[0]));
 		} else {
