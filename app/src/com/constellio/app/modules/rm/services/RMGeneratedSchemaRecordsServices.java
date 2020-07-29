@@ -1218,10 +1218,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("documentType");
 		}
 
-		public Metadata encryptionKey() {
-			return metadata("encryptionKey");
-		}
-
 		public Metadata essential() {
 			return metadata("essential");
 		}
