@@ -177,7 +177,8 @@ war {
                              ":constellio-plugins:plugin032", ":constellio-plugins:plugin033", ":constellio-plugins:plugin034", ":constellio-plugins:plugin035",
                              ":constellio-plugins:plugin036", ":constellio-plugins:plugin038", ":constellio-plugins:plugin039", ":constellio-plugins:plugin040",
                              ":constellio-plugins:plugin041", ":constellio-plugins:plugin042", ":constellio-plugins:plugin044", ":constellio-plugins:plugin045",
-                             ":constellio-plugins:plugin046", ":constellio-plugins:plugin047", ":constellio-plugins:plugin048", ":constellio-plugins:plugin051"]
+                             ":constellio-plugins:plugin046", ":constellio-plugins:plugin047", ":constellio-plugins:plugin048", ":constellio-plugins:plugin051",
+                             ":constellio-plugins:plugin052"]
 
         def installPlugins = [":constellio-plugins:plugin023", ":constellio-plugins:plugin025"]
 
