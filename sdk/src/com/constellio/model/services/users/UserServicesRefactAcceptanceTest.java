@@ -1,16 +1,22 @@
 package com.constellio.model.services.users;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserFolder;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
+import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_AtLeastOneCollectionRequired;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_EmailRequired;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_FirstNameRequired;
@@ -18,18 +24,24 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidGroup;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUsername;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_LastNameRequired;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NameRequired;
 import com.constellio.sdk.tests.ConstellioTest;
+import lombok.AllArgsConstructor;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.constellio.model.entities.security.global.GlobalGroupStatus.INACTIVE;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.DELETED;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.PENDING;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.SUSPENDED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.assertThatException;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserServicesRefactAcceptanceTest extends ConstellioTest {
@@ -42,22 +54,48 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 	String collection2 = "collection2";
 	String collection3 = "collection3";
 
-	SchemasRecordsServices collection1Schemas;
-	SchemasRecordsServices collection2Schemas;
-	SchemasRecordsServices collection3Schemas;
+	RMSchemasRecordsServices collection1Schemas;
+	RMSchemasRecordsServices collection2Schemas;
+	RMSchemasRecordsServices collection3Schemas;
 	SchemasRecordsServices systemSchemas;
 
 	@Before
-	public void setup() {
-		prepareSystem(withCollection("collection1"), withCollection("collection2"), withCollection("collection3"));
+	public void setup() throws Exception {
+		prepareSystem(withCollection("collection1").withConstellioRMModule(), withCollection("collection2").withConstellioRMModule(), withCollection("collection3").withConstellioRMModule());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 		services = getModelLayerFactory().newUserServices();
 
-		collection1Schemas = new SchemasRecordsServices("collection1", getModelLayerFactory());
-		collection2Schemas = new SchemasRecordsServices("collection2", getModelLayerFactory());
-		collection3Schemas = new SchemasRecordsServices("collection3", getModelLayerFactory());
+		collection1Schemas = new RMSchemasRecordsServices("collection1", getAppLayerFactory());
+		collection2Schemas = new RMSchemasRecordsServices("collection2", getAppLayerFactory());
+		collection3Schemas = new RMSchemasRecordsServices("collection3", getAppLayerFactory());
 		systemSchemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, getModelLayerFactory());
+
+		for (String collection : asList(collection1, collection2, collection3)) {
+			AdministrativeUnit au = new RMSchemasRecordsServices(collection, getAppLayerFactory()).newAdministrativeUnit();
+			recordServices.add(au.setCode("ze-unit").setTitle("Ze unit"));
+		}
+	}
+
+	@After
+	public void validateIntegrity() {
+
+		for (String collection : asList(collection1, collection2, collection3)) {
+			RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, getAppLayerFactory());
+
+			LogicalSearchQuery userQuery = new LogicalSearchQuery(from(schemas.user.schemaType()).returnAll());
+			userQuery.addFieldFacet(schemas.user.username().getDataStoreCode());
+			searchServices.query(userQuery).getFieldFacetValues(schemas.user.username().getDataStoreCode()).forEach(
+					(facetValue -> assertThat(facetValue.getQuantity()).describedAs("User '" + facetValue.getValue() + "' is found twice").isEqualTo(1L))
+			);
+
+			LogicalSearchQuery groupQuery = new LogicalSearchQuery(from(schemas.group.schemaType()).returnAll());
+			groupQuery.addFieldFacet(schemas.group.code().getDataStoreCode());
+			searchServices.query(groupQuery).getFieldFacetValues(schemas.group.code().getDataStoreCode()).forEach(
+					(facetValue -> assertThat(facetValue.getQuantity()).describedAs("Group '" + facetValue.getValue() + "' is found twice").isEqualTo(1L))
+			);
+		}
+
 	}
 
 	@Test
@@ -100,13 +138,10 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		assertThat(userInfos.getFirstName()).isEqualTo("André");
 		assertThat(userInfos.getLastName()).isEqualTo("Le géant");
 		assertThat(userInfos.getEmail()).isEqualTo("andre@constellio.com");
-		assertThat(userInfos.getCollections()).containsOnly("collection1", "collection2");
 		assertThat(userInfos.getGlobalGroups()).isEmpty();
 
-		assertThat(userCredential("andregeant")).isNotNull();
-		assertThat(user("andregeant", collection1)).isNotNull();
-		assertThat(user("andregeant", collection2)).isNotNull();
-		assertThat(user("andregeant", collection3)).isNull();
+		assertThatUser("andregeant").isInCollections("collection1", "collection2");
+
 	}
 
 	@Test
@@ -195,19 +230,11 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		services.execute("randy", (req) -> req.markForDeletionInAllCollection("collection1"));
 		services.execute("undertaker", (req) -> req.markForDeletionInAllCollection("collection1"));
 
-		assertThatUserIsPhysicicallyDeletedInAllCollections("ric");
-
-		assertThatUserIsPhysicicallyDeletedIn("ric", "collection1");
-		assertThatUserAsStatusIn("ric", "collection2", DELETED);
-
-		assertThatUserAsStatusIn("embalmer", "collection1", DELETED);
-		assertThatUserIsPhysicicallyDeletedIn("embalmer", "collection2");
-
-		assertThatUserAsStatusIn("randy", "collection1", DELETED);
-		assertThatUserAsStatusIn("randy", "collection2", ACTIVE);
-
-		assertThatUserIsPhysicicallyDeletedIn("undertaker", "collection1");
-		assertThatUserAsStatusIn("undertaker", "collection2", ACTIVE);
+		assertThatUser("rey").doesNotExist();
+		assertThatUser("ric").isPhysicicallyDeletedIn(collection1).hasStatusIn(DELETED, "collection2");
+		assertThatUser("embalmer").hasStatusIn(DELETED, collection1).isPhysicicallyDeletedIn("collection2");
+		assertThatUser("randy").hasStatusIn(DELETED, collection1).hasStatusIn(ACTIVE, "collection2");
+		assertThatUser("undertaker").isPhysicicallyDeletedIn(collection1).hasStatusIn(ACTIVE, "collection2");
 
 	}
 
@@ -236,17 +263,10 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		services.execute("rey", (req) -> req.setStatusForCollection(PENDING, "collection1")
 				.setStatusForCollection(SUSPENDED, "collection2"));
 
-		assertThatUserAsStatusIn("undertaker", "collection1", SUSPENDED);
-		assertThatUserAsStatusIn("undertaker", "collection2", SUSPENDED);
-
-		assertThatUserAsStatusIn("randy", "collection1", ACTIVE);
-		assertThatUserAsStatusIn("randy", "collection2", PENDING);
-
-		assertThatUserAsStatusIn("shawn", "collection1", DELETED);
-		assertThatUserAsStatusIn("shawn", "collection2", ACTIVE);
-
-		assertThatUserAsStatusIn("rey", "collection1", PENDING);
-		assertThatUserAsStatusIn("rey", "collection2", SUSPENDED);
+		assertThatUser("undertaker").hasStatusIn(SUSPENDED, "collection1").hasStatusIn(SUSPENDED, "collection2");
+		assertThatUser("randy").hasStatusIn(ACTIVE, "collection1").hasStatusIn(PENDING, "collection2");
+		assertThatUser("shawn").hasStatusIn(DELETED, "collection1").hasStatusIn(ACTIVE, "collection2");
+		assertThatUser("rey").hasStatusIn(PENDING, "collection1").hasStatusIn(SUSPENDED, "collection2");
 
 		assertThat(userInfos("undertaker").hasStatusInAllCollection(SUSPENDED)).isTrue();
 		assertThat(userInfos("undertaker").hasStatusInAnyCollection(SUSPENDED)).isTrue();
@@ -259,9 +279,7 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		assertThat(userInfos("rey").hasStatusInAnyCollection(SUSPENDED)).isTrue();
 
 		services.execute("rey", (req) -> req.setStatusForAllCollections(ACTIVE));
-
-		assertThatUserAsStatusIn("rey", "collection1", ACTIVE);
-		assertThatUserAsStatusIn("rey", "collection2", ACTIVE);
+		assertThatUser("rey").hasStatusIn(ACTIVE, "collection1").hasStatusIn(ACTIVE, "collection2");
 	}
 
 	@Test
@@ -281,28 +299,354 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		services.execute("undertaker", (req) -> req.addCollection("collection3").removeCollection("collection2"));
 		services.execute("machoman", (req) -> req.addCollection("collection3").removeCollection("collection2"));
 
+		assertThatUser("embalmer")
+				.hasStatusIn(ACTIVE, "collection1")
+				.hasStatusIn(DELETED, "collection2")
+				.hasStatusIn(ACTIVE, "collection3");
 
-		assertThatUserAsStatusIn("embalmer", "collection1", ACTIVE);
-		assertThatUserAsStatusIn("embalmer", "collection2", DELETED);
-		assertThatUserAsStatusIn("embalmer", "collection3", ACTIVE);
+		assertThatUser("undertaker")
+				.hasStatusIn(ACTIVE, "collection1")
+				.hasStatusIn(DELETED, "collection2")
+				.hasStatusIn(ACTIVE, "collection3");
 
-		assertThatUserAsStatusIn("undertaker", "collection1", ACTIVE);
-		assertThatUserAsStatusIn("undertaker", "collection2", DELETED);
-		assertThatUserAsStatusIn("undertaker", "collection3", ACTIVE);
+		assertThatUser("machoman")
+				.hasStatusIn(ACTIVE, "collection1")
+				.isPhysicicallyDeletedIn("collection2")
+				.hasStatusIn(ACTIVE, "collection3");
+	}
 
-		assertThatUserAsStatusIn("machoman", "collection1", ACTIVE);
-		assertThatUserIsPhysicicallyDeletedIn("machoman", "collection2");
-		assertThatUserAsStatusIn("machoman", "collection3", ACTIVE);
+	@Test
+	public void whenCreatingGroupThenValidateFieldsAndSaveTheGroup() {
 
+		assertThatException(() -> services.createGroup("g1", (req) -> req.setName(null).addCollection("collection1"))
+		).isInstanceOf(UserServicesRuntimeException_NameRequired.class);
+
+		assertThatException(() -> services.createGroup("g1", (req) -> req.setName("G1"))
+		).isInstanceOf(UserServicesRuntimeException_AtLeastOneCollectionRequired.class);
+
+		services.createGroup("g1", (req) -> req.setName("Group 1").addCollections("collection1", "collection2"));
+		assertThat(services.getGroup("g1").getName()).isEqualTo("Group 1");
+		assertThatGroup("g1").isInCollections(collection1, collection2);
+
+		services.createGroup("g2", (req) -> req.setName("Group 2").setParent("g1").addCollections("collection1", "collection2"));
+		assertThat(services.getGroup("g2").getName()).isEqualTo("Group 2");
+		assertThatGroup("g2").isInCollections(collection1, collection2);
+		assertThat(services.getGroup("g2").getCaption()).isEqualTo("Group 1 | Group 2");
+		assertThat(services.getGroup("g2").getAncestors()).containsOnly("g1");
+		assertThat(group("g2", "collection1").getCode()).isEqualTo("g2");
+		assertThat(group("g2", "collection1").getTitle()).isEqualTo("Group 2");
+		assertThat(group("g2", "collection1").getCaption()).isEqualTo("Group 1 | Group 2");
+		assertThat(group("g2", "collection1").getParent()).isEqualTo(group("g1", "collection1").getId());
+		assertThat(group("g2", "collection1").getAncestors()).containsOnly(group("g1", "collection1").getId());
+		assertThat(group("g2", "collection3").getCode()).isEqualTo("g2");
+		assertThat(group("g2", "collection3").getTitle()).isEqualTo("Group 2");
+		assertThat(group("g2", "collection3").getCaption()).isEqualTo("Group 1 | Group 2");
+		assertThat(group("g2", "collection3").getParent()).isEqualTo(group("g1", "collection3").getId());
+		assertThat(group("g2", "collection3").getAncestors()).containsOnly(group("g1", "collection3").getId());
+
+		services.createGroup("g3", (req) -> req.setName("Group 2").setParent("g1").addCollections("collection1", "collection2"));
+		assertThat(services.getGroup("g3").getName()).isEqualTo("Group 2");
+		assertThatGroup("g3").isInCollections(collection1, collection2);
+		assertThat(services.getGroup("g3").getCaption()).isEqualTo("Group 1 | Group 2");
+		assertThat(services.getGroup("g3").getAncestors()).containsOnly("g1");
+		assertThat(group("g3", "collection1").getCode()).isEqualTo("g3");
+		assertThat(group("g3", "collection1").getTitle()).isEqualTo("Group 3");
+		assertThat(group("g3", "collection1").getCaption()).isEqualTo("Group 1 | Group 3");
+		assertThat(group("g3", "collection1").getParent()).isEqualTo(group("g1", "collection1").getId());
+		assertThat(group("g3", "collection1").getAncestors()).containsOnly(group("g1", "collection1").getId());
+		assertThat(group("g3", "collection3").getCode()).isEqualTo("g3");
+		assertThat(group("g3", "collection3").getTitle()).isEqualTo("Group 3");
+		assertThat(group("g3", "collection3").getCaption()).isEqualTo("Group 1 | Group 3");
+		assertThat(group("g3", "collection3").getParent()).isEqualTo(group("g1", "collection3").getId());
+		assertThat(group("g3", "collection3").getAncestors()).containsOnly(group("g1", "collection3").getId());
+
+		services.execute(services.request("g3").setParent("g2"));
+		assertThat(group("g3", "collection1").getCode()).isEqualTo("g3");
+		assertThat(group("g3", "collection1").getTitle()).isEqualTo("Group 3");
+		assertThat(group("g3", "collection1").getCaption()).isEqualTo("Group 1 | Group 2 | Group 3");
+		assertThat(group("g3", "collection1").getParent()).isEqualTo(group("g2", "collection1").getId());
+		assertThat(group("g3", "collection1").getAncestors()).containsOnly(
+				group("g1", "collection1").getId(), group("g2", "collection1").getId());
+		assertThat(group("g3", "collection3").getCode()).isEqualTo("g3");
+		assertThat(group("g3", "collection3").getTitle()).isEqualTo("Group 3");
+		assertThat(group("g3", "collection3").getCaption()).isEqualTo("Group 1 | Group 2 | Group 3");
+		assertThat(group("g3", "collection3").getParent()).isEqualTo(group("g2", "collection3").getId());
+		assertThat(group("g3", "collection3").getAncestors()).containsOnly(
+				group("g1", "collection3").getId(), group("g2", "collection1").getId());
 
 	}
 
 	@Test
-	public void whenAddingGroupsThenSaved() {
+	public void whenCreatingOrModifyingGroupsThenAChildGroupIsNeverOrphanInACollection() {
+
+		services.createGroup("g1", (req) -> req.setName("Group 1").addCollections("collection1", "collection2"));
+		assertThat(services.getGroup("g1").getName()).isEqualTo("Group 1");
+		assertThat(services.getGroup("g1").getCollections()).containsOnly("collection1", "collection2");
+
+		services.createGroup("g2", (req) -> req.setName("Group 2").setParent("g1")
+				.addCollections("collection1"));
+
+		services.createGroup("g3", (req) -> req.setName("Group 3").setParent("g2")
+				.addCollections("collection1"));
+
+		services.createGroup("g4", (req) -> req.setName("Group 4").setParent("g3")
+				.addCollections("collection2"));
+
+		assertThatGroup("g1").isInCollections(collection1, collection2);
+		assertThatGroup("g2").isInCollections(collection1, collection2);
+		assertThatGroup("g3").isInCollections(collection1, collection2);
+		assertThatGroup("g4").isInCollections(collection2);
+
+		services.createGroup("g3", (req) -> req.addCollection("collection3"));
+
+		assertThatGroup("g1").isInCollections(collection1, collection2, collection3);
+		assertThatGroup("g2").isInCollections(collection1, collection2, collection3);
+		assertThatGroup("g3").isInCollections(collection1, collection2, collection3);
+		assertThatGroup("g4").isInCollections(collection2);
+		String g4IdBeforeRemoveCollection = group("g4", collection2).getId();
+
+		services.createGroup("g2", (req) -> req.removeCollection("collection2"));
+
+		assertThatGroup("g1").isInCollections(collection1, collection2, collection3);
+		assertThatGroup("g2").isInCollections(collection1, collection3);
+		assertThatGroup("g3").isInCollections(collection1, collection3);
+		assertThatGroup("g4").doesNotExist();
+
+		services.createGroup("g4", (req) -> req.addCollection("collection2"));
+		assertThatGroup("g1").isInCollections(collection1, collection2, collection3);
+		assertThatGroup("g2").isInCollections(collection1, collection2, collection3);
+		assertThatGroup("g3").isInCollections(collection1, collection2, collection3);
+		assertThatGroup("g4").isInCollections(collection2);
+		assertThat(group("g4", collection2).getId()).isNotEqualTo(g4IdBeforeRemoveCollection);
+	}
+
+	@Test
+	public void givenGroupIsUsedWithAnAuthorisationWhenRemovingCollectionsThenDisabledInstead() {
+		services.createGroup("g1", (req) -> req.setName("Group 1").addCollections(collection1, collection2, collection3));
+		services.createGroup("g2", (req) -> req.setName("Group 2").setParent("g1").addCollections(collection1, collection2, collection3));
+		services.createGroup("g3", (req) -> req.setName("Group 3").setParent("g2").addCollections(collection1, collection2, collection3));
+		services.createGroup("g4", (req) -> req.setName("Group 4").setParent("g3").addCollections(collection1, collection2, collection3));
+
+		createAuthorisationGivingAccessToGroupInCollection("g4", collection2);
+		createAuthorisationGivingAccessToGroupInCollection("g3", collection3);
+
+		services.execute("g2", (req) -> req.removeCollections(collection1, collection2, collection3));
+
+		assertThatGroup("g1").isInCollections(collection1, collection2, collection3)
+				.hasStatusIn(GlobalGroupStatus.ACTIVE, collection1, collection2, collection3);
+		assertThatGroup("g2").isInCollections(collection2, collection3).hasStatusIn(INACTIVE, collection2, collection3);
+		assertThatGroup("g3").isInCollections(collection2, collection3).hasStatusIn(INACTIVE, collection2, collection3);
+		assertThatGroup("g4").isInCollections(collection2).hasStatusIn(INACTIVE, collection2);
+
+		services.execute("g2", (req) -> req.addCollections(collection1, collection2, collection3));
+
+		assertThatGroup("g1")
+				.isInCollections(collection1, collection2, collection3)
+				.hasStatusIn(GlobalGroupStatus.ACTIVE, collection1, collection2, collection3);
+		assertThatGroup("g2")
+				.isInCollections(collection1, collection2, collection3)
+				.hasStatusIn(GlobalGroupStatus.ACTIVE, collection1, collection2, collection3);
+		assertThatGroup("g3")
+				.isInCollections(collection1, collection2, collection3)
+				.hasStatusIn(GlobalGroupStatus.ACTIVE, collection1, collection2, collection3);
+		assertThatGroup("g4")
+				.isInCollections(collection1, collection2, collection3)
+				.hasStatusIn(GlobalGroupStatus.ACTIVE, collection1, collection2, collection3);
+	}
+
+	@Test
+	public void givenGroupIsUsedWithAnAuthorisationWhenRemovingItThenDisabledInstead() {
+		services.createGroup("g1", (req) -> req.setName("Group 1").addCollections(collection1, collection2, collection3));
+		services.createGroup("g2", (req) -> req.setName("Group 2").setParent("g1").addCollections(collection1, collection2, collection3));
+		services.createGroup("g3", (req) -> req.setName("Group 3").setParent("g2").addCollections(collection1, collection2, collection3));
+		services.createGroup("g4", (req) -> req.setName("Group 4").setParent("g3").addCollections(collection1, collection2, collection3));
+
+		createAuthorisationGivingAccessToGroupInCollection("g4", collection2);
+		createAuthorisationGivingAccessToGroupInCollection("g3", collection3);
+
+		services.executeGroupRequest("g2", (req) -> req.markForDeletionInAllCollections());
+
+		assertThatGroup("g1").isInCollections(collection1, collection2, collection3)
+				.hasStatusIn(GlobalGroupStatus.ACTIVE, collection1, collection2, collection3);
+		assertThatGroup("g2").isInCollections(collection2, collection3).hasStatusIn(INACTIVE, collection2, collection3);
+		assertThatGroup("g3").isInCollections(collection2, collection3).hasStatusIn(INACTIVE, collection2, collection3);
+		assertThatGroup("g4").isInCollections(collection2).hasStatusIn(INACTIVE, collection2);
+
+		services.executeGroupRequest("g2", (req) -> req.addCollections(collection1, collection2, collection3));
+
+		assertThatGroup("g1")
+				.isInCollections(collection1, collection2, collection3)
+				.hasStatusIn(GlobalGroupStatus.ACTIVE, collection1, collection2, collection3);
+		assertThatGroup("g2")
+				.isInCollections(collection1, collection2, collection3)
+				.hasStatusIn(GlobalGroupStatus.ACTIVE, collection1, collection2, collection3);
+		assertThatGroup("g3")
+				.isInCollections(collection1, collection2, collection3)
+				.hasStatusIn(GlobalGroupStatus.ACTIVE, collection1, collection2, collection3);
+		assertThatGroup("g4")
+				.isInCollections(collection1, collection2, collection3)
+				.hasStatusIn(GlobalGroupStatus.ACTIVE, collection1, collection2, collection3);
+
+		services.executeGroupRequest("g1", (req) -> req.markForDeletionInCollections(asList(collection2, collection3)));
+
+		assertThatGroup("g1").isInCollections(collection1, collection2, collection3)
+				.hasStatusIn(GlobalGroupStatus.ACTIVE, collection1).hasStatusIn(INACTIVE, collection2, collection3);
+		assertThatGroup("g2").isInCollections(collection1, collection2, collection3)
+				.hasStatusIn(GlobalGroupStatus.ACTIVE, collection1).hasStatusIn(INACTIVE, collection2, collection3);
+		assertThatGroup("g3").isInCollections(collection1, collection2, collection3)
+				.hasStatusIn(GlobalGroupStatus.ACTIVE, collection1).hasStatusIn(INACTIVE, collection2, collection3);
+		assertThatGroup("g4").isInCollections(collection1, collection2)
+				.hasStatusIn(GlobalGroupStatus.ACTIVE, collection1).hasStatusIn(INACTIVE, collection2);
+	}
+
+	@Test
+	public void whenAddingAGroupToOtherCollectionsThenDoNotAddChildGroups() {
+		services.createGroup("g1", (req) -> req.setName("Group 1").addCollections(collection1, collection3));
+		services.createGroup("g2", (req) -> req.setName("Group 2").setParent("g1").addCollections(collection1));
+		services.createGroup("g3", (req) -> req.setName("Group 3").setParent("g2").addCollections(collection1));
+
+		services.executeGroupRequest("g2", (req) -> req.addCollections(collection2, collection3));
+
+		assertThatGroup("g1").isInCollections(collection1, collection2, collection3)
+				.hasStatusIn(GlobalGroupStatus.ACTIVE, collection1, collection2, collection3);
+		assertThatGroup("g2").isInCollections(collection1, collection2, collection3)
+				.hasStatusIn(GlobalGroupStatus.ACTIVE, collection1, collection2, collection3);
+		assertThatGroup("g3").isInCollections(collection1).hasStatusIn(GlobalGroupStatus.ACTIVE, collection1);
+	}
+
+	@Test
+	public void whenRemovingAGroupToOtherCollectionsThenDoNotAddChildGroups() {
+		services.createGroup("g1", (req) -> req.setName("Group 1").addCollections(collection1, collection3));
+		services.createGroup("g2", (req) -> req.setName("Group 2").setParent("g1").addCollections(collection1));
+		services.createGroup("g3", (req) -> req.setName("Group 3").setParent("g2").addCollections(collection1));
+
+		services.executeGroupRequest("g2", (req) -> req.addCollections(collection2, collection3));
+
+		assertThatGroup("g1").isInCollections(collection1, collection2, collection3)
+				.hasStatusIn(GlobalGroupStatus.ACTIVE, collection1, collection2, collection3);
+		assertThatGroup("g2").isInCollections(collection1, collection2, collection3)
+				.hasStatusIn(GlobalGroupStatus.ACTIVE, collection1, collection2, collection3);
+		assertThatGroup("g3").isInCollections(collection1).hasStatusIn(GlobalGroupStatus.ACTIVE, collection1);
+	}
+
+	@Test
+	public void givenGroupIsUsedIsMappedToUsersWhenRemovingItThenDisabledInstead() {
+
 		//TODO
 	}
 
+
 	// --------- Utils ---------
+
+
+	private GroupAssertions assertThatGroup(String groupCode) {
+		return new GroupAssertions(groupCode);
+	}
+
+	@AllArgsConstructor
+	private class GroupAssertions {
+
+		String groupCode;
+
+		GroupAssertions isInCollections(String... expectedCollectionsArray) {
+			List<String> expectedCollections = asList(expectedCollectionsArray);
+
+			SystemWideGroup systemWideGroup = groupInfo(groupCode);
+			assertThat(systemWideGroup).isNotNull();
+			assertThat(systemWideGroup.getCollections()).containsOnly(expectedCollectionsArray);
+
+			for (String collection : asList(collection1, collection2, collection3)) {
+				boolean expectedInThisCollection = expectedCollections.contains(collection);
+				if (expectedInThisCollection) {
+					assertThat(group(groupCode, collection)).describedAs("Group '" + groupCode + "' is expected in collection '" + collection + "'").isNotNull();
+				} else {
+					assertThat(group(groupCode, collection)).describedAs("Group '" + groupCode + "' is not expected in collection '" + collection + "'").isNull();
+				}
+			}
+			return this;
+		}
+
+		public GroupAssertions doesNotExist() {
+			SystemWideGroup systemWideGroup = groupInfo(groupCode);
+			assertThat(systemWideGroup).isNull();
+
+			for (String collection : asList(collection1, collection2, collection3)) {
+				assertThat(group(groupCode, collection)).describedAs("Group '" + groupCode + "' is not expected in collection '" + collection + "'").isNull();
+			}
+			return this;
+		}
+
+		private GroupAssertions hasStatusIn(GlobalGroupStatus expectedStatus, String... collections) {
+
+			for (String collection : collections) {
+				assertThat(group(groupCode, collection).getStatus()).isEqualTo(expectedStatus);
+				assertThat(groupInfo(groupCode).getStatus(collection)).isEqualTo(expectedStatus);
+				boolean expectedLogicallyDeletedStatus = expectedStatus != GlobalGroupStatus.ACTIVE;
+				assertThat(group(groupCode, collection).isLogicallyDeletedStatus()).isEqualTo(expectedLogicallyDeletedStatus);
+			}
+			return this;
+		}
+	}
+
+
+	private UserAssertions assertThatUser(String username) {
+		return new UserAssertions(username);
+	}
+
+	@AllArgsConstructor
+	private class UserAssertions {
+
+		String username;
+
+		UserAssertions isInCollections(String... expectedCollectionsArray) {
+			List<String> expectedCollections = asList(expectedCollectionsArray);
+
+			assertThat(userCredential(username)).isNotNull();
+
+			SystemWideUserInfos systemWideUser = userInfos(username);
+			assertThat(systemWideUser).isNotNull();
+			assertThat(systemWideUser.getCollections()).containsOnly(expectedCollectionsArray);
+
+			for (String collection : asList(collection1, collection2, collection3)) {
+				boolean expectedInThisCollection = expectedCollections.contains(collection);
+				if (expectedInThisCollection) {
+					assertThat(user(username, collection)).describedAs("User '" + username + "' is expected in collection '" + collection + "'").isNotNull();
+				} else {
+					assertThat(user(username, collection)).describedAs("User '" + username + "' is not expected in collection '" + collection + "'").isNull();
+				}
+			}
+
+			return this;
+		}
+
+		public UserAssertions doesNotExist() {
+			assertThat(userInfos(username)).isNull();
+			assertThat(userCredential(username)).isNull();
+			assertThat(user(username, collection1)).isNull();
+			assertThat(user(username, collection2)).isNull();
+			assertThat(user(username, collection3)).isNull();
+
+			return this;
+		}
+
+		private UserAssertions hasStatusIn(UserCredentialStatus expectedStatus, String collection) {
+			User user = user(username, collection);
+			assertThat(userInfos(user.getUsername()).getStatus(user.getCollection())).isEqualTo(expectedStatus);
+			assertThat(user.getStatus()).isEqualTo(expectedStatus);
+			boolean expectedLogicallyDeletedStatus = expectedStatus != ACTIVE;
+			assertThat(user.isLogicallyDeletedStatus()).isEqualTo(expectedLogicallyDeletedStatus);
+
+			return this;
+		}
+
+		private UserAssertions isPhysicicallyDeletedIn(String collection) {
+			assertThat(userInfos(username).getStatus(collection)).isNull();
+			assertThat(userInfos(username).getCollections()).doesNotContain(collection);
+			assertThat(user(username, collection)).isNull();
+
+			return this;
+		}
+	}
 
 	private void givenUserCreatedUserFoldersInCollection(String username, String collection) {
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, getModelLayerFactory());
@@ -353,26 +697,15 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		return groupRecord == null ? null : schemas.wrapGroup(groupRecord);
 	}
 
-	private void assertThatUserAsStatusIn(String username, String collection, UserCredentialStatus expectedStatus) {
-		User user = user(username, collection);
-		assertThat(userInfos(user.getUsername()).getStatus(user.getCollection())).isEqualTo(expectedStatus);
-		assertThat(user.getStatus()).isEqualTo(expectedStatus);
-		boolean expectedLogicallyDeletedStatus = expectedStatus != ACTIVE;
-		assertThat(user.isLogicallyDeletedStatus()).isEqualTo(expectedLogicallyDeletedStatus);
+	private SystemWideGroup groupInfo(String code) {
+		return services.getGroup(code);
 	}
 
-	private void assertThatUserIsPhysicicallyDeletedIn(String username, String collection) {
-		assertThat(userInfos(username).getStatus(collection)).isNull();
-		assertThat(userInfos(username).getCollections()).doesNotContain(collection);
-		assertThat(user(username, collection)).isNull();
-	}
 
-	private void assertThatUserIsPhysicicallyDeletedInAllCollections(String username) {
-		assertThat(userInfos(username)).isNull();
-		assertThat(userCredential(username)).isNull();
-		assertThat(user(username, collection1)).isNull();
-		assertThat(user(username, collection2)).isNull();
-		assertThat(user(username, collection3)).isNull();
+	private void createAuthorisationGivingAccessToGroupInCollection(String groupCode, String collection) {
+		AdministrativeUnit administrativeUnit = new RMSchemasRecordsServices(collection, getAppLayerFactory()).getAdministrativeUnitWithCode("ze-unit");
+		Group group = group(groupCode, collection);
+		getModelLayerFactory().newAuthorizationsServices().add(AuthorizationAddRequest.authorizationForGroups(group).on(administrativeUnit).givingReadAccess());
 
 	}
 }

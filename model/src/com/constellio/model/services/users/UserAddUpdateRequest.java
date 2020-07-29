@@ -231,6 +231,11 @@ public class UserAddUpdateRequest {
 		return this;
 	}
 
+	public UserAddUpdateRequest removeCollections(String... collections) {
+		Arrays.stream(collections).forEach(this::removeCollection);
+		return this;
+	}
+
 	public UserAddUpdateRequest addCollections(List<String> collections) {
 		collections.forEach(this::addCollection);
 		return this;

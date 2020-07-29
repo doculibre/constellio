@@ -282,7 +282,28 @@ public class UserServices {
 	public GroupAddUpdateRequest createGlobalGroup(
 			String code, String name, List<String> collections, String parent, GlobalGroupStatus status,
 			boolean locallyCreated) {
-		return globalGroupsManager.create(code, name, collections, parent, status, locallyCreated);
+
+		return new GroupAddUpdateRequest(code)
+				.setName(name)
+				.addCollections(collections)
+				.setParent(parent)
+				.setStatus(status)
+				.setLocallyCreated(locallyCreated);
+	}
+
+	public void createGroup(String code, Consumer<GroupAddUpdateRequest> requestConsumer) {
+		GroupAddUpdateRequest request = new GroupAddUpdateRequest(code)
+				.setName(code)
+				.setStatus(GlobalGroupStatus.ACTIVE)
+				.setLocallyCreated(true);
+		requestConsumer.accept(request);
+		execute(request);
+	}
+
+	public void executeGroupRequest(String groupCode, Consumer<GroupAddUpdateRequest> requestConsumer) {
+		GroupAddUpdateRequest request = request(groupCode);
+		requestConsumer.accept(request);
+		execute(request);
 	}
 
 	public void execute(GroupAddUpdateRequest globalGroup) {

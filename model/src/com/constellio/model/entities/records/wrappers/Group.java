@@ -3,6 +3,7 @@ package com.constellio.model.entities.records.wrappers;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.GlobalGroupStatus;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,6 +39,10 @@ public class Group extends RecordWrapper {
 
 	public String getCode() {
 		return get(CODE);
+	}
+
+	public String getCaption() {
+		return get(Schemas.CAPTION.getLocalCode());
 	}
 
 	//TODO Replace this method in release 8.2
@@ -88,5 +93,9 @@ public class Group extends RecordWrapper {
 	@Override
 	public String toString() {
 		return toStringPrintingCodes(CODE, TITLE);
+	}
+
+	public GlobalGroupStatus getStatus() {
+		return null;
 	}
 }

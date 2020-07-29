@@ -50,8 +50,15 @@ public class UserServicesRuntimeException extends RuntimeException {
 	}
 
 	public static class UserServicesRuntimeException_AtLeastOneCollectionRequired extends UserServicesRuntimeException {
-		public UserServicesRuntimeException_AtLeastOneCollectionRequired(String username) {
-			super("At least one collection is required for new user '" + username + "'");
+		public UserServicesRuntimeException_AtLeastOneCollectionRequired(String code) {
+			super("At least one collection is required for new user/group '" + code + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_ParentGroupDoesNotExistInCollection extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_ParentGroupDoesNotExistInCollection(String code, String parentCode,
+																				String collection) {
+			super("Parent group with code '" + parentCode + "' does not exist in collection '" + collection + "' for child group '" + code + "'");
 		}
 	}
 
@@ -82,6 +89,12 @@ public class UserServicesRuntimeException extends RuntimeException {
 	public static class UserServicesRuntimeException_EmailRequired extends UserServicesRuntimeException {
 		public UserServicesRuntimeException_EmailRequired(String username) {
 			super("Email is required for new user '" + username + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_NameRequired extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_NameRequired(String code) {
+			super("Name is required for new group '" + code + "'");
 		}
 	}
 
