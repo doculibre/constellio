@@ -295,7 +295,7 @@ public class SolrUserCredentialsManager {
 	}
 
 	public UserCredential getUserCredentialByServiceKey(String serviceKey) {
-		String encryptedKey = modelLayerFactory.newEncryptionServices().encrypt(serviceKey);
+		String encryptedKey = (String) modelLayerFactory.newEncryptionServices().encryptWithAppKey(serviceKey);
 		Record record = searchServices.searchSingleResult(
 				from(schemas.credentialSchemaType()).where(schemas.credentialServiceKey()).isEqualTo(encryptedKey));
 		return record != null ? schemas.wrapCredential(record) : null;
@@ -312,7 +312,7 @@ public class SolrUserCredentialsManager {
 	}
 
 	public UserCredential getUserCredentialByToken(String token) {
-		String encryptedToken = modelLayerFactory.newEncryptionServices().encrypt(token);
+		String encryptedToken = (String) modelLayerFactory.newEncryptionServices().encryptWithAppKey(token);
 		Record record = searchServices.searchSingleResult(
 				from(schemas.credentialSchemaType()).where(schemas.credentialTokenKeys()).isEqualTo(encryptedToken));
 		return record != null ? schemas.wrapCredential(record) : null;
