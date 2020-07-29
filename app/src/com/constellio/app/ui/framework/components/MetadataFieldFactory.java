@@ -1,8 +1,10 @@
 package com.constellio.app.ui.framework.components;
 
+import com.constellio.app.api.extensions.params.MetadataFieldFactoryBuildExtensionParams;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -80,22 +82,33 @@ public class MetadataFieldFactory implements Serializable {
 	}
 
 	public Field<?> build(MetadataVO metadata, String recordId, Locale locale) {
-		Field<?> field;
+		Field<?> field = callBuildExtensions(metadata, recordId, locale);
 
-		boolean multivalue = metadata.isMultivalue();
-		if (multivalue) {
-			field = newMultipleValueField(metadata, recordId);
-		} else {
-			field = newSingleValueField(metadata, recordId);
+		if (field == null) {
+			boolean multivalue = metadata.isMultivalue();
+			if (multivalue) {
+				field = newMultipleValueField(metadata, recordId);
+			} else {
+				field = newSingleValueField(metadata, recordId);
+			}
+			// FIXME Temporary workaround for inconsistencies
+			if (metadata.getJavaType() == null) {
+				field = null;
+			}
 		}
-		// FIXME Temporary workaround for inconsistencies
-		if (metadata.getJavaType() == null) {
-			field = null;
-		}
+
 		if (field != null) {
 			postBuild(field, metadata);
 		}
 		return field;
+	}
+
+	protected Field<?> callBuildExtensions(MetadataVO metadata, String recordId, Locale locale) {
+		String collection = metadata.getCollection();
+		ConstellioFactories constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
+		MetadataFieldFactoryBuildExtensionParams params = new MetadataFieldFactoryBuildExtensionParams(metadata, recordId, locale);
+		AppLayerCollectionExtensions collectionExtensions = constellioFactories.getAppLayerFactory().getExtensions().forCollection(collection);
+		return collectionExtensions.metadataFieldFactoryBuild(params);
 	}
 
 	protected void postBuild(final Field<?> field, MetadataVO metadata) {
