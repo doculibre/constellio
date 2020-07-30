@@ -408,6 +408,8 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenCreatingOrModifyingGroupsThenAChildGroupIsNeverOrphanInACollection() {
 
+		//TODO Commencer ici, mais faire un test sans parents
+
 		services.createGroup("g1", (req) -> req.setName("Group 1").addCollections(collection1, collection2));
 		assertThat(services.getGroup("g1").getName()).isEqualTo("Group 1");
 		assertThat(services.getGroup("g1").getCollections()).containsOnly(collection1, collection2);
