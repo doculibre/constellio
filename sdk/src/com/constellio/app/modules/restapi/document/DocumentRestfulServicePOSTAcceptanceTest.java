@@ -98,7 +98,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 								.endDate(toDateString(new LocalDate().plusDays(365))).build(),
 						AceDto.builder().principals(singleton(chuckNorris)).permissions(singleton(READ)).build()))
 				.attributes(asList(
-						AttributeDto.builder().key(Document.ENCRYTION_KEY).values(singletonList("fakeKey")).build()))
+						AttributeDto.builder().key(Document.ENCRYPTION_KEY).values(singletonList("fakeKey")).build()))
 				.extendedAttributes(asList(
 						ExtendedAttributeDto.builder().key(fakeMetadata1).values(singletonList("value1")).build(),
 						ExtendedAttributeDto.builder().key(fakeMetadata2).values(asList("value2a", "value2b")).build()))
@@ -170,7 +170,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 		assertThat(record).isNotNull();
 		assertThatRecord(record).extracting(Document.TITLE, Document.FOLDER, Document.KEYWORDS, Document.AUTHOR, Document.COMPANY, Document.SUBJECT, Document.TYPE)
 				.containsExactly(doc.getTitle(), doc.getFolderId(), doc.getKeywords(), doc.getAuthor(), doc.getOrganization(), doc.getSubject(), doc.getType().getId());
-		assertThatRecord(record).extracting(Document.ENCRYTION_KEY).containsExactly("fakeKey");
+		assertThatRecord(record).extracting(Document.ENCRYPTION_KEY).containsExactly("fakeKey");
 		assertThatRecord(record).extracting(fakeMetadata1).isEqualTo(doc.getExtendedAttributes().get(0).getValues());
 		assertThatRecord(record).extracting(fakeMetadata2).containsExactly(doc.getExtendedAttributes().get(1).getValues());
 
