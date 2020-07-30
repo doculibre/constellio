@@ -4,6 +4,7 @@ import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.threads.ConstellioThread;
 import com.constellio.data.utils.ThreadList;
+import com.constellio.data.utils.systemLogger.SystemLogger;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -263,6 +264,8 @@ public class BulkRecordTransactionHandler {
 								recordServices.executeWithImpactHandler(transaction, null);
 								break;
 						}
+					} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_ExceptionWhileCalculating e) {
+						SystemLogger.error(e.getMessage());
 					} catch (Exception e) {
 						if (!options.isContinueOnExceptions()) {
 							exception = e;
