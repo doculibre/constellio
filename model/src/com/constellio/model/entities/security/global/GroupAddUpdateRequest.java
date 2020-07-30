@@ -53,8 +53,7 @@ public class GroupAddUpdateRequest {
 		return this;
 	}
 
-	@Deprecated
-	public GroupAddUpdateRequest setStatus(GlobalGroupStatus status) {
+	public GroupAddUpdateRequest setStatusInAllCollections(GlobalGroupStatus status) {
 		set(STATUS, status);
 		return this;
 	}

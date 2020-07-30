@@ -296,14 +296,14 @@ public class UserServices {
 				.setName(name)
 				.addCollections(collections)
 				.setParent(parent)
-				.setStatus(status)
+				.setStatusInAllCollections(status)
 				.setLocallyCreated(locallyCreated);
 	}
 
 	public void createGroup(String code, Consumer<GroupAddUpdateRequest> requestConsumer) {
 		GroupAddUpdateRequest request = new GroupAddUpdateRequest(code)
 				.setName(code)
-				.setStatus(GlobalGroupStatus.ACTIVE)
+				.setStatusInAllCollections(GlobalGroupStatus.ACTIVE)
 				.setLocallyCreated(true);
 		requestConsumer.accept(request);
 		execute(request);
@@ -1031,6 +1031,7 @@ public class UserServices {
 	}
 
 	public String getToken(String serviceKey, String token) {
+		//TODO Refact!
 		if (userCredentialsManager.getServiceKeyByToken(token) != null) {
 			userCredentialsManager.removeToken(token);
 			String username = userCredentialsManager.getUsernameByServiceKey(serviceKey);
@@ -1042,10 +1043,12 @@ public class UserServices {
 	}
 
 	public String generateToken(String username) {
+		//TODO Refact!
 		return generateToken(username, modelLayerConfiguration.getTokenDuration());
 	}
 
 	public String generateToken(String username, ReadableDuration duration) {
+		//TODO Refact!
 		String token = secondaryUniqueIdGenerator.next();
 		LocalDateTime expiry = TimeProvider.getLocalDateTime().plus(duration);
 		execute(username, (req) -> req.addAccessToken(token, expiry));
@@ -1053,6 +1056,7 @@ public class UserServices {
 	}
 
 	public String generateToken(String username, String unitTime, int duration) {
+		//TODO Refact!
 		String token = secondaryUniqueIdGenerator.next();
 		LocalDateTime expiry = unitTime.equals("hours") ?
 							   TimeProvider.getLocalDateTime().plusHours(duration) :
@@ -1176,44 +1180,6 @@ public class UserServices {
 		}
 	}
 
-	public List<SystemWideGroup> safePhysicalDeleteAllUnusedGlobalGroups() {
-		return physicallyRemoveGlobalGroup(globalGroupsManager.getAllGroups().toArray(new SystemWideGroup[0]));
-	}
-
-	List<SystemWideGroup> physicallyRemoveGlobalGroup(SystemWideGroup... globalGroups) {
-		List<SystemWideGroup> groupWithUserList = new ArrayList<>();
-		for (SystemWideGroup group : globalGroups) {
-			List<SystemWideUserInfos> userInGroup = this.getGlobalGroupActifUsers(group.getCode());
-			if ((group.getStatus().equals(GlobalGroupStatus.INACTIVE) && userInGroup.size() == 0)) {
-				globalGroupsManager.logicallyRemoveGroup(group);
-				recordServices.physicallyDelete(getOldNullableGroup(group.getCode()), User.GOD);
-			} else if (userInGroup.size() != 0) {
-				groupWithUserList.add(group);
-			}
-		}
-		return groupWithUserList;
-	}
-
-	public List<Group> safePhysicalDeleteAllUnusedGroups(String collection) {
-		List<Group> nonDeletedGroups = new ArrayList<>();
-		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
-		LogicalSearchQuery query = new LogicalSearchQuery(allGroups(collectionTypes).returnAll());
-		query.filteredByStatus(StatusFilter.DELETED);
-
-		List<Group> deletedGroups = Group.wrap(searchServices.search(query), collectionTypes);
-		for (Group group : deletedGroups) {
-			LOGGER.info("safePhysicalDeleteAllUnusedGroups : " + group.getCode());
-			try {
-				physicallyRemoveGroup(group, collection);
-			} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
-				LOGGER.warn("Exception on safePhysicalDeleteAllUnusedGroups : " + group.getCode());
-				nonDeletedGroups.add(group);
-			}
-		}
-
-		return nonDeletedGroups;
-	}
-
 	void physicallyRemoveGroup(Group group, String collection) {
 		LOGGER.info("physicallyRemoveGroup : " + group.getCode());
 
@@ -1229,6 +1195,7 @@ public class UserServices {
 	}
 
 	public List<SystemWideUserInfos> safePhysicalDeleteAllUnusedUserCredentials() {
+		//TODO Refact Francis : Decide what to do with this!
 		List<SystemWideUserInfos> nonDeletedUsers = new ArrayList<>();
 		Predicate<SystemWideUserInfos> filter = new Predicate<SystemWideUserInfos>() {
 			@Override
@@ -1270,6 +1237,7 @@ public class UserServices {
 	}
 
 	public List<User> safePhysicalDeleteAllUnusedUsers(String collection) {
+		//TODO Refact Francis : Decide what to do with this!
 		List<User> nonDeletedUsers = new ArrayList<>();
 		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
 		LogicalSearchQuery query = new LogicalSearchQuery(
@@ -1326,7 +1294,7 @@ public class UserServices {
 	void restoreDeletedGroup(String groupCode, String collection) {
 		SystemWideGroup globalGroup = globalGroupsManager.getGlobalGroupWithCode(groupCode);
 		if (globalGroup.getStatus().equals(GlobalGroupStatus.INACTIVE)) {
-			globalGroupsManager.addUpdate(request(globalGroup.getCode()).setStatus(GlobalGroupStatus.ACTIVE));
+			globalGroupsManager.addUpdate(request(globalGroup.getCode()).setStatusInAllCollections(GlobalGroupStatus.ACTIVE));
 		}
 
 		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
@@ -1342,12 +1310,10 @@ public class UserServices {
 		}
 	}
 
-	public boolean isAdminInAnyCollection(String username) {
-		return has(username).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
-	}
-
 	public List<User> getAllUsersInGroup(Group group, boolean includeGroupInheritance,
 										 boolean onlyActiveUsersAndGroups) {
+
+		//TODO Refact : Kept method from old services, make sure it is tested
 		List<User> userRecords = new ArrayList<>();
 		Set<String> usernames = new HashSet<>();
 
@@ -1423,12 +1389,9 @@ public class UserServices {
 		}
 	}
 
-	public boolean isGroupActive(Group group) {
-		SystemWideGroup globalGroup = globalGroupsManager.getGlobalGroupWithCode(group.getCode());
-		return globalGroup == null || isGroupActive(globalGroup);
-	}
-
-	public boolean isGroupActive(String aGroup) {
+	public boolean isGroupAndAllHisAncestorsActive(String aGroup, String collection) {
+		//TODO Refact : With new services, a child group is always INACTIVE if it's parent is inactive, so replace with :
+		//getGroup(aGroup).getStatus(collection) == ACTIVE;
 
 		SystemWideGroup globalGroup;
 		Record record = recordServices.getDocumentById(aGroup);
@@ -1443,30 +1406,19 @@ public class UserServices {
 			globalGroup = globalGroupsManager.wrapGlobalGroup(record);
 		}
 
-		return isGroupActive(globalGroup);
+		return isGroupAndAllHisAncestorsActive(globalGroup);
 	}
 
-	private boolean isGroupActive(SystemWideGroup globalGroup) {
-
+	private boolean isGroupAndAllHisAncestorsActive(SystemWideGroup globalGroup) {
 		if (globalGroup.getStatus() == GlobalGroupStatus.INACTIVE) {
 			return false;
 
 		} else if (globalGroup.getParent() != null) {
-			return isGroupActive(globalGroupsManager.getGlobalGroupWithCode(globalGroup.getParent()));
+			return isGroupAndAllHisAncestorsActive(globalGroupsManager.getGlobalGroupWithCode(globalGroup.getParent()));
 
 		} else {
 			return true;
 		}
-	}
-
-	public List<Group> getGroupForEachCollection(SystemWideGroup globalGroup) {
-
-		List<Group> groups = new ArrayList<>();
-		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
-			groups.add(getGroupInCollection(globalGroup.getCode(), collection));
-		}
-
-		return groups;
 	}
 
 
@@ -1483,6 +1435,7 @@ public class UserServices {
 	}
 
 	public void reShowPrivacyPolicyToUser() {
+		//TODO Refact : Kept method from old services, make sure it is tested
 		SchemasRecordsServices systemSchemas = new SchemasRecordsServices(com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION, modelLayerFactory);
 		LogicalSearchQuery query = new LogicalSearchQuery(from(systemSchemas.credentialSchemaType())
 				.where(systemSchemas.credentialSchemaType().getAllMetadatas().getMetadataWithLocalCode(UserCredential.HAS_AGREED_TO_PRIVACY_POLICY)).isTrue());
@@ -1501,6 +1454,7 @@ public class UserServices {
 	}
 
 	public void resetHasReadLastAlertMetadataOnUsers() {
+		//TODO Refact : Kept method from old services, make sure it is tested
 		SchemasRecordsServices systemSchemas = new SchemasRecordsServices(com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION, modelLayerFactory);
 		LogicalSearchQuery query = new LogicalSearchQuery(from(systemSchemas.credentialSchemaType())
 				.where(systemSchemas.credentialSchemaType()
@@ -1519,12 +1473,36 @@ public class UserServices {
 	}
 
 	public void prepareForCollectionDelete(String collection) {
+		//TODO Refact : Nothing todo when creating a collection, just delete this method!
 		userCredentialsManager.removeCollection(collection);
 		globalGroupsManager.removeCollection(collection);
 	}
 
 	public void removeTimedOutTokens() {
-		userCredentialsManager.removeTimedOutTokens();
+		//TODO Refact : Kept method from old services, make sure it is tested
+		LocalDateTime now = TimeProvider.getLocalDateTime();
+		Transaction transaction = new Transaction();
+		for (Record record : searchServices.search(getUserCredentialsWithExpiredTokensQuery(now))) {
+			UserCredential credential = schemas.wrapCredential(record);
+			Map<String, LocalDateTime> validTokens = new HashMap<>();
+			for (Entry<String, LocalDateTime> token : credential.getAccessTokens().entrySet()) {
+				LocalDateTime expiration = token.getValue();
+				if (expiration.isAfter(now)) {
+					validTokens.put(token.getKey(), token.getValue());
+				}
+			}
+			transaction.add(credential.setAccessTokens(validTokens));
+		}
+		try {
+			modelLayerFactory.newRecordServices().execute(transaction);
+		} catch (RecordServicesException e) {
+			throw new UserCredentialsManagerRuntimeException_CannotExecuteTransaction(e);
+		}
+	}
+
+	private LogicalSearchQuery getUserCredentialsWithExpiredTokensQuery(LocalDateTime now) {
+		return new LogicalSearchQuery(
+				from(schemas.credentialSchemaType()).where(schemas.credentialTokenExpirations()).isLessOrEqualThan(now));
 	}
 
 	public List<SystemWideGroup> getActiveGroups() {
@@ -1536,12 +1514,8 @@ public class UserServices {
 		return streamGroupInfos().collect(toList());
 	}
 
-	public void logicallyRemoveGroup(SystemWideGroup globalGroup) {
-		globalGroupsManager.logicallyRemoveGroup(globalGroup);
-	}
-
 	public Stream<SystemWideGroup> streamGroupInfos() {
-		//TODO Improve performance!
+		//TODO Refact Francis : Improve performance!
 		Set<String> allGroupCodes = new HashSet<>();
 
 		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
@@ -1553,6 +1527,7 @@ public class UserServices {
 
 		return allGroupCodesSorted.stream().map(g -> getGroup(g));
 	}
+
 
 	public Stream<SystemWideGroup> streamGroupInfos(String collection) {
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);

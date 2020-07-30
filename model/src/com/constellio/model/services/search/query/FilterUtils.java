@@ -90,7 +90,7 @@ public class FilterUtils {
 			}
 
 			for (String aGroup : user.getUserGroups()) {
-				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)
+				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup, user.getCollection())
 					&& hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(aGroup, true))) {
 					filterBuilder.appendNegative(TOKENS, "nw_" + aGroup);
 				}
@@ -111,7 +111,7 @@ public class FilterUtils {
 			}
 
 			for (String aGroup : user.getUserGroups()) {
-				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
+				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup, user.getCollection())) {
 					filterBuilder.append(Schemas.TOKENS, "w_" + aGroup);
 				}
 			}
@@ -158,7 +158,7 @@ public class FilterUtils {
 				filterBuilder.appendNegative(TOKENS, "nr_" + user.getId());
 			}
 			for (String aGroup : user.getUserGroups()) {
-				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)
+				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup, user.getCollection())
 					&& hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(aGroup, true))) {
 					filterBuilder.appendNegative(TOKENS, "nr_" + aGroup);
 				}
@@ -180,7 +180,7 @@ public class FilterUtils {
 			}
 
 			for (String aGroup : user.getUserGroups()) {
-				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
+				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup, user.getCollection())) {
 					filterBuilder.append(TOKENS, "r_" + aGroup);
 				}
 			}
@@ -257,7 +257,7 @@ public class FilterUtils {
 			}
 
 			for (String aGroup : user.getUserGroups()) {
-				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)
+				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup, user.getCollection())
 					&& hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(aGroup, true))) {
 
 					filterBuilder.appendNegative(TOKENS_OF_HIERARCHY, "nr_" + aGroup);
@@ -283,7 +283,7 @@ public class FilterUtils {
 			}
 
 			for (String aGroup : user.getUserGroups()) {
-				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
+				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup, user.getCollection())) {
 
 					filterBuilder.append(TOKENS_OF_HIERARCHY, tokenPrefix + "_" + aGroup);
 
@@ -335,7 +335,7 @@ public class FilterUtils {
 				filterBuilder.append(TOKENS, role + "_" + user.getId());
 
 				for (String aGroup : user.getUserGroups()) {
-					if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
+					if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup, user.getCollection())) {
 						filterBuilder.append(TOKENS, role + "_" + aGroup);
 					}
 				}
@@ -361,7 +361,7 @@ public class FilterUtils {
 				filterBuilder.appendNegative(TOKENS, "nd_" + user.getId());
 			}
 			for (String aGroup : user.getUserGroups()) {
-				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)
+				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup, user.getCollection())
 					&& hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(aGroup, true))) {
 					filterBuilder.appendNegative(TOKENS, "nd_" + aGroup);
 				}
@@ -381,7 +381,7 @@ public class FilterUtils {
 			}
 
 			for (String aGroup : user.getUserGroups()) {
-				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
+				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup, user.getCollection())) {
 					filterBuilder.append(TOKENS, "d_" + aGroup);
 				}
 			}

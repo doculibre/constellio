@@ -1015,102 +1015,105 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 				.containsExactly(chuck.getUsername());
 	}
 
-	@Test
-	public void tryingToSafeDeleteAllUnusedGlobalGroups()
-			throws Exception {
-		RMTestRecords records = new RMTestRecords(zeCollection);
-		prepareSystem(
-				withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		recordServices = getModelLayerFactory().newRecordServices();
-		userServices = getModelLayerFactory().newUserServices();
-		userServices.execute(userServices.createGlobalGroup("G1", "G1", Collections.emptyList(), null, GlobalGroupStatus.INACTIVE, true));
-		userServices.execute(userServices.createGlobalGroup("G2", "G2", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true));
-		userServices.execute(userServices.createGlobalGroup("G3", "G3", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true));
-		userServices.execute(userServices.createGlobalGroup("G4", "G4", Collections.emptyList(), null, GlobalGroupStatus.INACTIVE, true));
+	//@Test
+	//Deprecated test
+	//	public void tryingToSafeDeleteAllUnusedGlobalGroups()
+	//			throws Exception {
+	//		RMTestRecords records = new RMTestRecords(zeCollection);
+	//		prepareSystem(
+	//				withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
+	//		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+	//		recordServices = getModelLayerFactory().newRecordServices();
+	//		userServices = getModelLayerFactory().newUserServices();
+	//		userServices.execute(userServices.createGlobalGroup("G1", "G1", Collections.emptyList(), null, GlobalGroupStatus.INACTIVE, true));
+	//		userServices.execute(userServices.createGlobalGroup("G2", "G2", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true));
+	//		userServices.execute(userServices.createGlobalGroup("G3", "G3", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true));
+	//		userServices.execute(userServices.createGlobalGroup("G4", "G4", Collections.emptyList(), null, GlobalGroupStatus.INACTIVE, true));
+	//
+	//		SystemWideGroup g1 = userServices.getGroup("G1");
+	//		SystemWideGroup g2 = userServices.getGroup("G2");
+	//		SystemWideGroup g3 = userServices.getGroup("G3");
+	//		SystemWideGroup g4 = userServices.getGroup("G4");
+	//
+	//		com.constellio.model.services.users.UserAddUpdateRequest chuck = userServices.addUpdate(records.getChuckNorris().getUsername());
+	//
+	//		chuck.setGlobalGroups(asList(g2.getCode(), g3.getCode(), g4.getCode()));
+	//		userServices.execute(chuck);
+	//
+	//		assertThat(userServices.physicallyRemoveGlobalGroup(userServices.getAllGroups().toArray(new SystemWideGroup[0]))).doesNotContain(g1).contains(g2, g3, g4);
+	//		assertThat(userServices.getNullableGroup(g1.getCode())).isNull();
+	//	}
 
-		SystemWideGroup g1 = userServices.getGroup("G1");
-		SystemWideGroup g2 = userServices.getGroup("G2");
-		SystemWideGroup g3 = userServices.getGroup("G3");
-		SystemWideGroup g4 = userServices.getGroup("G4");
 
-		com.constellio.model.services.users.UserAddUpdateRequest chuck = userServices.addUpdate(records.getChuckNorris().getUsername());
+	//@Test
+	//Deprecated test
+	//	public void tryingToPhysicallyRemoveGlobalGroup()
+	//			throws Exception {
+	//		RMTestRecords records = new RMTestRecords(zeCollection);
+	//		prepareSystem(
+	//				withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
+	//		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+	//		recordServices = getModelLayerFactory().newRecordServices();
+	//		userServices = getModelLayerFactory().newUserServices();
+	//
+	//		userServices.execute(userServices.createGlobalGroup("G1", "G1", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true));
+	//		userServices.execute(userServices.createGlobalGroup("G2", "G2", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true));
+	//
+	//		SystemWideGroup g1 = userServices.getGroup("G1");
+	//		SystemWideGroup g2 = userServices.getGroup("G2");
+	//
+	//		com.constellio.model.services.users.UserAddUpdateRequest gandalf = userServices.addUpdate(records.getGandalf_managerInABC().getUsername());
+	//
+	//		gandalf.setGlobalGroups(asList(g2.getCode()));
+	//
+	//		userServices.execute(gandalf);
+	//
+	//		assertThat(userServices.physicallyRemoveGlobalGroup(g1)).isEmpty();
+	//
+	//		assertThat(userServices.physicallyRemoveGlobalGroup(g2)).containsOnly(g2);
+	//	}
 
-		chuck.setGlobalGroups(asList(g2.getCode(), g3.getCode(), g4.getCode()));
-		userServices.execute(chuck);
-
-		assertThat(userServices.safePhysicalDeleteAllUnusedGlobalGroups()).doesNotContain(g1).contains(g2, g3, g4);
-		assertThat(userServices.getNullableGroup(g1.getCode())).isNull();
-	}
-
-	@Test
-	public void tryingToPhysicallyRemoveGlobalGroup()
-			throws Exception {
-		RMTestRecords records = new RMTestRecords(zeCollection);
-		prepareSystem(
-				withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		recordServices = getModelLayerFactory().newRecordServices();
-		userServices = getModelLayerFactory().newUserServices();
-
-		userServices.execute(userServices.createGlobalGroup("G1", "G1", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true));
-		userServices.execute(userServices.createGlobalGroup("G2", "G2", Collections.emptyList(), null, GlobalGroupStatus.ACTIVE, true));
-
-		SystemWideGroup g1 = userServices.getGroup("G1");
-		SystemWideGroup g2 = userServices.getGroup("G2");
-
-		com.constellio.model.services.users.UserAddUpdateRequest gandalf = userServices.addUpdate(records.getGandalf_managerInABC().getUsername());
-
-		gandalf.setGlobalGroups(asList(g2.getCode()));
-
-		userServices.execute(gandalf);
-
-		assertThat(userServices.physicallyRemoveGlobalGroup(g1)).isEmpty();
-
-		assertThat(userServices.physicallyRemoveGlobalGroup(g2)).containsOnly(g2);
-	}
-
-	@Test
-	public void tryingToSafePhysicalDeleteAllUnusedGroups()
-			throws Exception {
-		RMTestRecords records = new RMTestRecords(zeCollection);
-		prepareSystem(
-				withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		recordServices = getModelLayerFactory().newRecordServices();
-		userServices = getModelLayerFactory().newUserServices();
-
-		Group g1 = rm.newGroupWithId("G1");
-		g1.setTitle("Group 1");
-		g1.set(Group.CODE, "G1");
-		g1.set(Schemas.LOGICALLY_DELETED_STATUS, true);
-
-		Group g2 = rm.newGroupWithId("G2");
-		g2.setTitle("Group 2");
-		g2.set(Group.CODE, "G2");
-		g2.set(Schemas.LOGICALLY_DELETED_STATUS, true);
-
-		Group g3 = rm.newGroupWithId("G3");
-		g3.setTitle("Group 3");
-		g3.set(Group.CODE, "G3");
-		g3.set(Schemas.LOGICALLY_DELETED_STATUS, true);
-
-		Group g4 = rm.newGroupWithId("G4");
-		g4.setTitle("Group 4");
-		g4.set(Group.CODE, "G4");
-		g4.set(Schemas.LOGICALLY_DELETED_STATUS, true);
-
-		Transaction t = new Transaction();
-		t.getRecordUpdateOptions().setSkippingReferenceToLogicallyDeletedValidation(true);
-		t.addAll(asList(g1, g2, g3, g4));
-		t.add(records.getChuckNorris().setUserGroups((asList(g2.getCode(), g3.getCode()))));
-		recordServices.execute(t);
-		assertThat(userServices.safePhysicalDeleteAllUnusedGroups(zeCollection)).doesNotContain(g1, g4).contains(g2, g3);
-
-		assertThat(userServices.getGroupIdInCollection(g1.getCode(), zeCollection)).isNull();
-		assertThat(userServices.getGroupIdInCollection(g4.getCode(), zeCollection)).isNull();
-
-	}
+	//	Deprecated @Test
+	//	public void tryingToSafePhysicalDeleteAllUnusedGroups()
+	//			throws Exception {
+	//		RMTestRecords records = new RMTestRecords(zeCollection);
+	//		prepareSystem(
+	//				withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
+	//		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+	//		recordServices = getModelLayerFactory().newRecordServices();
+	//		userServices = getModelLayerFactory().newUserServices();
+	//
+	//		Group g1 = rm.newGroupWithId("G1");
+	//		g1.setTitle("Group 1");
+	//		g1.set(Group.CODE, "G1");
+	//		g1.set(Schemas.LOGICALLY_DELETED_STATUS, true);
+	//
+	//		Group g2 = rm.newGroupWithId("G2");
+	//		g2.setTitle("Group 2");
+	//		g2.set(Group.CODE, "G2");
+	//		g2.set(Schemas.LOGICALLY_DELETED_STATUS, true);
+	//
+	//		Group g3 = rm.newGroupWithId("G3");
+	//		g3.setTitle("Group 3");
+	//		g3.set(Group.CODE, "G3");
+	//		g3.set(Schemas.LOGICALLY_DELETED_STATUS, true);
+	//
+	//		Group g4 = rm.newGroupWithId("G4");
+	//		g4.setTitle("Group 4");
+	//		g4.set(Group.CODE, "G4");
+	//		g4.set(Schemas.LOGICALLY_DELETED_STATUS, true);
+	//
+	//		Transaction t = new Transaction();
+	//		t.getRecordUpdateOptions().setSkippingReferenceToLogicallyDeletedValidation(true);
+	//		t.addAll(asList(g1, g2, g3, g4));
+	//		t.add(records.getChuckNorris().setUserGroups((asList(g2.getCode(), g3.getCode()))));
+	//		recordServices.execute(t);
+	//		assertThat(userServices.safePhysicalDeleteAllUnusedGroups(zeCollection)).doesNotContain(g1, g4).contains(g2, g3);
+	//
+	//		assertThat(userServices.getGroupIdInCollection(g1.getCode(), zeCollection)).isNull();
+	//		assertThat(userServices.getGroupIdInCollection(g4.getCode(), zeCollection)).isNull();
+	//
+	//	}
 
 	@Test
 	public void tryingToPhysicallyRemoveGroup()
@@ -1233,7 +1236,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		userServices.removeGroupFromCollectionsWithoutUserValidation(heroes.getCode(),
 				asList(heroes.getCollection()));
-		userServices.logicallyRemoveGroup(heroesGlobalGroup);
+		userServices.executeGroupRequest(heroes.getCode(), (req) -> req.setStatusInAllCollections(GlobalGroupStatus.INACTIVE));
 
 
 		assertThat(userServices.getGroup(heroesGlobalGroup.getCode()).getStatus())

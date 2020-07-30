@@ -14,6 +14,7 @@ import com.constellio.model.conf.ldap.services.LDAPServices.LDAPUsersAndGroups;
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.SystemWideGroup;
@@ -393,7 +394,8 @@ public class LDAPUserSyncManager implements StatefulService {
 				try {
 					userServices.getUserConfigs(userId);
 
-					if (!userServices.isAdminInAnyCollection(userId)) {
+					;
+					if (!userServices.has(userId).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY)) {
 						SystemWideUserInfos userCredential = userServices.getUserInfos(userId);
 						userServices.removeUserCredentialAndUser(userCredential);
 					}

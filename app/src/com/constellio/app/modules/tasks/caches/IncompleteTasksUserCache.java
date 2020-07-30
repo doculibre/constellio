@@ -54,9 +54,19 @@ public class IncompleteTasksUserCache implements UserCache {
 
 	@Override
 	public void invalidateUsersInGroup(SystemWideGroup globalGroup) {
-		for (Group group : userServices.getGroupForEachCollection(globalGroup)) {
+		for (Group group : getGroupForEachCollection(globalGroup)) {
 			invalidateGroup(group);
 		}
+	}
+
+	public List<Group> getGroupForEachCollection(SystemWideGroup globalGroup) {
+
+		List<Group> groups = new ArrayList<>();
+		for (String collection : globalGroup.getCollections()) {
+			groups.add(userServices.getGroupInCollection(globalGroup.getCode(), collection));
+		}
+
+		return groups;
 	}
 
 	public void invalidateUser(User user) {

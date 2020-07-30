@@ -87,8 +87,8 @@ public class DeleteInactiveGroupsScript extends ScriptWithLogOutput {
 			recordServices.physicallyDelete(group.getWrappedRecord(), User.GOD);
 		}
 
-		userServices.logicallyRemoveGroup(globalGroup);
-		recordServices.physicallyDelete(userServices.getOldNullableGroup(globalGroup.getCode()), User.GOD);
+		userServices.executeGroupRequest(globalGroup.getCode(), req -> req.markForDeletionInAllCollections());
+		//recordServices.physicallyDelete(userServices.getOldNullableGroup(globalGroup.getCode()), User.GOD);
 
 		outputLogger.info(String.format("Global group '%s' deleted", globalGroup.getCode()));
 	}
