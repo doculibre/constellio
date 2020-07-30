@@ -5,6 +5,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.security.global.AgentStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import lombok.Getter;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ public class UserAddUpdateRequest {
 	List<String> currentCollections;
 	List<String> currentGroups;
 
+	@Getter
 	private boolean markedForDeletionInAllCollections;
 	private List<String> markedForDeletionInCollections;
 
@@ -265,6 +267,11 @@ public class UserAddUpdateRequest {
 
 	public UserAddUpdateRequest addToGroupsInEachCollection(List<String> groupCodes) {
 		groupCodes.forEach(this::addToGroupInEachCollection);
+		return this;
+	}
+
+	public UserAddUpdateRequest addToGroupsInEachCollection(String... groupCodes) {
+		Arrays.stream(groupCodes).forEach(this::addToGroupInEachCollection);
 		return this;
 	}
 

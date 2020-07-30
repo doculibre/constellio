@@ -528,8 +528,9 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenAnotherUserWith(noGroups, and(collection2));
 		givenAThirdUserWith(noGroups, andNoCollections);
 
-		userServices.setGlobalGroupUsers(legends, asList(user, anotherUser));
-		userServices.setGlobalGroupUsers(heroes, asList(user, thirdUser));
+		userServices.execute(user.getUsername(), (req) -> req.addToGroupsInEachCollection(legends, heroes));
+		userServices.execute(anotherUser.getUsername(), (req) -> req.addToGroupsInEachCollection(legends));
+		userServices.execute(thirdUser.getUsername(), (req) -> req.addToGroupsInEachCollection(heroes));
 
 		assertThat(usernamesOf(userServices.getGlobalGroupActifUsers(legends))).containsOnly(user.getUsername(),
 				anotherUser.getUsername());
@@ -1438,7 +1439,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		users.setUp(getModelLayerFactory().newUserServices());
 		User chuck = users.chuckNorrisIn(zeCollection);
 
-		userServices.physicallyRemoveUserCredentialAndUsers(chuck.getUsername());
+		userServices.execute(chuck.getUsername(), req -> req.markForDeletionInAllCollections());
 		//OK !
 	}
 
@@ -1461,7 +1462,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 
 		try {
-			userServices.physicallyRemoveUserCredentialAndUsers(chuck.getUsername());
+			userServices.execute(chuck.getUsername(), req -> req.markForDeletionInAllCollections());
 			fail();
 		} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
 			System.out.println(e.getMessage());

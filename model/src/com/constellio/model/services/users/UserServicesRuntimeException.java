@@ -98,6 +98,20 @@ public class UserServicesRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class UserServicesRuntimeException_CannotAssignUserToInexistingGroupInCollection extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_CannotAssignUserToInexistingGroupInCollection(String username, String code,
+																						  String collection) {
+			super("Cannot assign '" + username + "' to inexisting group '" + code + "' in collection '" + collection + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_CannotAssignUserToGroupsInOtherCollection extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_CannotAssignUserToGroupsInOtherCollection(String username, String code,
+																					  String collection) {
+			super("User '" + username + "' cannot be assigned to group '" + code + "' in collection '" + collection + "', because the user is not in this collection");
+		}
+	}
+
 
 	public static class UserServicesRuntimeException_UserPermissionDeniedToDelete extends UserServicesRuntimeException {
 		public UserServicesRuntimeException_UserPermissionDeniedToDelete(String user) {

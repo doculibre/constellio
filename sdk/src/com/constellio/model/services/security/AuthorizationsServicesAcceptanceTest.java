@@ -913,7 +913,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		GroupAddUpdateRequest group = userServices.createGlobalGroup("vilains", "Vilains", new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE, true);
 		userServices.execute(group);
-		userServices.setGlobalGroupUsers("vilains", asList(users.bob()));
+		userServices.execute("bob", (req) -> req.addToGroupsInEachCollection("vilains"));
 		forUser(bob).assertThatRecordsWithReadAccess().isEmpty();
 
 		auth1 = add(authorizationForGroup("vilains").on(TAXO1_CATEGORY1).givingReadAccess());
