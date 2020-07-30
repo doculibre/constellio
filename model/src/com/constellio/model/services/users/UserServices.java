@@ -335,13 +335,6 @@ public class UserServices {
 		}
 	}
 
-	//TODO Users should be able to have different groups from a collection to an other, this service break this
-	@Deprecated
-	public List<SystemWideUserInfos> getGlobalGroupActifUsers(String groupCode) {
-		return userCredentialsManager.getUserCredentialsInGlobalGroup(groupCode)
-				.stream().map((u) -> getUserInfos(u.getUsername())).collect(toList());
-	}
-
 	public SystemWideUserInfos getUserInfos(String username) {
 		UserCredential credential = userCredentialsManager.getUserCredential(username);
 		if (credential == null) {
@@ -497,12 +490,6 @@ public class UserServices {
 		return streamUserInfos().filter(u -> azureUsername.equals(u.getAzureUsername())).findFirst().get();
 	}
 
-	//Use execute instead
-	@Deprecated
-	public void updateAzureUsername(String username, String azureUser) {
-		execute(username, (req) -> req.setAzureUsername(azureUser));
-	}
-
 
 	public SystemWideGroup getNullableGroup(String groupCode) {
 		Record record = modelLayerFactory.newRecordServices()
@@ -558,49 +545,6 @@ public class UserServices {
 		}
 	}
 
-	@Deprecated
-	public void removeUserFromCollection(String username, String collection) {
-		execute(username, (req) -> req.removeCollection(collection));
-
-	}
-
-	@Deprecated
-	void activateGlobalGroupHierarchy(UserCredential userCredential, SystemWideGroup globalGroup) {
-		permissionValidateCredentialOnGroup(userCredential);
-		activateGlobalGroupHierarchyWithoutUserValidation(globalGroup);
-	}
-
-	@Deprecated
-	private void activateGlobalGroupHierarchyWithoutUserValidation(SystemWideGroup globalGroup) {
-		List<String> collections = collectionsListManager.getCollections();
-		restoreGroupHierarchyInBigVault(globalGroup.getCode(), collections);
-		globalGroupsManager.activateGlobalGroupHierarchy(globalGroup);
-	}
-
-	@Deprecated
-	void removeUserCredentialAndUser(UserCredential userCredential) {
-		execute(userCredential.getUsername(), (req) -> req.setStatusForAllCollections(DELETED));
-	}
-
-	@Deprecated
-	public void removeUserCredentialAndUser(SystemWideUserInfos userCredential) {
-		execute(addUpdate(userCredential.getUsername()).setStatusForAllCollections(DELETED));
-	}
-
-	@Deprecated
-	public void setUserCredentialAndUserStatusPendingApproval(String username) {
-		execute(addUpdate(username).setStatusForAllCollections(PENDING));
-	}
-
-	@Deprecated
-	public void suspendUserCredentialAndUser(String username) {
-		execute(addUpdate(username).setStatusForAllCollections(SUSPENDED));
-	}
-
-	@Deprecated
-	public void activeUserCredentialAndUser(String username) {
-		execute(addUpdate(username).setStatusForAllCollections(ACTIVE));
-	}
 
 	private void restoreUserInBigVault(String username) {
 		UserCredential userCredential = getUser(username);
@@ -691,11 +635,6 @@ public class UserServices {
 		return new Group(groupRecord, types);
 	}
 
-	//User execute instead
-	@Deprecated
-	public void givenSystemAdminPermissionsToUser(SystemWideUserInfos user) {
-		execute(user.getUsername(), com.constellio.model.services.users.UserAddUpdateRequest::setSystemAdminEnabled);
-	}
 
 	public String giveNewServiceKey(String username) {
 		String nextToken = secondaryUniqueIdGenerator.next();
@@ -993,11 +932,6 @@ public class UserServices {
 		}
 	}
 
-	//Use execute instead
-	@Deprecated
-	public void removeUserFromGlobalGroup(String username, String globalGroupCode) {
-		execute(username, (req) -> req.removeFromGroupOfEachCollection(globalGroupCode));
-	}
 
 	public String getToken(String serviceKey, String username, String password) {
 		ReadableDuration tokenDuration = modelLayerConfiguration.getTokenDuration();
@@ -1090,20 +1024,6 @@ public class UserServices {
 		return userCredential == null ? null : getUserInfos(userCredential.getUsername());
 	}
 
-	@Deprecated
-	public List<SystemWideUserInfos> getActiveUserCredentials() {
-		return streamUserInfos().filter(SystemWideUserInfos::isActiveInAnyCollection).collect(Collectors.toList());
-	}
-
-	@Deprecated
-	public List<SystemWideUserInfos> getAllUserCredentials() {
-		return streamUserInfos().collect(Collectors.toList());
-	}
-
-	@Deprecated
-	public List<SystemWideGroup> getAllGlobalGroups() {
-		return streamGroupInfos().collect(toList());
-	}
 
 	List<Group> getChildrenOfGroupInCollection(String groupParentCode, String collection) {
 		List<Group> groups = new ArrayList<>();
@@ -1120,31 +1040,6 @@ public class UserServices {
 		return groups;
 	}
 
-	@Deprecated
-	public CredentialUserPermissionChecker has(User user) {
-		return has(user.getUsername());
-	}
-
-	@Deprecated
-	public CredentialUserPermissionChecker has(UserCredential userCredential) {
-		return has(userCredential.getUsername());
-	}
-
-	@Deprecated
-	public CredentialUserPermissionChecker has(SystemWideUserInfos userCredential) {
-		return has(userCredential.getUsername());
-	}
-
-
-	@Deprecated
-	public CredentialUserPermissionChecker has(String username) {
-		List<User> users = new ArrayList<>();
-		UserCredential user = getUser(username);
-		for (String collection : user.getCollections()) {
-			users.add(getUserInCollection(username, collection));
-		}
-		return new CredentialUserPermissionChecker(users);
-	}
 
 	public List<User> getAllUsersInCollection(String collection) {
 		return streamUser(collection).collect(toList());
@@ -1543,4 +1438,123 @@ public class UserServices {
 		return searchServices.stream(query).map(schemas::wrapUser);
 	}
 
+
+	//----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+	// Entering GARBAGE AREA : Following methods should be deleted
+	//----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+
+	//TODO Users should be able to have different groups from a collection to an other, this service break this
+	@Deprecated
+	public List<SystemWideUserInfos> getGlobalGroupActifUsers(String groupCode) {
+		return userCredentialsManager.getUserCredentialsInGlobalGroup(groupCode)
+				.stream().map((u) -> getUserInfos(u.getUsername())).collect(toList());
+	}
+
+
+	//Use execute instead
+	@Deprecated
+	public void updateAzureUsername(String username, String azureUser) {
+		execute(username, (req) -> req.setAzureUsername(azureUser));
+	}
+
+
+	@Deprecated
+	public void removeUserFromCollection(String username, String collection) {
+		execute(username, (req) -> req.removeCollection(collection));
+
+	}
+
+	@Deprecated
+	void activateGlobalGroupHierarchy(UserCredential userCredential, SystemWideGroup globalGroup) {
+		permissionValidateCredentialOnGroup(userCredential);
+		activateGlobalGroupHierarchyWithoutUserValidation(globalGroup);
+	}
+
+	@Deprecated
+	private void activateGlobalGroupHierarchyWithoutUserValidation(SystemWideGroup globalGroup) {
+		List<String> collections = collectionsListManager.getCollections();
+		restoreGroupHierarchyInBigVault(globalGroup.getCode(), collections);
+		globalGroupsManager.activateGlobalGroupHierarchy(globalGroup);
+	}
+
+	@Deprecated
+	void removeUserCredentialAndUser(UserCredential userCredential) {
+		execute(userCredential.getUsername(), (req) -> req.setStatusForAllCollections(DELETED));
+	}
+
+	@Deprecated
+	public void removeUserCredentialAndUser(SystemWideUserInfos userCredential) {
+		execute(addUpdate(userCredential.getUsername()).setStatusForAllCollections(DELETED));
+	}
+
+	@Deprecated
+	public void setUserCredentialAndUserStatusPendingApproval(String username) {
+		execute(addUpdate(username).setStatusForAllCollections(PENDING));
+	}
+
+	@Deprecated
+	public void suspendUserCredentialAndUser(String username) {
+		execute(addUpdate(username).setStatusForAllCollections(SUSPENDED));
+	}
+
+	@Deprecated
+	public void activeUserCredentialAndUser(String username) {
+		execute(addUpdate(username).setStatusForAllCollections(ACTIVE));
+	}
+
+	@Deprecated
+	public List<SystemWideUserInfos> getActiveUserCredentials() {
+		return streamUserInfos().filter(SystemWideUserInfos::isActiveInAnyCollection).collect(Collectors.toList());
+	}
+
+	@Deprecated
+	public List<SystemWideUserInfos> getAllUserCredentials() {
+		return streamUserInfos().collect(Collectors.toList());
+	}
+
+	@Deprecated
+	public List<SystemWideGroup> getAllGlobalGroups() {
+		return streamGroupInfos().collect(toList());
+	}
+
+
+	@Deprecated
+	public CredentialUserPermissionChecker has(User user) {
+		return has(user.getUsername());
+	}
+
+	@Deprecated
+	public CredentialUserPermissionChecker has(UserCredential userCredential) {
+		return has(userCredential.getUsername());
+	}
+
+	@Deprecated
+	public CredentialUserPermissionChecker has(SystemWideUserInfos userCredential) {
+		return has(userCredential.getUsername());
+	}
+
+
+	@Deprecated
+	public CredentialUserPermissionChecker has(String username) {
+		List<User> users = new ArrayList<>();
+		UserCredential user = getUser(username);
+		for (String collection : user.getCollections()) {
+			users.add(getUserInCollection(username, collection));
+		}
+		return new CredentialUserPermissionChecker(users);
+	}
+
+
+	//User execute instead
+	@Deprecated
+	public void givenSystemAdminPermissionsToUser(SystemWideUserInfos user) {
+		execute(user.getUsername(), com.constellio.model.services.users.UserAddUpdateRequest::setSystemAdminEnabled);
+	}
+
+
+	//Use execute instead
+	@Deprecated
+	public void removeUserFromGlobalGroup(String username, String globalGroupCode) {
+		execute(username, (req) -> req.removeFromGroupOfEachCollection(globalGroupCode));
+	}
 }
