@@ -231,7 +231,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 
 		UserServices userServices = modelLayerFactory.newUserServices();
 		SystemWideUserInfos currentUser = userServices.getUserInfos(getCurrentUser().getUsername());
-		userServices.addUserToCollection(currentUser.getUsername(), collectionRecord.getId());
+		userServices.execute(currentUser.getUsername(), (req) -> req.addCollection(collectionRecord.getId()));
 		User user = userServices.getUserInCollection(currentUser.getUsername(), collectionCode);
 		try {
 			recordServices().update(user.addUserRoles(roles.toArray(new String[roles.size()])).setCollectionAllAccess(true));

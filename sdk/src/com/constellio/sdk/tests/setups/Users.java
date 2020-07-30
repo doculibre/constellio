@@ -341,7 +341,7 @@ public class Users {
 				.setSystemAdmin(false)
 				.addToGroupsInEachCollection(globalGroups)
 				.addCollections(collections)
-				.setStatus(UserCredentialStatus.ACTIVE)
+				.setStatusForAllCollections(UserCredentialStatus.ACTIVE)
 				.setDomain("domain")
 				.setMsExchDelegateListBL(Arrays.asList(""))
 				.setDn(null);

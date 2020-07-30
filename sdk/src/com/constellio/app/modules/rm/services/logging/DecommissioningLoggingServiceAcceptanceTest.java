@@ -76,10 +76,10 @@ public class DecommissioningLoggingServiceAcceptanceTest extends ConstellioTest 
 		rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		users.setUp(userServices);
-		userServices.addUserToCollection(users.alice(), zeCollection);
+		userServices.execute(users.alice().getUsername(), (req) -> req.addCollection(zeCollection));
 		recordServices.add(users.aliceIn(zeCollection).setCollectionWriteAccess(true).setCollectionDeleteAccess(true)
 				.getWrappedRecord());
-		userServices.addUserToCollection(users.bob(), zeCollection);
+		userServices.execute(users.bob().getUsername(), (req) -> req.addCollection(zeCollection));
 		users = records.getUsers();
 	}
 

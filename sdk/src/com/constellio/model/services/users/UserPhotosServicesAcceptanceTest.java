@@ -34,7 +34,7 @@ public class UserPhotosServicesAcceptanceTest extends ConstellioTest {
 		services = getModelLayerFactory().newUserPhotosServices();
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.execute(userServices.addUpdate("zeUser").setFirstName("ze").setLastName("user").setEmail("ze.user@gmail.com").setStatus(UserCredentialStatus.ACTIVE));
+		userServices.execute(userServices.addUpdate("zeUser").setFirstName("ze").setLastName("user").setEmail("ze.user@gmail.com").setStatusForAllCollections(UserCredentialStatus.ACTIVE));
 
 		zipService = getIOLayerFactory().newZipService();
 	}

@@ -64,7 +64,7 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 
 	public void addButtonClicked(UserCredentialVO userCredentialVO, String roleCode) {
 		UserServices userServices = modelLayerFactory.newUserServices();
-		userServices.addUserToCollection(userCredentialVO.getUsername(), view.getCollection());
+		userServices.execute(userCredentialVO.getUsername(), (req) -> req.addCollection(view.getCollection()));
 
 		roleUserAdditionRequested(userCredentialVO.getUsername(), roleCode);
 

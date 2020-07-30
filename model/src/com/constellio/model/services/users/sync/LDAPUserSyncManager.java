@@ -14,8 +14,9 @@ import com.constellio.model.conf.ldap.services.LDAPServices.LDAPUsersAndGroups;
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
-import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -247,12 +248,12 @@ public class LDAPUserSyncManager implements StatefulService {
 						try {
 							LOGGER.info(
 									"Attempting to delete username " + userCredentialByDn.getUsername());
-							userServices.physicallyRemoveUserCredentialAndUsers(userCredentialByDn.getUsername());
+							userServices.execute(userCredentialByDn.getUsername(), req -> req.markForDeletionInAllCollections());
 						} catch (Throwable t) {
 							try {
 								LOGGER.info(
 										"Could not delete username " + userCredentialByDn.getUsername() + ", attempting to delete " + previousUserCredential.getUsername() + " instead");
-								userServices.physicallyRemoveUserCredentialAndUsers(previousUserCredential.getUsername());
+								userServices.execute(userCredentialByDn.getUsername(), req -> req.markForDeletionInAllCollections());
 								previousUserCredential = userCredentialByDn;
 							} catch (Throwable t2) {
 								com.constellio.model.services.users.UserAddUpdateRequest invalidUserCredential;
@@ -303,7 +304,8 @@ public class LDAPUserSyncManager implements StatefulService {
 		return updatedUsersAndGroups;
 	}
 
-	private GroupAddUpdateRequest createGlobalGroupFromLdapGroup(LDAPGroup ldapGroup, List<String> selectedCollectionsCodes) {
+	private GroupAddUpdateRequest createGlobalGroupFromLdapGroup(LDAPGroup ldapGroup,
+																 List<String> selectedCollectionsCodes) {
 		String code = ldapGroup.getDistinguishedName();
 		String name = ldapGroup.getSimpleName();
 		Set<String> usersAutomaticallyAddedToCollections;
@@ -318,8 +320,9 @@ public class LDAPUserSyncManager implements StatefulService {
 				GlobalGroupStatus.ACTIVE, false);
 	}
 
-	private com.constellio.model.services.users.UserAddUpdateRequest createUserCredentialsFromLdapUser(LDAPUser ldapUser,
-																									   List<String> selectedCollectionsCodes) {
+	private com.constellio.model.services.users.UserAddUpdateRequest createUserCredentialsFromLdapUser(
+			LDAPUser ldapUser,
+			List<String> selectedCollectionsCodes) {
 		String username = ldapUser.getName();
 		String firstName = notNull(ldapUser.getGivenName());
 		String lastName = notNull(ldapUser.getFamilyName());
@@ -356,7 +359,7 @@ public class LDAPUserSyncManager implements StatefulService {
 				.setServiceKey(null)
 				.setSystemAdmin(false)
 				.addToGroupsInEachCollection(globalGroups)
-				.setStatus(userStatus)
+				.setStatusForAllCollections(userStatus)
 				.setDomain("")
 				.setMsExchDelegateListBL(msExchDelegateListBL)
 				.setDn(ldapUser.getId());
@@ -391,7 +394,8 @@ public class LDAPUserSyncManager implements StatefulService {
 				try {
 					userServices.getUserConfigs(userId);
 
-					if (!userServices.isAdminInAnyCollection(userId)) {
+					;
+					if (!userServices.has(userId).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY)) {
 						SystemWideUserInfos userCredential = userServices.getUserInfos(userId);
 						userServices.removeUserCredentialAndUser(userCredential);
 					}

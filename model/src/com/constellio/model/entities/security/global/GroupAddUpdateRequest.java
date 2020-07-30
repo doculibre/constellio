@@ -6,6 +6,7 @@ import lombok.Getter;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,9 @@ public class GroupAddUpdateRequest {
 	@Getter
 	List<String> removedCollections;
 
+	private boolean markedForDeletionInAllCollections;
+	private List<String> markedForDeletionInCollections;
+
 	public GroupAddUpdateRequest(String code) {
 		this.code = code;
 	}
@@ -49,8 +53,7 @@ public class GroupAddUpdateRequest {
 		return this;
 	}
 
-	@Deprecated
-	public GroupAddUpdateRequest setStatus(GlobalGroupStatus status) {
+	public GroupAddUpdateRequest setStatusInAllCollections(GlobalGroupStatus status) {
 		set(STATUS, status);
 		return this;
 	}
@@ -88,6 +91,21 @@ public class GroupAddUpdateRequest {
 		return this;
 	}
 
+	public GroupAddUpdateRequest removeCollections(String... collections) {
+		Arrays.stream(collections).forEach(this::removeCollection);
+		return this;
+	}
+
+	public GroupAddUpdateRequest addCollections(String... collections) {
+		if (newCollections == null) {
+			newCollections = new ArrayList<>();
+		}
+		for (String collection : collections) {
+			newCollections.add(collection);
+		}
+		return this;
+	}
+
 	public GroupAddUpdateRequest addCollections(List<String> collections) {
 		if (newCollections == null) {
 			newCollections = new ArrayList<>();
@@ -102,5 +120,13 @@ public class GroupAddUpdateRequest {
 		}
 		newCollections.add(collection);
 		return this;
+	}
+
+	public void markForDeletionInAllCollections() {
+		//TODO Philippe
+	}
+
+	public void markForDeletionInCollections(List<String> collections) {
+		//TODO Philippe
 	}
 }

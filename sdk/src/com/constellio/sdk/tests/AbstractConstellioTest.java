@@ -63,6 +63,7 @@ import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRefactAcceptanceTest;
 import com.constellio.sdk.tests.FailureDetectionTestWatcher.FailureDetectionTestWatcherListener;
 import com.constellio.sdk.tests.ToggleTestFeature.ToggleCondition;
 import com.constellio.sdk.tests.annotations.UiTest;
@@ -114,6 +115,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import static com.constellio.data.conf.HashingEncoding.BASE64;
@@ -1796,7 +1798,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				.setSystemAdmin(false)
 				.setGlobalGroups(globalGroups)
 				.setCollections(collections)
-				.setStatus(status)
+				.setStatusForAllCollections(status)
 				.setDomain(null)
 				.setMsExchDelegateListBL(null)
 				.setDn(null);
@@ -1819,4 +1821,6 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	public QueryCounter newQueryCounter() {
 		return new QueryCounter(getDataLayerFactory(), getClass());
 	}
+
+	protected Function<String, String> idToCode = id -> AbstractConstellioTest.this.record(id).get(Schemas.CODE);
 }

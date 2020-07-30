@@ -124,7 +124,7 @@ public class ModulesAndMigrationsTestFeatures {
 			users = new Users();
 			users.setUp(userServices).withPhotos(userPhotosServices);
 		}
-		userServices.addUserToCollection(users.admin(), collection);
+		userServices.execute(users.admin().getUsername(), (req) -> req.addCollection(collection));
 		return this;
 	}
 
@@ -140,16 +140,16 @@ public class ModulesAndMigrationsTestFeatures {
 			users = usingUsers;
 			users.setUp(userServices).withPhotos(userPhotosServices);
 		}
-		userServices.addUserToCollection(users.admin(), collection);
-		userServices.addUserToCollection(users.alice(), collection);
-		userServices.addUserToCollection(users.bob(), collection);
-		userServices.addUserToCollection(users.charles(), collection);
-		userServices.addUserToCollection(users.chuckNorris(), collection);
-		userServices.addUserToCollection(users.dakotaLIndien(), collection);
-		userServices.addUserToCollection(users.edouardLechat(), collection);
-		userServices.addUserToCollection(users.gandalfLeblanc(), collection);
-		userServices.addUserToCollection(users.robin(), collection);
-		userServices.addUserToCollection(users.sasquatch(), collection);
+		userServices.execute(users.admin().getUsername(), (req) -> req.addCollection(collection));
+		userServices.execute(users.alice().getUsername(), (req) -> req.addCollection(collection));
+		userServices.execute(users.bob().getUsername(), (req) -> req.addCollection(collection));
+		userServices.execute(users.charles().getUsername(), (req) -> req.addCollection(collection));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addCollection(collection));
+		userServices.execute(users.dakotaLIndien().getUsername(), (req) -> req.addCollection(collection));
+		userServices.execute(users.edouardLechat().getUsername(), (req) -> req.addCollection(collection));
+		userServices.execute(users.gandalfLeblanc().getUsername(), (req) -> req.addCollection(collection));
+		userServices.execute(users.robin().getUsername(), (req) -> req.addCollection(collection));
+		userServices.execute(users.sasquatch().getUsername(), (req) -> req.addCollection(collection));
 		return this;
 	}
 

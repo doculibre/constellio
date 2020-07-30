@@ -9,8 +9,8 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
-import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -95,7 +95,7 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 		userServices.execute(globalGroup);
 
 		userServices.addGlobalGroupsInCollection(collection);
-		userServices.addUserToCollection(alice, collection);
+		userServices.execute(alice, (req) -> req.addCollection(collection));
 
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 		Record record = recordServices.newRecordWithSchema(types.getDefaultSchema("task"));
