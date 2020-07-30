@@ -58,7 +58,7 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 
 		userServices.execute(users.adminAddUpdateRequest().setServiceKey("admin-key"));
-		userServices.addUserToCollection(users.admin(), zeCollection);
+		userServices.execute(users.admin().getUsername(), (req) -> req.addCollection(zeCollection));
 		recordServices.update(userServices.getUserInCollection(admin, zeCollection).setCollectionWriteAccess(true));
 		getModelLayerFactory().newAuthenticationService().changePassword(admin, "1qaz2wsx");
 		adminToken = userServices.generateToken(admin);

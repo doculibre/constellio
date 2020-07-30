@@ -92,12 +92,12 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 		userServices.execute(
 				userServices.addUpdate(chuckNorris).setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
 		chuckNorrisToken = userServices.generateToken(chuckNorris);
-		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addCollection(zeCollection));
 		cmisSession = givenAdminSessionOnZeCollection();
 		userServices.execute(
 				userServices.addUpdate(bobGratton).setServiceKey(bobKey).setSystemAdminEnabled());
 		bobToken = userServices.generateToken(bobGratton);
-		userServices.addUserToCollection(users.bob(), zeCollection);
+		userServices.execute(users.bob().getUsername(), (req) -> req.addCollection(zeCollection));
 
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionReadAccess(true).getWrappedRecord());
 		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());

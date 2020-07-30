@@ -71,8 +71,8 @@ public class CreateFolderRequestAcceptTest extends ConstellioTest {
 
 		chuckNorrisToken = userServices.generateToken(chuckNorris);
 		bobToken = userServices.generateToken(bobGratton);
-		userServices.addUserToCollection(users.bob(), zeCollection);
-		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
+		userServices.execute(users.bob().getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addCollection(zeCollection));
 
 		cmisSession = givenAdminSessionOnZeCollection();
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionWriteAccess(true).getWrappedRecord());

@@ -319,7 +319,7 @@ public class UserServices {
 		SystemWideGroup currentGroup = globalGroupsManager.getGlobalGroupWithCode(globalGroup.getCode());
 		for (String newAutomaticCollection : globalGroup.getNewCollections()) {
 			for (SystemWideUserInfos userInGroup : getGlobalGroupActifUsers(globalGroup.getCode())) {
-				addUserToCollection(userInGroup.getUsername(), newAutomaticCollection);
+				execute(userInGroup.getUsername(), (req) -> req.addCollection(newAutomaticCollection));
 			}
 		}
 
@@ -335,24 +335,7 @@ public class UserServices {
 		}
 	}
 
-	//TODO User execute instead
-	@Deprecated
-	public void addUserToCollection(SystemWideUserInfos user, String collection) {
-		execute(user.getUsername(), (req) -> req.addCollection(collection));
-	}
-
-	//TODO User execute instead
-	@Deprecated
-	public void addUserToCollection(String username, String collection) {
-		execute(username, (req) -> req.addCollection(collection));
-	}
-
-	//TODO User execute instead
-	@Deprecated
-	public void addUserToCollection(UserCredential userCredential, String collection) {
-		execute(userCredential.getUsername(), (req) -> req.addCollection(collection));
-	}
-
+	//TODO Users should be able to have different groups from a collection to an other, this service break this
 	@Deprecated
 	public List<SystemWideUserInfos> getGlobalGroupActifUsers(String groupCode) {
 		return userCredentialsManager.getUserCredentialsInGlobalGroup(groupCode)

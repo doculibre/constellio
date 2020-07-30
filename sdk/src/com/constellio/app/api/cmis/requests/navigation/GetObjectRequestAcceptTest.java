@@ -66,7 +66,7 @@ public class GetObjectRequestAcceptTest extends ConstellioTest {
 		userServices.execute(
 				userServices.addUpdate(chuckNorris).setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
 		chuckNorrisToken = userServices.generateToken(chuckNorris);
-		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addCollection(zeCollection));
 		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 

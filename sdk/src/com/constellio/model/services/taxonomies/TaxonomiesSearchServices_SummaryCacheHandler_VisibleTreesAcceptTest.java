@@ -94,7 +94,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		UserCredential userCredential = userServices.getUserCredential(aliceWonderland);
-		userServices.addUserToCollection(userCredential, zeCollection);
+		userServices.execute(userCredential.getUsername(), (req) -> req.addCollection(zeCollection));
 		alice = userServices.getUserInCollection(aliceWonderland, zeCollection);
 		manager = getModelLayerFactory().getMetadataSchemasManager();
 

@@ -93,11 +93,11 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		searchServices = getModelLayerFactory().newSearchServices();
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		users.setUp(userServices);
-		userServices.addUserToCollection(users.charles(), zeCollection);
-		userServices.addUserToCollection(users.alice(), zeCollection);
+		userServices.execute(users.charles().getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(users.alice().getUsername(), (req) -> req.addCollection(zeCollection));
 		recordServices.add(users.aliceIn(zeCollection).setCollectionWriteAccess(true).setCollectionDeleteAccess(true)
 				.getWrappedRecord());
-		userServices.addUserToCollection(users.bob(), zeCollection);
+		userServices.execute(users.bob().getUsername(), (req) -> req.addCollection(zeCollection));
 		users = records.getUsers();
 		alice = users.aliceIn(zeCollection);
 	}

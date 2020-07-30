@@ -221,7 +221,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenUserWith(noGroups, andNoCollections);
 		assertThatUserIsOnlyInCollections(user);
 
-		userServices.addUserToCollection(user, collection1);
+		userServices.execute(user.getUsername(), (req) -> req.addCollection(collection1));
 		assertThatUserIsOnlyInCollections(user, collection1);
 
 	}
@@ -855,7 +855,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.execute(group1_1_1);
 
 		UserCredential admin = userServices.getUserCredential("admin");
-		userServices.addUserToCollection(admin, collection1);
+		userServices.execute(admin.getUsername(), (req) -> req.addCollection(collection1));
 		userServices.removeGroupFromCollectionsWithoutUserValidation("group1", Arrays.asList("collection1"));
 
 		assertThat(userServices.getGroupInCollection("group1", "collection1").getWrappedRecord()
@@ -885,7 +885,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		SystemWideGroup group1_1_1 = userServices.getGroup("group1_1_1");
 
 		UserCredential admin = userServices.getUserCredential("admin");
-		userServices.addUserToCollection(admin, collection1);
+		userServices.execute(admin.getUsername(), (req) -> req.addCollection(collection1));
 		userServices.logicallyRemoveGroupHierarchy(admin.getUsername(), group1);
 
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection1)
@@ -927,7 +927,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		SystemWideGroup group1_1 = userServices.getGroup("group1_1");
 		SystemWideGroup group1_1_1 = userServices.getGroup("group1_1_1");
 		UserCredential admin = userServices.getUserCredential("admin");
-		userServices.addUserToCollection(admin, collection1);
+		userServices.execute(admin.getUsername(), (req) -> req.addCollection(collection1));
 		userServices.logicallyRemoveGroupHierarchy(admin.getUsername(), group1);
 
 		userServices.activateGlobalGroupHierarchy(admin, group1);

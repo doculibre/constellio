@@ -9,8 +9,8 @@ import com.constellio.app.client.services.SecurityManagementDriver;
 import com.constellio.app.client.services.UserServicesClient;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordServices;
@@ -106,7 +106,7 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 		alice = usersRecords.aliceIn(zeCollection);
 		userCredentialBob = usersRecords.bob();
 		userCredentialAlice = usersRecords.alice();
-		userServices.addUserToCollection(userCredentialAlice, zeCollection);
+		userServices.execute(userCredentialAlice.getUsername(), (req) -> req.addCollection(zeCollection));
 
 		userServices.givenSystemAdminPermissionsToUser(userCredentialBob);
 		bobServiceKey = userServices.giveNewServiceKey(userCredentialBob.getUsername());
