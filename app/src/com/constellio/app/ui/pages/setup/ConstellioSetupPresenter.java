@@ -224,14 +224,14 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 							.setServiceKey(null)
 							.setSystemAdmin(false)
 							.addCollection(collectionCode)
-							.setStatus(UserCredentialStatus.ACTIVE)
+							.setStatusForAllCollections(UserCredentialStatus.ACTIVE)
 							.setDomain(null)
 							.setMsExchDelegateListBL(null)
 							.setDn(null);
 
 
 					userServices.execute(adminRequest);
-					userServices.addUserToCollection("admin", collectionCode);
+					userServices.execute("admin", (req) -> req.addCollection(collectionCode));
 					User user = userServices.getUserRecordInCollection("admin", collectionCode);
 					String effectiveAdminPassword;
 					if (StringUtils.isBlank(adminPassword)) {

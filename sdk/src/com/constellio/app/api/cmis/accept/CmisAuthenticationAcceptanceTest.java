@@ -67,13 +67,13 @@ public class CmisAuthenticationAcceptanceTest extends ConstellioTest {
 						.setCollections(asList(zeCollection)));
 		chuckNorrisToken = userServices.generateToken(users.chuckNorris().getUsername());
 
-		userServices.addUserToCollection(users.admin(), zeCollection);
-		userServices.addUserToCollection(users.admin(), "anotherCollection");
-		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
-		userServices.addUserToCollection(users.robin(), zeCollection);
+		userServices.execute(users.admin().getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(users.admin().getUsername(), (req) -> req.addCollection("anotherCollection"));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(users.robin().getUsername(), (req) -> req.addCollection(zeCollection));
 
-		userServices.addUserToCollection(users.robin(), zeCollection);
-		userServices.addUserToCollection(users.robin(), "anotherCollection");
+		userServices.execute(users.robin().getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(users.robin().getUsername(), (req) -> req.addCollection("anotherCollection"));
 	}
 
 	@Test

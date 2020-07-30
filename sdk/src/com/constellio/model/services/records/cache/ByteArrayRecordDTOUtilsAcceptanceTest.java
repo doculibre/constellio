@@ -117,7 +117,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		UserAddUpdateRequest adminCredential = addUpdateUserCredential("mrlabatt50", "John", "Labatt", "ti-joe@brewerie.com",
 				new ArrayList<String>(), asList(zeCollection), UserCredentialStatus.ACTIVE).setSystemAdminEnabled();
 		userServices.execute(adminCredential);
-		userServices.addUserToCollection(adminCredential.getUsername(), zeCollection);
+		userServices.execute(adminCredential.getUsername(), (req) -> req.addCollection(zeCollection));
 		john = userServices.getUserRecordInCollection("mrlabatt50", zeCollection);
 
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();

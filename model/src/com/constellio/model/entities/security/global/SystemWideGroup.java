@@ -31,6 +31,12 @@ public class SystemWideGroup {
 	private String name;
 
 	@Getter
+	private String caption;
+
+	@Getter
+	private List<String> ancestors;
+
+	@Getter
 	private List<String> collections;
 
 	@Getter
@@ -81,7 +87,12 @@ public class SystemWideGroup {
 		return collections;
 	}
 
+	@Deprecated
 	public GlobalGroupStatus getStatus() {
+		return groupStatus;
+	}
+
+	public GlobalGroupStatus getStatus(String collection) {
 		return groupStatus;
 	}
 }

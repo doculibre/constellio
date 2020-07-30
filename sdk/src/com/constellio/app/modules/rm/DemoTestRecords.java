@@ -433,13 +433,13 @@ public class DemoTestRecords {
 
 	private void setupUsers(Transaction transaction, UserServices userServices) {
 
-		userServices.addUserToCollection(users.admin(), collection);
-		userServices.addUserToCollection(users.bob(), collection);
-		userServices.addUserToCollection(users.charles(), collection);
-		userServices.addUserToCollection(users.dakotaLIndien(), collection);
-		userServices.addUserToCollection(users.edouardLechat(), collection);
-		userServices.addUserToCollection(users.gandalfLeblanc(), collection);
-		userServices.addUserToCollection(users.chuckNorris(), collection);
+		userServices.execute(users.admin().getUsername(), (req) -> req.addCollection(collection));
+		userServices.execute(users.bob().getUsername(), (req) -> req.addCollection(collection));
+		userServices.execute(users.charles().getUsername(), (req) -> req.addCollection(collection));
+		userServices.execute(users.dakotaLIndien().getUsername(), (req) -> req.addCollection(collection));
+		userServices.execute(users.edouardLechat().getUsername(), (req) -> req.addCollection(collection));
+		userServices.execute(users.gandalfLeblanc().getUsername(), (req) -> req.addCollection(collection));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addCollection(collection));
 
 		alice_notInCollection = users.alice().getUsername();
 

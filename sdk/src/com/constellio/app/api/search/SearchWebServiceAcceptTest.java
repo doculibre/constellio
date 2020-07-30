@@ -612,9 +612,9 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 			throws RecordServicesException {
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		users.setUp(userServices);
-		userServices.addUserToCollection(users.alice(), zeCollection);
-		userServices.addUserToCollection(users.bob(), zeCollection);
-		userServices.addUserToCollection(users.dakotaLIndien(), zeCollection);
+		userServices.execute(users.alice().getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(users.bob().getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(users.dakotaLIndien().getUsername(), (req) -> req.addCollection(zeCollection));
 
 		Transaction transaction = new Transaction();
 		transaction.add(users.aliceIn(zeCollection).setCollectionReadAccess(true).getWrappedRecord());
