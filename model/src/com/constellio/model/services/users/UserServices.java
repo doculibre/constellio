@@ -1258,7 +1258,7 @@ public class UserServices {
 		Predicate<SystemWideUserInfos> filter = new Predicate<SystemWideUserInfos>() {
 			@Override
 			public boolean apply(SystemWideUserInfos input) {
-				return input.getCollections().isEmpty();
+				return input.getCollections().isEmpty() && !input.getUsername().equals("admin");
 			}
 		};
 		List<SystemWideUserInfos> userCredentials = this.getAllUserCredentials();
