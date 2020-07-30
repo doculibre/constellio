@@ -1,6 +1,5 @@
 package com.constellio.model.services.users;
 
-import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -15,12 +14,8 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserCredentialsManagerRuntimeException.UserCredentialsManagerRuntimeException_CannotExecuteTransaction;
-import org.joda.time.LocalDateTime;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
 import static com.constellio.data.utils.LangUtils.valueOrDefault;
@@ -223,30 +218,10 @@ public class SolrUserCredentialsManager {
 	}
 
 	void removeTimedOutTokens() {
-		LocalDateTime now = TimeProvider.getLocalDateTime();
-		Transaction transaction = new Transaction();
-		for (Record record : searchServices.search(getUserCredentialsWithExpiredTokensQuery(now))) {
-			UserCredential credential = schemas.wrapCredential(record);
-			Map<String, LocalDateTime> validTokens = new HashMap<>();
-			for (Entry<String, LocalDateTime> token : credential.getAccessTokens().entrySet()) {
-				LocalDateTime expiration = token.getValue();
-				if (expiration.isAfter(now)) {
-					validTokens.put(token.getKey(), token.getValue());
-				}
-			}
-			transaction.add(credential.setAccessTokens(validTokens));
-		}
-		try {
-			modelLayerFactory.newRecordServices().execute(transaction);
-		} catch (RecordServicesException e) {
-			throw new UserCredentialsManagerRuntimeException_CannotExecuteTransaction(e);
-		}
+
 	}
 
-	private LogicalSearchQuery getUserCredentialsWithExpiredTokensQuery(LocalDateTime now) {
-		return new LogicalSearchQuery(
-				from(schemas.credentialSchemaType()).where(schemas.credentialTokenExpirations()).isLessOrEqualThan(now));
-	}
+
 
 	private LogicalSearchQuery getQueryFilteredByStatus(UserCredentialStatus status) {
 		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).where(schemas.credentialStatus()).isEqualTo(status))

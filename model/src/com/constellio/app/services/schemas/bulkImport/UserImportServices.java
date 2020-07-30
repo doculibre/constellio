@@ -119,7 +119,7 @@ public class UserImportServices implements ImportServices {
 				.setSystemAdmin(systemAdmin == null ? null : Boolean.valueOf((String) systemAdmin))
 				.addToGroupsInEachCollection(globalGroups)
 				.addCollections(collections)
-				.setStatus(userCredentialStatus);
+				.setStatusForAllCollections(userCredentialStatus);
 		try {
 			if (userServices.getUserCredential(username) == null && Strings.isNotEmpty(password)) {
 				passwordFileAuthenticationService.changePassword(username, password);

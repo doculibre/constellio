@@ -53,7 +53,7 @@ public class SolrGlobalGroupsManager implements StatefulService {
 				.setName(name)
 				.addCollections(collections)
 				.setParent(parent)
-				.setStatus(status)
+				.setStatusInAllCollections(status)
 				.setLocallyCreated(locallyCreated);
 	}
 
@@ -113,7 +113,7 @@ public class SolrGlobalGroupsManager implements StatefulService {
 	void logicallyRemoveGroup(SystemWideGroup group) {
 		List<GroupAddUpdateRequest> requests = new ArrayList<>();
 		for (SystemWideGroup each : getGroupHierarchy(group)) {
-			requests.add(request(each.getCode()).setStatus(GlobalGroupStatus.INACTIVE)
+			requests.add(request(each.getCode()).setStatusInAllCollections(GlobalGroupStatus.INACTIVE)
 					.setLogicallyDeletedStatus(true));
 		}
 
@@ -133,7 +133,7 @@ public class SolrGlobalGroupsManager implements StatefulService {
 		List<GroupAddUpdateRequest> requests = new ArrayList<>();
 		for (SystemWideGroup each : getGroupHierarchy(group)) {
 			GroupAddUpdateRequest request = request(each.getCode());
-			requests.add(request.setStatus(GlobalGroupStatus.ACTIVE)
+			requests.add(request.setStatusInAllCollections(GlobalGroupStatus.ACTIVE)
 					.setLogicallyDeletedStatus(null));
 		}
 		addUpdate(requests);

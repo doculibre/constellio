@@ -5,8 +5,8 @@ import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.conf.ldap.RegexFilter;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
-import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -191,7 +191,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		ldapUserSyncManager.synchronizeIfPossible();
 		UserCredential bfay = userServices.getUser("bfay");
 		assertThat(bfay.getCollections()).isEmpty();
-		userServices.addUserToCollection(bfay, zeCollection);
+		userServices.execute(bfay.getUsername(), (req) -> req.addCollection(zeCollection));
 		bfay = userServices.getUser("bfay");
 		assertThat(bfay.getCollections()).containsOnly(zeCollection);
 		ldapUserSyncManager.synchronizeIfPossible();
@@ -225,7 +225,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		ldapUserSyncManager.synchronizeIfPossible();
 		UserCredential bfay = userServices.getUser("bfay");
 		assertThat(bfay.getCollections()).isEmpty();
-		userServices.addUserToCollection(bfay, zeCollection);
+		userServices.execute(bfay.getUsername(), (req) -> req.addCollection(zeCollection));
 		bfay = userServices.getUser("bfay");
 		assertThat(bfay.getCollections()).containsOnly(zeCollection);
 
@@ -243,7 +243,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		ldapUserSyncManager.synchronizeIfPossible();
 		com.constellio.model.services.users.UserAddUpdateRequest bfayReq = userServices.addUpdate("bfay");
 
-		bfayReq.setStatus(UserCredentialStatus.SUSPENDED);
+		bfayReq.setStatusForAllCollections(UserCredentialStatus.SUSPENDED);
 		userServices.execute(bfayReq);
 
 		ldapUserSyncManager.synchronizeIfPossible();
@@ -515,7 +515,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 
 		final String myUsername = "bfay";
 		com.constellio.model.services.users.UserAddUpdateRequest myUserCredentialReq = userServices.addUpdate(myUsername);
-		userServices.addUserToCollection(myUserCredentialReq.getUsername(), zeCollection);
+		userServices.execute(myUserCredentialReq.getUsername(), (req) -> req.addCollection(zeCollection));
 		myUserCredentialReq.setGlobalGroups(Arrays.asList(new String[]{myLocalGroupCode}));
 		userServices.execute(myUserCredentialReq);
 

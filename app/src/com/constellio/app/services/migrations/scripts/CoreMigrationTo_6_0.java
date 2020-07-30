@@ -84,7 +84,7 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 				.setEmail(email)
 				.setServiceKey(null)
 				.setSystemAdmin(isSystemAdmin)
-				.setStatus(status)
+				.setStatusForAllCollections(status)
 				.setDomain(domain)
 				.setMsExchDelegateListBL(Arrays.asList(""))
 				.setDn(null);

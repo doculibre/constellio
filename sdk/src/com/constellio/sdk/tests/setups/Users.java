@@ -342,7 +342,7 @@ public class Users {
 				.setSystemAdmin(false)
 				.addToGroupsInEachCollection(globalGroups)
 				.addCollections(collections)
-				.setStatus(UserCredentialStatus.ACTIVE)
+				.setStatusForAllCollections(UserCredentialStatus.ACTIVE)
 				.setSyncMode(UserSyncMode.LOCALLY_CREATED)
 				.setDomain("domain")
 				.setMsExchDelegateListBL(Arrays.asList(""))

@@ -520,7 +520,7 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 
 	private void addAdministratorInCollection(UserServices userServices) {
 		UserCredential administrator = userServices.getUser(ADMINISTRATOR);
-		userServices.addUserToCollection(administrator, zeCollection);
+		userServices.execute(administrator.getUsername(), (req) -> req.addCollection(zeCollection));
 		administratorInZeCollection = userServices.getUserInCollection(ADMINISTRATOR, zeCollection);
 		List<String> roles = new ArrayList<>(administratorInZeCollection.getUserRoles());
 		roles.add(RGD);

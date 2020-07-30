@@ -44,6 +44,10 @@ public class Group extends RecordWrapper {
 		return get(CODE);
 	}
 
+	public String getCaption() {
+		return get(Schemas.CAPTION.getLocalCode());
+	}
+
 	//TODO Replace this method in release 8.2
 	public List<String> getAncestors() {
 		List<String> ancestors = getList(ANCESTORS);

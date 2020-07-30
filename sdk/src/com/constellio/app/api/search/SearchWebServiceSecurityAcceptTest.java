@@ -476,14 +476,14 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 		userWithSomeRecordAccess = users.gandalfLeblanc();
 		systemAdmin = users.chuckNorris();
 
-		userServices.addUserToCollection(userWithZeCollectionReadAccess, zeCollection);
-		userServices.addUserToCollection(userWithAnotherCollectionReadAccess, anotherCollection);
-		userServices.addUserToCollection(userWithBothCollectionReadAccess, zeCollection);
-		userServices.addUserToCollection(userWithBothCollectionReadAccess, anotherCollection);
-		userServices.addUserToCollection(userInBothCollectionWithoutAnyAccess, zeCollection);
-		userServices.addUserToCollection(userInBothCollectionWithoutAnyAccess, anotherCollection);
-		userServices.addUserToCollection(userWithSomeRecordAccess, zeCollection);
-		userServices.addUserToCollection(userWithSomeRecordAccess, anotherCollection);
+		userServices.execute(userWithZeCollectionReadAccess.getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(userWithAnotherCollectionReadAccess.getUsername(), (req) -> req.addCollection(anotherCollection));
+		userServices.execute(userWithBothCollectionReadAccess.getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(userWithBothCollectionReadAccess.getUsername(), (req) -> req.addCollection(anotherCollection));
+		userServices.execute(userInBothCollectionWithoutAnyAccess.getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(userInBothCollectionWithoutAnyAccess.getUsername(), (req) -> req.addCollection(anotherCollection));
+		userServices.execute(userWithSomeRecordAccess.getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(userWithSomeRecordAccess.getUsername(), (req) -> req.addCollection(anotherCollection));
 
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
 		authenticationService.changePassword(systemAdmin.getUsername(), "youshallnotpass");

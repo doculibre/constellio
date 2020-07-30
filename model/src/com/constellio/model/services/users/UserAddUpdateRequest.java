@@ -5,10 +5,12 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.security.global.AgentStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import lombok.Getter;
 import com.constellio.model.entities.security.global.UserSyncMode;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +37,10 @@ public class UserAddUpdateRequest {
 	List<String> currentCollections;
 	List<String> currentGroups;
 
+	@Getter
+	private boolean markedForDeletionInAllCollections;
+	private List<String> markedForDeletionInCollections;
+
 	public UserAddUpdateRequest(String username, List<String> currentCollections,
 								List<String> currentGroups) {
 		this.username = username;
@@ -45,6 +51,19 @@ public class UserAddUpdateRequest {
 
 	public String getUsername() {
 		return username;
+	}
+
+	public UserAddUpdateRequest setName(String firstName, String lastName) {
+		setFirstName(firstName);
+		setLastName(lastName);
+		return this;
+	}
+
+	public UserAddUpdateRequest setNameEmail(String firstName, String lastName, String email) {
+		setFirstName(firstName);
+		setLastName(lastName);
+		setEmail(email);
+		return this;
 	}
 
 	public UserAddUpdateRequest setFirstName(String firstName) {
@@ -77,7 +96,7 @@ public class UserAddUpdateRequest {
 		return this;
 	}
 
-	public UserAddUpdateRequest setStatus(UserCredentialStatus status) {
+	public UserAddUpdateRequest setStatusForAllCollections(UserCredentialStatus status) {
 		this.modifiedProperties.put(UserCredential.STATUS, status);
 		return this;
 	}
@@ -88,6 +107,11 @@ public class UserAddUpdateRequest {
 
 	public UserAddUpdateRequest setSyncMode(UserSyncMode syncMode) {
 		this.modifiedProperties.put(UserCredential.SYNC_MODE, syncMode);
+		return this;
+	}
+
+	public UserAddUpdateRequest setStatusForCollection(UserCredentialStatus status, String collection) {
+		modifyCollectionProperties(collection).put(UserCredential.STATUS, status);
 		return this;
 	}
 
@@ -218,8 +242,18 @@ public class UserAddUpdateRequest {
 		return this;
 	}
 
+	public UserAddUpdateRequest removeCollections(String... collections) {
+		Arrays.stream(collections).forEach(this::removeCollection);
+		return this;
+	}
+
 	public UserAddUpdateRequest addCollections(List<String> collections) {
 		collections.forEach(this::addCollection);
+		return this;
+	}
+
+	public UserAddUpdateRequest addCollections(String... collections) {
+		Arrays.stream(collections).forEach(this::addCollection);
 		return this;
 	}
 
@@ -242,6 +276,11 @@ public class UserAddUpdateRequest {
 
 	public UserAddUpdateRequest addToGroupsInEachCollection(List<String> groupCodes) {
 		groupCodes.forEach(this::addToGroupInEachCollection);
+		return this;
+	}
+
+	public UserAddUpdateRequest addToGroupsInEachCollection(String... groupCodes) {
+		Arrays.stream(groupCodes).forEach(this::addToGroupInEachCollection);
 		return this;
 	}
 
@@ -325,12 +364,14 @@ public class UserAddUpdateRequest {
 		return this;
 	}
 
-	public void set(Metadata metadata, Object value) {
+	public UserAddUpdateRequest set(Metadata metadata, Object value) {
 		modifiedProperties.put(metadata.getLocalCode(), value);
+		return this;
 	}
 
-	public void set(String localCode, Object value) {
+	public UserAddUpdateRequest set(String localCode, Object value) {
 		modifiedProperties.put(localCode, value);
+		return this;
 	}
 
 	public Map<String, Object> getExtraMetadatas() {
@@ -360,4 +401,31 @@ public class UserAddUpdateRequest {
 	public List<String> getRemovedtokens() {
 		return removedtokens;
 	}
+
+	public UserAddUpdateRequest markForDeletionInAllCollections() {
+		markedForDeletionInAllCollections = true;
+		return this;
+	}
+
+	public UserAddUpdateRequest markForDeletionInAllCollection(String collection) {
+		if (markedForDeletionInCollections == null) {
+			markedForDeletionInCollections = new ArrayList<>();
+		}
+
+		if (!markedForDeletionInCollections.contains(collection)) {
+			markedForDeletionInCollections.add(collection);
+		}
+
+		return this;
+	}
+
+	private Map<String, Object> modifyCollectionProperties(String collection) {
+		Map<String, Object> modifiedCollectionProperties = this.modifiedCollectionsProperties.get(collection);
+		if (modifiedCollectionProperties == null) {
+			modifiedCollectionProperties = new HashMap<>();
+			this.modifiedCollectionsProperties.put(collection, modifiedCollectionProperties);
+		}
+		return modifiedCollectionProperties;
+	}
+
 }

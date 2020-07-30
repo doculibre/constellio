@@ -80,9 +80,9 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 				userServices.addUpdate(chuckNorris).setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
 		bobToken = userServices.generateToken(bobGratton);
 		chuckNorrisToken = userServices.generateToken(chuckNorris);
-		userServices.addUserToCollection(users.bob(), zeCollection);
-		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
-		userServices.addUserToCollection(users.chuckNorris(), anotherCollection);
+		userServices.execute(users.bob().getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addCollection(zeCollection));
 
 		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 

@@ -46,7 +46,7 @@ public class ReportServicesAcceptanceTest extends ConstellioTest {
 		types = metadataSchemasManager.getSchemaTypes(zeCollection);
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.addUserToCollection(userServices.getUserCredential(chuckNorris), zeCollection);
+		userServices.execute(userServices.getUserCredential(chuckNorris).getUsername(), (req) -> req.addCollection(zeCollection));
 
 		reportTestUtils = new ReportTestUtils(getModelLayerFactory(), zeCollection, records);
 	}

@@ -76,11 +76,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static com.constellio.model.entities.records.wrappers.Group.wrapNullable;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_ON;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
+import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.DISABLED;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.PENDING;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.SUSPENDED;
@@ -127,6 +129,7 @@ public class UserServices {
 		this.schemas = SchemasRecordsServices.usingMainModelLayerFactory(com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
 
+
 	public GroupAddUpdateRequest newGlobalGroup(String code) {
 		return new GroupAddUpdateRequest(code);
 	}
@@ -138,104 +141,120 @@ public class UserServices {
 		execute(request);
 	}
 
+	public void createUser(String username,
+						   Consumer<com.constellio.model.services.users.UserAddUpdateRequest> requestConsumer) {
+		com.constellio.model.services.users.UserAddUpdateRequest request = addUpdate(username);
+		request.setStatusForAllCollections(ACTIVE);
+		requestConsumer.accept(request);
+		execute(request);
+	}
+
 	public void execute(com.constellio.model.services.users.UserAddUpdateRequest request) {
 		UserCredential userCredential = userCredentialsManager.addEdit(request.getUsername());
 
-		if (request.getAddToCollections() != null || request.getRemoveFromCollections() != null) {
-			List<String> collections = new ArrayList<>(userCredential.getCollections());
-			if (request.getAddToCollections() != null) {
-				for (String collection : request.getAddToCollections()) {
-					if (!collections.contains(collection)) {
-						collections.add(collection);
+		if (request.isMarkedForDeletionInAllCollections()) {
+			if (userCredential != null) {
+				deleteUser(userCredential.getUsername());
+			}
+		} else {
+
+			if (request.getAddToCollections() != null || request.getRemoveFromCollections() != null) {
+				List<String> collections = new ArrayList<>(userCredential.getCollections());
+				if (request.getAddToCollections() != null) {
+					for (String collection : request.getAddToCollections()) {
+						if (!collections.contains(collection)) {
+							collections.add(collection);
+						}
 					}
 				}
+
+				if (request.getRemoveFromCollections() != null) {
+					for (String collection : request.getRemoveFromCollections()) {
+						collections.remove(collection);
+					}
+				}
+
+				userCredential.setCollections(collections);
 			}
+
+			if (request.getAddToGroup() != null || request.getRemoveFromGroup() != null) {
+				List<String> groups = new ArrayList<>(userCredential.getGlobalGroups());
+				if (request.getAddToGroup() != null) {
+					for (String group : request.getAddToGroup()) {
+						if (!groups.contains(group)) {
+							groups.add(group);
+						}
+					}
+				}
+
+				if (request.getRemoveFromGroup() != null) {
+					for (String group : request.getRemoveFromGroup()) {
+						groups.remove(group);
+					}
+				}
+
+				userCredential.setGlobalGroups(groups);
+			}
+
+			if (request.getNewTokens() != null || request.getRemovedtokens() != null) {
+				Map<String, LocalDateTime> tokens = new HashMap<>(userCredential.getAccessTokens());
+				if (request.getNewTokens() != null) {
+					for (Entry<String, LocalDateTime> token : request.getNewTokens().entrySet()) {
+						if (!tokens.containsKey(token.getKey())) {
+							tokens.put(token.getKey(), token.getValue());
+						}
+					}
+				}
+
+				if (request.getRemovedtokens() != null) {
+					for (String token : request.getRemovedtokens()) {
+						tokens.remove(token);
+					}
+				}
+
+				userCredential.setAccessTokens(tokens);
+			}
+
+			for (Map.Entry<String, Object> extraMetadata : request.getExtraMetadatas().entrySet()) {
+				MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(SYSTEM_COLLECTION)
+						.getDefaultSchema(UserCredential.SCHEMA_TYPE);
+				if (schema.hasMetadataWithCode(extraMetadata.getKey())) {
+					userCredential.set(schema.get(extraMetadata.getKey()), extraMetadata.getValue());
+				}
+			}
+
+			execute(userCredential, request.isDnUnicityValidationCheck());
 
 			if (request.getRemoveFromCollections() != null) {
-				for (String collection : request.getRemoveFromCollections()) {
-					collections.remove(collection);
-				}
-			}
-
-			userCredential.setCollections(collections);
-		}
-
-		if (request.getAddToGroup() != null || request.getRemoveFromGroup() != null) {
-			List<String> groups = new ArrayList<>(userCredential.getGlobalGroups());
-			if (request.getAddToGroup() != null) {
-				for (String group : request.getAddToGroup()) {
-					if (!groups.contains(group)) {
-						groups.add(group);
+				for (String removedCollection : request.getRemoveFromCollections()) {
+					LogicalSearchCondition condition = fromUsersIn(removedCollection)
+							.where(usernameMetadata(removedCollection)).is(userCredential.getUsername());
+					Record user = searchServices.searchSingleResult(condition);
+					try {
+						recordServices.update(user.set(LOGICALLY_DELETED_STATUS, true));
+					} catch (RecordServicesException e) {
+						throw new RuntimeException(e);
 					}
 				}
 			}
 
-			if (request.getRemoveFromGroup() != null) {
-				for (String group : request.getRemoveFromGroup()) {
-					groups.remove(group);
-				}
-			}
-
-			userCredential.setGlobalGroups(groups);
-		}
-
-		if (request.getNewTokens() != null || request.getRemovedtokens() != null) {
-			Map<String, LocalDateTime> tokens = new HashMap<>(userCredential.getAccessTokens());
-			if (request.getNewTokens() != null) {
-				for (Entry<String, LocalDateTime> token : request.getNewTokens().entrySet()) {
-					if (!tokens.containsKey(token.getKey())) {
-						tokens.put(token.getKey(), token.getValue());
+			if (request.getAddToCollections() != null) {
+				for (String addedCollection : request.getAddToCollections()) {
+					LogicalSearchCondition condition = fromUsersIn(addedCollection)
+							.where(usernameMetadata(addedCollection)).is(userCredential.getUsername());
+					Record user = searchServices.searchSingleResult(condition);
+					try {
+						recordServices.update(user.set(LOGICALLY_DELETED_STATUS, null));
+					} catch (RecordServicesException e) {
+						throw new RuntimeException(e);
 					}
 				}
 			}
 
-			if (request.getRemovedtokens() != null) {
-				for (String token : request.getRemovedtokens()) {
-					tokens.remove(token);
-				}
+			if (UserCredentialStatus.ACTIVE == request.getExtraMetadatas().get(UserCredential.STATUS)) {
+				restoreUserInBigVault(request.getUsername());
 			}
 
-			userCredential.setAccessTokens(tokens);
-		}
-
-		for (Map.Entry<String, Object> extraMetadata : request.getExtraMetadatas().entrySet()) {
-			MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(SYSTEM_COLLECTION)
-					.getDefaultSchema(UserCredential.SCHEMA_TYPE);
-			if (schema.hasMetadataWithCode(extraMetadata.getKey())) {
-				userCredential.set(schema.get(extraMetadata.getKey()), extraMetadata.getValue());
-			}
-		}
-
-		execute(userCredential, request.isDnUnicityValidationCheck());
-
-		if (request.getRemoveFromCollections() != null) {
-			for (String removedCollection : request.getRemoveFromCollections()) {
-				LogicalSearchCondition condition = fromUsersIn(removedCollection)
-						.where(usernameMetadata(removedCollection)).is(userCredential.getUsername());
-				Record user = searchServices.searchSingleResult(condition);
-				try {
-					recordServices.update(user.set(LOGICALLY_DELETED_STATUS, true));
-				} catch (RecordServicesException e) {
-					throw new RuntimeException(e);
-				}
-			}
-		}
-
-		if (request.getAddToCollections() != null) {
-			for (String addedCollection : request.getAddToCollections()) {
-				LogicalSearchCondition condition = fromUsersIn(addedCollection)
-						.where(usernameMetadata(addedCollection)).is(userCredential.getUsername());
-				Record user = searchServices.searchSingleResult(condition);
-				try {
-					recordServices.update(user.set(LOGICALLY_DELETED_STATUS, null));
-				} catch (RecordServicesException e) {
-					throw new RuntimeException(e);
-				}
-			}
-		}
-
-		if (UserCredentialStatus.ACTIVE == request.getExtraMetadatas().get(UserCredential.STATUS)) {
-			restoreUserInBigVault(request.getUsername());
 		}
 	}
 
@@ -273,14 +292,35 @@ public class UserServices {
 	public GroupAddUpdateRequest createGlobalGroup(
 			String code, String name, List<String> collections, String parent, GlobalGroupStatus status,
 			boolean locallyCreated) {
-		return globalGroupsManager.create(code, name, collections, parent, status, locallyCreated);
+
+		return new GroupAddUpdateRequest(code)
+				.setName(name)
+				.addCollections(collections)
+				.setParent(parent)
+				.setStatusInAllCollections(status)
+				.setLocallyCreated(locallyCreated);
+	}
+
+	public void createGroup(String code, Consumer<GroupAddUpdateRequest> requestConsumer) {
+		GroupAddUpdateRequest request = new GroupAddUpdateRequest(code)
+				.setName(code)
+				.setStatusInAllCollections(GlobalGroupStatus.ACTIVE)
+				.setLocallyCreated(true);
+		requestConsumer.accept(request);
+		execute(request);
+	}
+
+	public void executeGroupRequest(String groupCode, Consumer<GroupAddUpdateRequest> requestConsumer) {
+		GroupAddUpdateRequest request = request(groupCode);
+		requestConsumer.accept(request);
+		execute(request);
 	}
 
 	public void execute(GroupAddUpdateRequest globalGroup) {
 		SystemWideGroup currentGroup = globalGroupsManager.getGlobalGroupWithCode(globalGroup.getCode());
 		for (String newAutomaticCollection : globalGroup.getNewCollections()) {
 			for (SystemWideUserInfos userInGroup : getGlobalGroupActifUsers(globalGroup.getCode())) {
-				addUserToCollection(userInGroup.getUsername(), newAutomaticCollection);
+				execute(userInGroup.getUsername(), (req) -> req.addCollection(newAutomaticCollection));
 			}
 		}
 
@@ -294,48 +334,6 @@ public class UserServices {
 				logicallyRemoveGroupHierarchyWithoutUserValidation(group);
 			}
 		}
-	}
-
-	//TODO User execute instead
-	@Deprecated
-	public void addUserToCollection(SystemWideUserInfos user, String collection) {
-		execute(user.getUsername(), (req) -> req.addCollection(collection));
-	}
-
-	//TODO User execute instead
-	@Deprecated
-	public void addUserToCollection(String username, String collection) {
-		execute(username, (req) -> req.addCollection(collection));
-	}
-
-	//TODO User execute instead
-	@Deprecated
-	public void addUserToCollection(UserCredential userCredential, String collection) {
-		execute(userCredential.getUsername(), (req) -> req.addCollection(collection));
-	}
-
-	//TODO Users should be able to have different groups from a collection to an other, this service break this
-	@Deprecated
-	public void setGlobalGroupUsers(String groupCode, List<SystemWideUserInfos> newUserList) {
-		List<String> newUsernameList = toUserNames(newUserList);
-
-		for (SystemWideUserInfos userCredential : newUserList) {
-			if (!userCredential.getGlobalGroups().contains(groupCode)) {
-				execute(addUpdate(userCredential.getUsername()).addToGroupInEachCollection(groupCode));
-			}
-		}
-
-		List<SystemWideUserInfos> currentList = getGlobalGroupActifUsers(groupCode);
-		for (SystemWideUserInfos currentListUser : currentList) {
-			if (!newUsernameList.contains(currentListUser.getUsername())) {
-				execute(addUpdate(currentListUser.getUsername()).removeFromGroupOfEachCollection(groupCode));
-			}
-		}
-	}
-
-	public List<SystemWideUserInfos> getGlobalGroupActifUsers(String groupCode) {
-		return userCredentialsManager.getUserCredentialsInGlobalGroup(groupCode)
-				.stream().map((u) -> getUserInfos(u.getUsername())).collect(toList());
 	}
 
 	public SystemWideUserInfos getUserInfos(String username) {
@@ -483,18 +481,8 @@ public class UserServices {
 
 
 	public SystemWideUserInfos getUserByAzureUsername(String azureUsername) {
-
-		UserCredential credential = userCredentialsManager.getAzureUserCredential(azureUsername);
-		if (credential == null) {
-			throw new UserServicesRuntimeException_NoSuchUser(azureUsername);
-		}
-		return getUserInfos(credential.getUsername());
-	}
-
-	//Use execute instead
-	@Deprecated
-	public void updateAzureUsername(String username, String azureUser) {
-		execute(username, (req) -> req.setAzureUsername(azureUser));
+		//TODO Improve performance
+		return streamUserInfos().filter(u -> azureUsername.equals(u.getAzureUsername())).findFirst().get();
 	}
 
 
@@ -504,7 +492,7 @@ public class UserServices {
 		return record != null ? globalGroupsManager.wrapGlobalGroup(record) : null;
 	}
 
-	public GlobalGroup getOldNullableGroup(String groupCode) {
+	private GlobalGroup getOldNullableGroup(String groupCode) {
 		Record record = modelLayerFactory.newRecordServices()
 				.getRecordByMetadata(schemas.globalGroupCode(), groupCode);
 		return record != null ? schemas.wrapOldGlobalGroup(record) : null;
@@ -524,11 +512,8 @@ public class UserServices {
 	}
 
 	public SystemWideGroup getActiveGroup(String groupCode) {
-		SystemWideGroup group = globalGroupsManager.getActiveGlobalGroupWithCode(groupCode);
-		if (group == null) {
-			throw new UserServicesRuntimeException_NoSuchGroup(groupCode);
-		}
-		return group;
+		SystemWideGroup group = getGroup(groupCode);
+		return group.getGroupStatus() == GlobalGroupStatus.ACTIVE ? group : null;
 	}
 
 	public Group getGroupInCollection(String groupCode, String collection) {
@@ -536,6 +521,8 @@ public class UserServices {
 		return schemas.getGroupWithCode(groupCode);
 	}
 
+	@Deprecated
+	//Will be removed with newer system
 	public void addGlobalGroupsInCollection(String collection) {
 		List<SystemWideGroup> groups = globalGroupsManager.getActiveGroups();
 
@@ -553,59 +540,6 @@ public class UserServices {
 		}
 	}
 
-	public void removeUserFromCollection(String username, String collection) {
-		execute(username, (req) -> req.removeCollection(collection));
-
-	}
-
-	void activateGlobalGroupHierarchy(UserCredential userCredential, SystemWideGroup globalGroup) {
-		permissionValidateCredentialOnGroup(userCredential);
-		activateGlobalGroupHierarchyWithoutUserValidation(globalGroup);
-	}
-
-	public void logicallyRemoveAllNonActiveUsers() {
-		List<SystemWideUserInfos> userCredentials = this.getAllUserCredentials();
-		for (SystemWideUserInfos userCredential :
-				userCredentials) {
-			if (userCredential.getStatus() != UserCredentialStatus.ACTIVE) {
-				removeUserCredentialAndUser(userCredential);
-			}
-		}
-	}
-
-	private void activateGlobalGroupHierarchyWithoutUserValidation(SystemWideGroup globalGroup) {
-		List<String> collections = collectionsListManager.getCollections();
-		restoreGroupHierarchyInBigVault(globalGroup.getCode(), collections);
-		globalGroupsManager.activateGlobalGroupHierarchy(globalGroup);
-	}
-
-	void removeUserCredentialAndUser(UserCredential userCredential) {
-		execute(userCredential.getUsername(), (req) -> req.setStatus(DISABLED));
-	}
-
-	public void removeUserCredentialAndUser(SystemWideUserInfos userCredential) {
-		execute(addUpdate(userCredential.getUsername()).setStatus(DISABLED));
-	}
-
-	public void setUserCredentialAndUserStatusPendingApproval(String username) {
-		execute(addUpdate(username).setStatus(PENDING));
-	}
-
-	public void suspendUserCredentialAndUser(String username) {
-		execute(addUpdate(username).setStatus(SUSPENDED));
-	}
-
-	public void userNotSynced(String username) {
-		execute(addUpdate(username).setSyncMode(UserSyncMode.NOT_SYNCED));
-	}
-
-	public void userLocallyCreated(String username) {
-		execute(addUpdate(username).setSyncMode(UserSyncMode.LOCALLY_CREATED));
-	}
-
-	public void userSynced(String username) {
-		execute(addUpdate(username).setSyncMode(UserSyncMode.SYNCED));
-	}
 
 	private void restoreUserInBigVault(String username) {
 		UserCredential userCredential = getUser(username);
@@ -707,11 +641,6 @@ public class UserServices {
 		return new Group(groupRecord, types);
 	}
 
-	//User execute instead
-	@Deprecated
-	public void givenSystemAdminPermissionsToUser(SystemWideUserInfos user) {
-		execute(user.getUsername(), com.constellio.model.services.users.UserAddUpdateRequest::setSystemAdminEnabled);
-	}
 
 	public String giveNewServiceKey(String username) {
 		String nextToken = secondaryUniqueIdGenerator.next();
@@ -1009,11 +938,6 @@ public class UserServices {
 		}
 	}
 
-	//Use execute instead
-	@Deprecated
-	public void removeUserFromGlobalGroup(String username, String globalGroupCode) {
-		execute(username, (req) -> req.removeFromGroupOfEachCollection(globalGroupCode));
-	}
 
 	public String getToken(String serviceKey, String username, String password) {
 		ReadableDuration tokenDuration = modelLayerConfiguration.getTokenDuration();
@@ -1030,6 +954,7 @@ public class UserServices {
 	}
 
 	public String getToken(String serviceKey, String token) {
+		//TODO Refact!
 		if (userCredentialsManager.getServiceKeyByToken(token) != null) {
 			userCredentialsManager.removeToken(token);
 			String username = userCredentialsManager.getUsernameByServiceKey(serviceKey);
@@ -1041,10 +966,12 @@ public class UserServices {
 	}
 
 	public String generateToken(String username) {
+		//TODO Refact!
 		return generateToken(username, modelLayerConfiguration.getTokenDuration());
 	}
 
 	public String generateToken(String username, ReadableDuration duration) {
+		//TODO Refact!
 		String token = secondaryUniqueIdGenerator.next();
 		LocalDateTime expiry = TimeProvider.getLocalDateTime().plus(duration);
 		execute(username, (req) -> req.addAccessToken(token, expiry));
@@ -1052,6 +979,7 @@ public class UserServices {
 	}
 
 	public String generateToken(String username, String unitTime, int duration) {
+		//TODO Refact!
 		String token = secondaryUniqueIdGenerator.next();
 		LocalDateTime expiry = unitTime.equals("hours") ?
 							   TimeProvider.getLocalDateTime().plusHours(duration) :
@@ -1102,19 +1030,6 @@ public class UserServices {
 		return userCredential == null ? null : getUserInfos(userCredential.getUsername());
 	}
 
-	public List<SystemWideUserInfos> getActiveUserCredentials() {
-		return userCredentialsManager.getActiveUserCredentials()
-				.stream().map((u) -> getUserInfos(u.getUsername())).collect(toList());
-	}
-
-	public List<SystemWideUserInfos> getAllUserCredentials() {
-		return userCredentialsManager.getUserCredentials()
-				.stream().map((u) -> getUserInfos(u.getUsername())).collect(toList());
-	}
-
-	public List<SystemWideGroup> getAllGlobalGroups() {
-		return globalGroupsManager.getAllGroups();
-	}
 
 	List<Group> getChildrenOfGroupInCollection(String groupParentCode, String collection) {
 		List<Group> groups = new ArrayList<>();
@@ -1131,39 +1046,9 @@ public class UserServices {
 		return groups;
 	}
 
-	public CredentialUserPermissionChecker has(User user) {
-		return has(user.getUsername());
-	}
-
-	public CredentialUserPermissionChecker has(UserCredential userCredential) {
-		return has(userCredential.getUsername());
-	}
-
-	public CredentialUserPermissionChecker has(SystemWideUserInfos userCredential) {
-		return has(userCredential.getUsername());
-	}
-
-
-	public CredentialUserPermissionChecker has(String username) {
-		List<User> users = new ArrayList<>();
-		UserCredential user = getUser(username);
-		for (String collection : user.getCollections()) {
-			users.add(getUserInCollection(username, collection));
-		}
-		return new CredentialUserPermissionChecker(users);
-	}
 
 	public List<User> getAllUsersInCollection(String collection) {
-		List<User> usersInCollection = new ArrayList<>();
-		for (SystemWideUserInfos userCredential : getAllUserCredentials()) {
-			if (userCredential.getCollections().contains(collection)) {
-				User user = getUserInCollection(userCredential.getUsername(), collection);
-				if (user != null) {
-					usersInCollection.add(getUserInCollection(userCredential.getUsername(), collection));
-				}
-			}
-		}
-		return usersInCollection;
+		return streamUser(collection).collect(toList());
 	}
 
 	public boolean isAuthenticated(String userServiceKey, String userToken) {
@@ -1177,44 +1062,6 @@ public class UserServices {
 				return false;
 			}
 		}
-	}
-
-	public List<SystemWideGroup> safePhysicalDeleteAllUnusedGlobalGroups() {
-		return physicallyRemoveGlobalGroup(globalGroupsManager.getAllGroups().toArray(new SystemWideGroup[0]));
-	}
-
-	public List<SystemWideGroup> physicallyRemoveGlobalGroup(SystemWideGroup... globalGroups) {
-		List<SystemWideGroup> groupWithUserList = new ArrayList<>();
-		for (SystemWideGroup group : globalGroups) {
-			List<SystemWideUserInfos> userInGroup = this.getGlobalGroupActifUsers(group.getCode());
-			if ((group.getStatus().equals(GlobalGroupStatus.INACTIVE) && userInGroup.size() == 0)) {
-				globalGroupsManager.logicallyRemoveGroup(group);
-				recordServices.physicallyDelete(getOldNullableGroup(group.getCode()), User.GOD);
-			} else if (userInGroup.size() != 0) {
-				groupWithUserList.add(group);
-			}
-		}
-		return groupWithUserList;
-	}
-
-	public List<Group> safePhysicalDeleteAllUnusedGroups(String collection) {
-		List<Group> nonDeletedGroups = new ArrayList<>();
-		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
-		LogicalSearchQuery query = new LogicalSearchQuery(allGroups(collectionTypes).returnAll());
-		query.filteredByStatus(StatusFilter.DELETED);
-
-		List<Group> deletedGroups = Group.wrap(searchServices.search(query), collectionTypes);
-		for (Group group : deletedGroups) {
-			LOGGER.info("safePhysicalDeleteAllUnusedGroups : " + group.getCode());
-			try {
-				physicallyRemoveGroup(group, collection);
-			} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
-				LOGGER.warn("Exception on safePhysicalDeleteAllUnusedGroups : " + group.getCode());
-				nonDeletedGroups.add(group);
-			}
-		}
-
-		return nonDeletedGroups;
 	}
 
 	void physicallyRemoveGroup(Group group, String collection) {
@@ -1232,33 +1079,12 @@ public class UserServices {
 	}
 
 	public List<SystemWideUserInfos> safePhysicalDeleteAllUnusedUserCredentials() {
+		//TODO Refact Francis : Decide what to do with this!
 		List<SystemWideUserInfos> nonDeletedUsers = new ArrayList<>();
 		Predicate<SystemWideUserInfos> filter = new Predicate<SystemWideUserInfos>() {
 			@Override
 			public boolean apply(SystemWideUserInfos input) {
-				return input.getStatus().equals(DISABLED);
-			}
-		};
-		List<SystemWideUserInfos> userCredentials = this.getAllUserCredentials();
-		LOGGER.info("safePhysicalDeleteAllUnusedUsers getAllUserCredentials  : " + userCredentials.size());
-		Collection<SystemWideUserInfos> usersToDelete = Collections2.filter(userCredentials, filter);
-		LOGGER.info("safePhysicalDeleteAllUnusedUsers usersToDelete  : " + usersToDelete.size());
-		for (SystemWideUserInfos credential : usersToDelete) {
-			try {
-				safePhysicalDeleteUserCredential(credential.getUsername());
-			} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
-				nonDeletedUsers.add(credential);
-			}
-		}
-		return nonDeletedUsers;
-	}
-
-	public List<SystemWideUserInfos> safePhysicalDeleteAllUserCredentialsWithEmptyCollections() {
-		List<SystemWideUserInfos> nonDeletedUsers = new ArrayList<>();
-		Predicate<SystemWideUserInfos> filter = new Predicate<SystemWideUserInfos>() {
-			@Override
-			public boolean apply(SystemWideUserInfos input) {
-				return input.getCollections().isEmpty() && !input.getUsername().equals("admin");
+				return input.hasStatusInAllCollection(DISABLED);
 			}
 		};
 		List<SystemWideUserInfos> userCredentials = this.getAllUserCredentials();
@@ -1317,15 +1143,21 @@ public class UserServices {
 		return nonDeletedUsers;
 	}
 
-	public void physicallyRemoveUserCredentialAndUsers(String username) {
-		List<User> users = getUserForEachCollection(username);
+	private void deleteUser(String username) {
+
+
+		List<User> users = new ArrayList<>();
+		UserCredential userCredential = getUserCredential(username);
+		for (String collection : userCredential.getCollections()) {
+			users.add(getUserInCollection(userCredential.getUsername(), collection));
+		}
+
 		for (User user : users) {
 			String collection = user.getCollection();
 			physicallyRemoveUser(user, collection);
 		}
 
 		LOGGER.info("physicallyRemoveUserCredential : " + username);
-		UserCredential userCredential = getUserCredential(username);
 		recordServices.logicallyDelete(userCredential.getWrappedRecord(), User.GOD);
 		recordServices.physicallyDelete(userCredential.getWrappedRecord(), User.GOD);
 	}
@@ -1345,7 +1177,7 @@ public class UserServices {
 	void restoreDeletedGroup(String groupCode, String collection) {
 		SystemWideGroup globalGroup = globalGroupsManager.getGlobalGroupWithCode(groupCode);
 		if (globalGroup.getStatus().equals(GlobalGroupStatus.INACTIVE)) {
-			globalGroupsManager.addUpdate(request(globalGroup.getCode()).setStatus(GlobalGroupStatus.ACTIVE));
+			globalGroupsManager.addUpdate(request(globalGroup.getCode()).setStatusInAllCollections(GlobalGroupStatus.ACTIVE));
 		}
 
 		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
@@ -1361,12 +1193,10 @@ public class UserServices {
 		}
 	}
 
-	public boolean isAdminInAnyCollection(String username) {
-		return has(username).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
-	}
-
 	public List<User> getAllUsersInGroup(Group group, boolean includeGroupInheritance,
 										 boolean onlyActiveUsersAndGroups) {
+
+		//TODO Refact : Kept method from old services, make sure it is tested
 		List<User> userRecords = new ArrayList<>();
 		Set<String> usernames = new HashSet<>();
 
@@ -1442,12 +1272,9 @@ public class UserServices {
 		}
 	}
 
-	public boolean isGroupActive(Group group) {
-		SystemWideGroup globalGroup = globalGroupsManager.getGlobalGroupWithCode(group.getCode());
-		return globalGroup == null || isGroupActive(globalGroup);
-	}
-
-	public boolean isGroupActive(String aGroup) {
+	public boolean isGroupAndAllHisAncestorsActive(String aGroup, String collection) {
+		//TODO Refact : With new services, a child group is always INACTIVE if it's parent is inactive, so replace with :
+		//getGroup(aGroup).getStatus(collection) == ACTIVE;
 
 		SystemWideGroup globalGroup;
 		Record record = recordServices.getDocumentById(aGroup);
@@ -1462,41 +1289,19 @@ public class UserServices {
 			globalGroup = globalGroupsManager.wrapGlobalGroup(record);
 		}
 
-		return isGroupActive(globalGroup);
+		return isGroupAndAllHisAncestorsActive(globalGroup);
 	}
 
-	private boolean isGroupActive(SystemWideGroup globalGroup) {
-
+	private boolean isGroupAndAllHisAncestorsActive(SystemWideGroup globalGroup) {
 		if (globalGroup.getStatus() == GlobalGroupStatus.INACTIVE) {
 			return false;
 
 		} else if (globalGroup.getParent() != null) {
-			return isGroupActive(globalGroupsManager.getGlobalGroupWithCode(globalGroup.getParent()));
+			return isGroupAndAllHisAncestorsActive(globalGroupsManager.getGlobalGroupWithCode(globalGroup.getParent()));
 
 		} else {
 			return true;
 		}
-	}
-
-	public List<User> getUserForEachCollection(String username) {
-
-		List<User> users = new ArrayList<>();
-		UserCredential userCredential = getUserCredential(username);
-		for (String collection : userCredential.getCollections()) {
-			users.add(getUserInCollection(userCredential.getUsername(), collection));
-		}
-
-		return users;
-	}
-
-	public List<Group> getGroupForEachCollection(SystemWideGroup globalGroup) {
-
-		List<Group> groups = new ArrayList<>();
-		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
-			groups.add(getGroupInCollection(globalGroup.getCode(), collection));
-		}
-
-		return groups;
 	}
 
 
@@ -1513,6 +1318,7 @@ public class UserServices {
 	}
 
 	public void reShowPrivacyPolicyToUser() {
+		//TODO Refact : Kept method from old services, make sure it is tested
 		SchemasRecordsServices systemSchemas = new SchemasRecordsServices(com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION, modelLayerFactory);
 		LogicalSearchQuery query = new LogicalSearchQuery(from(systemSchemas.credentialSchemaType())
 				.where(systemSchemas.credentialSchemaType().getAllMetadatas().getMetadataWithLocalCode(UserCredential.HAS_AGREED_TO_PRIVACY_POLICY)).isTrue());
@@ -1531,6 +1337,7 @@ public class UserServices {
 	}
 
 	public void resetHasReadLastAlertMetadataOnUsers() {
+		//TODO Refact : Kept method from old services, make sure it is tested
 		SchemasRecordsServices systemSchemas = new SchemasRecordsServices(com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION, modelLayerFactory);
 		LogicalSearchQuery query = new LogicalSearchQuery(from(systemSchemas.credentialSchemaType())
 				.where(systemSchemas.credentialSchemaType()
@@ -1549,41 +1356,210 @@ public class UserServices {
 	}
 
 	public void prepareForCollectionDelete(String collection) {
+		//TODO Refact : Nothing todo when creating a collection, just delete this method!
 		userCredentialsManager.removeCollection(collection);
 		globalGroupsManager.removeCollection(collection);
 	}
 
 	public void removeTimedOutTokens() {
-		userCredentialsManager.removeTimedOutTokens();
+		//TODO Refact : Kept method from old services, make sure it is tested
+		LocalDateTime now = TimeProvider.getLocalDateTime();
+		Transaction transaction = new Transaction();
+		for (Record record : searchServices.search(getUserCredentialsWithExpiredTokensQuery(now))) {
+			UserCredential credential = schemas.wrapCredential(record);
+			Map<String, LocalDateTime> validTokens = new HashMap<>();
+			for (Entry<String, LocalDateTime> token : credential.getAccessTokens().entrySet()) {
+				LocalDateTime expiration = token.getValue();
+				if (expiration.isAfter(now)) {
+					validTokens.put(token.getKey(), token.getValue());
+				}
+			}
+			transaction.add(credential.setAccessTokens(validTokens));
+		}
+		try {
+			modelLayerFactory.newRecordServices().execute(transaction);
+		} catch (RecordServicesException e) {
+			throw new UserCredentialsManagerRuntimeException_CannotExecuteTransaction(e);
+		}
+	}
+
+	private LogicalSearchQuery getUserCredentialsWithExpiredTokensQuery(LocalDateTime now) {
+		return new LogicalSearchQuery(
+				from(schemas.credentialSchemaType()).where(schemas.credentialTokenExpirations()).isLessOrEqualThan(now));
 	}
 
 	public List<SystemWideGroup> getActiveGroups() {
-		return globalGroupsManager.getActiveGroups();
+		return streamGroupInfos().filter(g -> g.getGroupStatus() == GlobalGroupStatus.ACTIVE).collect(toList());
 
 	}
 
 	public List<SystemWideGroup> getAllGroups() {
-		return globalGroupsManager.getAllGroups();
+		return streamGroupInfos().collect(toList());
 	}
 
-	public void logicallyRemoveGroup(SystemWideGroup globalGroup) {
-		globalGroupsManager.logicallyRemoveGroup(globalGroup);
-	}
+	public Stream<SystemWideGroup> streamGroupInfos() {
+		//TODO Refact Francis : Improve performance!
+		Set<String> allGroupCodes = new HashSet<>();
 
-	public void updateAllUserSyncMode() {
-		List<SystemWideUserInfos> credentials = this.getAllUserCredentials();
-
-		for (SystemWideUserInfos credential :
-				credentials) {
-			if (credential.getDn() != null) {
-				this.userSynced(credential.getUsername());
-			} else {
-				this.userLocallyCreated(credential.getUsername());
-			}
+		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
+			streamGroup(collection).forEach(g -> allGroupCodes.add(g.getCode()));
 		}
+
+		List<String> allGroupCodesSorted = new ArrayList<>(allGroupCodes);
+		Collections.sort(allGroupCodesSorted);
+
+		return allGroupCodesSorted.stream().map(g -> getGroup(g));
 	}
 
-	public void updateUser(User user) throws RecordServicesException {
-		this.recordServices.update(user);
+
+	public Stream<SystemWideGroup> streamGroupInfos(String collection) {
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		LogicalSearchQuery query = new LogicalSearchQuery(from(schemas.group.schemaType()).returnAll());
+		return searchServices.stream(query).map(u -> getGroup(schemas.wrapGroup(u).getCode()));
+	}
+
+	public Stream<Group> streamGroup(String collection) {
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		LogicalSearchQuery query = new LogicalSearchQuery(from(schemas.group.schemaType()).returnAll());
+		return searchServices.stream(query).map(schemas::wrapGroup);
+	}
+
+	public Stream<SystemWideUserInfos> streamUserInfos() {
+		SchemasRecordsServices schemas = new SchemasRecordsServices(SYSTEM_COLLECTION, modelLayerFactory);
+		LogicalSearchQuery query = new LogicalSearchQuery(from(schemas.credentialSchemaType()).returnAll());
+		return searchServices.stream(query).map(u -> getUserInfos(schemas.wrapUserCredential(u).getUsername()));
+	}
+
+	public Stream<SystemWideUserInfos> streamUserInfos(String collection) {
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		LogicalSearchQuery query = new LogicalSearchQuery(from(schemas.user.schemaType()).returnAll());
+		return searchServices.stream(query).map(u -> getUserInfos(schemas.wrapUser(u).getUsername()));
+
+	}
+
+	public Stream<User> streamUser(String collection) {
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		LogicalSearchQuery query = new LogicalSearchQuery(from(schemas.user.schemaType()).returnAll());
+		return searchServices.stream(query).map(schemas::wrapUser);
+	}
+
+
+	//----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+	// Entering GARBAGE AREA : Following methods should be deleted
+	//----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+
+	//TODO Users should be able to have different groups from a collection to an other, this service break this
+	@Deprecated
+	public List<SystemWideUserInfos> getGlobalGroupActifUsers(String groupCode) {
+		return userCredentialsManager.getUserCredentialsInGlobalGroup(groupCode)
+				.stream().map((u) -> getUserInfos(u.getUsername())).collect(toList());
+	}
+
+
+	//Use execute instead
+	@Deprecated
+	public void updateAzureUsername(String username, String azureUser) {
+		execute(username, (req) -> req.setAzureUsername(azureUser));
+	}
+
+
+	@Deprecated
+	public void removeUserFromCollection(String username, String collection) {
+		execute(username, (req) -> req.removeCollection(collection));
+
+	}
+
+	@Deprecated
+	void activateGlobalGroupHierarchy(UserCredential userCredential, SystemWideGroup globalGroup) {
+		permissionValidateCredentialOnGroup(userCredential);
+		activateGlobalGroupHierarchyWithoutUserValidation(globalGroup);
+	}
+
+	@Deprecated
+	private void activateGlobalGroupHierarchyWithoutUserValidation(SystemWideGroup globalGroup) {
+		List<String> collections = collectionsListManager.getCollections();
+		restoreGroupHierarchyInBigVault(globalGroup.getCode(), collections);
+		globalGroupsManager.activateGlobalGroupHierarchy(globalGroup);
+	}
+
+	@Deprecated
+	void removeUserCredentialAndUser(UserCredential userCredential) {
+		execute(userCredential.getUsername(), (req) -> req.setStatusForAllCollections(DELETED));
+	}
+
+	@Deprecated
+	public void removeUserCredentialAndUser(SystemWideUserInfos userCredential) {
+		execute(addUpdate(userCredential.getUsername()).setStatusForAllCollections(DELETED));
+	}
+
+	@Deprecated
+	public void setUserCredentialAndUserStatusPendingApproval(String username) {
+		execute(addUpdate(username).setStatusForAllCollections(PENDING));
+	}
+
+	@Deprecated
+	public void suspendUserCredentialAndUser(String username) {
+		execute(addUpdate(username).setStatusForAllCollections(SUSPENDED));
+	}
+
+	@Deprecated
+	public void activeUserCredentialAndUser(String username) {
+		execute(addUpdate(username).setStatusForAllCollections(ACTIVE));
+	}
+
+	@Deprecated
+	public List<SystemWideUserInfos> getActiveUserCredentials() {
+		return streamUserInfos().filter(SystemWideUserInfos::isActiveInAnyCollection).collect(Collectors.toList());
+	}
+
+	@Deprecated
+	public List<SystemWideUserInfos> getAllUserCredentials() {
+		return streamUserInfos().collect(Collectors.toList());
+	}
+
+	@Deprecated
+	public List<SystemWideGroup> getAllGlobalGroups() {
+		return streamGroupInfos().collect(toList());
+	}
+
+
+	@Deprecated
+	public CredentialUserPermissionChecker has(User user) {
+		return has(user.getUsername());
+	}
+
+	@Deprecated
+	public CredentialUserPermissionChecker has(UserCredential userCredential) {
+		return has(userCredential.getUsername());
+	}
+
+	@Deprecated
+	public CredentialUserPermissionChecker has(SystemWideUserInfos userCredential) {
+		return has(userCredential.getUsername());
+	}
+
+
+	@Deprecated
+	public CredentialUserPermissionChecker has(String username) {
+		List<User> users = new ArrayList<>();
+		UserCredential user = getUser(username);
+		for (String collection : user.getCollections()) {
+			users.add(getUserInCollection(username, collection));
+		}
+		return new CredentialUserPermissionChecker(users);
+	}
+
+
+	//User execute instead
+	@Deprecated
+	public void givenSystemAdminPermissionsToUser(SystemWideUserInfos user) {
+		execute(user.getUsername(), com.constellio.model.services.users.UserAddUpdateRequest::setSystemAdminEnabled);
+	}
+
+
+	//Use execute instead
+	@Deprecated
+	public void removeUserFromGlobalGroup(String username, String globalGroupCode) {
+		execute(username, (req) -> req.removeFromGroupOfEachCollection(globalGroupCode));
 	}
 }

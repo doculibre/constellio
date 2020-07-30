@@ -46,7 +46,7 @@ public class SystemWideUserInfos {
 	@Getter
 	private Boolean systemAdmin;
 
-	@Getter
+	//TODO : Replace with Map<String, UserCredentialStatus> using collection codes as keys
 	private UserCredentialStatus status = UserCredentialStatus.ACTIVE;
 
 	@Getter
@@ -125,10 +125,27 @@ public class SystemWideUserInfos {
 
 	}
 
+	//TODO Philippe : store by collection!
+	public UserCredentialStatus getStatus(String collection) {
+		return status;
+	}
+
 	@Deprecated
-	//Doit partir!
-	public boolean isActiveUser() {
-		return UserCredentialStatus.ACTIVE.equals(getStatus());
+	//TODO Philippe : remove!
+	public UserCredentialStatus getStatus() {
+		return status;
+	}
+
+	public boolean isActiveInAnyCollection() {
+		return UserCredentialStatus.ACTIVE.equals(status);
+	}
+
+	public boolean hasStatusInAnyCollection(UserCredentialStatus status) {
+		return status == this.status;
+	}
+
+	public boolean hasStatusInAllCollection(UserCredentialStatus status) {
+		return status == this.status;
 	}
 
 	public boolean isNotReceivingEmails() {

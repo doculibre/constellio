@@ -610,12 +610,12 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return wrapped;
 	}
 
-	public boolean isGroupActive(String aGroup) {
-		return modelLayerFactory.newUserServices().isGroupActive(aGroup);
+	public boolean isGroupActive(String aGroup, String collection) {
+		return modelLayerFactory.newUserServices().isGroupAndAllHisAncestorsActive(aGroup, collection);
 	}
 
 	public boolean isGroupActive(Group aGroup) {
-		return modelLayerFactory.newUserServices().isGroupActive(aGroup);
+		return modelLayerFactory.newUserServices().isGroupAndAllHisAncestorsActive(aGroup.getCode(), aGroup.getCollection());
 	}
 
 	public List<User> getAllUsersInGroup(Group group, boolean includeGroupInheritance,

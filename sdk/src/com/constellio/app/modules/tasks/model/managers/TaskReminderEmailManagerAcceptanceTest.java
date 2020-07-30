@@ -62,12 +62,11 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 		users.aliceIn(zeCollection);
 
 		userServices.execute(users.aliceAddUpdateRequest().setCollections(asList(zeCollection))
-				.setGlobalGroups(asList(users.heroesIn(zeCollection).getCode())));
+				.addToGroupsInEachCollection(users.heroesIn(zeCollection).getCode()));
 		userServices.execute(users.bobAddUpdateRequest().setCollections(asList(zeCollection))
-				.setGlobalGroups(asList(users.heroesIn(zeCollection).getCode())));
-		userServices.execute(users.chuckNorrisAddUpdateRequest().setGlobalGroups(new ArrayList<String>()));
+				.addToGroupsInEachCollection(users.heroesIn(zeCollection).getCode()));
+		userServices.execute(users.chuckNorrisAddUpdateRequest());
 
-		userServices.setGlobalGroupUsers(users.heroes().getCode(), asList(users.alice(), users.bob()));
 		EmailAddress aliceEmailAddress = new EmailAddress(users.alice().getTitle(), users.alice().getEmail());
 		EmailAddress bobEmailAddress = new EmailAddress(users.bob().getTitle(), users.bob().getEmail());
 		EmailAddress chuckEmailAddress = new EmailAddress(users.chuckNorris().getTitle(), users.chuckNorris().getEmail());
