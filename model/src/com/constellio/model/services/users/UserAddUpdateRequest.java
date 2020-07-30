@@ -5,8 +5,8 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.security.global.AgentStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
-import lombok.Getter;
 import com.constellio.model.entities.security.global.UserSyncMode;
+import lombok.Getter;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
@@ -36,6 +36,8 @@ public class UserAddUpdateRequest {
 
 	List<String> currentCollections;
 	List<String> currentGroups;
+	private Map<String, Map<String, Object>> modifiedCollectionsProperties = new HashMap<>();
+
 
 	@Getter
 	private boolean markedForDeletionInAllCollections;

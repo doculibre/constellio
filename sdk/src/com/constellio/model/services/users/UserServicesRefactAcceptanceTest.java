@@ -39,7 +39,7 @@ import java.util.List;
 
 import static com.constellio.model.entities.security.global.GlobalGroupStatus.INACTIVE;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
-import static com.constellio.model.entities.security.global.UserCredentialStatus.DELETED;
+import static com.constellio.model.entities.security.global.UserCredentialStatus.DISABLED;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.PENDING;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.SUSPENDED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -239,9 +239,9 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		services.execute("undertaker", (req) -> req.markForDeletionInAllCollection(collection1));
 
 		assertThatUser("rey").doesNotExist();
-		assertThatUser("ric").isPhysicicallyDeletedIn(collection1).hasStatusIn(DELETED, collection2);
-		assertThatUser("embalmer").hasStatusIn(DELETED, collection1).isPhysicicallyDeletedIn(collection2);
-		assertThatUser("randy").hasStatusIn(DELETED, collection1).hasStatusIn(ACTIVE, collection2);
+		assertThatUser("ric").isPhysicicallyDeletedIn(collection1).hasStatusIn(DISABLED, collection2);
+		assertThatUser("embalmer").hasStatusIn(DISABLED, collection1).isPhysicicallyDeletedIn(collection2);
+		assertThatUser("randy").hasStatusIn(DISABLED, collection1).hasStatusIn(ACTIVE, collection2);
 		assertThatUser("undertaker").isPhysicicallyDeletedIn(collection1).hasStatusIn(ACTIVE, collection2);
 
 	}
@@ -266,14 +266,14 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 		services.execute("undertaker", (req) -> req.setStatusForCollection(PENDING, collection2));
 
-		services.execute("shawn", (req) -> req.setStatusForCollection(DELETED, collection1));
+		services.execute("shawn", (req) -> req.setStatusForCollection(DISABLED, collection1));
 
 		services.execute("rey", (req) -> req.setStatusForCollection(PENDING, collection1)
 				.setStatusForCollection(SUSPENDED, collection2));
 
 		assertThatUser("undertaker").hasStatusIn(SUSPENDED, collection1).hasStatusIn(SUSPENDED, collection2);
 		assertThatUser("randy").hasStatusIn(ACTIVE, collection1).hasStatusIn(PENDING, collection2);
-		assertThatUser("shawn").hasStatusIn(DELETED, collection1).hasStatusIn(ACTIVE, collection2);
+		assertThatUser("shawn").hasStatusIn(DISABLED, collection1).hasStatusIn(ACTIVE, collection2);
 		assertThatUser("rey").hasStatusIn(PENDING, collection1).hasStatusIn(SUSPENDED, collection2);
 
 		assertThat(userInfos("undertaker").hasStatusInAllCollection(SUSPENDED)).isTrue();
@@ -309,12 +309,12 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 		assertThatUser("embalmer")
 				.hasStatusIn(ACTIVE, collection1)
-				.hasStatusIn(DELETED, collection2)
+				.hasStatusIn(DISABLED, collection2)
 				.hasStatusIn(ACTIVE, collection3);
 
 		assertThatUser("undertaker")
 				.hasStatusIn(ACTIVE, collection1)
-				.hasStatusIn(DELETED, collection2)
+				.hasStatusIn(DISABLED, collection2)
 				.hasStatusIn(ACTIVE, collection3);
 
 		assertThatUser("machoman")

@@ -76,7 +76,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			//USERS
 			//Les UserCredential sans collection seront supprimés
 			UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-			userServices.safePhysicalDeleteAllUserCredentialsWithEmptyCollections();
+			//userServices.safePhysicalDeleteAllUserCredentialsWithEmptyCollections();
 
 			//Les User auront 4 statuts : active, pending, suspended, disabled (au lieu de deleted) (nothing to do here)
 			//Une métadonnée enum "syncMode" dans Usercredential avec les choix SYNCED, NOT_SYNCED, LOCALLY_CREATED

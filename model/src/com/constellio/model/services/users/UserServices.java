@@ -28,7 +28,6 @@ import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -606,17 +605,6 @@ public class UserServices {
 		removeChildren(group, collections);
 		removeFromBigVault(group, collections);
 	}
-
-	public void logicallyRemoveAllNonActiveGroups() {
-		List<SystemWideGroup> groups = globalGroupsManager.getAllGroups();
-		List<SystemWideGroup> nonActiveGroups = groups.stream()
-				.filter(gr -> gr.getGroupStatus().equals(GlobalGroupStatus.INACTIVE))
-				.collect(Collectors.toList());
-		for (SystemWideGroup group : nonActiveGroups) {
-			this.logicallyRemoveGroup(group);
-		}
-	}
-
 
 	private void removeChildren(String group, List<String> collections) {
 		for (String collection : collections) {
@@ -1484,12 +1472,12 @@ public class UserServices {
 
 	@Deprecated
 	void removeUserCredentialAndUser(UserCredential userCredential) {
-		execute(userCredential.getUsername(), (req) -> req.setStatusForAllCollections(DELETED));
+		execute(userCredential.getUsername(), (req) -> req.setStatusForAllCollections(DISABLED));
 	}
 
 	@Deprecated
 	public void removeUserCredentialAndUser(SystemWideUserInfos userCredential) {
-		execute(addUpdate(userCredential.getUsername()).setStatusForAllCollections(DELETED));
+		execute(addUpdate(userCredential.getUsername()).setStatusForAllCollections(DISABLED));
 	}
 
 	@Deprecated
