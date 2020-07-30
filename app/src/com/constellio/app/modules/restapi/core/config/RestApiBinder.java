@@ -12,7 +12,6 @@ import com.constellio.app.modules.restapi.folder.adaptor.FolderAdaptor;
 import com.constellio.app.modules.restapi.folder.dao.FolderDao;
 import com.constellio.app.modules.restapi.health.HealthService;
 import com.constellio.app.modules.restapi.health.dao.HealthDao;
-import com.constellio.app.modules.restapi.signature.SignatureService;
 import com.constellio.app.modules.restapi.taxonomy.TaxonomyService;
 import com.constellio.app.modules.restapi.taxonomy.dao.TaxonomyDao;
 import com.constellio.app.modules.restapi.url.UrlService;
@@ -27,7 +26,6 @@ public class RestApiBinder extends AbstractBinder {
 
 	@Override
 	protected void configure() {
-		bind(SignatureService.class).to(SignatureService.class);
 		bind(ValidationService.class).to(ValidationService.class);
 		bind(UrlService.class).to(UrlService.class);
 		bind(DocumentService.class).to(DocumentService.class);
