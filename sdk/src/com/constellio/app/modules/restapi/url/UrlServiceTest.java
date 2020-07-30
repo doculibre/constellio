@@ -2,7 +2,6 @@ package com.constellio.app.modules.restapi.url;
 
 import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
-import com.constellio.app.modules.restapi.signature.SignatureService;
 import com.constellio.app.modules.restapi.url.dao.UrlDao;
 import com.constellio.app.modules.restapi.validation.ValidationService;
 import com.constellio.data.utils.TimeProvider;
@@ -21,7 +20,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class UrlServiceTest {
 
-	@Mock private SignatureService signatureService;
 	@Mock private ValidationService validationService;
 	@Mock private UrlDao urlDao;
 	@Mock private SystemConfigurationsManager systemConfigurationsManager;
@@ -48,7 +46,7 @@ public class UrlServiceTest {
 	public void setUp() throws Exception {
 		initMocks(this);
 
-		when(signatureService.sign(anyString(), anyString())).thenReturn("123456");
+		when(urlDao.sign(anyString(), anyString())).thenReturn("123456");
 
 		when(urlDao.getServerPath()).thenReturn("http://localhost/constellio/");
 	}

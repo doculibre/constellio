@@ -12,7 +12,6 @@ import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.restapi.core.util.StringUtils;
 import com.constellio.app.modules.restapi.resource.dto.AceDto;
-import com.constellio.app.modules.restapi.signature.SignatureService;
 import com.constellio.app.modules.restapi.validation.dao.ValidationDao;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredTokenException;
@@ -41,8 +40,6 @@ import static com.constellio.app.modules.restapi.core.util.HttpMethods.PUT;
 public class ValidationService extends BaseService {
 
 	@Inject
-	private SignatureService signatureService;
-	@Inject
 	private ValidationDao validationDao;
 
 	public void validateSignature(String host, String id, String serviceKey, String schemaType, String method,
@@ -53,10 +50,10 @@ public class ValidationService extends BaseService {
 				version, physicalValue, copySourceId);
 
 		List<String> tokens = validationDao.getUserTokens(serviceKey, false, true);
-		if (isInvalidSignature(tokens, data, signature)) {
+		if (validationDao.isInvalidSignature(tokens, data, signature)) {
 			// try while bypassing cache
 			tokens = validationDao.getUserTokens(serviceKey, true, true);
-			if (isInvalidSignature(tokens, data, signature)) {
+			if (validationDao.isInvalidSignature(tokens, data, signature)) {
 				throw new InvalidSignatureException();
 			}
 		}
@@ -179,20 +176,5 @@ public class ValidationService extends BaseService {
 	@Override
 	protected BaseDao getDao() {
 		return validationDao;
-	}
-
-	private boolean isInvalidSignature(List<String> tokens, String data, String signature) throws Exception {
-		if (tokens.isEmpty()) {
-			throw new UnauthenticatedUserException();
-		}
-
-		for (String token : tokens) {
-			String currentSignature = signatureService.sign(token, data);
-
-			if (currentSignature.equals(signature)) {
-				return false;
-			}
-		}
-		return true;
 	}
 }
