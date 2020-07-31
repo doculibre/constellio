@@ -51,7 +51,7 @@ public abstract class BaseDao {
 	protected SchemasRecordsServices schemas;
 
 	@PostConstruct
-	public void init() {
+	protected void init() {
 		appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		contentManager = modelLayerFactory.getContentManager();

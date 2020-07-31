@@ -24,7 +24,7 @@ import java.util.List;
 public abstract class ResourceDao extends BaseDao {
 
 	@PostConstruct
-	public void init() {
+	protected void init() {
 		super.init();
 	}
 
