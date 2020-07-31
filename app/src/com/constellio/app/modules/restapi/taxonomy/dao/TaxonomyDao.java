@@ -22,7 +22,7 @@ public class TaxonomyDao extends BaseDao {
 	private TaxonomiesManager taxonomiesManager;
 
 	@PostConstruct
-	protected void init() {
+	public void init() {
 		super.init();
 
 		summaryCacheQueryHandler = new TaxonomiesSearchServicesSummaryCacheQueryHandler(modelLayerFactory);

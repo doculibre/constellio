@@ -50,10 +50,10 @@ public class ValidationService extends BaseService {
 				version, physicalValue, copySourceId);
 
 		List<String> tokens = validationDao.getUserTokens(serviceKey, false, true);
-		if (validationDao.isInvalidSignature(tokens, data, signature)) {
+		if (isInvalidSignature(tokens, data, signature)) {
 			// try while bypassing cache
 			tokens = validationDao.getUserTokens(serviceKey, true, true);
-			if (validationDao.isInvalidSignature(tokens, data, signature)) {
+			if (isInvalidSignature(tokens, data, signature)) {
 				throw new InvalidSignatureException();
 			}
 		}
@@ -176,5 +176,20 @@ public class ValidationService extends BaseService {
 	@Override
 	protected BaseDao getDao() {
 		return validationDao;
+	}
+
+	private boolean isInvalidSignature(List<String> tokens, String data, String signature) throws Exception {
+		if (tokens.isEmpty()) {
+			throw new UnauthenticatedUserException();
+		}
+
+		for (String token : tokens) {
+			String currentSignature = validationDao.sign(token, data);
+
+			if (currentSignature.equals(signature)) {
+				return false;
+			}
+		}
+		return true;
 	}
 }

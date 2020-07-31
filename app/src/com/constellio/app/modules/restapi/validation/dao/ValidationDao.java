@@ -2,7 +2,6 @@ package com.constellio.app.modules.restapi.validation.dao;
 
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
 import com.constellio.app.modules.restapi.core.util.MapUtils;
-import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -71,20 +70,5 @@ public class ValidationDao extends BaseDao {
 		List<Record> recordsHierarchy = recordDeleteServices.loadRecordsHierarchyOf(record);
 		recordsHierarchy.remove(record);
 		return authorizationServices.hasDeletePermissionOnHierarchy(user, record, recordsHierarchy);
-	}
-
-	public boolean isInvalidSignature(List<String> tokens, String data, String signature) throws Exception {
-		if (tokens.isEmpty()) {
-			throw new UnauthenticatedUserException();
-		}
-
-		for (String token : tokens) {
-			String currentSignature = sign(token, data);
-
-			if (currentSignature.equals(signature)) {
-				return false;
-			}
-		}
-		return true;
 	}
 }
