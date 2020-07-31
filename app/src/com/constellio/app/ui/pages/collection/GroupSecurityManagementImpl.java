@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.collection;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.ui.entities.GroupVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
@@ -13,6 +14,7 @@ import com.constellio.app.ui.framework.components.selection.SelectionComponent.S
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.data.dao.services.Stats;
@@ -233,7 +235,7 @@ public class GroupSecurityManagementImpl extends BaseViewImpl implements Securit
 	}
 
 	private ViewableRecordVOTablePanel createViewerPanel(RecordVOLazyContainer recordVOContainer) {
-		return new ViewableRecordVOTablePanel(recordVOContainer) {
+		ViewableRecordVOTablePanel panel = new ViewableRecordVOTablePanel(recordVOContainer) {
 			@Override
 			protected boolean isSelectColumn() {
 				return !nestedView;
@@ -330,6 +332,17 @@ public class GroupSecurityManagementImpl extends BaseViewImpl implements Securit
 				};
 			}
 		};
+		panel.addItemClickListener(new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				//event.getItem();
+				RecordVOItem recordItem = (RecordVOItem) event.getItem();
+				GroupVO group = (GroupVO) recordItem.getRecord();
+				presenter.editButtonClicked(group);
+			}
+		});
+		panel.addStyleName("folder-content-table");
+		return panel;
 	}
 
 	@Override

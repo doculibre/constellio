@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.collection;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.SearchButton;
@@ -13,6 +14,7 @@ import com.constellio.app.ui.framework.components.selection.SelectionComponent.S
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.data.dao.services.Stats;
@@ -324,7 +326,10 @@ public class UserSecurityManagementImpl extends BaseViewImpl implements Security
 		panel.addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
-
+				//event.getItem();
+				RecordVOItem recordItem = (RecordVOItem) event.getItem();
+				UserVO user = (UserVO) recordItem.getRecord();
+				presenter.editButtonClicked(user);
 			}
 		});
 		panel.addStyleName("folder-content-table");

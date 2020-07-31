@@ -7,14 +7,19 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.entities.UserCredentialVO;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
@@ -53,6 +58,7 @@ public class UserSecurityManagementPresenter extends SingleSchemaBasePresenter<S
 	private Set<String> allRecordIds;
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private User user;
+	private Map<String, String> paramsMap;
 
 	private UserToVOBuilder userVOBuilder;
 
@@ -306,5 +312,23 @@ public class UserSecurityManagementPresenter extends SingleSchemaBasePresenter<S
 		};
 		view.setDataProvider(userDataProvider);
 		view.reloadContent();
+	}
+
+	public void setParamsMap(Map<String, String> paramsMap) {
+		this.paramsMap = paramsMap;
+	}
+
+	private String getParameters(UserCredentialVO entity) {
+		Map<String, Object> params = new HashMap<>();
+		params.put("username", entity.getUsername());
+		return ParamUtils.addParams(NavigatorConfigurationService.COLLECTION_USER_LIST, params);
+	}
+
+	public void editButtonClicked(UserVO entity) {
+		//TODO
+		//Temporary until UserVO is switched
+		UserCredentialVO userEntity = (new UserCredentialToVOBuilder()).build(userServices().getUserCredential(entity.getUsername()));
+		String parameters = getParameters(userEntity);
+		view.navigate().to().editUserCredential(parameters);
 	}
 }
