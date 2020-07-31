@@ -9,6 +9,12 @@ import com.google.common.base.Strings;
 
 public class UrlDao extends BaseDao {
 
+	public static UrlDao newUrlDao() {
+		UrlDao instance = new UrlDao();
+		instance.init();
+		return instance;
+	}
+
 	public String getSignedUrl(String host, String token, String serviceKey, SchemaTypes schemaType, String method,
 							   String id, String folderId, String expiration, String version, String physical,
 							   String copySourceId) throws Exception {

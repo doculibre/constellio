@@ -33,7 +33,7 @@ public class AceDao extends BaseDao {
 	private AuthorizationsServices authorizationsServices;
 
 	@PostConstruct
-	public void init() {
+	protected void init() {
 		super.init();
 		authorizationsServices = ConstellioFactories.getInstance().getModelLayerFactory().newAuthorizationsServices();
 	}
