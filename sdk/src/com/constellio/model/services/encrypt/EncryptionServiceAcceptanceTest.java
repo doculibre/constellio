@@ -3,6 +3,7 @@ package com.constellio.model.services.encrypt;
 import com.constellio.app.modules.restapi.core.util.HashingUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.IOUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,15 +22,23 @@ import static org.junit.Assert.fail;
 
 public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 
+	private File tempFolder;
+
 	private EncryptionServices encryptionService;
 
 	@Before
-	public void setUp()
-			throws Exception {
+	public void setUp() throws Exception {
 		prepareSystem(
 				withZeCollection()
 		);
 		encryptionService = getModelLayerFactory().newEncryptionServices();
+
+		tempFolder = newTempFolder();
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		tempFolder.delete();
 	}
 
 	//
@@ -64,15 +73,13 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenEncryptingFileWithAppKey() throws Exception {
 		File original = getTestResourceFile("textFile.txt");
-		File tempFolder = newTempFolder();
+
 
 		File encrypted = encryptionService.encryptWithAppKey(original, new File(tempFolder.getPath() + "\\encrypted.txt"));
 		assertThat(getFileChecksum(encrypted)).isNotEqualTo(getFileChecksum(original));
 
 		File decrypted = encryptionService.decryptWithAppKey(encrypted, new File(tempFolder.getPath() + "\\decrypted.txt"));
 		assertThat(getFileChecksum(decrypted)).isEqualTo(getFileChecksum(original));
-
-		tempFolder.delete();
 	}
 
 	@Test
@@ -116,7 +123,6 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenEncryptingFileWithAppKeyAndDecryptingWithAnotherKey() throws Exception {
 		File original = getTestResourceFile("textFile.txt");
-		File tempFolder = newTempFolder();
 
 		File encrypted = encryptionService.encryptWithAppKey(original, new File(tempFolder.getPath() + "\\encrypted.txt"));
 		assertThat(getFileChecksum(encrypted)).isNotEqualTo(getFileChecksum(original));
@@ -145,7 +151,6 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenEncryptingFileWithAnotherKeyAndDecryptingWithAppKey() throws Exception {
 		File original = getTestResourceFile("textFile.txt");
-		File tempFolder = newTempFolder();
 
 		File encrypted = encryptionService.encrypt(original, new File(tempFolder.getPath() + "\\encrypted.txt"), encryptionService.generateAESKey());
 		assertThat(getFileChecksum(encrypted)).isNotEqualTo(getFileChecksum(original));
@@ -192,15 +197,12 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 	public void whenEncryptingFileWithAES() throws Exception {
 		Key key = encryptionService.generateAESKey();
 		File original = getTestResourceFile("textFile.txt");
-		File tempFolder = newTempFolder();
 
 		File encrypted = encryptionService.encrypt(original, new File(tempFolder.getPath() + "\\encrypted.txt"), key);
 		assertThat(getFileChecksum(encrypted)).isNotEqualTo(getFileChecksum(original));
 
 		File decrypted = encryptionService.decrypt(encrypted, new File(tempFolder.getPath() + "\\decrypted.txt"), key);
 		assertThat(getFileChecksum(decrypted)).isEqualTo(getFileChecksum(original));
-
-		tempFolder.delete();
 	}
 
 	@Test
@@ -296,7 +298,6 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenEncryptingFileWithAESAndDecryptingWithAnotherKey() throws Exception {
 		File original = getTestResourceFile("textFile.txt");
-		File tempFolder = newTempFolder();
 
 		File encrypted = encryptionService.encrypt(original, new File(tempFolder.getPath() + "\\encrypted.txt"), encryptionService.generateAESKey());
 		assertThat(getFileChecksum(encrypted)).isNotEqualTo(getFileChecksum(original));
@@ -306,8 +307,6 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 			assertThat(getFileChecksum(decrypted)).isNotEqualTo(getFileChecksum(original));
 		} catch (Exception ignored) {
 		}
-
-		tempFolder.delete();
 	}
 
 	//
