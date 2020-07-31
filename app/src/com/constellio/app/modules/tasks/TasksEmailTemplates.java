@@ -29,6 +29,7 @@ public class TasksEmailTemplates {
 	public static final String DISPLAY_TASK = "displayTask";
 	public static final String COMPLETE_TASK = "completeTask";
 	public static final String CONSTELLIO_URL = "constellioUrl";
+	public static final String TASK_COMMENTS = "taskComments";
 
 	public static final String PREVIOUS_STATUS = "previousStatus";
 	public static final String ACTUAL_STATUS = "actualStatus";

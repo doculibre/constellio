@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.extensions;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.caches.IncompleteTasksUserCache;
 import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
@@ -64,6 +65,7 @@ import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_ON;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_TO_YOU;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNEE_MODIFIED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_COMMENTS;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_COMPLETED;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DELETED;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DESCRIPTION;
@@ -435,6 +437,15 @@ public class TaskRecordExtension extends RecordExtension {
 			newParameters.addAll(taskModuleExtensions.taskEmailParameters(task));
 		}
 
+		StringBuilder htmlComments = new StringBuilder();
+		for (Comment comment : task.getComments()) {
+			htmlComments.append(StringEscapeUtils.escapeHtml4(comment.getUsername() + " : " +
+															  comment.getDateTime().toString()) + "<br/>");
+			htmlComments.append(StringEscapeUtils.escapeHtml4(comment.getMessage()).replace("\n", "<br/>") + "<br/>");
+			htmlComments.append("<br/>");
+		}
+
+		newParameters.add(TASK_COMMENTS + ":" + formatToParameter(htmlComments.toString()));
 		emailToSend.setParameters(newParameters);
 	}
 
