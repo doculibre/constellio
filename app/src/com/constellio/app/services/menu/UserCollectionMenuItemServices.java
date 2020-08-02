@@ -20,7 +20,6 @@ import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActio
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_ADD_TO_COLLECTION;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_ADD_TO_GROUP;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_CHANGE_STATUS;
-import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_CONSULT;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_DELETE;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_EDIT;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_MANAGE_ROLES;
@@ -46,20 +45,22 @@ public class UserCollectionMenuItemServices {
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
 
 		if (!userRecords.isEmpty()) {
-			if (!filteredActionTypes.contains(USER_CONSULT.name())) {
-				MenuItemAction menuItemAction = buildMenuItemAction(USER_CONSULT.name(),
-						isMenuItemActionPossible(USER_CONSULT.name(), userRecords.get(0), user, params),
-						$("CollectionSecurityManagement.consult"), FontAwesome.SEARCH, -1, 100,
-						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).consult(userRecords, params));
-				menuItemActions.add(menuItemAction);
-			}
+			//			if (!filteredActionTypes.contains(USER_CONSULT.name())) {
+			//				MenuItemAction menuItemAction = buildMenuItemAction(USER_CONSULT.name(),
+			//						isMenuItemActionPossible(USER_CONSULT.name(), userRecords.get(0), user, params),
+			//						$("CollectionSecurityManagement.consult"), FontAwesome.SEARCH, -1, 100,
+			//						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).consult(userRecords, params));
+			//				menuItemActions.add(menuItemAction);
+			//			}
 
-			if (!filteredActionTypes.contains(USER_EDIT.name())) {
-				MenuItemAction menuItemAction = buildMenuItemAction(USER_EDIT.name(),
-						isMenuItemActionPossible(USER_EDIT.name(), userRecords.get(0), user, params),
-						$("CollectionSecurityManagement.edit"), FontAwesome.EDIT, -1, 150,
-						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(userRecords, params));
-				menuItemActions.add(menuItemAction);
+			if (userRecords.size() == 1) {
+				if (!filteredActionTypes.contains(USER_EDIT.name())) {
+					MenuItemAction menuItemAction = buildMenuItemAction(USER_EDIT.name(),
+							isMenuItemActionPossible(USER_EDIT.name(), userRecords.get(0), user, params),
+							$("CollectionSecurityManagement.edit"), FontAwesome.EDIT, -1, 150,
+							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(userRecords, params));
+					menuItemActions.add(menuItemAction);
+				}
 			}
 
 			if (!filteredActionTypes.contains(USER_ADD_TO_GROUP.name())) {
@@ -73,7 +74,7 @@ public class UserCollectionMenuItemServices {
 			if (!filteredActionTypes.contains(USER_ADD_TO_COLLECTION.name())) {
 				MenuItemAction menuItemAction = buildMenuItemAction(USER_ADD_TO_COLLECTION.name(),
 						isMenuItemActionPossible(USER_ADD_TO_COLLECTION.name(), userRecords.get(0), user, params),
-						$("CollectionSecurityManagement.addToCollection"), FontAwesome.LOCATION_ARROW, -1, 300,
+						$("CollectionSecurityManagement.addToCollections"), FontAwesome.LOCATION_ARROW, -1, 300,
 						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).addToCollection(userRecords, params));
 				menuItemActions.add(menuItemAction);
 			}

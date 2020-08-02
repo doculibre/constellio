@@ -1,6 +1,10 @@
 package com.constellio.app.services.menu.behavior;
 
+import com.constellio.app.modules.rm.ui.buttons.CollectionsWindowButton;
+import com.constellio.app.modules.rm.ui.buttons.CollectionsWindowButton.AddedToCollectionRecordType;
+import com.constellio.app.modules.rm.ui.buttons.GroupWindowButton;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
@@ -8,6 +12,7 @@ import com.constellio.model.services.users.UserServices;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class UserRecordMenuItemActionBehaviors {
 
@@ -43,9 +48,14 @@ public class UserRecordMenuItemActionBehaviors {
 	}
 
 	public void addToGroup(List<User> userRecords, MenuItemActionBehaviorParams params) {
+		GroupWindowButton groupWindowButton = new GroupWindowButton(userRecords, params);
+		groupWindowButton.addToGroup();
 	}
 
 	public void addToCollection(List<User> userRecords, MenuItemActionBehaviorParams params) {
+		List<Record> records = userRecords.stream().map(user -> user.getWrappedRecord()).collect(Collectors.toList());
+		CollectionsWindowButton cartWindowButton = new CollectionsWindowButton(records, params, AddedToCollectionRecordType.USER);
+		cartWindowButton.addToCollections();
 	}
 
 	public void delete(List<User> userRecords, MenuItemActionBehaviorParams params) {

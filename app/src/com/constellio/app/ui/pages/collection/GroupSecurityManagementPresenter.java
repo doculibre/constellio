@@ -7,6 +7,9 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.ui.builders.GroupToVOBuilder;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.app.ui.entities.GlobalGroupVO;
+import com.constellio.app.ui.entities.GroupVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -15,6 +18,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -308,5 +312,15 @@ public class GroupSecurityManagementPresenter extends SingleSchemaBasePresenter<
 		};
 		view.setDataProvider(groupDataProvider);
 		view.reloadContent();
+	}
+
+	private String getParameters(GlobalGroupVO entity) {
+		Map<String, Object> params = new HashMap<>();
+		params.put("code", entity.getCode());
+		return ParamUtils.addParams(NavigatorConfigurationService.COLLECTION_USER_LIST, params);
+	}
+
+	public void displayButtonClicked(GroupVO entity) {
+		view.navigate().to().displayCollectionGroup(entity.getId());
 	}
 }

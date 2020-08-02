@@ -6,8 +6,11 @@ import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
@@ -85,5 +88,20 @@ public class CollectionSecurityManagementPresenter extends BasePresenter<Collect
 
 	public void selectInitialTabForUser() {
 		view.selectUserTab();
+	}
+
+	private Navigation navigate() {
+		return view.navigate();
+	}
+
+	public void addGroupButtonClicked() {
+		String params = ParamUtils.addParams(NavigatorConfigurationService.COLLECTION_USER_LIST, null);
+		view.navigate().to().addGlobalGroup(params);
+	}
+
+	public void addUserButtonClicked() {
+		String params = ParamUtils.addParams(NavigatorConfigurationService.COLLECTION_USER_LIST, null);
+		view.navigate().to().addUserCredential(params);
+
 	}
 }

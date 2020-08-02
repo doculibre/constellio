@@ -19,7 +19,6 @@ import java.util.function.Consumer;
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_ACTIVATE;
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_ADD_TO_COLLECTION;
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_ADD_USER;
-import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_CONSULT;
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_DEACTIVATE;
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_DELETE;
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_EDIT;
@@ -50,20 +49,22 @@ public class GroupCollectionMenuItemServices {
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
 
 		if (!groupRecords.isEmpty()) {
-			if (!filteredActionTypes.contains(GROUP_CONSULT.name())) {
-				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_CONSULT.name(),
-						isMenuItemActionPossible(GROUP_CONSULT.name(), groupRecords.get(0), user, params),
-						$("CollectionSecurityManagement.consult"), FontAwesome.SEARCH, -1, 100,
-						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).consult(groupRecords, params));
-				menuItemActions.add(menuItemAction);
-			}
+			//			if (!filteredActionTypes.contains(GROUP_CONSULT.name())) {
+			//				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_CONSULT.name(),
+			//						isMenuItemActionPossible(GROUP_CONSULT.name(), groupRecords.get(0), user, params),
+			//						$("CollectionSecurityManagement.consult"), FontAwesome.SEARCH, -1, 100,
+			//						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).consult(groupRecords, params));
+			//				menuItemActions.add(menuItemAction);
+			//			}
 
-			if (!filteredActionTypes.contains(GROUP_EDIT.name())) {
-				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_EDIT.name(),
-						isMenuItemActionPossible(GROUP_EDIT.name(), groupRecords.get(0), user, params),
-						$("CollectionSecurityManagement.edit"), FontAwesome.EDIT, -1, 150,
-						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(groupRecords, params));
-				menuItemActions.add(menuItemAction);
+			if (groupRecords.size() == 1) {
+				if (!filteredActionTypes.contains(GROUP_EDIT.name())) {
+					MenuItemAction menuItemAction = buildMenuItemAction(GROUP_EDIT.name(),
+							isMenuItemActionPossible(GROUP_EDIT.name(), groupRecords.get(0), user, params),
+							$("CollectionSecurityManagement.edit"), FontAwesome.EDIT, -1, 150,
+							(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(groupRecords, params));
+					menuItemActions.add(menuItemAction);
+				}
 			}
 
 			if (!filteredActionTypes.contains(GROUP_ADD_USER.name())) {
@@ -77,7 +78,7 @@ public class GroupCollectionMenuItemServices {
 			if (!filteredActionTypes.contains(GROUP_ADD_TO_COLLECTION.name())) {
 				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_ADD_TO_COLLECTION.name(),
 						isMenuItemActionPossible(GROUP_ADD_TO_COLLECTION.name(), groupRecords.get(0), user, params),
-						$("CollectionSecurityManagement.addToCollection"), FontAwesome.LOCATION_ARROW, -1, 300,
+						$("CollectionSecurityManagement.addToCollections"), FontAwesome.LOCATION_ARROW, -1, 300,
 						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).addToCollection(groupRecords, params));
 				menuItemActions.add(menuItemAction);
 			}

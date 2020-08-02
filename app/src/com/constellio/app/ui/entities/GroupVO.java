@@ -26,4 +26,13 @@ public class GroupVO extends RecordVO {
 		set(Group.IS_GLOBAL, global);
 	}
 
+	public String getCode() {
+		return get(Group.CODE);
+	}
+
+	public String setCode() {
+		return get(Group.CODE);
+	}
+
+
 }

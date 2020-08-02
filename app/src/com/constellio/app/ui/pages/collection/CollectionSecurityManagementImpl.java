@@ -3,14 +3,22 @@ package com.constellio.app.ui.pages.collection;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.data.dao.services.Stats;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.FontAwesome;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -30,6 +38,8 @@ public class CollectionSecurityManagementImpl extends BaseViewImpl implements Co
 	private RecordVODataProvider groupDataProvider;
 	private CollectionSecurityManagementPresenter presenter;
 	private TabSheet.SelectedTabChangeListener selectedTabChangeListener;
+
+	private Button addUserButton, addGroupButton;
 
 	public enum TabType {USER, GROUP}
 
@@ -83,6 +93,31 @@ public class CollectionSecurityManagementImpl extends BaseViewImpl implements Co
 	}
 
 	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+		addUserButton = newAddUserButton();
+		addGroupButton = newAddGroupButton();
+
+		List<String> excludedActionTypes = new ArrayList<String>();
+
+		excludedActionTypes.addAll(rmModuleExtensions.getFilteredActionsForFolders());
+		return new RecordVOActionButtonFactory(null, excludedActionTypes).build();
+	}
+
+	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		List<Button> quickActionMenuButtons = new ArrayList<>();
+
+		if (addUserButton != null) {
+			quickActionMenuButtons.add(addUserButton);
+		}
+		if (addGroupButton != null) {
+			quickActionMenuButtons.add(addGroupButton);
+		}
+
+		return quickActionMenuButtons;
+	}
+
+	@Override
 	protected String getTitle() {
 		return $("ListCollectionUserView.viewTitle");
 	}
@@ -128,6 +163,44 @@ public class CollectionSecurityManagementImpl extends BaseViewImpl implements Co
 	@Override
 	protected void afterViewAssembled(ViewChangeEvent event) {
 		presenter.viewAssembled();
+	}
+
+	private Button newAddUserButton() {
+		BaseButton addUserButton;
+
+		addUserButton = new AddButton($("CollectionSecurityManagement.addUser")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.addUserButtonClicked();
+			}
+		};
+		addUserButton.setIcon(FontAwesome.USER_PLUS);
+		addUserButton.setCaptionVisibleOnMobile(false);
+		return addUserButton;
+	}
+
+	private Button newAddGroupButton() {
+		BaseButton addGroupButton;
+
+		addGroupButton = new AddButton($("CollectionSecurityManagement.addGroup")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.addGroupButtonClicked();
+			}
+		};
+		addGroupButton.setIcon(FontAwesome.GROUP);
+		addGroupButton.setCaptionVisibleOnMobile(false);
+		return addGroupButton;
+	}
+
+	@Override
+	protected boolean isOnlyQuickMenuActionVisible() {
+		return true;
+	}
+
+	@Override
+	protected boolean isActionMenuBar() {
+		return true;
 	}
 
 }
