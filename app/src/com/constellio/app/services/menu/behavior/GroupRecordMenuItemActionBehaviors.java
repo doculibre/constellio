@@ -2,6 +2,7 @@ package com.constellio.app.services.menu.behavior;
 
 import com.constellio.app.modules.rm.ui.buttons.CollectionsWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CollectionsWindowButton.AddedToCollectionRecordType;
+import com.constellio.app.modules.rm.ui.buttons.UsersAddToGroupsWindowButton;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -46,7 +47,8 @@ public class GroupRecordMenuItemActionBehaviors {
 	}
 
 	public void addUserToGroup(List<Group> groupRecords, MenuItemActionBehaviorParams params) {
-
+		UsersAddToGroupsWindowButton button = new UsersAddToGroupsWindowButton(groupRecords, params);
+		button.click();
 	}
 
 	public void addToCollection(List<Group> groupRecords, MenuItemActionBehaviorParams params) {

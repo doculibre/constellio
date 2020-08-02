@@ -1,7 +1,7 @@
 package com.constellio.app.modules.rm.ui.buttons;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.ui.components.group.GroupSelectionAddRemoveFieldImpl;
+import com.constellio.app.modules.rm.ui.components.user.UserSelectionAddRemoveFieldImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -19,7 +19,7 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-public class GroupWindowButton extends WindowButton {
+public class UsersAddToGroupsWindowButton extends WindowButton {
 
 	private RMSchemasRecordsServices rm;
 	private MenuItemActionBehaviorParams params;
@@ -49,19 +49,19 @@ public class GroupWindowButton extends WindowButton {
 	private RecordServices recordServices;
 	private UserServices userServices;
 	private String collection;
-	private List<User> records;
-	private AdditionnalRecordField groupsField;
+	private List<Group> records;
+	private AdditionnalRecordField userFields;
 
 	public void addToGroup() {
 		click();
 	}
 
-	public GroupWindowButton(User record, MenuItemActionBehaviorParams params) {
+	public UsersAddToGroupsWindowButton(Group record, MenuItemActionBehaviorParams params) {
 		this(Collections.singletonList(record), params);
 	}
 
-	public GroupWindowButton(List<User> records, MenuItemActionBehaviorParams params) {
-		super($("CollectionSecurityManagement.addToGroups"), $("CollectionSecurityManagement.selectGroups"));
+	public UsersAddToGroupsWindowButton(List<Group> records, MenuItemActionBehaviorParams params) {
+		super($("CollectionSecurityManagement.addToGroups"), $("CollectionSecurityManagement.selectUsers"));
 
 		this.params = params;
 		this.appLayerFactory = params.getView().getConstellioFactories().getAppLayerFactory();
@@ -82,11 +82,11 @@ public class GroupWindowButton extends WindowButton {
 		userSelectLayout.setSpacing(true);
 		userSelectLayout.setSizeFull();
 
-		groupsField = buildFavoritesDisplayOrderField(records, params);
+		userFields = buildUsersDisplayOrderField(records, params);
 
 		BaseButton saveButton;
 		BaseButton cancelButton;
-		userSelectLayout.addComponent(groupsField);
+		userSelectLayout.addComponent(userFields);
 		HorizontalLayout buttonLayout = new HorizontalLayout();
 		mainLayout.addComponents(userSelectLayout);
 
@@ -121,36 +121,40 @@ public class GroupWindowButton extends WindowButton {
 		return mainLayout;
 	}
 
-	private AdditionnalRecordField buildFavoritesDisplayOrderField(List<User> records,
-																   MenuItemActionBehaviorParams params) {
+	private AdditionnalRecordField buildUsersDisplayOrderField(List<Group> records,
+															   MenuItemActionBehaviorParams params) {
 
-		RecordVODataProvider groupDataProvider = getGroupDataProvider(params.getView().getSessionContext());
+		RecordVODataProvider groupDataProvider = getUserDataProvider(params.getView().getSessionContext());
 
-		GroupSelectionAddRemoveFieldImpl groupsDisplayOrderField = new GroupSelectionAddRemoveFieldImpl(groupDataProvider.getIterator());
-		List<String> commonGroups = matchCommonGroupsIds(records);
-		groupsDisplayOrderField.setValue(commonGroups);
-		return groupsDisplayOrderField;
+		UserSelectionAddRemoveFieldImpl usersDisplayOrderField = new UserSelectionAddRemoveFieldImpl(groupDataProvider.getIterator());
+		List<String> commonUsers = matchCommonGroupsIds(records);
+		usersDisplayOrderField.setValue(commonUsers);
+		return usersDisplayOrderField;
 	}
 
 	@NotNull
-	private List<String> matchCommonGroupsIds(List<User> records) {
-		List<String> commonGroups = new ArrayList<>();
+	private List<String> matchCommonGroupsIds(List<Group> records) {
+		List<String> commonUsers = new ArrayList<>();
 		List<String> isToRemove = new ArrayList<>();
 		boolean firstIteration = true;
-		for (User user : records) {
+
+		for (Group group : records) {
+			List<String> users = getUserServices()
+					.getAllUsersInGroup(group, false, true)
+					.stream().map(x -> x.getId()).collect(Collectors.toList());
 			if (firstIteration) {
-				commonGroups.addAll(user.getUserGroups());
+				commonUsers.addAll(users);
 				firstIteration = false;
 			} else {
-				for (String groupId : commonGroups) {
-					if (user.getUserGroups().stream().noneMatch(gr -> gr.equals(groupId))) {
-						isToRemove.add(groupId);
+				for (String userId : commonUsers) {
+					if (users.stream().noneMatch(gr -> gr.equals(userId))) {
+						isToRemove.add(userId);
 					}
 				}
 			}
 		}
-		commonGroups.removeAll(isToRemove);
-		return commonGroups;
+		commonUsers.removeAll(isToRemove);
+		return commonUsers;
 	}
 
 	private UserServices getUserServices() {
@@ -169,28 +173,27 @@ public class GroupWindowButton extends WindowButton {
 		}
 	}
 
-	private RecordVODataProvider getGroupDataProvider(SessionContext sessionContext) {
+	private RecordVODataProvider getUserDataProvider(SessionContext sessionContext) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 		final MetadataSchemaVO groupSchemaVO = schemaVOBuilder.build(rm.group.schema(), VIEW_MODE.TABLE, sessionContext);
 		return new RecordVODataProvider(groupSchemaVO, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
 			@Override
 			public LogicalSearchQuery getQuery() {
-				return getGroupsQuery();
+				return getUsersQuery();
 			}
 		};
 	}
 
-	private LogicalSearchQuery getGroupsQuery() {
+	private LogicalSearchQuery getUsersQuery() {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
-		MetadataSchemaType groupSchemaType = rm.group.schemaType();
+		MetadataSchemaType userSchemaType = rm.user.schemaType();
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 
-		LogicalSearchCondition condition = from(groupSchemaType)
-				.where(Schemas.COLLECTION).isEqualTo(collection)
-				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
+		LogicalSearchCondition condition = from(userSchemaType)
+				.where(Schemas.COLLECTION).isEqualTo(collection).andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
 
 		query.setCondition(condition);
 

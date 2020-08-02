@@ -9,6 +9,7 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.shared.ui.MarginInfo;
@@ -50,7 +51,7 @@ public class CollectionsWindowButton extends WindowButton {
 
 	public CollectionsWindowButton(List<Record> records, MenuItemActionBehaviorParams params,
 								   AddedToCollectionRecordType addedRecordType) {
-		super($("CollectionSecurityManagement.AddToCollection"), $("CollectionSecurityManagement.selectCollections"));
+		super($("CollectionSecurityManagement.selectCollections"), $("CollectionSecurityManagement.addToCollections"));
 
 		this.params = params;
 		this.appLayerFactory = params.getView().getConstellioFactories().getAppLayerFactory();
@@ -60,14 +61,14 @@ public class CollectionsWindowButton extends WindowButton {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.records = records;
 		this.addedRecordType = addedRecordType;
-		this.collectionsField = new OptionGroup($("CollectionSecurityManagement.SelectCollections"));
+		this.collectionsField = new OptionGroup($("CollectionSecurityManagement.selectCollections"));
 	}
 
 	@Override
 	protected Component buildWindowContent() {
-		VerticalLayout layout = new VerticalLayout();
-		layout.setMargin(new MarginInfo(true, true, false, true));
-		layout.setSizeFull();
+		VerticalLayout mainLayout = new VerticalLayout();
+		mainLayout.setMargin(new MarginInfo(true, true, false, true));
+		mainLayout.setSizeFull();
 
 		HorizontalLayout collectionLayout = new HorizontalLayout();
 		collectionLayout.setSpacing(true);
@@ -76,17 +77,23 @@ public class CollectionsWindowButton extends WindowButton {
 		collectionsField.addStyleName("collections-username");
 		collectionsField.setId("collections");
 		collectionsField.setMultiSelect(true);
+		collectionLayout.addComponent(collectionsField);
 		for (String collection : appLayerFactory.getCollectionsManager().getCollectionCodes()) {
-			collectionsField.addItem(collection);
-			boolean existsforAll = records.stream().allMatch(record -> record.getCollection().equals(collection));
-			if (existsforAll) {
-				collectionsField.select(collection);
+			if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
+				collectionsField.addItem(collection);
+				boolean existsforAll = records.stream().allMatch(record -> record.getCollection().equals(collection));
+				if (existsforAll) {
+					collectionsField.select(collection);
+				}
 			}
 		}
 
+		mainLayout.addComponents(collectionLayout);
 		BaseButton saveButton;
+		BaseButton cancelButton;
+		HorizontalLayout buttonLayout = new HorizontalLayout();
 
-		collectionLayout.addComponent(saveButton = new BaseButton($("save")) {
+		buttonLayout.addComponent(saveButton = new BaseButton($("save")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				try {
@@ -101,8 +108,22 @@ public class CollectionsWindowButton extends WindowButton {
 		});
 		saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
-		layout.addComponents(collectionLayout);
-		return layout;
+		buttonLayout.addComponent(cancelButton = new BaseButton($("cancel")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				getWindow().close();
+			}
+		});
+
+
+		buttonLayout.setSpacing(true);
+		mainLayout.addComponent(buttonLayout);
+		mainLayout.setHeight("100%");
+		mainLayout.setWidth("100%");
+		mainLayout.setSpacing(true);
+
+
+		return mainLayout;
 	}
 
 	private UserServices getUserServices() {

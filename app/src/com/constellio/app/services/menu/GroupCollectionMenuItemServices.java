@@ -78,7 +78,7 @@ public class GroupCollectionMenuItemServices {
 			if (!filteredActionTypes.contains(GROUP_ADD_TO_COLLECTION.name())) {
 				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_ADD_TO_COLLECTION.name(),
 						isMenuItemActionPossible(GROUP_ADD_TO_COLLECTION.name(), groupRecords.get(0), user, params),
-						$("CollectionSecurityManagement.addToCollection"), FontAwesome.LOCATION_ARROW, -1, 300,
+						$("CollectionSecurityManagement.addToCollections"), FontAwesome.LOCATION_ARROW, -1, 300,
 						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).addToCollection(groupRecords, params));
 				menuItemActions.add(menuItemAction);
 			}

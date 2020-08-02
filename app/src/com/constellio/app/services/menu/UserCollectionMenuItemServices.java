@@ -74,7 +74,7 @@ public class UserCollectionMenuItemServices {
 			if (!filteredActionTypes.contains(USER_ADD_TO_COLLECTION.name())) {
 				MenuItemAction menuItemAction = buildMenuItemAction(USER_ADD_TO_COLLECTION.name(),
 						isMenuItemActionPossible(USER_ADD_TO_COLLECTION.name(), userRecords.get(0), user, params),
-						$("CollectionSecurityManagement.addToCollection"), FontAwesome.LOCATION_ARROW, -1, 300,
+						$("CollectionSecurityManagement.addToCollections"), FontAwesome.LOCATION_ARROW, -1, 300,
 						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).addToCollection(userRecords, params));
 				menuItemActions.add(menuItemAction);
 			}

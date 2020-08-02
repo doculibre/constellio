@@ -44,7 +44,7 @@ public class GroupRecordActionsServices {
 	}
 
 	public boolean isAddToCollectionActionPossible(Record record, User user) {
-		return groupServices.canAddOrModifyUserAndGroup()
+		return groupServices.canAddOrModifyUserAndGroup() && groupServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_COLLECTIONS)
 			   && groupServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_GROUPS);
 	}
 
