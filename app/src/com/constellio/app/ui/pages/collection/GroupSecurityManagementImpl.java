@@ -338,7 +338,7 @@ public class GroupSecurityManagementImpl extends BaseViewImpl implements Securit
 				//event.getItem();
 				RecordVOItem recordItem = (RecordVOItem) event.getItem();
 				GroupVO group = (GroupVO) recordItem.getRecord();
-				presenter.editButtonClicked(group);
+				presenter.displayButtonClicked(group);
 			}
 		});
 		panel.addStyleName("folder-content-table");

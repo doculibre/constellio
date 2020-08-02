@@ -324,11 +324,11 @@ public class UserSecurityManagementPresenter extends SingleSchemaBasePresenter<S
 		return ParamUtils.addParams(NavigatorConfigurationService.COLLECTION_USER_LIST, params);
 	}
 
-	public void editButtonClicked(UserVO entity) {
+	public void displayButtonClicked(UserVO entity) {
 		//TODO
 		//Temporary until UserVO is switched
 		UserCredentialVO userEntity = (new UserCredentialToVOBuilder()).build(userServices().getUserCredential(entity.getUsername()));
 		String parameters = getParameters(userEntity);
-		view.navigate().to().editUserCredential(parameters);
+		view.navigate().to().displayUserCredential(parameters);
 	}
 }

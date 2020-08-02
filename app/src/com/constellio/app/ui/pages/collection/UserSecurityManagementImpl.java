@@ -329,7 +329,7 @@ public class UserSecurityManagementImpl extends BaseViewImpl implements Security
 				//event.getItem();
 				RecordVOItem recordItem = (RecordVOItem) event.getItem();
 				UserVO user = (UserVO) recordItem.getRecord();
-				presenter.editButtonClicked(user);
+				presenter.displayButtonClicked(user);
 			}
 		});
 		panel.addStyleName("folder-content-table");

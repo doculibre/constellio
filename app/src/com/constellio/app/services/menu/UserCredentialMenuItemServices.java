@@ -39,7 +39,7 @@ public class UserCredentialMenuItemServices {
 		if (!filteredActionTypes.contains(USER_CREDENTIAL_EDIT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(USER_CREDENTIAL_EDIT.name(),
 					isMenuItemActionPossible(USER_CREDENTIAL_EDIT.name(), userCredential, user, params),
-					$("edit"), null, -1, 100,
+					$("DisplayUserCredentialView.editButton"), null, -1, 100,
 					(ids) -> new UserCredentialMenuItemActionBehaviors(appLayerFactory).edit(params));
 			menuItemActions.add(menuItemAction);
 		}

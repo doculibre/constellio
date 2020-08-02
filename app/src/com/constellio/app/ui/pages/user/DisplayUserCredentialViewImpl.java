@@ -327,6 +327,23 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 	}
 
 	@Override
+	protected boolean isOnlyQuickMenuActionVisible() {
+		return true;
+	}
+
+	@Override
+	protected boolean isActionMenuBar() {
+		return true;
+	}
+
+	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		List<Button> listButton = new ArrayList<>(super.getActionMenuButtons());
+
+		return listButton;
+	}
+
+	@Override
 	public void refreshTable() {
 		Table newUserGlobalGroupTable = buildUserGlobalGroupTable();
 		Table newAvailableGlobalGroupTable = buildAvailableGlobalGroupTable();

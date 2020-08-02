@@ -13,7 +13,6 @@ import com.constellio.app.ui.entities.GroupVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
-import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
@@ -321,11 +320,7 @@ public class GroupSecurityManagementPresenter extends SingleSchemaBasePresenter<
 		return ParamUtils.addParams(NavigatorConfigurationService.COLLECTION_USER_LIST, params);
 	}
 
-	public void editButtonClicked(GroupVO entity) {
-		//TODO
-		//Temporary until GROUPVO is switched
-		GlobalGroupVO groupEntity = (new GlobalGroupToVOBuilder()).build(userServices().getGroup(entity.getCode()));
-		String parameters = getParameters(groupEntity);
-		view.navigate().to().editUserCredential(parameters);
+	public void displayButtonClicked(GroupVO entity) {
+		view.navigate().to().displayCollectionGroup(entity.getId());
 	}
 }
