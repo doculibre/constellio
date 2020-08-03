@@ -14,6 +14,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+import org.assertj.core.api.Condition;
 import org.junit.Test;
 
 import java.io.File;
@@ -107,10 +108,45 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 		assertThat(groupMetadataSchema.hasMetadataWithCode("locallyCreated")).isTrue();
 		assertThat(groupMetadataSchema.hasMetadataWithCode("hierarchy")).isTrue();
 
-		VerifySaveState(groups, users, credentials);
+		verifySaveState(groups, users, credentials);
+		verifyData(groups, users, credentials);
+
 	}
 
-	private void VerifySaveState(List<Group> groups, List<User> users, List<UserCredential> credentials) {
+	private void verifyData(List<Group> groups, List<User> users, List<UserCredential> credentials) {
+		List<Group> nobility = groups.stream().filter(x -> x.getCode().equals("nobility")).collect(Collectors.toList());
+		assertThat(nobility).isNotEmpty().hasSize(3).has(new Condition<List<Group>>() {
+			@Override
+			public boolean matches(List<Group> value) {
+				return value.stream().anyMatch(x -> x.getCollection().equals(zeCollection));
+			}
+		});
+
+		List<Group> collectionRidaGroups = groups.stream().filter(x -> x.getCollection().equals("LaCollectionDeRida")).collect(Collectors.toList());
+
+		assertThat(collectionRidaGroups).isNotEmpty().has(new Condition<List<Group>>() {
+			@Override
+			public boolean matches(List<Group> value) {
+				return value.stream().filter(x -> x.getCode().equals("explorers")
+												  || x.getCode().equals("Bosses")
+												  || x.getCode().equals("royale"))
+							   .collect(Collectors.toList()).size() > 2;
+
+			}
+		});
+
+		//dusty (edouard's rival) is part of big bad bosses
+		User dusty = users.stream().filter(x -> x.getUsername().equals("dusty")).findFirst().get();
+
+		assertThat(dusty.getUserGroups()).hasSize(1).has(new Condition<List<String>>() {
+			@Override
+			public boolean matches(List<String> value) {
+				return groups.stream().filter(x -> value.contains(x.getId())).findAny().get().getCode().equals("Bosses");
+			}
+		});
+	}
+
+	private void verifySaveState(List<Group> groups, List<User> users, List<UserCredential> credentials) {
 		User dusty = users.stream().filter(x -> x.getUsername().equals("dusty")).findFirst().get();
 		User marie = users.stream().filter(x -> x.getUsername().equals("marie")).findFirst().get();
 		User cartier = users.stream().filter(x -> x.getUsername().equals("cartie")).findFirst().get();

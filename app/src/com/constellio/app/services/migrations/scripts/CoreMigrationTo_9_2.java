@@ -77,6 +77,11 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			//Les UserCredential sans collection seront supprimés
 			UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 			//userServices.safePhysicalDeleteAllUserCredentialsWithEmptyCollections();
+			try {
+				safePhysicalDeleteAllUserCredentialsWithEmptyCollections(appLayerFactory.getModelLayerFactory());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
 			//Les User auront 4 statuts : active, pending, suspended, disabled (au lieu de deleted) (nothing to do here)
 			//Une métadonnée enum "syncMode" dans Usercredential avec les choix SYNCED, NOT_SYNCED, LOCALLY_CREATED
@@ -315,6 +320,28 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 				throw new UserServicesRuntimeException_CannotExcuteTransaction(e);
 			}
 		}
+	}
+
+	private void safePhysicalDeleteAllUserCredentialsWithEmptyCollections(ModelLayerFactory modelLayerFactory)
+			throws Exception {
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		SchemasRecordsServices systemSchemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+
+		new ActionExecutorInBatch(searchServices, "Removing user credentials with empty collections", 250) {
+			@Override
+			public void doActionOnBatch(List<Record> records)
+					throws Exception {
+				for (Record record : records) {
+					UserCredential userCredential = systemSchemas.wrapUserCredential(record);
+					if (userCredential.getCollections() == null || userCredential.getCollections().isEmpty()) {
+						recordServices.logicallyDelete(userCredential, User.GOD);
+						recordServices.physicallyDelete(userCredential, User.GOD);
+					}
+				}
+			}
+		}.execute(from(systemSchemas.credentialSchemaType()).returnAll());
+
 	}
 
 	//helpers
