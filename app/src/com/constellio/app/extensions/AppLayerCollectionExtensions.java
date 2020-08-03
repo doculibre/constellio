@@ -98,7 +98,6 @@ import com.constellio.app.extensions.records.params.GetIconPathParams;
 import com.constellio.app.extensions.records.params.HasUserReadAccessParams;
 import com.constellio.app.extensions.records.params.IsMetadataSpecialCaseToNotBeShownParams;
 import com.constellio.app.extensions.records.params.IsMetadataVisibleInRecordFormParams;
-import com.constellio.app.extensions.restapi.FolderDuplicationExtension;
 import com.constellio.app.extensions.sequence.AvailableSequence;
 import com.constellio.app.extensions.sequence.AvailableSequenceForRecordParams;
 import com.constellio.app.extensions.sequence.CollectionSequenceExtension;
@@ -240,8 +239,6 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<ExtraTabForSimpleSearchResultExtention> extraTabsForSimpleSearchResultExtentions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<ViewableRecordVOTablePanelExtension> viewableRecordVOTablePanelExtensions = new VaultBehaviorsList<>();
-
-	public FolderDuplicationExtension folderDuplicationExtension = new FolderDuplicationExtension();
 
 	//Key : schema type code
 	//Values : record's code

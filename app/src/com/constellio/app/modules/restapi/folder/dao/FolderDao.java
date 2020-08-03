@@ -1,11 +1,13 @@
 package com.constellio.app.modules.restapi.folder.dao;
 
 import com.constellio.app.extensions.restapi.FolderDuplicationExtension.FolderCopyExtension;
+import com.constellio.app.modules.restapi.ConstellioRestApiModule;
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
 import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
 import com.constellio.app.modules.restapi.core.exception.RecordCopyNotPermittedException;
 import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
 import com.constellio.app.modules.restapi.core.exception.UnresolvableOptimisticLockException;
+import com.constellio.app.modules.restapi.extensions.RestApiModuleExtensions;
 import com.constellio.app.modules.restapi.folder.dto.AdministrativeUnitDto;
 import com.constellio.app.modules.restapi.folder.dto.FolderDto;
 import com.constellio.app.modules.restapi.folder.dto.RetentionRuleDto;
@@ -81,7 +83,8 @@ public class FolderDao extends ResourceDao {
 
 		Transaction transaction = buildTransaction(flush, user);
 
-		SingleValueExtension<FolderCopyExtension> folderCopyExtension = appLayerFactory.getExtensions().forCollection(collection).folderDuplicationExtension.getFolderCopyExtension();
+		RestApiModuleExtensions restApiModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRestApiModule.ID);
+		SingleValueExtension<FolderCopyExtension> folderCopyExtension = restApiModuleExtensions.folderDuplicationExtension.getFolderCopyExtension();
 
 		Folder copyFolder;
 		if (folderCopyExtension.getValue() == null) {
