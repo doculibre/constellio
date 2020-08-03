@@ -172,14 +172,14 @@ public class LegacyLDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 
 		ldapUserSyncManager.synchronizeIfPossible();
 		SystemWideGroup globalGroup = userServices.getGroup(group);
-		assertThat(globalGroup.getUsersAutomaticallyAddedToCollections()).isEmpty();
+		assertThat(globalGroup.getCollections()).isEmpty();
 		userServices.execute(userServices.request(group).addCollection(zeCollection));
 		globalGroup = userServices.getGroup(group);
-		assertThat(globalGroup.getUsersAutomaticallyAddedToCollections()).containsOnly(zeCollection);
+		assertThat(globalGroup.getCollections()).containsOnly(zeCollection);
 
 		ldapUserSyncManager.synchronizeIfPossible();
 		globalGroup = userServices.getGroup(group);
-		assertThat(globalGroup.getUsersAutomaticallyAddedToCollections()).containsOnly(zeCollection);
+		assertThat(globalGroup.getCollections()).containsOnly(zeCollection);
 		UserCredential userInGroup = userServices.getUser("bfay");
 		assertThat(userInGroup.getCollections()).containsOnly(zeCollection);
 	}
@@ -206,14 +206,14 @@ public class LegacyLDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 
 		ldapUserSyncManager.synchronizeIfPossible();
 		SystemWideGroup globalGroup = userServices.getGroup(group);
-		assertThat(globalGroup.getUsersAutomaticallyAddedToCollections()).isEmpty();
+		assertThat(globalGroup.getCollections()).isEmpty();
 		userServices.execute(userServices.request(group).addCollection(zeCollection));
 
 		saveValidLDAPConfigWithEntrepriseCollectionSelected();
 		ldapUserSyncManager.synchronizeIfPossible();
 
 		globalGroup = userServices.getGroup(group);
-		assertThat(globalGroup.getUsersAutomaticallyAddedToCollections()).containsOnly(zeCollection, businessCollection);
+		assertThat(globalGroup.getCollections()).containsOnly(zeCollection, businessCollection);
 		UserCredential userInGroup = userServices.getUser("bfay");
 		assertThat(userInGroup.getCollections()).containsOnly(zeCollection, businessCollection);
 	}

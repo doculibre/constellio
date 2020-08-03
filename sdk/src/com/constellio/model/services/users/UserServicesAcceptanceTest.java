@@ -899,7 +899,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThat(groupRecords.get(2).isActive()).isFalse();
 		assertThat(userServices.getAllGroups()).hasSize(3);
 		assertThat(userServices.getActiveGroups()).isEmpty();
-		assertThat(userServices.getGroup(group1.getCode()).getStatus()).isEqualTo(GlobalGroupStatus.INACTIVE);
+		assertThat(userServices.getGroup(group1.getCode()).getStatus(collection1)).isEqualTo(GlobalGroupStatus.INACTIVE);
 		try {
 			userServices.getActiveGroup(group1.getCode());
 		} catch (Exception e) {
@@ -1238,12 +1238,12 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.executeGroupRequest(heroes.getCode(), (req) -> req.setStatusInAllCollections(GlobalGroupStatus.INACTIVE));
 
 
-		assertThat(userServices.getGroup(heroesGlobalGroup.getCode()).getStatus())
+		assertThat(userServices.getGroup(heroesGlobalGroup.getCode()).getStatus(zeCollection))
 				.isEqualTo(GlobalGroupStatus.INACTIVE);
 
 		userServices.restoreDeletedGroup(heroes.getCode(), zeCollection);
 
-		assertThat(userServices.getGroup(heroes.getCode()).getStatus()).isEqualTo(GlobalGroupStatus.ACTIVE);
+		assertThat(userServices.getGroup(heroes.getCode()).getStatus(zeCollection)).isEqualTo(GlobalGroupStatus.ACTIVE);
 	}
 
 	@Test

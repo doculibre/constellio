@@ -654,7 +654,7 @@ public class RecordAutomaticMetadataServices {
 		if (systemCollectionCache.isConfigured(SystemWideGroup.SCHEMA_TYPE)) {
 			for (Group group : schemas.getAllGroups()) {
 				SystemWideGroup globalGroup = modelLayerFactory.newUserServices().getGroup(group.getCode());
-				if (GlobalGroupStatus.INACTIVE.equals(globalGroup.getStatus())) {
+				if (GlobalGroupStatus.INACTIVE.equals(globalGroup.getStatus(types.getCollection()))) {
 					disabledGroups.add(globalGroup.getCode());
 				}
 			}

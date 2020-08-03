@@ -181,7 +181,7 @@ public class UserServicesAcceptTest extends ConstellioTest {
 		assertThat(resource.getCode()).isEqualTo(userServices.getGroup("heroes").getCode());
 		assertThat(resource.getName()).isEqualTo(userServices.getGroup("heroes").getName());
 		assertThat(resource.getUsersAutomaticallyAddedToCollections()).isEqualTo(
-				userServices.getGroup("heroes").getUsersAutomaticallyAddedToCollections());
+				userServices.getGroup("heroes").getCollections());
 	}
 
 	private void givenUserInCollectionwhenRemoveUserFromItThenHeIsRemoved() {

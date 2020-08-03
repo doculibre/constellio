@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -50,7 +51,7 @@ public class GlobalGroupVODataProviderTest extends ConstellioTest {
 		when(heroesGroup.getParent()).thenReturn(null);
 		when(heroesGroup.getCode()).thenReturn(HEROES);
 		when(heroesGroup.getName()).thenReturn(HEROES_GROUP);
-		when(heroesGroup.getStatus()).thenReturn(GlobalGroupStatus.ACTIVE);
+		when(heroesGroup.getStatus(anyString())).thenReturn(GlobalGroupStatus.ACTIVE);
 		when(heroesGroupVO.getParent()).thenReturn(null);
 		when(heroesGroupVO.getCode()).thenReturn(HEROES);
 		when(heroesGroupVO.getName()).thenReturn(HEROES_GROUP);
@@ -59,7 +60,7 @@ public class GlobalGroupVODataProviderTest extends ConstellioTest {
 		when(heroesGroup1.getParent()).thenReturn(HEROES);
 		when(heroesGroup1.getCode()).thenReturn(HEROES_1);
 		when(heroesGroup1.getName()).thenReturn(HEROES_GROUP_1);
-		when(heroesGroup1.getStatus()).thenReturn(GlobalGroupStatus.ACTIVE);
+		when(heroesGroup1.getStatus(anyString())).thenReturn(GlobalGroupStatus.ACTIVE);
 		when(heroesGroupVO1.getParent()).thenReturn(HEROES);
 		when(heroesGroupVO1.getCode()).thenReturn(HEROES_1);
 		when(heroesGroupVO1.getName()).thenReturn(HEROES_GROUP_1);
@@ -68,7 +69,7 @@ public class GlobalGroupVODataProviderTest extends ConstellioTest {
 		when(legendsGroup.getParent()).thenReturn(null);
 		when(legendsGroup.getCode()).thenReturn(LEGENDS);
 		when(legendsGroup.getName()).thenReturn(LEGENDS_GROUP);
-		when(legendsGroup.getStatus()).thenReturn(GlobalGroupStatus.ACTIVE);
+		when(legendsGroup.getStatus(anyString())).thenReturn(GlobalGroupStatus.ACTIVE);
 		when(legendsGroupVO.getParent()).thenReturn(null);
 		when(legendsGroupVO.getCode()).thenReturn(LEGENDS);
 		when(legendsGroupVO.getName()).thenReturn(LEGENDS_GROUP);
