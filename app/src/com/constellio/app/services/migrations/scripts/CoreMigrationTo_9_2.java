@@ -101,26 +101,30 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			// firstname, lastname, email, personalEmails, collections, globalGroups, phone, fax, jobTitle, address
 
 			userCredentialSchema.getMetadata(CommonMetadataBuilder.TITLE).defineDataEntry().asManual();
-			userCredentialSchema.deleteMetadataWithoutValidation("title");
-			userCredentialSchema.deleteMetadataWithoutValidation("firstname");
-			userCredentialSchema.deleteMetadataWithoutValidation("lastname");
-			userCredentialSchema.deleteMetadataWithoutValidation("email");
-			userCredentialSchema.deleteMetadataWithoutValidation("personalEmails");
-			userCredentialSchema.deleteMetadataWithoutValidation("collections");
-			userCredentialSchema.deleteMetadataWithoutValidation("globalGroups");
-			userCredentialSchema.deleteMetadataWithoutValidation("phone");
-			userCredentialSchema.deleteMetadataWithoutValidation("fax");
-			userCredentialSchema.deleteMetadataWithoutValidation("jobTitle");
-			userCredentialSchema.deleteMetadataWithoutValidation("address");
+
+			//NOT READY YET, STOP USING THEM IN USERSERVICES BEFORE
+//			userCredentialSchema.deleteMetadataWithoutValidation("title");
+//			userCredentialSchema.deleteMetadataWithoutValidation("firstname");
+//			userCredentialSchema.deleteMetadataWithoutValidation("lastname");
+//			userCredentialSchema.deleteMetadataWithoutValidation("email");
+//			userCredentialSchema.deleteMetadataWithoutValidation("personalEmails");
+//			userCredentialSchema.deleteMetadataWithoutValidation("collections");
+//			userCredentialSchema.deleteMetadataWithoutValidation("globalGroups");
+//			userCredentialSchema.deleteMetadataWithoutValidation("phone");
+//			userCredentialSchema.deleteMetadataWithoutValidation("fax");
+//			userCredentialSchema.deleteMetadataWithoutValidation("jobTitle");
+//			userCredentialSchema.deleteMetadataWithoutValidation("address");
 
 			//Les groupes qui ne sont pas actifs sont supprimés logiquement
 			logicallyRemoveAllNonActiveGroups(modelLayerFactory);
 
 			MetadataSchemaBuilder glGroupSchema = typesBuilder.getSchemaType(GlobalGroup.SCHEMA_TYPE).getDefaultSchema();
-			glGroupSchema.deleteMetadataWithoutValidation("usersAutomaticallyAddedToCollections");
-			glGroupSchema.deleteMetadataWithoutValidation("status");
-			glGroupSchema.deleteMetadataWithoutValidation("locallyCreated");
-			glGroupSchema.deleteMetadataWithoutValidation("hierarchy");
+
+			//NOT READY YET, STOP USING THEM IN USERSERVICES BEFORE
+//			glGroupSchema.deleteMetadataWithoutValidation("usersAutomaticallyAddedToCollections");
+			//			glGroupSchema.deleteMetadataWithoutValidation("status");
+			//			glGroupSchema.deleteMetadataWithoutValidation("locallyCreated");
+			//			glGroupSchema.deleteMetadataWithoutValidation("hierarchy");
 
 			List<GlobalGroup> glGroups = getAllGlobalGroups(modelLayerFactory);
 

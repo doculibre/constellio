@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import static com.constellio.data.utils.LangUtils.compareStrings;
 import static java.util.Arrays.asList;
@@ -369,6 +370,7 @@ public class MetadataList implements List<Metadata>, Serializable {
 		}
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
+
 
 	public MetadataList only(MetadataListFilter filter) {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();

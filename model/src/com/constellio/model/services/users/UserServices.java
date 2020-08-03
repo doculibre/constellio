@@ -20,7 +20,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
@@ -64,7 +63,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -79,6 +77,7 @@ import java.util.stream.Stream;
 
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static com.constellio.model.entities.records.wrappers.Group.wrapNullable;
+import static com.constellio.model.entities.schemas.Schemas.ALL_REFERENCES;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_ON;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
@@ -89,6 +88,7 @@ import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROU
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.users.UserUtils.cleanUsername;
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
@@ -142,10 +142,90 @@ public class UserServices {
 
 	public void createUser(String username,
 						   Consumer<com.constellio.model.services.users.UserAddUpdateRequest> requestConsumer) {
-		com.constellio.model.services.users.UserAddUpdateRequest request = addUpdate(username);
+
+		UserCredential userCredential = getUserCredential(username);
+		com.constellio.model.services.users.UserAddUpdateRequest request;
+		if (userCredential == null) {
+			request = new com.constellio.model.services.users.UserAddUpdateRequest(cleanUsername(username), Collections.emptyList(), Collections.emptyList());
+		} else {
+			throw new UserServicesRuntimeException.UserServicesRuntimeException_UserAlreadyExists(username);
+
+		}
+
 		request.setStatusForAllCollections(ACTIVE);
 		requestConsumer.accept(request);
 		execute(request);
+	}
+
+	private boolean hasUsedSystem(User user) {
+		return searchServices.hasResults(fromAllSchemasIn(user.getCollection()).where(ALL_REFERENCES).isEqualTo(user));
+	}
+
+	private User existingUserOrNew(String username, String collection) {
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		Record userRecord = searchServices.searchSingleResult(from(schemas.user.schemaType())
+				.where(schemas.user.username()).isEqualTo(username));
+		return userRecord == null ? schemas.newUser().setUsername(username) : schemas.wrapUser(userRecord);
+	}
+
+	private User existingUserOrNull(String username, String collection) {
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		Record userRecord = searchServices.searchSingleResult(from(schemas.user.schemaType())
+				.where(schemas.user.username()).isEqualTo(username));
+		return schemas.wrapUser(userRecord);
+	}
+
+	private User existingUserInAnyCollectionOrNull(String username) {
+		for (String collection : modelLayerFactory.getCollectionsListManager().getCollectionsExcludingSystem()) {
+			User user = existingUserOrNull(username, collection);
+			if (user != null) {
+				return user;
+			}
+		}
+
+		return null;
+	}
+
+	private SchemasRecordsServices schemas(String collection) {
+		return new SchemasRecordsServices(collection, modelLayerFactory);
+	}
+
+
+	private boolean isSyncedUserMetadata(Metadata metadata) {
+		return asList(User.USERNAME, User.FIRSTNAME, User.LASTNAME, User.EMAIL, User.PERSONAL_EMAILS, User.SYSTEM_ADMIN,
+				User.JOB_TITLE, User.PHONE, User.FAX, User.ADDRESS).contains(metadata.getLocalCode());
+	}
+
+	private User newUserSyncedTo(SystemWideUserInfos nullableSystemWideUser, UserAddUpdateRequest request,
+								 String collection, boolean locallyCreated) {
+
+		User user = existingUserOrNull(request.getUsername(), collection);
+		if (user == null) {
+
+			user = schemas(collection).newUser();
+			User userInOtherCollection = existingUserInAnyCollectionOrNull(request.getUsername());
+
+			if (userInOtherCollection != null) {
+
+				MetadataSchema sourceSchema = schemas(userInOtherCollection.getCollection()).user.schema();
+				MetadataSchema destinationSchema = schemas(collection).user.schema();
+
+				for (Metadata metadata : sourceSchema.getMetadatas().only(this::isSyncedUserMetadata)) {
+					if (destinationSchema.hasMetadataWithCode(metadata.getLocalCode())) {
+						user.set(metadata, userInOtherCollection.get(metadata));
+					}
+				}
+
+			}
+		}
+
+
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		Record userRecord = searchServices.searchSingleResult(from(schemas.user.schemaType())
+				.where(schemas.user.username()).isEqualTo(request.getUsername()));
+
+		//User user = schemas.wrapUser(userRecord);
+		return null;
 	}
 
 	public void execute(com.constellio.model.services.users.UserAddUpdateRequest request) {
@@ -156,6 +236,7 @@ public class UserServices {
 				deleteUser(userCredential.getUsername());
 			}
 		} else {
+
 
 			if (request.getAddToCollections() != null || request.getRemoveFromCollections() != null) {
 				List<String> collections = new ArrayList<>(userCredential.getCollections());
@@ -609,8 +690,8 @@ public class UserServices {
 	private void removeChildren(String group, List<String> collections) {
 		for (String collection : collections) {
 			for (Group child : getChildrenOfGroupInCollection(group, collection)) {
-				removeFromBigVault(child.getCode(), Arrays.asList(collection));
-				removeChildren(child.getCode(), Arrays.asList(collection));
+				removeFromBigVault(child.getCode(), asList(collection));
+				removeChildren(child.getCode(), asList(collection));
 			}
 		}
 	}
@@ -1057,7 +1138,7 @@ public class UserServices {
 
 		List<Record> userInGroup = authorizationsServices.getUserRecordsInGroup(group.getWrappedRecord());
 		if (userInGroup.size() != 0 ||
-			searchServices.hasResults(fromAllSchemasIn(collection).where(Schemas.ALL_REFERENCES).isEqualTo(group.getId()))) {
+			searchServices.hasResults(fromAllSchemasIn(collection).where(ALL_REFERENCES).isEqualTo(group.getId()))) {
 			LOGGER.warn("Exception on physicallyRemoveGroup : " + group.getCode());
 			throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(group.getCode());
 		}
@@ -1097,7 +1178,7 @@ public class UserServices {
 			User user = this.getUserInCollection(userCredential.getUsername(), collection);
 			if (user != null) {
 				if (searchServices.hasResults(
-						fromAllSchemasIn(collection).where(Schemas.ALL_REFERENCES)
+						fromAllSchemasIn(collection).where(ALL_REFERENCES)
 								.isEqualTo(user.getId()))) {
 					LOGGER.warn("Exception on safePhysicalDeleteUser : " + username);
 					throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(username);
@@ -1153,7 +1234,7 @@ public class UserServices {
 	void physicallyRemoveUser(User user, String collection) {
 		LOGGER.info("physicallyRemoveUser : " + user.getUsername());
 
-		if (searchServices.hasResults(fromAllSchemasIn(collection).where(Schemas.ALL_REFERENCES).isEqualTo(user.getId()))) {
+		if (searchServices.hasResults(fromAllSchemasIn(collection).where(ALL_REFERENCES).isEqualTo(user.getId()))) {
 			LOGGER.warn("Exception on physicallyRemoveUser : " + user.getUsername());
 			throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(user.getUsername());
 		}

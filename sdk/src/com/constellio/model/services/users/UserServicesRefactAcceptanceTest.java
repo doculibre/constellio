@@ -2,6 +2,7 @@ package com.constellio.model.services.users;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -27,6 +28,7 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUsername;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_LastNameRequired;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NameRequired;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserAlreadyExists;
 import com.constellio.sdk.tests.ConstellioTest;
 import lombok.AllArgsConstructor;
 import org.junit.After;
@@ -44,6 +46,7 @@ import static com.constellio.model.entities.security.global.UserCredentialStatus
 import static com.constellio.model.entities.security.global.UserCredentialStatus.SUSPENDED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.assertThatException;
+import static com.constellio.sdk.tests.TestUtils.instanceOf;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -103,36 +106,38 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenCreatingUserThenValidateFieldsAndSaveTheUser() {
+	public void whenCreatingUserThenValidateFieldsAndSaveTheUser() throws Exception {
+
+		Toggle.NEW_USER_SERVICES.enable();
 
 		assertThatException(() -> services.createUser("andre geant", (req) -> req.setName("André", "Le géant")
 				.setEmail("andre@constellio.com").addCollection(collection1))
-		).isInstanceOf(UserServicesRuntimeException_InvalidUsername.class);
+		).is(instanceOf(UserServicesRuntimeException_InvalidUsername.class));
 
 		assertThatException(() -> services.createUser("andregeant", (req) -> req.setName("André", "Le géant")
 				.setEmail("andre@constellio.com"))
-		).isInstanceOf(UserServicesRuntimeException_AtLeastOneCollectionRequired.class);
+		).is(instanceOf(UserServicesRuntimeException_AtLeastOneCollectionRequired.class));
 
 		assertThatException(() -> services.createUser("andregeant", (req) -> req.setName("André", "Le géant")
 				.addCollection(collection1))
-		).isInstanceOf(UserServicesRuntimeException_EmailRequired.class);
+		).is(instanceOf(UserServicesRuntimeException_EmailRequired.class));
 
 		assertThatException(() -> services.createUser("andregeant", (req) -> req.setLastName("Le géant")
 				.setEmail("andre@constellio.com").addCollection(collection1))
-		).isInstanceOf(UserServicesRuntimeException_FirstNameRequired.class);
+		).is(instanceOf(UserServicesRuntimeException_FirstNameRequired.class));
 
 		assertThatException(() -> services.createUser("andregeant", (req) -> req.setFirstName("André")
 				.setEmail("andre@constellio.com").addCollection(collection1))
-		).isInstanceOf(UserServicesRuntimeException_LastNameRequired.class);
+		).is(instanceOf(UserServicesRuntimeException_LastNameRequired.class));
 
 		assertThatException(() -> services.createUser("andregeant", (req) -> req.setName("André", "Le géant")
 				.setEmail("andre@constellio.com").addCollection("inexistingCollection"))
-		).isInstanceOf(UserServicesRuntimeException_InvalidCollection.class);
+		).is(instanceOf(UserServicesRuntimeException_InvalidCollection.class));
 
 
 		assertThatException(() -> services.createUser("andregeant", (req) -> req.setName("André", "Le géant")
 				.setEmail("andre@constellio.com").addCollection(collection1).addToGroupInEachCollection("inexistingGroup"))
-		).isInstanceOf(UserServicesRuntimeException_InvalidGroup.class);
+		).is(instanceOf(UserServicesRuntimeException_InvalidGroup.class));
 
 		services.createUser("andregeant", (req) -> req.setName("André", "Le géant")
 				.setEmail("andre@constellio.com").addCollections(collection1, collection2));
@@ -146,7 +151,21 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 		assertThatUser("andregeant").isInCollections(collection1, collection2);
 
+		assertThatException(() -> services.createUser("andregeant", (req) -> req.setName("André", "Le géant")
+				.setEmail("andre2@constellio.com").addCollection(collection1))
+		).is(instanceOf(UserServicesRuntimeException_UserAlreadyExists.class));
+		assertThat(user("andregeant", collection1).getEmail()).isEqualTo("andre@constellio.com");
+
+		//Same request, using execute
+		services.execute("andregeant", (req) -> req.setName("André", "Le géant")
+				.setEmail("andre2@constellio.com").addCollection(collection1));
+		assertThat(userInfos.getEmail()).isEqualTo("andre2@constellio.com");
+		assertThat(user("andregeant", collection1).getEmail()).isEqualTo("andre2@constellio.com");
+		assertThat(user("andregeant", collection2).getEmail()).isEqualTo("andre2@constellio.com");
+
+
 	}
+
 
 	@Test
 	public void givenExistingUserThenCanModifyInfos() {
@@ -368,10 +387,10 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 	public void whenCreatingGroupThenValidateFieldsAndSaveTheGroup() {
 
 		assertThatException(() -> services.createGroup("g1", (req) -> req.setName(null).addCollection(collection1))
-		).isInstanceOf(UserServicesRuntimeException_NameRequired.class);
+		).is(instanceOf(UserServicesRuntimeException_NameRequired.class));
 
 		assertThatException(() -> services.createGroup("g1", (req) -> req.setName("G1"))
-		).isInstanceOf(UserServicesRuntimeException_AtLeastOneCollectionRequired.class);
+		).is(instanceOf(UserServicesRuntimeException_AtLeastOneCollectionRequired.class));
 
 		services.createGroup("g1", (req) -> req.setName("Group 1").addCollections(collection1, collection2));
 		assertThat(services.getGroup("g1").getName()).isEqualTo("Group 1");
@@ -635,19 +654,19 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 				.addCollections(collection1, collection3).addToGroupsInEachCollection("g1", "g2")
 				.addToGroupsInCollection(asList("g1", "g2"), collection1)
 				.addToGroupsInCollection(asList("g1", "g2"), collection3))
-		).isInstanceOf(UserServicesRuntimeException_CannotAssignUserToInexistingGroupInCollection.class);
+		).is(instanceOf(UserServicesRuntimeException_CannotAssignUserToInexistingGroupInCollection.class));
 
 		assertThatException(() -> services.createUser("undertaker", (req) -> req.setNameEmail("The", "Undertaker", "the_undertaker@constellio.com")
 				.addCollections(collection1, collection3).addToGroupsInEachCollection("g1", "g2")
 				.addToGroupsInCollection(asList("invalid"), collection1))
-		).isInstanceOf(UserServicesRuntimeException_CannotAssignUserToInexistingGroupInCollection.class);
+		).is(instanceOf(UserServicesRuntimeException_CannotAssignUserToInexistingGroupInCollection.class));
 
 
 		assertThatException(() -> services.createUser("undertaker", (req) -> req.setNameEmail("The", "Undertaker", "the_undertaker@constellio.com")
 				.addCollections(collection1, collection3).addToGroupsInEachCollection("g1", "g2")
 				.addToGroupsInCollection(asList("g1", "g2"), collection1)
 				.addToGroupsInCollection(asList("g1", "g2"), collection2))
-		).isInstanceOf(UserServicesRuntimeException_CannotAssignUserToGroupsInOtherCollection.class);
+		).is(instanceOf(UserServicesRuntimeException_CannotAssignUserToGroupsInOtherCollection.class));
 
 		services.createUser("undertaker", (req) -> req.setNameEmail("The", "Undertaker", "the_undertaker@constellio.com")
 				.addCollections(collection1, collection3).addToGroupsInEachCollection("g1", "g2")

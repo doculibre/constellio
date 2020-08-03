@@ -23,7 +23,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
@@ -666,6 +665,27 @@ public class TestUtils {
 			return new File(dir, name).isDirectory();
 		}
 	};
+
+	public static Condition<? super Throwable> instanceOf(
+			Class<? extends RuntimeException> exceptionClass) {
+
+		return new Condition<Throwable>() {
+			@Override
+			public boolean matches(Throwable value) {
+
+				if (value == null) {
+					fail("Exception of class '" + exceptionClass + "' was expected");
+				} else {
+					if (!value.getClass().equals(exceptionClass)) {
+						throw new RuntimeException("Unexpected exception thrown", value);
+					}
+				}
+
+				return true;
+			}
+		};
+
+	}
 
 	public static class MapBuilder<K, V> {
 
