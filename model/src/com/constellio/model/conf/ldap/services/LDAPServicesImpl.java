@@ -11,6 +11,7 @@ import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
 import com.constellio.model.conf.ldap.user.LDAPUserBuilder;
 import com.constellio.model.services.users.sync.LDAPFastBind;
+import com.constellio.model.services.users.sync.model.LDAPUsersAndGroups;
 import com.google.common.base.Joiner;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;

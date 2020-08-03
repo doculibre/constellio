@@ -77,7 +77,7 @@ public class LDAPConfigManagementPresenter extends
 
 	public String getAuthenticationResultMessage(LDAPServerConfiguration ldapServerConfiguration,
 												 String user, String password) {
-		LDAPServices ldapServices = LDAPServicesFactory.newLDAPServices(ldapServerConfiguration.getDirectoryType());
+		LDAPServices ldapServices = new LDAPServicesFactory().newLDAPServices(ldapServerConfiguration.getDirectoryType());
 		if (StringUtils.isBlank(user) || StringUtils.isBlank(password)) {
 			return $("ldap.authentication.fail");
 		}
@@ -93,7 +93,7 @@ public class LDAPConfigManagementPresenter extends
 	public String getSynchResultMessage(LDAPServerConfiguration ldapServerConfiguration,
 										LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		StringBuilder result = new StringBuilder();
-		LDAPServices ldapServices = LDAPServicesFactory.newLDAPServices(ldapServerConfiguration.getDirectoryType());
+		LDAPServices ldapServices = new LDAPServicesFactory().newLDAPServices(ldapServerConfiguration.getDirectoryType());
 		List<String> groups = ldapServices.getTestSynchronisationGroups(ldapServerConfiguration, ldapUserSyncConfiguration);
 		if (groups != null && !groups.isEmpty()) {
 			result.append($("ldap.imported.groups") + ":\n\t");

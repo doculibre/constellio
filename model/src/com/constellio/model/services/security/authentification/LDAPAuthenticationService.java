@@ -71,7 +71,7 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 	private boolean authenticateLDAPUser(String username, String password) {
 		LDAPDirectoryType directoryType = ldapServerConfiguration.getDirectoryType();
 		if (ldapServerConfiguration.getDirectoryType() == LDAPDirectoryType.AZURE_AD) {
-			LDAPServices ldapServices = LDAPServicesFactory.newLDAPServices(directoryType);
+			LDAPServices ldapServices = new LDAPServicesFactory().newLDAPServices(directoryType);
 			String userEmail = userServices.getUserInfos(username).getEmail();
 			try {
 				ldapServices.authenticateUser(ldapServerConfiguration, userEmail, password);

@@ -10,7 +10,6 @@ import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.services.LDAPServices;
-import com.constellio.model.conf.ldap.services.LDAPServices.LDAPUsersAndGroups;
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
@@ -28,6 +27,8 @@ import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
 import com.constellio.model.services.users.UserUtils;
+import com.constellio.model.services.users.sync.model.LDAPUsersAndGroups;
+import com.constellio.model.services.users.sync.model.UpdatedUsersAndGroups;
 import com.google.common.base.Joiner;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Transformer;
@@ -57,6 +58,7 @@ public class LDAPUserSyncManager implements StatefulService {
 	BackgroundThreadsManager backgroundThreadsManager;
 	boolean processingSynchronizationOfUsers = false;
 	DataLayerFactory dataLayerFactory;
+	LDAPServicesFactory ldapServicesFactory;
 
 	private ConstellioJobManager constellioJobManager;
 
@@ -66,6 +68,19 @@ public class LDAPUserSyncManager implements StatefulService {
 		this.dataLayerFactory = modelLayerFactory.getDataLayerFactory();
 		this.ldapConfigurationManager = modelLayerFactory.getLdapConfigurationManager();
 		this.constellioJobManager = modelLayerFactory.getDataLayerFactory().getConstellioJobManager();
+		this.ldapServicesFactory = new LDAPServicesFactory();
+	}
+
+	public LDAPUserSyncManager(LDAPConfigurationManager ldapConfigurationManager,
+							   RecordServices recordServices, DataLayerFactory dataLayerFactory,
+							   UserServices userServices, ConstellioJobManager constellioJobManager,
+							   LDAPServicesFactory ldapServicesFactory) {
+		this.recordServices = recordServices;
+		this.userServices = userServices;
+		this.dataLayerFactory = dataLayerFactory;
+		this.ldapConfigurationManager = ldapConfigurationManager;
+		this.constellioJobManager = constellioJobManager;
+		this.ldapServicesFactory = ldapServicesFactory;
 	}
 
 	@Override
@@ -172,7 +187,7 @@ public class LDAPUserSyncManager implements StatefulService {
 
 		List<String> usersIdsAfterSynchronisation = new ArrayList<>();
 		List<String> groupsIdsAfterSynchronisation = new ArrayList<>();
-		LDAPServices ldapServices = LDAPServicesFactory.newLDAPServices(serverConfiguration.getDirectoryType());
+		LDAPServices ldapServices = this.ldapServicesFactory.newLDAPServices(serverConfiguration.getDirectoryType());
 		List<String> selectedCollectionsCodes = userSyncConfiguration.getSelectedCollectionsCodes();
 
 		//FIXME cas rare mais possible nom d utilisateur/de groupe non unique (se trouvant dans des urls differentes)
@@ -196,12 +211,12 @@ public class LDAPUserSyncManager implements StatefulService {
 		//remove inexistingUsers
 		List<String> removedUsersIds = (List<String>) CollectionUtils
 				.subtract(usersIdsBeforeSynchronisation, usersIdsAfterSynchronisation);
-		removeUsersExceptAdmins(removedUsersIds);
+		//removeUsersExceptAdmins(removedUsersIds);
 
 		//remove inexistingGroups
 		List<String> removedGroupsIds = (List<String>) CollectionUtils
 				.subtract(groupsIdsBeforeSynchronisation, groupsIdsAfterSynchronisation);
-		removeGroups(removedGroupsIds);
+		//removeGroups(removedGroupsIds);
 	}
 
 	private List<String> getNonEmptyUrls(LDAPServerConfiguration serverConfiguration) {
@@ -436,28 +451,6 @@ public class LDAPUserSyncManager implements StatefulService {
 
 	public boolean isSynchronizing() {
 		return this.processingSynchronizationOfUsers;
-	}
-
-	private class UpdatedUsersAndGroups {
-
-		private Set<String> usersNames = new HashSet<>();
-		private Set<String> groupsCodes = new HashSet<>();
-
-		public void addUsername(String username) {
-			usersNames.add(username);
-		}
-
-		public Set<String> getUsersNames() {
-			return usersNames;
-		}
-
-		public Set<String> getGroupsCodes() {
-			return groupsCodes;
-		}
-
-		public void addGroupCode(String groupCode) {
-			groupsCodes.add(groupCode);
-		}
 	}
 
 	public static class LDAPSynchProgressionInfo {
