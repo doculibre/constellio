@@ -1,6 +1,7 @@
 package com.constellio.model.services.encrypt;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.services.encrypt.EncryptionServicesRuntimeException.EncryptionServicesRuntimeException_InvalidKey;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
@@ -33,7 +34,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EncryptionServices {
+	private static final String OLD_DEFAULT_ENCRYPTION_ALGORITHM = "AES/CBC/PKCS5Padding";
+
 	byte[] key = new byte[16];
+	@Deprecated
 	byte[] iv = new byte[16];
 	boolean initialized = false;
 	boolean lostPreviousKey;
@@ -57,6 +61,17 @@ public class EncryptionServices {
 	}
 
 	public EncryptionServices withKey(Key key)
+			throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+		if (initialized) {
+			throw new RuntimeException("Already intialized");
+		}
+		System.arraycopy(key.getEncoded(), 16, this.key, 0, 16);
+		initialized = true;
+		return this;
+	}
+
+	@Deprecated
+	public EncryptionServices withKeyAndIV(Key key)
 			throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
 		if (initialized) {
 			throw new RuntimeException("Already intialized");
@@ -94,7 +109,7 @@ public class EncryptionServices {
 	//
 
 	public Object encryptWithAppKey(Object toEncrypt) {
-		return encrypt(toEncrypt, key, iv);
+		return encrypt(toEncrypt, key, null);
 	}
 
 	public Object encrypt(Object toEncrypt, Key key) {
@@ -152,7 +167,7 @@ public class EncryptionServices {
 	//
 
 	public File encryptWithAppKey(File toEncrypt, File encryptedFile) {
-		return encrypt(toEncrypt, encryptedFile, key, iv);
+		return encrypt(toEncrypt, encryptedFile, key, this.iv);
 	}
 
 	public File encrypt(File toEncrypt, File encryptedFile, Key key) {
@@ -200,11 +215,50 @@ public class EncryptionServices {
 	//
 
 	public Object decryptWithAppKey(Object toDecrypt) {
-		return decrypt(toDecrypt, key, iv);
+		return decrypt(toDecrypt, key, null);
 	}
 
 	public Object decrypt(Object toDecrypt, Key key) {
 		return decrypt(toDecrypt, key, null);
+	}
+
+
+	public String decryptWithOldWayAppKey(String encryptedText) {
+		return decryptWithOldWayAppKey(encryptedText, OLD_DEFAULT_ENCRYPTION_ALGORITHM);
+	}
+
+	public Object decryptWithOldWayAppKey(Object encryptedText) {
+		if (encryptedText instanceof String) {
+			return decryptWithOldWayAppKey((String) encryptedText);
+
+		} else if (encryptedText instanceof List) {
+			List<Object> list = (List<Object>) encryptedText;
+			List<Object> decryptedValues = new ArrayList<>();
+
+			for (Object item : list) {
+				decryptedValues.add(decryptWithOldWayAppKey(item));
+			}
+
+			return decryptedValues;
+
+		} else {
+			throw new IllegalArgumentException("Unsupported element of class '" + encryptedText.getClass().getName() + "'");
+		}
+
+	}
+
+	public String decryptWithOldWayAppKey(String encryptedBase64, String algorithm) {
+		try {
+			Cipher cipher = Cipher.getInstance(algorithm);
+			cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
+			byte[] decryptedText = cipher.doFinal(Base64.decodeBase64(encryptedBase64));
+			return new String(decryptedText);
+		} catch (Exception e) {
+			if (lostPreviousKey || Toggle.LOST_PRIVATE_KEY.isEnabled()) {
+				return encryptedBase64;
+			}
+			throw new RuntimeException("Cannot decrypt '" + encryptedBase64 + "'", e);
+		}
 	}
 
 	private Object decrypt(Object toDecrypt, Object key, byte[] iv) {
