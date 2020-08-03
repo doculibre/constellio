@@ -228,7 +228,7 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		assertThat(collectionsInVersionProperties).doesNotContain("constellio_version");
 
 		assertThat(userServices.getUserInfos(bobGratton).getCollections()).doesNotContain("constellio");
-		assertThat(userServices.getGroup("legends").getUsersAutomaticallyAddedToCollections()).doesNotContain("constellio")
+		assertThat(userServices.getGroup("legends").getCollections()).doesNotContain("constellio")
 				.contains("doculibre");
 	}
 

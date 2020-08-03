@@ -19,7 +19,7 @@ public class GlobalGroupActionsServices {
 
 	public boolean isAddSubGroupActionPossible(SystemWideGroup group, User user) {
 
-		return group.getStatus() == GlobalGroupStatus.ACTIVE
+		return group.getStatus(user.getCollection()) == GlobalGroupStatus.ACTIVE
 			   && group.isLocallyCreated()
 			   && appLayerSystemExtensions.isAddSubGroupActionPossibleOnGlobalGroup(group, user);
 	}
@@ -32,7 +32,7 @@ public class GlobalGroupActionsServices {
 
 	public boolean isDeleteActionPossible(SystemWideGroup group, User user) {
 
-		return group.getStatus() == GlobalGroupStatus.ACTIVE
+		return group.getStatus(user.getCollection()) == GlobalGroupStatus.ACTIVE
 			   && group.isLocallyCreated()
 			   && appLayerSystemExtensions.isDeleteActionPossibleOnGlobalGroup(group, user);
 	}

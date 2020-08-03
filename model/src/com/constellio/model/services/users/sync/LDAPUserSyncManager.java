@@ -311,7 +311,7 @@ public class LDAPUserSyncManager implements StatefulService {
 		Set<String> usersAutomaticallyAddedToCollections;
 		try {
 			SystemWideGroup group = userServices.getGroup(code);
-			usersAutomaticallyAddedToCollections = new HashSet<>(group.getUsersAutomaticallyAddedToCollections());
+			usersAutomaticallyAddedToCollections = new HashSet<>(group.getCollections());
 			usersAutomaticallyAddedToCollections.addAll(selectedCollectionsCodes);
 		} catch (UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup e) {
 			usersAutomaticallyAddedToCollections = new HashSet<>();

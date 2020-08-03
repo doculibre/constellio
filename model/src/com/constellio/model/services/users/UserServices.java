@@ -267,7 +267,7 @@ public class UserServices {
 			if (group == null) {
 				throw new UserServicesRuntimeException_InvalidGroup(groupCode);
 			}
-			for (String collection : group.getUsersAutomaticallyAddedToCollections()) {
+			for (String collection : group.getCollections()) {
 				if (collections.contains(collection)) {
 					savedUserCredential = savedUserCredential.addCollection(collection);
 				}
