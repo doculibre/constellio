@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 
 @InternetTest
-public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
+public class LegacyLDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 	ModelLayerFactory modelLayerFactory;
 
 	UserServices userServices;

@@ -54,6 +54,11 @@ public class UserRecordActionsServices {
 			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS);
 	}
 
+	public boolean isChangeSynchroActionPossible(Record record, User user) {
+		return userServices.canAddOrModifyUserAndGroup()
+			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS);
+	}
+
 	public boolean isManageSecurityActionPossible(Record record, User user) {
 		return userServices.canAddOrModifyUserAndGroup()
 			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS);
