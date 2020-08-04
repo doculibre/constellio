@@ -55,6 +55,7 @@ import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_E
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_FR;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_TITLE_PARAMETER;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_USERS_CANDIDATES;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.TERMINATED_STATUS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -105,8 +106,15 @@ public class TaskReminderEmailManager implements StatefulService {
 		if (ReindexingServices.getReindexingInfos() == null
 			&& appLayerFactory.getModelLayerFactory().getRecordsCaches().areSummaryCachesInitialized()) {
 			LogicalSearchQuery query = new LogicalSearchQuery(
-					from(taskSchemas.userTask.schema()).where(taskSchemas.userTask.nextReminderOn())
-							.isLessOrEqualThan(TimeProvider.getLocalDate()));
+					from(taskSchemas.userTask.schemaType())
+							.where(taskSchemas.userTask.nextReminderOn())
+							.isLessOrEqualThan(TimeProvider.getLocalDate())
+							.andWhere(taskSchemas.userTask.status())
+							.isNotEqual(taskSchemas.getFinishedOrClosedStatuses())
+							.andWhere(taskSchemas.userTask.statusType())
+							.isNotEqual(TERMINATED_STATUS)
+							.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+			);
 			do {
 				query.setNumberOfRows(RECORDS_BATCH);
 				Transaction transaction = new Transaction();
