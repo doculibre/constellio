@@ -12,7 +12,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.sync.model.LDAPUsersAndGroups;
 import com.constellio.model.services.users.sync.model.LDAPUsersAndGroupsBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -26,13 +25,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 public class LDAPUserSyncManagerFrancisRealTest extends ConstellioTest {
 	ModelLayerFactory modelLayerFactory;
-
-	UserServices userServices;
 
 	@Mock
 	private LDAPConfigurationManager ldapConfigurationManager;
@@ -51,10 +47,8 @@ public class LDAPUserSyncManagerFrancisRealTest extends ConstellioTest {
 	public void setup()
 			throws Exception {
 		//givenConstellioProperties(LDAPTestConfig.getConfigMap());
-		givenCollectionWithTitle(zeCollection, "Collection de test");
-		givenCollectionWithTitle(businessCollection, "Collection de Rida");
+		prepareSystem(withZeCollection(), withCollection(businessCollection));
 		modelLayerFactory = getModelLayerFactory();
-		userServices = spy(modelLayerFactory.newUserServices());
 
 		saveValidLDAPConfigWithEntrepriseCollectionSelected();
 
@@ -63,12 +57,6 @@ public class LDAPUserSyncManagerFrancisRealTest extends ConstellioTest {
 		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
 	}
 
-	private void saveValidLDAPConfigWithEntrepriseCollectionSelected() {
-		this.ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
-		this.ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(
-				asList(businessCollection));
-
-	}
 
 	@Test
 	public void givenUserSyncConfiguredThenRunAndVerifyImportedUserSync()
@@ -103,16 +91,25 @@ public class LDAPUserSyncManagerFrancisRealTest extends ConstellioTest {
 
 	}
 
+	// ----- Utility methods
+
+	private void saveValidLDAPConfigWithEntrepriseCollectionSelected() {
+		this.ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
+		this.ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(
+				asList(businessCollection));
+
+	}
+
 	private OngoingStubbing<LDAPUsersAndGroups> whenRetrievingInfosFromLDAP() {
 		return when(ldapServices.importUsersAndGroups(any(LDAPServerConfiguration.class), any(LDAPUserSyncConfiguration.class), anyString()));
 	}
 
 	private UserCredential user(String code) {
-		return userServices.getUserCredential(code);
+		return modelLayerFactory.newUserServices().getUserCredential(code);
 	}
 
 	private User user(String username, String collection) {
-		return userServices.getUserInCollection(username, collection);
+		return modelLayerFactory.newUserServices().getUserInCollection(username, collection);
 	}
 
 	private void sync() {
