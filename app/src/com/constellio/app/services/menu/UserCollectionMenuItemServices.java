@@ -21,7 +21,6 @@ import static com.constellio.app.services.menu.UserCollectionMenuItemServices.Us
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_ADD_TO_GROUP;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_CHANGE_STATUS;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_DELETE;
-import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_EDIT;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_MANAGE_ROLES;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_MANAGE_SECURITY;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -54,13 +53,13 @@ public class UserCollectionMenuItemServices {
 			//			}
 
 			if (userRecords.size() == 1) {
-				if (!filteredActionTypes.contains(USER_EDIT.name())) {
-					MenuItemAction menuItemAction = buildMenuItemAction(USER_EDIT.name(),
-							isMenuItemActionPossible(USER_EDIT.name(), userRecords.get(0), user, params),
-							$("CollectionSecurityManagement.edit"), FontAwesome.EDIT, -1, 150,
-							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(userRecords, params));
-					menuItemActions.add(menuItemAction);
-				}
+				//				if (!filteredActionTypes.contains(USER_EDIT.name())) {
+				//					MenuItemAction menuItemAction = buildMenuItemAction(USER_EDIT.name(),
+				//							isMenuItemActionPossible(USER_EDIT.name(), userRecords.get(0), user, params),
+				//							$("CollectionSecurityManagement.edit"), FontAwesome.EDIT, -1, 150,
+				//							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(userRecords, params));
+				//					menuItemActions.add(menuItemAction);
+				//				}
 			}
 
 			if (!filteredActionTypes.contains(USER_ADD_TO_GROUP.name())) {

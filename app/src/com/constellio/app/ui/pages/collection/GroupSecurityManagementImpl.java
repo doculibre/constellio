@@ -86,6 +86,7 @@ public class GroupSecurityManagementImpl extends BaseViewImpl implements Securit
 		activeGroup.addItem(GlobalGroupStatus.INACTIVE);
 		activeGroup.setItemCaption(GlobalGroupStatus.INACTIVE, $("UserCredentialStatus.i"));
 		activeGroup.select(GlobalGroupStatus.ACTIVE);
+		activeGroup.addStyleName("horizontal");
 
 		activeGroup.addValueChangeListener(optionValueChangeListener = new OptionGroup.ValueChangeListener() {
 			@Override
@@ -147,21 +148,6 @@ public class GroupSecurityManagementImpl extends BaseViewImpl implements Securit
 			clearSearchButton.addStyleName("folder-search-clear");
 		}
 
-		BaseButton searchListButton = new LinkButton($("CollectionSecurityManagement.showSearchInGroups")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				if (searchLayout != null) {
-					if (searchLayout.isVisible()) {
-						setCaption($("CollectionSecurityManagement.showSearchInGroups"));
-					} else {
-						setCaption($("CollectionSecurityManagement.hideSearchInGroups"));
-					}
-					searchLayout.setVisible(!searchLayout.isVisible());
-					searchField.focus();
-				}
-			}
-		};
-		searchListButton.addStyleName("search-in-folder-button");
 		if (searchField == null) {
 			searchField = new StringAutocompleteField<String>(new StringAutocompleteField.AutocompleteSuggestionsProvider<String>() {
 				@Override
@@ -207,7 +193,6 @@ public class GroupSecurityManagementImpl extends BaseViewImpl implements Securit
 			searchLayout.addStyleName("folder-search-layout");
 			searchLayout.setSpacing(true);
 			searchLayout.setWidth("50%");
-			searchLayout.setVisible(false);
 
 			I18NHorizontalLayout searchFieldAndButtonLayout = new I18NHorizontalLayout(searchField, searchButton);
 			searchFieldAndButtonLayout.addStyleName("folder-search-field-and-button-layout");
@@ -224,9 +209,9 @@ public class GroupSecurityManagementImpl extends BaseViewImpl implements Securit
 		VerticalLayout searchToggleAndFieldsLayout = new VerticalLayout();
 		searchToggleAndFieldsLayout.addStyleName("search-folder-toggle-and-fields-layout");
 		searchToggleAndFieldsLayout.addComponent(activeGroup);
-		searchToggleAndFieldsLayout.addComponent(searchListButton);
 		searchToggleAndFieldsLayout.addComponent(searchLayout);
 		searchToggleAndFieldsLayout.addComponent(viewerPanel);
+		searchToggleAndFieldsLayout.setSpacing(true);
 		mainLayout.replaceComponent(contentLayout, contentLayout = searchToggleAndFieldsLayout);
 
 		viewerPanel.setSelectionActionButtons();
@@ -238,12 +223,12 @@ public class GroupSecurityManagementImpl extends BaseViewImpl implements Securit
 		ViewableRecordVOTablePanel panel = new ViewableRecordVOTablePanel(recordVOContainer) {
 			@Override
 			protected boolean isSelectColumn() {
-				return !nestedView;
+				return true;
 			}
 
 			@Override
-			public boolean isNested() {
-				return nestedView;
+			public boolean isMenuBarColumn() {
+				return true;
 			}
 
 			@Override
@@ -252,29 +237,11 @@ public class GroupSecurityManagementImpl extends BaseViewImpl implements Securit
 				GroupSecurityManagementImpl.this.setQuickActionButtonsVisible(visible);
 			}
 
-			@Override
-			public boolean isDropSupported() {
-				return dragNDropAllowed;
-			}
-
 			//TODO
 			// be able to show group's profile picture (or group)
 			@Override
 			protected boolean isShowThumbnailCol() {
 				return false;
-			}
-
-			@Override
-			public boolean isRowDragSupported() {
-				return !isNested() && dragRowsEnabled;
-			}
-
-			@Override
-			protected void recordsDroppedOn(List<RecordVO> sourceRecordVOs, RecordVO targetRecordVO,
-											Boolean above) {
-				if (dragNDropAllowed) {
-					presenter.recordsDroppedOn(sourceRecordVOs, targetRecordVO);
-				}
 			}
 
 			@Override

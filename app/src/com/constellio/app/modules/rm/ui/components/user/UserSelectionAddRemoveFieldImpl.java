@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.user;
 
+import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
@@ -18,7 +19,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class UserSelectionAddRemoveFieldImpl extends ListAddRemoveField<String, AbstractField<String>> implements AdditionnalRecordField<List<String>> {
 
 	private List<Record> users;
-	private Map<String, String> userTitles;
+	private Map<String, ReferenceDisplay> userTitles;
 
 	public UserSelectionAddRemoveFieldImpl(SearchResponseIterator<Record> users) {
 		super();
@@ -28,7 +29,11 @@ public class UserSelectionAddRemoveFieldImpl extends ListAddRemoveField<String, 
 		setRequired(false);
 		this.users = users.stream().collect(Collectors.toList());
 		this.userTitles = new HashMap<>();
-		this.users.stream().forEach(record -> userTitles.put(record.getId(), record.getTitle()));
+		this.users.stream().forEach(record -> {
+			ReferenceDisplay referenceDisplay = new ReferenceDisplay(record.getId(), false);
+			referenceDisplay.setCaption(referenceDisplay.getCaption());
+			userTitles.put(record.getId(), referenceDisplay);
+		});
 	}
 
 	@Override
@@ -64,7 +69,7 @@ public class UserSelectionAddRemoveFieldImpl extends ListAddRemoveField<String, 
 	@Override
 	protected String getItemCaption(Object itemId) {
 		if (userTitles.containsKey(itemId)) {
-			return userTitles.get(itemId);
+			return userTitles.get(itemId).getCaption();
 		}
 		return super.getItemCaption(itemId);
 	}

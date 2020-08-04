@@ -1,6 +1,8 @@
 package com.constellio.app.modules.rm.ui.components.group;
 
 import com.constellio.app.modules.rm.wrappers.RMUser;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
@@ -19,17 +21,23 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class GroupSelectionAddRemoveFieldImpl extends ListAddRemoveField<String, AbstractField<String>> implements AdditionnalRecordField<List<String>> {
 
 	private List<Record> groups;
-	private Map<String, String> groupTitles;
+	private Map<String, ReferenceDisplay> groupTitles;
 
 	public GroupSelectionAddRemoveFieldImpl(SearchResponseIterator<Record> groups) {
 		super();
+		RecordToVOBuilder builder = new RecordToVOBuilder();
 		setCaption($("CollectionSecurityManagement.groupsSelected"));
 		addStyleName("favoritesDisplayOrder");
 		setId("favoritesDisplayOrder");
 		setRequired(false);
 		this.groups = groups.stream().collect(Collectors.toList());
 		this.groupTitles = new HashMap<>();
-		this.groups.stream().forEach(record -> groupTitles.put(record.getId(), record.getTitle()));
+
+		this.groups.stream().forEach(record -> {
+			ReferenceDisplay referenceDisplay = new ReferenceDisplay(record.getId(), false);
+			referenceDisplay.setCaption(referenceDisplay.getCaption());
+			groupTitles.put(record.getId(), referenceDisplay);
+		});
 	}
 
 	@Override
@@ -65,7 +73,7 @@ public class GroupSelectionAddRemoveFieldImpl extends ListAddRemoveField<String,
 	@Override
 	protected String getItemCaption(Object itemId) {
 		if (groupTitles.containsKey(itemId)) {
-			return groupTitles.get(itemId);
+			return groupTitles.get(itemId).getCaption();
 		}
 		return super.getItemCaption(itemId);
 	}
