@@ -35,12 +35,11 @@ public class CoreMigrationTo_9_2AcceptanceTest extends ConstellioTest {
 
 		String ldapUserSync = (String) encryptionServices.decryptWithAppKey(ldapUserSyncConfiguration.getPassword());
 
-		ldapUserSync.equals("FLKJDjkgfkdljg");
+		assertThat(ldapUserSync).isEqualTo("FLKJDjkgfkdljg");
 
 		EmailConfigurationsManager emailConfigurationsManager = getModelLayerFactory().getEmailConfigurationsManager();
 
 		EmailServerConfiguration emailServerConfigurationzeCollection = emailConfigurationsManager.getEmailConfiguration(zeCollection, false);
-
 
 		String decryptedKeyZeCollection = (String) encryptionServices.decryptWithAppKey(emailServerConfigurationzeCollection.getPassword());
 
@@ -57,6 +56,23 @@ public class CoreMigrationTo_9_2AcceptanceTest extends ConstellioTest {
 		assertThat(connectorHttpInstance.getPasssword()).isEqualTo("gdfsklgkljsfd");
 	}
 
+	@Test
+	public void whenMigratingTo9_2WithMultipleEncryptedFieldOnSameSchemaThenFieldsAreRencriptedInTheNewWay() {
+		givenTransactionLogIsEnabled();
+		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
+		File state = new File(statesFolder, "given_system_in_9.2_withMultipleConnector.zip");
+
+		getCurrentTestSession().getFactoriesTestFeatures()
+				.givenSystemInState(state);
+
+		ESSchemasRecordsServices schemasRecordsServices = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		ConnectorHttpInstance connectorHttpInstance1 = schemasRecordsServices.getConnectorHttpInstanceWithCode("httpconector1");
+		assertThat(connectorHttpInstance1.getPasssword()).isEqualTo("Fkjldklgjfdjkldg342");
+
+		ConnectorHttpInstance connectorHttpInstance2 = schemasRecordsServices.getConnectorHttpInstanceWithCode("httpconector2");
+		assertThat(connectorHttpInstance2.getPasssword()).isEqualTo("gjdfjklgfdklgfd");
+	}
 
 	@Test
 	public void whenMigratingTo9_2ThenUserCredentialIsRetrivableByServiceKey() {

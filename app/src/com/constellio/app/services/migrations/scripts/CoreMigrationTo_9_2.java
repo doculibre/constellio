@@ -57,10 +57,9 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 
 		if (collection.equals(Collection.SYSTEM_COLLECTION)) {
 			new EncryptionSystemCollectionMigration_9_2(collection, appLayerFactory).doMigration();
-			new EncryptionMigration_9_2(collection, appLayerFactory).doMigration();
-		} else {
-			new EncryptionMigration_9_2(collection, appLayerFactory).doMigration();
 		}
+
+		new EncryptionMigration_9_2(collection, appLayerFactory).doMigration();
 	}
 
 	class SchemaAlterationFor_9_2 extends MetadataSchemasAlterationHelper {
