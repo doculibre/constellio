@@ -18,6 +18,7 @@ import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.entities.records.RecordEventDataSerializerExtension;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.background.ModelLayerBackgroundThreadsManager;
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
@@ -51,6 +52,8 @@ import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordUsa
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordUsageCounterHookRetriever;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHook;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.UserCredentialTokenCacheHook;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.UserCredentialTokenCacheHookRetriever;
 import com.constellio.model.services.records.cache.dataStore.FileSystemRecordsValuesCacheDataStore;
 import com.constellio.model.services.records.cache.dataStore.RecordsCachesDataStore;
 import com.constellio.model.services.records.cache.eventBus.EventsBusRecordsCachesImpl;
@@ -145,6 +148,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private final TaxonomiesSearchServicesCache taxonomiesSearchServicesCache;
 	private final Map<String, TaxonomyRecordsHookRetriever> taxonomyRecordsHookRetrieverMap = new HashMap<>();
 	private final Map<String, RecordUsageCounterHookRetriever> recordUsageCounterHookRetrieverMap = new HashMap<>();
+	UserCredentialTokenCacheHookRetriever userCredentialTokenCacheHookRetriever;
 
 	private final ModelLayerCachesManager modelLayerCachesManager;
 
@@ -229,6 +233,19 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 				= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder, memoryCacheCopyCacheFolder, localCacheConfigs);
 
 		RecordsCachesDataStore memoryDataStore = new RecordsCachesDataStore(this);
+
+		add(new StatefulService() {
+			@Override
+			public void initialize() {
+				configureRecordsCacheHooks();
+			}
+
+			@Override
+			public void close() {
+
+			}
+		});
+
 		this.recordsCaches = add(new EventsBusRecordsCachesImpl(this, fileSystemRecordsValuesCacheDataStore, memoryDataStore));
 
 		this.recordMigrationsManager = add(new RecordMigrationsManager(this));
@@ -285,6 +302,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 			}
 
 		});
+
 	}
 
 	private void afterInitialize() {
@@ -315,8 +333,14 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		}
 	}
 
+	public void configureRecordsCacheHooks() {
+
+		userCredentialTokenCacheHookRetriever = new UserCredentialTokenCacheHookRetriever(
+				recordsCaches.registerRecordIdsHook(Collection.SYSTEM_COLLECTION, new UserCredentialTokenCacheHook(this)), this);
+	}
 
 	public void onCollectionInitialized(String collection) {
+
 		taxonomyRecordsHookRetrieverMap.put(collection, new TaxonomyRecordsHookRetriever(
 				recordsCaches.registerRecordCountHook(collection, new TaxonomyRecordsHook(collection, this)), this));
 
@@ -634,5 +658,9 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	@Override
 	public void markLocalCachesAsRequiringRebuild() {
 		markForCacheRebuild.run();
+	}
+
+	public UserCredentialTokenCacheHookRetriever getUserCredentialTokenCacheHookRetriever() {
+		return userCredentialTokenCacheHookRetriever;
 	}
 }

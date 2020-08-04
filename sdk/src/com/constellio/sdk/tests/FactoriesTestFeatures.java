@@ -30,6 +30,7 @@ import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TenantUtils;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.FakeEncryptionServices;
@@ -45,6 +46,7 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.Key;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -70,6 +72,8 @@ public class FactoriesTestFeatures {
 	private boolean dummyPasswords;
 
 	private File initialState;
+	private String privateKeySalt;
+	private String privateKeyPassword;
 	private final FileSystemTestFeatures fileSystemTestFeatures;
 	//private ConstellioFactories factoriesInstance;
 	private List<Class<?>> spiedClasses = new ArrayList<>();
@@ -407,13 +411,31 @@ public class FactoriesTestFeatures {
 				modelLayerConfigurationAlterations.add(new ModelLayerConfigurationAlteration() {
 					@Override
 					public void alter(InMemoryModelLayerConfiguration configuration) {
-						Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
-							@Override
-							public EncryptionServices get() {
-								return new FakeEncryptionServices();
-							}
-						};
-						configuration.setEncryptionServicesFactory(encryptionServicesFactory);
+						if (privateKeySalt != null && privateKeyPassword != null) {
+
+							Key key = EncryptionKeyFactory.newApplicationKey(privateKeyPassword, privateKeySalt);
+							Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
+								@Override
+								public EncryptionServices get() {
+									try {
+										return new EncryptionServices(false).withKey(key);
+									} catch (Exception e) {
+										throw new RuntimeException(e);
+									}
+								}
+							};
+							configuration.setEncryptionServicesFactory(encryptionServicesFactory);
+
+						} else {
+
+							Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
+								@Override
+								public EncryptionServices get() {
+									return new FakeEncryptionServices();
+								}
+							};
+							configuration.setEncryptionServicesFactory(encryptionServicesFactory);
+						}
 					}
 				});
 			}
@@ -550,6 +572,12 @@ public class FactoriesTestFeatures {
 	public void givenConstellioProperties(Map<String, String> configs) {
 		this.configs.putAll(configs);
 
+	}
+
+	public FactoriesTestFeatures givenPrivateKey(String privateKeySalt, String privateKeyPassword) {
+		this.privateKeySalt = privateKeySalt;
+		this.privateKeyPassword = privateKeyPassword;
+		return this;
 	}
 
 	public FactoriesTestFeatures givenSystemInState(File state) {

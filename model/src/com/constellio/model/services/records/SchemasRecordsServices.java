@@ -572,6 +572,10 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return wrapUser(get(id));
 	}
 
+	public UserCredential getUserCredential(String id) {
+		return wrapUserCredential(get(id));
+	}
+
 	public Group getGroup(String id) {
 		return wrapGroup(get(id));
 	}
