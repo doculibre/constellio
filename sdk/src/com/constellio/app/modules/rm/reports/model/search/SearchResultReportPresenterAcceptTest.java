@@ -53,7 +53,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.execute(chuckNorris, (req) -> req.addCollection(zeCollection));
+		userServices.execute(chuckNorris, (req) -> req.addToCollection(zeCollection));
 
 		reportTestUtils = new ReportTestUtils(getModelLayerFactory(), zeCollection, records);
 

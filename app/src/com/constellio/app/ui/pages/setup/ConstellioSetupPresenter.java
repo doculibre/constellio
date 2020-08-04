@@ -223,7 +223,7 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 							.setEmail("admin@administration.com")
 							.setServiceKey(null)
 							.setSystemAdmin(false)
-							.addCollection(collectionCode)
+							.addToCollection(collectionCode)
 							.setStatusForAllCollections(UserCredentialStatus.ACTIVE)
 							.setDomain(null)
 							.setMsExchDelegateListBL(null)
@@ -231,7 +231,7 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 
 
 					userServices.execute(adminRequest);
-					userServices.execute("admin", (req) -> req.addCollection(collectionCode));
+					userServices.execute("admin", (req) -> req.addToCollection(collectionCode));
 					User user = userServices.getUserRecordInCollection("admin", collectionCode);
 					String effectiveAdminPassword;
 					if (StringUtils.isBlank(adminPassword)) {

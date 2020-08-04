@@ -341,7 +341,7 @@ public class Users {
 				.setServiceKey(null)
 				.setSystemAdmin(false)
 				.addToGroupsInEachCollection(globalGroups)
-				.addCollections(collections)
+				.addToCollections(collections)
 				.setStatusForAllCollections(UserCredentialStatus.ACTIVE)
 				.setSyncMode(UserSyncMode.LOCALLY_CREATED)
 				.setDomain("domain")

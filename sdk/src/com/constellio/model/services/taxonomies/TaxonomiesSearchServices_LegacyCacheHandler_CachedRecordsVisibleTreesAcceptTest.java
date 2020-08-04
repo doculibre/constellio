@@ -85,7 +85,7 @@ public class TaxonomiesSearchServices_LegacyCacheHandler_CachedRecordsVisibleTre
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		UserCredential userCredential = userServices.getUserCredential(aliceWonderland);
-		userServices.execute(userCredential.getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(userCredential.getUsername(), (req) -> req.addToCollection(zeCollection));
 		alice = userServices.getUserInCollection(aliceWonderland, zeCollection);
 		manager = getModelLayerFactory().getMetadataSchemasManager();
 

@@ -2,7 +2,6 @@ package com.constellio.model.services.users;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -28,6 +27,7 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUsername;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_LastNameRequired;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NameRequired;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserAlreadyExists;
 import com.constellio.sdk.tests.ConstellioTest;
 import lombok.AllArgsConstructor;
@@ -50,6 +50,7 @@ import static com.constellio.sdk.tests.TestUtils.instanceOf;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
@@ -108,10 +109,8 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenCreatingUserThenValidateFieldsAndSaveTheUser() throws Exception {
 
-		Toggle.NEW_USER_SERVICES.enable();
-
 		assertThatException(() -> services.createUser("andre geant", (req) -> req.setName("André", "Le géant")
-				.setEmail("andre@constellio.com").addCollection(collection1))
+				.setEmail("andre@constellio.com").addToCollection(collection1))
 		).is(instanceOf(UserServicesRuntimeException_InvalidUsername.class));
 
 		assertThatException(() -> services.createUser("andregeant", (req) -> req.setName("André", "Le géant")
@@ -119,47 +118,46 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		).is(instanceOf(UserServicesRuntimeException_AtLeastOneCollectionRequired.class));
 
 		assertThatException(() -> services.createUser("andregeant", (req) -> req.setName("André", "Le géant")
-				.addCollection(collection1))
+				.addToCollection(collection1))
 		).is(instanceOf(UserServicesRuntimeException_EmailRequired.class));
 
 		assertThatException(() -> services.createUser("andregeant", (req) -> req.setLastName("Le géant")
-				.setEmail("andre@constellio.com").addCollection(collection1))
+				.setEmail("andre@constellio.com").addToCollection(collection1))
 		).is(instanceOf(UserServicesRuntimeException_FirstNameRequired.class));
 
 		assertThatException(() -> services.createUser("andregeant", (req) -> req.setFirstName("André")
-				.setEmail("andre@constellio.com").addCollection(collection1))
+				.setEmail("andre@constellio.com").addToCollection(collection1))
 		).is(instanceOf(UserServicesRuntimeException_LastNameRequired.class));
 
 		assertThatException(() -> services.createUser("andregeant", (req) -> req.setName("André", "Le géant")
-				.setEmail("andre@constellio.com").addCollection("inexistingCollection"))
+				.setEmail("andre@constellio.com").addToCollection("inexistingCollection"))
 		).is(instanceOf(UserServicesRuntimeException_InvalidCollection.class));
 
 
 		assertThatException(() -> services.createUser("andregeant", (req) -> req.setName("André", "Le géant")
-				.setEmail("andre@constellio.com").addCollection(collection1).addToGroupInEachCollection("inexistingGroup"))
+				.setEmail("andre@constellio.com").addToCollection(collection1).addToGroupInEachCollection("inexistingGroup"))
 		).is(instanceOf(UserServicesRuntimeException_InvalidGroup.class));
 
 		services.createUser("andregeant", (req) -> req.setName("André", "Le géant")
-				.setEmail("andre@constellio.com").addCollections(collection1, collection2));
+				.setEmail("andre@constellio.com").addToCollections(collection1, collection2));
 
 		SystemWideUserInfos userInfos = services.getUserInfos("andregeant");
 		assertThat(userInfos.getUsername()).isEqualTo("andregeant");
 		assertThat(userInfos.getFirstName()).isEqualTo("André");
 		assertThat(userInfos.getLastName()).isEqualTo("Le géant");
 		assertThat(userInfos.getEmail()).isEqualTo("andre@constellio.com");
-		assertThat(userInfos.getGlobalGroups()).isEmpty();
 
 		assertThatUser("andregeant").isInCollections(collection1, collection2);
 
 		assertThatException(() -> services.createUser("andregeant", (req) -> req.setName("André", "Le géant")
-				.setEmail("andre2@constellio.com").addCollection(collection1))
+				.setEmail("andre2@constellio.com").addToCollection(collection1))
 		).is(instanceOf(UserServicesRuntimeException_UserAlreadyExists.class));
 		assertThat(user("andregeant", collection1).getEmail()).isEqualTo("andre@constellio.com");
 
 		//Same request, using execute
 		services.execute("andregeant", (req) -> req.setName("André", "Le géant")
-				.setEmail("andre2@constellio.com").addCollection(collection1));
-		assertThat(userInfos.getEmail()).isEqualTo("andre2@constellio.com");
+				.setEmail("andre2@constellio.com").addToCollection(collection1));
+		assertThat(services.getUserInfos("andregeant").getEmail()).isEqualTo("andre2@constellio.com");
 		assertThat(user("andregeant", collection1).getEmail()).isEqualTo("andre2@constellio.com");
 		assertThat(user("andregeant", collection2).getEmail()).isEqualTo("andre2@constellio.com");
 
@@ -168,9 +166,9 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 
 	@Test
-	public void givenExistingUserThenCanModifyInfos() {
+	public void givenExistingUserNameAndEmailThenCanModifyInfos() {
 		services.createUser("andregeant", (req) -> req.setName("André", "Le géant")
-				.setEmail("andre@constellio.com").addCollections(collection1, collection2));
+				.setEmail("andre@constellio.com").addToCollections(collection1, collection2));
 
 		//Possible to modify infos without passing name, email, etc.
 		services.execute("andregeant", (req) -> req.setDn("andre"));
@@ -182,23 +180,29 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		assertThat(userInfos("andregeant").getLastName()).isEqualTo("Ferré");
 
 
-		//TODO Philippe : Tester toutes les métadonnées (ex. jobTitle, phone, etc.) en ajout/modification
+		//TODO Rabab : Tester toutes les métadonnées (ex. jobTitle, phone, etc.) en ajout/modification
+	}
+
+
+	@Test
+	public void whenAddUpdatingUserTrivialInfosThenSaved() {
+		fail("TODO : Tester toutes les métadonnées (ex. jobTitle, phone, etc.) en ajout/modification")
 	}
 
 
 	@Test
 	public void givenUsersInDifferentCollectionsWhenStreamingUsersThenAllReturnedWihoutDuplicates() {
 		services.createUser("andregeant", (req) -> req.setName("André", "Le géant")
-				.setEmail("andre@constellio.com").addCollections(collection2, collection3));
+				.setEmail("andre@constellio.com").addToCollections(collection2, collection3));
 
 		services.createUser("kane", (req) -> req.setName("Fake", "Diesel")
-				.setEmail("kane@constellio.com").addCollections(collection2));
+				.setEmail("kane@constellio.com").addToCollections(collection2));
 
 		services.createUser("machoman", (req) -> req.setName("Macho", "Man")
-				.setEmail("machoman@constellio.com").addCollections(collection1, collection3));
+				.setEmail("machoman@constellio.com").addToCollections(collection1, collection3));
 
 		services.createUser("sting", (req) -> req.setName("Blade Runner", "Sting")
-				.setEmail("sting@constellio.com").addCollections(collection1, collection2, collection3));
+				.setEmail("sting@constellio.com").addToCollections(collection1, collection2, collection3));
 
 		assertThat(services.streamUserInfos().filter((u -> !u.getUsername().equals("admin")))
 				.map((SystemWideUserInfos::getUsername)).collect(toList()))
@@ -233,35 +237,54 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 	public void whenDeletingUsersThenDeleteThemWhereverPossible() {
 
 		services.createUser("rey", (req) -> req.setNameEmail("Rey", "Mysterio", "rey.mysterio@constellio.com")
-				.addCollections(collection1, collection2));
+				.addToCollections(collection1, collection2));
+
+		services.createUser("kane", (req) -> req.setNameEmail("Fake", "Diesel", "kane@constellio.com")
+				.addToCollections(collection1, collection2));
 
 		services.createUser("ric", (req) -> req.setNameEmail("Ric", "Flair", "ric.flair@constellio.com")
-				.addCollections(collection1, collection2));
+				.addToCollections(collection1, collection2));
 		givenUserCreatedRecordsInCollection("ric", collection2);
 
 		services.createUser("embalmer", (req) -> req.setNameEmail("Paul", "Bearer", "embalmer@constellio.com")
-				.addCollections(collection1, collection2));
+				.addToCollections(collection1, collection2));
 		givenUserCreatedUserFoldersInCollection("embalmer", collection1);
 
 		services.createUser("randy", (req) -> req.setNameEmail("Randy", "Orton", "randy.orton@constellio.com")
-				.addCollections(collection1, collection2));
+				.addToCollections(collection1, collection2));
 		givenUserCreatedRecordsInCollection("randy", collection1);
 
 		services.createUser("undertaker", (req) -> req.setNameEmail("The", "Undertaker", "the_undertaker@constellio.com")
-				.addCollections(collection1, collection2));
+				.addToCollections(collection1, collection2));
 		givenUserCreatedUserFoldersInCollection("undertaker", collection2);
 
-		services.execute("rey", (req) -> req.markForDeletionInAllCollections());
-		services.execute("ric", (req) -> req.markForDeletionInAllCollections());
-		services.execute("embalmer", (req) -> req.markForDeletionInAllCollections());
-		services.execute("randy", (req) -> req.markForDeletionInAllCollection(collection1));
-		services.execute("undertaker", (req) -> req.markForDeletionInAllCollection(collection1));
+		services.createUser("andre", (req) -> req.setNameEmail("André", "Le géant", "andre@constellio.com")
+				.addToCollections(collection1, collection2));
+		createAuthorisationGivingAccessToUserInCollection("andre", collection1);
+
+		services.createUser("machoman", (req) -> req.setNameEmail("Macho", "Man", "machoman@constellio.com")
+				.addToCollections(collection1, collection2));
+		createAuthorisationGivingAccessToUserInCollection("machoman", collection1);
+
+		services.execute("rey", (req) -> req.removeFromAllCollections());
+		services.execute("ric", (req) -> req.removeFromAllCollections());
+		services.execute("embalmer", (req) -> req.removeFromAllCollections());
+		services.execute("andre", (req) -> req.removeFromAllCollections());
+
+		services.execute("kane", (req) -> req.removeFromCollection(collection1));
+		services.execute("randy", (req) -> req.removeFromCollection(collection1));
+		services.execute("undertaker", (req) -> req.removeFromCollection(collection1));
+		services.execute("machoman", (req) -> req.removeFromCollection(collection1));
 
 		assertThatUser("rey").doesNotExist();
 		assertThatUser("ric").isPhysicicallyDeletedIn(collection1).hasStatusIn(DISABLED, collection2);
 		assertThatUser("embalmer").hasStatusIn(DISABLED, collection1).isPhysicicallyDeletedIn(collection2);
+		assertThatUser("andre").hasStatusIn(DISABLED, collection1).isPhysicicallyDeletedIn(collection2);
+
+		assertThatUser("kane").isPhysicicallyDeletedIn(collection1).hasStatusIn(ACTIVE, collection2);
 		assertThatUser("randy").hasStatusIn(DISABLED, collection1).hasStatusIn(ACTIVE, collection2);
 		assertThatUser("undertaker").isPhysicicallyDeletedIn(collection1).hasStatusIn(ACTIVE, collection2);
+		assertThatUser("machoman").hasStatusIn(DISABLED, collection1).hasStatusIn(ACTIVE, collection2);
 
 	}
 
@@ -269,16 +292,16 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 	public void whenChangingStatusThenAppliedToSpecifiedCollectionsAndUpdateLogicallyDeletedMetadata() {
 
 		services.createUser("randy", (req) -> req.setNameEmail("Randy", "Orton", "randy.orton@constellio.com")
-				.addCollections(collection1, collection2));
+				.addToCollections(collection1, collection2));
 
 		services.createUser("undertaker", (req) -> req.setNameEmail("The", "Undertaker", "the_undertaker@constellio.com")
-				.addCollections(collection1, collection2));
+				.addToCollections(collection1, collection2));
 
 		services.createUser("shawn", (req) -> req.setNameEmail("Shawn", "Michaels", "shawn.michaels@constellio.com")
-				.addCollections(collection1, collection2));
+				.addToCollections(collection1, collection2));
 
 		services.createUser("rey", (req) -> req.setNameEmail("Rey", "Mysterio", "rey.mysterio@constellio.com")
-				.addCollections(collection1, collection2));
+				.addToCollections(collection1, collection2));
 
 
 		services.execute("randy", (req) -> req.setStatusForAllCollections(SUSPENDED));
@@ -290,15 +313,15 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		services.execute("rey", (req) -> req.setStatusForCollection(PENDING, collection1)
 				.setStatusForCollection(SUSPENDED, collection2));
 
-		assertThatUser("undertaker").hasStatusIn(SUSPENDED, collection1).hasStatusIn(SUSPENDED, collection2);
-		assertThatUser("randy").hasStatusIn(ACTIVE, collection1).hasStatusIn(PENDING, collection2);
+		assertThatUser("randy").hasStatusIn(SUSPENDED, collection1).hasStatusIn(SUSPENDED, collection2);
+		assertThatUser("undertaker").hasStatusIn(ACTIVE, collection1).hasStatusIn(PENDING, collection2);
 		assertThatUser("shawn").hasStatusIn(DISABLED, collection1).hasStatusIn(ACTIVE, collection2);
 		assertThatUser("rey").hasStatusIn(PENDING, collection1).hasStatusIn(SUSPENDED, collection2);
 
-		assertThat(userInfos("undertaker").hasStatusInAllCollection(SUSPENDED)).isTrue();
-		assertThat(userInfos("undertaker").hasStatusInAnyCollection(SUSPENDED)).isTrue();
-		assertThat(userInfos("undertaker").hasStatusInAllCollection(PENDING)).isFalse();
-		assertThat(userInfos("undertaker").hasStatusInAnyCollection(PENDING)).isFalse();
+		assertThat(userInfos("randy").hasStatusInAllCollection(SUSPENDED)).isTrue();
+		assertThat(userInfos("randy").hasStatusInAnyCollection(SUSPENDED)).isTrue();
+		assertThat(userInfos("randy").hasStatusInAllCollection(PENDING)).isFalse();
+		assertThat(userInfos("randy").hasStatusInAnyCollection(PENDING)).isFalse();
 
 		assertThat(userInfos("rey").hasStatusInAllCollection(PENDING)).isFalse();
 		assertThat(userInfos("rey").hasStatusInAnyCollection(PENDING)).isTrue();
@@ -312,19 +335,19 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenAddingAndRemovingCollectionsThenApplied() {
 		services.createUser("embalmer", (req) -> req.setNameEmail("Paul", "Bearer", "embalmer@constellio.com")
-				.addCollections(collection1, collection2));
+				.addToCollections(collection1, collection2));
 		givenUserCreatedUserFoldersInCollection("embalmer", collection2);
 
 		services.createUser("undertaker", (req) -> req.setNameEmail("The", "Undertaker", "the_undertaker@constellio.com")
-				.addCollections(collection1, collection2));
+				.addToCollections(collection1, collection2));
 		givenUserCreatedRecordsInCollection("undertaker", collection2);
 
 		services.createUser("machoman", (req) -> req.setNameEmail("Macho", "Man", "machoman@constellio.com")
-				.addCollections(collection1, collection3));
+				.addToCollections(collection1, collection3));
 
-		services.execute("embalmer", (req) -> req.addCollection(collection3).removeCollection(collection2));
-		services.execute("undertaker", (req) -> req.addCollection(collection3).removeCollection(collection2));
-		services.execute("machoman", (req) -> req.addCollection(collection3).removeCollection(collection2));
+		services.execute("embalmer", (req) -> req.addToCollection(collection3).removeFromCollection(collection2));
+		services.execute("undertaker", (req) -> req.addToCollection(collection3).removeFromCollection(collection2));
+		services.execute("machoman", (req) -> req.addToCollection(collection3).removeFromCollection(collection2));
 
 		assertThatUser("embalmer")
 				.hasStatusIn(ACTIVE, collection1)
@@ -478,14 +501,14 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		createAuthorisationGivingAccessToGroupInCollection("g4", collection2);
 		createAuthorisationGivingAccessToGroupInCollection("g3", collection3);
 
-		services.execute("g2", (req) -> req.removeCollections(collection1, collection2, collection3));
+		services.execute("g2", (req) -> req.removeFromCollections(collection1, collection2, collection3));
 
 		assertThatGroup("g1").isInCollections(collection1, collection2, collection3).isActiveInAllItsCollections();
 		assertThatGroup("g2").isInCollections(collection2, collection3).isInactiveInAllItsCollections();
 		assertThatGroup("g3").isInCollections(collection2, collection3).isInactiveInAllItsCollections();
 		assertThatGroup("g4").isInCollections(collection2).isInactiveInAllItsCollections();
 
-		services.execute("g2", (req) -> req.addCollections(collection1, collection2, collection3));
+		services.execute("g2", (req) -> req.addToCollections(collection1, collection2, collection3));
 
 		assertThatGroup("g1").isInCollections(collection1, collection2, collection3).isActiveInAllItsCollections();
 		assertThatGroup("g2").isInCollections(collection1, collection2, collection3).isActiveInAllItsCollections();
@@ -591,10 +614,10 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		services.createGroup("g3", (req) -> req.setName("Group 3").addCollections(collection1, collection2));
 
 		services.createUser("embalmer", (req) -> req.setNameEmail("Paul", "Bearer", "embalmer@constellio.com")
-				.addCollections(collection1, collection2).addToGroupsInEachCollection("g1", "g2"));
+				.addToCollections(collection1, collection2).addToGroupsInEachCollection("g1", "g2"));
 
 		services.createUser("undertaker", (req) -> req.setNameEmail("The", "Undertaker", "the_undertaker@constellio.com")
-				.addCollections(collection1, collection3).addToGroupsInEachCollection("g1", "g2"));
+				.addToCollections(collection1, collection3).addToGroupsInEachCollection("g1", "g2"));
 
 		assertThatUser("embalmer").isInCollections(collection1, collection2);
 		assertThat(user("embalmer", collection1).getUserGroups().stream().map(idToCode).collect(toList()))
@@ -624,7 +647,7 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 				.isEmpty();
 
 		services.createUser("undertaker", (req) -> req.setNameEmail("The", "Undertaker", "the_undertaker@constellio.com")
-				.addCollections(collection1, collection3).addToGroupsInEachCollection("g1", "g2"));
+				.addToCollections(collection1, collection3).addToGroupsInEachCollection("g1", "g2"));
 
 		assertThatUser("undetaker").isInCollections(collection1, collection2);
 		assertThat(user("undetaker", collection1).getUserGroups().stream().map(idToCode).collect(toList()))
@@ -640,7 +663,7 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		services.createGroup("g3", (req) -> req.setName("Group 3").addCollections(collection1, collection2));
 
 		services.createUser("embalmer", (req) -> req.setNameEmail("Paul", "Bearer", "embalmer@constellio.com")
-				.addCollections(collection1, collection2)
+				.addToCollections(collection1, collection2)
 				.addToGroupsInCollection(asList("g1", "g2"), collection1)
 				.addToGroupsInCollection(asList("g1", "g2"), collection2));
 
@@ -651,25 +674,25 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 				.containsOnly("g1", "g2");
 
 		assertThatException(() -> services.createUser("undertaker", (req) -> req.setNameEmail("The", "Undertaker", "the_undertaker@constellio.com")
-				.addCollections(collection1, collection3).addToGroupsInEachCollection("g1", "g2")
+				.addToCollections(collection1, collection3).addToGroupsInEachCollection("g1", "g2")
 				.addToGroupsInCollection(asList("g1", "g2"), collection1)
 				.addToGroupsInCollection(asList("g1", "g2"), collection3))
 		).is(instanceOf(UserServicesRuntimeException_CannotAssignUserToInexistingGroupInCollection.class));
 
 		assertThatException(() -> services.createUser("undertaker", (req) -> req.setNameEmail("The", "Undertaker", "the_undertaker@constellio.com")
-				.addCollections(collection1, collection3).addToGroupsInEachCollection("g1", "g2")
+				.addToCollections(collection1, collection3).addToGroupsInEachCollection("g1", "g2")
 				.addToGroupsInCollection(asList("invalid"), collection1))
 		).is(instanceOf(UserServicesRuntimeException_CannotAssignUserToInexistingGroupInCollection.class));
 
 
 		assertThatException(() -> services.createUser("undertaker", (req) -> req.setNameEmail("The", "Undertaker", "the_undertaker@constellio.com")
-				.addCollections(collection1, collection3).addToGroupsInEachCollection("g1", "g2")
+				.addToCollections(collection1, collection3).addToGroupsInEachCollection("g1", "g2")
 				.addToGroupsInCollection(asList("g1", "g2"), collection1)
 				.addToGroupsInCollection(asList("g1", "g2"), collection2))
 		).is(instanceOf(UserServicesRuntimeException_CannotAssignUserToGroupsInOtherCollection.class));
 
 		services.createUser("undertaker", (req) -> req.setNameEmail("The", "Undertaker", "the_undertaker@constellio.com")
-				.addCollections(collection1, collection3).addToGroupsInEachCollection("g1", "g2")
+				.addToCollections(collection1, collection3).addToGroupsInEachCollection("g1", "g2")
 				.addToGroupsInCollection(asList("g1", "g2"), collection1));
 
 		assertThatUser("undetaker").isInCollections(collection1, collection2);
@@ -688,7 +711,7 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		services.createGroup("g3", (req) -> req.setName("Group 3").setParent("g2").addCollections(collection1, collection2));
 
 		services.createUser("embalmer", (req) -> req.setNameEmail("Paul", "Bearer", "embalmer@constellio.com")
-				.addCollections(collection1)
+				.addToCollections(collection1)
 				.addToGroupsInCollection(asList("g1", "g2"), collection1)
 				.addToGroupsInCollection(asList("g1", "g2"), collection2));
 
@@ -715,7 +738,7 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		services.createGroup("g3", (req) -> req.setName("Group 3").setParent("g2").addCollections(collection1, collection2));
 
 		services.createUser("embalmer", (req) -> req.setNameEmail("Paul", "Bearer", "embalmer@constellio.com")
-				.addCollections(collection1)
+				.addToCollections(collection1)
 				.addToGroupsInCollection(asList("g1", "g2"), collection1)
 				.addToGroupsInCollection(asList("g1", "g2"), collection2));
 
@@ -742,7 +765,7 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		services.createGroup("g3", (req) -> req.setName("Group 3").setParent("g2").addCollections(collection1, collection2));
 
 		services.createUser("andre", (req) -> req.setNameEmail("André", "Le géant", "andre@constellio.com")
-				.addCollections(collection1, collection2, collection3));
+				.addToCollections(collection1, collection2, collection3));
 
 		services.execute("andre", (req) -> req
 				.addToGroupsInCollection(asList("g1"), collection1)
@@ -920,7 +943,9 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 		private UserAssertions hasStatusIn(UserCredentialStatus expectedStatus, String collection) {
 			User user = user(username, collection);
-			assertThat(userInfos(user.getUsername()).getStatus(user.getCollection())).isEqualTo(expectedStatus);
+			assertThat(user).describedAs("Expecting user '" + username + "' to exist in collection '" + collection + "', but it does not").isNotNull();
+			assertThat(userInfos(user.getUsername()).getStatus(user.getCollection()))
+					.describedAs("Status in collection '" + collection + "'").isEqualTo(expectedStatus);
 			assertThat(user.getStatus()).isEqualTo(expectedStatus);
 			boolean expectedLogicallyDeletedStatus = expectedStatus != ACTIVE;
 			assertThat(user.isLogicallyDeletedStatus()).isEqualTo(expectedLogicallyDeletedStatus);
@@ -959,7 +984,12 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 	}
 
 	private SystemWideUserInfos userInfos(String username) {
-		return services.getUserInfos(username);
+		try {
+			return services.getUserInfos(username);
+
+		} catch (UserServicesRuntimeException_NoSuchUser e) {
+			return null;
+		}
 	}
 
 	private UserCredential userCredential(String username) {
@@ -995,6 +1025,13 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		AdministrativeUnit administrativeUnit = new RMSchemasRecordsServices(collection, getAppLayerFactory()).getAdministrativeUnitWithCode("ze-unit");
 		Group group = group(groupCode, collection);
 		getModelLayerFactory().newAuthorizationsServices().add(AuthorizationAddRequest.authorizationForGroups(group).on(administrativeUnit).givingReadAccess());
+
+	}
+
+	private void createAuthorisationGivingAccessToUserInCollection(String username, String collection) {
+		AdministrativeUnit administrativeUnit = new RMSchemasRecordsServices(collection, getAppLayerFactory()).getAdministrativeUnitWithCode("ze-unit");
+		User user = user(username, collection);
+		getModelLayerFactory().newAuthorizationsServices().add(AuthorizationAddRequest.authorizationForUsers(user).on(administrativeUnit).givingReadAccess());
 
 	}
 }

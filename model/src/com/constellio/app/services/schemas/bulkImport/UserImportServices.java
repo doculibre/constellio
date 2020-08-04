@@ -118,7 +118,7 @@ public class UserImportServices implements ImportServices {
 				.setServiceKey(null)
 				.setSystemAdmin(systemAdmin == null ? null : Boolean.valueOf((String) systemAdmin))
 				.addToGroupsInEachCollection(globalGroups)
-				.addCollections(collections)
+				.addToCollections(collections)
 				.setStatusForAllCollections(userCredentialStatus);
 		try {
 			if (userServices.getUserCredential(username) == null && Strings.isNotEmpty(password)) {

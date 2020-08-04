@@ -221,7 +221,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenUserWith(noGroups, andNoCollections);
 		assertThatUserIsOnlyInCollections(user);
 
-		userServices.execute(user.getUsername(), (req) -> req.addCollection(collection1));
+		userServices.execute(user.getUsername(), (req) -> req.addToCollection(collection1));
 		assertThatUserIsOnlyInCollections(user, collection1);
 
 	}
@@ -854,7 +854,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.execute(group1_1_1);
 
 		UserCredential admin = userServices.getUserCredential("admin");
-		userServices.execute(admin.getUsername(), (req) -> req.addCollection(collection1));
+		userServices.execute(admin.getUsername(), (req) -> req.addToCollection(collection1));
 		userServices.removeGroupFromCollectionsWithoutUserValidation("group1", Arrays.asList("collection1"));
 
 		assertThat(userServices.getGroupInCollection("group1", "collection1").getWrappedRecord()
@@ -884,7 +884,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		SystemWideGroup group1_1_1 = userServices.getGroup("group1_1_1");
 
 		UserCredential admin = userServices.getUserCredential("admin");
-		userServices.execute(admin.getUsername(), (req) -> req.addCollection(collection1));
+		userServices.execute(admin.getUsername(), (req) -> req.addToCollection(collection1));
 		userServices.logicallyRemoveGroupHierarchy(admin.getUsername(), group1);
 
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection1)
@@ -926,7 +926,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		SystemWideGroup group1_1 = userServices.getGroup("group1_1");
 		SystemWideGroup group1_1_1 = userServices.getGroup("group1_1_1");
 		UserCredential admin = userServices.getUserCredential("admin");
-		userServices.execute(admin.getUsername(), (req) -> req.addCollection(collection1));
+		userServices.execute(admin.getUsername(), (req) -> req.addToCollection(collection1));
 		userServices.logicallyRemoveGroupHierarchy(admin.getUsername(), group1);
 
 		userServices.activateGlobalGroupHierarchy(admin, group1);
@@ -1441,7 +1441,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		users.setUp(getModelLayerFactory().newUserServices());
 		User chuck = users.chuckNorrisIn(zeCollection);
 
-		userServices.execute(chuck.getUsername(), req -> req.markForDeletionInAllCollections());
+		userServices.execute(chuck.getUsername(), req -> req.removeFromAllCollections());
 		//OK !
 	}
 
@@ -1464,7 +1464,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 
 		try {
-			userServices.execute(chuck.getUsername(), req -> req.markForDeletionInAllCollections());
+			userServices.execute(chuck.getUsername(), req -> req.removeFromAllCollections());
 			fail();
 		} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
 			System.out.println(e.getMessage());

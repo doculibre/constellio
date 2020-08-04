@@ -41,9 +41,9 @@ public class RecordServicesCreatedAndModifiedByAndOnAcceptanceTest extends Const
 		record = new TestRecord(zeSchema);
 		users.setUp(getModelLayerFactory().newUserServices());
 
-		getModelLayerFactory().newUserServices().execute(users.alice().getUsername(), (req) -> req.addCollection(zeCollection));
-		getModelLayerFactory().newUserServices().execute(users.bob().getUsername(), (req) -> req.addCollection(zeCollection));
-		getModelLayerFactory().newUserServices().execute(users.dakotaLIndien().getUsername(), (req) -> req.addCollection(zeCollection));
+		getModelLayerFactory().newUserServices().execute(users.alice().getUsername(), (req) -> req.addToCollection(zeCollection));
+		getModelLayerFactory().newUserServices().execute(users.bob().getUsername(), (req) -> req.addToCollection(zeCollection));
+		getModelLayerFactory().newUserServices().execute(users.dakotaLIndien().getUsername(), (req) -> req.addToCollection(zeCollection));
 
 		alice = users.aliceIn(zeCollection);
 		bob = users.bobIn(zeCollection);
