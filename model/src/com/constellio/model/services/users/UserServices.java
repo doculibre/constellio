@@ -601,6 +601,12 @@ public class UserServices {
 		return schemas.getGroupWithCode(groupCode);
 	}
 
+	public Group getGroupInCollectionById(String id, String collection) {
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		return schemas.getGroup(id);
+	}
+
+
 	@Deprecated
 	//Will be removed with newer system
 	public void addGlobalGroupsInCollection(String collection) {
@@ -1099,6 +1105,10 @@ public class UserServices {
 		return userCredential == null ? null : getUserInfos(userCredential.getUsername());
 	}
 
+	public List<UserCredential> getUsersNotSynced() {
+		List<Record> records = searchServices.search(userCredentialsManager.getUserCredentialNotSynced());
+		return records.stream().map(record -> schemas.wrapCredential(record)).collect(toList());
+	}
 
 	List<Group> getChildrenOfGroupInCollection(String groupParentCode, String collection) {
 		List<Group> groups = new ArrayList<>();
