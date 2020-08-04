@@ -8,16 +8,19 @@ import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.encrypt.EncryptionServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class CoreMigrationTo_9_2AcceptanceTest extends ConstellioTest {
 	@Test
@@ -61,7 +64,34 @@ public class CoreMigrationTo_9_2AcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenMigratingTo9_2WithMultipleEncryptedFieldOnSameSchemaThenFieldsAreRencriptedInTheNewWay() {
+	public void whenMigrationTo9_2AndHave1100EncryptedFieldOnSameShemaThenAllAreMigratedToNewEncryption() {
+		givenTransactionLogIsEnabled();
+		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
+		File state = new File(statesFolder, "given_system_in_9.2_with1100HttpConnectorWithPassword.zip");
+
+		getCurrentTestSession().getFactoriesTestFeatures()
+				//.givenPrivateKey("constellio_34-817-204_ext", "constellio_class_key_part49-539-354")
+				//.givenPrivateKey("constellio_34-817-666_ext", "constellio_class_key_part49-539-354")
+				.givenSystemInState(state);
+
+
+		ESSchemasRecordsServices schemasRecordsServices = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		List<ConnectorHttpInstance> connectorHttpInstancesList = schemasRecordsServices.searchConnectorHttpInstances(LogicalSearchQueryOperators.from(schemasRecordsServices.connectorInstance.schemaType()).returnAll());
+
+		assertThat(connectorHttpInstancesList.size()).isEqualTo(1100);
+
+		for (ConnectorHttpInstance connectorHttpInstance : connectorHttpInstancesList) {
+			try {
+				connectorHttpInstance.getPasssword();
+			} catch (Exception e) {
+				fail("Password was not converted during the migration");
+			}
+		}
+	}
+
+	@Test
+	public void whenMigratingTo9_2WithMultipleEncryptedFieldOnSameSchemaInTwoCollectionsThenFieldsAreRencriptedInTheNewWay() {
 		givenTransactionLogIsEnabled();
 		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
 		File state = new File(statesFolder, "given_system_in_9.2_withMultipleConnector.zip");
@@ -69,13 +99,21 @@ public class CoreMigrationTo_9_2AcceptanceTest extends ConstellioTest {
 		getCurrentTestSession().getFactoriesTestFeatures()
 				.givenSystemInState(state);
 
-		ESSchemasRecordsServices schemasRecordsServices = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		ESSchemasRecordsServices schemasRecordsServicesZeCollection1 = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
-		ConnectorHttpInstance connectorHttpInstance1 = schemasRecordsServices.getConnectorHttpInstanceWithCode("httpconector1");
-		assertThat(connectorHttpInstance1.getPasssword()).isEqualTo("Fkjldklgjfdjkldg342");
+		ConnectorHttpInstance connector1Collection1HttpInstance = schemasRecordsServicesZeCollection1.getConnectorHttpInstanceWithCode("httpconector1");
+		assertThat(connector1Collection1HttpInstance.getPasssword()).isEqualTo("Fkjldklgjfdjkldg342");
 
-		ConnectorHttpInstance connectorHttpInstance2 = schemasRecordsServices.getConnectorHttpInstanceWithCode("httpconector2");
-		assertThat(connectorHttpInstance2.getPasssword()).isEqualTo("gjdfjklgfdklgfd");
+		ConnectorHttpInstance connector2Collection1HttpInstance = schemasRecordsServicesZeCollection1.getConnectorHttpInstanceWithCode("httpconector2");
+		assertThat(connector2Collection1HttpInstance.getPasssword()).isEqualTo("gjdfjklgfdklgfd");
+
+		ESSchemasRecordsServices schemasRecordsServicesZeCollection2 = new ESSchemasRecordsServices("zeCollection2", getAppLayerFactory());
+
+		ConnectorHttpInstance connector1Collection2HttpInstance = schemasRecordsServicesZeCollection2.getConnectorHttpInstanceWithCode("collection2Perdu1");
+		assertThat(connector1Collection2HttpInstance.getPasssword()).isEqualTo("g92rFDKgdssdff");
+
+		ConnectorHttpInstance connector2Collection2HttpInstance = schemasRecordsServicesZeCollection2.getConnectorHttpInstanceWithCode("collection2Perdu2");
+		assertThat(connector2Collection2HttpInstance.getPasssword()).isEqualTo("ASdgdfhgfdhdf2");
 	}
 
 	@Test
