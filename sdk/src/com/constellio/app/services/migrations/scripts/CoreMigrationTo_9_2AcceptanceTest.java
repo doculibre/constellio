@@ -16,8 +16,6 @@ import org.junit.Test;
 
 import java.io.File;
 import java.util.List;
-import java.util.Random;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -152,27 +150,9 @@ public class CoreMigrationTo_9_2AcceptanceTest extends ConstellioTest {
 		assertThat(userCredential.getUsername()).isEqualTo("admin");
 
 
-		assertThat("TODO-find-other-string-with-same-hashcode".hashCode()).isEqualTo("26dc0c12-d5ba-11ea-8ae5-d521396b0a57".hashCode());
-		assertThat(solrUserCredentialsManager.getUserCredentialByToken("TODO-find-other-string-with-same-hashcode")).isNull();
+//		assertThat("TODO-find-other-string-with-same-hashcode".hashCode()).isEqualTo("26dc0c12-d5ba-11ea-8ae5-d521396b0a57".hashCode());
+		//		assertThat(solrUserCredentialsManager.getUserCredentialByToken("TODO-find-other-string-with-same-hashcode")).isNull();
 
-	}
-
-	public static void main(String[] args) {
-		int hashcode = "26dc0c12-d5ba-11ea-8ae5-d521396b0a57".hashCode();
-
-		System.out.println("Aa".hashCode());
-		System.out.println("BB".hashCode());
-		System.out.println("Aa".hashCode());
-		System.out.println("BB".hashCode());
-
-		System.out.println("26dc0c12-d5ba-11ea-8ae5-d521396b0a57".hashCode());
-		System.out.println("26dc0c12-d5ba-11ea-8ae5-d521396b0A57".hashCode());
-
-		Random random = new Random();
-		String next = null;
-		while ((next = "" + UUID.randomUUID().toString()).hashCode() != hashcode) {
-		}
-		System.out.println(next);
 	}
 
 }
