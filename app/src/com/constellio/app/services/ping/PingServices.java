@@ -143,7 +143,7 @@ public class PingServices {
 
 		if (online) {
 			if (pw != null) {
-				pw.append("Solr cluster is up and runnng.");
+				pw.append("Solr cluster is up and running.");
 				pw.append("\n");
 			}
 		}
