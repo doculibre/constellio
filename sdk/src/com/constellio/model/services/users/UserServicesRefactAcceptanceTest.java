@@ -384,7 +384,7 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenCreatingGroupThenValidateFieldsAndSaveTheGroup() {
+	public void whenCreatingGroupsThenValidateFieldsAndSaveTheGroup() {
 
 		assertThatException(() -> services.createGroup("g1", (req) -> req.setName(null).addCollection(collection1))
 		).is(instanceOf(UserServicesRuntimeException_NameRequired.class));
@@ -423,6 +423,28 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 				group("g1", collection3).getId(), group("g2", collection1).getId());
 
 	}
+
+	@Test
+	public void whenCreatingGroupThenValidateFieldsAndSaveTheGroup() {
+		services.createGroup("g1", (req) -> req.setName("Group 1").addCollections(collection1, collection2));
+		assertThat(services.getGroup("g1").getName()).isEqualTo("Group 1");
+		assertThat(services.getGroup("g1").getCollections()).containsOnly(collection1, collection2);
+
+		assertThatGroup("g1").isInCollections(collection1, collection2);
+		String g1IdBeforeRemoveCollection = group("g1", collection2).getId();
+
+		services.createGroup("g1", (req) -> req.removeCollection(collection2));
+
+		assertThat(services.getGroup("g1").getCollections()).containsOnly(collection1);
+		assertThatGroup("g1").isInCollections(collection1);
+
+		services.createGroup("g1", (req) -> req.addCollection(collection2));
+		assertThat(group("g1", collection2).getId()).isNotEqualTo(g1IdBeforeRemoveCollection);
+
+		services.createGroup("g1", (req) -> req.removeCollections(collection1, collection2));
+		assertThatGroup("g1").doesNotExist();
+	}
+
 
 	@Test
 	public void whenCreatingOrModifyingGroupsThenAChildGroupIsNeverOrphanInACollection() {
@@ -987,7 +1009,7 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 	}
 
 	private SystemWideGroup groupInfo(String code) {
-		return services.getGroup(code);
+		return services.getNullableGroup(code);
 	}
 
 
