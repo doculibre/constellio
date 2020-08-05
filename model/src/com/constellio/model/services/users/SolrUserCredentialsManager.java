@@ -202,7 +202,7 @@ public class SolrUserCredentialsManager {
 	}
 
 	LogicalSearchQuery getUserCredentialNotSynced() {
-		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).where(schemas.syncStatus()).isNotEqual(UserSyncMode.SYNCED))
+		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).where(schemas.syncStatus()).is(UserSyncMode.NOT_SYNCED))
 				.sortAsc(Schemas.TITLE);
 	}
 

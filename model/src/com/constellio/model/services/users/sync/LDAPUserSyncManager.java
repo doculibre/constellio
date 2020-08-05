@@ -17,9 +17,9 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
-import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
@@ -225,8 +225,7 @@ public class LDAPUserSyncManager implements StatefulService {
 													   LDAPSynchProgressionInfo ldapSynchProgressionInfo) {
 		UpdatedUsersAndGroups updatedUsersAndGroups = new UpdatedUsersAndGroups();
 		for (LDAPGroup ldapGroup : ldapGroups) {
-			//TODO create normal groups here
-			GroupAddUpdateRequest group = createGlobalGroupFromLdapGroup(ldapGroup, selectedCollectionsCodes);
+			GroupAddUpdateRequest group = createGroupFromLdapGroup(ldapGroup, selectedCollectionsCodes);
 			//
 			try {
 				userServices.execute(group);
@@ -330,14 +329,13 @@ public class LDAPUserSyncManager implements StatefulService {
 		return updatedUsersAndGroups;
 	}
 
-	private GroupAddUpdateRequest createGlobalGroupFromLdapGroup(LDAPGroup ldapGroup,
-																 List<String> selectedCollectionsCodes) {
+	private GroupAddUpdateRequest createGroupFromLdapGroup(LDAPGroup ldapGroup,
+														   List<String> selectedCollectionsCodes) {
 		String code = ldapGroup.getDistinguishedName();
 		String name = ldapGroup.getSimpleName();
 		Set<String> usersAutomaticallyAddedToCollections;
 		try {
-			SystemWideGroup group = userServices.getGroup(code);
-			usersAutomaticallyAddedToCollections = new HashSet<>(group.getCollections());
+			usersAutomaticallyAddedToCollections = new HashSet<>();
 			usersAutomaticallyAddedToCollections.addAll(selectedCollectionsCodes);
 		} catch (UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup e) {
 			usersAutomaticallyAddedToCollections = new HashSet<>();
@@ -386,6 +384,7 @@ public class LDAPUserSyncManager implements StatefulService {
 				.setSystemAdmin(false)
 				.addToGroupsInEachCollection(globalGroups)
 				.setStatusForAllCollections(userStatus)
+				.setSyncMode(UserSyncMode.SYNCED)
 				.setDomain("")
 				.setMsExchDelegateListBL(msExchDelegateListBL)
 				.setDn(ldapUser.getId());
