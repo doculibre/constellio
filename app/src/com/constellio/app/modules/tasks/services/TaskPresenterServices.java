@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -298,7 +299,8 @@ public class TaskPresenterServices {
 		}
 		Task task = tasksSchemas.getTask(record.getId());
 		return task.getAssignee() == null && (task.getAssigneeUsersCandidates() == null || task.getAssigneeUsersCandidates()
-				.isEmpty()) && (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates().isEmpty());
+				.isEmpty()) && (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates().isEmpty())
+			   || (task.getAssignee() == null && task.getAssigneeUsersCandidates().contains(user.getId()) || !Collections.disjoint(task.getAssigneeGroupsCandidates(), user.getUserGroups()));
 	}
 
 	public boolean currentUserHasWriteAuthorisationWithoutBeingCollaborator(RecordVO recordVO, String currentUserId) {
