@@ -21,7 +21,6 @@ import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.G
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_ADD_USER;
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_DEACTIVATE;
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_DELETE;
-import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_EDIT;
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_MANAGE_ROLES;
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_MANAGE_SECURITY;
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_REMOVE_FROM_COLLECTION;
@@ -58,13 +57,13 @@ public class GroupCollectionMenuItemServices {
 			//			}
 
 			if (groupRecords.size() == 1) {
-				if (!filteredActionTypes.contains(GROUP_EDIT.name())) {
-					MenuItemAction menuItemAction = buildMenuItemAction(GROUP_EDIT.name(),
-							isMenuItemActionPossible(GROUP_EDIT.name(), groupRecords.get(0), user, params),
-							$("CollectionSecurityManagement.edit"), FontAwesome.EDIT, -1, 150,
-							(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(groupRecords, params));
-					menuItemActions.add(menuItemAction);
-				}
+				//				if (!filteredActionTypes.contains(GROUP_EDIT.name())) {
+				//					MenuItemAction menuItemAction = buildMenuItemAction(GROUP_EDIT.name(),
+				//							isMenuItemActionPossible(GROUP_EDIT.name(), groupRecords.get(0), user, params),
+				//							$("CollectionSecurityManagement.edit"), FontAwesome.EDIT, -1, 150,
+				//							(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(groupRecords, params));
+				//					menuItemActions.add(menuItemAction);
+				//				}
 			}
 
 			if (!filteredActionTypes.contains(GROUP_ADD_USER.name())) {

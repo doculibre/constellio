@@ -55,9 +55,6 @@ public class UserSecurityManagementImpl extends BaseViewImpl implements Security
 	private UserSecurityManagementPresenter presenter;
 	private TabSheet.SelectedTabChangeListener selectedTabChangeListener;
 	private OptionGroup.ValueChangeListener optionValueChangeListener;
-	private boolean nestedView;
-	private boolean dragNDropAllowed;
-	private boolean dragRowsEnabled;
 
 	public UserSecurityManagementImpl() {
 		this(null);
@@ -99,6 +96,7 @@ public class UserSecurityManagementImpl extends BaseViewImpl implements Security
 
 			}
 		});
+		activeGroup.addStyleName("horizontal");
 
 		contentLayout = new VerticalLayout();
 		contentLayout.setWidth("100%");
@@ -139,21 +137,6 @@ public class UserSecurityManagementImpl extends BaseViewImpl implements Security
 			clearSearchButton.addStyleName("folder-search-clear");
 		}
 
-		BaseButton searchListButton = new LinkButton($("CollectionSecurityManagement.showSearchInUsers")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				if (searchLayout != null) {
-					if (searchLayout.isVisible()) {
-						setCaption($("CollectionSecurityManagement.showSearchInUsers"));
-					} else {
-						setCaption($("CollectionSecurityManagement.hideSearchInUsers"));
-					}
-					searchLayout.setVisible(!searchLayout.isVisible());
-					searchField.focus();
-				}
-			}
-		};
-		searchListButton.addStyleName("search-in-folder-button");
 		if (searchField == null) {
 			searchField = new StringAutocompleteField<String>(new StringAutocompleteField.AutocompleteSuggestionsProvider<String>() {
 				@Override
@@ -199,7 +182,6 @@ public class UserSecurityManagementImpl extends BaseViewImpl implements Security
 			searchLayout.addStyleName("folder-search-layout");
 			searchLayout.setSpacing(true);
 			searchLayout.setWidth("50%");
-			searchLayout.setVisible(false);
 
 			I18NHorizontalLayout searchFieldAndButtonLayout = new I18NHorizontalLayout(searchField, searchButton);
 			searchFieldAndButtonLayout.addStyleName("folder-search-field-and-button-layout");
@@ -216,9 +198,9 @@ public class UserSecurityManagementImpl extends BaseViewImpl implements Security
 		VerticalLayout searchToggleAndFieldsLayout = new VerticalLayout();
 		searchToggleAndFieldsLayout.addStyleName("search-folder-toggle-and-fields-layout");
 		searchToggleAndFieldsLayout.addComponent(activeGroup);
-		searchToggleAndFieldsLayout.addComponent(searchListButton);
 		searchToggleAndFieldsLayout.addComponent(searchLayout);
 		searchToggleAndFieldsLayout.addComponent(viewerPanel);
+		searchToggleAndFieldsLayout.setSpacing(true);
 		mainLayout.replaceComponent(contentLayout, contentLayout = searchToggleAndFieldsLayout);
 
 		viewerPanel.setSelectionActionButtons();
@@ -227,25 +209,21 @@ public class UserSecurityManagementImpl extends BaseViewImpl implements Security
 
 	private ViewableRecordVOTablePanel createViewerPanel(RecordVOLazyContainer recordVOContainer) {
 		ViewableRecordVOTablePanel panel = new ViewableRecordVOTablePanel(recordVOContainer) {
+
 			@Override
-			protected boolean isSelectColumn() {
-				return !nestedView;
+			public boolean isMenuBarColumn() {
+				return true;
 			}
 
 			@Override
-			public boolean isNested() {
-				return nestedView;
+			protected boolean isSelectColumn() {
+				return true;
 			}
 
 			@Override
 			public void setQuickActionButtonsVisible(boolean visible) {
 				super.setQuickActionButtonsVisible(visible);
 				UserSecurityManagementImpl.this.setQuickActionButtonsVisible(visible);
-			}
-
-			@Override
-			public boolean isDropSupported() {
-				return dragNDropAllowed;
 			}
 
 			//TODO
@@ -255,18 +233,6 @@ public class UserSecurityManagementImpl extends BaseViewImpl implements Security
 				return false;
 			}
 
-			@Override
-			public boolean isRowDragSupported() {
-				return !isNested() && dragRowsEnabled;
-			}
-
-			@Override
-			protected void recordsDroppedOn(List<RecordVO> sourceRecordVOs, RecordVO targetRecordVO,
-											Boolean above) {
-				if (dragNDropAllowed) {
-					presenter.recordsDroppedOn(sourceRecordVOs, targetRecordVO);
-				}
-			}
 
 			@Override
 			protected SelectionManager newSelectionManager() {
