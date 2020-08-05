@@ -332,19 +332,19 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		SchemasRecordsServices systemSchemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 
-		new ActionExecutorInBatch(searchServices, "Removing user credentials with empty collections", 250) {
-			@Override
-			public void doActionOnBatch(List<Record> records)
-					throws Exception {
-				for (Record record : records) {
-					UserCredential userCredential = systemSchemas.wrapUserCredential(record);
-					if (userCredential.getCollections() == null || userCredential.getCollections().isEmpty()) {
-						recordServices.logicallyDelete(userCredential, User.GOD);
-						recordServices.physicallyDelete(userCredential, User.GOD);
-					}
-				}
-			}
-		}.execute(from(systemSchemas.credentialSchemaType()).returnAll());
+//		new ActionExecutorInBatch(searchServices, "Removing user credentials with empty collections", 250) {
+		//			@Override
+		//			public void doActionOnBatch(List<Record> records)
+		//					throws Exception {
+		//				for (Record record : records) {
+		//					UserCredential userCredential = systemSchemas.wrapUserCredential(record);
+		//					if (userCredential.getCollections() == null || userCredential.getCollections().isEmpty()) {
+		//						recordServices.logicallyDelete(userCredential, User.GOD);
+		//						recordServices.physicallyDelete(userCredential, User.GOD);
+		//					}
+		//				}
+		//			}
+		//		}.execute(from(systemSchemas.credentialSchemaType()).returnAll());
 
 	}
 

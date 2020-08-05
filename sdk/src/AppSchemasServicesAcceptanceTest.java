@@ -371,7 +371,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenTwoRecordsWhenGetVisibleRecordsWithOneRecordThenGetOneRecord() throws Exception {
 		setUpWithRecords();
-		userServices.execute(admin, (req) -> req.addCollection(zeCollection));
+		userServices.execute(admin, (req) -> req.addToCollection(zeCollection));
 		AuthorizationsServices authServices = getModelLayerFactory().newAuthorizationsServices();
 		User admin = userServices.getUserInCollection("admin", zeCollection);
 		authServices.add(authorizationForUsers(admin).on("r1").givingReadWriteAccess(), admin);
@@ -383,7 +383,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenTwoRecordsWhenGetVisibleRecordsWithThreeRecordThenGetTwoRecords() throws Exception {
 		setUpWithRecords();
-		userServices.execute(admin, (req) -> req.addCollection(zeCollection));
+		userServices.execute(admin, (req) -> req.addToCollection(zeCollection));
 		AuthorizationsServices authServices = getModelLayerFactory().newAuthorizationsServices();
 		User admin = userServices.getUserInCollection("admin", zeCollection);
 		authServices.add(authorizationForUsers(admin).on("r1").givingReadWriteAccess(), admin);
@@ -395,7 +395,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenTwoRecordsWithOneVisibleThenAreAllRecordsVisibleIsFalse() throws Exception {
 		setUpWithRecords();
-		userServices.execute(admin, (req) -> req.addCollection(zeCollection));
+		userServices.execute(admin, (req) -> req.addToCollection(zeCollection));
 		AuthorizationsServices authServices = getModelLayerFactory().newAuthorizationsServices();
 		User admin = userServices.getUserInCollection("admin", zeCollection);
 		authServices.add(authorizationForUsers(admin).on("r1").givingReadWriteAccess(), admin);
@@ -406,7 +406,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenTwoVisibleRecordsThenAreAllRecordsVisibleIsFalse() throws Exception {
 		setUpWithRecords();
-		userServices.execute(admin, (req) -> req.addCollection(zeCollection));
+		userServices.execute(admin, (req) -> req.addToCollection(zeCollection));
 		AuthorizationsServices authServices = getModelLayerFactory().newAuthorizationsServices();
 		User admin = userServices.getUserInCollection("admin", zeCollection);
 		authServices.add(authorizationForUsers(admin).on("r1").givingReadWriteAccess(), admin);

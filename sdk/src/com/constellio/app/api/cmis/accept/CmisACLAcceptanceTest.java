@@ -109,19 +109,19 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		});
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 
-		userServices.execute(users.alice().getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(users.bob().getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(users.charles().getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(users.dakotaLIndien().getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(users.edouardLechat().getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(users.gandalfLeblanc().getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(users.alice().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.bob().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.charles().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.dakotaLIndien().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.edouardLechat().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.gandalfLeblanc().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection(zeCollection));
 		;
-		userServices.execute(users.sasquatch().getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(users.robin().getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(users.sasquatch().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.robin().getUsername(), (req) -> req.addToCollection(zeCollection));
 
-		userServices.execute(users.admin().getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(users.admin().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection(zeCollection));
 
 		recordServices.update(users.adminIn(zeCollection).setCollectionAllAccess(true));
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionReadAccess(true));

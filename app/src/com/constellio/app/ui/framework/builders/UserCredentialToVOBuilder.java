@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
+import static com.constellio.model.entities.security.global.UserCredentialStatus.DISABLED;
+
 @SuppressWarnings("serial")
 public class UserCredentialToVOBuilder implements Serializable {
 
@@ -61,7 +64,7 @@ public class UserCredentialToVOBuilder implements Serializable {
 		List<String> globalGroups = userCredential.getGlobalGroups();
 		Set<String> collections = new HashSet<>();
 		collections.addAll(userCredential.getCollections());
-		UserCredentialStatus status = userCredential.getStatus();
+		UserCredentialStatus status = userCredential.hasStatusInAnyCollection(ACTIVE) ? ACTIVE : DISABLED;
 		UserSyncMode syncMode = userCredential.getSyncMode();
 
 		String personalEmailsPresentation = null;

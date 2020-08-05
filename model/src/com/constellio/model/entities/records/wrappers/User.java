@@ -398,7 +398,7 @@ public class User extends RecordWrapper {
 
 	public UserCredentialStatus getStatus() {
 		RecordDTO recordDTO = wrappedRecord.getRecordDTO();
-		if (recordDTO != null) {
+		if (recordDTO != null && !wrappedRecord.isDirty()) {
 			return UserCredentialStatus.fastConvert((String) recordDTO.getFields().get("status_s"));
 
 		}

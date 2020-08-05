@@ -52,8 +52,8 @@ public class ConnectorManagerAcceptanceTest extends ConstellioTest {
 		doReturn(connector1).when(connectorManager).instanciate(instance1);
 		doReturn(connector2).when(connectorManager).instanciate(instance2);
 		doReturn(connector3).when(connectorManager).instanciate(instance3);
-		getModelLayerFactory().newUserServices().execute(users.edouardLechat().getUsername(), (req) -> req.addCollection(zeCollection));
-		getModelLayerFactory().newUserServices().execute(users.dakotaLIndien().getUsername(), (req) -> req.addCollection(zeCollection));
+		getModelLayerFactory().newUserServices().execute(users.edouardLechat().getUsername(), (req) -> req.addToCollection(zeCollection));
+		getModelLayerFactory().newUserServices().execute(users.dakotaLIndien().getUsername(), (req) -> req.addToCollection(zeCollection));
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 
 		dakota = users.dakotaLIndienIn(zeCollection);

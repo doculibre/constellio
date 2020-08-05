@@ -1,6 +1,7 @@
 package com.constellio.model.services.users;
 
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.security.global.AgentStatus;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -41,7 +42,6 @@ public class UserAddUpdateRequest {
 
 	@Getter
 	private boolean markedForDeletionInAllCollections;
-	private List<String> markedForDeletionInCollections;
 
 	public UserAddUpdateRequest(String username, List<String> currentCollections,
 								List<String> currentGroups) {
@@ -113,7 +113,7 @@ public class UserAddUpdateRequest {
 	}
 
 	public UserAddUpdateRequest setStatusForCollection(UserCredentialStatus status, String collection) {
-		modifyCollectionProperties(collection).put(UserCredential.STATUS, status);
+		modifyCollectionProperties(collection).put(User.STATUS, status);
 		return this;
 	}
 
@@ -202,19 +202,19 @@ public class UserAddUpdateRequest {
 	public UserAddUpdateRequest setCollections(List<String> newCollections) {
 		newCollections.forEach((c) -> {
 			if (!currentCollections.contains(c)) {
-				addCollection(c);
+				addToCollection(c);
 			}
 		});
 
 		currentCollections.forEach((c) -> {
 			if (!newCollections.contains(c)) {
-				removeCollection(c);
+				removeFromCollection(c);
 			}
 		});
 		return this;
 	}
 
-	public UserAddUpdateRequest addCollection(String collection) {
+	public UserAddUpdateRequest addToCollection(String collection) {
 
 		if (addToCollections == null) {
 			addToCollections = new ArrayList<>();
@@ -229,7 +229,7 @@ public class UserAddUpdateRequest {
 		return this;
 	}
 
-	public UserAddUpdateRequest removeCollection(String collection) {
+	public UserAddUpdateRequest removeFromCollection(String collection) {
 
 		if (removeFromCollections == null) {
 			removeFromCollections = new ArrayList<>();
@@ -244,18 +244,18 @@ public class UserAddUpdateRequest {
 		return this;
 	}
 
-	public UserAddUpdateRequest removeCollections(String... collections) {
-		Arrays.stream(collections).forEach(this::removeCollection);
+	public UserAddUpdateRequest removeFromCollections(String... collections) {
+		Arrays.stream(collections).forEach(this::removeFromCollection);
 		return this;
 	}
 
-	public UserAddUpdateRequest addCollections(List<String> collections) {
-		collections.forEach(this::addCollection);
+	public UserAddUpdateRequest addToCollections(List<String> collections) {
+		collections.forEach(this::addToCollection);
 		return this;
 	}
 
-	public UserAddUpdateRequest addCollections(String... collections) {
-		Arrays.stream(collections).forEach(this::addCollection);
+	public UserAddUpdateRequest addToCollections(String... collections) {
+		Arrays.stream(collections).forEach(this::addToCollection);
 		return this;
 	}
 
@@ -318,7 +318,7 @@ public class UserAddUpdateRequest {
 
 
 	public UserAddUpdateRequest addToGroupsInCollection(List<String> groupCodes, String collection) {
-		throw new UnsupportedOperationException("TODO Philippe");
+		throw new UnsupportedOperationException("TODO Rabab");
 	}
 
 	public UserAddUpdateRequest addToGroupInCollection(String groupCode, String collection) {
@@ -327,7 +327,7 @@ public class UserAddUpdateRequest {
 	}
 
 	public UserAddUpdateRequest removeFromGroupOfCollection(String groupCode, String collection) {
-		throw new UnsupportedOperationException("TODO Philippe");
+		throw new UnsupportedOperationException("TODO Rabab");
 	}
 
 
@@ -380,6 +380,10 @@ public class UserAddUpdateRequest {
 		return modifiedProperties;
 	}
 
+	public Map<String, Map<String, Object>> getModifiedCollectionsProperties() {
+		return modifiedCollectionsProperties;
+	}
+
 	public List<String> getAddToCollections() {
 		return addToCollections;
 	}
@@ -404,22 +408,11 @@ public class UserAddUpdateRequest {
 		return removedtokens;
 	}
 
-	public UserAddUpdateRequest markForDeletionInAllCollections() {
+	public UserAddUpdateRequest removeFromAllCollections() {
 		markedForDeletionInAllCollections = true;
 		return this;
 	}
 
-	public UserAddUpdateRequest markForDeletionInAllCollection(String collection) {
-		if (markedForDeletionInCollections == null) {
-			markedForDeletionInCollections = new ArrayList<>();
-		}
-
-		if (!markedForDeletionInCollections.contains(collection)) {
-			markedForDeletionInCollections.add(collection);
-		}
-
-		return this;
-	}
 
 	private Map<String, Object> modifyCollectionProperties(String collection) {
 		Map<String, Object> modifiedCollectionProperties = this.modifiedCollectionsProperties.get(collection);
