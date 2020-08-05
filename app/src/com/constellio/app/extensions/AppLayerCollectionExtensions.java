@@ -48,6 +48,7 @@ import com.constellio.app.api.extensions.params.FilterCapsuleParam;
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
 import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
 import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
+import com.constellio.app.api.extensions.params.IsMetadataExportedParams;
 import com.constellio.app.api.extensions.params.IsRecordExportableParams;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandParams;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
@@ -867,7 +868,7 @@ public class AppLayerCollectionExtensions {
 	public Field<?> getFieldForMetadata() {
 		for (MetadataFieldExtension extension : workflowExecutionFieldExtensions) {
 			Field<?> component = extension.getMetadataField(null);
-				return component;
+			return component;
 		}
 		return null;
 	}
@@ -902,8 +903,10 @@ public class AppLayerCollectionExtensions {
 				unwantedTaxonomies.addAll(unwantedTaxonomiesFromExtension);
 			}
 		}
-        return new ArrayList<>(unwantedTaxonomies);
-    }public LogicalSearchCondition adjustSearchPageCondition(SearchPageConditionParam param) {
+		return new ArrayList<>(unwantedTaxonomies);
+	}
+
+	public LogicalSearchCondition adjustSearchPageCondition(SearchPageConditionParam param) {
 		LogicalSearchCondition condition = param.getCondition();
 		for (SearchPageExtension extension : searchPageExtensions) {
 			condition = extension.adjustSearchPageCondition(
@@ -949,7 +952,7 @@ public class AppLayerCollectionExtensions {
 			additionnalFields.addAll(extension.getAdditionnalFields(params));
 		}
 		return additionnalFields;
-    }
+	}
 
 	public List<SignatureRecordField> getSignatureFields(RecordFieldsExtensionParams params) {
 		List<SignatureRecordField> signatureFields = new ArrayList<>();
@@ -979,6 +982,16 @@ public class AppLayerCollectionExtensions {
 			@Override
 			public ExtensionBooleanResult call(RecordExportExtension extension) {
 				return extension.isExportable(new IsRecordExportableParams(schemaType));
+			}
+		});
+	}
+
+
+	public boolean isMetadataExportForced(final Metadata metadata) {
+		return recordExportExtensions.getBooleanValue(true, new BooleanCaller<RecordExportExtension>() {
+			@Override
+			public ExtensionBooleanResult call(RecordExportExtension extension) {
+				return extension.isMetadataExportForced(new IsMetadataExportedParams(metadata));
 			}
 		});
 	}

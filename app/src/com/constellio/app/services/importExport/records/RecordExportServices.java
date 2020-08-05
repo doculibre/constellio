@@ -318,7 +318,10 @@ public class RecordExportServices {
 	}
 
 	private boolean isMetadataExported(Metadata metadata, Record record, MetadataSchemaTypes metadataSchemaTypes) {
-
+		AppLayerCollectionExtensions collectionExtensions = appLayerFactory.getExtensions().forCollectionOf(record);
+		if (collectionExtensions.isMetadataExportForced(metadata)) {
+			return true;
+		}
 		List<String> allowedMetadatas = asList(Schemas.CREATED_ON.getLocalCode(), Schemas.CREATED_BY.getLocalCode(),
 				Schemas.MODIFIED_ON.getLocalCode(), Schemas.MODIFIED_BY.getLocalCode(),
 				Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), Schemas.LOGICALLY_DELETED_ON.getLocalCode(),
