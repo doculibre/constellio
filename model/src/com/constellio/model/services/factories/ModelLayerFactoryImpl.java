@@ -337,11 +337,12 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	}
 
 	public void configureRecordsCacheHooks() {
-
-		userCredentialTokenCacheHookRetriever = new UserCredentialTokenCacheHookRetriever(
-				recordsCaches.registerRecordIdsHook(Collection.SYSTEM_COLLECTION, new UserCredentialTokenCacheHook(this)), this);
-		userCredentialServiceKeyCacheHookRetriever = new UserCredentialServiceKeyCacheHookRetriever(
-				recordsCaches.registerRecordIdsHook(Collection.SYSTEM_COLLECTION, new UserCredentialServiceKeyCacheHook(this)), this);
+		if (getCollectionsListManager().getCollections().contains(Collection.SYSTEM_COLLECTION)) {
+			userCredentialTokenCacheHookRetriever = new UserCredentialTokenCacheHookRetriever(
+					recordsCaches.registerRecordIdsHook(Collection.SYSTEM_COLLECTION, new UserCredentialTokenCacheHook(this)), this);
+			userCredentialServiceKeyCacheHookRetriever = new UserCredentialServiceKeyCacheHookRetriever(
+					recordsCaches.registerRecordIdsHook(Collection.SYSTEM_COLLECTION, new UserCredentialServiceKeyCacheHook(this)), this);
+		}
 	}
 
 	public void onCollectionInitialized(String collection) {
