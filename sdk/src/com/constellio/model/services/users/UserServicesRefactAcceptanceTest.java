@@ -186,7 +186,7 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void whenAddUpdatingUserTrivialInfosThenSaved() {
-		fail("TODO : Tester toutes les métadonnées (ex. jobTitle, phone, etc.) en ajout/modification")
+		fail("TODO : Tester toutes les métadonnées (ex. jobTitle, phone, etc.) en ajout/modification");
 	}
 
 
