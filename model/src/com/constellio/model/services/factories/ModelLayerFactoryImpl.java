@@ -52,6 +52,8 @@ import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordUsa
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordUsageCounterHookRetriever;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHook;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.UserCredentialServiceKeyCacheHook;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.UserCredentialServiceKeyCacheHookRetriever;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.UserCredentialTokenCacheHook;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.UserCredentialTokenCacheHookRetriever;
 import com.constellio.model.services.records.cache.dataStore.FileSystemRecordsValuesCacheDataStore;
@@ -149,6 +151,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private final Map<String, TaxonomyRecordsHookRetriever> taxonomyRecordsHookRetrieverMap = new HashMap<>();
 	private final Map<String, RecordUsageCounterHookRetriever> recordUsageCounterHookRetrieverMap = new HashMap<>();
 	UserCredentialTokenCacheHookRetriever userCredentialTokenCacheHookRetriever;
+	UserCredentialServiceKeyCacheHookRetriever userCredentialServiceKeyCacheHookRetriever;
 
 	private final ModelLayerCachesManager modelLayerCachesManager;
 
@@ -337,6 +340,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		userCredentialTokenCacheHookRetriever = new UserCredentialTokenCacheHookRetriever(
 				recordsCaches.registerRecordIdsHook(Collection.SYSTEM_COLLECTION, new UserCredentialTokenCacheHook(this)), this);
+		userCredentialServiceKeyCacheHookRetriever = new UserCredentialServiceKeyCacheHookRetriever(
+				recordsCaches.registerRecordIdsHook(Collection.SYSTEM_COLLECTION, new UserCredentialServiceKeyCacheHook(this)), this);
 	}
 
 	public void onCollectionInitialized(String collection) {
@@ -662,5 +667,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	public UserCredentialTokenCacheHookRetriever getUserCredentialTokenCacheHookRetriever() {
 		return userCredentialTokenCacheHookRetriever;
+	}
+
+	@Override
+	public UserCredentialServiceKeyCacheHookRetriever getUserCredentialServiceKeyCacheHookRetriever() {
+		return userCredentialServiceKeyCacheHookRetriever;
 	}
 }

@@ -33,6 +33,7 @@ import com.constellio.model.services.records.cache.CachedRecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordUsageCounterHookRetriever;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.UserCredentialServiceKeyCacheHookRetriever;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.UserCredentialTokenCacheHookRetriever;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
@@ -389,6 +390,11 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	@Override
 	public UserCredentialTokenCacheHookRetriever getUserCredentialTokenCacheHookRetriever() {
 		return modelLayerFactory.getUserCredentialTokenCacheHookRetriever();
+	}
+
+	@Override
+	public UserCredentialServiceKeyCacheHookRetriever getUserCredentialServiceKeyCacheHookRetriever() {
+		return modelLayerFactory.getUserCredentialServiceKeyCacheHookRetriever();
 	}
 
 	@Override

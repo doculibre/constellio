@@ -68,8 +68,6 @@ public class CoreMigrationTo_9_2AcceptanceTest extends ConstellioTest {
 		File state = new File(statesFolder, "given_system_in_9.2_with1100HttpConnectorWithPassword.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures()
-				//.givenPrivateKey("constellio_34-817-204_ext", "constellio_class_key_part49-539-354")
-				//.givenPrivateKey("constellio_34-817-666_ext", "constellio_class_key_part49-539-354")
 				.givenSystemInState(state);
 
 
