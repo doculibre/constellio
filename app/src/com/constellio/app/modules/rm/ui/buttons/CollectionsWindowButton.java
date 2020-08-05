@@ -13,6 +13,7 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.shared.ui.MarginInfo;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.OptionGroup;
@@ -77,10 +78,11 @@ public class CollectionsWindowButton extends WindowButton {
 		collectionsField.addStyleName("collections-username");
 		collectionsField.setId("collections");
 		collectionsField.setMultiSelect(true);
+		//collectionsField.addStyleName("horizontal");
 		collectionLayout.addComponent(collectionsField);
 		for (String collection : appLayerFactory.getCollectionsManager().getCollectionCodes()) {
 			if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
-				collectionsField.addItem(collection);
+				collectionsField.addItem(appLayerFactory.getCollectionsManager().getCollection(collection).getTitle());
 				boolean existsforAll = records.stream().allMatch(record -> record.getCollection().equals(collection));
 				if (existsforAll) {
 					collectionsField.select(collection);
@@ -118,6 +120,7 @@ public class CollectionsWindowButton extends WindowButton {
 
 		buttonLayout.setSpacing(true);
 		mainLayout.addComponent(buttonLayout);
+		mainLayout.setComponentAlignment(buttonLayout, Alignment.MIDDLE_CENTER);
 		mainLayout.setHeight("100%");
 		mainLayout.setWidth("100%");
 		mainLayout.setSpacing(true);
