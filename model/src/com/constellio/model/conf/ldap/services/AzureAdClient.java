@@ -30,7 +30,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -517,7 +522,7 @@ public class AzureAdClient {
 		//ldapUser.setEmail(userJsonObject.optString("email")); there mail but with several values instead we ll use userPrincipalName
 		ldapUser.setEmail(userJsonObject.optString("userPrincipalName"));
 		ldapUser.setEnabled(Boolean.valueOf(userJsonObject.optString("accountEnabled")));
-		ldapUser.setLieuTravail(userJsonObject.optString("department"));
+		ldapUser.setWorkAddress(userJsonObject.optString("department"));
 		ldapUser.setMsExchDelegateListBL(null); // TODO
 		String refreshTokensValidFromDateTime = userJsonObject.optString("refreshTokensValidFromDateTime");
 		if (!StringUtils.isEmpty(refreshTokensValidFromDateTime) && !"null".equals(refreshTokensValidFromDateTime)) {

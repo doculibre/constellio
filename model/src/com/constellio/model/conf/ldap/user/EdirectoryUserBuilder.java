@@ -88,7 +88,7 @@ public class EdirectoryUserBuilder extends CommonUserBuilder implements LDAPUser
 		if (getCompanyAttributeName() != null) {
 			Attribute lieuTravailAttribute = attrs.get(getCompanyAttributeName());
 			String lieuTravail = buildCompany(lieuTravailAttribute);
-			returnUser.setLieuTravail(lieuTravail);
+			returnUser.setWorkAddress(lieuTravail);
 		}
 
 		if (getMsExchDelegateListBl() != null) {

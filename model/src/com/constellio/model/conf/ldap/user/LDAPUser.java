@@ -15,7 +15,7 @@ public class LDAPUser {
 	private String givenName;
 	private String familyName;
 	private Date lastLogon;
-	private String lieuTravail;
+	private String workAddress;
 	private List<String> msExchDelegateListBL;
 	//private String primaryGroupID;
 	private List<LDAPGroup> userGroups = new ArrayList<>();
@@ -104,12 +104,12 @@ public class LDAPUser {
 		return this;
 	}
 
-	public String getLieuTravail() {
-		return lieuTravail;
+	public String getWorkAddress() {
+		return workAddress;
 	}
 
-	public LDAPUser setLieuTravail(String lieuTravail) {
-		this.lieuTravail = lieuTravail;
+	public LDAPUser setWorkAddress(String workAddress) {
+		this.workAddress = workAddress;
 		return this;
 	}
 
@@ -131,7 +131,7 @@ public class LDAPUser {
 		strb.append("familyName :" + familyName + "\n");
 		strb.append("email :" + email + "\n");
 		strb.append("enabled :" + enabled + "\n");
-		strb.append("lieuTravail :" + lieuTravail + "\n");
+		strb.append("workAddress :" + workAddress + "\n");
 		strb.append("userGroups :\n" + StringUtils.join(userGroups.toArray(), "\n"));
 		if (msExchDelegateListBL != null) {
 			strb.append("msExchDelegateListBL :\n" + StringUtils.join(msExchDelegateListBL.toArray()) + "\n");
