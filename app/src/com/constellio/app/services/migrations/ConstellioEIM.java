@@ -11,7 +11,11 @@ import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSSignatureServlet;
 import com.constellio.app.api.search.CachedSearchWebService;
 import com.constellio.app.api.systemManagement.services.SystemInfoWebService;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.extensions.AppLayerSystemExtensions;
+import com.constellio.app.extensions.core.CoreMenuItemActionsExtension;
 import com.constellio.app.extensions.ui.AppSupportedExtensionExtension;
+import com.constellio.app.extensions.ui.CoreConstellioUIExtension;
 import com.constellio.app.services.extensions.AppRecordExtension;
 import com.constellio.app.services.extensions.core.CoreSearchFieldExtension;
 import com.constellio.app.services.extensions.core.CoreUserProfileFieldsExtension;
@@ -101,13 +105,13 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_89;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_2_11;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_2_7;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3_14;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_0;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_10;
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3_14;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -247,6 +251,8 @@ public class ConstellioEIM {
 		ApplicationStarter.registerServlet(RemovePdfJSSignatureServlet.PATH, new RemovePdfJSSignatureServlet());
 		ApplicationStarter.registerServlet(SavePdfJSAnnotationsServlet.PATH, new SavePdfJSAnnotationsServlet());
 		ApplicationStarter.registerServlet(SavePdfJSSignatureServlet.PATH, new SavePdfJSSignatureServlet());
+
+		setupAppLayerSystemExtensions(appLayerFactory);
 	}
 
 	static public void start(AppLayerFactory appLayerFactory, String collection) {
@@ -262,11 +268,17 @@ public class ConstellioEIM {
 
 	}
 
+	private static void setupAppLayerSystemExtensions(AppLayerFactory appLayerFactory) {
+		AppLayerSystemExtensions extensions = appLayerFactory.getExtensions().getSystemWideExtensions();
+		extensions.constellioUIExtentions.add(new CoreConstellioUIExtension(appLayerFactory));
+	}
+
 	private static void configureBaseAppLayerExtensions(AppLayerFactory appLayerFactory, String collection) {
-		appLayerFactory.getExtensions().forCollection(collection)
-				.pagesComponentsExtensions.add(new CoreUserProfileFieldsExtension(collection, appLayerFactory));
-		appLayerFactory.getExtensions().forCollection(collection)
-				.pagesComponentsExtensions.add(new CoreUserProfileSignatureFieldsExtension(collection, appLayerFactory));
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
+
+		extensions.pagesComponentsExtensions.add(new CoreUserProfileFieldsExtension(collection, appLayerFactory));
+		extensions.pagesComponentsExtensions.add(new CoreUserProfileSignatureFieldsExtension(collection, appLayerFactory));
+		extensions.menuItemActionsExtensions.add(new CoreMenuItemActionsExtension(collection, appLayerFactory));
 	}
 
 	private static void configureBaseModelLayerExtensions(AppLayerFactory appLayerFactory, String collection) {
