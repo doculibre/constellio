@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.apache.ignite.internal.util.lang.GridFunc.asList;
+
 public class Users {
 
 	String admin = "admin";
@@ -36,6 +38,8 @@ public class Users {
 	String sasquatchUsername = "sasquatch";
 
 	UserServices userServices;
+
+	String collection;
 
 	public SystemWideUserInfos chuckNorris() {
 		return getUser(chuckNorrisUsername);
@@ -353,7 +357,7 @@ public class Users {
 
 	private void addGroup(String code, String title, String parent) {
 		GroupAddUpdateRequest group = userServices.createGlobalGroup(
-				code, title, new ArrayList<String>(), parent, GlobalGroupStatus.ACTIVE, true);
+				code, title, asList(collection), parent, GlobalGroupStatus.ACTIVE, true);
 		userServices.execute(group);
 	}
 
@@ -371,4 +375,8 @@ public class Users {
 		return this;
 	}
 
+	public Users withCollection(String collection) {
+		this.collection = collection;
+		return this;
+	}
 }

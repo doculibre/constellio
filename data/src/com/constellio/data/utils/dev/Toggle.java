@@ -141,6 +141,8 @@ public class Toggle {
 
 	public static AvailableToggle ENABLE_CLOUD_SYSADMIN_FEATURES = newToggle(false);
 
+	public static AvailableToggle VALIDATE_USER_COLLECTIONS = newToggle(true);
+
 
 	// ------------------------------------------------
 

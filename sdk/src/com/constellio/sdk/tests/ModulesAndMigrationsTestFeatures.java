@@ -138,7 +138,7 @@ public class ModulesAndMigrationsTestFeatures {
 				.newUserPhotosServices();
 		if (this.users == null) {
 			users = usingUsers;
-			users.setUp(userServices).withPhotos(userPhotosServices);
+			users.withCollection(collection).setUp(userServices).withPhotos(userPhotosServices);
 		}
 		userServices.execute(users.admin().getUsername(), (req) -> req.addToCollection(collection));
 		userServices.execute(users.alice().getUsername(), (req) -> req.addToCollection(collection));

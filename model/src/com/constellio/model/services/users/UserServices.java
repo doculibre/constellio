@@ -5,6 +5,7 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.entities.CorePermissions;
@@ -413,7 +414,7 @@ public class UserServices {
 		SystemWideUserInfos userInfos = systemWideUserInfosOrNull(request.getUsername());
 
 		if (userInfos == null && (request.getAddToCollections() == null || request.getAddToCollections().isEmpty())
-			&& !"admin".equals(request.getUsername())) {
+			&& !"admin".equals(request.getUsername()) && Toggle.VALIDATE_USER_COLLECTIONS.isEnabled()) {
 			throw new UserServicesRuntimeException_AtLeastOneCollectionRequired(request.getUsername());
 		}
 
