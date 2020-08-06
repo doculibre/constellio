@@ -27,6 +27,9 @@ public class UserAddUpdateRequest {
 	private List<String> addToCollections;
 	private List<String> removeFromCollections;
 
+	private Map<String, List<String>> addToGroupInCollection;
+	private Map<String, List<String>> removeFromGroupInCollection;
+
 	private Map<String, LocalDateTime> newTokens;
 	private List<String> removedtokens;
 	private UserSyncMode syncMode = UserSyncMode.LOCALLY_CREATED;
@@ -318,7 +321,15 @@ public class UserAddUpdateRequest {
 
 
 	public UserAddUpdateRequest addToGroupsInCollection(List<String> groupCodes, String collection) {
-		throw new UnsupportedOperationException("TODO Rabab");
+		if (addToGroupInCollection == null) {
+			addToGroupInCollection = new HashMap<>();
+		}
+		List<String> groups = new ArrayList<>(groupCodes);
+		if (addToGroupInCollection.containsKey(collection)) {
+			groups.addAll(addToGroupInCollection.get(collection));
+		}
+		addToGroupInCollection.put(collection, groups);
+		return this;
 	}
 
 	public UserAddUpdateRequest addToGroupInCollection(String groupCode, String collection) {
@@ -394,6 +405,10 @@ public class UserAddUpdateRequest {
 
 	public List<String> getAddToGroup() {
 		return addToGroup;
+	}
+
+	public Map<String, List<String>> getAddToGroupInCollection() {
+		return addToGroupInCollection;
 	}
 
 	public List<String> getRemoveFromGroup() {

@@ -186,7 +186,7 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void whenAddUpdatingUserTrivialInfosThenSaved() {
-		fail("TODO : Tester toutes les métadonnées (ex. jobTitle, phone, etc.) en ajout/modification")
+		fail("TODO : Tester toutes les métadonnées (ex. jobTitle, phone, etc.) en ajout/modification");
 	}
 
 
@@ -647,10 +647,10 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		assertThat(user("embalmer", collection2).getUserGroups().stream().map(idToCode).collect(toList()))
 				.containsOnly("g1", "g2");
 
-		assertThatUser("undetaker").isInCollections(collection1, collection2);
-		assertThat(user("undetaker", collection1).getUserGroups().stream().map(idToCode).collect(toList()))
+		assertThatUser("undertaker").isInCollections(collection1, collection3);
+		assertThat(user("undertaker", collection1).getUserGroups().stream().map(idToCode).collect(toList()))
 				.containsOnly("g1", "g2");
-		assertThat(user("undetaker", collection3).getUserGroups().stream().map(idToCode).collect(toList()))
+		assertThat(user("undertaker", collection3).getUserGroups().stream().map(idToCode).collect(toList()))
 				.isEmpty();
 
 		services.executeGroupRequest("g1", (req) -> req.addCollection(collection3));
@@ -662,19 +662,19 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		assertThat(user("embalmer", collection2).getUserGroups().stream().map(idToCode).collect(toList()))
 				.containsOnly("g1", "g2");
 
-		assertThatUser("undetaker").isInCollections(collection1, collection2);
-		assertThat(user("undetaker", collection1).getUserGroups().stream().map(idToCode).collect(toList()))
+		assertThatUser("undertaker").isInCollections(collection1, collection3);
+		assertThat(user("undertaker", collection1).getUserGroups().stream().map(idToCode).collect(toList()))
 				.containsOnly("g1", "g2");
-		assertThat(user("undetaker", collection3).getUserGroups().stream().map(idToCode).collect(toList()))
+		assertThat(user("undertaker", collection3).getUserGroups().stream().map(idToCode).collect(toList()))
 				.isEmpty();
 
-		services.createUser("undertaker", (req) -> req.setNameEmail("The", "Undertaker", "the_undertaker@constellio.com")
+		services.execute("undertaker", (req) -> req.setNameEmail("The", "Undertaker", "the_undertaker@constellio.com")
 				.addToCollections(collection1, collection3).addToGroupsInEachCollection("g1", "g2"));
 
-		assertThatUser("undetaker").isInCollections(collection1, collection2);
-		assertThat(user("undetaker", collection1).getUserGroups().stream().map(idToCode).collect(toList()))
+		assertThatUser("undertaker").isInCollections(collection1, collection3);
+		assertThat(user("undertaker", collection1).getUserGroups().stream().map(idToCode).collect(toList()))
 				.containsOnly("g1", "g2");
-		assertThat(user("undetaker", collection3).getUserGroups().stream().map(idToCode).collect(toList()))
+		assertThat(user("undertaker", collection3).getUserGroups().stream().map(idToCode).collect(toList()))
 				.containsOnly("g1");
 	}
 
@@ -717,10 +717,10 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 				.addToCollections(collection1, collection3).addToGroupsInEachCollection("g1", "g2")
 				.addToGroupsInCollection(asList("g1", "g2"), collection1));
 
-		assertThatUser("undetaker").isInCollections(collection1, collection2);
-		assertThat(user("undetaker", collection1).getUserGroups().stream().map(idToCode).collect(toList()))
+		assertThatUser("undertaker").isInCollections(collection1, collection3);
+		assertThat(user("undertaker", collection1).getUserGroups().stream().map(idToCode).collect(toList()))
 				.containsOnly("g1", "g2");
-		assertThat(user("undetaker", collection3).getUserGroups().stream().map(idToCode).collect(toList()))
+		assertThat(user("undertaker", collection3).getUserGroups().stream().map(idToCode).collect(toList()))
 				.isEmpty();
 
 	}
@@ -734,8 +734,8 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 		services.createUser("embalmer", (req) -> req.setNameEmail("Paul", "Bearer", "embalmer@constellio.com")
 				.addToCollections(collection1)
-				.addToGroupsInCollection(asList("g1", "g2"), collection1)
-				.addToGroupsInCollection(asList("g1", "g2"), collection2));
+				.addToGroupsInCollection(asList("g1", "g2"), collection1));
+		//				.addToGroupsInCollection(asList("g1", "g2"), collection2));
 
 		assertThatUser("embalmer").isInCollections(collection1);
 		assertThat(user("embalmer", collection1).getUserGroups().stream().map(idToCode).collect(toList()))
@@ -761,8 +761,8 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 		services.createUser("embalmer", (req) -> req.setNameEmail("Paul", "Bearer", "embalmer@constellio.com")
 				.addToCollections(collection1)
-				.addToGroupsInCollection(asList("g1", "g2"), collection1)
-				.addToGroupsInCollection(asList("g1", "g2"), collection2));
+				.addToGroupsInCollection(asList("g1", "g2"), collection1));
+		//				.addToGroupsInCollection(asList("g1", "g2"), collection2));
 
 		assertThatUser("embalmer").isInCollections(collection1);
 		assertThat(user("embalmer", collection1).getUserGroups().stream().map(idToCode).collect(toList()))

@@ -35,7 +35,10 @@ public class GroupAddUpdateRequest {
 	@Getter
 	List<String> removedCollections;
 
+	@Getter
 	private boolean markedForDeletionInAllCollections;
+
+	@Getter
 	private List<String> markedForDeletionInCollections;
 
 	public GroupAddUpdateRequest(String code) {
@@ -123,10 +126,13 @@ public class GroupAddUpdateRequest {
 	}
 
 	public void markForDeletionInAllCollections() {
-		//TODO Philippe
+		markedForDeletionInAllCollections = true;
 	}
 
 	public void markForDeletionInCollections(List<String> collections) {
-		//TODO Philippe
+		if (markedForDeletionInCollections == null) {
+			markedForDeletionInCollections = new ArrayList<>();
+		}
+		markedForDeletionInCollections.addAll(collections);
 	}
 }
