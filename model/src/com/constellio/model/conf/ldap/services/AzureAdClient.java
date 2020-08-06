@@ -333,6 +333,11 @@ public class AzureAdClient {
 			return submitQueryWithPagination(webTarget.path("groups").path(groupObjectId).path("$links").path("members"), null);
 		}
 
+		@VisibleForTesting
+		List<JSONArray> getGroupMemberOfResponse(final String groupObjectId) {
+			return submitQueryWithPagination(webTarget.path("groups").path(groupObjectId).path("$links").path("memberOf"), null);
+		}
+
 		private JSONObject getObjectResponseByUrl(final String objectUrl) {
 			if (cacheObjects.containsKey(objectUrl)) {
 				return cacheObjects.get(objectUrl);
@@ -452,6 +457,28 @@ public class AzureAdClient {
 		return results;
 	}
 
+	public void getGroupsParent(String groupId, final Map<String, LDAPGroup> ldapGroups, RequestHelper requestHelper) {
+
+		List<JSONArray> stuff = requestHelper.getGroupMemberOfResponse(groupId);
+		int pageNum = 1;
+		for (JSONArray groupsArray : stuff) {
+			int groupsPageSize = groupsArray.length();
+
+			LOGGER.info("Processing parents of " + groupId + " page " + pageNum++ + " having " + groupsPageSize + " items");
+
+			for (int ig = 0; ig < groupsPageSize; ig++) {
+
+				LDAPGroup ldapGroup = buildLDAPGroupFromJsonObject(groupsArray.getJSONObject(ig));
+				if (ldapUserSyncConfiguration.isGroupAccepted(ldapGroup.getSimpleName())) {
+					if (!ldapGroups.containsKey(ldapGroup.getDistinguishedName())) {
+						ldapGroups.put(ldapGroup.getDistinguishedName(), ldapGroup);
+						getGroupsParent(ldapGroup.getDistinguishedName(), ldapGroups, requestHelper);
+					}
+				}
+			}
+		}
+	}
+
 	public void getGroupsAndTheirUsers(final Map<String, LDAPGroup> ldapGroups, final Map<String, LDAPUser> ldapUsers) {
 		LOGGER.info("Getting groups and their members - start");
 
@@ -476,6 +503,7 @@ public class AzureAdClient {
 						ldapGroup = ldapGroups.get(ldapGroup.getDistinguishedName());
 					} else {
 						ldapGroups.put(ldapGroup.getDistinguishedName(), ldapGroup);
+						getGroupsParent(ldapGroup.getDistinguishedName(), ldapGroups, requestHelper);
 					}
 
 					for (JSONArray membersArray : requestHelper.getGroupMembersResponse(ldapGroup.getDistinguishedName())) {

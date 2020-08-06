@@ -118,7 +118,17 @@ public class LDAPServicesImpl implements LDAPServices {
 					SearchResult entry = (SearchResult) results.next();
 
 					LDAPGroup group = buildLDAPGroup(entry);
-					groups.add(group);
+					if (groups.stream().noneMatch(x -> x.getDistinguishedName().equals(group.getDistinguishedName()))) {
+						groups.add(group);
+						if (group.getMemberOf() != null) {
+							for (String parent :
+									group.getMemberOf()) {
+								if (!groups.stream().anyMatch(x -> x.getSimpleName().equals(parent))) {
+									searchGroupsFromContext(ctx, parent);
+								}
+							}
+						}
+					}
 				}
 
 				// Examine the paged results control response
@@ -280,6 +290,13 @@ public class LDAPServicesImpl implements LDAPServices {
 			for (int i = 0; i < members.size(); i++) {
 				String userId = (String) members.get(i);
 				returnGroup.addUser(userId);
+			}
+		}
+		Attribute memberOf = attrs.get(LDAPGroup.MEMBER_OF);
+		if (memberOf != null) {
+			for (int i = 0; i < memberOf.size(); i++) {
+				String groupId = (String) memberOf.get(i);
+				returnGroup.addParent(groupId);
 			}
 		}
 		return returnGroup;
