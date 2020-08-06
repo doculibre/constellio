@@ -11,6 +11,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -27,6 +28,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.shared.ui.MarginInfo;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
@@ -87,7 +89,7 @@ public class UsersAddToGroupsWindowButton extends WindowButton {
 		BaseButton saveButton;
 		BaseButton cancelButton;
 		userSelectLayout.addComponent(userFields);
-		HorizontalLayout buttonLayout = new HorizontalLayout();
+		I18NHorizontalLayout buttonLayout = new I18NHorizontalLayout();
 		mainLayout.addComponents(userSelectLayout);
 
 		buttonLayout.addComponent(saveButton = new BaseButton($("save")) {
@@ -114,6 +116,7 @@ public class UsersAddToGroupsWindowButton extends WindowButton {
 
 		buttonLayout.setSpacing(true);
 		mainLayout.addComponent(buttonLayout);
+		mainLayout.setComponentAlignment(buttonLayout, Alignment.MIDDLE_CENTER);
 		mainLayout.setHeight("100%");
 		mainLayout.setWidth("100%");
 		mainLayout.setSpacing(true);
