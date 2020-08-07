@@ -221,7 +221,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenUserWith(noGroups, andNoCollections);
 		assertThatUserIsOnlyInCollections(user);
 
-		userServices.execute(user.getUsername(), (req) -> req.addCollection(collection1));
+		userServices.execute(user.getUsername(), (req) -> req.addToCollection(collection1));
 		assertThatUserIsOnlyInCollections(user, collection1);
 
 	}
@@ -263,9 +263,9 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		}
 		assertThat(userInCollection.get(collection1).getWrappedRecord().isActive()).isFalse();
 		assertThat(userInCollection.get(collection2).getWrappedRecord().isActive()).isFalse();
-		assertThat(userInCollection.get(collection1).getStatus()).isEqualTo(UserCredentialStatus.DELETED);
-		assertThat(userInCollection.get(collection2).getStatus()).isEqualTo(UserCredentialStatus.DELETED);
-		assertThat(userServices.getUser(user.getUsername()).getStatus()).isEqualTo(UserCredentialStatus.DELETED);
+		assertThat(userInCollection.get(collection1).getStatus()).isEqualTo(UserCredentialStatus.DISABLED);
+		assertThat(userInCollection.get(collection2).getStatus()).isEqualTo(UserCredentialStatus.DISABLED);
+		assertThat(userServices.getUser(user.getUsername()).getStatus()).isEqualTo(UserCredentialStatus.DISABLED);
 		assertThat(userServices.getAllUserCredentials()).hasSize(2);
 		assertThat(userServices.getActiveUserCredentials()).hasSize(1);
 		assertThat(userServices.getActiveUserCredentials().get(0).getUsername()).isEqualTo("admin");
@@ -344,7 +344,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenUserWith(noGroups, and(collection1, collection2));
 		userServices.removeUserCredentialAndUser(user);
 
-		userServices.activeUserCredentialAndUser(user.getUsername());
 
 		Map<String, User> userInCollection = new HashMap<>();
 		for (String collection : Arrays.asList(collection1, collection2)) {
@@ -753,7 +752,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		setupAfterCollectionCreation();
 		com.constellio.model.services.users.UserAddUpdateRequest admin = userServices.addUpdate("admin");
-		admin = admin.setStatusForAllCollections(UserCredentialStatus.DELETED);
+		admin = admin.setStatusForAllCollections(UserCredentialStatus.DISABLED);
 		try {
 			userServices.execute(admin);
 		} finally {
@@ -855,7 +854,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.execute(group1_1_1);
 
 		UserCredential admin = userServices.getUserCredential("admin");
-		userServices.execute(admin.getUsername(), (req) -> req.addCollection(collection1));
+		userServices.execute(admin.getUsername(), (req) -> req.addToCollection(collection1));
 		userServices.removeGroupFromCollectionsWithoutUserValidation("group1", Arrays.asList("collection1"));
 
 		assertThat(userServices.getGroupInCollection("group1", "collection1").getWrappedRecord()
@@ -885,7 +884,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		SystemWideGroup group1_1_1 = userServices.getGroup("group1_1_1");
 
 		UserCredential admin = userServices.getUserCredential("admin");
-		userServices.execute(admin.getUsername(), (req) -> req.addCollection(collection1));
+		userServices.execute(admin.getUsername(), (req) -> req.addToCollection(collection1));
 		userServices.logicallyRemoveGroupHierarchy(admin.getUsername(), group1);
 
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection1)
@@ -900,7 +899,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThat(groupRecords.get(2).isActive()).isFalse();
 		assertThat(userServices.getAllGroups()).hasSize(3);
 		assertThat(userServices.getActiveGroups()).isEmpty();
-		assertThat(userServices.getGroup(group1.getCode()).getStatus()).isEqualTo(GlobalGroupStatus.INACTIVE);
+		assertThat(userServices.getGroup(group1.getCode()).getStatus(collection1)).isEqualTo(GlobalGroupStatus.INACTIVE);
 		try {
 			userServices.getActiveGroup(group1.getCode());
 		} catch (Exception e) {
@@ -927,7 +926,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		SystemWideGroup group1_1 = userServices.getGroup("group1_1");
 		SystemWideGroup group1_1_1 = userServices.getGroup("group1_1_1");
 		UserCredential admin = userServices.getUserCredential("admin");
-		userServices.execute(admin.getUsername(), (req) -> req.addCollection(collection1));
+		userServices.execute(admin.getUsername(), (req) -> req.addToCollection(collection1));
 		userServices.logicallyRemoveGroupHierarchy(admin.getUsername(), group1);
 
 		userServices.activateGlobalGroupHierarchy(admin, group1);
@@ -1005,7 +1004,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 			if (!user.getUsername().equals("admin")) {
 				com.constellio.model.services.users.UserAddUpdateRequest userReq = userServices.addUpdate(user.getUsername());
 				if (!user.isSystemAdmin()) {
-					userReq.setStatusForAllCollections(UserCredentialStatus.DELETED);
+					userReq.setStatusForAllCollections(UserCredentialStatus.DISABLED);
 					userServices.execute(userReq);
 				}
 			}
@@ -1239,12 +1238,12 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.executeGroupRequest(heroes.getCode(), (req) -> req.setStatusInAllCollections(GlobalGroupStatus.INACTIVE));
 
 
-		assertThat(userServices.getGroup(heroesGlobalGroup.getCode()).getStatus())
+		assertThat(userServices.getGroup(heroesGlobalGroup.getCode()).getStatus(zeCollection))
 				.isEqualTo(GlobalGroupStatus.INACTIVE);
 
 		userServices.restoreDeletedGroup(heroes.getCode(), zeCollection);
 
-		assertThat(userServices.getGroup(heroes.getCode()).getStatus()).isEqualTo(GlobalGroupStatus.ACTIVE);
+		assertThat(userServices.getGroup(heroes.getCode()).getStatus(zeCollection)).isEqualTo(GlobalGroupStatus.ACTIVE);
 	}
 
 	@Test
@@ -1442,7 +1441,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		users.setUp(getModelLayerFactory().newUserServices());
 		User chuck = users.chuckNorrisIn(zeCollection);
 
-		userServices.execute(chuck.getUsername(), req -> req.markForDeletionInAllCollections());
+		userServices.execute(chuck.getUsername(), req -> req.removeFromAllCollections());
 		//OK !
 	}
 
@@ -1465,7 +1464,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 
 		try {
-			userServices.execute(chuck.getUsername(), req -> req.markForDeletionInAllCollections());
+			userServices.execute(chuck.getUsername(), req -> req.removeFromAllCollections());
 			fail();
 		} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
 			System.out.println(e.getMessage());

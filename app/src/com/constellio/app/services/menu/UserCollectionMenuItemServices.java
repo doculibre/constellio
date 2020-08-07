@@ -25,6 +25,7 @@ import static com.constellio.app.services.menu.UserCollectionMenuItemServices.Us
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_EDIT;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_MANAGE_ROLES;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_MANAGE_SECURITY;
+import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_SYNCHRONIZE;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class UserCollectionMenuItemServices {
@@ -68,7 +69,7 @@ public class UserCollectionMenuItemServices {
 				if (!filteredActionTypes.contains(USER_MANAGE_SECURITY.name())) {
 					MenuItemAction menuItemAction = buildMenuItemAction(USER_MANAGE_SECURITY.name(),
 							isMenuItemActionPossible(USER_MANAGE_SECURITY.name(), userRecords.get(0), user, params),
-							$("CollectionSecurityManagement.manageSecurity"), FontAwesome.LOCK, -1, 400,
+							$("CollectionSecurityManagement.manageSecurity"), FontAwesome.LOCK, -1, 450,
 							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).manageSecurity(userRecords, params));
 					menuItemActions.add(menuItemAction);
 				}
@@ -116,6 +117,21 @@ public class UserCollectionMenuItemServices {
 						$("CollectionSecurityManagement.changeStatus"), FontAwesome.FLAG, -1, 350,
 						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).changeStatus(userRecords, params)));
 			}
+
+			if (!filteredActionTypes.contains(USER_SYNCHRONIZE.name())) {
+				menuItemActions.add(buildMenuItemAction(USER_SYNCHRONIZE.name(),
+						isMenuItemActionPossible(USER_SYNCHRONIZE.name(), userRecords.get(0), user, params),
+						$("CollectionSecurityManagement.synchronize"), FontAwesome.CLOUD, -1, 375,
+						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).synchronize(userRecords, params, true)));
+			}
+
+			if (!filteredActionTypes.contains(USER_CHANGE_STATUS.name())) {
+				menuItemActions.add(buildMenuItemAction(USER_CHANGE_STATUS.name(),
+						isMenuItemActionPossible(USER_CHANGE_STATUS.name(), userRecords.get(0), user, params),
+						$("CollectionSecurityManagement.desynchronize"), FontAwesome.EJECT, -1, 400,
+						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).synchronize(userRecords, params, false)));
+			}
+
 		}
 
 		return menuItemActions;
@@ -139,6 +155,9 @@ public class UserCollectionMenuItemServices {
 				return userRecordActionsServices.isDeleteActionPossible(record, user);
 			case USER_CHANGE_STATUS:
 				return userRecordActionsServices.isChangeStatusActionPossible(record, user);
+			case USER_SYNCHRONIZE:
+			case USER_DESYNCHRONIZE:
+				return userRecordActionsServices.isChangeSynchroActionPossible(record, user);
 			case USER_MANAGE_SECURITY:
 				return userRecordActionsServices.isManageSecurityActionPossible(record, user);
 			case USER_MANAGE_ROLES:
@@ -171,5 +190,7 @@ public class UserCollectionMenuItemServices {
 		USER_CHANGE_STATUS,
 		USER_MANAGE_SECURITY,
 		USER_MANAGE_ROLES,
+		USER_SYNCHRONIZE,
+		USER_DESYNCHRONIZE
 	}
 }

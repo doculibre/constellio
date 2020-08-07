@@ -31,6 +31,7 @@ public class UserCredential extends RecordWrapper {
 	public static final String COLLECTIONS = "collections";
 	public static final String GLOBAL_GROUPS = "globalGroups";
 	public static final String STATUS = "status";
+	public static final String SYNC_MODE = "syncMode";
 	public static final String DOMAIN = "domain";
 	public static final String MS_EXCHANGE_DELEGATE_LIST = "msExchangeDelegateList";
 	public static final String DN = "dn";
@@ -188,6 +189,15 @@ public class UserCredential extends RecordWrapper {
 
 	public UserCredential setStatus(UserCredentialStatus status) {
 		set(STATUS, status);
+		return this;
+	}
+
+	public UserSyncMode getSyncMode() {
+		return get(SYNC_MODE);
+	}
+
+	public UserCredential setSyncMode(UserSyncMode syncMode) {
+		set(SYNC_MODE, syncMode);
 		return this;
 	}
 

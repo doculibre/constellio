@@ -18,6 +18,9 @@ public class Group extends RecordWrapper {
 	public static final String TITLE = Schemas.TITLE_CODE;
 	public static final String PARENT = "parent";
 	public static final String ANCESTORS = "ancestors";
+	public static final String STATUS = "status";
+	public static final String HIERARCHY = "hierarchy";
+	public static final String LOCALLY_CREATED = "locallyCreated";
 
 	public Group(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -96,6 +99,19 @@ public class Group extends RecordWrapper {
 	}
 
 	public GlobalGroupStatus getStatus() {
-		return null;
+		return get(STATUS);
+	}
+
+	public String getHierarchy() {
+		return get(HIERARCHY);
+	}
+
+	public Group setHierarchy(String path) {
+		set(HIERARCHY, path);
+		return this;
+	}
+
+	public boolean isLocallyCreated() {
+		return Boolean.TRUE.equals(get(LOCALLY_CREATED));
 	}
 }

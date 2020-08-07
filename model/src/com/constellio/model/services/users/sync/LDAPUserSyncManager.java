@@ -248,12 +248,12 @@ public class LDAPUserSyncManager implements StatefulService {
 						try {
 							LOGGER.info(
 									"Attempting to delete username " + userCredentialByDn.getUsername());
-							userServices.execute(userCredentialByDn.getUsername(), req -> req.markForDeletionInAllCollections());
+							userServices.execute(userCredentialByDn.getUsername(), req -> req.removeFromAllCollections());
 						} catch (Throwable t) {
 							try {
 								LOGGER.info(
 										"Could not delete username " + userCredentialByDn.getUsername() + ", attempting to delete " + previousUserCredential.getUsername() + " instead");
-								userServices.execute(userCredentialByDn.getUsername(), req -> req.markForDeletionInAllCollections());
+								userServices.execute(userCredentialByDn.getUsername(), req -> req.removeFromAllCollections());
 								previousUserCredential = userCredentialByDn;
 							} catch (Throwable t2) {
 								com.constellio.model.services.users.UserAddUpdateRequest invalidUserCredential;
@@ -311,7 +311,7 @@ public class LDAPUserSyncManager implements StatefulService {
 		Set<String> usersAutomaticallyAddedToCollections;
 		try {
 			SystemWideGroup group = userServices.getGroup(code);
-			usersAutomaticallyAddedToCollections = new HashSet<>(group.getUsersAutomaticallyAddedToCollections());
+			usersAutomaticallyAddedToCollections = new HashSet<>(group.getCollections());
 			usersAutomaticallyAddedToCollections.addAll(selectedCollectionsCodes);
 		} catch (UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup e) {
 			usersAutomaticallyAddedToCollections = new HashSet<>();
@@ -350,7 +350,7 @@ public class LDAPUserSyncManager implements StatefulService {
 		if (ldapUser.getEnabled()) {
 			userStatus = UserCredentialStatus.ACTIVE;
 		} else {
-			userStatus = UserCredentialStatus.DELETED;
+			userStatus = UserCredentialStatus.DISABLED;
 		}
 		com.constellio.model.services.users.UserAddUpdateRequest request = userServices.addUpdate(username)
 				.setFirstName(firstName)
@@ -366,7 +366,7 @@ public class LDAPUserSyncManager implements StatefulService {
 
 		for (String selectedCollectionsCode : selectedCollectionsCodes) {
 			if (!currentCollections.contains(selectedCollectionsCode)) {
-				request.addCollection(selectedCollectionsCode);
+				request.addToCollection(selectedCollectionsCode);
 			}
 		}
 

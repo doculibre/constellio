@@ -68,6 +68,12 @@ public class UserServicesRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class UserServicesRuntimeException_UserAlreadyExists extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_UserAlreadyExists(String username) {
+			super("Username already exist in '" + username + "'");
+		}
+	}
+
 	public static class UserServicesRuntimeException_InvalidCollection extends UserServicesRuntimeException {
 		public UserServicesRuntimeException_InvalidCollection(String username, String collection) {
 			super("Cannot add user in this invalid collection name '" + collection + "'");

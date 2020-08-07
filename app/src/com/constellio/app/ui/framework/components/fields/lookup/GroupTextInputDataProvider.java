@@ -42,7 +42,7 @@ public class GroupTextInputDataProvider extends RecordTextInputDataProvider {
 
 
 		List<String> globalGroupCode = getModelLayerFactory().newUserServices().getActiveGroups().stream().filter((group -> group
-				.getUsersAutomaticallyAddedToCollections().contains(getCurrentCollection())))
+				.getCollections().contains(getCurrentCollection())))
 				.map(group -> group.getCode()).collect(Collectors.toList());
 
 

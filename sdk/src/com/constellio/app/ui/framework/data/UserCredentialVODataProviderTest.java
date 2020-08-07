@@ -158,10 +158,10 @@ public class UserCredentialVODataProviderTest extends ConstellioTest {
 	public void givenDeletedUserWhenListUserCredentialsWithStatusDeletedThenOk()
 			throws Exception {
 
-		when(edouardUserCredentialVO.getStatus()).thenReturn(UserCredentialStatus.DELETED);
+		when(edouardUserCredentialVO.getStatus()).thenReturn(UserCredentialStatus.DISABLED);
 
-		assertThat(dataProvider.listUserCredentialVOsWithStatus(UserCredentialStatus.DELETED)).hasSize(1);
-		assertThat(dataProvider.listUserCredentialVOsWithStatus(UserCredentialStatus.DELETED).get(0).getUsername())
+		assertThat(dataProvider.listUserCredentialVOsWithStatus(UserCredentialStatus.DISABLED)).hasSize(1);
+		assertThat(dataProvider.listUserCredentialVOsWithStatus(UserCredentialStatus.DISABLED).get(0).getUsername())
 				.isEqualTo(EDOUARD);
 	}
 

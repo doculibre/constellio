@@ -3,6 +3,7 @@ package com.constellio.model.services.users;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.security.global.AgentStatus;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.UserSyncMode;
 import lombok.Builder;
 import lombok.Getter;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -45,8 +46,10 @@ public class SystemWideUserInfos {
 	@Getter
 	private Boolean systemAdmin;
 
-	//TODO : Replace with Map<String, UserCredentialStatus> using collection codes as keys
-	private UserCredentialStatus status = UserCredentialStatus.ACTIVE;
+	private Map<String, UserCredentialStatus> statuses = new HashMap<>();
+
+	@Getter
+	private UserSyncMode syncMode = UserSyncMode.LOCALLY_CREATED;
 
 	@Getter
 	private List<String> collections = new ArrayList<>();
@@ -121,27 +124,33 @@ public class SystemWideUserInfos {
 
 	}
 
-	//TODO Philippe : store by collection!
 	public UserCredentialStatus getStatus(String collection) {
-		return status;
+		return statuses.get(collection);
 	}
 
-	@Deprecated
-	//TODO Philippe : remove!
-	public UserCredentialStatus getStatus() {
-		return status;
-	}
 
 	public boolean isActiveInAnyCollection() {
-		return UserCredentialStatus.ACTIVE.equals(status);
+		return hasStatusInAnyCollection(UserCredentialStatus.ACTIVE);
 	}
 
 	public boolean hasStatusInAnyCollection(UserCredentialStatus status) {
-		return status == this.status;
+		for (UserCredentialStatus aStatus : statuses.values()) {
+			if (aStatus == status) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public boolean hasStatusInAllCollection(UserCredentialStatus status) {
-		return status == this.status;
+		for (UserCredentialStatus aStatus : statuses.values()) {
+			if (aStatus != status) {
+				return false;
+			}
+		}
+
+		return !statuses.isEmpty();
 	}
 
 	public boolean isNotReceivingEmails() {

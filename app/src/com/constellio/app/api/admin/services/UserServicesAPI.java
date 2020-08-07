@@ -39,7 +39,7 @@ public class UserServicesAPI {
 	public String addUpdateGlobalGroup(GlobalGroupResource globalGroupResource) {
 		throw new UnsupportedOperationException("Unsupported");
 		//		GlobalGroup group = userServices().createGlobalGroup(globalGroupResource.getCode(), globalGroupResource.getName(),
-		//				globalGroupResource.getUsersAutomaticallyAddedToCollections(), globalGroupResource.getParent(),
+		//				globalGroupResource.getCollections(), globalGroupResource.getParent(),
 		//				globalGroupResource.getStatus(), globalGroupResource.isLocallyCreated());
 		//		userServices().execute(group);
 		//		return "OK";
@@ -73,7 +73,7 @@ public class UserServicesAPI {
 	public String setGlobalGroupUsers(GlobalGroupResource resource) {
 		throw new UnsupportedOperationException("Unsupported");
 		//		List<UserCredential> userCredentials = new ArrayList<>();
-		//		for (String username : resource.getUsersAutomaticallyAddedToCollections()) {
+		//		for (String username : resource.getCollections()) {
 		//			userCredentials.add(userServices().getUser(username));
 		//		}
 		//		userServices().setGlobalGroupUsers(resource.getCode(), userCredentials);

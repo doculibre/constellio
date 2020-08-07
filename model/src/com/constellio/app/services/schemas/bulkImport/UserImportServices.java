@@ -106,7 +106,7 @@ public class UserImportServices implements ImportServices {
 		} else if (status.equals("s")) {
 			userCredentialStatus = UserCredentialStatus.SUSPENDED;
 		} else if (status.equals("d")) {
-			userCredentialStatus = UserCredentialStatus.DELETED;
+			userCredentialStatus = UserCredentialStatus.DISABLED;
 		} else {
 			userCredentialStatus = UserCredentialStatus.ACTIVE;
 		}
@@ -118,7 +118,7 @@ public class UserImportServices implements ImportServices {
 				.setServiceKey(null)
 				.setSystemAdmin(systemAdmin == null ? null : Boolean.valueOf((String) systemAdmin))
 				.addToGroupsInEachCollection(globalGroups)
-				.addCollections(collections)
+				.addToCollections(collections)
 				.setStatusForAllCollections(userCredentialStatus);
 		try {
 			if (userServices.getUserCredential(username) == null && Strings.isNotEmpty(password)) {

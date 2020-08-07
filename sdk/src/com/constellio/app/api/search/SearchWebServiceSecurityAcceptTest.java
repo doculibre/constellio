@@ -476,14 +476,14 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 		userWithSomeRecordAccess = users.gandalfLeblanc();
 		systemAdmin = users.chuckNorris();
 
-		userServices.execute(userWithZeCollectionReadAccess.getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(userWithAnotherCollectionReadAccess.getUsername(), (req) -> req.addCollection(anotherCollection));
-		userServices.execute(userWithBothCollectionReadAccess.getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(userWithBothCollectionReadAccess.getUsername(), (req) -> req.addCollection(anotherCollection));
-		userServices.execute(userInBothCollectionWithoutAnyAccess.getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(userInBothCollectionWithoutAnyAccess.getUsername(), (req) -> req.addCollection(anotherCollection));
-		userServices.execute(userWithSomeRecordAccess.getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(userWithSomeRecordAccess.getUsername(), (req) -> req.addCollection(anotherCollection));
+		userServices.execute(userWithZeCollectionReadAccess.getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(userWithAnotherCollectionReadAccess.getUsername(), (req) -> req.addToCollection(anotherCollection));
+		userServices.execute(userWithBothCollectionReadAccess.getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(userWithBothCollectionReadAccess.getUsername(), (req) -> req.addToCollection(anotherCollection));
+		userServices.execute(userInBothCollectionWithoutAnyAccess.getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(userInBothCollectionWithoutAnyAccess.getUsername(), (req) -> req.addToCollection(anotherCollection));
+		userServices.execute(userWithSomeRecordAccess.getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(userWithSomeRecordAccess.getUsername(), (req) -> req.addToCollection(anotherCollection));
 
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
 		authenticationService.changePassword(systemAdmin.getUsername(), "youshallnotpass");

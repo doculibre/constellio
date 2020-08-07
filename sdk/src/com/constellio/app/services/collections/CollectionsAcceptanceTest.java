@@ -110,8 +110,8 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		givenCollection(zeCollection).withConstellioRMModule().withConstellioESModule();
 		givenCollection("anotherCollection").withConstellioRMModule().withConstellioESModule();
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.execute(admin, (req) -> req.addCollection(zeCollection));
-		userServices.execute(admin, (req) -> req.addCollection("anotherCollection"));
+		userServices.execute(admin, (req) -> req.addToCollection(zeCollection));
+		userServices.execute(admin, (req) -> req.addToCollection("anotherCollection"));
 		assertThat(getAppLayerFactory().getModulesManager().getEnabledModules(zeCollection)).extracting("class.name")
 				.containsOnly("com.constellio.app.modules.tasks.TaskModule", "com.constellio.app.modules.es.ConstellioESModule",
 						"com.constellio.app.modules.rm.ConstellioRMModule");
@@ -124,7 +124,7 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 						"com.constellio.app.modules.rm.ConstellioRMModule");
 
 		assertThat(userServices.getUserInfos(admin).getCollections()).containsOnly("anotherCollection");
-		userServices.execute(admin, (req) -> req.addCollection(zeCollection));
+		userServices.execute(admin, (req) -> req.addToCollection(zeCollection));
 	}
 
 	@Test
@@ -228,7 +228,7 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		assertThat(collectionsInVersionProperties).doesNotContain("constellio_version");
 
 		assertThat(userServices.getUserInfos(bobGratton).getCollections()).doesNotContain("constellio");
-		assertThat(userServices.getGroup("legends").getUsersAutomaticallyAddedToCollections()).doesNotContain("constellio")
+		assertThat(userServices.getGroup("legends").getCollections()).doesNotContain("constellio")
 				.contains("doculibre");
 	}
 
@@ -304,9 +304,9 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		givenCollection("constellio");
 		givenCollection("doculibre");
 
-		userServices.execute(users.bob().getUsername(), (req) -> req.addCollection("constellio"));
-		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addCollection("constellio"));
-		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addCollection("doculibre"));
+		userServices.execute(users.bob().getUsername(), (req) -> req.addToCollection("constellio"));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection("constellio"));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection("doculibre"));
 
 		userServices.execute(users.legendsRequest().addCollections(
 				Arrays.asList("constellio", "doculibre")));

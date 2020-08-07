@@ -4,7 +4,6 @@ import lombok.Builder;
 import lombok.Getter;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.joda.time.LocalDateTime;
 
 import java.util.List;
 
@@ -20,9 +19,6 @@ public class SystemWideGroup {
 	public static final String STATUS = "status";
 	public static final String HIERARCHY = "hierarchy";
 	public static final String LOCALLY_CREATED = "locallyCreated";
-
-	@Getter
-	private String id;
 
 	@Getter
 	private String code;
@@ -42,20 +38,15 @@ public class SystemWideGroup {
 	@Getter
 	private String parent;
 
-	@Getter
 	GlobalGroupStatus groupStatus;
 
-	@Getter
 	String hierarchy;
 
 	@Getter
 	Boolean locallyCreated;
 
-	@Getter
 	Boolean logicallyDeletedStatus;
 
-	@Getter
-	LocalDateTime logicallyDeletedOn;
 
 	//TODO remove!
 	String toString;
@@ -68,10 +59,6 @@ public class SystemWideGroup {
 		return toString;
 	}
 
-	public boolean isLogicallyDeletedStatus() {
-		return Boolean.TRUE.equals(logicallyDeletedStatus);
-	}
-
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);
@@ -82,8 +69,7 @@ public class SystemWideGroup {
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}
 
-	@Deprecated
-	public List<String> getUsersAutomaticallyAddedToCollections() {
+	public List<String> getCollections() {
 		return collections;
 	}
 
@@ -92,7 +78,23 @@ public class SystemWideGroup {
 		return groupStatus;
 	}
 
+	@Deprecated
+	public GlobalGroupStatus getGroupStatus() {
+		return groupStatus;
+	}
+
 	public GlobalGroupStatus getStatus(String collection) {
 		return groupStatus;
 	}
+
+	@Deprecated
+	public Boolean getLogicallyDeletedStatus() {
+		return logicallyDeletedStatus;
+	}
+
+	@Deprecated
+	public String getHierarchy() {
+		return hierarchy;
+	}
+
 }

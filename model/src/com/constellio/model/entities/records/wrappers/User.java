@@ -66,6 +66,8 @@ public class User extends RecordWrapper {
 	public static final String AUTOMATIC_TASK_ASSIGNATION = "automaticTaskAssignation";
 	public static final String AUTOMATIC_TASK_ASSIGNATION_WORKFLOWS = "automaticTaskAssignationWorkflows";
 	public static final String ASSIGNATION_EMAIL_RECEPTION_DISABLED = "assignationEmailReceptionDisabled";
+	public static final String DOMAIN = "domain";
+	public static final String MS_EXCHANGE_DELEGATE_LIST = "msExchangeDelegateList";
 
 	private Logger LOGGER = LoggerFactory.getLogger(User.class);
 
@@ -138,6 +140,24 @@ public class User extends RecordWrapper {
 
 	public User setDefaultTaxonomy(String defaultTaxonomy) {
 		set(DEFAULT_TAXONOMY, defaultTaxonomy);
+		return this;
+	}
+
+	public String getDomain() {
+		return get(DOMAIN);
+	}
+
+	public User setDomain(String domain) {
+		set(DOMAIN, domain);
+		return this;
+	}
+
+	public List<String> getMsExchDelegateListBL() {
+		return getList(MS_EXCHANGE_DELEGATE_LIST);
+	}
+
+	public User setMsExchDelegateListBL(List<String> delegateList) {
+		set(MS_EXCHANGE_DELEGATE_LIST, delegateList);
 		return this;
 	}
 
@@ -378,7 +398,7 @@ public class User extends RecordWrapper {
 
 	public UserCredentialStatus getStatus() {
 		RecordDTO recordDTO = wrappedRecord.getRecordDTO();
-		if (recordDTO != null) {
+		if (recordDTO != null && !wrappedRecord.isDirty()) {
 			return UserCredentialStatus.fastConvert((String) recordDTO.getFields().get("status_s"));
 
 		}

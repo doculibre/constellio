@@ -145,10 +145,6 @@ public class SolrGlobalGroupsManager implements StatefulService {
 		return record != null ? wrapGlobalGroup(record) : null;
 	}
 
-	SystemWideGroup getActiveGlobalGroupWithCode(String code) {
-		SystemWideGroup group = getGlobalGroupWithCode(code);
-		return group != null && group.getStatus() == GlobalGroupStatus.ACTIVE ? group : null;
-	}
 
 	LogicalSearchQuery getAllGroupsQuery() {
 		return new LogicalSearchQuery(from(schemas.globalGroupSchemaType()).returnAll()).sortAsc(schemas.globalGroupCode());
@@ -171,9 +167,6 @@ public class SolrGlobalGroupsManager implements StatefulService {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
 		GlobalGroup globalGroup = new GlobalGroup(record, types);
 		return SystemWideGroup.builder()
-
-
-				.id(record.getId())
 				.code(globalGroup.getCode())
 				.name(globalGroup.getCode())
 				.collections(globalGroup.getUsersAutomaticallyAddedToCollections())
@@ -182,7 +175,6 @@ public class SolrGlobalGroupsManager implements StatefulService {
 				.hierarchy(globalGroup.getHierarchy())
 				.toString(globalGroup.toString())
 				.logicallyDeletedStatus(globalGroup.getLogicallyDeletedStatus())
-				.logicallyDeletedOn(globalGroup.get(Schemas.LOGICALLY_DELETED_ON))
 				.build();
 	}
 

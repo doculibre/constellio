@@ -129,7 +129,7 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
 			case SUSPENDED:
 				return UserCredentialStatus.SUSPENDED;
 			case DELETED:
-				return UserCredentialStatus.DELETED;
+				return UserCredentialStatus.DISABLED;
 			default:
 				return UserCredentialStatus.ACTIVE;
 		}

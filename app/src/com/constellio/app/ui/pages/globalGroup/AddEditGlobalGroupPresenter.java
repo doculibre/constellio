@@ -87,12 +87,12 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 		userServices.execute(globalGroup);
 
 		//		if (!isEditMode()) {
-		//			for (String collection : globalGroup.getUsersAutomaticallyAddedToCollections()) {
+		//			for (String collection : globalGroup.getCollections()) {
 		//				Group group = userServices.getGroupInCollection(entity.getCode(), collection);
 		//				loggingServices.addUserOrGroup(group.getWrappedRecord(), getCurrentUser(), collection);
 		//			}
 		//		} else {
-		//			for (String collection : globalGroup.getUsersAutomaticallyAddedToCollections()) {
+		//			for (String collection : globalGroup.getCollections()) {
 		//				Group group = userServices.getGroupInCollection(entity.getCode(), collection);
 		//				if (entity.getCollections().contains(collection) && !collections.contains(collection)) {
 		//					loggingServices.addUserOrGroup(group.getWrappedRecord(), getCurrentUser(), collection);
