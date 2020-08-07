@@ -20,6 +20,7 @@ import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+@Slf4j
 public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	public static final String RECOVERY_FOLDER = "vaultrecoveryfolder";
@@ -131,10 +133,9 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 				}
 
 				if (okayCaseSensitive == false) {
-					String printedString = String.format("Failed test for case sensivity, tried to create <test>" +
-														 "and <TEST> in <%s> with different contents, but failed since filesystem is not case sensitive. " +
-														 "Use HashingEncoding.BASE32 instead.", workFolder.getAbsolutePath());
-					Logger.getLogger(this.getClass()).info(printedString);
+					String printedString = String.format("Failed test for case sensivity, filesystem is not case sensitive. " +
+														 "Use HashingEncoding.BASE32 instead.");
+					log.error(printedString);
 					System.exit(-1);
 				}
 			}
