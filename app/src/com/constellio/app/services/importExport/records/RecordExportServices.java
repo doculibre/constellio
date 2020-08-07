@@ -98,7 +98,7 @@ public class RecordExportServices {
 			ImportRecordOfSameCollectionWriter writer = new ImportRecordOfSameCollectionWriter(tempFolder);
 			StringBuilder contentPaths = new StringBuilder();
 			try {
-				writeRecords(writer, options, contentPaths);
+				writeRecords(writer, options, contentPaths, tempFolder);
 			} finally {
 				writer.close();
 			}
@@ -135,7 +135,8 @@ public class RecordExportServices {
 
 
 	private void writeRecords(ImportRecordOfSameCollectionWriter writer,
-							  RecordExportOptions options, StringBuilder contentPaths) {
+							  RecordExportOptions options, StringBuilder contentPaths,
+							  File tempFolder) {
 
 
 		Set<String> receivedTypes = new HashSet<>();
@@ -185,7 +186,7 @@ public class RecordExportServices {
 			}
 
 			appLayerFactory.getExtensions().forCollection(collection)
-					.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord, options.isForSameSystem()));
+					.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord, options.isForSameSystem(), tempFolder));
 
 			writer.write(modifiableImportRecord);
 		}
@@ -280,10 +281,9 @@ public class RecordExportServices {
 
 	}
 
+
 	private void writeRecord(Record record, ModifiableImportRecord modifiableImportRecord,
 							 final RecordExportOptions options, StringBuilder contentPaths) {
-
-
 		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(record);
 
 
@@ -388,6 +388,7 @@ public class RecordExportServices {
 
 		}
 	}
+
 
 	private void writeContentPath(Content content, StringBuilder contentPaths) {
 		DataLayerFactory dataLayerFactory = modelLayerFactory.getDataLayerFactory();
