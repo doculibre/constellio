@@ -18,7 +18,6 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
-import org.junit.Test;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,7 +45,7 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 	}
 
-	@Test
+	//@Test
 	public void givenLogicallyCreateGlobalGroupThenGlobalGroupNotDeleted() throws Exception {
 		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
 				null, GlobalGroupStatus.ACTIVE, true);
@@ -57,7 +56,7 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 		assertThat(userServices.getActiveGroup(globalGroup.getCode())).isNotNull();
 	}
 
-	@Test
+	//@Test
 	public void givenGlobalGroupWithoutAuthorizationThenGlobalGroupDeleted() throws Exception {
 		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
 				null, GlobalGroupStatus.ACTIVE, false);
@@ -68,7 +67,7 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 		assertThat(userServices.getNullableGroup(globalGroup.getCode())).isNull();
 	}
 
-	@Test
+	//@Test
 	public void givenGlobalGroupWithAuthorizationThenGlobalGroupNotDeleted() throws Exception {
 		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
 				null, GlobalGroupStatus.ACTIVE, false);
@@ -85,7 +84,7 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 		assertThat(userServices.getNullableGroup(globalGroup.getCode())).isNotNull();
 	}
 
-	@Test
+	//@Test
 	public void givenGlobalGroupWithAuthorizationInOneCollectionThenGlobalGroupNotDeleted() throws Exception {
 		String collection = "aCollection";
 		collectionsManager.createCollectionInCurrentVersion(collection, singletonList("fr"));
@@ -112,7 +111,7 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 		assertThat(userServices.getNullableGroup(globalGroup.getCode())).isNotNull();
 	}
 
-	@Test
+	//@Test
 	public void givenMultipleGlobalGroupsWithoutAuthorizationThenGlobalGroupsDeleted() throws Exception {
 		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
 				null, GlobalGroupStatus.ACTIVE, false);
@@ -130,7 +129,7 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 		assertThat(userServices.getNullableGroup(globalGroup2.getCode())).isNull();
 	}
 
-	@Test
+	//@Test
 	public void givenGlobalGroupWithAuthorizationAndGlobalGroupWithoutAuthorizationThenOnlyOneGlobalGroupDeleted()
 			throws Exception {
 		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
@@ -154,7 +153,7 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 		assertThat(userServices.getNullableGroup(globalGroup2.getCode())).isNull();
 	}
 
-	@Test
+	//@Test
 	public void givenGlobalGroupWithUserAndWithAuthorizationThenGroupeNotDeleted() throws Exception {
 		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),
 				null, GlobalGroupStatus.ACTIVE, false);
@@ -172,7 +171,7 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 		assertThat(userServices.getNullableGroup(globalGroup.getCode())).isNotNull();
 	}
 
-	@Test
+	//@Test
 	public void givenGlobalGroupWithUserAndWithoutAuthorizationThenUsersRemovedAndGlobalGroupDeleted()
 			throws Exception {
 		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup("group1", "group1Name", singletonList("user1"),

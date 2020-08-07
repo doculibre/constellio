@@ -446,6 +446,7 @@ public class RMTestRecords {
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		UserServices userServices = modelLayerFactory.newUserServices();
+		users.withCollection(collection);
 		users.setUp(userServices).withPasswords(modelLayerFactory.newAuthenticationService());
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
@@ -1273,7 +1274,7 @@ public class RMTestRecords {
 				.setDocuments(documentsWhithDifferentCopyForEach(folder_A54, folder_A55, folder_A56));
 
 		try {
- 			recordServices.execute(transaction);
+			recordServices.execute(transaction);
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
