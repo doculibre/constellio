@@ -2,6 +2,9 @@ package com.constellio.model.services.users;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.model.conf.ldap.LDAPDirectoryType;
+import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -12,6 +15,7 @@ import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -20,6 +24,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_AtLeastOneCollectionRequired;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotAssignUserToGroupsInOtherCollection;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotAssignUserToInexistingGroupInCollection;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotChangeNameOfSyncedUser;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_EmailRequired;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_FirstNameRequired;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidCollection;
@@ -37,15 +42,29 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
+import static com.constellio.model.conf.LDAPTestConfig.getGroupBaseContextList;
+import static com.constellio.model.conf.LDAPTestConfig.getGroupFiler;
+import static com.constellio.model.conf.LDAPTestConfig.getPassword;
+import static com.constellio.model.conf.LDAPTestConfig.getScheduleTimeList;
+import static com.constellio.model.conf.LDAPTestConfig.getUser;
+import static com.constellio.model.conf.LDAPTestConfig.getUserFiler;
+import static com.constellio.model.conf.LDAPTestConfig.getUserFilterGroupsList;
+import static com.constellio.model.conf.LDAPTestConfig.getUsersWithoutGroupsBaseContextList;
+import static com.constellio.model.conf.LDAPTestConfig.isMembershipAutomaticDerivationActivated;
 import static com.constellio.model.entities.security.global.GlobalGroupStatus.INACTIVE;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.DISABLED;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.PENDING;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.SUSPENDED;
+import static com.constellio.model.entities.security.global.UserSyncMode.LOCALLY_CREATED;
+import static com.constellio.model.entities.security.global.UserSyncMode.NOT_SYNCED;
+import static com.constellio.model.entities.security.global.UserSyncMode.SYNCED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.assertThatException;
+import static com.constellio.sdk.tests.TestUtils.assertThatValidationException;
 import static com.constellio.sdk.tests.TestUtils.instanceOf;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
@@ -143,11 +162,9 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 		SystemWideUserInfos userInfos = services.getUserInfos("andregeant");
 		assertThat(userInfos.getUsername()).isEqualTo("andregeant");
-		assertThat(userInfos.getFirstName()).isEqualTo("André");
-		assertThat(userInfos.getLastName()).isEqualTo("Le géant");
 		assertThat(userInfos.getEmail()).isEqualTo("andre@constellio.com");
 
-		assertThatUser("andregeant").isInCollections(collection1, collection2);
+		assertThatUser("andregeant").hasName("André", "Le géant").isInCollections(collection1, collection2);
 
 		assertThatException(() -> services.createUser("andregeant", (req) -> req.setName("André", "Le géant")
 				.setEmail("andre2@constellio.com").addToCollection(collection1))
@@ -816,6 +833,267 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		assertThat(user("andre", collection3).getUserGroups().stream().map(idToCode).collect(toList())).isEmpty();
 	}
 
+	@Test
+	//TODO Rabab SYNC STATUS
+	public void whenSyncingThenUpdatesSyncModeOfFoundUsers() {
+
+		services.createGroup("g1", req -> req.setName("Group 1").addCollections(collection1, collection3));
+		services.createGroup("g2", req -> req.setName("Group 2").addCollections(collection1, collection3));
+
+		services.execute("undertaker", (req) -> req.setNameEmail("The", "Undertaker", "undertaker@constellio.com")
+				.addToCollections(collection1, collection3));
+
+		services.execute("embalmer", (req) -> req.setNameEmail("Paul", "Bearer", "embalmer@constellio.com")
+				.addToCollections(collection1, collection3));
+
+		services.execute("machoman", (req) -> req.setNameEmail("Macho", "Man", "machoman@constellio.com")
+				.addToCollections(collection1, collection3));
+
+
+		assertThatUser("embalmer").hasSyncMode(LOCALLY_CREATED);
+		assertThatUser("undertaker").hasSyncMode(LOCALLY_CREATED);
+		assertThatUser("machoman").hasSyncMode(LOCALLY_CREATED);
+		assertThatGroup("g1").isLocallyCreated();
+		assertThatGroup("g2").isLocallyCreated();
+
+
+		activateLDAPSyncOnCollections(collection1, collection2);
+		services.executeGroupRequest("g1", req -> req.ldapSyncRequest());
+		services.executeGroupRequest("g2", req -> req.ldapSyncRequest());
+		services.executeGroupRequest("embalmer", req -> req.ldapSyncRequest());
+		services.executeGroupRequest("undertaker", req -> req.ldapSyncRequest());
+
+		assertThatUser("embalmer").hasSyncMode(SYNCED);
+		assertThatUser("undertaker").hasSyncMode(SYNCED);
+		assertThatUser("machoman").hasSyncMode(LOCALLY_CREATED);
+		assertThatGroup("g1").isNotLocallyCreated();
+		assertThatGroup("g2").isNotLocallyCreated();
+
+		services.execute("undertaker", req -> req.stopSyncingLDAP());
+
+		assertThatUser("embalmer").hasSyncMode(SYNCED);
+		assertThatUser("undertaker").hasSyncMode(NOT_SYNCED);
+		assertThatUser("machoman").hasSyncMode(LOCALLY_CREATED);
+		assertThatGroup("g1").isNotLocallyCreated();
+		assertThatGroup("g2").isNotLocallyCreated();
+
+		services.execute("undertaker", req -> req.resumeSyncingLDAP());
+
+		assertThatUser("embalmer").hasSyncMode(SYNCED);
+		assertThatUser("undertaker").hasSyncMode(SYNCED);
+		assertThatUser("machoman").hasSyncMode(LOCALLY_CREATED);
+		assertThatGroup("g1").isNotLocallyCreated();
+		assertThatGroup("g2").isNotLocallyCreated();
+	}
+
+	@Test
+	//TODO Rabab SYNC STATUS
+	public void givenSyncedUsersWhenChangingNameEmailInfosWithoutSyncFlagThenException() {
+
+		services.execute("embalmer", (req) -> req.setNameEmail("Paul", "Bearer", "embalmer@constellio.com")
+				.addToCollections(collection1, collection3)
+				.addToGroupInCollection("g1", collection1).addToGroupInCollection("g1", collection3)
+				.addToGroupInCollection("g2", collection1).addToGroupInCollection("g2", collection3));
+
+		services.createGroup("g1", req -> req.setName("Group 1").addCollections(collection1, collection3));
+		services.createGroup("g2", req -> req.setName("Group 2").addCollections(collection1, collection3));
+		assertThatUser("embalmer")
+				.hasSyncMode(LOCALLY_CREATED)
+				.isInCollections(collection1, collection3)
+				.hasGroupsInCollection(collection1, "g1", "g2")
+				.hasGroupsInCollection(collection3, "g1", "g2");
+		assertThatGroup("g1").isLocallyCreated();
+
+
+		activateLDAPSyncOnCollections(collection1, collection2);
+
+		//Simulate an LDAP sync : g2, g3, rey, ric and embalmer are found
+
+		services.executeGroupRequest("g2", req -> req.ldapSyncRequest().setName("G2").addCollections(collection1, collection2));
+		services.executeGroupRequest("g3", req -> req.ldapSyncRequest().setName("G3").addCollections(collection1, collection2));
+
+		//Embalmer is synced with a new name, added to g3 and removed from g2 in synced collections
+		services.execute("embalmer", req -> req
+				.ldapSyncRequest()
+				.setNameEmail("William Alvin", "Moody", "bill@constellio.com")
+				.addToCollections(collection1, collection2)
+				.removeFromGroupOfCollection("g2", collection1)
+				.addToGroupInCollection("g3", collection1)
+				.addToGroupInCollection("g3", collection2));
+
+		assertThatUser("embalmer")
+				.hasSyncMode(SYNCED)
+				.hasName("William Alvin", "Moody")
+				.hasEmail("bill@constellio.com")
+				.isInCollections(collection1, collection2, collection3)
+				.hasGroupsInCollection(collection1, "g1", "g3") //Has lost G2, but not G1 because this group is not synced
+				.hasGroupsInCollection(collection2, "g3") //Received G3
+				.hasGroupsInCollection(collection3, "g1", "g2"); //No changes
+
+		//Try to put back embalmer with it's old name. Attempt failed, because the user is synced
+		assertThatException(() -> services.execute("embalmer", (req) -> req.setName("Paul", "Bearer"))
+		).is(instanceOf(UserServicesRuntimeException_CannotChangeNameOfSyncedUser.class));
+
+		//Try to put back embalmer with it's old email. Attempt failed, because the user is synced
+		assertThatException(() -> services.execute("embalmer", (req) -> req.setEmail("embalmer@constellio.com"))
+		).is(instanceOf(UserServicesRuntimeException_CannotChangeNameOfSyncedUser.class));
+
+		services.execute("embalmer", (req) -> req.ldapSyncRequest()
+				.setName("Paul", "Bearer").setEmail("embalmer@constellio.com"));
+
+	}
+
+	@Test
+	//TODO Rabab SYNC STATUS
+	public void givenUserCreatedManuallyWhenSyncedThenReceivedGroupsFromLDAP() {
+
+		activateLDAPSyncOnCollections(collection1, collection2);
+		services.createGroup("g1", req -> req.ldapSyncRequest().setName("Group 1").addCollections(collection1, collection3));
+		services.createGroup("g2", req -> req.ldapSyncRequest().setName("Group 2").addCollections(collection1, collection3));
+		services.execute("embalmer", (req) -> req.ldapSyncRequest().setNameEmail("Paul", "Bearer", "embalmer@constellio.com")
+				.addToCollections(collection1, collection2, collection3)
+				.addToGroupInCollection("g1", collection1).addToGroupInCollection("g1", collection3)
+				.addToGroupInCollection("g2", collection3)
+				.addToGroupInCollection("g3", collection1).addToGroupInCollection("g3", collection3));
+
+		assertThatValidationException(() -> services.execute("embalmer", (req) -> req.addToGroupInCollection("g2", collection1)))
+				.hasErrorsWithEnglishMessage("Cannot manually add synced user 'embalmer' to synced group 'Group 2' in synced collection 'collection1'")
+				.hasErrorsWithFrenchMessage("Il n'est pas permis d'ajouter manuellement l'utilisateur synchronisé « embalmer »  dans le groupe synchronisé « Group 2 » de la collection synchronisée « collection1 »");
+
+		assertThatUser("embalmer")
+				.hasSyncMode(SYNCED)
+				.hasName("William Alvin", "Moody")
+				.hasEmail("bill@constellio.com")
+				.isInCollections(collection1, collection2, collection3)
+				.hasGroupsInCollection(collection1, "g1", "g3")
+				.hasGroupsInCollection(collection2, "g3")
+				.hasGroupsInCollection(collection3, "g1", "g2");
+
+		services.execute("embalmer", (req) -> req.ldapSyncRequest().addToGroupInCollection("g2", collection1));
+
+		assertThatUser("embalmer")
+				.hasSyncMode(SYNCED)
+				.hasName("Paul", "Bearer")
+				.hasEmail("embalmer@constellio.com")
+				.isInCollections(collection1, collection2, collection3)
+				.hasGroupsInCollection(collection1, "g1", "g2", "g3")
+				.hasGroupsInCollection(collection2, "g3")
+				.hasGroupsInCollection(collection3, "g1", "g2");
+
+		assertThatValidationException(() -> services.execute("embalmer", (req) -> req.removeFromGroupOfCollection("g2", collection1)))
+				.hasErrorsWithEnglishMessage("Cannot manually remove synced user 'embalmer' from synced group 'Group 2' in synced collection 'collection1'")
+				.hasErrorsWithFrenchMessage("Il n'est pas permis de retirer manuellement l'utilisateur synchronisé « embalmer »  du groupe synchronisé « Group 2 » de la collection synchronisée « collection1 »");
+
+		assertThatUser("embalmer")
+				.hasSyncMode(SYNCED)
+				.hasName("Paul", "Bearer")
+				.hasEmail("embalmer@constellio.com")
+				.isInCollections(collection1, collection2, collection3)
+				.hasGroupsInCollection(collection1, "g1", "g2", "g3")
+				.hasGroupsInCollection(collection2, "g3")
+				.hasGroupsInCollection(collection3, "g1", "g2");
+
+		services.execute("embalmer", (req) -> req.ldapSyncRequest().removeFromGroupOfCollection("g2", collection1));
+
+		assertThatUser("embalmer")
+				.hasSyncMode(SYNCED)
+				.hasName("Paul", "Bearer")
+				.hasEmail("embalmer@constellio.com")
+				.isInCollections(collection1, collection2, collection3)
+				.hasGroupsInCollection(collection1, "g1", "g3")
+				.hasGroupsInCollection(collection2, "g3")
+				.hasGroupsInCollection(collection3, "g1", "g2");
+	}
+
+
+	//@Test
+	//TODO Francis : To finish
+	//TODO Rabab SYNC STATUS
+	public void givenUserAndCollectionSyncedThenCannotAddOrRemoveToCollectionUnlessSyncMode() {
+		activateLDAPSyncOnCollections(collection1, collection2);
+		services.createGroup("g1", req -> req.ldapSyncRequest().setName("Group 1").addCollections(collection1, collection3));
+		services.createGroup("g2", req -> req.ldapSyncRequest().setName("Group 2").addCollections(collection1, collection3));
+		services.execute("embalmer", (req) -> req.ldapSyncRequest().setNameEmail("Paul", "Bearer", "embalmer@constellio.com")
+				.addToCollections(collection1, collection2)
+				.addToGroupInCollection("g1", collection1)
+				.addToGroupInCollection("g1", collection2));
+
+		services.execute("machoman", (req) -> req.ldapSyncRequest().setNameEmail("Macho", "Man", "machoman@constellio.com")
+				.addToCollections(collection1, collection2));
+
+		assertThatValidationException(() -> services.execute("embalmer", (req) -> req.removeFromCollection(collection1)))
+				.hasErrorsWithEnglishMessage("Cannot manually removed synced user 'embalmer' from synced collection 'collection1'")
+				.hasErrorsWithFrenchMessage("Il n'est pas permis de retirer manuellement l'utilisateur synchronisé « embalmer » de la collection synchronisée « collection1 »");
+
+
+		assertThatUser("embalmer")
+				.hasSyncMode(SYNCED)
+				.hasName("William Alvin", "Moody")
+				.hasEmail("bill@constellio.com")
+				.isInCollections(collection1, collection2, collection3)
+				.hasGroupsInCollection(collection1, "g1", "g3")
+				.hasGroupsInCollection(collection2, "g3")
+				.hasGroupsInCollection(collection3, "g1", "g2");
+
+		services.execute("embalmer", (req) -> req.ldapSyncRequest().addToGroupInCollection("g2", collection1));
+
+		assertThatUser("embalmer")
+				.hasSyncMode(SYNCED)
+				.hasName("Paul", "Bearer")
+				.hasEmail("embalmer@constellio.com")
+				.isInCollections(collection1, collection2, collection3)
+				.hasGroupsInCollection(collection1, "g1", "g2", "g3")
+				.hasGroupsInCollection(collection2, "g3")
+				.hasGroupsInCollection(collection3, "g1", "g2");
+
+		assertThatValidationException(() -> services.execute("embalmer", (req) -> req.removeFromGroupOfCollection("g2", collection1)))
+				.hasErrorsWithEnglishMessage("Cannot manually remove synced user 'embalmer' from synced group 'Group 2' in synced collection 'collection1'")
+				.hasErrorsWithFrenchMessage("Il n'est pas permis de retirer manuellement l'utilisateur synchronisé « embalmer »  du groupe synchronisé « Group 2 » de la collection synchronisée « collection1 »");
+
+		assertThatUser("embalmer")
+				.hasSyncMode(SYNCED)
+				.hasName("Paul", "Bearer")
+				.hasEmail("embalmer@constellio.com")
+				.isInCollections(collection1, collection2, collection3)
+				.hasGroupsInCollection(collection1, "g1", "g2", "g3")
+				.hasGroupsInCollection(collection2, "g3")
+				.hasGroupsInCollection(collection3, "g1", "g2");
+
+		services.execute("embalmer", (req) -> req.ldapSyncRequest().removeFromGroupOfCollection("g2", collection1));
+
+		assertThatUser("embalmer")
+				.hasSyncMode(SYNCED)
+				.hasName("Paul", "Bearer")
+				.hasEmail("embalmer@constellio.com")
+				.isInCollections(collection1, collection2, collection3)
+				.hasGroupsInCollection(collection1, "g1", "g3")
+				.hasGroupsInCollection(collection2, "g3")
+				.hasGroupsInCollection(collection3, "g1", "g2");
+	}
+
+
+	private void activateLDAPSyncOnCollections(String... collections) {
+		LDAPServerConfiguration ldapServerConfiguration = new LDAPServerConfiguration(Collections.emptyList(),
+				Collections.emptyList(), LDAPDirectoryType.ACTIVE_DIRECTORY, true, true);
+
+		LDAPUserSyncConfiguration ldapUserSyncConfiguration = new LDAPUserSyncConfiguration(
+				getUser(),
+				getPassword(),
+				getUserFiler(),
+				getGroupFiler(),
+				null,
+				getScheduleTimeList(),
+				getGroupBaseContextList(),
+				getUsersWithoutGroupsBaseContextList(),
+				getUserFilterGroupsList(),
+				isMembershipAutomaticDerivationActivated(),
+				Arrays.asList(collections));
+
+		getModelLayerFactory().getLdapConfigurationManager().saveLDAPConfiguration(
+				ldapServerConfiguration, ldapUserSyncConfiguration, false);
+
+	}
+
 
 	// --------- Utils ---------
 
@@ -854,6 +1132,16 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 			for (String collection : asList(collection1, collection2, collection3)) {
 				assertThat(group(groupCode, collection)).describedAs("Group '" + groupCode + "' is not expected in collection '" + collection + "'").isNull();
 			}
+			return this;
+		}
+
+		public GroupAssertions isLocallyCreated() {
+			assertThat(groupInfo(groupCode).isLocallyCreated()).describedAs("locally created status").isEqualTo(true);
+			return this;
+		}
+
+		public GroupAssertions isNotLocallyCreated() {
+			assertThat(groupInfo(groupCode).isLocallyCreated()).describedAs("locally created status").isEqualTo(true);
 			return this;
 		}
 
@@ -979,6 +1267,54 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 			assertThat(userInfos(username).getStatus(collection)).isNull();
 			assertThat(userInfos(username).getCollections()).doesNotContain(collection);
 			assertThat(user(username, collection)).isNull();
+
+			return this;
+		}
+
+		private UserAssertions hasSyncMode(UserSyncMode mode) {
+			assertThat(userInfos(username).getSyncMode()).isSameAs(mode);
+
+			return this;
+		}
+
+		private UserAssertions hasGroupsInCollection(String collection, String... groupCodes) {
+			String[] groupIds = new String[groupCodes.length];
+			for (int i = 0; i < groupCodes.length; i++) {
+				groupIds[i] = group(groupCodes[i], collection).getId();
+			}
+
+			assertThat(user(username, collection).getUserGroups()).containsOnly(groupIds);
+
+			return this;
+		}
+
+		public UserAssertions hasName(String firstName, String lastName) {
+			SystemWideUserInfos userInfos = services.getUserInfos(username);
+			assertThat(userInfos.getFirstName()).isEqualTo(firstName);
+			assertThat(userInfos.getLastName()).isEqualTo(lastName);
+
+			assertThat(userCredential(username).getFirstName()).isEqualTo(firstName);
+			assertThat(userCredential(username).getLastName()).isEqualTo(lastName);
+
+			for (String collection : userInfos.getCollections()) {
+				assertThat(user(username, collection).getFirstName()).isEqualTo(firstName);
+				assertThat(user(username, collection).getLastName()).isEqualTo(lastName);
+			}
+
+
+			return this;
+		}
+
+		public UserAssertions hasEmail(String email) {
+			SystemWideUserInfos userInfos = services.getUserInfos(username);
+			assertThat(userInfos.getEmail()).isEqualTo(email);
+
+			assertThat(userCredential(username).getEmail()).isEqualTo(email);
+
+			for (String collection : userInfos.getCollections()) {
+				assertThat(user(username, collection).getEmail()).isEqualTo(email);
+			}
+
 
 			return this;
 		}

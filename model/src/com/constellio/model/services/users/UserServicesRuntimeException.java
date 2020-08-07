@@ -111,6 +111,19 @@ public class UserServicesRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class UserServicesRuntimeException_CannotChangeNameOfSyncedUser extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_CannotChangeNameOfSyncedUser(String username) {
+			super("Cannot change name of synced user '" + username + "'");
+		}
+	}
+
+
+	public static class UserServicesRuntimeException_CannotChangeEmailOfSyncedUser extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_CannotChangeEmailOfSyncedUser(String username) {
+			super("Cannot change email of synced user '" + username + "'");
+		}
+	}
+
 	public static class UserServicesRuntimeException_CannotAssignUserToGroupsInOtherCollection extends UserServicesRuntimeException {
 		public UserServicesRuntimeException_CannotAssignUserToGroupsInOtherCollection(String username, String code,
 																					  String collection) {

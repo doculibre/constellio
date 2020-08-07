@@ -41,10 +41,20 @@ public class GroupAddUpdateRequest {
 	@Getter
 	private List<String> markedForDeletionInCollections;
 
+	private boolean ldapSyncRequest;
+
 	public GroupAddUpdateRequest(String code) {
 		this.code = code;
 	}
 
+	public boolean isLdapSyncRequest() {
+		return ldapSyncRequest;
+	}
+
+	public GroupAddUpdateRequest ldapSyncRequest() {
+		this.ldapSyncRequest = true;
+		return this;
+	}
 
 	public GroupAddUpdateRequest setName(String name) {
 		set(NAME, name);

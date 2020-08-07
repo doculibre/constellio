@@ -434,6 +434,27 @@ public class UserServices {
 			validateNewGroups(request, userInfos);
 
 			UserCredential userCredential = userCredentialSyncedTo(request);
+
+			if (request.getNewTokens() != null || request.getRemovedtokens() != null) {
+				Map<String, LocalDateTime> tokens = new HashMap<>(userCredential.getAccessTokens());
+				if (request.getNewTokens() != null) {
+					for (Entry<String, LocalDateTime> token : request.getNewTokens().entrySet()) {
+						if (!tokens.containsKey(token.getKey())) {
+							tokens.put(token.getKey(), token.getValue());
+						}
+					}
+				}
+
+				if (request.getRemovedtokens() != null) {
+					for (String token : request.getRemovedtokens()) {
+						tokens.remove(token);
+					}
+				}
+
+				userCredential.setAccessTokens(tokens);
+			}
+
+
 			try {
 				recordServices.add(userCredential);
 			} catch (RecordServicesException e) {
@@ -507,24 +528,6 @@ public class UserServices {
 			//				userCredential.setGlobalGroups(groups);
 			//			}
 
-			if (request.getNewTokens() != null || request.getRemovedtokens() != null) {
-				Map<String, LocalDateTime> tokens = new HashMap<>(userCredential.getAccessTokens());
-				if (request.getNewTokens() != null) {
-					for (Entry<String, LocalDateTime> token : request.getNewTokens().entrySet()) {
-						if (!tokens.containsKey(token.getKey())) {
-							tokens.put(token.getKey(), token.getValue());
-						}
-					}
-				}
-
-				if (request.getRemovedtokens() != null) {
-					for (String token : request.getRemovedtokens()) {
-						tokens.remove(token);
-					}
-				}
-
-				userCredential.setAccessTokens(tokens);
-			}
 
 			//			for (Map.Entry<String, Object> extraMetadata : request.getExtraMetadatas().entrySet()) {
 			//				MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(SYSTEM_COLLECTION)
@@ -1716,20 +1719,30 @@ public class UserServices {
 		//TODO Refact : With new services, a child group is always INACTIVE if it's parent is inactive, so replace with :
 		//getGroup(aGroup).getStatus(collection) == ACTIVE;
 
-		SystemWideGroup globalGroup;
 		Record record = recordServices.getDocumentById(aGroup);
-
-		if (Group.SCHEMA_TYPE.equals(record.getTypeCode())) {
+		if (record != null) {
 			Group group = wrapNullable(record,
 					modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(record.getCollection()));
-			globalGroup = globalGroupsManager.getGlobalGroupWithCode(group.getCode());
+			return group.getStatus() == GlobalGroupStatus.ACTIVE;
 		} else {
-			SchemasRecordsServices schemas = new SchemasRecordsServices(
-					SYSTEM_COLLECTION, modelLayerFactory);
-			globalGroup = globalGroupsManager.wrapGlobalGroup(record);
+			return getNullableGroup(aGroup).getStatus(collection) == GlobalGroupStatus.ACTIVE;
 		}
 
-		return isGroupAndAllHisAncestorsActive(globalGroup);
+
+		//
+		//		SystemWideGroup globalGroup;
+		//		Record record = recordServices.getDocumentById(aGroup);
+		//
+		//		if (Group.SCHEMA_TYPE.equals(record.getTypeCode())) {
+
+		//			globalGroup = globalGroupsManager.getGlobalGroupWithCode(group.getCode());
+		//		} else {
+		//			SchemasRecordsServices schemas = new SchemasRecordsServices(
+		//					SYSTEM_COLLECTION, modelLayerFactory);
+		//			globalGroup = globalGroupsManager.wrapGlobalGroup(record);
+		//		}
+		//
+		//		return isGroupAndAllHisAncestorsActive(globalGroup);
 	}
 
 	private boolean isGroupAndAllHisAncestorsActive(SystemWideGroup globalGroup) {

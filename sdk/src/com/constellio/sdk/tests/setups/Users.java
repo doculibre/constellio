@@ -14,7 +14,6 @@ import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
 
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -337,7 +336,7 @@ public class Users {
 	private void addUser(String username, String firstName, String lastName, String... groups) {
 		String email = (username + "@doculibre.com").toLowerCase();
 		List<String> globalGroups = Arrays.asList(groups);
-		List<String> collections = new ArrayList<>();
+		List<String> collections = asList(collection);
 		com.constellio.model.services.users.UserAddUpdateRequest credential = userServices.addUpdate(username)
 				.setFirstName(firstName)
 				.setLastName(lastName)

@@ -42,6 +42,11 @@ public class UserAddUpdateRequest {
 	List<String> currentGroups;
 	private Map<String, Map<String, Object>> modifiedCollectionsProperties = new HashMap<>();
 
+	private boolean ldapSyncRequest;
+
+	private boolean stopSyncingLDAP;
+
+	private boolean resumeSyncingLDAP;
 
 	@Getter
 	private boolean markedForDeletionInAllCollections;
@@ -53,6 +58,33 @@ public class UserAddUpdateRequest {
 		this.currentGroups = new ArrayList<>(currentGroups);
 	}
 
+
+	public boolean isStopSyncingLDAP() {
+		return stopSyncingLDAP;
+	}
+
+	public boolean isResumeSyncingLDAP() {
+		return resumeSyncingLDAP;
+	}
+
+	public boolean isLdapSyncRequest() {
+		return ldapSyncRequest;
+	}
+
+	public UserAddUpdateRequest ldapSyncRequest() {
+		this.ldapSyncRequest = true;
+		return this;
+	}
+
+	public UserAddUpdateRequest stopSyncingLDAP() {
+		this.stopSyncingLDAP = true;
+		return this;
+	}
+
+	public UserAddUpdateRequest resumeSyncingLDAP() {
+		this.resumeSyncingLDAP = true;
+		return this;
+	}
 
 	public String getUsername() {
 		return username;
@@ -110,6 +142,7 @@ public class UserAddUpdateRequest {
 		return syncMode;
 	}
 
+	@Deprecated
 	public UserAddUpdateRequest setSyncMode(UserSyncMode syncMode) {
 		this.modifiedProperties.put(UserCredential.SYNC_MODE, syncMode);
 		return this;
