@@ -120,11 +120,20 @@ public class LDAPServicesImpl implements LDAPServices {
 					LDAPGroup group = buildLDAPGroup(entry);
 					if (groups.stream().noneMatch(x -> x.getDistinguishedName().equals(group.getDistinguishedName()))) {
 						groups.add(group);
-						if (group.getMemberOf() != null) {
-							for (String parent :
-									group.getMemberOf()) {
-								if (!groups.stream().anyMatch(x -> x.getSimpleName().equals(parent))) {
-									searchGroupsFromContext(ctx, parent);
+
+						//						if (group.getMemberOf() != null) {
+						//							for (String parent :
+						//									group.getMemberOf()) {
+						//								if (!groups.stream().anyMatch(x -> x.getSimpleName().equals(parent))) {
+						//									searchGroupsFromContext(ctx, parent);
+						//								}
+						//							}
+						//						}
+						if (group.getMembers() != null) {//users do not have members and groups without childs are useless
+							for (String child :
+									group.getMembers()) {
+								if (!groups.stream().anyMatch(x -> x.getSimpleName().equals(child))) {
+									searchGroupsFromContext(ctx, child);
 								}
 							}
 						}
