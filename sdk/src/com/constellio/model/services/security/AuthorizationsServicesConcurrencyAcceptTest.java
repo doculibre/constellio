@@ -1,8 +1,8 @@
 package com.constellio.model.services.security;
 
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -64,7 +64,7 @@ public class AuthorizationsServicesConcurrencyAcceptTest extends ConstellioTest 
 		taxonomiesManager.addTaxonomy(setup.getTaxonomy2(), schemasManager);
 
 		records = setup.givenRecords(recordServices);
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 	}
 
 	@Test

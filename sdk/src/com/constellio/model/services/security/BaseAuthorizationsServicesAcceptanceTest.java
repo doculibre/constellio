@@ -183,7 +183,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				collectionsListManager = modelLayerFactory.getCollectionsListManager();
 				userServices = modelLayerFactory.newUserServices();
 				schemas = new SchemasRecordsServices(zeCollection, modelLayerFactory);
-				users.setUp(modelLayerFactory.newUserServices());
+				users.setUp(modelLayerFactory.newUserServices(), zeCollection);
 
 			}
 

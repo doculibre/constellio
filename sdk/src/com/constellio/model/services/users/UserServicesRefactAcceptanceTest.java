@@ -27,7 +27,7 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotChangeNameOfSyncedUser;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_EmailRequired;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_FirstNameRequired;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidCollection;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidCollectionForUser;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidGroup;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUsername;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_LastNameRequired;
@@ -150,7 +150,7 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 		assertThatException(() -> services.createUser("andregeant", (req) -> req.setName("André", "Le géant")
 				.setEmail("andre@constellio.com").addToCollection("inexistingCollection"))
-		).is(instanceOf(UserServicesRuntimeException_InvalidCollection.class));
+		).is(instanceOf(UserServicesRuntimeException_InvalidCollectionForUser.class));
 
 
 		assertThatException(() -> services.createUser("andregeant", (req) -> req.setName("André", "Le géant")

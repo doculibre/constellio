@@ -242,8 +242,9 @@ public class Users {
 		return this;
 	}
 
-	public Users setUp(UserServices userServices) {
+	public Users setUp(UserServices userServices, String collection) {
 		this.userServices = userServices;
+		this.collection = collection;
 		if (userServices.getUserCredential(dakotaLindienUsername) == null) {
 
 			if ("true".equals(System.getProperty("normalUsers"))) {
@@ -371,11 +372,6 @@ public class Users {
 		authenticationService.changePassword(robinUsername, "password");
 		authenticationService.changePassword(sasquatchUsername, "password");
 
-		return this;
-	}
-
-	public Users withCollection(String collection) {
-		this.collection = collection;
 		return this;
 	}
 }

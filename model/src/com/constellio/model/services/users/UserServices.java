@@ -55,7 +55,8 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotRemoveAdmin;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_EmailRequired;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_FirstNameRequired;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidCollection;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidCollectionForGroup;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidCollectionForUser;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidGroup;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidToken;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUserNameOrPassword;
@@ -548,7 +549,7 @@ public class UserServices {
 		if (request.getAddToCollections() != null) {
 			request.getAddToCollections().forEach((collection) -> {
 				if (!collectionsListManager.getCollectionsExcludingSystem().contains(collection)) {
-					throw new UserServicesRuntimeException_InvalidCollection(request.getUsername(), collection);
+					throw new UserServicesRuntimeException_InvalidCollectionForUser(request.getUsername(), collection);
 				}
 			});
 		}
@@ -643,6 +644,9 @@ public class UserServices {
 	}
 
 	public void execute(GroupAddUpdateRequest request) {
+		if (request.isMarkedForDeletionInAllCollections()) {
+			deleteGroup(request.getCode());
+		}
 		List<String> newCollections = request.getNewCollections();
 		if (newCollections != null) {
 			for (String newAutomaticCollection : newCollections) {
@@ -659,9 +663,7 @@ public class UserServices {
 				}
 			}
 		}
-		if (request.isMarkedForDeletionInAllCollections()) {
-			deleteGroup(request.getCode());
-		}
+		validateNewCollections(request);
 		sync(request);
 		if (request.getModifiedAttributes().containsKey(GlobalGroup.STATUS)) {
 			if (request.getModifiedAttributes().get(GlobalGroup.STATUS) == GlobalGroupStatus.ACTIVE) {
@@ -669,6 +671,16 @@ public class UserServices {
 			} else {
 				//				logicallyRemoveGroupHierarchyWithoutUserValidation(group);
 			}
+		}
+	}
+
+	private void validateNewCollections(GroupAddUpdateRequest request) {
+		if (request.getNewCollections() != null) {
+			request.getNewCollections().forEach((collection) -> {
+				if (!collectionsListManager.getCollectionsExcludingSystem().contains(collection)) {
+					throw new UserServicesRuntimeException_InvalidCollectionForGroup(request.getCode(), collection);
+				}
+			});
 		}
 	}
 
@@ -1976,7 +1988,6 @@ public class UserServices {
 	}
 
 
-	@Deprecated
 	public CredentialUserPermissionChecker has(User user) {
 		return has(user.getUsername());
 	}
@@ -1992,11 +2003,10 @@ public class UserServices {
 	}
 
 
-	@Deprecated
 	public CredentialUserPermissionChecker has(String username) {
 		List<User> users = new ArrayList<>();
-		UserCredential user = getUser(username);
-		for (String collection : user.getCollections()) {
+		SystemWideUserInfos userInfos = getUserInfos(username);
+		for (String collection : userInfos.getCollections()) {
 			users.add(getUserInCollection(username, collection));
 		}
 		return new CredentialUserPermissionChecker(users);

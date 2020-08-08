@@ -42,7 +42,7 @@ public class RMModuleTypesAcceptTest extends ConstellioTest {
 		);
 
 		userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 
 		userServices.execute(
 				userServices.addUpdate(chuckNorris).setServiceKey(chuckNorrisKey).setSystemAdminEnabled());

@@ -662,7 +662,7 @@ public class MultilingualFreeTextSearchBrokenAcceptTest extends ConstellioTest {
 	private void setupUsers()
 			throws RecordServicesException {
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 		userServices.execute(users.alice().getUsername(), (req) -> req.addToCollection(zeCollection));
 		userServices.execute(users.alice().getUsername(), (req) -> req.addToCollection(zeCollection));
 		userServices.execute(users.bob().getUsername(), (req) -> req.addToCollection(zeCollection));

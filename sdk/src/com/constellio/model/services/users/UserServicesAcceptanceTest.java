@@ -953,7 +953,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		Users users = new Users();
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 		User chuck = users.chuckNorrisIn(zeCollection);
 		Cart c = rm.getOrCreateUserCart(chuck);
 		c.setTitle("Ze cart");
@@ -992,7 +992,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		Users users = new Users();
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 		User chuck = users.chuckNorrisIn(zeCollection);
 		Cart c = rm.getOrCreateUserCart(chuck);
 		Transaction t = new Transaction();
@@ -1163,7 +1163,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		Users users = new Users();
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 		User chuck = users.chuckNorrisIn(zeCollection);
 		Cart c = rm.getOrCreateUserCart(chuck);
 		Transaction t = new Transaction();
@@ -1193,7 +1193,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
 		Users users = new Users();
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 		User chuck = users.chuckNorrisIn(zeCollection);
 		User alice = users.aliceIn(zeCollection);
 		Cart c = rm.getOrCreateUserCart(chuck);
@@ -1254,7 +1254,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
 		userServices = getModelLayerFactory().newUserServices();
 		Users users = new Users();
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		String phone = "450 444 1919";
@@ -1438,7 +1438,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
 		Users users = new Users();
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 		User chuck = users.chuckNorrisIn(zeCollection);
 
 		userServices.execute(chuck.getUsername(), req -> req.removeFromAllCollections());
@@ -1454,7 +1454,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
 		Users users = new Users();
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 		User chuck = users.chuckNorrisIn(zeCollection);
 		Cart c = rm.getOrCreateUserCart(chuck);
 		Transaction t = new Transaction();

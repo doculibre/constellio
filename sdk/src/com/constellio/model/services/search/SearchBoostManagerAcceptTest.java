@@ -37,7 +37,7 @@ public class SearchBoostManagerAcceptTest extends ConstellioTest {
 		collectionsManager = getAppLayerFactory().getCollectionsManager();
 
 		userServices = getModelLayerFactory().newUserServices();
-		users = new Users().setUp(userServices);
+		users = new Users().setUp(userServices, zeCollection);
 		manager = getModelLayerFactory().getSearchBoostManager();
 		manager.initialize();
 	}

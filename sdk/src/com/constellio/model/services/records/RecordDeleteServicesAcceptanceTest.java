@@ -78,7 +78,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		);
 
 		recordServices = getModelLayerFactory().newRecordServices();
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 		trashServices = new TrashServices(getAppLayerFactory().getModelLayerFactory(), zeCollection);
 		admin = users.adminIn(zeCollection);
 		searchServices = getModelLayerFactory().newSearchServices();

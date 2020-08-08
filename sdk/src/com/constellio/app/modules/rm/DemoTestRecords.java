@@ -300,7 +300,7 @@ public class DemoTestRecords {
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 
 		UserServices userServices = modelLayerFactory.newUserServices();
-		users.setUp(userServices).withPasswords(modelLayerFactory.newAuthenticationService());
+		users.setUp(userServices, collection).withPasswords(modelLayerFactory.newAuthenticationService());
 
 		this.modelLayerFactory = modelLayerFactory;
 		schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
@@ -349,7 +349,7 @@ public class DemoTestRecords {
 
 	public DemoTestRecords alreadySettedUp(ModelLayerFactory modelLayerFactory) {
 		UserServices userServices = modelLayerFactory.newUserServices();
-		users.setUp(userServices);
+		users.setUp(userServices, collection);
 		alice_notInCollection = users.aliceIn(collection).getId();
 		admin_userIdWithAllAccess = users.adminIn(collection).getId();
 		bob_userInAC = users.bobIn(collection).getId();

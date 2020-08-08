@@ -34,7 +34,7 @@ public class RMContainerRecordExtensionAcceptanceTest extends ConstellioTest {
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 	}
 
 	@Test

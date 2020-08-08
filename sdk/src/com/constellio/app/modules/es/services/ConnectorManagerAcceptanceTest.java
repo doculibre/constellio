@@ -35,7 +35,7 @@ public class ConnectorManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		prepareSystem(withZeCollection().withConstellioESModule());
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		instance1 = es.newConnectorHttpInstanceWithId("instance1").setCode("connector1").setTitle("connector1").setEnabled(false)
 				.setSeeds("http://constellio.com");

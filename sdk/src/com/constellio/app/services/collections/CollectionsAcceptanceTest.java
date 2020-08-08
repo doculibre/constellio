@@ -299,7 +299,7 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenConstellioAndDoculibreCollectionsWithBobAndLegendsInConstellioAndLegendsAndHeroesInDoculibre() {
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 
 		givenCollection("constellio");
 		givenCollection("doculibre");

@@ -65,7 +65,7 @@ public class RMTaskRecordExtensionAcceptanceTest extends ConstellioTest {
 		AdministrativeUnit unitId_10 = rm.getAdministrativeUnit(records.unitId_10);
 		getAppLayerFactory().getModelLayerFactory().newAuthorizationsServices().reset(unitId_10.getWrappedRecord());
 
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 
 		sasquatch = users.sasquatchIn(zeCollection);
 		edouard = users.edouardIn(zeCollection);

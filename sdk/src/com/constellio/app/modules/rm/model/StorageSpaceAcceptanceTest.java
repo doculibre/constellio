@@ -54,7 +54,7 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
 		);
 
-		users = users.setUp(getAppLayerFactory().getModelLayerFactory().newUserServices());
+		users = users.setUp(getAppLayerFactory().getModelLayerFactory().newUserServices(), zeCollection);
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();

@@ -92,7 +92,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), Collection.SYSTEM_COLLECTION);
 		searchServices = getModelLayerFactory().newSearchServices();
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 		userServices.execute(users.charles().getUsername(), (req) -> req.addToCollection(zeCollection));
 		userServices.execute(users.alice().getUsername(), (req) -> req.addToCollection(zeCollection));
 		recordServices.add(users.aliceIn(zeCollection).setCollectionWriteAccess(true).setCollectionDeleteAccess(true)

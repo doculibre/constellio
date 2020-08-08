@@ -69,7 +69,7 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 		invalidRoleWithCode = new Role(zeCollection, "zeInvalidRole", "", asList("operation"));
 
 		userServices = getModelLayerFactory().newUserServices();
-		users = new Users().setUp(userServices);
+		users = new Users().setUp(userServices, zeCollection);
 		manager = getModelLayerFactory().getRolesManager();
 		managerOfOtherInstance = otherInstanceAppLayerFactory.getModelLayerFactory().getRolesManager();
 		schemas = new SchemasRecordsServices(zeCollection, getModelLayerFactory());

@@ -74,9 +74,15 @@ public class UserServicesRuntimeException extends RuntimeException {
 		}
 	}
 
-	public static class UserServicesRuntimeException_InvalidCollection extends UserServicesRuntimeException {
-		public UserServicesRuntimeException_InvalidCollection(String username, String collection) {
+	public static class UserServicesRuntimeException_InvalidCollectionForUser extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_InvalidCollectionForUser(String username, String collection) {
 			super("Cannot add user in this invalid collection name '" + collection + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_InvalidCollectionForGroup extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_InvalidCollectionForGroup(String username, String collection) {
+			super("Cannot add group in this invalid collection name '" + collection + "'");
 		}
 	}
 
