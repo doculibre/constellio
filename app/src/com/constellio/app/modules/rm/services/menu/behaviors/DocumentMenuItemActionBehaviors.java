@@ -18,7 +18,6 @@ import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
-import com.constellio.app.modules.rm.ui.buttons.RenameDialogButton;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -101,7 +100,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.security.AuthorizationsServices;
-import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.shared.ui.MarginInfo;
@@ -288,58 +286,6 @@ public class DocumentMenuItemActionBehaviors {
 		document = loadingFullRecordIfSummary(document);
 		params.getView().navigate().to(RMViews.class).editDocument(document.getId());
 		updateSearchResultClicked(document.getWrappedRecord());
-	}
-
-	public void rename(Document document, MenuItemActionBehaviorParams params) {
-		RenameDialogButton window = new RenameDialogButton(
-				FontAwesome.PENCIL_SQUARE_O,
-				$("DisplayDocumentView.renameContent"),
-				$("DisplayDocumentView.renameContent"),
-				false) {
-			@Override
-			public void save(String newValue) {
-				boolean isManualEntry = rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL;
-				boolean isNotAddOnly = !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
-						.getPopulateConfigs().isAddOnly();
-				Document documentWithAllMetadata = rm.getDocument(document.getId());
-				String filename = documentWithAllMetadata.getContent().getCurrentVersion().getFilename();
-				String extension = FilenameUtils.getExtension(filename);
-
-				if (!(FilenameUtils.getExtension(newValue).equals(extension))) {
-					if (!extension.isEmpty()) {
-						newValue = FilenameUtils.removeExtension(newValue) + "." + extension;
-					} else {
-						newValue = FilenameUtils.removeExtension(newValue);
-					}
-				}
-
-				if (filename.equals(documentWithAllMetadata.getTitle())) {
-					if (isManualEntry && isNotAddOnly) {
-						documentWithAllMetadata.setTitle(newValue);
-					}
-
-				} else if (FilenameUtils.removeExtension(filename).equals(documentWithAllMetadata.getTitle())) {
-					if (isManualEntry && isNotAddOnly) {
-						documentWithAllMetadata.setTitle(FilenameUtils.removeExtension(newValue));
-					}
-				}
-
-				documentWithAllMetadata.getContent().renameCurrentVersion(newValue);
-				try {
-					recordServices.update(documentWithAllMetadata.getWrappedRecord(), params.getUser());
-					getWindow().close();
-					if (params.getView() instanceof HomeViewImpl) {
-						HomeViewImpl homeView = (HomeViewImpl) params.getView();
-						homeView.recordChanged(documentWithAllMetadata.getId());
-					} else {
-						navigateToDisplayDocument(documentWithAllMetadata.getId(), params.getFormParams());
-					}
-				} catch (RecordServicesException e) {
-					params.getView().showErrorMessage(MessageUtils.toMessage(e));
-				}
-			}
-		};
-		window.click();
 	}
 
 	public void download(Document document, MenuItemActionBehaviorParams params) {
