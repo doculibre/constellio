@@ -25,7 +25,6 @@ import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.joda.time.LocalDateTime;
 
 import java.io.BufferedInputStream;
@@ -126,16 +125,14 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 					}
 				} catch (IOException ex) {
 					String printedString = String.format("Could not test for case sensivity : %s", ex.getMessage());
-					Logger.getLogger(this.getClass()).info(printedString, ex);
+					log.info(printedString, ex);
 				} finally {
 					FileUtils.deleteQuietly(test1);
 					FileUtils.deleteQuietly(test2);
 				}
 
-				if (okayCaseSensitive == false) {
-					String printedString = String.format("Failed test for case sensivity, filesystem is not case sensitive. " +
-														 "Use HashingEncoding.BASE32 instead.");
-					log.error(printedString);
+				if (!okayCaseSensitive) {
+					log.error("Failed test for case sensivity, filesystem is not case sensitive. Use HashingEncoding.BASE32 instead.");
 					System.exit(-1);
 				}
 			}
