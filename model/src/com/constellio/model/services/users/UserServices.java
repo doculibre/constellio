@@ -63,6 +63,7 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUserNameOrPassword;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUsername;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_LastNameRequired;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NameRequired;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
@@ -658,15 +659,13 @@ public class UserServices {
 	public void execute(GroupAddUpdateRequest request) {
 		SystemWideGroup systemWideGroup = getNullableGroup(request.getCode());
 
-		if (systemWideGroup == null && (request.getNewCollections() == null || request.getNewCollections().isEmpty())) {
-			throw new RuntimeException("Group must have at least one collection");
-		}
-
 		if (request.isMarkedForDeletionInAllCollections()) {
 			deleteGroup(request.getCode());
 		}
 
+		validateNewGroupMetadatas(request);
 		validateNewCollections(request);
+
 		sync(request);
 		if (request.getModifiedAttributes().containsKey(GlobalGroup.STATUS)) {
 			if (request.getModifiedAttributes().get(GlobalGroup.STATUS) == GlobalGroupStatus.ACTIVE) {
@@ -704,6 +703,20 @@ public class UserServices {
 				}
 			});
 		}
+	}
+
+	private void validateNewGroupMetadatas(GroupAddUpdateRequest request) {
+		SystemWideGroup systemWideGroup = getNullableGroup(request.getCode());
+		if (systemWideGroup == null) {
+			if ((request.getNewCollections() == null || request.getNewCollections().isEmpty())) {
+				throw new UserServicesRuntimeException_AtLeastOneCollectionRequired(request.getCode());
+			}
+
+			if (request.getModifiedAttributes().get(GroupAddUpdateRequest.NAME) == null) {
+				throw new UserServicesRuntimeException_NameRequired(request.getCode());
+			}
+		}
+
 	}
 
 
@@ -898,7 +911,7 @@ public class UserServices {
 		return !groupsInCollection.isEmpty() ? build(groupsInCollection.get(0), wideGroupCollections) : null;
 	}
 
-	public SystemWideGroup getNullableGroup(GroupAddUpdateRequest request) {
+	private SystemWideGroup getGroup(GroupAddUpdateRequest request) {
 		Group groupInCollection = null;
 		List<String> wideGroupCollections = new ArrayList<>();
 		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
@@ -915,7 +928,7 @@ public class UserServices {
 				.code(group.getCode())
 				.name(group.getTitle())
 				.collections(wideGroupCollections)
-				//				.parent(globalGroup.getParent())
+				.parent(group.getParent())
 				.groupStatus(group.getStatus())
 				.hierarchy(group.getHierarchy())
 				.logicallyDeletedStatus(group.getLogicallyDeletedStatus())
@@ -928,7 +941,6 @@ public class UserServices {
 				.code(request.getCode())
 				.name((String) request.getModifiedAttributes().get(GroupAddUpdateRequest.NAME))
 				.collections(request.getNewCollections())
-				//				.parent(globalGroup.getParent())
 				.groupStatus(status != null ? status : GlobalGroupStatus.ACTIVE)
 				.hierarchy((String) request.getModifiedAttributes().get(GroupAddUpdateRequest.HIERARCHY))
 				//				.logicallyDeletedStatus(group.getLogicallyDeletedStatus())
@@ -1228,7 +1240,7 @@ public class UserServices {
 
 	private void sync(GroupAddUpdateRequest request, String collection, Transaction transaction) {
 		String groupCode = request.getCode();
-		SystemWideGroup group = getNullableGroup(request);
+		SystemWideGroup group = getGroup(request);
 		List<String> collections = new ArrayList<>();
 		if (request.getNewCollections() != null) {
 			collections.addAll(request.getNewCollections());
@@ -1254,13 +1266,12 @@ public class UserServices {
 				if (parentcode != null) {
 					parentId = getGroupIdInCollection(parentcode, collection);
 				}
-				groupInCollection.set(Group.PARENT, parentId);
+				groupInCollection.setParent(parentId);
 			}
 			//		groupInCollection.set(Group.IS_GLOBAL, true);
 			groupInCollection.set(Group.STATUS, group.getStatus(collection));
 			groupInCollection.set(Group.LOCALLY_CREATED, true);
 			groupInCollection.set(LOGICALLY_DELETED_STATUS, group.getLogicallyDeletedStatus());
-			groupInCollection.set(LOGICALLY_DELETED_ON, group.getLogicallyDeletedStatus());
 			groupInCollection.setTitle(group.getName());
 			if (groupInCollection.isDirty()) {
 				transaction.add(groupInCollection.getWrappedRecord());
