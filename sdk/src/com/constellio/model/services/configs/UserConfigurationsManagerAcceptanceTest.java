@@ -36,7 +36,7 @@ public class UserConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		configManager = getDataLayerFactory().getConfigManager();
 		collectionManager = getAppLayerFactory().getCollectionsManager();
 		recordServices = getModelLayerFactory().newRecordServices();
-		users = new Users().setUp(getModelLayerFactory().newUserServices(), zeCollection);
+
 
 		userConfigManager = getModelLayerFactory().getUserConfigurationsManager();
 		otherInstanceUserConfigManager = getModelLayerFactory("other-instance").getUserConfigurationsManager();
@@ -44,6 +44,7 @@ public class UserConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 		givenSpecialCollection(zeCollection).withAllTestUsers();
 		givenSpecialCollection(anotherCollection).withAllTestUsers();
+		users = new Users().setUp(getModelLayerFactory().newUserServices(), zeCollection);
 
 		bob = users.bobIn(zeCollection);
 	}

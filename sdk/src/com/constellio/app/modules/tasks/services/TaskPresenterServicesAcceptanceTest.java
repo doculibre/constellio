@@ -22,8 +22,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.util.ArrayList;
-
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
@@ -382,7 +380,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 
 		Group newGroup = userServices.getGroupInCollection(newGlobalGroup, zeCollection);
 		Group taskNewGroup = userServices.getGroupInCollection(taskNewGlobalGroup, zeCollection);
-		userServices.execute(users.aliceAddUpdateRequest().setGlobalGroups(asList(newGlobalGroup, aliceNewGlobalGroup)));
+		userServices.execute(users.aliceAddUpdateRequest().addToGroupsInCollection(asList(newGlobalGroup, aliceNewGlobalGroup), zeCollection));
 		aliceHasWriteAccessOnZeTask = users.aliceIn(zeCollection);
 
 		recordServices.update(zeTask.setAssigneeGroupsCandidates(asList(newGroup.getId(), taskNewGroup.getId()))
@@ -395,7 +393,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 	private void addGroup(String groupCode) {
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		GroupAddUpdateRequest group = userServices.createGlobalGroup(
-				groupCode, groupCode, new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE, true);
+				groupCode, groupCode, asList(zeCollection), null, GlobalGroupStatus.ACTIVE, true);
 		userServices.execute(group);
 	}
 }

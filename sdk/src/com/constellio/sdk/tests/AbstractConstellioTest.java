@@ -1347,7 +1347,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				if (preparator.allTestUsers) {
 					modulesAndMigrationsTestFeatures = modulesAndMigrationsTestFeatures.withAllTestUsers();
 					if (preparator.users != null) {
-						preparator.users.setUp(modelLayerFactory.newUserServices(), zeCollection);
+						preparator.users.setUp(modelLayerFactory.newUserServices(), preparator.collection);
 					}
 				}
 

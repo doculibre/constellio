@@ -82,8 +82,8 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		recordServices = getModelLayerFactory().newRecordServices();
 
-		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
-		givenCollection(zeCollection).withAllTestUsers();
+
+		givenCollection(zeCollection).withAllTest(users);
 		defineSchemasManager().using(schemas);
 		taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 

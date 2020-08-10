@@ -19,7 +19,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.function.Predicate;
 
 import static com.constellio.data.utils.LangUtils.compareStrings;
 import static java.util.Arrays.asList;
@@ -630,6 +629,16 @@ public class MetadataList implements List<Metadata>, Serializable {
 
 	public boolean containsMetadataWithLocalCode(String localCode) {
 		return localCodeIndex.containsKey(localCode);
+	}
+
+	public boolean containsMetadataWithLocalCode(String... localCodes) {
+		for (String localCode : localCodes) {
+			if (localCodeIndex.containsKey(localCode)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public MetadataList onlyDuplicable() {

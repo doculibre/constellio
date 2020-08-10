@@ -103,17 +103,17 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			userCredentialSchema.getMetadata(CommonMetadataBuilder.TITLE).defineDataEntry().asManual();
 
 			//NOT READY YET, STOP USING THEM IN USERSERVICES BEFORE
-//			userCredentialSchema.deleteMetadataWithoutValidation("title");
-//			userCredentialSchema.deleteMetadataWithoutValidation("firstname");
-//			userCredentialSchema.deleteMetadataWithoutValidation("lastname");
-//			userCredentialSchema.deleteMetadataWithoutValidation("email");
-//			userCredentialSchema.deleteMetadataWithoutValidation("personalEmails");
-//			userCredentialSchema.deleteMetadataWithoutValidation("collections");
-//			userCredentialSchema.deleteMetadataWithoutValidation("globalGroups");
-//			userCredentialSchema.deleteMetadataWithoutValidation("phone");
-//			userCredentialSchema.deleteMetadataWithoutValidation("fax");
-//			userCredentialSchema.deleteMetadataWithoutValidation("jobTitle");
-//			userCredentialSchema.deleteMetadataWithoutValidation("address");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("title");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("firstname");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("lastname");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("email");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("personalEmails");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("collections");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("globalGroups");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("phone");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("fax");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("jobTitle");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("address");
 
 			//Les groupes qui ne sont pas actifs sont supprimés logiquement
 			logicallyRemoveAllNonActiveGroups(modelLayerFactory);
@@ -121,7 +121,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			MetadataSchemaBuilder glGroupSchema = typesBuilder.getSchemaType(GlobalGroup.SCHEMA_TYPE).getDefaultSchema();
 
 			//NOT READY YET, STOP USING THEM IN USERSERVICES BEFORE
-//			glGroupSchema.deleteMetadataWithoutValidation("usersAutomaticallyAddedToCollections");
+			//			glGroupSchema.deleteMetadataWithoutValidation("usersAutomaticallyAddedToCollections");
 			//			glGroupSchema.deleteMetadataWithoutValidation("status");
 			//			glGroupSchema.deleteMetadataWithoutValidation("locallyCreated");
 			//			glGroupSchema.deleteMetadataWithoutValidation("hierarchy");
@@ -134,7 +134,6 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-
 
 			//Les métadonnées suivantes seront déplacées dans User par le script de migration : domain, msExchangeDelegateList
 			//sauvegarder en map pour l'instant
@@ -186,6 +185,10 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 					.setType(MetadataValueType.STRING).setDefaultValue("");
 			MetadataBuilder userCreateMsExchange = userSchema.createUndeletable(User.MS_EXCHANGE_DELEGATE_LIST).setType(MetadataValueType.STRING)
 					.setMultivalue(true);
+
+//			typesBuilder.getDefaultSchema(User.SCHEMA_TYPE).getMetadata(User.ROLES)
+			//					.defineDataEntry().asCalculated(RolesCalculator2.class);
+
 
 			//GROUPS
 			//la métadonnée "usersAutomaticallyAddedToCollections" est supprimée
@@ -332,7 +335,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		SchemasRecordsServices systemSchemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 
-//		new ActionExecutorInBatch(searchServices, "Removing user credentials with empty collections", 250) {
+		//		new ActionExecutorInBatch(searchServices, "Removing user credentials with empty collections", 250) {
 		//			@Override
 		//			public void doActionOnBatch(List<Record> records)
 		//					throws Exception {

@@ -95,6 +95,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	protected Records records;
 	protected Records otherCollectionRecords;
 	protected Users users = new Users();
+	protected Users otherCollectionUsers = new Users();
 	protected RolesManager roleManager;
 
 	protected String ROLE1 = "role1";
@@ -183,7 +184,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				collectionsListManager = modelLayerFactory.getCollectionsListManager();
 				userServices = modelLayerFactory.newUserServices();
 				schemas = new SchemasRecordsServices(zeCollection, modelLayerFactory);
-				users.setUp(modelLayerFactory.newUserServices(), zeCollection);
+				users.setUp(modelLayerFactory.newUserServices(), zeCollection, anotherCollection);
 
 			}
 
@@ -1221,7 +1222,8 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	protected Group createGroup(String name) {
-		return userServices.createCustomGroupInCollectionWithCodeAndName(zeCollection, ZE_GROUP, name);
+		userServices.createGroup(ZE_GROUP, req -> req.setName(name).addCollections(zeCollection));
+		return userServices.getGroupInCollection(ZE_GROUP, zeCollection);
 	}
 
 	protected void givenChuckNorrisSeesEverything()
