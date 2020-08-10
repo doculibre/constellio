@@ -109,6 +109,11 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 	}
 
+	/**
+	 * Lorsqu’un utilisateur créé localement est rapporté, son mode change pour synchronisé
+	 *
+	 * @throws Exception
+	 */
 	@Test
 	public void givenUserSyncConfiguredThenRunThenVerifyLocallyCreatedUsersAreSynced()
 			throws Exception {
@@ -143,6 +148,45 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		assertThat(userCredentialLocalUser.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
 		assertThat(userCredentialLocalUser2.getSyncMode()).isEqualTo(UserSyncMode.LOCALLY_CREATED);
 		assertThat(localUser.getEmail()).isEqualTo("chuckofldap@doculibre.com");
+	}
+
+	/**
+	 * Lorsqu’un utilisateur créé localement dans une collection synchronisée est rapporté, il est ajouté aux autres collections synchronisée
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	public void givenUserCreatedLocallyInOneCollectionAndSameUserFetchedFromLDAPSyncThenAllUserInChosenCollectionsSynced()
+			throws Exception {
+		LDAPGroup caballeros = caballeros();
+		LDAPGroup pilotes = pilotes();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes)
+				.build());
+
+		createLocalDusty();
+		User businessDusty = user("Dusty", businessCollection);
+		assertThat(businessDusty).isNull();
+
+		sync();
+
+		businessDusty = user("Dusty", businessCollection);
+		UserCredential userCredentialImportedUser2 = user("Dusty");
+		assertThat(businessDusty.getFirstName()).isEqualTo("Dusty");
+		assertThat(businessDusty.getLastName()).isEqualTo("Chien");
+		assertThat(businessDusty.getEmail()).isEqualTo("dusty@doculibre.ca");
+		assertThat(userCredentialImportedUser2.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
+
+		User zeDusty = user("dusty", zeCollection);
+		UserCredential userCredentialZeDusty = user("Dusty");
+		assertThat(zeDusty.getFirstName()).isEqualTo("Dusty");
+		assertThat(zeDusty.getLastName()).isEqualTo("Chien");
+		assertThat(zeDusty.getEmail()).isEqualTo("dusty@doculibre.ca");
+		assertThat(userCredentialZeDusty.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
+
 	}
 
 	@Test
@@ -473,6 +517,16 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void whenLocallyCreated() {
+
+	}
+
+	@Test
+	public void WhenUserIsLocallyCreatedAndIsInAGroupButSyncHasSameUserInTwoOtherGroupsThenUserIsInAllThreeGroups() {
+
+	}
+
 	// ----- Utility methods
 
 	private void saveValidLDAPConfigWithEntrepriseCollectionSelected() {
@@ -541,6 +595,14 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 	private LDAPGroup rumors() {
 		return new LDAPGroup("rumors", "The rumors");
+	}
+
+	private void createLocalDusty() {
+
+		UserAddUpdateRequest userAddUpdateRequest = new UserAddUpdateRequest("dusty", newArrayList(), newArrayList());
+
+		modelLayerFactory.newUserServices().createUser("Dusty", (req) -> userAddUpdateRequest.setName("Dusty", "le Chien")
+				.setEmail("dusty@constellio.com").addToCollections(zeCollection).addToGroupsInCollection(asList(heroes), zeCollection));
 	}
 
 	private void saveChangedUser(User user, UserCredential userCredential) throws RecordServicesException {
