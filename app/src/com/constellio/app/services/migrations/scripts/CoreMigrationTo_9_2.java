@@ -5,6 +5,9 @@ import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -103,17 +106,17 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			userCredentialSchema.getMetadata(CommonMetadataBuilder.TITLE).defineDataEntry().asManual();
 
 			//NOT READY YET, STOP USING THEM IN USERSERVICES BEFORE
-//			userCredentialSchema.deleteMetadataWithoutValidation("title");
-//			userCredentialSchema.deleteMetadataWithoutValidation("firstname");
-//			userCredentialSchema.deleteMetadataWithoutValidation("lastname");
-//			userCredentialSchema.deleteMetadataWithoutValidation("email");
-//			userCredentialSchema.deleteMetadataWithoutValidation("personalEmails");
-//			userCredentialSchema.deleteMetadataWithoutValidation("collections");
-//			userCredentialSchema.deleteMetadataWithoutValidation("globalGroups");
-//			userCredentialSchema.deleteMetadataWithoutValidation("phone");
-//			userCredentialSchema.deleteMetadataWithoutValidation("fax");
-//			userCredentialSchema.deleteMetadataWithoutValidation("jobTitle");
-//			userCredentialSchema.deleteMetadataWithoutValidation("address");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("title");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("firstname");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("lastname");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("email");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("personalEmails");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("collections");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("globalGroups");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("phone");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("fax");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("jobTitle");
+			//			userCredentialSchema.deleteMetadataWithoutValidation("address");
 
 			//Les groupes qui ne sont pas actifs sont supprimés logiquement
 			logicallyRemoveAllNonActiveGroups(modelLayerFactory);
@@ -121,7 +124,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			MetadataSchemaBuilder glGroupSchema = typesBuilder.getSchemaType(GlobalGroup.SCHEMA_TYPE).getDefaultSchema();
 
 			//NOT READY YET, STOP USING THEM IN USERSERVICES BEFORE
-//			glGroupSchema.deleteMetadataWithoutValidation("usersAutomaticallyAddedToCollections");
+			//			glGroupSchema.deleteMetadataWithoutValidation("usersAutomaticallyAddedToCollections");
 			//			glGroupSchema.deleteMetadataWithoutValidation("status");
 			//			glGroupSchema.deleteMetadataWithoutValidation("locallyCreated");
 			//			glGroupSchema.deleteMetadataWithoutValidation("hierarchy");
@@ -192,16 +195,16 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			MetadataSchemaBuilder groupSchema = typesBuilder.getSchemaType(Group.SCHEMA_TYPE).getDefaultSchema();
 
 			//les attributs "locallyCreated", "hierarchy" et "status" sont déplacés dans Group
-			groupSchema.createUndeletable("status")
+			groupSchema.createUndeletable(Group.STATUS)
 					.defineAsEnum(GlobalGroupStatus.class).setDefaultRequirement(true);
-			groupSchema.createUndeletable("locallyCreated")
+			groupSchema.createUndeletable(Group.LOCALLY_CREATED)
 					.setType(MetadataValueType.BOOLEAN).setDefaultValue(true);
-			groupSchema.createUndeletable("hierarchy")
+			groupSchema.createUndeletable(Group.HIERARCHY)
 					.setType(MetadataValueType.STRING);
 
 			//Les utilisateurs désactivés qui ne sont pas utilisés sont supprimé physiquement
 			userServices.safePhysicalDeleteAllUnusedUsers(collection);
-
+			configureTableMetadatas(collection, appLayerFactory);
 		}
 
 	}
@@ -332,19 +335,19 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		SchemasRecordsServices systemSchemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 
-		new ActionExecutorInBatch(searchServices, "Removing user credentials with empty collections", 250) {
-			@Override
-			public void doActionOnBatch(List<Record> records)
-					throws Exception {
-				for (Record record : records) {
-					UserCredential userCredential = systemSchemas.wrapUserCredential(record);
-					if (userCredential.getCollections() == null || userCredential.getCollections().isEmpty()) {
-						recordServices.logicallyDelete(userCredential, User.GOD);
-						recordServices.physicallyDelete(userCredential, User.GOD);
-					}
-				}
-			}
-		}.execute(from(systemSchemas.credentialSchemaType()).returnAll());
+		//		new ActionExecutorInBatch(searchServices, "Removing user credentials with empty collections", 250) {
+		//			@Override
+		//			public void doActionOnBatch(List<Record> records)
+		//					throws Exception {
+		//				for (Record record : records) {
+		//					UserCredential userCredential = systemSchemas.wrapUserCredential(record);
+		//					if (userCredential.getCollections() == null || userCredential.getCollections().isEmpty()) {
+		//						recordServices.logicallyDelete(userCredential, User.GOD);
+		//						recordServices.physicallyDelete(userCredential, User.GOD);
+		//					}
+		//				}
+		//			}
+		//		}.execute(from(systemSchemas.credentialSchemaType()).returnAll());
 
 	}
 
@@ -376,4 +379,24 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 				from(schemas.user.schemaType()).returnAll()));
 		return userRecord == null ? null : schemas.wrapUsers(userRecord);
 	}
+
+	private void configureTableMetadatas(String collection, AppLayerFactory appLayerFactory) {
+		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
+		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
+
+		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+		SchemaTypesDisplayTransactionBuilder transactionBuilder = displayManager.newTransactionBuilderFor(collection);
+
+		transactionBuilder.add(displayManager.getSchema(Collection.SYSTEM_COLLECTION, User.DEFAULT_SCHEMA)
+				.withNewTableMetadatas(User.DEFAULT_SCHEMA + "_" + User.USERNAME)
+				.withNewTableMetadatas(User.DEFAULT_SCHEMA + "_" + User.FIRSTNAME)
+				.withNewTableMetadatas(User.DEFAULT_SCHEMA + "_" + User.LASTNAME)
+				.withNewTableMetadatas(User.DEFAULT_SCHEMA + "_" + User.LAST_LOGIN));
+		transactionBuilder.add(displayManager.getSchema(Collection.SYSTEM_COLLECTION, Group.DEFAULT_SCHEMA)
+				.withNewTableMetadatas(Group.DEFAULT_SCHEMA + "_" + Group.CODE));
+
+		displayManager.execute(transactionBuilder.build());
+	}
+
+
 }

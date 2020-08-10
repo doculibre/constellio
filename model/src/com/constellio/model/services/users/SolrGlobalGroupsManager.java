@@ -162,13 +162,12 @@ public class SolrGlobalGroupsManager implements StatefulService {
 		return result;
 	}
 
-
 	public SystemWideGroup wrapGlobalGroup(Record record) {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
 		GlobalGroup globalGroup = new GlobalGroup(record, types);
 		return SystemWideGroup.builder()
 				.code(globalGroup.getCode())
-				.name(globalGroup.getCode())
+				.name(globalGroup.getName())
 				.collections(globalGroup.getUsersAutomaticallyAddedToCollections())
 				.parent(globalGroup.getParent())
 				.groupStatus(globalGroup.getStatus())

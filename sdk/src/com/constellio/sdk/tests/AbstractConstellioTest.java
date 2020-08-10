@@ -63,7 +63,6 @@ import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
-import com.constellio.model.services.users.UserServicesRefactAcceptanceTest;
 import com.constellio.sdk.tests.FailureDetectionTestWatcher.FailureDetectionTestWatcherListener;
 import com.constellio.sdk.tests.ToggleTestFeature.ToggleCondition;
 import com.constellio.sdk.tests.annotations.UiTest;
@@ -1307,7 +1306,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 					preparator.demoTestRecordsObject.alreadySettedUp(getModelLayerFactory());
 				}
 				if (preparator.users != null) {
-					preparator.users.setUp(getModelLayerFactory().newUserServices());
+					preparator.users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 				}
 				for (Class<? extends InstallableModule> pluginClass : preparator.plugins) {
 					givenInstalledModule(pluginClass);
@@ -1348,7 +1347,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				if (preparator.allTestUsers) {
 					modulesAndMigrationsTestFeatures = modulesAndMigrationsTestFeatures.withAllTestUsers();
 					if (preparator.users != null) {
-						preparator.users.setUp(modelLayerFactory.newUserServices());
+						preparator.users.setUp(modelLayerFactory.newUserServices(), preparator.collection);
 					}
 				}
 

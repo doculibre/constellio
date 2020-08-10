@@ -58,7 +58,7 @@ public class CreateFolderRequestAcceptTest extends ConstellioTest {
 
 		taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 
 		defineSchemasManager().using(zeCollectionSchemas);
 		CmisAcceptanceTestSetup.allSchemaTypesSupported(getAppLayerFactory());
@@ -71,8 +71,8 @@ public class CreateFolderRequestAcceptTest extends ConstellioTest {
 
 		chuckNorrisToken = userServices.generateToken(chuckNorris);
 		bobToken = userServices.generateToken(bobGratton);
-		userServices.execute(users.bob().getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(users.bob().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection(zeCollection));
 
 		cmisSession = givenAdminSessionOnZeCollection();
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionWriteAccess(true).getWrappedRecord());

@@ -57,7 +57,7 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 
 		Transaction transaction = new Transaction();
 		transaction.add(users.adminIn(zeCollection).setCollectionReadAccess(true));
@@ -101,7 +101,7 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 			throws Exception {
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 		connectorManager = es.getConnectorManager();
 
 		configureConnectorsInstances();
@@ -115,7 +115,7 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 			throws Exception {
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 		connectorManager = es.getConnectorManager();
 
 		connectorManager
@@ -137,7 +137,7 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 			throws Exception {
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 		connectorManager = es.getConnectorManager();
 
 		connectorManager
@@ -157,7 +157,7 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 			throws Exception {
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 		connectorManager = es.getConnectorManager();
 
 		connectorManager
@@ -210,7 +210,7 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 		connectorManager = es.getConnectorManager();
 
 		connectorManager
@@ -240,7 +240,7 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 		connectorManager = es.getConnectorManager();
 
 		connectorManager
@@ -266,7 +266,7 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 		connectorManager = es.getConnectorManager();
 
 		connectorManager
@@ -289,7 +289,7 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 		connectorManager = es.getConnectorManager();
 
 		String host = SDKPasswords.testSmbServer();

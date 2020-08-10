@@ -10,10 +10,14 @@ import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.LocalDateTime;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
+import static com.constellio.model.entities.security.global.UserCredentialStatus.DISABLED;
 
 @SuppressWarnings("serial")
 public class UserCredentialToVOBuilder implements Serializable {
@@ -58,10 +62,12 @@ public class UserCredentialToVOBuilder implements Serializable {
 		Map<String, LocalDateTime> tokens = userCredential.getAccessTokens();
 		String serviceKey = userCredential.getServiceKey();
 		boolean systemAdmin = userCredential.isSystemAdmin();
-		List<String> globalGroups = userCredential.getGlobalGroups();
+
+		//Not available anymore, group can be different from one collection to an other
+		List<String> globalGroups = Collections.emptyList();
 		Set<String> collections = new HashSet<>();
 		collections.addAll(userCredential.getCollections());
-		UserCredentialStatus status = userCredential.getStatus();
+		UserCredentialStatus status = userCredential.hasStatusInAnyCollection(ACTIVE) ? ACTIVE : DISABLED;
 		UserSyncMode syncMode = userCredential.getSyncMode();
 
 		String personalEmailsPresentation = null;

@@ -662,12 +662,12 @@ public class MultilingualFreeTextSearchBrokenAcceptTest extends ConstellioTest {
 	private void setupUsers()
 			throws RecordServicesException {
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
-		userServices.execute(users.alice().getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(users.alice().getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(users.bob().getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(users.bob().getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(users.dakotaLIndien().getUsername(), (req) -> req.addCollection(zeCollection));
+		users.setUp(userServices, zeCollection);
+		userServices.execute(users.alice().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.alice().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.bob().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.bob().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.dakotaLIndien().getUsername(), (req) -> req.addToCollection(zeCollection));
 
 		Transaction transaction = new Transaction();
 		transaction.add(users.aliceIn(zeCollection).setCollectionReadAccess(true).getWrappedRecord());

@@ -64,16 +64,16 @@ public class CmisAuthenticationAcceptanceTest extends ConstellioTest {
 
 		userServices
 				.execute(users.chuckNorrisAddUpdateRequest().setServiceKey(chuckNorrisServiceKey).setSystemAdminEnabled()
-						.setCollections(asList(zeCollection)));
+						.addToCollection(zeCollection).removeFromCollection("anotherCollection"));
 		chuckNorrisToken = userServices.generateToken(users.chuckNorris().getUsername());
 
-		userServices.execute(users.admin().getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(users.admin().getUsername(), (req) -> req.addCollection("anotherCollection"));
-		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(users.robin().getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(users.admin().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.admin().getUsername(), (req) -> req.addToCollection("anotherCollection"));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.robin().getUsername(), (req) -> req.addToCollection(zeCollection));
 
-		userServices.execute(users.robin().getUsername(), (req) -> req.addCollection(zeCollection));
-		userServices.execute(users.robin().getUsername(), (req) -> req.addCollection("anotherCollection"));
+		userServices.execute(users.robin().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.robin().getUsername(), (req) -> req.addToCollection("anotherCollection"));
 	}
 
 	@Test

@@ -10,6 +10,7 @@ import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.services.LDAPServices;
+import com.constellio.model.conf.ldap.services.LDAPServices.LDAPUsersAndGroups;
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
@@ -48,7 +49,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class LDAPUserSyncManager implements StatefulService {
 	private final static Logger LOGGER = LoggerFactory.getLogger(LDAPUserSyncManager.class);
@@ -256,7 +256,8 @@ public class LDAPUserSyncManager implements StatefulService {
 			if (!ldapUser.getName().toLowerCase().equals("admin")) {
 				com.constellio.model.services.users.UserAddUpdateRequest request = createUserCredentialsFromLdapUser(ldapUser, selectedCollectionsCodes);
 				try {
-					final List<String> newGroups = new ArrayList<>();
+					// Keep locally created groups of existing users
+
 					SystemWideUserInfos previousUserCredential = userServices
 							.getUserInfos(request.getUsername());
 					SystemWideUserInfos userCredentialByDn = userServices.getUserCredentialByDN(ldapUser.getId());
@@ -269,12 +270,12 @@ public class LDAPUserSyncManager implements StatefulService {
 						try {
 							LOGGER.info(
 									"Attempting to delete username " + userCredentialByDn.getUsername());
-							userServices.execute(userCredentialByDn.getUsername(), req -> req.markForDeletionInAllCollections());
+							userServices.execute(userCredentialByDn.getUsername(), req -> req.removeFromAllCollections());
 						} catch (Throwable t) {
 							try {
 								LOGGER.info(
 										"Could not delete username " + userCredentialByDn.getUsername() + ", attempting to delete " + previousUserCredential.getUsername() + " instead");
-								userServices.execute(userCredentialByDn.getUsername(), req -> req.markForDeletionInAllCollections());
+								userServices.execute(userCredentialByDn.getUsername(), req -> req.removeFromAllCollections());
 								previousUserCredential = userCredentialByDn;
 							} catch (Throwable t2) {
 								com.constellio.model.services.users.UserAddUpdateRequest invalidUserCredential;
@@ -298,19 +299,18 @@ public class LDAPUserSyncManager implements StatefulService {
 						}
 					}
 					if (previousUserCredential != null) {
-						for (String collection : selectedCollectionsCodes) {
-							User user = userServices.getUserInCollection(previousUserCredential.getUsername(), collection);
-							for (final String groupId : user.getUserGroups()) {
-								final Group previousGroup = userServices.getGroupInCollectionById(groupId, collection);
-								if (previousGroup != null && previousGroup.isLocallyCreated()) {
-									newGroups.add(previousGroup.getCode());
+						for (String collection : previousUserCredential.getCollections()) {
+							final List<String> newUserGlobalGroups = new ArrayList<>();
+							for (final String userGlobalGroup : previousUserCredential.getGroupCodes(collection)) {
+								final SystemWideGroup previousGlobalGroup = userServices.getNullableGroup(userGlobalGroup);
+								if (previousGlobalGroup != null && previousGlobalGroup.isLocallyCreated()) {
+									newUserGlobalGroups.add(previousGlobalGroup.getCode());
 								}
 							}
+							if (!newUserGlobalGroups.isEmpty()) {
+								request.addToGroupsInCollection(newUserGlobalGroups, collection);
+							}
 						}
-					}
-
-					if (!newGroups.isEmpty()) {
-						request.addToGroupsInEachCollection(newGroups);
 					}
 
 					userServices.execute(request);
@@ -319,8 +319,6 @@ public class LDAPUserSyncManager implements StatefulService {
 				} catch (Throwable e) {
 					LOGGER.error("User ignored due to error when trying to add it " + request.getUsername(), e);
 				}
-			}
-		}
 
 		if (ldapSynchProgressionInfo != null) {
 			ldapSynchProgressionInfo.processedGroupsAndUsers++;
@@ -391,7 +389,7 @@ public class LDAPUserSyncManager implements StatefulService {
 
 		for (String selectedCollectionsCode : selectedCollectionsCodes) {
 			if (!currentCollections.contains(selectedCollectionsCode)) {
-				request.addCollection(selectedCollectionsCode);
+				request.addToCollection(selectedCollectionsCode);
 			}
 		}
 

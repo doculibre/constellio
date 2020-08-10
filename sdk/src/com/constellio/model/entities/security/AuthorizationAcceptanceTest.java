@@ -63,7 +63,7 @@ public class AuthorizationAcceptanceTest extends ConstellioTest {
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 		waitForBatchProcess();
 
 		assertThat(getReadWriteDeleteRecordsForUser(users.adminIn(zeCollection)))

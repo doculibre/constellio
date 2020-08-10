@@ -69,7 +69,7 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 		invalidRoleWithCode = new Role(zeCollection, "zeInvalidRole", "", asList("operation"));
 
 		userServices = getModelLayerFactory().newUserServices();
-		users = new Users().setUp(userServices);
+		users = new Users().setUp(userServices, zeCollection);
 		manager = getModelLayerFactory().getRolesManager();
 		managerOfOtherInstance = otherInstanceAppLayerFactory.getModelLayerFactory().getRolesManager();
 		schemas = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
@@ -166,10 +166,13 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 		manager.addRole(validRole2);
 		manager.addRole(validRole3);
 
-		Group group1 = schemas.newGroup().setRoles(asList("uniqueCode"));
+		getModelLayerFactory().newUserServices().createGroup("g1", req -> req.setName("g1").addCollections(zeCollection));
+		getModelLayerFactory().newUserServices().createGroup("g2", req -> req.setName("g2").addCollections(zeCollection));
+
+		Group group1 = schemas.getGroupWithCode("g1").setRoles(asList("uniqueCode"));
 		getModelLayerFactory().newRecordServices().add(group1);
 
-		Group group2 = schemas.newGroup().setRoles(asList("uniqueCode2"));
+		Group group2 = schemas.getGroupWithCode("g2").setRoles(asList("uniqueCode2"));
 		getModelLayerFactory().newRecordServices().add(group2);
 
 		User user = schemas.newUser().setUserGroups(asList(group1.getId(), group2.getId())).setUserRoles(

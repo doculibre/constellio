@@ -13,8 +13,6 @@ public class Toggle {
 
 	public static boolean OFF_HEAP_ADDRESS_VALIDATOR = false;
 
-	public static AvailableToggle NEW_USER_SERVICES = newToggle(false);
-
 	public static AvailableToggle PUBLIC_TOKENS = newToggle(false);
 
 	public static AvailableToggle TEMP_FRANCIS = newToggle(true);
@@ -142,6 +140,8 @@ public class Toggle {
 	public static AvailableToggle ENABLE_SIGNATURE = newToggle(false);
 
 	public static AvailableToggle ENABLE_CLOUD_SYSADMIN_FEATURES = newToggle(false);
+
+	public static AvailableToggle VALIDATE_USER_COLLECTIONS = newToggle(true);
 
 
 	// ------------------------------------------------

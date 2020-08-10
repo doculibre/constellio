@@ -49,7 +49,7 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 
 		taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 
 		defineSchemasManager().using(zeCollectionSchemas);
 		CmisAcceptanceTestSetup.allSchemaTypesSupported(getAppLayerFactory());
@@ -58,7 +58,7 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 
 		userServices.execute(users.adminAddUpdateRequest().setServiceKey("admin-key"));
-		userServices.execute(users.admin().getUsername(), (req) -> req.addCollection(zeCollection));
+		userServices.execute(users.admin().getUsername(), (req) -> req.addToCollection(zeCollection));
 		recordServices.update(userServices.getUserInCollection(admin, zeCollection).setCollectionWriteAccess(true));
 		getModelLayerFactory().newAuthenticationService().changePassword(admin, "1qaz2wsx");
 		adminToken = userServices.generateToken(admin);

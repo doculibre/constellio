@@ -81,7 +81,7 @@ public class ZipContentsServicesAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 		taskSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 		zipSearchResultsContentsServices = new ZipContentsService(getModelLayerFactory(), zeCollection);
 		zipService = new ZipService(new IOServices(newTempFolder()));
 		contentManager = getModelLayerFactory().getContentManager();

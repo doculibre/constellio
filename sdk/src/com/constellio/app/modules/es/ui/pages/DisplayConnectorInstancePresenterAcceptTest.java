@@ -62,7 +62,7 @@ public class DisplayConnectorInstancePresenterAcceptTest extends ConstellioTest 
 		userServices = getModelLayerFactory().newUserServices();
 		connectorManager = es.getConnectorManager();
 
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 
 		connectorInstance = connectorManager
 				.createConnector(es.newConnectorHttpInstance()

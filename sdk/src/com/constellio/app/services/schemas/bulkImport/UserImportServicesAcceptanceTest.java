@@ -101,7 +101,7 @@ public class UserImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(bob.getLastName()).isEqualTo("Gratton");
 		assertThat(bob.getEmail()).isEqualTo("bob@doculibre.com");
 		assertThat(bob.isSystemAdmin()).isEqualTo(true);
-		assertThat(bob.getGlobalGroups().size()).isEqualTo(0);
+		assertThat(bob.getGroupCodes(zeCollection).size()).isEqualTo(0);
 		assertThat(bob.getCollections()).contains(zeCollection);
 		assertThat(bob.getCollections().size()).isEqualTo(1);
 	}
@@ -112,8 +112,8 @@ public class UserImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(alice.getLastName()).isEqualTo("Wonderland");
 		assertThat(alice.getEmail()).isEqualTo("alice@doculibre.com");
 		assertThat(alice.isSystemAdmin()).isEqualTo(false);
-		assertThat(alice.getGlobalGroups()).contains("legends", "heroes");
-		assertThat(alice.getGlobalGroups().size()).isEqualTo(2);
+		assertThat(alice.getGroupCodes(zeCollection)).contains("legends", "heroes");
+		assertThat(alice.getGroupCodes(zeCollection).size()).isEqualTo(2);
 		assertThat(alice.getCollections()).contains(zeCollection);
 		assertThat(alice.getCollections().size()).isEqualTo(1);
 	}

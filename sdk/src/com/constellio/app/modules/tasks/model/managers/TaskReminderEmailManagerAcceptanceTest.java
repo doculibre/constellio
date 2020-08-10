@@ -108,7 +108,7 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenTaskWithAliceAssigneeAndAliceWithBlankEmailWhenManagerCalledThenNoReminderEmailGenerated()
 			throws Exception {
-		userServices.execute(users.aliceAddUpdateRequest().setGlobalGroups(new ArrayList<String>()).setEmail(null));
+		userServices.execute(users.aliceAddUpdateRequest().setEmail(null));
 		zeTask = saveAndReload(zeTask.setAssignee(users.aliceIn(zeCollection).getId())
 				.setAssignationDate(now)
 				.setAssigner(users.adminIn(zeCollection).getId())

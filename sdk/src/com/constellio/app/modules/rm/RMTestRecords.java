@@ -380,7 +380,7 @@ public class RMTestRecords {
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		UserServices userServices = modelLayerFactory.newUserServices();
-		users.setUp(userServices);
+		users.setUp(userServices, collection);
 
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
@@ -446,7 +446,7 @@ public class RMTestRecords {
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		UserServices userServices = modelLayerFactory.newUserServices();
-		users.setUp(userServices).withPasswords(modelLayerFactory.newAuthenticationService());
+		users.setUp(userServices, collection).withPasswords(modelLayerFactory.newAuthenticationService());
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		recordServices = modelLayerFactory.newRecordServices();
@@ -656,14 +656,14 @@ public class RMTestRecords {
 	}
 
 	private void setupUsers(Transaction transaction, UserServices userServices) {
-		userServices.execute(users.admin().getUsername(), (req) -> req.addCollection(collection));
-		userServices.execute(users.alice().getUsername(), (req) -> req.addCollection(collection));
-		userServices.execute(users.bob().getUsername(), (req) -> req.addCollection(collection));
-		userServices.execute(users.charles().getUsername(), (req) -> req.addCollection(collection));
-		userServices.execute(users.dakotaLIndien().getUsername(), (req) -> req.addCollection(collection));
-		userServices.execute(users.edouardLechat().getUsername(), (req) -> req.addCollection(collection));
-		userServices.execute(users.gandalfLeblanc().getUsername(), (req) -> req.addCollection(collection));
-		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addCollection(collection));
+		userServices.execute(users.admin().getUsername(), (req) -> req.addToCollection(collection));
+		userServices.execute(users.alice().getUsername(), (req) -> req.addToCollection(collection));
+		userServices.execute(users.bob().getUsername(), (req) -> req.addToCollection(collection));
+		userServices.execute(users.charles().getUsername(), (req) -> req.addToCollection(collection));
+		userServices.execute(users.dakotaLIndien().getUsername(), (req) -> req.addToCollection(collection));
+		userServices.execute(users.edouardLechat().getUsername(), (req) -> req.addToCollection(collection));
+		userServices.execute(users.gandalfLeblanc().getUsername(), (req) -> req.addToCollection(collection));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection(collection));
 
 		admin_userIdWithAllAccess = transaction.add(users.adminIn(collection))
 				.setCollectionAllAccess(true).setUserRoles(RGD).getId();
@@ -1273,7 +1273,7 @@ public class RMTestRecords {
 				.setDocuments(documentsWhithDifferentCopyForEach(folder_A54, folder_A55, folder_A56));
 
 		try {
- 			recordServices.execute(transaction);
+			recordServices.execute(transaction);
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}

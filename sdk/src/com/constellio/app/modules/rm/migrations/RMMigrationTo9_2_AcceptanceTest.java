@@ -5,6 +5,7 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -20,11 +21,11 @@ import org.junit.Test;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
@@ -91,7 +92,7 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 		//Les utilisateurs qui n'étaient pas actifs sont supprimés logiquement?
 		List<UserCredential> credentialsDeleted = credentials.stream()
 				.filter(x -> !x.getStatus().equals(UserCredentialStatus.ACTIVE))
-				.collect(Collectors.toList());
+				.collect(toList());
 		for (UserCredential credential : credentialsDeleted) {
 			assertThat(credential.getStatus()).isEqualTo(UserCredentialStatus.DISABLED);
 		}
@@ -114,7 +115,7 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 	}
 
 	private void verifyData(List<Group> groups, List<User> users, List<UserCredential> credentials) {
-		List<Group> nobility = groups.stream().filter(x -> x.getCode().equals("nobility")).collect(Collectors.toList());
+		List<Group> nobility = groups.stream().filter(x -> x.getCode().equals("nobility")).collect(toList());
 		assertThat(nobility).isNotEmpty().hasSize(3).has(new Condition<List<Group>>() {
 			@Override
 			public boolean matches(List<Group> value) {
@@ -122,7 +123,7 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		List<Group> collectionRidaGroups = groups.stream().filter(x -> x.getCollection().equals("LaCollectionDeRida")).collect(Collectors.toList());
+		List<Group> collectionRidaGroups = groups.stream().filter(x -> x.getCollection().equals("LaCollectionDeRida")).collect(toList());
 
 		assertThat(collectionRidaGroups).isNotEmpty().has(new Condition<List<Group>>() {
 			@Override
@@ -130,13 +131,28 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 				return value.stream().filter(x -> x.getCode().equals("explorers")
 												  || x.getCode().equals("Bosses")
 												  || x.getCode().equals("royale"))
-							   .collect(Collectors.toList()).size() > 2;
+							   .collect(toList()).size() > 2;
 
 			}
 		});
 
 		//dusty (edouard's rival) is part of big bad bosses
 		User dusty = users.stream().filter(x -> x.getUsername().equals("dusty")).findFirst().get();
+
+		assertThat(dusty.getUserGroups()).hasSize(1).has(new Condition<List<String>>() {
+			@Override
+			public boolean matches(List<String> value) {
+				return groups.stream().filter(x -> value.contains(x.getId())).findAny().get().getCode().equals("Bosses");
+			}
+		});
+
+
+		//String bossesGroupId = "00000012345"; On auraut très bien pu hardcoder l'id, il est dans le savestate
+		String bossesGroupId = getModelLayerFactory().newUserServices().getGroupInCollection("Bosses", "LaCollectionDeRida").getId();
+		assertThat(dusty.getUserGroups()).containsOnly(bossesGroupId);
+
+		assertThat(dusty.getUserGroups().stream().map((id -> record(id).get(Schemas.CODE))).collect(toList()))
+				.containsOnly("Bosses");
 
 		assertThat(dusty.getUserGroups()).hasSize(1).has(new Condition<List<String>>() {
 			@Override
@@ -238,7 +254,7 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 		//Les UserCredential sans collection sont supprimés?
 		List<UserCredential> userCredentialsWithCollection = credentials.stream()
 				.filter(credential -> !credential.getCollections().isEmpty())
-				.collect(Collectors.toList());
+				.collect(toList());
 
 		//Check a certain user is not there? In LDAP case they are added to system collection?
 
@@ -272,7 +288,7 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 		//Les utilisateurs qui n'étaient pas actifs sont supprimés logiquement?
 		List<UserCredential> credentialsDeleted = credentials.stream()
 				.filter(x -> !x.getStatus().equals(UserCredentialStatus.ACTIVE))
-				.collect(Collectors.toList());
+				.collect(toList());
 		for (UserCredential credential : credentialsDeleted) {
 			assertThat(credential.getStatus()).isEqualTo(UserCredentialStatus.DISABLED);
 		}
