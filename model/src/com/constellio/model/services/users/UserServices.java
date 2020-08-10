@@ -665,22 +665,7 @@ public class UserServices {
 		if (request.isMarkedForDeletionInAllCollections()) {
 			deleteGroup(request.getCode());
 		}
-		List<String> newCollections = request.getNewCollections();
-		if (newCollections != null) {
-			for (String newAutomaticCollection : newCollections) {
-				for (SystemWideUserInfos userInGroup : getGlobalGroupActifUsers(request.getCode())) {
-					execute(userInGroup.getUsername(), (req) -> req.addToCollection(newAutomaticCollection));
-				}
-			}
-		}
-		List<String> removedCollections = request.getRemovedCollections();
-		if (removedCollections != null) {
-			for (String removedCollection : removedCollections) {
-				for (SystemWideUserInfos userInGroup : getGlobalGroupActifUsers(request.getCode())) {
-					execute(userInGroup.getUsername(), (req) -> req.removeFromCollection(removedCollection));
-				}
-			}
-		}
+
 		validateNewCollections(request);
 		sync(request);
 		if (request.getModifiedAttributes().containsKey(GlobalGroup.STATUS)) {
