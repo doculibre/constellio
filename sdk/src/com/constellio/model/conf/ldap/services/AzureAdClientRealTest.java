@@ -46,7 +46,7 @@ public class AzureAdClientRealTest {
 	}
 
 	@Test
-	public void whenGroupHasTwoDepthSubGroupThenreturnGroupsAndUsersFromDepth() {
+	public void whenGroupHasTwoDepthSubGroupThenReturnGroupsAndUsersFromDepth() {
 		when(azureRequestHelper.getGroupMembersResponse(anyString())).thenReturn(subGroupArrayObjectDepth0())
 				.thenReturn(asList(new JSONArray("[]")))
 				.thenReturn(subGroupArrayObjectDepth1()).thenReturn(asList(new JSONArray("[]")));

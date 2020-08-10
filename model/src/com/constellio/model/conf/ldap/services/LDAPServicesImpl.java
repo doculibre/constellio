@@ -120,20 +120,11 @@ public class LDAPServicesImpl implements LDAPServices {
 					LDAPGroup group = buildLDAPGroup(entry);
 					if (groups.stream().noneMatch(x -> x.getDistinguishedName().equals(group.getDistinguishedName()))) {
 						groups.add(group);
-
-						//						if (group.getMemberOf() != null) {
-						//							for (String parent :
-						//									group.getMemberOf()) {
-						//								if (!groups.stream().anyMatch(x -> x.getSimpleName().equals(parent))) {
-						//									searchGroupsFromContext(ctx, parent);
-						//								}
-						//							}
-						//						}
-						if (group.getMembers() != null) {//users do not have members and groups without childs are useless
+						if (group.getMembers() != null) {//users do not have members and groups without childs are rejected
 							for (String child :
 									group.getMembers()) {
-								if (!groups.stream().anyMatch(x -> x.getSimpleName().equals(child))) {
-									searchGroupsFromContext(ctx, child);
+								if (groups.stream().noneMatch(x -> x.getDistinguishedName().equals(child))) {
+									groups.addAll(searchGroupsFromContext(ctx, updateGroupContainerSearch(groupsContainer, child)));
 								}
 							}
 						}
@@ -740,5 +731,16 @@ public class LDAPServicesImpl implements LDAPServices {
 			returnSet.addAll(user.getUserGroups());
 		}
 		return returnSet;
+	}
+
+	private String updateGroupContainerSearch(String container, String newGroup) {
+		String[] splitContainer = container.split(",");
+		for (int i = 0; i < splitContainer.length; i++) {
+			if (splitContainer[i].contains("OU=")) {
+				splitContainer[i] = "OU=" + newGroup;
+				break;
+			}
+		}
+		return String.join(",", splitContainer);
 	}
 }
