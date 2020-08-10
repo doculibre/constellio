@@ -90,6 +90,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -290,8 +291,8 @@ public class RecordsImportServicesExecutor {
 			importedFilesMap.put(key, entry.getValue());
 		}
 
+		importContentsFolder(importDataProvider.getImportedContents());
 		List<String> schemaTypesWithSecondPhaseImport = new ArrayList<>();
-
 		for (String schemaType : getImportedSchemaTypes()) {
 			if (importSchemaType(errors, schemaType, false)) {
 				schemaTypesWithSecondPhaseImport.add(schemaType);
@@ -305,7 +306,6 @@ public class RecordsImportServicesExecutor {
 			}
 		}
 
-		importContents(importDataProvider.getImportedContents());
 
 		progressionHandler.onImportFinished();
 		throwIfNonEmptyErrorOrWarnings(errors);
@@ -314,15 +314,18 @@ public class RecordsImportServicesExecutor {
 		return importResults;
 	}
 
-	private void importContents(List<File> importedContents) {
-		/*ContentManager contentManager = modelLayerFactory.getContentManager();
+	private void importContentsFolder(List<File> importedContents) {
+		if (importedContents == null) {
+			return;
+		}
+		ContentManager contentManager = modelLayerFactory.getContentManager();
 		for(File file: importedContents){
 			try {
 				contentManager.upload(file);
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
-		}*/
+		}
 	}
 
 
