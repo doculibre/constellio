@@ -2,6 +2,9 @@ package com.constellio.data.dao.services.contents;
 
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.DigitSeparatorMode;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocatorMode;
+import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 import com.constellio.data.dao.services.contents.ContentDaoRuntimeException.ContentDaoRuntimeException_CannotDeleteFolder;
@@ -17,10 +20,12 @@ import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.joda.time.LocalDateTime;
 
 import java.io.BufferedInputStream;
@@ -38,6 +43,7 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+@Slf4j
 public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	public static final String RECOVERY_FOLDER = "vaultrecoveryfolder";
@@ -84,6 +90,56 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 			createRootRecoveryDirectory();
 		}
 		this.subvaults = subVaults;
+
+		testCaseSensivityIfNeeded(dataLayerFactory);
+	}
+
+
+	private void testCaseSensivityIfNeeded(DataLayerFactory dataLayerFactory) {
+		boolean isDistribuedAndLeader = dataLayerFactory.isDistributed() &&
+										dataLayerFactory.getLeaderElectionService().isCurrentNodeLeader();
+		boolean isNotDistribued = !dataLayerFactory.isDistributed();
+
+		if ((isNotDistribued || isDistribuedAndLeader) &&
+			new FoldersLocator().getFoldersLocatorMode().equals(FoldersLocatorMode.WRAPPER)) {
+
+			if (dataLayerFactory.getDataLayerConfiguration().getHashingEncoding() == HashingEncoding.BASE64_URL_ENCODED ||
+				dataLayerFactory.getDataLayerConfiguration().getHashingEncoding() == HashingEncoding.BASE64) {
+				File workFolder = new FoldersLocator().getWorkFolder();
+				boolean okayCaseSensitive = true;
+
+				File test1 = null;
+				File test2 = null;
+
+				try {
+					test1 = new File(workFolder, "test");
+					test2 = new File(workFolder, "TEST");
+
+					FileUtils.write(test1, "test1", "UTF-8");
+					FileUtils.write(test2, "test2", "UTF-8");
+
+					if (FileUtils.readFileToString(test1, "UTF-8").equals("test1") &&
+						FileUtils.readFileToString(test2, "UTF-8").equals("test2")) {
+						okayCaseSensitive = true;
+					} else {
+						okayCaseSensitive = false;
+					}
+				} catch (IOException ex) {
+					String printedString = String.format("Could not test for case sensivity : %s", ex.getMessage());
+					Logger.getLogger(this.getClass()).info(printedString, ex);
+				} finally {
+					FileUtils.deleteQuietly(test1);
+					FileUtils.deleteQuietly(test2);
+				}
+
+				if (okayCaseSensitive == false) {
+					String printedString = String.format("Failed test for case sensivity, filesystem is not case sensitive. " +
+														 "Use HashingEncoding.BASE32 instead.");
+					log.error(printedString);
+					System.exit(-1);
+				}
+			}
+		}
 	}
 
 	public File getRootFolder() {
