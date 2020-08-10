@@ -72,12 +72,12 @@ public class ListRetentionRulesPresenter extends SingleSchemaBasePresenter<ListR
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally()
-				|| user.has(RMPermissionsTo.CONSULT_RETENTIONRULE).globally();
+		return user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).onSomething()
+			   || user.has(RMPermissionsTo.CONSULT_RETENTIONRULE).onSomething();
 	}
 
 	public boolean userHaveManageRetentionRulePermission() {
-		return getCurrentUser().has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally();
+		return getCurrentUser().has(RMPermissionsTo.MANAGE_RETENTIONRULE).onSomething();
 	}
 
 	@Override

@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Permissions;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.model.entities.CorePermissions.COLLECTION_MANAGEMENT;
@@ -140,6 +141,6 @@ public class RMPermissionsTo {
 	public static final String CONSULT_RETENTIONRULE = permission(RM_MANAGEMENT, "consultRetentionRule");
 	public static final String MANAGE_RETENTIONRULE = permission(RM_MANAGEMENT, "manageRetentionRule");
 
-
+	public static final List<String> RM_COLLECTION_ON_SOMETHING = Arrays.asList(MANAGE_CLASSIFICATION_PLAN, CONSULT_CLASSIFICATION_PLAN, CONSULT_RETENTIONRULE, MANAGE_RETENTIONRULE);
 	public static final List<String> RM_COLLECTION_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(RM_MANAGEMENT);
 }
