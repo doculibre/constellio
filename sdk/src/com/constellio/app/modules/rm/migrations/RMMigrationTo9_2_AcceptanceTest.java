@@ -7,14 +7,19 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.users.SystemWideUserInfos;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+import lombok.AllArgsConstructor;
 import org.assertj.core.api.Condition;
 import org.junit.Test;
 
@@ -24,7 +29,9 @@ import java.util.List;
 
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -160,6 +167,9 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 				return groups.stream().filter(x -> value.contains(x.getId())).findAny().get().getCode().equals("Bosses");
 			}
 		});
+
+		//assertThatUser("MachoMan").isInCollections(zeCollection).hasGroupsInCollection("G1", "zeCollection");
+		//assertThatUser("Embalmer").doesNotExist();
 	}
 
 	private void verifySaveState(List<Group> groups, List<User> users, List<UserCredential> credentials) {
@@ -350,5 +360,132 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 				from(schemas.group.schemaType()).returnAll()));
 		return groupRecord == null ? null : schemas.wrapGroups(groupRecord);
 	}
+
+
+	private RMMigrationTo9_2_AcceptanceTest.UserAssertions assertThatUser(String username) {
+		return new RMMigrationTo9_2_AcceptanceTest.UserAssertions(username);
+	}
+
+	@AllArgsConstructor
+	private class UserAssertions {
+
+		String username;
+
+		RMMigrationTo9_2_AcceptanceTest.UserAssertions isInCollections(String... expectedCollectionsArray) {
+			List<String> expectedCollections = asList(expectedCollectionsArray);
+
+			SystemWideUserInfos systemWideUser = userInfos(username);
+			assertThat(systemWideUser).isNotNull();
+			assertThat(systemWideUser.getCollections()).containsOnly(expectedCollectionsArray);
+
+			for (String collection : asList(zeCollection, "LaCollectionDeRida")) {
+				boolean expectedInThisCollection = expectedCollections.contains(collection);
+				if (expectedInThisCollection) {
+					assertThat(user(username, collection)).describedAs("User '" + username + "' is expected in collection '" + collection + "'").isNotNull();
+				} else {
+					assertThat(user(username, collection)).describedAs("User '" + username + "' is not expected in collection '" + collection + "'").isNull();
+				}
+			}
+
+			return this;
+		}
+
+		public RMMigrationTo9_2_AcceptanceTest.UserAssertions doesNotExist() {
+			assertThat(userInfos(username)).isNull();
+			assertThat(user(username, "LaCollectionDeRida")).isNull();
+			assertThat(user(username, "LaCollectionDeRida")).isNull();
+
+			return this;
+		}
+
+		private RMMigrationTo9_2_AcceptanceTest.UserAssertions hasStatusIn(UserCredentialStatus expectedStatus,
+																		   String collection) {
+			User user = user(username, collection);
+			assertThat(user).describedAs("Expecting user '" + username + "' to exist in collection '" + collection + "', but it does not").isNotNull();
+			assertThat(userInfos(user.getUsername()).getStatus(user.getCollection()))
+					.describedAs("Status in collection '" + collection + "'").isEqualTo(expectedStatus);
+			assertThat(user.getStatus()).isEqualTo(expectedStatus);
+			boolean expectedLogicallyDeletedStatus = expectedStatus != ACTIVE;
+			assertThat(user.isLogicallyDeletedStatus()).isEqualTo(expectedLogicallyDeletedStatus);
+
+			return this;
+		}
+
+		private RMMigrationTo9_2_AcceptanceTest.UserAssertions isPhysicicallyDeletedIn(String collection) {
+			assertThat(userInfos(username).getStatus(collection)).isNull();
+			assertThat(userInfos(username).getCollections()).doesNotContain(collection);
+			assertThat(user(username, collection)).isNull();
+
+			return this;
+		}
+
+		private RMMigrationTo9_2_AcceptanceTest.UserAssertions hasSyncMode(UserSyncMode mode) {
+			assertThat(userInfos(username).getSyncMode()).isSameAs(mode);
+
+			return this;
+		}
+
+		private RMMigrationTo9_2_AcceptanceTest.UserAssertions hasGroupsInCollection(String collection,
+																					 String... groupCodes) {
+			String[] groupIds = new String[groupCodes.length];
+			for (int i = 0; i < groupCodes.length; i++) {
+				groupIds[i] = group(groupCodes[i], collection).getId();
+			}
+
+			assertThat(user(username, collection).getUserGroups()).containsOnly(groupIds);
+
+			return this;
+		}
+
+		public RMMigrationTo9_2_AcceptanceTest.UserAssertions hasName(String firstName, String lastName) {
+			SystemWideUserInfos userInfos = getModelLayerFactory().newUserServices().getUserInfos(username);
+			assertThat(userInfos.getFirstName()).isEqualTo(firstName);
+			assertThat(userInfos.getLastName()).isEqualTo(lastName);
+
+			for (String collection : userInfos.getCollections()) {
+				assertThat(user(username, collection).getFirstName()).isEqualTo(firstName);
+				assertThat(user(username, collection).getLastName()).isEqualTo(lastName);
+			}
+
+
+			return this;
+		}
+
+		public RMMigrationTo9_2_AcceptanceTest.UserAssertions hasEmail(String email) {
+			SystemWideUserInfos userInfos = getModelLayerFactory().newUserServices().getUserInfos(username);
+			assertThat(userInfos.getEmail()).isEqualTo(email);
+
+			for (String collection : userInfos.getCollections()) {
+				assertThat(user(username, collection).getEmail()).isEqualTo(email);
+			}
+
+
+			return this;
+		}
+	}
+
+
+	private SystemWideUserInfos userInfos(String username) {
+		try {
+			return getModelLayerFactory().newUserServices().getUserInfos(username);
+
+		} catch (UserServicesRuntimeException_NoSuchUser e) {
+			return null;
+		}
+	}
+
+	private User user(String username, String collection) {
+		//This method may exist in UserServices for the moment, but we will try to remove it from the service
+		return getModelLayerFactory().newUserServices().getUserInCollection(username, collection);
+	}
+
+	private Group group(String code, String collection) {
+		return getModelLayerFactory().newUserServices().getGroupInCollection(code, collection);
+	}
+
+	private SystemWideGroup groupInfo(String code) {
+		return getModelLayerFactory().newUserServices().getGroup(code);
+	}
+
 
 }
