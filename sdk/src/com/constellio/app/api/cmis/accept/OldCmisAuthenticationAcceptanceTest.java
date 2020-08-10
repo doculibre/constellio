@@ -62,7 +62,7 @@ public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 
 		taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 
 		defineSchemasManager().using(zeCollectionSchemas);
 		defineSchemasManager().using(anotherCollectionSchemas);

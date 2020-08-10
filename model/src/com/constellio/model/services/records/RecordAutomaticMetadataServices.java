@@ -33,6 +33,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadata;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
@@ -642,7 +643,7 @@ public class RecordAutomaticMetadataServices {
 															   String collection) {
 
 		List<Authorization> authorizationDetails = new ArrayList<>();
-		List<String> disabledGroups = new ArrayList<>();
+		//List<String> disabledGroups = new ArrayList<>();
 
 
 		RecordsCache systemCollectionCache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
@@ -650,28 +651,29 @@ public class RecordAutomaticMetadataServices {
 				Collection.SYSTEM_COLLECTION, modelLayerFactory);
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+		SchemasRecordsServices collectionSchemas = new SchemasRecordsServices(collection, modelLayerFactory);
 
 		if (systemCollectionCache.isConfigured(SystemWideGroup.SCHEMA_TYPE)) {
-			for (Group group : schemas.getAllGroups()) {
-				SystemWideGroup globalGroup = modelLayerFactory.newUserServices().getGroup(group.getCode());
-				if (GlobalGroupStatus.INACTIVE.equals(globalGroup.getStatus(types.getCollection()))) {
-					disabledGroups.add(globalGroup.getCode());
-				}
-			}
+			//			for (Group group : schemas.getAllGroups()) {
+			//				SystemWideGroup globalGroup = modelLayerFactory.newUserServices().getGroup(group.getCode());
+			//				if (GlobalGroupStatus.INACTIVE.equals(globalGroup.getStatus(types.getCollection()))) {
+			//					disabledGroups.add(globalGroup.getCode());
+			//				}
+			//			}
 
-			boolean newGroupsDisabled = true;
-			while (newGroupsDisabled) {
-				newGroupsDisabled = false;
-
-				for (Group group : schemas.getAllGroups()) {
-					SystemWideGroup globalGroup = modelLayerFactory.newUserServices().getGroup(group.getCode());
-					boolean disabled = disabledGroups.contains(globalGroup.getCode());
-					if (!disabled && globalGroup.getParent() != null && disabledGroups.contains(globalGroup.getParent())) {
-						disabledGroups.add(globalGroup.getCode());
-						newGroupsDisabled = true;
-					}
-				}
-			}
+			//			boolean newGroupsDisabled = true;
+			//			while (newGroupsDisabled) {
+			//				newGroupsDisabled = false;
+			//
+			//				for (Group group : schemas.getAllGroups()) {
+			//					SystemWideGroup globalGroup = modelLayerFactory.newUserServices().getGroup(group.getCode());
+			//					boolean disabled = disabledGroups.contains(globalGroup.getCode());
+			//					if (!disabled && globalGroup.getParent() != null && disabledGroups.contains(globalGroup.getParent())) {
+			//						disabledGroups.add(globalGroup.getCode());
+			//						newGroupsDisabled = true;
+			//					}
+			//				}
+			//			}
 		}
 
 		GroupAuthorizationsInheritance groupInheritanceMode =
@@ -688,8 +690,14 @@ public class RecordAutomaticMetadataServices {
 
 			for (Record group : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(Group.SCHEMA_TYPE))) {
 				if (group != null) {
-					boolean enabled = !disabledGroups.contains(group.<String>get(Schemas.CODE));
+					boolean enabled = false;
+
+					try {
+						enabled = group.get(collectionSchemas.group.status()) != GlobalGroupStatus.INACTIVE;
+					} catch (NoSuchMetadata ignored) {
+					}
 					globalGroupEnabledMap.put(group.getId(), enabled);
+
 
 					for (String ancestor : group.<String>getList(groupAncestorMetadata)) {
 						if (groupInheritanceMode == FROM_PARENT_TO_CHILD) {

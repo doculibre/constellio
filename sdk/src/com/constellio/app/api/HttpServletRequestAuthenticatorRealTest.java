@@ -35,7 +35,7 @@ public class HttpServletRequestAuthenticatorRealTest extends ConstellioTest {
 
 		// User/Security setup
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		usersRecords.setUp(userServices);
+		usersRecords.setUp(userServices, zeCollection);
 		User bob = usersRecords.bobIn(zeCollection);
 		SystemWideUserInfos userCredentialBob = usersRecords.bob();
 		userServices.givenSystemAdminPermissionsToUser(userCredentialBob);

@@ -235,7 +235,7 @@ public class LDAPUserSyncManager implements StatefulService {
 
 				try {
 					// Keep locally created groups of existing users
-					final List<String> newUserGlobalGroups = new ArrayList<>();
+
 					SystemWideUserInfos previousUserCredential = userServices
 							.getUserInfos(request.getUsername());
 					SystemWideUserInfos userCredentialByDn = userServices.getUserCredentialByDN(ldapUser.getId());
@@ -277,17 +277,20 @@ public class LDAPUserSyncManager implements StatefulService {
 						}
 					}
 					if (previousUserCredential != null) {
-						for (final String userGlobalGroup : previousUserCredential.getGlobalGroups()) {
-							final SystemWideGroup previousGlobalGroup = userServices.getNullableGroup(userGlobalGroup);
-							if (previousGlobalGroup != null && previousGlobalGroup.isLocallyCreated()) {
-								newUserGlobalGroups.add(previousGlobalGroup.getCode());
+						for (String collection : previousUserCredential.getCollections()) {
+							final List<String> newUserGlobalGroups = new ArrayList<>();
+							for (final String userGlobalGroup : previousUserCredential.getGroupCodes(collection)) {
+								final SystemWideGroup previousGlobalGroup = userServices.getNullableGroup(userGlobalGroup);
+								if (previousGlobalGroup != null && previousGlobalGroup.isLocallyCreated()) {
+									newUserGlobalGroups.add(previousGlobalGroup.getCode());
+								}
+							}
+							if (!newUserGlobalGroups.isEmpty()) {
+								request.addToGroupsInCollection(newUserGlobalGroups, collection);
 							}
 						}
 					}
 
-					if (!newUserGlobalGroups.isEmpty()) {
-						request.addToGroupsInEachCollection(newUserGlobalGroups);
-					}
 
 					userServices.execute(request);
 					updatedUsersAndGroups.addUsername(UserUtils.cleanUsername(ldapUser.getName()));

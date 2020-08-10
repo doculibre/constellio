@@ -299,10 +299,11 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenConstellioAndDoculibreCollectionsWithBobAndLegendsInConstellioAndLegendsAndHeroesInDoculibre() {
-		users.setUp(userServices);
+
 
 		givenCollection("constellio");
 		givenCollection("doculibre");
+		users.setUp(userServices, "constellio", "doculibre");
 
 		userServices.execute(users.bob().getUsername(), (req) -> req.addToCollection("constellio"));
 		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection("constellio"));

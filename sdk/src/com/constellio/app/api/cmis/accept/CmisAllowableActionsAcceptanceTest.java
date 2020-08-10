@@ -84,7 +84,7 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		recordServices = getModelLayerFactory().newRecordServices();
 
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 
 		defineSchemasManager().using(zeCollectionSchemas.withContentMetadata());
 		zeCollectionSchemas.allSchemaTypesSupported(getAppLayerFactory());

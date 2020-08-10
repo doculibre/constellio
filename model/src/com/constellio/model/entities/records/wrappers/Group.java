@@ -111,6 +111,11 @@ public class Group extends RecordWrapper {
 		return this;
 	}
 
+	public Group setStatus(GlobalGroupStatus status) {
+		set(STATUS, status);
+		return this;
+	}
+
 	public boolean isLocallyCreated() {
 		return Boolean.TRUE.equals(get(LOCALLY_CREATED));
 	}

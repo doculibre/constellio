@@ -64,7 +64,7 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		searchServices = getModelLayerFactory().newSearchServices();

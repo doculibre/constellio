@@ -83,7 +83,7 @@ public class LoginService {
 		userResource.setFirstName(userCredential.getFirstName());
 		userResource.setLastName(userCredential.getLastName());
 		userResource.setEmail(userCredential.getEmail());
-		userResource.setGlobalGroups(userCredential.getGlobalGroups());
+
 		userResource.setCollections(userCredential.getCollections());
 		userResource.setServiceKey(userCredential.getServiceKey());
 		userResource.setSystemAdmin(userCredential.isSystemAdmin());

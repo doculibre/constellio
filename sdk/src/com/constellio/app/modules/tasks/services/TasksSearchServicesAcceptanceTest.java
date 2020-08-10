@@ -7,8 +7,8 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
@@ -18,7 +18,6 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -150,7 +149,7 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 
 	private void addGroup(String groupCode) {
 		GroupAddUpdateRequest group = userServices.createGlobalGroup(
-				groupCode, groupCode, new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE, true);
+				groupCode, groupCode, asList(zeCollection), null, GlobalGroupStatus.ACTIVE, true);
 		userServices.execute(group);
 	}
 

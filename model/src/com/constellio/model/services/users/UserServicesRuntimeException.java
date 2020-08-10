@@ -74,9 +74,15 @@ public class UserServicesRuntimeException extends RuntimeException {
 		}
 	}
 
-	public static class UserServicesRuntimeException_InvalidCollection extends UserServicesRuntimeException {
-		public UserServicesRuntimeException_InvalidCollection(String username, String collection) {
+	public static class UserServicesRuntimeException_InvalidCollectionForUser extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_InvalidCollectionForUser(String username, String collection) {
 			super("Cannot add user in this invalid collection name '" + collection + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_InvalidCollectionForGroup extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_InvalidCollectionForGroup(String username, String collection) {
+			super("Cannot add group in this invalid collection name '" + collection + "'");
 		}
 	}
 
@@ -108,6 +114,19 @@ public class UserServicesRuntimeException extends RuntimeException {
 		public UserServicesRuntimeException_CannotAssignUserToInexistingGroupInCollection(String username, String code,
 																						  String collection) {
 			super("Cannot assign '" + username + "' to inexisting group '" + code + "' in collection '" + collection + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_CannotChangeNameOfSyncedUser extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_CannotChangeNameOfSyncedUser(String username) {
+			super("Cannot change name of synced user '" + username + "'");
+		}
+	}
+
+
+	public static class UserServicesRuntimeException_CannotChangeEmailOfSyncedUser extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_CannotChangeEmailOfSyncedUser(String username) {
+			super("Cannot change email of synced user '" + username + "'");
 		}
 	}
 

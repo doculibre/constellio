@@ -64,7 +64,7 @@ public class ModifyProfilePresenterAcceptanceTest extends ConstellioTest {
 		//inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
 		userServices = getModelLayerFactory().newUserServices();
 		users = new Users();
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		profileVO = new ProfileVO(users.bobIn(zeCollection).getUsername(), "bob", "Gratton", "bob@constellio.com", "bob@hotmail.com\nbob@gmail.com", "3333333",

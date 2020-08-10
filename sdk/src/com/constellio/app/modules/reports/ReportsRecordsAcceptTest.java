@@ -65,7 +65,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 
 		Users users = new Users();
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 
 		adminInZeCollection = FakeSessionContext.adminInCollection(zeCollection).getCurrentUser();
 

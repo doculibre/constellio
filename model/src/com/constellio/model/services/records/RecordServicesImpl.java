@@ -1430,6 +1430,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			MetadataSchema schema = types.getSchemaOf(record);
 			if (record.isSaved()) {
 
+				modifiedRecords.add(record);
 				if (record.isModified(Schemas.LOGICALLY_DELETED_STATUS)) {
 					if (LangUtils.isFalseOrNull(record.get(Schemas.LOGICALLY_DELETED_STATUS))) {
 						events.add(new RecordRestorationEvent(record));
@@ -1437,11 +1438,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 						events.add(new RecordLogicalDeletionEvent(record));
 					}
 				} else {
-					modifiedRecords.add(record);
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
 					events.add(new RecordModificationEvent(record, modifiedMetadatas, schema, transaction.getUser()));
-					modifiedMetadatasOfModifiedRecords.put(record.getId(), modifiedMetadatas);
 				}
+
+				MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
+				modifiedMetadatasOfModifiedRecords.put(record.getId(), modifiedMetadatas);
 
 			} else {
 				newRecords.add(record);

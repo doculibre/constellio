@@ -33,7 +33,7 @@ public class LoginPresenter_enAcceptanceTest extends ConstellioTest {
 		doReturn(zeCollection).when(view).getCollection();
 		doReturn(FakeSessionContext.adminInCollection(zeCollection)).when(view).getSessionContext();
 		loginPresenter = new LoginPresenter(view);
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 		recordServices = getModelLayerFactory().newRecordServices();
 
 	}

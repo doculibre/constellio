@@ -7,7 +7,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.structures.TableProperties;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +36,7 @@ public class UserConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		configManager = getDataLayerFactory().getConfigManager();
 		collectionManager = getAppLayerFactory().getCollectionsManager();
 		recordServices = getModelLayerFactory().newRecordServices();
-		users = new Users().setUp(getModelLayerFactory().newUserServices());
+
 
 		userConfigManager = getModelLayerFactory().getUserConfigurationsManager();
 		otherInstanceUserConfigManager = getModelLayerFactory("other-instance").getUserConfigurationsManager();
@@ -45,6 +44,7 @@ public class UserConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 		givenSpecialCollection(zeCollection).withAllTestUsers();
 		givenSpecialCollection(anotherCollection).withAllTestUsers();
+		users = new Users().setUp(getModelLayerFactory().newUserServices(), zeCollection);
 
 		bob = users.bobIn(zeCollection);
 	}

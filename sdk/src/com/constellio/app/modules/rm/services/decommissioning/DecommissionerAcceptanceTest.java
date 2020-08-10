@@ -56,7 +56,7 @@ public class DecommissionerAcceptanceTest extends ConstellioTest {
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 	}
 
 	@Test

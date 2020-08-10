@@ -122,7 +122,7 @@ public class ModulesAndMigrationsTestFeatures {
 				.newUserPhotosServices();
 		if (users == null) {
 			users = new Users();
-			users.setUp(userServices).withPhotos(userPhotosServices);
+			users.setUp(userServices, collection).withPhotos(userPhotosServices);
 		}
 		userServices.execute(users.admin().getUsername(), (req) -> req.addToCollection(collection));
 		return this;
@@ -138,7 +138,7 @@ public class ModulesAndMigrationsTestFeatures {
 				.newUserPhotosServices();
 		if (this.users == null) {
 			users = usingUsers;
-			users.setUp(userServices).withPhotos(userPhotosServices);
+			users.setUp(userServices, collection).withPhotos(userPhotosServices);
 		}
 		userServices.execute(users.admin().getUsername(), (req) -> req.addToCollection(collection));
 		userServices.execute(users.alice().getUsername(), (req) -> req.addToCollection(collection));

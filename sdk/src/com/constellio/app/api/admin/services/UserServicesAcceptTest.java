@@ -47,7 +47,7 @@ public class UserServicesAcceptTest extends ConstellioTest {
 		authService = getModelLayerFactory().newAuthenticationService();
 		recordServices = getModelLayerFactory().newRecordServices();
 
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 
 		userServices.givenSystemAdminPermissionsToUser(users.alice());
 		userServices.givenSystemAdminPermissionsToUser(users.bob());

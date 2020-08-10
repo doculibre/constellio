@@ -40,7 +40,7 @@ public class CollectionsManagementAcceptTest extends ConstellioTest {
 		authService = getModelLayerFactory().newAuthenticationService();
 		collectionsManager = getAppLayerFactory().getCollectionsManager();
 
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 
 		userServices.givenSystemAdminPermissionsToUser(users.alice());
 		userServices.givenSystemAdminPermissionsToUser(users.bob());
