@@ -12,14 +12,18 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.returnAll;
 
 public class ListBagInfoPresenter extends BasePresenter<ListBagInfoView> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ListBagInfoPresenter.class);
 
 	private RecordVODataProvider dataProvider;
 
@@ -56,7 +60,12 @@ public class ListBagInfoPresenter extends BasePresenter<ListBagInfoView> {
 
 	public void deleteButtonClicked(RecordVO record) {
 		SchemaPresenterUtils utils = new SchemaPresenterUtils(Capsule.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
-		utils.delete(utils.toRecord(record), null);
+		try {
+			utils.delete(utils.toRecord(record), null);
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
 		view.navigate().to().listBagInfo();
 	}
 

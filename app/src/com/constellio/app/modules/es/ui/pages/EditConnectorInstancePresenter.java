@@ -5,12 +5,15 @@ import com.constellio.app.modules.es.ui.pages.ConnectorUtil.ConnectionStatus;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.records.RecordServicesException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class EditConnectorInstancePresenter extends AddEditConnectorInstancePresenter {
-
+	private static final Logger LOGGER = LoggerFactory.getLogger(EditConnectorInstancePresenter.class);
 	public EditConnectorInstancePresenter(EditConnectorInstanceView view) {
 		super(view);
 	}
@@ -33,7 +36,13 @@ public class EditConnectorInstancePresenter extends AddEditConnectorInstancePres
 	public void saveButtonClicked(RecordVO recordVO) {
 		String schemaCode = recordVO.getSchema().getCode();
 		setCurrentSchemaCode(schemaCode);
-		Record record = toRecord(recordVO);
+		Record record = null;
+		try {
+			record = toRecord(recordVO);
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
 
 		ConnectorUtil.ConnectionStatusResult connectonStatusResult = ConnectorUtil
 				.testAuthentication(schemaCode, record, esSchemasRecordsServices);

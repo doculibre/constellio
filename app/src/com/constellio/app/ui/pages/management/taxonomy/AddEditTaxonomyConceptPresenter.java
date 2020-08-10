@@ -11,6 +11,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.vaadin.ui.UI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,7 +129,13 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 	}
 
 	public void confirmBeforeSave(final RecordVO recordVO) {
-		Record record = toRecord(recordVO);
+		Record record = null;
+		try {
+			record = toRecord(recordVO);
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
 		recordServices().recalculate(record);
 		final boolean isReindexationNeeded;
 

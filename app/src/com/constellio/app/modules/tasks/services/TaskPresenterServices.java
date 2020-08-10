@@ -23,6 +23,7 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
@@ -330,11 +331,15 @@ public class TaskPresenterServices {
 		taskVO.setTaskCollaboratorsGroups(taskCollaboratorsGroups);
 		taskVO.settaskCollaboratorsGroupsWriteAuthorizations(taskCollaboratorsGroupsWriteAuthorizations);
 
-		Record record = schemaPresenterUtils.toRecord(taskVO);
-		Task task = tasksSchemas.wrapTask(record);
 		try {
-			recordServices.update(task);
-		} catch (RecordServicesException e) {
+			Record record = schemaPresenterUtils.toRecord(taskVO);
+			Task task = tasksSchemas.wrapTask(record);
+			try {
+				recordServices.update(task);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		} catch (OptimisticLockException e) {
 			throw new RuntimeException(e);
 		}
 	}

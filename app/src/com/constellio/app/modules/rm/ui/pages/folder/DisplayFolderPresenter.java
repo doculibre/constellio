@@ -643,7 +643,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		view.setEvents(eventsDataProvider);
 
 		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
-		Folder folder = schemas.wrapFolder(toRecord(folderVO));
+		Folder folder = schemas.getFolder(folderVO.getId());
 		disableMenuItems(folder);
 		modelLayerFactory.newLoggingServices().logRecordView(folder.getWrappedRecord(), getCurrentUser());
 	}
@@ -1125,7 +1125,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	protected boolean hasCurrentUserPermissionToViewEvents() {
-		return getCurrentUser().has(CorePermissions.VIEW_EVENTS).on(toRecord(folderVO));
+		Folder folder = rmSchemasRecordsServices.getFolder(folderVO.getId());
+		return getCurrentUser().has(CorePermissions.VIEW_EVENTS).on(folder);
 	}
 
 	void metadataTabSelected() {

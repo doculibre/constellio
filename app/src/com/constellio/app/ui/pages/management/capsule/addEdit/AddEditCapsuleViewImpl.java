@@ -13,7 +13,6 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.wrappers.Capsule;
-import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Resource;
@@ -58,8 +57,7 @@ public class AddEditCapsuleViewImpl extends BaseViewImpl implements AddEditCapsu
 
 		return new RecordForm(this.recordVO, new CapsuleRecordFieldFactory()) {
 			@Override
-			protected void saveButtonClick(RecordVO viewObject)
-					throws ValidationException {
+			protected void saveButtonClick(RecordVO viewObject) {
 				try {
 					presenter.saveButtonClicked(recordVO);
 				} catch (RecordServicesException e) {

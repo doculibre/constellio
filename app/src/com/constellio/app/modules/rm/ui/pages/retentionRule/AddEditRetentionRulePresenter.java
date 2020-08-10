@@ -37,11 +37,14 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,6 +57,8 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<AddEditRetentionRuleView>
 		implements RetentionRuleTablePresenter {
+
+	private static Logger LOGGER = LoggerFactory.getLogger(AddEditRetentionRulePresenter.class);
 
 	private boolean addView;
 
@@ -138,20 +143,25 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 		if (isScopeAvaliable() && rule.getScope() == RetentionRuleScope.DOCUMENTS && isCopyRetentionRulesAvalible()) {
 			rule.getCopyRetentionRules().clear();
 		}
-		Record record = toRecord(rule);
 		try {
-			addOrUpdate(record);
+			Record record = toRecord(rule);
+			try {
+				addOrUpdate(record);
 
-			if(rule.getMetadataOrNull(RetentionRuleVO.CATEGORIES) != null) {
-				saveCategories(record.getId(), rule.getCategories());
-			}
-			if(rule.getMetadataOrNull(RetentionRuleVO.UNIFORM_SUBDIVISIONS) != null) {
-				saveUniformSubdivisions(record.getId(), rule.getUniformSubdivisions());
-			}
+				if (rule.getMetadataOrNull(RetentionRuleVO.CATEGORIES) != null) {
+					saveCategories(record.getId(), rule.getCategories());
+				}
+				if (rule.getMetadataOrNull(RetentionRuleVO.UNIFORM_SUBDIVISIONS) != null) {
+					saveUniformSubdivisions(record.getId(), rule.getUniformSubdivisions());
+				}
 
-			view.navigate().to(RMViews.class).listRetentionRules();
-		} catch (ValidationRuntimeException e) {
-			view.showErrorMessage($(e.getValidationErrors()));
+				view.navigate().to(RMViews.class).listRetentionRules();
+			} catch (ValidationRuntimeException e) {
+				view.showErrorMessage($(e.getValidationErrors()));
+			}
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
 		}
 	}
 
