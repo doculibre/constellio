@@ -39,7 +39,7 @@ public class RecordServicesCreatedAndModifiedByAndOnAcceptanceTest extends Const
 		givenTimeIs(now);
 
 		record = new TestRecord(zeSchema);
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 
 		getModelLayerFactory().newUserServices().execute(users.alice().getUsername(), (req) -> req.addToCollection(zeCollection));
 		getModelLayerFactory().newUserServices().execute(users.bob().getUsername(), (req) -> req.addToCollection(zeCollection));

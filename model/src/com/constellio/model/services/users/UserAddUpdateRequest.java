@@ -27,6 +27,9 @@ public class UserAddUpdateRequest {
 	private List<String> addToCollections;
 	private List<String> removeFromCollections;
 
+	private Map<String, List<String>> addToGroupInCollection;
+	private Map<String, List<String>> removeFromGroupInCollection;
+
 	private Map<String, LocalDateTime> newTokens;
 	private List<String> removedtokens;
 	private UserSyncMode syncMode = UserSyncMode.LOCALLY_CREATED;
@@ -39,6 +42,11 @@ public class UserAddUpdateRequest {
 	List<String> currentGroups;
 	private Map<String, Map<String, Object>> modifiedCollectionsProperties = new HashMap<>();
 
+	private boolean ldapSyncRequest;
+
+	private boolean stopSyncingLDAP;
+
+	private boolean resumeSyncingLDAP;
 
 	@Getter
 	private boolean markedForDeletionInAllCollections;
@@ -50,6 +58,33 @@ public class UserAddUpdateRequest {
 		this.currentGroups = new ArrayList<>(currentGroups);
 	}
 
+
+	public boolean isStopSyncingLDAP() {
+		return stopSyncingLDAP;
+	}
+
+	public boolean isResumeSyncingLDAP() {
+		return resumeSyncingLDAP;
+	}
+
+	public boolean isLdapSyncRequest() {
+		return ldapSyncRequest;
+	}
+
+	public UserAddUpdateRequest ldapSyncRequest() {
+		this.ldapSyncRequest = true;
+		return this;
+	}
+
+	public UserAddUpdateRequest stopSyncingLDAP() {
+		this.stopSyncingLDAP = true;
+		return this;
+	}
+
+	public UserAddUpdateRequest resumeSyncingLDAP() {
+		this.resumeSyncingLDAP = true;
+		return this;
+	}
 
 	public String getUsername() {
 		return username;
@@ -107,6 +142,7 @@ public class UserAddUpdateRequest {
 		return syncMode;
 	}
 
+	@Deprecated
 	public UserAddUpdateRequest setSyncMode(UserSyncMode syncMode) {
 		this.modifiedProperties.put(UserCredential.SYNC_MODE, syncMode);
 		return this;
@@ -318,7 +354,15 @@ public class UserAddUpdateRequest {
 
 
 	public UserAddUpdateRequest addToGroupsInCollection(List<String> groupCodes, String collection) {
-		throw new UnsupportedOperationException("TODO Rabab");
+		if (addToGroupInCollection == null) {
+			addToGroupInCollection = new HashMap<>();
+		}
+		List<String> groups = new ArrayList<>(groupCodes);
+		if (addToGroupInCollection.containsKey(collection)) {
+			groups.addAll(addToGroupInCollection.get(collection));
+		}
+		addToGroupInCollection.put(collection, groups);
+		return this;
 	}
 
 	public UserAddUpdateRequest addToGroupInCollection(String groupCode, String collection) {
@@ -394,6 +438,10 @@ public class UserAddUpdateRequest {
 
 	public List<String> getAddToGroup() {
 		return addToGroup;
+	}
+
+	public Map<String, List<String>> getAddToGroupInCollection() {
+		return addToGroupInCollection;
 	}
 
 	public List<String> getRemoveFromGroup() {

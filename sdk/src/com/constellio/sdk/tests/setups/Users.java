@@ -16,6 +16,7 @@ import org.apache.commons.io.IOUtils;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class Users {
@@ -36,6 +37,8 @@ public class Users {
 	String sasquatchUsername = "sasquatch";
 
 	UserServices userServices;
+
+	List<String> collections;
 
 	public SystemWideUserInfos chuckNorris() {
 		return getUser(chuckNorrisUsername);
@@ -239,43 +242,49 @@ public class Users {
 		return this;
 	}
 
-	public Users setUp(UserServices userServices) {
+
+	public Users setUp(UserServices userServices, String firstCollection, String... collections) {
 		this.userServices = userServices;
-		if (userServices.getUserCredential(dakotaLindienUsername) == null) {
-
-			if ("true".equals(System.getProperty("normalUsers"))) {
-				addGroup(heroes, "The heroes", null);
-				addGroup(legends, "The legends", null);
-				addGroup(sidekicks, "The sidekicks", heroes);
-				addGroup(rumors, "The rumors", legends);
-
-				addUser(chuckNorrisUsername, "Chuck", "Norris");
-				addUser(aliceUsername, "Alice", "Wonderland", "legends");
-				addUser(bobGrattonUsername, "Bob 'Elvis'", "Gratton");
-				addUser(charlesFrancoisXavierUsername, "Charles-François", "Xavier", "heroes");
-				addUser(dakotaLindienUsername, "John", "Smith", "heroes");
-				addUser(edouardLechatUsername, "Eddie", "Murphy", "legends");
-				addUser(gandalfLeblancUsername, "Gandalf", "Leblanc", "legends", "heroes");
-				addUser(robinUsername, "Good Guy", "Robin", "sidekicks");
-				addUser(sasquatchUsername, "Big", "Foot", "rumors");
-
-			} else {
-				addGroup(heroes, "The heroes", null);
-				addGroup(legends, "The legends", null);
-				addGroup(sidekicks, "The sidekicks", heroes);
-				addGroup(rumors, "The rumors", legends);
-
-				addUser(chuckNorrisUsername, "Chuck", "Norris");
-				addUser(aliceUsername, "Alice", "Wonderland", "legends");
-				addUser(bobGrattonUsername, "Bob 'Elvis'", "Gratton");
-				addUser(charlesFrancoisXavierUsername, "Charles-François", "Xavier", "heroes");
-				addUser(dakotaLindienUsername, "Dakota", "L'Indien", "heroes");
-				addUser(edouardLechatUsername, "Edouard", "Lechat", "legends");
-				addUser(gandalfLeblancUsername, "Gandalf", "Leblanc", "legends", "heroes");
-				addUser(robinUsername, "Good Guy", "Robin", "sidekicks");
-				addUser(sasquatchUsername, "Big", "Foot", "rumors");
-			}
+		this.collections = new ArrayList<>();
+		this.collections.add(firstCollection);
+		if (collections != null) {
+			Collections.addAll(this.collections, collections);
 		}
+		//		if (userServices.getUserCredential(dakotaLindienUsername) == null) {
+
+		if ("true".equals(System.getProperty("normalUsers"))) {
+			addGroup(heroes, "The heroes", null);
+			addGroup(legends, "The legends", null);
+			addGroup(sidekicks, "The sidekicks", heroes);
+			addGroup(rumors, "The rumors", legends);
+
+			addUser(chuckNorrisUsername, "Chuck", "Norris");
+			addUser(aliceUsername, "Alice", "Wonderland", "legends");
+			addUser(bobGrattonUsername, "Bob 'Elvis'", "Gratton");
+			addUser(charlesFrancoisXavierUsername, "Charles-François", "Xavier", "heroes");
+			addUser(dakotaLindienUsername, "John", "Smith", "heroes");
+			addUser(edouardLechatUsername, "Eddie", "Murphy", "legends");
+			addUser(gandalfLeblancUsername, "Gandalf", "Leblanc", "legends", "heroes");
+			addUser(robinUsername, "Good Guy", "Robin", "sidekicks");
+			addUser(sasquatchUsername, "Big", "Foot", "rumors");
+
+		} else {
+			addGroup(heroes, "The heroes", null);
+			addGroup(legends, "The legends", null);
+			addGroup(sidekicks, "The sidekicks", heroes);
+			addGroup(rumors, "The rumors", legends);
+
+			addUser(chuckNorrisUsername, "Chuck", "Norris");
+			addUser(aliceUsername, "Alice", "Wonderland", "legends");
+			addUser(bobGrattonUsername, "Bob 'Elvis'", "Gratton");
+			addUser(charlesFrancoisXavierUsername, "Charles-François", "Xavier", "heroes");
+			addUser(dakotaLindienUsername, "Dakota", "L'Indien", "heroes");
+			addUser(edouardLechatUsername, "Edouard", "Lechat", "legends");
+			addUser(gandalfLeblancUsername, "Gandalf", "Leblanc", "legends", "heroes");
+			addUser(robinUsername, "Good Guy", "Robin", "sidekicks");
+			addUser(sasquatchUsername, "Big", "Foot", "rumors");
+		}
+		//}
 		return this;
 	}
 
@@ -333,7 +342,6 @@ public class Users {
 	private void addUser(String username, String firstName, String lastName, String... groups) {
 		String email = (username + "@doculibre.com").toLowerCase();
 		List<String> globalGroups = Arrays.asList(groups);
-		List<String> collections = new ArrayList<>();
 		com.constellio.model.services.users.UserAddUpdateRequest credential = userServices.addUpdate(username)
 				.setFirstName(firstName)
 				.setLastName(lastName)
@@ -353,7 +361,7 @@ public class Users {
 
 	private void addGroup(String code, String title, String parent) {
 		GroupAddUpdateRequest group = userServices.createGlobalGroup(
-				code, title, new ArrayList<String>(), parent, GlobalGroupStatus.ACTIVE, true);
+				code, title, collections, parent, GlobalGroupStatus.ACTIVE, true);
 		userServices.execute(group);
 	}
 
@@ -370,5 +378,4 @@ public class Users {
 
 		return this;
 	}
-
 }

@@ -56,7 +56,7 @@ public class CollectionUserRolesPresenterAcceptanceTest extends ConstellioTest {
 
 		recordServices.add(recordServices.newRecordWithSchema(setup.zeDefaultSchema(), zeConcept));
 
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 		aliceId = users.aliceIn(zeCollection).getId();
 		legendsId = users.legendsIn(zeCollection).getId();
 		legends = users.legends().getCode();

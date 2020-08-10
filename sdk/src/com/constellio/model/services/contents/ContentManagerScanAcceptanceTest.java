@@ -52,7 +52,7 @@ public class ContentManagerScanAcceptanceTest extends ConstellioTest {
 						.withFoldersAndContainersOfEveryStatus()
 						.withDocumentsHavingContent()
 		);
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 		contentManager = getModelLayerFactory().getContentManager();
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());

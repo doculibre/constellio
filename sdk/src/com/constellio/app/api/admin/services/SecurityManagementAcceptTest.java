@@ -101,7 +101,7 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 		taxonomiesManager.setPrincipalTaxonomy(schemas.getTaxonomy1(), schemasManager);
 		records = schemas.givenRecords(recordServices);
 
-		usersRecords.setUp(userServices);
+		usersRecords.setUp(userServices, zeCollection);
 		bob = usersRecords.bobIn(zeCollection);
 		alice = usersRecords.aliceIn(zeCollection);
 		userCredentialBob = usersRecords.bob();

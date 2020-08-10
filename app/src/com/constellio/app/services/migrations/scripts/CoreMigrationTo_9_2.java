@@ -195,12 +195,11 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			MetadataSchemaBuilder groupSchema = typesBuilder.getSchemaType(Group.SCHEMA_TYPE).getDefaultSchema();
 
 			//les attributs "locallyCreated", "hierarchy" et "status" sont déplacés dans Group
-			groupSchema.createUndeletable("status")
-					.defineAsEnum(GlobalGroupStatus.class)
-					.setDefaultRequirement(true).setDefaultValue(GlobalGroupStatus.ACTIVE);
-			groupSchema.createUndeletable("locallyCreated")
+			groupSchema.createUndeletable(Group.STATUS)
+					.defineAsEnum(GlobalGroupStatus.class).setDefaultRequirement(true);
+			groupSchema.createUndeletable(Group.LOCALLY_CREATED)
 					.setType(MetadataValueType.BOOLEAN).setDefaultValue(true);
-			groupSchema.createUndeletable("hierarchy")
+			groupSchema.createUndeletable(Group.HIERARCHY)
 					.setType(MetadataValueType.STRING);
 
 			//Les utilisateurs désactivés qui ne sont pas utilisés sont supprimé physiquement

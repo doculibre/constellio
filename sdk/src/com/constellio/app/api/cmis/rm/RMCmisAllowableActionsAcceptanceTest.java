@@ -83,7 +83,7 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		authServices = getModelLayerFactory().newAuthorizationsServices();
 
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 
 		recordServices.update(users.adminIn(zeCollection).setCollectionAllAccess(true));
 		recordServices.update(users.aliceIn(zeCollection).setCollectionReadAccess(true));

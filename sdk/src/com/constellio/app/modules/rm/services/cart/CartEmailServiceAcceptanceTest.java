@@ -76,7 +76,7 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 		contentManager = getModelLayerFactory().getContentManager();
 		ioServices = getDataLayerFactory().getIOServicesFactory().newIOServices();
 		cartEmlService = new CartEmailService(zeCollection, getModelLayerFactory());

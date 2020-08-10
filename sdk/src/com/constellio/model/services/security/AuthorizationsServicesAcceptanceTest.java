@@ -29,6 +29,7 @@ import com.constellio.model.services.security.AuthorizationsServicesRuntimeExcep
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername;
 import com.constellio.model.services.security.SecurityAcceptanceTestSetup.FolderSchema;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.TestRecord;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -469,6 +470,9 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(TAXO1_CATEGORY2_1).givingRoles(ROLE1).forPrincipals(alice),
 				authOnRecord(FOLDER1).givingRoles(ROLE2).forPrincipals(sasquatch)
 		);
+
+		SystemWideUserInfos robinUser = userServices.getUserInfos(robin);
+		System.out.println(robinUser.getGroupCodes(zeCollection));
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithRole(ROLE1).containsOnly(bob, charles, dakota, gandalf, robin);
@@ -911,7 +915,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	public void whenAddingAndRemovingAuthorizationToAGroupThenAppliedToAllUsers()
 			throws Exception {
 
-		GroupAddUpdateRequest group = userServices.createGlobalGroup("vilains", "Vilains", new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE, true);
+		GroupAddUpdateRequest group = userServices.createGlobalGroup("vilains", "Vilains", asList(zeCollection, anotherCollection), null, GlobalGroupStatus.ACTIVE, true);
 		userServices.execute(group);
 		userServices.execute("bob", (req) -> req.addToGroupsInEachCollection("vilains"));
 		forUser(bob).assertThatRecordsWithReadAccess().isEmpty();
@@ -2538,6 +2542,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		userServices.execute(users.legendsRequest().setStatusInAllCollections(GlobalGroupStatus.INACTIVE));
 
+		//getModelLayerFactory().getSecurityModelCache().invalidate(zeCollection);
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
 		assertThatAllAuthorizations().containsOnly(
 				authOnRecord(TAXO1_CATEGORY1).givingReadWrite().forPrincipals(legends),
@@ -4352,7 +4357,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		assertThat(instance1Cache.getCached(zeCollection)).is(containingAuthWithId(auth1));
 		assertThat(instance2Cache.getCached(zeCollection)).is(containingAuthWithId(auth1));
 
-		GroupAddUpdateRequest group = userServices.newGlobalGroup("zeGroup").setName("Ze ultimate group");
+		GroupAddUpdateRequest group = userServices.newGlobalGroup("zeGroup").addCollections(zeCollection, anotherCollection).setName("Ze ultimate group");
 		userServices.execute(group);
 		assertThat(instance1Cache.getCached(zeCollection)).isNull();
 		assertThat(instance2Cache.getCached(zeCollection)).isNull();

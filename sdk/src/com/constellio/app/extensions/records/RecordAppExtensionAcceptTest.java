@@ -109,7 +109,7 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 				.setTraversalCode("zeTraversal"));
 		connectorHttpDocument = es.newConnectorHttpDocument(connectorHttpInstance);
 
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 	}
 
 	@Test

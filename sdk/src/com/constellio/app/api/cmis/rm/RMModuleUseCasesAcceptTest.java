@@ -56,7 +56,7 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 		authenticationService.changePassword(chuckNorris, "1qaz2wsx");
 
 		userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 
 		userServices.execute(
 				userServices.addUpdate(chuckNorris).setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
