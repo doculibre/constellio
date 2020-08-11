@@ -930,11 +930,17 @@ public class UserServices {
 	}
 
 	public SystemWideGroup build(Group group, List<String> wideGroupCollections) {
+
+		String parentCode = null;
+		if (group.getParent() != null) {
+			parentCode = recordServices.getDocumentById(group.getParent()).get(Schemas.CODE);
+		}
+
 		return SystemWideGroup.builder()
 				.code(group.getCode())
 				.name(group.getTitle())
 				.collections(wideGroupCollections)
-				.parent(group.getParent())
+				.parent(parentCode)
 				.groupStatus(group.getStatus())
 				.hierarchy(group.getHierarchy())
 				.logicallyDeletedStatus(group.getLogicallyDeletedStatus())
