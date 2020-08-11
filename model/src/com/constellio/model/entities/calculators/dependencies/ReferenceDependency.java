@@ -103,6 +103,10 @@ public class ReferenceDependency<T> implements Dependency {
 		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.NUMBER, false, false);
 	}
 
+	public static ReferenceDependency<Integer> toAnInteger(String referenceMetadataCode, String dependentMetadataCode) {
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.INTEGER, false, false);
+	}
+
 	public static ReferenceDependency<LocalDate> toADate(String referenceMetadataCode, String dependentMetadataCode) {
 		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.DATE, false, false);
 	}
