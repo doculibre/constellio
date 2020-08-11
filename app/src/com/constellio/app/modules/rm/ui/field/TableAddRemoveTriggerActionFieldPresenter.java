@@ -16,6 +16,7 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.vaadin.data.Property;
@@ -114,7 +115,8 @@ public class TableAddRemoveTriggerActionFieldPresenter {
 		return constellioFactories;
 	}
 
-	public RecordVO changeSchemaAfterTypeChange(RecordVO triggerActionVO, boolean isAddMode) {
+	public RecordVO changeSchemaAfterTypeChange(RecordVO triggerActionVO, boolean isAddMode)
+			throws OptimisticLockException {
 		triggerActionsSchemaPresenterUtils.setSchemaCode(triggerActionVO.getSchemaCode());
 		Record record = toRecord(triggerActionVO, isAddMode);
 		String id = triggerActionVO.get(TriggerAction.TYPE);
@@ -130,7 +132,7 @@ public class TableAddRemoveTriggerActionFieldPresenter {
 		}
 	}
 
-	protected Record toRecord(RecordVO recordVO, boolean isAddMode) {
+	protected Record toRecord(RecordVO recordVO, boolean isAddMode) throws OptimisticLockException {
 		if (isAddMode) {
 			return triggerActionsSchemaPresenterUtils.toNewRecord(recordVO);
 		} else {

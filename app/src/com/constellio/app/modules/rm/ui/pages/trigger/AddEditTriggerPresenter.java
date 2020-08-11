@@ -18,6 +18,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import lombok.extern.slf4j.Slf4j;
@@ -95,48 +96,59 @@ public class AddEditTriggerPresenter extends BasePresenter<AddEditTriggerView> {
 
 	public void saveButtonClick(List<RecordVO> recordVOSToSave, List<RecordVO> recordVOsToDelete, RecordVO recordVO) {
 		SchemaPresenterUtils schemaPresenterUtils = new SchemaPresenterUtils(recordVO.getSchemaCode(), view.getConstellioFactories(), view.getSessionContext());
-		Record newRecord = schemaPresenterUtils.toRecord(recordVO);
-		recordVO.setRecord(newRecord);
-		Trigger triggerToSave = rm.wrapTrigger(newRecord);
+		try {
+			Record newRecord = schemaPresenterUtils.toRecord(recordVO);
+			recordVO.setRecord(newRecord);
+			Trigger triggerToSave = rm.wrapTrigger(newRecord);
 
-		triggerToSave.setTarget(trigger.getTarget());
+			triggerToSave.setTarget(trigger.getTarget());
 
-		SchemaPresenterUtils schemaPresenterUtilsForTriggerAction = new SchemaPresenterUtils(TriggerAction.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
-		Transaction transaction = new Transaction();
+			SchemaPresenterUtils schemaPresenterUtilsForTriggerAction = new SchemaPresenterUtils(TriggerAction.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
+			Transaction transaction = new Transaction();
 
-		for (RecordVO currentTriggerActionToSave : recordVOSToSave) {
-			schemaPresenterUtilsForTriggerAction.setSchemaCode(currentTriggerActionToSave.getSchemaCode());
+			for (RecordVO currentTriggerActionToSave : recordVOSToSave) {
+				schemaPresenterUtilsForTriggerAction.setSchemaCode(currentTriggerActionToSave.getSchemaCode());
 
-			Record triggerActionRecord;
-			if (currentTriggerActionToSave.isSaved()) {
-				triggerActionRecord = schemaPresenterUtilsForTriggerAction.toRecord(currentTriggerActionToSave);
-			} else {
-				triggerActionRecord = schemaPresenterUtilsForTriggerAction.toNewRecord(currentTriggerActionToSave);
+				Record triggerActionRecord;
+				if (currentTriggerActionToSave.isSaved()) {
+					triggerActionRecord = schemaPresenterUtilsForTriggerAction.toRecord(currentTriggerActionToSave);
+				} else {
+					triggerActionRecord = schemaPresenterUtilsForTriggerAction.toNewRecord(currentTriggerActionToSave);
+				}
+
+				transaction.add(triggerActionRecord);
 			}
 
-			transaction.add(triggerActionRecord);
+			transaction.addUpdate(triggerToSave.getWrappedRecord());
+
+			try {
+				recordServices.execute(transaction);
+				List<Record> recordsToDelete = recordVOsToDelete.stream().map(element -> {
+					try {
+						return convertToRecordForDeletion(element, schemaPresenterUtilsForTriggerAction);
+					} catch (OptimisticLockException e) {
+						throw new RuntimeException(e);
+					}
+				}).collect(Collectors.toList());
+				recordsToDelete.stream().forEach(recordToDelete -> schemaPresenterUtils.delete(recordToDelete, "", getCurrentUser()));
+			} catch (Exception e) {
+				log.error("error saving and or deleting records in AddEditTriggerPresenter", e);
+				view.showErrorMessage("AddEditTriggerViewImpl.unExpectedError");
+			}
+
+			Map<String, String> paramsForCancel = new HashMap<>();
+			paramsForCancel.putAll(this.params);
+			paramsForCancel.remove("trigger");
+
+			view.navigate().to(RMViews.class).recordTriggerManager(paramsForCancel);
+		} catch (OptimisticLockException e) {
+			log.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
 		}
-
-		transaction.addUpdate(triggerToSave.getWrappedRecord());
-
-		try {
-			recordServices.execute(transaction);
-			List<Record> recordsToDelete = recordVOsToDelete.stream().map(element -> convertToRecordForDeletion(element, schemaPresenterUtilsForTriggerAction)).collect(Collectors.toList());
-
-			recordsToDelete.stream().forEach(recordToDelete -> schemaPresenterUtils.delete(recordToDelete, "", getCurrentUser()));
-		} catch (Exception e) {
-			log.error("error saving and or deleting records in AddEditTriggerPresenter", e);
-			view.showErrorMessage("AddEditTriggerViewImpl.unExpectedError");
-		}
-
-		Map<String, String> paramsForCancel = new HashMap<>();
-		paramsForCancel.putAll(this.params);
-		paramsForCancel.remove("trigger");
-
-		view.navigate().to(RMViews.class).recordTriggerManager(paramsForCancel);
 	}
 
-	private Record convertToRecordForDeletion(RecordVO recordVO, SchemaPresenterUtils schemaPresenterUtils) {
+	private Record convertToRecordForDeletion(RecordVO recordVO, SchemaPresenterUtils schemaPresenterUtils)
+			throws OptimisticLockException {
 		schemaPresenterUtils.setSchemaCode(recordVO.getSchemaCode());
 		return schemaPresenterUtils.toRecord(recordVO);
 	}
