@@ -218,6 +218,11 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		assertThat(businessDusty.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
 	}
 
+	/**
+	 * Lorsqu’un utilisateur au statut inactif est rapporté, son statut change pour actif
+	 *
+	 * @throws Exception
+	 */
 	@Test
 	public void givenUserSyncConfiguredThenModifyUserAndDesyncAndRunAgain()
 			throws Exception {
@@ -270,6 +275,11 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 	}
 
+	/**
+	 * Lorsqu’un utilisateur synchronisé est rapporté, son nom, prénom et email est ajusté
+	 *
+	 * @throws Exception
+	 */
 	@Test
 	public void givenUserSyncConfiguredThenModifyUserAndRunAgain()
 			throws Exception {
@@ -306,6 +316,579 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		assertThat(importedUser.getFirstName()).isEqualTo("Nicolas");
 		assertThat(importedUser.getEmail()).isEqualTo("nicolas@doculibre.ca");
 		assertThat(userCredentialImportedUser.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
+	}
+
+	/**
+	 * Lorsqu’un utilisateur synchronisé n’est pas rapporté, il est supprimé (lorsque possible) dans toutes les collections synchronisées et seulement celles-ci
+	 */
+	@Test
+	public void givenAUserIsNotFetchedFromLDAPAndHisSyncedInConstellioThenDeleteInChosenCollections() {
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection, extraCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+		LDAPGroup caballeros = caballeros();
+		LDAPGroup pilotes = pilotes();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes)
+				.build());
+
+		sync();
+
+		//remove Philippe
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes)
+				.build());
+
+		sync();
+
+		User importedUser = user("Philippe", businessCollection);
+		UserCredential userCredentialImportedUser = user("Philippe");
+		assertThat(importedUser.getFirstName()).isEqualTo("Philippe");
+		assertThat(importedUser.getEmail()).isEqualTo("philippe@doculibre.ca");
+		assertThat(userCredentialImportedUser.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
+	}
+
+	/**
+	 * Lorsqu’un utilisateur synchronisé est rapporté avec une nouvelle assignation, celle-ci est appliquée dans toutes les collections synchronisées et seulement celles-ci
+	 */
+	@Test
+	public void WhenUserSyncedWithANewGroupAssignedApplyOnEveryChosenCollectionsOnSync() {
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection, extraCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+		LDAPGroup caballeros = caballeros();
+		LDAPGroup pilotes = pilotes();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes)
+				.build());
+
+		sync();
+
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroups(caballeros, pilotes))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes)
+				.build());
+
+		User businessPhil = user("Philippe", businessCollection);
+		User zePhil = user("Philippe", zeCollection);
+		User extraPhil = user("Philippe", extraCollection);
+
+		assertThat(businessPhil.getUserGroups()).containsAll(asList(caballeros.getDistinguishedName(), pilotes.getDistinguishedName()));
+		assertThat(zePhil.getUserGroups()).containsAll(asList(caballeros.getDistinguishedName(), pilotes.getDistinguishedName()));
+		assertThat(extraPhil.getUserGroups()).containsOnly(caballeros.getDistinguishedName());
+	}
+
+	/**
+	 * Lorsqu’un utilisateur synchronisé est rapporté sans une assignation à un groupe synchronisé, celle-ci est retirée dans toutes les collections synchronisées et seulement celles-ci
+	 */
+	@Test
+	public void WhenUserSyncedWithoutAGroupAssignedPreviouslyApplyOnEveryChosenCollectionsOnSync() {
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection, extraCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+		LDAPGroup caballeros = caballeros();
+		LDAPGroup pilotes = pilotes();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes)
+				.build());
+
+		sync();
+
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(pilotes))
+				.add(philippe().addGroups(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes)
+				.build());
+
+		User businessNic = user("Nicolas", businessCollection);
+		User zeNic = user("Nicolas", zeCollection);
+		User extraNic = user("Nicolas", extraCollection);
+
+		assertThat(businessNic.getUserGroups()).containsOnly(pilotes.getDistinguishedName());
+		assertThat(zeNic.getUserGroups()).containsOnly(pilotes.getDistinguishedName());
+		assertThat(extraNic.getUserGroups()).containsAll(asList(caballeros.getDistinguishedName(), pilotes.getDistinguishedName()));
+	}
+
+	/**
+	 * Lorsqu’un utilisateur synchronisé est rapporté, il conserve ses assignations aux groupes non-synchronisés dans les collections synchronisée
+	 */
+	@Test
+	public void givenSyncUsersAreAssignedToLocallyCreatedGroupTheyKeepAssignationOnSync() {
+		UserServices userServices = modelLayerFactory.newUserServices();
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		LDAPGroup caballeros = caballeros();
+		LDAPGroup pilotes = pilotes();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes)
+				.build());
+
+		sync();
+
+		UserAddUpdateRequest userAddUpdateRequestBusiness = new UserAddUpdateRequest("Nicolas", asList(businessCollection, zeCollection), newArrayList());
+		userAddUpdateRequestBusiness.addToGroupsInCollection(asList("heroes"), businessCollection);
+		userAddUpdateRequestBusiness.addToGroupsInCollection(asList("legends"), zeCollection);
+		userServices.execute(userAddUpdateRequestBusiness);
+
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes)
+				.build());
+
+		sync();
+
+		User businessNic = user("Nicolas", businessCollection);
+		User zeNic = user("Nicolas", zeCollection);
+
+		assertThat(businessNic.getUserGroups()).contains("heroes");
+		assertThat(zeNic.getUserGroups()).contains("legends");
+	}
+
+	/**
+	 * Lorsqu’un utilisateur synchronisé est rapporté, il conserve ses assignations à tous ses groupes (synchronisés ou non) dans les collections non-synchronisée
+	 */
+	@Test
+	public void givenSyncUsersAreAssignedToLocallyCreatedGroupTheyKeepAssignationWhenCollectionIsNotSynchronized() {
+		UserServices userServices = modelLayerFactory.newUserServices();
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection, extraCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		LDAPGroup caballeros = caballeros();
+		LDAPGroup pilotes = pilotes();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes)
+				.build());
+
+		sync();
+
+		UserAddUpdateRequest userAddUpdateRequestBusiness = new UserAddUpdateRequest("Nicolas", asList(businessCollection), newArrayList());
+		userAddUpdateRequestBusiness.addToGroupsInCollection(asList("heroes"), businessCollection);
+		userServices.execute(userAddUpdateRequestBusiness);
+
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(zeCollection, extraCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes)
+				.build());
+
+		sync();
+
+		User businessNic = user("Nicolas", businessCollection);
+
+		assertThat(businessNic.getUserGroups()).containsAll(asList("heroes", "pilotes", "heroes"));
+	}
+
+	/**
+	 * Lorsqu’un groupe créé localement est rapporté, il devient synchronisé et ses assignations aux utilisateurs synchronisées sont perdues
+	 */
+	@Test
+	public void whenGroupLocallyCreatedIsSyncedLoseUserSyncsWhoAreNotAssignedFromLDAP() {
+		UserServices userServices = modelLayerFactory.newUserServices();
+
+		LDAPGroup caballeros = caballeros();
+		LDAPGroup pilotes = pilotes();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(pilotes))
+				.add(caballeros, pilotes)
+				.build());
+
+		sync();
+
+		UserAddUpdateRequest userAddUpdateRequestBusiness = new UserAddUpdateRequest("Nicolas", asList(businessCollection), newArrayList());
+		userAddUpdateRequestBusiness.addToGroupsInCollection(asList("rumors"), businessCollection);
+		userServices.execute(userAddUpdateRequestBusiness);
+
+		LDAPGroup rumorsSync = rumors();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroups(caballeros, rumorsSync))
+				.add(dusty().addGroups(pilotes, rumorsSync))
+				.add(caballeros, pilotes, rumorsSync)
+				.build());
+
+		sync();
+
+		User businessNic = user("Nicolas", businessCollection);
+
+		assertThat(businessNic.getUserGroups()).doesNotContain("rumors");
+	}
+
+	/**
+	 * Lorsqu’un groupe créé localement est rapporté, il devient synchronisé et ses assignations aux
+	 * utilisateurs créés localement sont conservées
+	 */
+	@Test
+	public void whenGroupLocallyCreatedIsSyncedLocallyCreatedUsersKeepTheirAssignationToGroup() {
+		UserServices userServices = modelLayerFactory.newUserServices();
+
+		LDAPGroup caballeros = caballeros();
+		LDAPGroup pilotes = pilotes();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(pilotes))
+				.add(caballeros, pilotes)
+				.build());
+
+		sync();
+
+		LDAPGroup rumorsSync = rumors();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroups(caballeros, rumorsSync))
+				.add(dusty().addGroups(pilotes, rumorsSync))
+				.add(caballeros, pilotes, rumorsSync)
+				.build());
+
+		sync();
+
+		User chuck = user(chuckNorris, businessCollection);
+
+		assertThat(chuck.getUserGroups()).contains("rumors");
+	}
+
+	/**
+	 * Lorsqu’un groupe créé localement est rapporté, il devient synchronisé et ses assignations aux
+	 * utilisateurs non-synchronisées sont conservées
+	 */
+
+	@Test
+	public void whenGroupLocallyCreatedIsSyncedUnsyncUsersKeepTheirAssignationToGroup() {
+		UserServices userServices = modelLayerFactory.newUserServices();
+		LDAPGroup caballeros = caballeros();
+		LDAPGroup pilotes = pilotes();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(pilotes))
+				.add(caballeros, pilotes)
+				.build());
+
+		sync();
+
+		UserAddUpdateRequest userAddUpdateRequestBusiness = new UserAddUpdateRequest("Nicolas", asList(businessCollection), newArrayList());
+		userAddUpdateRequestBusiness.addToGroupsInCollection(asList("rumors"), businessCollection);
+		userAddUpdateRequestBusiness.setSyncMode(UserSyncMode.NOT_SYNCED);
+		userServices.execute(userAddUpdateRequestBusiness);
+
+		LDAPGroup rumorsSync = rumors();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroups(caballeros, rumorsSync))
+				.add(dusty().addGroups(pilotes, rumorsSync))
+				.add(caballeros, pilotes, rumorsSync)
+				.build());
+
+		sync();
+
+		User businessNic = user("Nicolas", businessCollection);
+
+		assertThat(businessNic.getUserGroups()).containsAll(asList("pilotes", "caballeros", "rumors"));
+	}
+
+	/**
+	 * Lorsqu’un groupe synchronisé n’est pas rapporté, les utilisateurs synchronisés perdent leur assignation dans les collections synchronisées (et seulement celles-ci)
+	 * Lorsqu’un groupe synchronisé n’est pas rapporté, le groupe est supprimé (lorsque possible) dans les collections synchronisées et seulement celles-ci
+	 */
+	@Test
+	public void givenSyncGroupIsNotOnLDAPAnymoreSyncUsersLoseThatGroupAssignation() {
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection, extraCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		LDAPGroup caballeros = caballeros();
+		LDAPGroup pilotes = pilotes();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes)
+				.build());
+
+		sync();
+
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros)
+				.build());
+		sync();
+
+		User businessNic = user("Nicolas", businessCollection);
+		User zeNic = user("Nicolas", zeCollection);
+
+		Group zePilotes = group("pilotes", zeCollection);
+		Group businessPilotes = group("pilotes", businessCollection);
+		assertThat(zePilotes).isNotNull();
+		assertThat(businessPilotes).isNull();
+
+		assertThat(businessNic.getUserGroups()).doesNotContain("pilotes");
+		assertThat(zeNic.getUserGroups()).contains("pilotes");
+	}
+
+	/**
+	 * Lorsqu’un groupe est rapporté avec un groupe parent, celui-ci est déplacé dans le groupe parent dans toutes les collections (mêmes celles non-synchronisées)
+	 */
+	@Test
+	public void givenSyncGroupHasParentGroupAlsoSyncAllCollectionsHaveSubGroupInParent() {
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection, extraCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		LDAPGroup caballeros = caballeros();
+		LDAPGroup pilotes = pilotes();
+		LDAPGroup canadians = canadians();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes)
+				.build());
+
+		sync();
+
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		pilotes.addParent(canadians.getDistinguishedName());
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes, canadians)
+				.build());
+
+		sync();
+
+		Group syncPilotes = group("pilotes", zeCollection);
+
+		assertThat(syncPilotes.getParent()).contains("canadians");
+	}
+
+	/**
+	 * Lorsqu’un sous-groupe est rapporté sans groupe parent, celui-ci devient un groupe racine dans toutes les collections (mêmes celles non-synchronisées)
+	 */
+	@Test
+	public void givenSyncGroupHasNoParentAnymoreGroupBecomesRootInAllCollections() {
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection, extraCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		LDAPGroup caballeros = caballeros();
+		LDAPGroup pilotes = pilotes();
+		LDAPGroup canadians = canadians();
+		pilotes.addParent(canadians.getDistinguishedName());
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes, canadians)
+				.build());
+
+		sync();
+		Group syncPilotes = group("pilotes", zeCollection);
+		assertThat(syncPilotes.getParent()).contains("canadians");
+
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes)
+				.build());
+
+		sync();
+
+		syncPilotes = group("pilotes", zeCollection);
+		Group businessPilotes = group("pilotes", businessCollection);
+
+		assertThat(syncPilotes.getParent()).doesNotContain("canadians");
+		assertThat(businessPilotes.getParent()).doesNotContain("canadians");
+	}
+
+	/**
+	 * Lorsqu’un groupe synchronisé n’est pas rapporté, les sous-groupes synchronisés non-rapportés sont également supprimés
+	 */
+	@Test
+	public void givenSyncGroupParentAndSubGroupAreNotFetchedRemoveParentAndSubGroup() {
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection, extraCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		LDAPGroup caballeros = caballeros();
+		LDAPGroup pilotes = pilotes();
+		LDAPGroup canadians = canadians();
+		pilotes.addParent(canadians.getDistinguishedName());
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes, canadians)
+				.build());
+
+		sync();
+
+		Group syncPilotes = group("pilotes", zeCollection);
+		Group businessPilotes = group("pilotes", businessCollection);
+		Group syncCanadians = group("canadians", zeCollection);
+		Group businessCanadians = group("canadians", businessCollection);
+
+		assertThat(asList(syncPilotes, businessPilotes, syncCanadians, businessCanadians)).doesNotContainNull();
+
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros)
+				.build());
+
+		sync();
+
+		syncPilotes = group("pilotes", zeCollection);
+		businessPilotes = group("pilotes", businessCollection);
+		syncCanadians = group("canadians", zeCollection);
+		businessCanadians = group("canadians", businessCollection);
+
+		assertThat(asList(syncPilotes, businessPilotes, syncCanadians, businessCanadians)).containsNull();
+	}
+
+	/**
+	 * Lorsqu’un groupe synchronisé n’est pas rapporté, les sous-groupes non-synchronisés sont supprimés (lorsque possible)
+	 */
+	@Test
+	public void givenSyncGroupParentAndAreNotFetchedRemoveParentAndUnsyncedSubGroup() {
+		UserServices userServices = modelLayerFactory.newUserServices();
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection, extraCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		LDAPGroup caballeros = caballeros();
+		LDAPGroup pilotes = pilotes();
+		LDAPGroup canadians = canadians();
+		pilotes.addParent(canadians.getDistinguishedName());
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes, canadians)
+				.build());
+
+		sync();
+
+		GroupAddUpdateRequest groupAddUpdateRequest = new GroupAddUpdateRequest("legends");
+		groupAddUpdateRequest.setParent("canadians");
+		userServices.execute(groupAddUpdateRequest);
+
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros)
+				.build());
+
+		sync();
+
+		Group syncCanadians = group("canadians", zeCollection);
+		Group businessCanadians = group("canadians", businessCollection);
+		Group legends = group("legends", zeCollection);
+		Group businessLegends = group("legends", businessCollection);
+		assertThat(asList(legends, businessLegends, syncCanadians, businessCanadians)).containsNull();
 	}
 
 	@Test
@@ -435,6 +1018,10 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 	}
 
+	/**
+	 * Lorsqu’un groupe créé localement dans une collection synchronisée est rapporté, il est ajouté aux autres collections synchronisée
+	 * Lorsqu’un groupe synchronisé est rapporté, son nom est ajusté
+	 */
 	@Test
 	public void whenExistingLocalGroupSyncedWithSameCodeGroupLDAPThenReplaceLocalGroupWithLDAP() {
 		UserServices userServices = modelLayerFactory.newUserServices();
@@ -461,7 +1048,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		Group pilotesLocalSync = group("pilotes", businessCollection);
 		assertThat(pilotesLocalSync.isLocallyCreated()).isFalse();
-		assertThat(pilotesLocalSync.getCaption()).isEqualTo(pilotes().getDistinguishedName());
+		assertThat(pilotesLocalSync.getCaption()).isEqualTo("Les pilotes du ciel");
 
 		User philippeSync = user("Philippe", businessCollection);
 		User nicolasSync = user("Nicolas", businessCollection);
@@ -546,16 +1133,6 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 	}
 
-	@Test
-	public void whenLocallyCreated() {
-
-	}
-
-	@Test
-	public void WhenUserIsLocallyCreatedAndIsInAGroupButSyncHasSameUserInTwoOtherGroupsThenUserIsInAllThreeGroups() {
-
-	}
-
 	// ----- Utility methods
 
 	private void saveValidLDAPConfigWithEntrepriseCollectionSelected() {
@@ -620,6 +1197,10 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 	private LDAPGroup pilotes() {
 		return new LDAPGroup("pilotes", "Les pilotes du ciel");
+	}
+
+	private LDAPGroup canadians() {
+		return new LDAPGroup("canadians", "Des canadiens");
 	}
 
 	private LDAPGroup rumors() {
