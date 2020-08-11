@@ -4,6 +4,7 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.rm.model.calculators.group.GroupCaptionCalculator;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
@@ -15,6 +16,7 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -205,6 +207,10 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			//Les utilisateurs désactivés qui ne sont pas utilisés sont supprimé physiquement
 			userServices.safePhysicalDeleteAllUnusedUsers(collection);
 			configureTableMetadatas(collection, appLayerFactory);
+
+			//Calculator for Caption metadata
+			typesBuilder.getDefaultSchema(Group.SCHEMA_TYPE).get(Schemas.CAPTION.getLocalCode())
+					.defineDataEntry().asCalculated(GroupCaptionCalculator.class);
 		}
 
 	}

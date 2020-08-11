@@ -918,15 +918,17 @@ public class UserServices {
 	}
 
 	private SystemWideGroup getGroup(GroupAddUpdateRequest request) {
-		Group groupInCollection = null;
+		List<Group> groupsInCollection = new ArrayList<>();
 		List<String> wideGroupCollections = new ArrayList<>();
+		Group groupInCollection;
 		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			groupInCollection = getGroupInCollection(request.getCode(), collection);
 			if (groupInCollection != null) {
+				groupsInCollection.add(groupInCollection);
 				wideGroupCollections.add(collection);
 			}
 		}
-		return groupInCollection != null ? build(groupInCollection, wideGroupCollections) : build(request);
+		return !groupsInCollection.isEmpty() ? build(groupsInCollection.get(0), wideGroupCollections) : build(request);
 	}
 
 	public SystemWideGroup build(Group group, List<String> wideGroupCollections) {
@@ -934,6 +936,14 @@ public class UserServices {
 		String parentCode = null;
 		if (group.getParent() != null) {
 			parentCode = recordServices.getDocumentById(group.getParent()).get(Schemas.CODE);
+		}
+
+		List<String> ancestorsCodes = new ArrayList<>();
+		List<String> ancestorsIds = group.getAncestors();
+		if (ancestorsIds != null) {
+			for (String ancestorId : ancestorsIds) {
+				ancestorsCodes.add(recordServices.getDocumentById(ancestorId).get(Schemas.CODE));
+			}
 		}
 
 		return SystemWideGroup.builder()
@@ -944,6 +954,8 @@ public class UserServices {
 				.groupStatus(group.getStatus())
 				.hierarchy(group.getHierarchy())
 				.logicallyDeletedStatus(group.getLogicallyDeletedStatus())
+				.caption(group.getCaption())
+				.ancestors(ancestorsCodes)
 				.build();
 	}
 

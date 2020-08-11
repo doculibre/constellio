@@ -437,30 +437,30 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		assertThatGroup("g1").isInCollections(collection1, collection2);
 
 		services.createGroup("g2", (req) -> req.setName("Group 2").setParent("g1").addCollections(collection1, collection2));
-		assertThatGroup("g2").hasCode("g2").hasTitle("Group 2").hasCaption("Group 1 | Group 2").isInCollections(collection1, collection2);
+		assertThatGroup("g2").hasCode("g2").hasTitle("Group 2").hasCaption("Group 1 / Group 2").isInCollections(collection1, collection2);
 		assertThat(services.getGroup("g2").getAncestors()).containsOnly("g1");
 		assertThat(group("g2", collection1).getAncestors()).containsOnly(group("g1", collection1).getId());
-		assertThat(group("g2", collection3).getAncestors()).containsOnly(group("g1", collection3).getId());
+		assertThat(group("g2", collection2).getAncestors()).containsOnly(group("g1", collection2).getId());
 		assertThat(group("g2", collection1).getParent()).isEqualTo(group("g1", collection1).getId());
-		assertThat(group("g2", collection3).getParent()).isEqualTo(group("g1", collection3).getId());
+		assertThat(group("g2", collection2).getParent()).isEqualTo(group("g1", collection2).getId());
 
 
 		services.createGroup("g3", (req) -> req.setName("Group 3").setParent("g1").addCollections(collection1, collection2));
-		assertThatGroup("g3").hasCode("g3").hasTitle("Group 3").hasCaption("Group 1 | Group 3").isInCollections(collection1, collection2);
+		assertThatGroup("g3").hasCode("g3").hasTitle("Group 3").hasCaption("Group 1 / Group 3").isInCollections(collection1, collection2);
 		assertThat(services.getGroup("g3").getAncestors()).containsOnly("g1");
 		assertThat(group("g3", collection1).getParent()).isEqualTo(group("g1", collection1).getId());
 		assertThat(group("g3", collection1).getAncestors()).containsOnly(group("g1", collection1).getId());
-		assertThat(group("g3", collection3).getParent()).isEqualTo(group("g1", collection3).getId());
-		assertThat(group("g3", collection3).getAncestors()).containsOnly(group("g1", collection3).getId());
+		assertThat(group("g3", collection2).getParent()).isEqualTo(group("g1", collection2).getId());
+		assertThat(group("g3", collection2).getAncestors()).containsOnly(group("g1", collection2).getId());
 
 		services.execute(services.request("g3").setParent("g2"));
-		assertThatGroup("g3").hasCode("g3").hasTitle("Group 3").hasCaption("Group 1 | Group 2 | Group 3").isInCollections(collection1, collection2);
+		assertThatGroup("g3").hasCode("g3").hasTitle("Group 3").hasCaption("Group 1 / Group 2 / Group 3").isInCollections(collection1, collection2);
 		assertThat(group("g3", collection1).getParent()).isEqualTo(group("g2", collection1).getId());
 		assertThat(group("g3", collection1).getAncestors()).containsOnly(
 				group("g1", collection1).getId(), group("g2", collection1).getId());
-		assertThat(group("g3", collection3).getParent()).isEqualTo(group("g2", collection3).getId());
-		assertThat(group("g3", collection3).getAncestors()).containsOnly(
-				group("g1", collection3).getId(), group("g2", collection1).getId());
+		assertThat(group("g3", collection2).getParent()).isEqualTo(group("g2", collection2).getId());
+		assertThat(group("g3", collection2).getAncestors()).containsOnly(
+				group("g1", collection2).getId(), group("g2", collection2).getId());
 
 	}
 
