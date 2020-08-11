@@ -5,6 +5,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
+import com.constellio.app.ui.pages.management.bagInfo.AddEditBagInfo.AddEditBagInfoPresenter;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.entities.CorePermissions;
@@ -12,8 +13,11 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.records.RecordServicesException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +29,8 @@ import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 public class AddEditCapsulePresenter extends BasePresenter<AddEditCapsuleView> {
 
 	private SchemaPresenterUtils utils;
+
+	private static Logger LOGGER = LoggerFactory.getLogger(AddEditBagInfoPresenter.class);
 
 	public AddEditCapsulePresenter(AddEditCapsuleView view) {
 		super(view);
@@ -46,12 +52,17 @@ public class AddEditCapsulePresenter extends BasePresenter<AddEditCapsuleView> {
 	}
 
 	public void saveButtonClicked(RecordVO recordVO) throws RecordServicesException {
-		Record record = utils.toRecord(recordVO);
-		record.set(TOKENS, Arrays.asList(PUBLIC_TOKEN));
-		Transaction trans = new Transaction();
-		trans.update(record);
-		utils.recordServices().execute(trans);
-		view.navigate().to().previousView();
+		try {
+			Record record = utils.toRecord(recordVO);
+			record.set(TOKENS, Arrays.asList(PUBLIC_TOKEN));
+			Transaction trans = new Transaction();
+			trans.update(record);
+			utils.recordServices().execute(trans);
+			view.navigate().to().previousView();
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
 	}
 
 	public void cancelButtonClicked() {

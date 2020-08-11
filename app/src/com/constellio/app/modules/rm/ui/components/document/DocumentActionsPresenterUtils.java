@@ -19,7 +19,6 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -877,7 +876,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	Record currentDocument() {
 		if (currentDocument == null) {
-			currentDocument = presenterUtils.toRecord(documentVO);
+			currentDocument = rmSchemasRecordsServices.get(documentVO.getId());
 		}
 		return currentDocument;
 	}

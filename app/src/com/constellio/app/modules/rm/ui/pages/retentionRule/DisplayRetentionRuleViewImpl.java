@@ -102,7 +102,7 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> actionMenuButtons = super.buildActionMenuButtons(event);
 
-		if(presenter.isManageRetentionRulesGlobally()) {
+		if (presenter.isManageRetentionRulesOnSomething()) {
 			editButton = new EditButton(false) {
 				@Override
 				protected void buttonClick(ClickEvent event) {

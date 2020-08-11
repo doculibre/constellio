@@ -12,6 +12,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -96,7 +97,7 @@ public class ListFacetConfigurationPresenter extends BasePresenter<ListFacetConf
 		};
 	}
 
-	public Record toRecord(RecordVO recordVO) {
+	public Record toRecord(RecordVO recordVO) throws OptimisticLockException {
 		SchemaPresenterUtils schemaPresenterUtils = new SchemaPresenterUtils(recordVO.getSchema().getCode(),
 				view.getConstellioFactories(), view.getSessionContext());
 		return schemaPresenterUtils.toRecord(recordVO);

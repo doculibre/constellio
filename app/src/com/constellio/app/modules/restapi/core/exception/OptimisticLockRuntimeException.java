@@ -5,11 +5,11 @@ import com.google.common.collect.Maps;
 import javax.ws.rs.core.Response;
 import java.util.Map;
 
-public class OptimisticLockException extends BaseRestApiException {
+public class OptimisticLockRuntimeException extends BaseRestApiException {
 
 	private static final String CODE = "optimisticLock";
 
-	public OptimisticLockException(String id, String version, long currentVersion) {
+	public OptimisticLockRuntimeException(String id, String version, long currentVersion) {
 		status = Response.Status.PRECONDITION_FAILED;
 
 		Map<String, Object> parameters = Maps.newHashMap();

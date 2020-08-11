@@ -64,6 +64,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
@@ -340,7 +341,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	@Override
-	protected Record toRecord(RecordVO recordVO) {
+	protected Record toRecord(RecordVO recordVO) throws OptimisticLockException {
 		if (addView) {
 			return super.toNewRecord(recordVO);
 		} else {
@@ -349,7 +350,35 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	public void saveButtonClicked() {
-		Folder folder = rmSchemas().wrapFolder(toRecord(getFolderVO()));
+		Record record;
+		try {
+			record = toRecord(getFolderVO());
+		} catch (OptimisticLockException e) {
+			Record recordFromVo = getFolderVO().getRecord();
+			new MergeRecordsWindow() {
+				@Override
+				public void mergeButtonClick() {
+					try {
+						save(recordFromVo);
+					} catch (Exception e) {
+						LOGGER.error(e.getMessage());
+						view.showErrorMessage(e.getMessage());
+					}
+				}
+
+				@Override
+				public void cancelButtonClick() {
+					cancelButtonClicked();
+				}
+			};
+			return;
+		}
+		save(record);
+	}
+
+	private void save(Record record) {
+		schemaPresenterUtils.fillRecordUsingRecordVO(record, getFolderVO(), false);
+		Folder folder = rmSchemas().wrapFolder(record);
 		if (!canSaveFolder(folder, getCurrentUser())) {
 			view.showMessage($("AddEditDocumentView.noPermissionToSaveDocument"));
 			return;
@@ -436,7 +465,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			newSchemaCode = Folder.DEFAULT_SCHEMA;
 		}
 
-		Record folderRecord = toRecord(folderVO);
+		Record folderRecord = fromVOtoRecord(folderVO);
 		Folder folder = new Folder(folderRecord, types());
 
 		setSchemaCode(newSchemaCode);
@@ -503,7 +532,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	void reloadForm() {
-		reloadForm(toRecord(folderVO));
+		reloadForm(fromVOtoRecord(folderVO));
 	}
 
 	private void reloadForm(Record folderRecord) {
@@ -792,7 +821,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			String ruleId = (String) view.getForm().getCustomField(RETENTION_RULE_ENTERED).getFieldValue();
 			folderVO.setRetentionRule(ruleId);
 			if (areDocumentRetentionRulesEnabled()) {
-				Folder record = rmSchemas().wrapFolder(toRecord(folderVO));
+				Folder record = rmSchemas().wrapFolder(fromVOtoRecord(folderVO));
 				recordServices().recalculate(record);
 				folderVO.set(Folder.APPLICABLE_COPY_RULES, record.getApplicableCopyRules());
 			}
@@ -803,7 +832,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	boolean isCopyStatusInputPossible(boolean firstDraw) {
-		Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
+		Folder folder = rmSchemas().wrapFolder(fromVOtoRecord(folderVO));
 		FolderRetentionRuleField retentionRuleField = (FolderRetentionRuleField) view.getForm().getCustomField(
 				Folder.RETENTION_RULE_ENTERED);
 		FolderAdministrativeUnitField administrativeUnitField = (FolderAdministrativeUnitField) view.getForm().getCustomField(
@@ -846,7 +875,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			return;
 		}
 		commitForm();
-		Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
+		Folder folder = rmSchemas().wrapFolder(fromVOtoRecord(folderVO));
 		recordServices().recalculate(folder);
 		List<CopyRetentionRule> applicableCopyRules = folder.getApplicableCopyRules();
 		folderVO.set(Folder.APPLICABLE_COPY_RULES, applicableCopyRules);
@@ -885,7 +914,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	boolean isTransferDateInputPossibleForUser() {
-		Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
+		Folder folder = rmSchemas().wrapFolder(fromVOtoRecord(folderVO));
 		return decommissioningService().isTransferDateInputPossibleForUser(folder, getCurrentUser());
 	}
 
@@ -937,7 +966,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	boolean isDepositDateInputPossibleForUser() {
-		Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
+		Folder folder = rmSchemas().wrapFolder(fromVOtoRecord(folderVO));
 		return decommissioningService().isDepositDateInputPossibleForUser(folder, getCurrentUser());
 	}
 
@@ -959,7 +988,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	boolean isDestructionDateInputPossibleForUser() {
-		Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
+		Folder folder = rmSchemas().wrapFolder(fromVOtoRecord(folderVO));
 		return decommissioningService().isDestructionDateInputPossibleForUser(folder, getCurrentUser());
 	}
 
@@ -983,7 +1012,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	boolean isContainerInputPossibleForUser() {
-		Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
+		Folder folder = rmSchemas().wrapFolder(fromVOtoRecord(folderVO));
 		return decommissioningService().isContainerInputPossibleForUser(folder, getCurrentUser());
 	}
 
@@ -1003,7 +1032,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	void adjustPreviewReturnDateField() {
 		FolderPreviewReturnDateField previewReturnDateField = (FolderPreviewReturnDateField) view.getForm()
 				.getCustomField(Folder.BORROW_PREVIEW_RETURN_DATE);
-		Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
+		Folder folder = rmSchemas().wrapFolder(fromVOtoRecord(folderVO));
 		if (previewReturnDateField != null) {
 			if (folder.hasAnalogicalMedium() && folder.getBorrowed() != null && folder.getBorrowed() != false) {
 				setFieldVisible(previewReturnDateField, true, Folder.BORROW_PREVIEW_RETURN_DATE);
@@ -1015,7 +1044,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	void adjustOpeningDateField() {
 		UserPermissionsChecker userPermissionsChecker = getCurrentUser().has(RMPermissionsTo.MODIFY_OPENING_DATE_FOLDER);
-		Record folderRecord = toRecord(folderVO);
+		Record folderRecord = fromVOtoRecord(folderVO);
 		recordServices().recalculate(folderRecord);
 		boolean hasPermission = userPermissionsChecker.on(folderRecord);
 		if (!addView && !hasPermission) {
@@ -1037,7 +1066,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				.getCustomField(Folder.MANUAL_DISPOSAL_TYPE);
 		if (disposalTypeField != null) {
 			boolean visible;
-			Record folerRecord = toRecord(folderVO);
+			Record folerRecord = fromVOtoRecord(folderVO);
 			RecordServices recordServices = recordServices();
 			recordServices.recalculate(folerRecord);
 			Folder folder = rmSchemasRecordsServices.wrapFolder(folerRecord);
@@ -1195,5 +1224,15 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	private boolean isSubfolderDecommissioningSeparatelyEnabled() {
 		return modelLayerFactory.getSystemConfigurationsManager().getValue(RMConfigs.SUB_FOLDER_DECOMMISSIONING);
+	}
+
+	private Record fromVOtoRecord(RecordVO recordVO) {
+		try {
+			return toRecord(recordVO);
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
+		return null;
 	}
 }
