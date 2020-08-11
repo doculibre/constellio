@@ -291,16 +291,22 @@ public class UserServices {
 
 		List<String> userGroups = new ArrayList<>(user.getUserGroups());
 		if (request.getAddToGroup() != null) {
-			for (String groupId : request.getAddToGroup()) {
-				if (getGroupInCollection(groupId, collection) != null) {
-					userGroups.add(getGroupInCollection(groupId, collection).getId());
+			for (String groupCode : request.getAddToGroup()) {
+				if (getGroupInCollection(groupCode, collection) != null) {
+					String groupId = getGroupInCollection(groupCode, collection).getId();
+					if (!userGroups.contains(groupId)) {
+						userGroups.add(groupId);
+					}
 				}
 			}
 		}
 		if (request.getAddToGroupInCollection() != null && request.getAddToGroupInCollection().keySet().contains(collection)) {
-			for (String groupId : request.getAddToGroupInCollection().get(collection)) {
-				if (getGroupInCollection(groupId, collection) != null) {
-					userGroups.add(getGroupInCollection(groupId, collection).getId());
+			for (String groupCode : request.getAddToGroupInCollection().get(collection)) {
+				if (getGroupInCollection(groupCode, collection) != null) {
+					String groupId = getGroupInCollection(groupCode, collection).getId();
+					if (!userGroups.contains(groupId)) {
+						userGroups.add(groupId);
+					}
 				}
 			}
 		}
@@ -1796,18 +1802,6 @@ public class UserServices {
 		//		}
 		//
 		//		return isGroupAndAllHisAncestorsActive(globalGroup);
-	}
-
-	private boolean isGroupAndAllHisAncestorsActive(SystemWideGroup globalGroup) {
-		if (globalGroup.getStatus() == GlobalGroupStatus.INACTIVE) {
-			return false;
-
-		} else if (globalGroup.getParent() != null) {
-			return isGroupAndAllHisAncestorsActive(globalGroupsManager.getGlobalGroupWithCode(globalGroup.getParent()));
-
-		} else {
-			return true;
-		}
 	}
 
 

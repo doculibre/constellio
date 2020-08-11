@@ -593,7 +593,7 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		services.createGroup("g2", (req) -> req.setName("Group 2").setParent("g1").addCollections(collection1));
 		services.createGroup("g3", (req) -> req.setName("Group 3").setParent("g2").addCollections(collection1));
 
-		services.executeGroupRequest("g2", (req) -> req.addCollections(collection2, collection3));
+		services.createGroup("g2", (req) -> req.addCollections(collection2, collection3));
 
 		assertThatGroup("g1").isInCollections(collection1, collection2, collection3).isActiveInAllItsCollections();
 		assertThatGroup("g2").isInCollections(collection1, collection2, collection3).isActiveInAllItsCollections()
