@@ -16,8 +16,11 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.records.RecordServicesException;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 
 public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecommissioningListView> {
+	private static Logger LOGGER = LoggerFactory.getLogger(OrderDecommissioningListPresenter.class);
+
 	private Map<String, FolderDetailVO> folderDetailVOs;
 	private List<String> codeTitles;
 	private String recordId;
@@ -146,7 +151,13 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 	public Record toRecord(RecordVO recordVO) {
 		SchemaPresenterUtils schemaPresenterUtils = new SchemaPresenterUtils(recordVO.getSchema().getCode(),
 				view.getConstellioFactories(), view.getSessionContext());
-		return schemaPresenterUtils.toRecord(recordVO);
+		try {
+			return schemaPresenterUtils.toRecord(recordVO);
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
+		return null;
 	}
 
 	public List<FolderDetailVO> getFolderDetails() {

@@ -21,6 +21,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.MapStringStringStructure;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -216,7 +217,7 @@ public class FacetConfigurationPresenterService extends BasePresenterUtils {
 		return schemasRecords.wrapFacet(records.get(records.size() - 1)).getOrder() + 1;
 	}
 
-	public Record toRecord(RecordVO recordVO) {
+	public Record toRecord(RecordVO recordVO) throws OptimisticLockException {
 		SchemaPresenterUtils schemaPresenterUtils = new SchemaPresenterUtils(recordVO.getSchema().getCode(),
 				getConstellioFactories(), sessionContext);
 		return schemaPresenterUtils.toRecord(recordVO);

@@ -593,10 +593,12 @@ public class CoreNavigationConfiguration implements Serializable {
 
 						boolean canManageCollection = user.hasAny(permissions).globally();
 
+						boolean asSomethingOnCollection = user.hasAny(RMPermissionsTo.RM_COLLECTION_ON_SOMETHING).onSomething();
+
 						UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 						boolean canManageSystem = userServices.has(user.getUsername())
 								.anyGlobalPermissionInAnyCollection(CorePermissions.SYSTEM_MANAGEMENT_PERMISSIONS);
-						return visibleIf((canManageCollection || canManageSystem) && !ResponsiveUtils.isPhone());
+						return visibleIf((canManageCollection || canManageSystem || asSomethingOnCollection) && !ResponsiveUtils.isPhone());
 					}
 				});
 

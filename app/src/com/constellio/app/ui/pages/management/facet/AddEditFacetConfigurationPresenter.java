@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.facet;
 
+import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentPresenter;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -17,10 +18,13 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.structures.MapStringStringStructure;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchConditionWithDataStoreFields;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,6 +43,8 @@ public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFac
 	private FacetConfigurationPresenterService service;
 	private boolean edit;
 	private Map<Integer, Map<String, String>> values;
+
+	private static Logger LOGGER = LoggerFactory.getLogger(AddEditDocumentPresenter.class);
 
 	public AddEditFacetConfigurationPresenter(AddEditFacetConfigurationView view) {
 		super(view);
@@ -237,16 +243,21 @@ public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFac
 			recordVO.set(Facet.ORDER, service.getNextOrderValue());
 		}
 
-		Record recordToSave = service.toRecord(recordVO);
-		Transaction transaction = new Transaction();
-		transaction.addUpdate(recordToSave);
-
 		try {
-			recordServices().execute(transaction);
-			this.recordVO = service.getVOForRecord(recordToSave);
-			view.navigate().to().listFacetConfiguration();
-		} catch (RecordServicesException ex) {
-			throw new RuntimeException();
+			Record recordToSave = service.toRecord(recordVO);
+			Transaction transaction = new Transaction();
+			transaction.addUpdate(recordToSave);
+
+			try {
+				recordServices().execute(transaction);
+				this.recordVO = service.getVOForRecord(recordToSave);
+				view.navigate().to().listFacetConfiguration();
+			} catch (RecordServicesException ex) {
+				throw new RuntimeException();
+			}
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
 		}
 	}
 
