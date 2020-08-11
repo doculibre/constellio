@@ -10,14 +10,12 @@ import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.services.LDAPServices;
-import com.constellio.model.conf.ldap.services.LDAPServices.LDAPUsersAndGroups;
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
-import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.security.global.UserSyncMode;
@@ -49,6 +47,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class LDAPUserSyncManager implements StatefulService {
 	private final static Logger LOGGER = LoggerFactory.getLogger(LDAPUserSyncManager.class);
@@ -319,6 +318,8 @@ public class LDAPUserSyncManager implements StatefulService {
 				} catch (Throwable e) {
 					LOGGER.error("User ignored due to error when trying to add it " + request.getUsername(), e);
 				}
+			}
+		}
 
 		if (ldapSynchProgressionInfo != null) {
 			ldapSynchProgressionInfo.processedGroupsAndUsers++;
@@ -414,6 +415,7 @@ public class LDAPUserSyncManager implements StatefulService {
 	public boolean isSynchronizing() {
 		return this.processingSynchronizationOfUsers;
 	}
+
 
 	public static class LDAPSynchProgressionInfo {
 		int totalGroupsAndUsers = 0;

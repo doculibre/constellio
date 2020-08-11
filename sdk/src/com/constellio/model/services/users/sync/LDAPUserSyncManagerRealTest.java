@@ -12,6 +12,7 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -158,6 +159,11 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 	@Test
 	public void givenUserCreatedLocallyInOneCollectionAndSameUserFetchedFromLDAPSyncThenAllUserInChosenCollectionsSynced()
 			throws Exception {
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
 		LDAPGroup caballeros = caballeros();
 		LDAPGroup pilotes = pilotes();
 		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
@@ -167,7 +173,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 				.add(caballeros, pilotes)
 				.build());
 
-		createLocalDusty();
+		createLocalDusty(true);
 		User businessDusty = user("Dusty", businessCollection);
 		assertThat(businessDusty).isNull();
 
@@ -187,6 +193,29 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		assertThat(zeDusty.getEmail()).isEqualTo("dusty@doculibre.ca");
 		assertThat(userCredentialZeDusty.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
 
+	}
+
+
+	@Test
+	public void givenUserIsNotActiveAndIsSyncedChangeStatusToActive() {
+		LDAPGroup caballeros = caballeros();
+		LDAPGroup pilotes = pilotes();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes)
+				.build());
+
+		createLocalDusty(false);
+
+		User businessDusty = user("Dusty", businessCollection);
+		assertThat(businessDusty.getStatus()).isEqualTo(UserCredentialStatus.DISABLED);
+
+		sync();
+
+		businessDusty = user("Dusty", businessCollection);
+		assertThat(businessDusty.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
 	}
 
 	@Test
@@ -597,9 +626,10 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		return new LDAPGroup("rumors", "The rumors");
 	}
 
-	private void createLocalDusty() {
+	private void createLocalDusty(boolean isActive) {
 
 		UserAddUpdateRequest userAddUpdateRequest = new UserAddUpdateRequest("dusty", newArrayList(), newArrayList());
+		userAddUpdateRequest.setStatusForAllCollections(isActive ? UserCredentialStatus.ACTIVE : UserCredentialStatus.DISABLED);
 
 		modelLayerFactory.newUserServices().createUser("Dusty", (req) -> userAddUpdateRequest.setName("Dusty", "le Chien")
 				.setEmail("dusty@constellio.com").addToCollections(zeCollection).addToGroupsInCollection(asList(heroes), zeCollection));
