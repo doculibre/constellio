@@ -14,7 +14,7 @@ public class RMRecordAuthorisationPageExtension extends RecordAuthorisationPageE
 	public RMRecordAuthorisationPageExtension() {
 	}
 
-	public ExtensionBooleanResult isAuthorsationPageAvalibleForUser(RecordAuthorisationPageExtensionParams param) {
+	public ExtensionBooleanResult isAuthorisationPageAvalibleForUser(RecordAuthorisationPageExtensionParams param) {
 		Record record = param.getRecord();
 		User user = param.getUser();
 

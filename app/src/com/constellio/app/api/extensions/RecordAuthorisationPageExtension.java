@@ -4,7 +4,7 @@ import com.constellio.app.api.extensions.params.RecordAuthorisationPageExtension
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 
 public class RecordAuthorisationPageExtension {
-	public ExtensionBooleanResult isAuthorsationPageAvalibleForUser(RecordAuthorisationPageExtensionParams param) {
+	public ExtensionBooleanResult isAuthorisationPageAvalibleForUser(RecordAuthorisationPageExtensionParams param) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 }

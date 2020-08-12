@@ -262,7 +262,7 @@ public class AppLayerCollectionExtensions {
 		return ExtensionUtils.getBooleanValue(recordAuthorisationPageExtensions, false, new BooleanCaller<RecordAuthorisationPageExtension>() {
 			@Override
 			public ExtensionBooleanResult call(RecordAuthorisationPageExtension behavior) {
-				return behavior.isAuthorsationPageAvalibleForUser(new RecordAuthorisationPageExtensionParams(record, user));
+				return behavior.isAuthorisationPageAvalibleForUser(new RecordAuthorisationPageExtensionParams(record, user));
 			}
 		});
 	}
