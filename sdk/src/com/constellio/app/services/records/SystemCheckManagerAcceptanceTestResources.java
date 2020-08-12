@@ -99,7 +99,7 @@ public class SystemCheckManagerAcceptanceTestResources {
 											+ "Démarrage : 2014-12-12T00:00:00.000\n"
 											+ "Statut : Terminé\n"
 											+ "Enregistrements réparés : 0\n"
-											+ "Références analysées : 89\n"
+											+ "Références analysées : 87\n"
 											+ "Unités administratives logiquement supprimées : 4\n"
 											+ "Rubriques du plan logiquement supprimées : 14\n"
 											+ "\n"

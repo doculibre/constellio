@@ -743,9 +743,11 @@ public class UserServices {
 		Map<String, List<String>> groupIds = new HashMap<>();
 		Map<String, List<String>> groupCodes = new HashMap<>();
 
+		String title = credential.getTitle();
 		for (String collection : modelLayerFactory.getCollectionsListManager().getCollectionsExcludingSystem()) {
 			User userInCollection = existingUserOrNull(credential.getUsername(), collection);
 			if (userInCollection != null) {
+				title = userInCollection.getTitle();
 				collections.add(collection);
 				statuses.put(collection, userInCollection.getStatus());
 
@@ -768,7 +770,7 @@ public class UserServices {
 				.email(credential.getEmail())
 				.groupIds(groupIds)
 				.groupCodes(groupCodes)
-				.title(credential.getTitle())
+				.title(title)
 				.serviceKey(credential.getServiceKey())
 				.systemAdmin(credential.isSystemAdmin())
 				.statuses(statuses)
@@ -1968,11 +1970,14 @@ public class UserServices {
 
 	//TODO Users should be able to have different groups from a collection to an other, this service break this
 	@Deprecated
-	public List<SystemWideUserInfos> getGlobalGroupActifUsers(String groupCode) {
-		return userCredentialsManager.getUserCredentialsInGlobalGroup(groupCode)
-				.stream().map((u) -> getUserInfos(u.getUsername())).collect(toList());
+	public List<SystemWideUserInfos> getGlobalGroupActifUsers(String collection, String groupCode) {
+		return streamUserInfos().filter(u -> u.getGroupCodes(collection).contains(groupCode)).collect(Collectors.toList());
 	}
 
+	@Deprecated
+	public List<SystemWideUserInfos> getGlobalGroupActifUsers(String groupCode) {
+		return streamUserInfos().filter(u -> u.isInGroupInAnyCollection(groupCode)).collect(Collectors.toList());
+	}
 
 	//Use execute instead
 	@Deprecated
