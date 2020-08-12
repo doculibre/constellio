@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
@@ -91,11 +92,19 @@ public class AlertDocumentBorrowingPeriodBackgroundAction implements Runnable {
 	}
 
 	private EmailToSend prepareEmailToSend(EmailAddress emailAddress, Document document) {
+		Language mainLanguage = modelLayerFactory.getCollectionsListManager().getCollectionInfo(document.getCollection()).getMainSystemLanguage();
+
 		EmailToSend emailToSend = rmSchemasRecordsServices.newEmailToSend().setTryingCount(0d)
-				.setTemplate(RMEmailTemplateConstants.ALERT_BORROWING_PERIOD_ENDED_V2)
 				.setTo(emailAddress)
 				.setSendOn(TimeProvider.getLocalDateTime());
 		prepareTaskParameters(emailToSend, document);
+
+		if (mainLanguage == Language.French) {
+			emailToSend.setTemplate(RMEmailTemplateConstants.ALERT_BORROWING_PERIOD_ENDED_V2);
+		} else {
+			emailToSend.setTemplate(RMEmailTemplateConstants.ALERT_BORROWING_PERIOD_ENDED_V2_EN);
+		}
+
 		return emailToSend;
 	}
 

@@ -21,14 +21,14 @@ public class RMMigrationTo9_0_3_13 implements MigrationScript {
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory) throws Exception {
-		new SchemaAlterationFor8_3_2_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new SchemaAlterationFor9_0_3_13(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
-	private class SchemaAlterationFor8_3_2_3 extends MetadataSchemasAlterationHelper {
+	private class SchemaAlterationFor9_0_3_13 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationFor8_3_2_3(String collection,
-											 MigrationResourcesProvider migrationResourcesProvider,
-											 AppLayerFactory appLayerFactory) {
+		protected SchemaAlterationFor9_0_3_13(String collection,
+											  MigrationResourcesProvider migrationResourcesProvider,
+											  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -36,6 +36,10 @@ public class RMMigrationTo9_0_3_13 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			addEmailTemplate(appLayerFactory, migrationResourcesProvider, collection, "alertBorrowingPeriodEndedTemplate2.html",
 					RMEmailTemplateConstants.ALERT_BORROWING_PERIOD_ENDED_V2);
+
+			addEmailTemplate(appLayerFactory, migrationResourcesProvider, collection, "alertBorrowingPeriodEndedTemplate2En.html",
+					RMEmailTemplateConstants.ALERT_BORROWING_PERIOD_ENDED_V2_EN);
+
 		}
 
 		private void addEmailTemplate(AppLayerFactory appLayerFactory,
