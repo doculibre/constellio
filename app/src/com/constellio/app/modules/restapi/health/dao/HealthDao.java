@@ -10,7 +10,7 @@ public class HealthDao extends BaseDao {
 	private PingServices pingServices;
 
 	@PostConstruct
-	public void init() {
+	protected void init() {
 		super.init();
 		pingServices = new PingServices(appLayerFactory);
 	}

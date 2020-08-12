@@ -12,7 +12,6 @@ import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.restapi.core.util.StringUtils;
 import com.constellio.app.modules.restapi.resource.dto.AceDto;
-import com.constellio.app.modules.restapi.signature.SignatureService;
 import com.constellio.app.modules.restapi.validation.dao.ValidationDao;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredTokenException;
@@ -40,8 +39,6 @@ import static com.constellio.app.modules.restapi.core.util.HttpMethods.PUT;
 
 public class ValidationService extends BaseService {
 
-	@Inject
-	private SignatureService signatureService;
 	@Inject
 	private ValidationDao validationDao;
 
@@ -187,7 +184,7 @@ public class ValidationService extends BaseService {
 		}
 
 		for (String token : tokens) {
-			String currentSignature = signatureService.sign(token, data);
+			String currentSignature = validationDao.sign(token, data);
 
 			if (currentSignature.equals(signature)) {
 				return false;

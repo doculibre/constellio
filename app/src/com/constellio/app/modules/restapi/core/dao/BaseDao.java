@@ -2,6 +2,7 @@ package com.constellio.app.modules.restapi.core.dao;
 
 import com.constellio.app.modules.restapi.RestApiConfigs;
 import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException;
+import com.constellio.app.modules.restapi.core.util.HashingUtils;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
@@ -30,6 +31,8 @@ import com.constellio.model.services.users.UserServices;
 import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.List;
+
+import static com.constellio.app.modules.restapi.core.util.Algorithms.HMAC_SHA_256;
 
 public abstract class BaseDao {
 
@@ -185,6 +188,10 @@ public abstract class BaseDao {
 		return getUrl().split("/")[2].split(":")[0];
 	}
 
+	public String getServerHostWithPort() {
+		return getUrl().split("/")[2];
+	}
+
 	public User getUserByUsername(String username, String collection) {
 		return userServices.getUserInCollection(username, collection);
 	}
@@ -205,6 +212,17 @@ public abstract class BaseDao {
 		} catch (MetadataSchemasRuntimeException.NoSuchSchemaType e) {
 			throw new RecordNotFoundException(schemaTypeCode);
 		}
+	}
 
+	public String sign(String key, String data) throws Exception {
+		return sign(key, data, HMAC_SHA_256);
+	}
+
+	public String sign(String key, String data, String algorithm) throws Exception {
+		if (algorithm.equals(HMAC_SHA_256)) {
+			return HashingUtils.hmacSha256Base64UrlEncoded(key, data);
+		} else {
+			throw new UnsupportedOperationException(String.format("Unsupported algorithm : %s", algorithm));
+		}
 	}
 }
