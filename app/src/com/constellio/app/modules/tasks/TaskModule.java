@@ -63,7 +63,7 @@ import java.util.Map;
 
 import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
-import static org.joda.time.Duration.standardHours;
+import static org.joda.time.Duration.standardMinutes;
 
 public class TaskModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "tasks";
@@ -119,7 +119,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 				.getModelLayerBackgroundThreadsManager();
 		manager.configureBackgroundThreadConfiguration(repeatingAction("alertOverdueTasksBackgroundAction-" + collection,
 				new AlertOverdueTasksBackgroundAction(appLayerFactory, collection))
-				.executedEvery(standardHours(2)).handlingExceptionWith(CONTINUE));
+				.executedEvery(standardMinutes(15)).handlingExceptionWith(CONTINUE));
 	}
 
 	private void setupAppLayerSystemExtensions(AppLayerFactory appLayerFactory) {
