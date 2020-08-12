@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
@@ -25,6 +26,7 @@ import org.joda.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.model.services.contents.ContentFactory.checkedOut;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AlertDocumentBorrowingPeriodBackgroundAction implements Runnable {
@@ -55,21 +57,20 @@ public class AlertDocumentBorrowingPeriodBackgroundAction implements Runnable {
 		int documentBorrowingDurationDays = rmConfigs.getDocumentBorrowingDurationDays();
 		if(documentBorrowingDurationDays != -1) {
 			LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(rmSchemasRecordsServices.document.schemaType())
-					.where(rmSchemasRecordsServices.document.borrowed()).isTrue()
+					.where(rmSchemasRecordsServices.documentContent()).is(checkedOut()).andWhere(rmSchemasRecordsServices.document.isCheckoutAlertSent()).isFalseOrNull()
 					.andWhere(Schemas.COLLECTION).isEqualTo(collection));
 
 			SearchResponseIterator<Record> borrowedDocumentsIterator = searchServices.recordsIterator(query, 1000);
 			while (borrowedDocumentsIterator.hasNext()) {
 				Document document = rmSchemasRecordsServices.wrapDocument(borrowedDocumentsIterator.next());
-				if (!document.isCheckoutAlertSent()) {
-					LocalDateTime contentCheckedOutDate = document.getContentCheckedOutDate();
-					if (isCheckoutPeriodOver(contentCheckedOutDate, documentBorrowingDurationDays)) {
-						sendEmail(document);
-						try {
-							recordServices.update(document.setCheckoutAlertSent(true));
-						} catch (RecordServicesException e) {
-							e.printStackTrace();
-						}
+
+				LocalDateTime contentCheckedOutDate = document.getContentCheckedOutDate();
+				if (isCheckoutPeriodOver(contentCheckedOutDate, documentBorrowingDurationDays)) {
+					sendEmail(document);
+					try {
+						recordServices.update(document.setCheckoutAlertSent(true));
+					} catch (RecordServicesException e) {
+						throw new RuntimeException(e);
 					}
 				}
 			}
@@ -85,17 +86,25 @@ public class AlertDocumentBorrowingPeriodBackgroundAction implements Runnable {
 			try {
 				recordServices.add(emailToSend);
 			} catch (RecordServicesException e) {
-				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 		}
 	}
 
 	private EmailToSend prepareEmailToSend(EmailAddress emailAddress, Document document) {
+		Language mainLanguage = modelLayerFactory.getCollectionsListManager().getCollectionInfo(document.getCollection()).getMainSystemLanguage();
+
 		EmailToSend emailToSend = rmSchemasRecordsServices.newEmailToSend().setTryingCount(0d)
-				.setTemplate(RMEmailTemplateConstants.ALERT_BORROWING_PERIOD_ENDED)
 				.setTo(emailAddress)
 				.setSendOn(TimeProvider.getLocalDateTime());
 		prepareTaskParameters(emailToSend, document);
+
+		if (mainLanguage == Language.French) {
+			emailToSend.setTemplate(RMEmailTemplateConstants.ALERT_BORROWING_PERIOD_ENDED_V2);
+		} else {
+			emailToSend.setTemplate(RMEmailTemplateConstants.ALERT_BORROWING_PERIOD_ENDED_V2_EN);
+		}
+
 		return emailToSend;
 	}
 
