@@ -44,7 +44,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScript {
 
-	private Map<String, Map<String, Object>> credentialMetadataMap = new HashMap<>();
+	private static Map<String, Map<String, Object>> credentialMetadataMap = new HashMap<>();
 
 	@Override
 	public String getVersion() {
@@ -276,7 +276,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			@Override
 			public void doActionOnBatch(List<Record> records)
 					throws Exception {
-				Transaction tx = new Transaction();
+				//Transaction tx = new Transaction();
 				for (Record record : records) {
 					UserCredential userCredential = systemSchemas.wrapUserCredential(record);
 					if (userCredential.getCollections() == null || userCredential.getCollections().isEmpty()) {
@@ -284,8 +284,8 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 						recordServices.physicallyDelete(userCredential, User.GOD);
 					}
 				}
-				tx.setSkippingRequiredValuesValidation(true);
-				recordServices.executeWithImpactHandler(tx, new UnhandledRecordModificationImpactHandler());
+				//tx.setSkippingRequiredValuesValidation(true);
+				//recordServices.executeWithImpactHandler(tx, new UnhandledRecordModificationImpactHandler());
 			}
 		}.execute(from(systemSchemas.credentialSchemaType()).returnAll());
 
