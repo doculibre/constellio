@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_AUTHORIZATION;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_TASK;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_TO_CART;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_TO_SELECTION;
@@ -39,7 +38,6 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GENERATE_REPORT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GENERATE_SIGNATURE_URL;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GET_PUBLIC_LINK;
-import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_MANAGE_AUTHORIZATIONS;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_MOVE;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_OPEN;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_PRINT_LABEL;
@@ -47,9 +45,11 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_REMOVE_TO_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_RENAME_CONTENT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_RETURN_REMAINDER;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_SHARE_DOCUMENT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UNPUBLISH;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UNSHARE;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UPLOAD;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_VIEW_OR_MANAGE_AUTHORIZATIONS;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -145,13 +145,6 @@ public class DocumentMenuItemServices {
 					isMenuItemActionPossible(DOCUMENT_COPY.name(), document, user, params),
 					$("DocumentContextMenu.copyContent"), FontAwesome.PASTE, -1, 600,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).copy(document, params)));
-		}
-
-		if (!filteredActionTypes.contains(DOCUMENT_RENAME_CONTENT.name())) {
-			menuItemActions.add(buildMenuItemAction(DOCUMENT_RENAME_CONTENT.name(),
-					isMenuItemActionPossible(DOCUMENT_RENAME_CONTENT.name(), document, user, params),
-					$("DocumentContextMenu.renameContent"), FontAwesome.EDIT, -1, 650,
-					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).renameContent(document, params)));
 		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_FINALIZE.name())) {
@@ -282,9 +275,9 @@ public class DocumentMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!filteredActionTypes.contains(DOCUMENT_ADD_AUTHORIZATION.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_AUTHORIZATION.name(),
-					isMenuItemActionPossible(DOCUMENT_ADD_AUTHORIZATION.name(), document, user, params),
+		if (!filteredActionTypes.contains(DOCUMENT_SHARE_DOCUMENT.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_SHARE_DOCUMENT.name(),
+					isMenuItemActionPossible(DOCUMENT_SHARE_DOCUMENT.name(), document, user, params),
 					$("DocumentContextMenu.shareDocument"), FontAwesome.PAPER_PLANE_O, -1, 2000,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addAuthorization(document, params));
 
@@ -300,9 +293,9 @@ public class DocumentMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!filteredActionTypes.contains(DOCUMENT_MANAGE_AUTHORIZATIONS.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_MANAGE_AUTHORIZATIONS.name(),
-					isMenuItemActionPossible(DOCUMENT_MANAGE_AUTHORIZATIONS.name(), document, user, params),
+		if (!filteredActionTypes.contains(DOCUMENT_VIEW_OR_MANAGE_AUTHORIZATIONS.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_VIEW_OR_MANAGE_AUTHORIZATIONS.name(),
+					isMenuItemActionPossible(DOCUMENT_VIEW_OR_MANAGE_AUTHORIZATIONS.name(), document, user, params),
 					$("DocumentContextMenu.manageAuthorizations"), FontAwesome.KEY, -1, 2300,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).manageAuthorizations(document, params));
 
@@ -407,12 +400,12 @@ public class DocumentMenuItemServices {
 				return documentRecordActionsServices.isSendReturnReminderActionPossible(record, user);
 			case DOCUMENT_AVAILABLE_ALERT:
 				return documentRecordActionsServices.isAvailableAlertActionPossible(record, user);
-			case DOCUMENT_ADD_AUTHORIZATION:
-				return documentRecordActionsServices.isAddAuthorizationActionPossible(record, user);
+			case DOCUMENT_SHARE_DOCUMENT:
+				return documentRecordActionsServices.isShareDocumenmtActionPossible(record, user);
 			case DOCUMENT_UNSHARE:
 				return documentRecordActionsServices.isUnshareActionPossible(record, user);
-			case DOCUMENT_MANAGE_AUTHORIZATIONS:
-				return documentRecordActionsServices.isManageAuthorizationActionPossible(record, user);
+			case DOCUMENT_VIEW_OR_MANAGE_AUTHORIZATIONS:
+				return documentRecordActionsServices.isViewOrAddAuthorizationActionPossible(record, user);
 			case DOCUMENT_GENERATE_REPORT:
 				return documentRecordActionsServices.isGenerateReportActionPossible(record, user);
 			case DOCUMENT_ADD_TASK:
@@ -464,9 +457,9 @@ public class DocumentMenuItemServices {
 		DOCUMENT_CHECK_OUT,
 		DOCUMENT_CHECK_IN,
 		DOCUMENT_AVAILABLE_ALERT,
-		DOCUMENT_ADD_AUTHORIZATION,
+		DOCUMENT_SHARE_DOCUMENT,
 		DOCUMENT_UNSHARE,
-		DOCUMENT_MANAGE_AUTHORIZATIONS,
+		DOCUMENT_VIEW_OR_MANAGE_AUTHORIZATIONS,
 		DOCUMENT_GENERATE_REPORT,
 		DOCUMENT_RETURN_REMAINDER,
 		DOCUMENT_ADD_TASK,

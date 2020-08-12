@@ -73,7 +73,7 @@ public abstract class FolderExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
-	public ExtensionBooleanResult isAddAuthorizationActionPossible(FolderExtensionActionPossibleParams params) {
+	public ExtensionBooleanResult isViewOrAddAuthorizationActionPossible(FolderExtensionActionPossibleParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
