@@ -16,15 +16,14 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordDeleteServices;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.UnhandledRecordModificationImpactHandler;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
@@ -35,7 +34,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotExcuteTransaction;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,7 +61,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			transferDomainsAndMsDelegatesFromCredentialsToUser(appLayerFactory.getModelLayerFactory().newUserServices(), collection);
 			new SchemaSystemAlterationFor_9_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 			//Les utilisateurs qui ne sont pas actifs sont supprimés logiquement
-			logicallyRemoveAllNonActiveUsers(appLayerFactory.getModelLayerFactory());
+			//logicallyRemoveAllNonActiveUsers(appLayerFactory.getModelLayerFactory());
 			//GlobalGroup est supprimé.
 			physicallyRemoveGlobalGroup(appLayerFactory.getModelLayerFactory());
 			//chaque utilisateur migré aura la valeur LOCALLY_CREATED si il existe une entrée dans le fichier de mot de passe, sinon SYNCED
@@ -126,8 +124,8 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			//Les métadonnées suivantes seront déplacées dans User par le script de migration : domain, msExchangeDelegateList
 			//sauvegarder en map pour l'instant
 
-			userCredentialSchema.deleteMetadataWithoutValidation("domain");
-			userCredentialSchema.deleteMetadataWithoutValidation("msExchangeDelegateList");
+			//userCredentialSchema.deleteMetadataWithoutValidation("domain");
+			//userCredentialSchema.deleteMetadataWithoutValidation("msExchangeDelegateList");
 		}
 
 	}
@@ -191,11 +189,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 							Map<String, Object> metadatas = credentialMetadataMap.get(user.getUsername());
 							user.setDomain((String) metadatas.get("domain"));
 							user.setMsExchDelegateListBL((List) metadatas.get("msExchangeDelegateList"));
-							try {
-								recordServices.update(user);
-							} catch (RecordServicesException e) {
-								throw new UserServicesRuntimeException_CannotExcuteTransaction(e);
-							}
+							tx.add(user);
 						}
 					}
 					tx.setSkippingRequiredValuesValidation(true);
@@ -205,29 +199,29 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 		}
 	}
 
-	private void logicallyRemoveAllNonActiveUsers(ModelLayerFactory modelLayerFactory) throws Exception {
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		SchemasRecordsServices systemSchemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
-
-		new ActionExecutorInBatch(searchServices, "Removing non active users", 250) {
-			@Override
-			public void doActionOnBatch(List<Record> records)
-					throws Exception {
-				Transaction tx = new Transaction();
-				for (Record record : records) {
-					UserCredential userCredential = systemSchemas.wrapUserCredential(record);
-					if (userCredential.getStatus() != UserCredentialStatus.ACTIVE) {
-						userCredential.set(Schemas.LOGICALLY_DELETED_STATUS, true);
-						tx.add(userCredential);
-					}
-				}
-				tx.setSkippingRequiredValuesValidation(true);
-				recordServices.executeWithImpactHandler(tx, new UnhandledRecordModificationImpactHandler());
-			}
-		}.execute(from(systemSchemas.credentialSchemaType()).returnAll());
-
-	}
+	//	private void logicallyRemoveAllNonActiveUsers(ModelLayerFactory modelLayerFactory) throws Exception {
+	//		RecordServices recordServices = modelLayerFactory.newRecordServices();
+	//		SearchServices searchServices = modelLayerFactory.newSearchServices();
+	//		SchemasRecordsServices systemSchemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+	//
+	//		new ActionExecutorInBatch(searchServices, "Removing non active users", 250) {
+	//			@Override
+	//			public void doActionOnBatch(List<Record> records)
+	//					throws Exception {
+	//				Transaction tx = new Transaction();
+	//				for (Record record : records) {
+	//					UserCredential userCredential = systemSchemas.wrapUserCredential(record);
+	//					if (userCredential.getStatus() != UserCredentialStatus.ACTIVE) {
+	//						userCredential.set(Schemas.LOGICALLY_DELETED_STATUS, true);
+	//						tx.add(userCredential);
+	//					}
+	//				}
+	//				tx.setSkippingRequiredValuesValidation(true);
+	//				recordServices.executeWithImpactHandler(tx, new UnhandledRecordModificationImpactHandler());
+	//			}
+	//		}.execute(from(systemSchemas.credentialSchemaType()).returnAll());
+	//
+	//	}
 
 	private void updateAllUserSyncMode(ModelLayerFactory modelLayerFactory) throws Exception {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
@@ -247,12 +241,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 					} else {
 						credential.setSyncMode(UserSyncMode.LOCALLY_CREATED);
 					}
-
-					try {
-						recordServices.update(credential);
-					} catch (RecordServicesException e) {
-						throw new UserServicesRuntimeException_CannotExcuteTransaction(e);
-					}
+					tx.add(credential);
 				}
 				tx.setSkippingRequiredValuesValidation(true);
 				recordServices.executeWithImpactHandler(tx, new UnhandledRecordModificationImpactHandler());
@@ -261,7 +250,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 	}
 
 	private void physicallyRemoveGlobalGroup(ModelLayerFactory modelLayerFactory) throws Exception {
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		RecordDeleteServices recordServices = new RecordDeleteServices(modelLayerFactory);
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		SchemasRecordsServices systemSchemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 
@@ -269,17 +258,12 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			@Override
 			public void doActionOnBatch(List<Record> records)
 					throws Exception {
-				Transaction tx = new Transaction();
 				for (Record record : records) {
 					GlobalGroup globalGroup = systemSchemas.wrapOldGlobalGroup(record);
-					recordServices.logicallyDelete(globalGroup, User.GOD);
-					recordServices.physicallyDelete(globalGroup, User.GOD);
+					recordServices.physicallyDeleteNoMatterTheStatus(globalGroup, User.GOD, new RecordPhysicalDeleteOptions());
 				}
-				tx.setSkippingRequiredValuesValidation(true);
-				recordServices.executeWithImpactHandler(tx, new UnhandledRecordModificationImpactHandler());
 			}
 		}.execute(from(systemSchemas.globalGroupSchemaType()).returnAll());
-
 	}
 
 	private void safePhysicalDeleteAllUserCredentialsWithEmptyCollections(ModelLayerFactory modelLayerFactory)
