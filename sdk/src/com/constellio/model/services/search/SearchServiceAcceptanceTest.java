@@ -1,6 +1,7 @@
 package com.constellio.model.services.search;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.BadRequest;
@@ -716,6 +717,30 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		assertThat(records.get(1).<String>get(zeSchema.stringMetadata())).isNull();
 		assertThat((boolean) records.get(1).get(zeSchema.booleanMetadata())).isTrue();
 
+	}
+
+	@Test
+	public void whenSearchingStartingWithTextRecordsReturningExactValueFieldThenValueReturned()
+			throws Exception {
+		defineSchemasManager().using(schema.withAMultivaluedLargeTextMetadata(multiValueConfigurator()));
+		transaction.addUpdate(expectedRecord = newRecordOfZeSchema().set(zeSchema.multivaluedLargeTextMetadata(), asList("00052124500", "52124500")));
+		transaction.addUpdate(expectedRecord2 = newRecordOfZeSchema().set(zeSchema.multivaluedLargeTextMetadata(), asList("00052124500", "52124500432")));
+		transaction.addUpdate(expectedRecord3 = newRecordOfZeSchema().set(zeSchema.multivaluedLargeTextMetadata(), asList("00052124500", "52124")));
+		ConstellioFactories.getInstance().getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
+		recordServices.execute(transaction);
+
+
+		condition = from(zeSchema.instance()).where(zeSchema.multivaluedLargeTextMetadata()).isStartingWithText("52124500");
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(condition);
+		List<Record> records = searchServices.search(query);
+
+		assertThat(ids(records)).containsOnly(TestUtils.idsArray(expectedRecord, expectedRecord2));
+		List<String> textValue1 = records.get(0).get(zeSchema.multivaluedLargeTextMetadata());
+		assertThat(textValue1).contains("52124500");
+
+		List<String> textValue2 = records.get(1).get(zeSchema.multivaluedLargeTextMetadata());
+		assertThat(textValue2).contains("52124500432");
 	}
 
 	@Test
