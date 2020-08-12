@@ -174,13 +174,6 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 		//assertThatUser("MachoMan").isInCollections(zeCollection).hasGroupsInCollection("G1", "zeCollection");
 		//assertThatUser("Embalmer").doesNotExist();
 
-		User marie = users.stream().filter(x -> x.getUsername().equals("marie")).findFirst().get();
-		User cartier = users.stream().filter(x -> x.getUsername().equals("cartie")).findFirst().get();
-
-		assertThat(marie.getDomain()).isEqualTo("http//:localhost:7070/");
-		assertThat(dusty.getDomain()).isEqualTo("http//:localhost:7070/");
-		assertThat(cartier.getDomain()).isEqualTo("http//:localhost:7070/");
-
 		Group legends = groups.stream().filter(x -> x.getCode().equals("legends")).findFirst().get();
 		Group villains = groups.stream().filter(x -> x.getCode().equals("villains")).findFirst().get();
 		assertThat(legends.getStatus()).isEqualTo(GlobalGroupStatus.ACTIVE);
@@ -210,6 +203,7 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 		User bob = users.stream().filter(x -> x.getUsername().equals("bob")).findFirst().get();
 		User chuck = users.stream().filter(x -> x.getUsername().equals("chuck")).findFirst().get();
 		User dakota = users.stream().filter(x -> x.getUsername().equals("dakota")).findFirst().get();
+		User moe = users.stream().filter(x -> x.getUsername().equals("moe")).findFirst().get();
 
 		//not suppose to exists
 		// User Wanderer had no collections
@@ -220,9 +214,6 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 		User louis16 = users.stream().filter(x -> x.getUsername().equals("louis16")).findFirst().orElse(null);
 		//Sasuke was a disabled user that never used the system
 		User sasuke = users.stream().filter(x -> x.getUsername().equals("sasuke")).findFirst().orElse(null);
-		//moe Greene was a logically deleted user
-		User moe = users.stream().filter(x -> x.getUsername().equals("moe")).findFirst().orElse(null);
-
 
 		assertThat(dusty).isNotNull();
 		assertThat(marie).isNotNull();
@@ -236,12 +227,12 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 		assertThat(bob).isNotNull();
 		assertThat(chuck).isNotNull();
 		assertThat(dakota).isNotNull();
+		assertThat(moe).isNotNull();
 
 		assertThat(wanderer).isNull();
 		assertThat(oscar).isNull();
 		assertThat(louis16).isNull();
 		assertThat(sasuke).isNull();
-		assertThat(moe).isNull();
 
 		Group rumors = groups.stream().filter(x -> x.getCode().equals("rumors")).findFirst().get();
 		Group explorers = groups.stream().filter(x -> x.getCode().equals("explorers")).findFirst().get();
