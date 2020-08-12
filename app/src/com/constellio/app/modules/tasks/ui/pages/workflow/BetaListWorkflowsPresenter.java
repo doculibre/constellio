@@ -12,9 +12,14 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BetaListWorkflowsPresenter extends SingleSchemaBasePresenter<BetaListWorkflowsView> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(BetaListWorkflowsPresenter.class);
+
 	private transient BetaWorkflowServices workflowServices;
 
 	public BetaListWorkflowsPresenter(BetaListWorkflowsView view) {
@@ -49,7 +54,12 @@ public class BetaListWorkflowsPresenter extends SingleSchemaBasePresenter<BetaLi
 	}
 
 	public void deleteButtonClicked(RecordVO record) {
-		delete(toRecord(record), false);
+		try {
+			delete(toRecord(record), false);
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
 		view.navigate().to(TaskViews.class).listWorkflows();
 	}
 

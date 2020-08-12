@@ -6,7 +6,7 @@ import com.constellio.app.modules.restapi.certification.dto.RectangleDto;
 import com.constellio.app.modules.restapi.resource.adaptor.ResourceAdaptor;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.services.pdf.signature.PdfSignatureAnnotation;
+import com.constellio.model.services.pdf.PdfAnnotation;
 
 import javax.inject.Inject;
 import java.util.Set;
@@ -16,7 +16,7 @@ public class CertificationAdaptor extends ResourceAdaptor<CertificationDto> {
 	@Inject
 	private CertificationDao certificationDao;
 
-	public CertificationDto adapt(PdfSignatureAnnotation annotation, String documentId) {
+	public CertificationDto adapt(PdfAnnotation annotation, String documentId) {
 
 		CertificationDto resource = CertificationDto.builder().build();
 

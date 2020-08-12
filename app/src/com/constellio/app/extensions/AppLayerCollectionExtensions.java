@@ -1082,4 +1082,10 @@ public class AppLayerCollectionExtensions {
 		return navigationHandledByExtension;
 	}
 
+
+	public boolean isSequencesActionPossibleOnSchemaRecord(Record record, User user) {
+		return schemaRecordExtentions.getBooleanValue(true,
+				(behavior) -> behavior.isSequencesActionPossible(
+						new SchemaRecordExtensionActionPossibleParams(record, user)));
+	}
 }

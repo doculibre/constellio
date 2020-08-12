@@ -14,6 +14,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -166,7 +167,12 @@ public class UpdateContentVersionPresenter implements Serializable {
 						boolean newContent;
 						if (content == null) {
 							newContent = true;
-							record = getPresenterUtils(recordVO).toRecord(recordVO);
+							try {
+								record = getPresenterUtils(recordVO).toRecord(recordVO);
+							} catch (OptimisticLockException e) {
+								LOGGER.error(e.getMessage(), e);
+								window.showErrorMessage(e.getMessage());
+							}
 							content = record.get(contentMetadata);
 						} else {
 							newContent = false;

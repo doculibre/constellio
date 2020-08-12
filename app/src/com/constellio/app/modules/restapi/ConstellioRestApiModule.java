@@ -3,7 +3,9 @@ package com.constellio.app.modules.restapi;
 import com.constellio.app.entities.modules.InstallableSystemModuleExcludedFromSSO;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.navigation.NavigationConfig;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.restapi.core.config.RestApiResourceConfig;
+import com.constellio.app.modules.restapi.extensions.RestApiModuleExtensions;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.google.common.base.Strings;
@@ -65,6 +67,7 @@ public class ConstellioRestApiModule extends InstallableSystemModuleExcludedFrom
 
 	@Override
 	public void start(String collection, AppLayerFactory appLayerFactory) {
+		setupAppLayerExtensions(collection, appLayerFactory);
 	}
 
 	@Override
@@ -114,5 +117,10 @@ public class ConstellioRestApiModule extends InstallableSystemModuleExcludedFrom
 
 	@Override
 	public void stop(AppLayerFactory appLayerFactory) {
+	}
+
+	private void setupAppLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
+		extensions.registerModuleExtensionsPoint(ID, new RestApiModuleExtensions());
 	}
 }

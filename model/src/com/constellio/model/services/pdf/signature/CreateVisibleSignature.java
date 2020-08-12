@@ -16,6 +16,7 @@
  */
 package com.constellio.model.services.pdf.signature;
 
+import com.constellio.model.services.pdf.PdfAnnotation;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -346,7 +347,7 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 	 */
 	public static File signDocument(String keystorePath, String keystorePin, String docToSignPath,
 									String visualSignaturePath,
-									PdfSignatureAnnotation signature)
+									PdfAnnotation signature)
 			throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableKeyException {
 
 		File ksFile = new File(keystorePath);

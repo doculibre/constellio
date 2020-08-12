@@ -8,7 +8,7 @@ import com.constellio.app.modules.restapi.core.exception.InvalidParameterExcepti
 import com.constellio.app.modules.restapi.core.exception.MetadataNotFoundException;
 import com.constellio.app.modules.restapi.core.exception.MetadataNotMultivalueException;
 import com.constellio.app.modules.restapi.core.exception.MetadataReferenceNotAllowedException;
-import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
+import com.constellio.app.modules.restapi.core.exception.OptimisticLockRuntimeException;
 import com.constellio.app.modules.restapi.core.exception.ParametersMustMatchException;
 import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
 import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException;
@@ -1144,7 +1144,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-				.isEqualTo(i18n.$(new OptimisticLockException(id, eTag, Long.valueOf(validEtag)).getValidationError()));
+				.isEqualTo(i18n.$(new OptimisticLockRuntimeException(id, eTag, Long.valueOf(validEtag)).getValidationError()));
 	}
 
 	@Test

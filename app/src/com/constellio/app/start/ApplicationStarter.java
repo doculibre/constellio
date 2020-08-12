@@ -1,6 +1,17 @@
 package com.constellio.app.start;
 
 import com.constellio.data.conf.FoldersLocator;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.DispatcherType;
+import javax.servlet.Filter;
+import javax.servlet.Servlet;
+
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -23,15 +34,7 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.webapp.WebInfConfiguration;
 import org.eclipse.jetty.webapp.WebXmlConfiguration;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.Filter;
-import javax.servlet.Servlet;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.constellio.model.conf.FoldersLocator;
 
 public class ApplicationStarter {
 
@@ -117,6 +120,7 @@ public class ApplicationStarter {
 
 			HttpConfiguration http_config = new HttpConfiguration();
 			http_config.setOutputBufferSize(32768);
+			http_config.setSendServerVersion(false);
 			http_config.setRequestHeaderSize(REQUEST_HEADER_SIZE);
 
 			ServerConnector http = new ServerConnector(server, new HttpConnectionFactory(http_config));
@@ -146,14 +150,15 @@ public class ApplicationStarter {
 		SslContextFactory sslContextFactory = new SslContextFactory(keystorePath);
 		sslContextFactory.setKeyStorePassword(params.getKeystorePassword());
 		sslContextFactory.addExcludeProtocols("SSLv3", "SSLv2", "SSLv2Hello", "TLSv1", "TLSv1.1");
+		sslContextFactory.setSessionCachingEnabled(true);
 
 		sslContextFactory.setIncludeCipherSuites(
 				"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
 				"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
 				"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
 				"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
-				"TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
-				"TLS_DHE_DSS_WITH_AES_128_GCM_SHA256",
+				//"TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
+				//"TLS_DHE_DSS_WITH_AES_128_GCM_SHA256",
 				"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
 				"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
 				"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
@@ -161,21 +166,22 @@ public class ApplicationStarter {
 				"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256",
 				"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
 				"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384",
-				"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
+				"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA"/*,
 				"TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
 				"TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
 				"TLS_DHE_RSA_WITH_AES_128_CBC_SHA256",
 				"TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
 				"TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
-				"TLS_DHE_RSA_WITH_AES_256_CBC_SHA256"
+				"TLS_DHE_RSA_WITH_AES_256_CBC_SHA256"*/
 		);
 
 		HttpConfiguration https_config = new HttpConfiguration();
 		https_config.setOutputBufferSize(32768);
+		https_config.setSendServerVersion(false);
 		https_config.setRequestHeaderSize(REQUEST_HEADER_SIZE);
 
 		SecureRequestCustomizer src = new SecureRequestCustomizer();
-		src.setStsMaxAge(2000);
+		src.setStsMaxAge(31536000);
 		src.setStsIncludeSubDomains(true);
 		https_config.addCustomizer(src);
 

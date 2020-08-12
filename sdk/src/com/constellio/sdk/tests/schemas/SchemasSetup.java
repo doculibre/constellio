@@ -11,6 +11,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleRuntimeException;
 import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -47,7 +48,8 @@ public abstract class SchemasSetup {
 		setups.clear();
 	}
 
-	public static void prepareSetups(MetadataSchemasManager manager, CollectionsManager collectionsManager) {
+	public static void prepareSetups(MetadataSchemasManager manager, ModelLayerFactory modelLayerFactory,
+									 CollectionsManager collectionsManager) {
 		SchemasSetup.manager = manager;
 		int collectionId = 0;
 		for (SchemasSetup setup : setups) {
@@ -78,7 +80,7 @@ public abstract class SchemasSetup {
 							MetadataNetwork.EMPTY());
 				}
 
-				setup.typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
+				setup.typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, modelLayerFactory, new DefaultClassProvider());
 				setup.setUp();
 				setup.wasSetUp = true;
 			}

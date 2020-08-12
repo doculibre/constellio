@@ -10,12 +10,27 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class MessageUtils {
+
+	private static String DETAIL_SEPARATOR = "------------------------------------------------------------------------";
+
+	public static String toDetailedReportMessage(Exception e) {
+
+		ValidationErrors errors = getValidationErrors(e);
+
+		if (errors != null) {
+			return toDetailedReportMessage(errors);
+		} else {
+			return toMessage(e) + "\n\n\n" + ExceptionUtils.getStackTrace(e);
+		}
+	}
 
 	public static String toMessage(Exception e) {
 
@@ -103,4 +118,44 @@ public class MessageUtils {
 
 	}
 
+	private static String toDetailedReportMessage(ValidationErrors validationErrors) {
+
+		StringBuilder summaryBuilder = new StringBuilder();
+		summaryBuilder.append($("errorReportSummaryTitle"));
+		summaryBuilder.append("\n");
+
+		StringBuilder detailedBuilder = new StringBuilder();
+		detailedBuilder.append($("errorReportDetailedTitle"));
+		detailedBuilder.append("\n");
+
+		int index = 1;
+		for (ValidationError validationError : validationErrors.getValidationErrors()) {
+			if (index != 1) {
+				summaryBuilder.append("\n");
+				detailedBuilder.append("\n");
+			}
+
+			String errorSummary = index + "- " + $(validationError);
+			summaryBuilder.append(errorSummary);
+
+			detailedBuilder.append(DETAIL_SEPARATOR);
+			detailedBuilder.append("\n");
+			detailedBuilder.append(errorSummary);
+			detailedBuilder.append("\n\n");
+
+			if (StringUtils.isBlank(validationError.getAdditionalStack())) {
+				detailedBuilder.append($("noMoreDetail"));
+			} else {
+				detailedBuilder.append(validationError.getAdditionalStack());
+			}
+
+			index++;
+		}
+
+		summaryBuilder.append("\n\n\n");
+		detailedBuilder.append("\n");
+		detailedBuilder.append(DETAIL_SEPARATOR);
+
+		return summaryBuilder.toString() + detailedBuilder.toString();
+	}
 }

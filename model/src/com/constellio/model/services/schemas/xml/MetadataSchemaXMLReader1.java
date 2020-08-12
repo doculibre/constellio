@@ -45,8 +45,8 @@ public class MetadataSchemaXMLReader1 {
 										   ModelLayerFactory modelLayerFactory) {
 		Element rootElement = document.getRootElement();
 		int version = Integer.valueOf(rootElement.getAttributeValue("version")) - 1;
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder
-				.createWithVersion(collection, version, classProvider, Arrays.asList(Language.French, Language.English));
+		MetadataSchemaTypesBuilder typesBuilder = (new MetadataSchemaTypesBuilder(collection))
+				.createWithVersion(collection, modelLayerFactory, version, classProvider, Arrays.asList(Language.French, Language.English));
 
 		for (Element schemaTypeElement : rootElement.getChildren("schemaType")) {
 			parseProfilType(typesBuilder, schemaTypeElement, typesFactory, modelLayerFactory);

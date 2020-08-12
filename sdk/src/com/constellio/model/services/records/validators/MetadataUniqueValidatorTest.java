@@ -88,7 +88,7 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 
 	@Test
 	public void givenUniqueMetadataIsModifiedButIsNullThenNotValidated() {
-		when(record.isModified(metadata)).thenReturn(false);
+		when(record.isModified(metadata)).thenReturn(true);
 		when(record.get(metadata)).thenReturn(null);
 
 		validator.validate(record, validationErrors);
@@ -126,5 +126,16 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 		assertThat(validationErrors.getValidationErrors().get(0).getCode()).isEqualTo(NON_UNIQUE_METADATA);
 		assertThat(query.getValue().getCondition()).isEqualTo(
 				from(schemaType).where(metadata).isEqualTo(zeValue).andWhere(Schemas.IDENTIFIER).isNotEqual(zeId));
+	}
+
+	@Test
+	public void givenUniqueMetadataIsModifiedButIsEmptyThenNotValidated() {
+		when(record.isModified(metadata)).thenReturn(true);
+		when(record.get(metadata)).thenReturn("");
+
+		validator.validate(record, validationErrors);
+
+		verify(searchServices, never()).hasResults(any(LogicalSearchQuery.class));
+		assertThat(validationErrors.getValidationErrors()).isEmpty();
 	}
 }

@@ -70,6 +70,7 @@ import com.constellio.app.modules.rm.extensions.schema.RMExcelReportSchemaExtens
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
 import com.constellio.app.modules.rm.extensions.ui.RMConstellioUIExtention;
 import com.constellio.app.modules.rm.extensions.ui.RMDocumentPathCriterionExtension;
+import com.constellio.app.modules.rm.extensions.ui.RMFolderManualDisposalTypeCriterionExtension;
 import com.constellio.app.modules.rm.extensions.ui.RMViewableRecordVOTablePanelExtension;
 import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
@@ -271,6 +272,9 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo9_0_3_11());
 		scripts.add(new RMMigrationTo9_0_3_12());
 		scripts.add(new RMMigrationTo9_0_3_13());
+		scripts.add(new RMMigrationTo9_0_3_16());
+		scripts.add(new RMMigrationTo9_0_3_17());
+		scripts.add(new RMMigrationTo9_0_3_18());
 		//scripts.add(new RMMigrationTo9_0_666());
 		scripts.add(new RMMigrationTo9_1_0());
 		scripts.add(new RMMigrationTo9_1_0_14());
@@ -280,6 +284,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo9_1_0_23());
 		scripts.add(new RMMigrationTo9_1_0_24());
 		scripts.add(new RMMigrationTo9_1_10());
+		scripts.add(new RMMigrationTo9_1_10_1());
 
 		return scripts;
 	}
@@ -443,6 +448,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.pagesComponentsExtensions.add(new RMManageAuthorizationsPageExtension(collection, appLayerFactory));
 		extensions.sipExtensions.add(new RMSIPExtension(collection, appLayerFactory));
 		extensions.searchCriterionExtensions.add(new RMDocumentPathCriterionExtension(appLayerFactory, collection));
+		extensions.searchCriterionExtensions.add(new RMFolderManualDisposalTypeCriterionExtension(appLayerFactory, collection));
 		extensions.viewableRecordVOTablePanelExtensions.add(new RMViewableRecordVOTablePanelExtension(appLayerFactory, collection));
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);

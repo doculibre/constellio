@@ -34,11 +34,14 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.MapStringStringStructure;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -51,7 +54,7 @@ import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE
 import static java.util.Arrays.asList;
 
 public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView> {
-
+	private static final Logger LOGGER = LoggerFactory.getLogger(DisplayTaskPresenter.class);
 	private static final String DISPLAY_TASK_PRESENTER_PREVIOUS_TAB = "DisplayTaskPresenterPreviousTab";
 
 	TaskVO taskVO;
@@ -134,7 +137,7 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 	public Task getTask(RecordVO recordVO) {
 		String originalSchemaCode = schemaPresenterUtils.getSchemaCode();
 		schemaPresenterUtils.setSchemaCode(recordVO.getSchemaCode());
-		Task task = tasksSchemas.wrapTask(toRecord(recordVO));
+		Task task = tasksSchemas.wrapTask(fromVOToRecord(recordVO));
 		schemaPresenterUtils.setSchemaCode(originalSchemaCode);
 		return task;
 	}
@@ -208,7 +211,7 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 
 	@Override
 	public void closeButtonClicked(RecordVO entity) {
-		taskPresenterServices.closeTask(toRecord(entity), getCurrentUser());
+		taskPresenterServices.closeTask(fromVOToRecord(entity), getCurrentUser());
 		reloadCurrentTask();
 	}
 
@@ -232,23 +235,23 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 
 	@Override
 	public void autoAssignButtonClicked(RecordVO recordVO) {
-		taskPresenterServices.autoAssignTask(toRecord(recordVO), getCurrentUser());
+		taskPresenterServices.autoAssignTask(fromVOToRecord(recordVO), getCurrentUser());
 		reloadCurrentTask();
 	}
 
 	@Override
 	public boolean isAutoAssignButtonEnabled(RecordVO recordVO) {
-		return taskPresenterServices.isAutoAssignButtonEnabled(toRecord(recordVO), getCurrentUser());
+		return taskPresenterServices.isAutoAssignButtonEnabled(fromVOToRecord(recordVO), getCurrentUser());
 	}
 
 	@Override
 	public boolean isEditButtonEnabled(RecordVO recordVO) {
-		return taskPresenterServices.isEditTaskButtonVisible(toRecord(recordVO), getCurrentUser());
+		return taskPresenterServices.isEditTaskButtonVisible(fromVOToRecord(recordVO), getCurrentUser());
 	}
 
 	@Override
 	public boolean isReadByUser(RecordVO recordVO) {
-		return taskPresenterServices.isReadByUser(toRecord(recordVO));
+		return taskPresenterServices.isReadByUser(fromVOToRecord(recordVO));
 	}
 
 	@Override
@@ -265,22 +268,22 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 
 	@Override
 	public boolean isCompleteButtonEnabled(RecordVO recordVO) {
-		return taskPresenterServices.isCompleteTaskButtonVisible(toRecord(recordVO), getCurrentUser());
+		return taskPresenterServices.isCompleteTaskButtonVisible(fromVOToRecord(recordVO), getCurrentUser());
 	}
 
 	@Override
 	public boolean isCloseButtonEnabled(RecordVO recordVO) {
-		return taskPresenterServices.isCloseTaskButtonVisible(toRecord(recordVO), getCurrentUser());
+		return taskPresenterServices.isCloseTaskButtonVisible(fromVOToRecord(recordVO), getCurrentUser());
 	}
 
 	@Override
 	public boolean isDeleteButtonEnabled(RecordVO recordVO) {
-		return taskPresenterServices.isDeleteTaskButtonVisible(toRecord(recordVO), getCurrentUser());
+		return taskPresenterServices.isDeleteTaskButtonVisible(fromVOToRecord(recordVO), getCurrentUser());
 	}
 
 	public void deleteButtonClicked() {
 		try {
-			taskPresenterServices.deleteTask(toRecord(taskVO), getCurrentUser());
+			taskPresenterServices.deleteTask(fromVOToRecord(taskVO), getCurrentUser());
 		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
 			view.showErrorMessage(MessageUtils.toMessage(e));
 		}
@@ -291,7 +294,7 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 	@Override
 	public void deleteButtonClicked(RecordVO entity) {
 		try {
-			taskPresenterServices.deleteTask(toRecord(entity), getCurrentUser());
+			taskPresenterServices.deleteTask(fromVOToRecord(entity), getCurrentUser());
 		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
 			view.showErrorMessage(MessageUtils.toMessage(e));
 		}
@@ -360,16 +363,16 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 	}
 
 	public boolean isCompleteTaskButtonVisible(RecordVO entity) {
-		return taskPresenterServices.isCompleteTaskButtonVisible(toRecord(entity), getCurrentUser());
+		return taskPresenterServices.isCompleteTaskButtonVisible(fromVOToRecord(entity), getCurrentUser());
 	}
 
 	public boolean isCloseTaskButtonVisible(RecordVO entity) {
-		return taskPresenterServices.isCloseTaskButtonVisible(toRecord(entity), getCurrentUser());
+		return taskPresenterServices.isCloseTaskButtonVisible(fromVOToRecord(entity), getCurrentUser());
 	}
 
 	@Override
 	public boolean isDeleteButtonVisible(RecordVO entity) {
-		return taskPresenterServices.isDeleteTaskButtonVisible(toRecord(entity), getCurrentUser());
+		return taskPresenterServices.isDeleteTaskButtonVisible(fromVOToRecord(entity), getCurrentUser());
 	}
 
 	@Override
@@ -488,7 +491,7 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 	}
 
 	public boolean isClosedOrTerminated() {
-		Record record = toRecord(taskVO);
+		Record record = fromVOToRecord(taskVO);
 		Task task = tasksSchemas.wrapTask(record);
 		String closed = task.getStatus();
 		boolean isClosedOrTerminated = getFinishedOrClosedStatuses().contains(closed);
@@ -514,4 +517,13 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 		return appLayerFactory;
 	}
 
+	private Record fromVOToRecord(RecordVO recordVO) {
+		try {
+			return toRecord(recordVO);
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
+		return null;
+	}
 }

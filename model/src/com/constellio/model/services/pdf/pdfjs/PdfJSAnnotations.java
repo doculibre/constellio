@@ -1,6 +1,6 @@
-package com.constellio.model.services.pdf.pdfjs.signature;
+package com.constellio.model.services.pdf.pdfjs;
 
-import com.constellio.model.services.pdf.signature.PdfSignatureAnnotation;
+import com.constellio.model.services.pdf.PdfAnnotation;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -35,17 +35,17 @@ public class PdfJSAnnotations {
 		jsonObject.put("version", version);
 	}
 
-	public List<PdfSignatureAnnotation> getSignatureAnnotations(PDDocument pdDocument, boolean unbakedOnly) {
-		List<PdfSignatureAnnotation> signatureAnnotations = new ArrayList<>();
+	public List<PdfAnnotation> getAnnotationsToSaveWithSignature(PDDocument pdDocument, boolean unbakedOnly) {
+		List<PdfAnnotation> signatureAnnotations = new ArrayList<>();
 		JSONObject pagesAndAnnotations = jsonObject.getJSONObject("pagesAndAnnotations");
 		for (String pageStr : pagesAndAnnotations.keySet()) {
 			// 1 based in PDFJS, 0 based in PDFBox
 			JSONArray pageAnnotations = pagesAndAnnotations.getJSONArray(pageStr);
 			for (int i = 0; i < pageAnnotations.length(); i++) {
 				JSONObject annotationJson = pageAnnotations.getJSONObject(i);
-				if (isSignatureAnnotation(annotationJson)) {
+				if (isAnnotationToSaveWithSignature(annotationJson)) {
 					int page0Base = Integer.parseInt(pageStr) - 1;
-					PdfJSSignatureAnnotation signatureAnnotation = new PdfJSSignatureAnnotation(annotationJson, pdDocument, page0Base);
+					PdfJSAnnotation signatureAnnotation = new PdfJSAnnotation(annotationJson, pdDocument, page0Base);
 					if (!unbakedOnly || !signatureAnnotation.isBaked()) {
 						signatureAnnotations.add(signatureAnnotation);
 					}
@@ -55,31 +55,34 @@ public class PdfJSAnnotations {
 		return signatureAnnotations;
 	}
 
-	private boolean isSignatureAnnotation(JSONObject annotationJson) {
-		boolean signatureAnnotation;
+	private boolean isAnnotationToSaveWithSignature(JSONObject annotationJson) {
+		boolean annotationToSaveWithSignature;
 		String type = annotationJson.getString("type");
-		if ("signature-image-annotation".equals(type) || "signature-pad-annotation".equals(type)) {
-			signatureAnnotation = true;
+		if ("signature-image-annotation".equals(type)
+			|| "signature-pad-annotation".equals(type)
+			|| "signature-text-annotation".equals(type)
+			|| "text-annotation".equals(type)) {
+			annotationToSaveWithSignature = true;
 		} else {
-			signatureAnnotation = false;
+			annotationToSaveWithSignature = false;
 		}
-		return signatureAnnotation;
+		return annotationToSaveWithSignature;
 	}
 
-	public void markSignatureAnnotationsAsBaked(String bakeUser, Date bakeDate) {
+	public void markAnnotationsToSaveWithSignatureAsBaked(String bakeUser, Date bakeDate) {
 		JSONObject pagesAndAnnotations = jsonObject.getJSONObject("pagesAndAnnotations");
 		for (String pageStr : pagesAndAnnotations.keySet()) {
 			// 1 based in PDFJS, 0 based in PDFBox
 			JSONArray pageAnnotations = pagesAndAnnotations.getJSONArray(pageStr);
 			for (Iterator<Object> it = pageAnnotations.iterator(); it.hasNext(); ) {
 				JSONObject annotationJson = (JSONObject) it.next();
-				if (isSignatureAnnotation(annotationJson) && !annotationJson.getBoolean("baked")) {
+				if (isAnnotationToSaveWithSignature(annotationJson) && !annotationJson.getBoolean("baked")) {
 					String type = annotationJson.getString("type");
-					if ("signature-pad-annotation".equals(type)) {
+					if ("signature-pad-annotation".equals(type)
+						|| "signature-text-annotation".equals(type)) {
 						annotationJson.put("type", "signature-image-annotation");
-						String imageUrl = annotationJson.getString("imageUrl");
-						annotationJson.remove("imageUrl");
-						annotationJson.put("url", imageUrl);
+					} else if ("text-annotation".equals(type)) {
+						annotationJson.put("type", "image-annotation");
 					}
 					annotationJson.put("readOnly", true);
 					annotationJson.put("baked", true);
