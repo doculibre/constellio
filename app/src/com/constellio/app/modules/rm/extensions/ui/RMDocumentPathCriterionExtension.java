@@ -34,7 +34,7 @@ public class RMDocumentPathCriterionExtension extends SearchCriterionExtension {
 		Component component = null;
 
 		if (criterion.getSchemaType().equals(Document.SCHEMA_TYPE)
-			&& criterion.getMetadataCode().endsWith(Schemas.PATH.getCode())) {
+			&& criterion.getMetadataCode().endsWith(Schemas.PATH.getLocalCode())) {
 			component = buildComponentForDocumentPath(criterion);
 		}
 

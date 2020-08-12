@@ -18,7 +18,6 @@ import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
-import com.constellio.app.modules.rm.ui.buttons.RenameDialogButton;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -47,7 +46,6 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
-import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
@@ -101,6 +99,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.security.AuthorizationsServices;
+import com.google.common.base.Strings;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -110,7 +109,6 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.extern.slf4j.Slf4j;
@@ -227,119 +225,10 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
-	public void renameContent(final Document document, final MenuItemActionBehaviorParams params) {
-		//		BaseView view = params.getView();
-		//		Map<String, String> formParams = params.getFormParams();
-		//		String documentId = document.getId();
-		//
-		//		boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(formParams);
-		//		if (areSearchTypeAndSearchIdPresent) {
-		//			view.navigate().to(RMViews.class).addDocumentWithContentFromDecommission(documentId,
-		//					DecommissionNavUtil.getSearchId(formParams), DecommissionNavUtil.getSearchType(formParams));
-		//		} else if (formParams != null && formParams.get(RMViews.FAV_GROUP_ID_KEY) != null) {
-		//			view.navigate().to(RMViews.class)
-		//					.addDocumentWithContentFromFavorites(documentId, formParams.get(RMViews.FAV_GROUP_ID_KEY));
-		//		} else if (rmModuleExtensions.navigateToAddDocumentWhileKeepingTraceOfPreviousView(
-		//				new NavigateToFromAPageParams(formParams, documentId))) {
-		//		} else {
-		//			view.navigate().to(RMViews.class).addDocumentWithContent(documentId);
-		//		}
-		WindowButton renameContentButton = new WindowButton($("DocumentContextMenu.renameContent"), $("DocumentContextMenu.renameContent"),
-				WindowConfiguration.modalDialog("40%", "100px")) {
-			@Override
-			protected Component buildWindowContent() {
-				final TextField title = new BaseTextField();
-				String contentTitle = document.getContent().getCurrentVersion().getFilename();
-				title.setValue(contentTitle);
-				title.setWidth("100%");
-
-				Button save = new BaseButton($("DisplayDocumentView.renameContentConfirm")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						renameContentButtonClicked(document, params, title.getValue());
-						getWindow().close();
-					}
-				};
-				save.addStyleName(ValoTheme.BUTTON_PRIMARY);
-				save.addStyleName(BaseForm.SAVE_BUTTON);
-
-				Button cancel = new BaseButton($("DisplayDocumentView.renameContentCancel")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						getWindow().close();
-					}
-				};
-
-				HorizontalLayout form = new HorizontalLayout(title, save, cancel);
-				form.setExpandRatio(title, 1);
-				form.setSpacing(true);
-				form.setWidth("95%");
-
-				VerticalLayout layout = new VerticalLayout(form);
-				layout.setSizeFull();
-
-				return layout;
-			}
-		};
-		renameContentButton.click();
-	}
-
 	public void edit(Document document, MenuItemActionBehaviorParams params) {
 		document = loadingFullRecordIfSummary(document);
 		params.getView().navigate().to(RMViews.class).editDocument(document.getId());
 		updateSearchResultClicked(document.getWrappedRecord());
-	}
-
-	public void rename(Document document, MenuItemActionBehaviorParams params) {
-		RenameDialogButton window = new RenameDialogButton(
-				FontAwesome.PENCIL_SQUARE_O,
-				$("DisplayDocumentView.renameContent"),
-				$("DisplayDocumentView.renameContent"),
-				false) {
-			@Override
-			public void save(String newValue) {
-				boolean isManualEntry = rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL;
-				boolean isNotAddOnly = !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
-						.getPopulateConfigs().isAddOnly();
-				Document documentWithAllMetadata = rm.getDocument(document.getId());
-				String filename = documentWithAllMetadata.getContent().getCurrentVersion().getFilename();
-				String extension = FilenameUtils.getExtension(filename);
-
-				if (!(FilenameUtils.getExtension(newValue).equals(extension))) {
-					if (!extension.isEmpty()) {
-						newValue = FilenameUtils.removeExtension(newValue) + "." + extension;
-					} else {
-						newValue = FilenameUtils.removeExtension(newValue);
-					}
-				}
-
-				if (filename.equals(documentWithAllMetadata.getTitle())) {
-					if (isManualEntry && isNotAddOnly) {
-						documentWithAllMetadata.setTitle(newValue);
-					}
-
-				} else if (FilenameUtils.removeExtension(filename).equals(documentWithAllMetadata.getTitle())) {
-					if (isManualEntry && isNotAddOnly) {
-						documentWithAllMetadata.setTitle(FilenameUtils.removeExtension(newValue));
-					}
-				}
-
-				documentWithAllMetadata.getContent().renameCurrentVersion(newValue);
-				try {
-					recordServices.update(documentWithAllMetadata.getWrappedRecord(), params.getUser());
-					getWindow().close();
-					if (params.getView() instanceof HomeViewImpl) {
-						HomeViewImpl homeView = (HomeViewImpl) params.getView();
-						homeView.recordChanged(documentWithAllMetadata.getId());
-					} else {
-						navigateToDisplayDocument(documentWithAllMetadata.getId(), params.getFormParams());
-					}
-				} catch (RecordServicesException e) {
-					params.getView().showErrorMessage(MessageUtils.toMessage(e));
-				}
-			}
-		};
-		window.click();
 	}
 
 	public void download(Document document, MenuItemActionBehaviorParams params) {
@@ -418,37 +307,6 @@ public class DocumentMenuItemActionBehaviors {
 			MessageUtils.getCannotDeleteWindow(validateDeleteDocumentPossibleExtensively(
 					document.getWrappedRecord(), params.getUser())).openWindow();
 		}
-	}
-
-	private void renameContentButtonClicked(Document document, MenuItemActionBehaviorParams params,
-											String newContentTitle) {
-		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA,
-				params.getView().getConstellioFactories(), params.getView().getSessionContext());
-		if (document != null) {
-			document = renameContentButtonClicked(document, newContentTitle);
-			presenterUtils.addOrUpdate(document.getWrappedRecord());
-			params.getView().updateUI();
-			//			navigateToDisplayDocument(document.getId(), params.getFormParams());
-		}
-	}
-
-	private Document renameContentButtonClicked(Document document, String newName) {
-		boolean isManualEntry = rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL;
-		if (document.getContent().getCurrentVersion().getFilename().equals(document.getTitle())) {
-			if (isManualEntry && !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
-					.getPopulateConfigs().isAddOnly()) {
-				document.setTitle(newName);
-			}
-		} else if (FilenameUtils.removeExtension(document.getContent().getCurrentVersion().getFilename())
-				.equals(document.getTitle())) {
-			if (isManualEntry && !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
-					.getPopulateConfigs().isAddOnly()) {
-				document.setTitle(FilenameUtils.removeExtension(newName));
-			}
-		}
-
-		document.getContent().renameCurrentVersion(newName);
-		return document;
 	}
 
 	public void finalize(Document document, MenuItemActionBehaviorParams params) {

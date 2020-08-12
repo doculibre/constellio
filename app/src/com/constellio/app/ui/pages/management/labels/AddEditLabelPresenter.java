@@ -25,16 +25,21 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabelView> {
+	private static Logger LOGGER = LoggerFactory.getLogger(AddEditLabelPresenter.class);
+
 	private MetadataSchemaToVOBuilder schemaVOBuilder;
 	private transient RMConfigs rmConfigs;
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
@@ -205,7 +210,13 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 
 	public void removeRecord(String itemId, String schema) {
 		SchemaPresenterUtils utils = new SchemaPresenterUtils(PrintableLabel.SCHEMA_NAME, view.getConstellioFactories(), view.getSessionContext());
-		Record record = utils.toRecord(this.getRecordsWithIndex(schema, itemId));
+		Record record = null;
+		try {
+			record = utils.toRecord(this.getRecordsWithIndex(schema, itemId));
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
 		recordServices().physicallyDeleteNoMatterTheStatus(record, null, new RecordPhysicalDeleteOptions());
 		view.navigate().to().manageLabels();
 	}

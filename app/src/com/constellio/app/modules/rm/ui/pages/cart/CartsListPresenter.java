@@ -15,10 +15,13 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.jgoodies.common.base.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,6 +29,7 @@ import java.util.List;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(CartsListPresenter.class);
 
 	private RecordToVOBuilder recordToVOBuilder = new RecordToVOBuilder();
 	private final MetadataSchemaVO schemaVO;
@@ -66,7 +70,12 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
-		delete(toRecord(recordVO));
+		try {
+			delete(toRecord(recordVO));
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
 		view.navigate().to(RMViews.class).listCarts();
 	}
 

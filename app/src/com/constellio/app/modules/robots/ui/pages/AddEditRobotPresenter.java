@@ -42,6 +42,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.schemas.MetadataList;
@@ -50,6 +51,8 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.ui.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -63,6 +66,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		implements FieldOverridePresenter, SearchCriteriaPresenter, DynamicParametersPresenter {
+	private static Logger LOGGER = LoggerFactory.getLogger(AddEditRobotPresenter.class);
 	private static final String RUN_EXTRACTORS_ACTION = "runExtractorsAction";
 	private static final String PATH_PREFIX = "pathPrefix";
 	private static final String IN_TAXONOMY = "inTaxonomy";
@@ -128,9 +132,15 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	public void saveButtonClicked(RecordVO recordVO) {
 		Transaction transaction = new Transaction().setUser(getCurrentUser());
 		if (actionParameters != null) {
-			transaction.add(toParametersRecord(actionParameters));
+			try {
+				transaction.add(toParametersRecord(actionParameters));
+				transaction.add(toRecord(recordVO));
+			} catch (OptimisticLockException e) {
+				LOGGER.error(e.getMessage());
+				view.showErrorMessage(e.getMessage());
+			}
 		}
-		transaction.add(toRecord(recordVO));
+
 		try {
 			recordServices().execute(transaction);
 		} catch (RecordServicesException e) {
@@ -372,7 +382,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		}
 	}
 
-	private Record toParametersRecord(RecordVO recordVO) {
+	private Record toParametersRecord(RecordVO recordVO) throws OptimisticLockException {
 		String schema = ActionParameters.SCHEMA_TYPE + "_" + getParametersSchemaLocalCode();
 		return new SchemaPresenterUtils(schema, view.getConstellioFactories(), view.getSessionContext()).toRecord(recordVO);
 	}
@@ -385,6 +395,9 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		} catch (ValidationException e) {
 			view.showErrorMessage($(e.getErrors()));
 			return false;
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
 		}
 		actionParameters = record;
 		view.resetActionParameters(record);
@@ -438,7 +451,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 
 	private LogicalSearchCondition getSearchCondition(List<Criterion> searchCriteria) {
 		RobotsManager robotsManager = manager();
-		Robot tmpRobot = robotSchemas().wrapRobot(toRecord(robot));
+		Robot tmpRobot = robotSchemas().getRobot(robot.getId());
 		tmpRobot.setSearchCriteria(searchCriteria);
 		tmpRobot.setSchemaFilter(schemaFilter);
 		return robotsManager.getResolveCondition(tmpRobot);

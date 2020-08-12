@@ -237,7 +237,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	Record currentDocument() {
 		if (currentDocument == null) {
-			currentDocument = presenterUtils.toRecord(documentVO);
+			currentDocument = rmSchemasRecordsServices.get(documentVO.getId());
 		}
 		return currentDocument;
 	}

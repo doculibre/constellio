@@ -12,10 +12,14 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.io.ConversionManager;
+import com.constellio.model.conf.email.EmailConfigurationsManager;
+import com.constellio.model.conf.email.EmailServerConfiguration;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import org.apache.commons.io.FilenameUtils;
@@ -36,6 +40,8 @@ public class DocumentRecordActionsServices {
 	private RecordServices recordServices;
 	private ConversionManager conversionManager;
 	private transient ModelLayerCollectionExtensions modelLayerCollectionExtensions;
+	private EmailConfigurationsManager emailConfigurationsManager;
+	private SystemConfigurationsManager systemConfigurationsManager;
 
 	public static final String MSG_FILE_EXT = "msg";
 	public static final String EML_FILE_EXT = "eml";
@@ -48,6 +54,8 @@ public class DocumentRecordActionsServices {
 		this.modelLayerCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
 		conversionManager = ConstellioFactories.getInstance().getDataLayerFactory().getConversionManager();
 		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
+		this.emailConfigurationsManager = appLayerFactory.getModelLayerFactory().getEmailConfigurationsManager();
+		this.systemConfigurationsManager = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager();
 	}
 
 	public String getBorrowedMessage(Record record, User user) {
@@ -94,15 +102,9 @@ public class DocumentRecordActionsServices {
 			   rmModuleExtensions.isEditActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
-	public boolean isRenameActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) &&
-			   rm.wrapDocument(record).hasContent() &&
-			   !record.isLogicallyDeleted() &&
-			   rmModuleExtensions.isRenameActionPossibleOnDocument(rm.wrapDocument(record), user);
-	}
-
 	public boolean isRenameContentActionPossible(Record record, User user) {
 		return user.hasReadAccess().on(record) &&
+			   rm.wrapDocument(record).hasContent() &&
 			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isRenameContentActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
@@ -327,9 +329,12 @@ public class DocumentRecordActionsServices {
 		List<String> supportedExtensions = new ArrayList<>(Arrays.asList(conversionManager.getAllSupportedExtensions()));
 		supportedExtensions.add("pdf");
 
+		EmailServerConfiguration emailConfiguration = emailConfigurationsManager.getEmailConfiguration(collection, false);
 		return user.hasWriteAccess().on(record) &&
 			   user.has(RMPermissionsTo.GENERATE_EXTERNAL_SIGNATURE_URL).globally() &&
 			   document.hasContent() &&
+			   emailConfiguration != null && emailConfiguration.isEnabled() &&
+			   systemConfigurationsManager.getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE) != null &&
 			   FilenameUtils.isExtension(document.getContent().getCurrentVersion().getFilename(), supportedExtensions);
 	}
 
@@ -386,7 +391,7 @@ public class DocumentRecordActionsServices {
 			   rmModuleExtensions.isGenerateReportActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
-	public boolean isAddAuthorizationActionPossible(Record record, User user) {
+	public boolean isShareDocumenmtActionPossible(Record record, User user) {
 		return user.has(RMPermissionsTo.SHARE_DOCUMENT).on(record) &&
 			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isAddAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
@@ -398,12 +403,15 @@ public class DocumentRecordActionsServices {
 			   && !record.isLogicallyDeleted();
 	}
 
-	public boolean isManageAuthorizationActionPossible(Record record, User user) {
-		return user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record) &&
-			   user.hasWriteAndDeleteAccess().on(record) &&
+	public boolean isViewOrAddAuthorizationActionPossible(Record record, User user) {
+		return ((user.has(RMPermissionsTo.VIEW_DOCUMENT_AUTHORIZATIONS).on(record) && user.hasReadAccess().on(record))
+				|| (isEditActionPossible(record, user) &&
+					user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record) &&
+					user.hasWriteAndDeleteAccess().on(record))) &&
 			   !record.isLogicallyDeleted() &&
-			   rmModuleExtensions.isManageAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
+			   rmModuleExtensions.isViewOrAddAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
+
 
 	public boolean isConsultLinkActionPossible(Record record, User user) {
 		return user.hasReadAccess().on(record)

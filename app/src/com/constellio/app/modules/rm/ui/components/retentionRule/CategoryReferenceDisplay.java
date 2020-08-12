@@ -23,6 +23,6 @@ public class CategoryReferenceDisplay extends ReferenceDisplay {
 		UserServices userServices = constellioFactories.getModelLayerFactory().newUserServices();
 		User user = userServices.getUserInCollection(username, collection);
 
-		return user.hasAny(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally() || user.has(RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN).globally();
+		return user.hasAny(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).onSomething() || user.has(RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN).onSomething();
 	}
 }

@@ -57,7 +57,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 
 		} else if (canManageTaxonomyParams.getTaxonomy().getCode().equals(RMTaxonomies.CLASSIFICATION_PLAN)) {
 			return ExtensionBooleanResult.forceTrueIf(
-					user.has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally());
+					user.has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).onSomething());
 		} else if (canManageTaxonomyParams.getTaxonomy().getCode().equals(RMTaxonomies.STORAGES)) {
 			return ExtensionBooleanResult.forceTrueIf(
 					user.has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally());
@@ -68,7 +68,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 
 	public ExtensionBooleanResult canConsultTaxonomy(CanConsultTaxonomyParams canConsultTaxonomyParams) {
 		if(canConsultTaxonomyParams.getTaxonomy().getCode().equals(RMTaxonomies.CLASSIFICATION_PLAN)) {
-			return ExtensionBooleanResult.forceTrueIf(canConsultTaxonomyParams.getUser().has(RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN).globally());
+			return ExtensionBooleanResult.forceTrueIf(canConsultTaxonomyParams.getUser().has(RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN).onSomething());
 		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;
 		}
