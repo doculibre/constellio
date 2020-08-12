@@ -42,7 +42,7 @@ public class AlertDocumentBorrowingPeriodBackgroundActionAcceptanceTest extends 
 	public void givenDocumentWithCheckoutPeriodOverWhenRunAlertDocumentBorrowingPeriodBackgroundActionThenSendEmail()
 			throws RecordServicesException {
 		givenConfig(RMConfigs.DOCUMENT_BORROWING_DURATION_IN_DAYS, 7);
-		Document document = records.getDocumentWithContent_A19().setBorrowed(true);
+		Document document = records.getDocumentWithContent_A19();
 		Content content = document.getContent();
 		content.checkOut(users.adminIn(zeCollection));
 		document.setContent(content);
@@ -64,7 +64,7 @@ public class AlertDocumentBorrowingPeriodBackgroundActionAcceptanceTest extends 
 	@Test
 	public void givenDocumentWithCheckoutPeriodOverAndAlertAlreadySentWhenRunAlertDocumentBorrowingPeriodBackgroundActionThenSendEmail()
 			throws RecordServicesException {
-		Document document = records.getDocumentWithContent_A19().setBorrowed(true);
+		Document document = records.getDocumentWithContent_A19();
 		Content content = document.getContent();
 		content.checkOut(users.adminIn(zeCollection));
 		document.setContent(content);
@@ -81,7 +81,7 @@ public class AlertDocumentBorrowingPeriodBackgroundActionAcceptanceTest extends 
 	public void givenDocumentWithCheckoutPeriodNotOverWhenRunAlertDocumentBorrowingPeriodBackgroundActionThenEmailIsNotSent()
 			throws RecordServicesException {
 		givenConfig(RMConfigs.DOCUMENT_BORROWING_DURATION_IN_DAYS, 7);
-		Document document = records.getDocumentWithContent_A19().setBorrowed(true);
+		Document document = records.getDocumentWithContent_A19();
 		Content content = document.getContent();
 		content.checkOut(users.adminIn(zeCollection));
 		document.setContent(content);
