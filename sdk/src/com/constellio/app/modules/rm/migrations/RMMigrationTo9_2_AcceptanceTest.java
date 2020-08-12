@@ -7,6 +7,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -82,15 +83,15 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 		}
 
 		//Metadonnées retirées?
-		assertThat(credentialMetadataSchema.hasMetadataWithCode("firstname")).isFalse();
-		assertThat(credentialMetadataSchema.hasMetadataWithCode("lastname")).isFalse();
-		assertThat(credentialMetadataSchema.hasMetadataWithCode("email")).isFalse();
-		assertThat(credentialMetadataSchema.hasMetadataWithCode("personalEmails")).isFalse();
-		assertThat(credentialMetadataSchema.hasMetadataWithCode("phone")).isFalse();
-		assertThat(credentialMetadataSchema.hasMetadataWithCode("globalGroups")).isFalse();
-		assertThat(credentialMetadataSchema.hasMetadataWithCode("fax")).isFalse();
-		assertThat(credentialMetadataSchema.hasMetadataWithCode("jobTitle")).isFalse();
-		assertThat(credentialMetadataSchema.hasMetadataWithCode("address")).isFalse();
+		//		assertThat(credentialMetadataSchema.hasMetadataWithCode("firstname")).isFalse();
+		//		assertThat(credentialMetadataSchema.hasMetadataWithCode("lastname")).isFalse();
+		//		assertThat(credentialMetadataSchema.hasMetadataWithCode("email")).isFalse();
+		//		assertThat(credentialMetadataSchema.hasMetadataWithCode("personalEmails")).isFalse();
+		//		assertThat(credentialMetadataSchema.hasMetadataWithCode("phone")).isFalse();
+		//		assertThat(credentialMetadataSchema.hasMetadataWithCode("globalGroups")).isFalse();
+		//		assertThat(credentialMetadataSchema.hasMetadataWithCode("fax")).isFalse();
+		//		assertThat(credentialMetadataSchema.hasMetadataWithCode("jobTitle")).isFalse();
+		//		assertThat(credentialMetadataSchema.hasMetadataWithCode("address")).isFalse();
 
 		//Métadonnées déplacés dans users?
 		assertThat(userMetadataSchema.hasMetadataWithCode(User.DOMAIN)).isTrue();
@@ -153,7 +154,6 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 			}
 		});
 
-
 		//String bossesGroupId = "00000012345"; On auraut très bien pu hardcoder l'id, il est dans le savestate
 		String bossesGroupId = getModelLayerFactory().newUserServices().getGroupInCollection("Bosses", "LaCollectionDeRida").getId();
 		assertThat(dusty.getUserGroups()).containsOnly(bossesGroupId);
@@ -168,18 +168,43 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 			}
 		});
 
+		//All global groups are gone
+		assertThat(getAllGlobalGroups(getModelLayerFactory())).isEmpty();
+
 		//assertThatUser("MachoMan").isInCollections(zeCollection).hasGroupsInCollection("G1", "zeCollection");
 		//assertThatUser("Embalmer").doesNotExist();
+
+		User marie = users.stream().filter(x -> x.getUsername().equals("marie")).findFirst().get();
+		User cartier = users.stream().filter(x -> x.getUsername().equals("cartie")).findFirst().get();
+
+		assertThat(marie.getDomain()).isEqualTo("http//:localhost:7070/");
+		assertThat(dusty.getDomain()).isEqualTo("http//:localhost:7070/");
+		assertThat(cartier.getDomain()).isEqualTo("http//:localhost:7070/");
+
+		Group legends = groups.stream().filter(x -> x.getCode().equals("legends")).findFirst().get();
+		Group villains = groups.stream().filter(x -> x.getCode().equals("villains")).findFirst().get();
+		assertThat(legends.getStatus()).isEqualTo(GlobalGroupStatus.ACTIVE);
+		assertThat(nobility.get(0).getStatus()).isEqualTo(GlobalGroupStatus.ACTIVE);
+		assertThat(villains.getStatus()).isEqualTo(GlobalGroupStatus.ACTIVE);
+		assertThat(legends.isLocallyCreated()).isTrue();
+		assertThat(nobility.get(0).isLocallyCreated()).isTrue();
+		assertThat(villains.isLocallyCreated()).isTrue();
+		assertThat(villains.getHierarchy()).isEqualTo("");
+
 	}
 
 	private void verifySaveState(List<Group> groups, List<User> users, List<UserCredential> credentials) {
+		//utilisateurs actifs ayant utilisé le sytème sont présents
 		User dusty = users.stream().filter(x -> x.getUsername().equals("dusty")).findFirst().get();
 		User marie = users.stream().filter(x -> x.getUsername().equals("marie")).findFirst().get();
 		User cartier = users.stream().filter(x -> x.getUsername().equals("cartie")).findFirst().get();
+		//utilisateurs non-actifs ayant utilisé le sytème sont présents
 		User colomb = users.stream().filter(x -> x.getUsername().equals("colomb")).findFirst().get();
 		User elizabeth = users.stream().filter(x -> x.getUsername().equals("elizabeth")).findFirst().get();
 		User naruto = users.stream().filter(x -> x.getUsername().equals("naruto")).findFirst().get();
 		User queen = users.stream().filter(x -> x.getUsername().equals("queen")).findFirst().get();
+
+		//Autres utilisateurs présents
 		User sauron = users.stream().filter(x -> x.getUsername().equals("sauron")).findFirst().get();
 		User admin = users.stream().filter(x -> x.getUsername().equals("admin")).findFirst().get();
 		User bob = users.stream().filter(x -> x.getUsername().equals("bob")).findFirst().get();
