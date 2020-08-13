@@ -371,7 +371,16 @@ public class UserAddUpdateRequest {
 	}
 
 	public UserAddUpdateRequest removeFromGroupOfCollection(String groupCode, String collection) {
-		throw new UnsupportedOperationException("TODO Rabab");
+		if (removeFromGroupInCollection == null) {
+			removeFromGroupInCollection = new HashMap<>();
+		}
+		List<String> groups = new ArrayList<>();
+		groups.add(groupCode);
+		if (removeFromGroupInCollection.containsKey(collection)) {
+			groups.addAll(removeFromGroupInCollection.get(collection));
+		}
+		removeFromGroupInCollection.put(collection, groups);
+		return this;
 	}
 
 
@@ -442,6 +451,10 @@ public class UserAddUpdateRequest {
 
 	public Map<String, List<String>> getAddToGroupInCollection() {
 		return addToGroupInCollection;
+	}
+
+	public Map<String, List<String>> getRemoveFromGroupInCollection() {
+		return removeFromGroupInCollection;
 	}
 
 	public List<String> getRemoveFromGroup() {
