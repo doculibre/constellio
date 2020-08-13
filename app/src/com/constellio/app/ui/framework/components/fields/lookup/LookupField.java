@@ -225,6 +225,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				autoCompleteField.setValue(null);
 			}
 		});
+		clearButton.setVisible(isClearButtonVisible());
 
 		I18NHorizontalLayout mainLayout = new I18NHorizontalLayout(autoCompleteField, lookupWindowButton, clearButton);
 		mainLayout.setExpandRatio(autoCompleteField, 1);
@@ -573,6 +574,10 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		} else if (taxonomyCode != null && taxonomyCode.equals(configDefaultTaxonomy)) {
 			tabSheet.setSelectedTab(lazyTreePanel);
 		}
+	}
+
+	protected boolean isClearButtonVisible() {
+		return true;
 	}
 
 	public interface LookupTreeDataProvider<T extends Serializable> extends LazyTreeDataProvider<T> {

@@ -64,6 +64,11 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 			public boolean isEnabled() {
 				return presenter.isAddMode();
 			}
+
+			@Override
+			protected boolean isClearButtonVisible() {
+				return false;
+			}
 		};
 
 		addSaveSearchListenerList(new SaveSearchListener() {
