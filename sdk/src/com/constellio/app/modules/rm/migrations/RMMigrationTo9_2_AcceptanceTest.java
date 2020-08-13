@@ -182,7 +182,6 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 		assertThat(legends.isLocallyCreated()).isTrue();
 		assertThat(nobility.get(0).isLocallyCreated()).isTrue();
 		assertThat(villains.isLocallyCreated()).isTrue();
-		assertThat(villains.getHierarchy()).isEqualTo("");
 
 	}
 
@@ -203,7 +202,7 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 		User bob = users.stream().filter(x -> x.getUsername().equals("bob")).findFirst().get();
 		User chuck = users.stream().filter(x -> x.getUsername().equals("chuck")).findFirst().get();
 		User dakota = users.stream().filter(x -> x.getUsername().equals("dakota")).findFirst().get();
-		User moe = users.stream().filter(x -> x.getUsername().equals("moe")).findFirst().get();
+		//User moe = users.stream().filter(x -> x.getUsername().equals("moe")).findFirst().get();
 
 		//not suppose to exists
 		// User Wanderer had no collections
@@ -227,7 +226,7 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 		assertThat(bob).isNotNull();
 		assertThat(chuck).isNotNull();
 		assertThat(dakota).isNotNull();
-		assertThat(moe).isNotNull();
+		//assertThat(moe).isNotNull();
 
 		assertThat(wanderer).isNull();
 		assertThat(oscar).isNull();

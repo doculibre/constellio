@@ -119,4 +119,9 @@ public class Group extends RecordWrapper {
 	public boolean isLocallyCreated() {
 		return Boolean.TRUE.equals(get(LOCALLY_CREATED));
 	}
+
+	public Group setLocallyCreated(boolean locallyCreated) {
+		set(LOCALLY_CREATED, locallyCreated);
+		return this;
+	}
 }
