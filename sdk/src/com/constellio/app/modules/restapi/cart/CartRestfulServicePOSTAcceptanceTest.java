@@ -1,102 +1,95 @@
-package com.constellio.app.modules.restapi.user;
+package com.constellio.app.modules.restapi.cart;
 
 import com.constellio.app.modules.restapi.BaseRestfulServiceAcceptanceTest;
+import com.constellio.app.modules.restapi.cart.dto.CartDto;
 import com.constellio.app.modules.restapi.core.exception.InvalidAuthenticationException;
 import com.constellio.app.modules.restapi.core.exception.mapper.RestApiErrorResponse;
-import com.constellio.app.modules.restapi.core.util.HashingUtils;
-import com.constellio.app.modules.restapi.user.dto.UserCredentialsContentDto;
-import com.constellio.app.modules.restapi.user.exception.SignatureInvalidContentException;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredTokenException;
 import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
+import com.constellio.app.modules.restapi.validation.exception.UnauthorizedAccessException;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.ui.i18n.i18n;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.ContentVersion;
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.security.roles.RolesManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPart;
-import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.util.ArrayList;
 
+import static java.util.Arrays.asList;
 import static javax.ws.rs.client.Entity.entity;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static javax.ws.rs.core.MediaType.MULTIPART_FORM_DATA_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class UserRestfulServicePOSTInitialsAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
+public class CartRestfulServicePOSTAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
 
-	private UserCredentialsContentDto initialsToAdd;
-	private File fileToAdd, invalidFileToAdd;
-	private String expectedFilename;
-	private String expectedMimeType;
-	private String expectedChecksum;
+	private RolesManager rolesManager;
 
-	private ContentManager contentManager;
+	private CartDto cartToAdd, emptyCartToAdd;
+
+	private String roleWithPermission = "roleWithPermission";
+	private String roleWithoutPermission = "roleWithoutPermission";
 
 	@Before
 	public void setUp() throws Exception {
 		setUpTest();
 
-		contentManager = getModelLayerFactory().getContentManager();
+		rolesManager = getModelLayerFactory().getRolesManager();
 
-		webTarget = newWebTarget("v1/user/credentials/initials", new ObjectMapper());
+		webTarget = newWebTarget("v1/cart", new ObjectMapper());
 
-		fileToAdd = getTestResourceFile("imageTestFile.png");
-		invalidFileToAdd = getTestResourceFile("docTestFile.docx");
-		initialsToAdd = UserCredentialsContentDto.builder().filename(fileToAdd.getName()).build();
+		cartToAdd = CartDto.builder().title("New cart").build();
+		emptyCartToAdd = CartDto.builder().build();
 
-		FileInputStream fileStream = new FileInputStream(fileToAdd);
-		byte[] fileData = new byte[fileStream.available()];
-		fileStream.read(fileData);
-		fileStream.close();
+		rolesManager.addRole(new Role(zeCollection, roleWithPermission, "Role with permission", new ArrayList<String>()));
+		rolesManager.addRole(new Role(zeCollection, roleWithoutPermission, "Role without permission", new ArrayList<String>()));
 
-		expectedFilename = fileToAdd.getName();
-		expectedMimeType = "image/png";
-		expectedChecksum = HashingUtils.md5(fileData);
+		Role role = rolesManager.getRole(zeCollection, roleWithPermission);
+		role = role.withPermissions(asList(RMPermissionsTo.USE_GROUP_CART));
+		rolesManager.updateRole(role);
+
+		recordServices.update(userServices.getUserRecordInCollection(bobGratton, zeCollection)
+				.setUserRoles(asList(roleWithPermission)));
+
+		commitCounter.reset();
+		queryCounter.reset();
 	}
 
 	@Test
-	public void validateService()
-			throws Exception {
-
-		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
+	public void validateService() {
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("collection", zeCollection).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.post(entity(buildMultiPart(initialsToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
 
-		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
+		assertThat(response.getStatus()).isEqualTo(Status.CREATED.getStatusCode());
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall()).hasSize(1);
 
-		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
-		Content content = userCredentials.getElectronicInitials();
-		ContentVersion contentVersion = content.getCurrentVersion();
+		CartDto cartDto = response.readEntity(CartDto.class);
+		assertThat(cartDto.getId()).isNotNull().isNotEmpty();
+		assertThat(cartDto.getOwner()).isEqualTo(users.bobIn(zeCollection).getId());
+		assertThat(cartDto.getTitle()).isEqualTo(cartToAdd.getTitle());
 
-		InputStream stream = contentManager.getContentInputStream(contentVersion.getHash(), contentVersion.getFilename());
-		String checksum = HashingUtils.md5(readStreamEntity(stream));
-		stream.close();
-
-		assertThat(checksum).isEqualTo(expectedChecksum);
-		assertThat(contentVersion.getFilename()).isEqualTo(expectedFilename);
-		assertThat(contentVersion.getMimetype()).isEqualTo(expectedMimeType);
+		Cart cart = rm.getCart(cartDto.getId());
+		assertThat(cart).isNotNull();
+		assertThat(cart.getId()).isEqualTo(cartDto.getId());
+		assertThat(cart.getOwner()).isEqualTo(cartDto.getOwner());
+		assertThat(cart.getTitle()).isEqualTo(cartDto.getTitle());
 	}
 
 	@Test
 	public void whenCallingServiceWithoutAuthorizationHeader() {
-		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("collection", zeCollection).request()
 				.header(HttpHeaders.HOST, host)
-				.post(entity(buildMultiPart(initialsToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -109,9 +102,10 @@ public class UserRestfulServicePOSTInitialsAcceptanceTest extends BaseRestfulSer
 
 	@Test
 	public void whenCallingServiceWithEmptyAuthorizationHeader() {
-		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("collection", zeCollection).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "")
-				.post(entity(buildMultiPart(initialsToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -124,9 +118,10 @@ public class UserRestfulServicePOSTInitialsAcceptanceTest extends BaseRestfulSer
 
 	@Test
 	public void whenCallingServiceWithInvalidSchemeInAuthorizationHeader() {
-		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("collection", zeCollection).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Basic ".concat(token))
-				.post(entity(buildMultiPart(initialsToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -139,9 +134,10 @@ public class UserRestfulServicePOSTInitialsAcceptanceTest extends BaseRestfulSer
 
 	@Test
 	public void whenCallingServiceWithoutSchemeInAuthorizationHeader() {
-		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("collection", zeCollection).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, token)
-				.post(entity(buildMultiPart(initialsToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -154,9 +150,10 @@ public class UserRestfulServicePOSTInitialsAcceptanceTest extends BaseRestfulSer
 
 	@Test
 	public void whenCallingServiceWithExpiredToken() {
-		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("collection", zeCollection).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(expiredToken))
-				.post(entity(buildMultiPart(initialsToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -168,9 +165,10 @@ public class UserRestfulServicePOSTInitialsAcceptanceTest extends BaseRestfulSer
 
 	@Test
 	public void whenCallingServiceWithInvalidToken() {
-		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("collection", zeCollection).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(fakeToken))
-				.post(entity(buildMultiPart(initialsToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -182,9 +180,9 @@ public class UserRestfulServicePOSTInitialsAcceptanceTest extends BaseRestfulSer
 
 	@Test
 	public void whenCallingServiceWithoutServiceKeyParam() {
-		Response response = webTarget.request()
+		Response response = webTarget.queryParam("collection", zeCollection).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.post(entity(buildMultiPart(initialsToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -196,9 +194,10 @@ public class UserRestfulServicePOSTInitialsAcceptanceTest extends BaseRestfulSer
 
 	@Test
 	public void whenCallingServiceWithInvalidServiceKeyParam() {
-		Response response = webTarget.queryParam("serviceKey", fakeServiceKey).request()
+		Response response = webTarget.queryParam("serviceKey", fakeServiceKey)
+				.queryParam("collection", zeCollection).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.post(entity(buildMultiPart(initialsToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -210,9 +209,10 @@ public class UserRestfulServicePOSTInitialsAcceptanceTest extends BaseRestfulSer
 
 	@Test
 	public void whenCallingServiceWithUnallowedHostHeader() {
-		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("collection", zeCollection).request()
 				.header(HttpHeaders.HOST, fakeHost).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.post(entity(buildMultiPart(initialsToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
@@ -223,64 +223,69 @@ public class UserRestfulServicePOSTInitialsAcceptanceTest extends BaseRestfulSer
 	}
 
 	@Test
-	public void whenCallingServiceWithMissingSignaturePart() {
+	public void whenCallingServiceWithMissingCollection() {
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.post(entity(buildMultiPart(null, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
 
 		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
-		assertThat(error.getMessage()).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "userInitials"));
+		assertThat(error.getMessage()).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "collection"));
 	}
 
 	@Test
-	public void whenCallingServiceWithMissingFilename() {
-		UserCredentialsContentDto emptyInitialsToAdd = UserCredentialsContentDto.builder().build();
-
-		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
+	public void whenCallingServiceWithInvalidCollection() {
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("collection", "fakeCollection").request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.post(entity(buildMultiPart(emptyInitialsToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
 
-		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+		assertThat(response.getStatus()).isEqualTo(Status.FORBIDDEN.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
-		assertThat(error.getMessage()).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "userInitials.filename"));
+		assertThat(error.getMessage()).isEqualTo(i18n.$(new UnauthenticatedUserException().getValidationError()));
 	}
 
 	@Test
-	public void whenCallingServiceWithMissingFile() {
-		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
+	public void whenCallingServiceWithMissingCart() {
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("collection", zeCollection).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.post(entity(buildMultiPart(initialsToAdd, null), MULTIPART_FORM_DATA_TYPE));
+				.post(entity(null, APPLICATION_JSON_TYPE));
 
 		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
-		assertThat(error.getMessage()).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "file"));
+		assertThat(error.getMessage()).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "cart"));
 	}
 
 	@Test
-	public void whenCallingServiceWithInvalidFile() {
-		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
+	public void whenCallingServiceWithMissingTitle() {
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("collection", zeCollection).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
-				.post(entity(buildMultiPart(initialsToAdd, invalidFileToAdd), MULTIPART_FORM_DATA_TYPE));
+				.post(entity(emptyCartToAdd, APPLICATION_JSON_TYPE));
 
 		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
-		assertThat(error.getMessage()).isEqualTo(i18n.$(new SignatureInvalidContentException().getValidationError()));
+		assertThat(error.getMessage()).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "cart.title"));
 	}
 
-	private MultiPart buildMultiPart(UserCredentialsContentDto userInitials, File file) {
-		FormDataMultiPart multiPart = new FormDataMultiPart();
-		if (userInitials != null) {
-			multiPart.bodyPart(new FormDataBodyPart("userInitials", userInitials, APPLICATION_JSON_TYPE));
-		}
-		if (file != null) {
-			multiPart.bodyPart(new FileDataBodyPart("file", file, MediaType.APPLICATION_OCTET_STREAM_TYPE));
-		}
+	@Test
+	public void whenCallingServiceWithoutPermission() throws Exception {
+		recordServices.update(userServices.getUserRecordInCollection(bobGratton, zeCollection)
+				.setUserRoles(asList(roleWithoutPermission)));
 
-		return multiPart;
+		Response response = webTarget.queryParam("serviceKey", serviceKey)
+				.queryParam("collection", zeCollection).request()
+				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
+				.post(entity(cartToAdd, APPLICATION_JSON_TYPE));
+
+		assertThat(response.getStatus()).isEqualTo(Status.FORBIDDEN.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).isEqualTo(i18n.$(new UnauthorizedAccessException().getValidationError()));
 	}
 }
