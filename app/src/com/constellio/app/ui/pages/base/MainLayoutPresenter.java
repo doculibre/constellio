@@ -95,10 +95,21 @@ public class MainLayoutPresenter implements Serializable {
 		if (currentView == null) {
 			return null;
 		}
+
 		AppLayerFactory appLayerFactory = mainLayout.getHeader().getConstellioFactories().getAppLayerFactory();
 		GuideManager manager = new GuideManager(appLayerFactory.getModelLayerFactory().getDataLayerFactory());
 		String language = ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage();
-		String field = "guide." + currentView.getClass().getSimpleName();
+
+		String field = null;
+
+		if (currentView instanceof CustomGuideUrl) {
+			field = ((CustomGuideUrl) currentView).getGuideKey();
+		}
+
+		if (field == null) {
+			field = "guide." + currentView.getClass().getSimpleName();
+		}
+
 		String customUrl = manager.getPropertyValue(language, field);
 		if (customUrl == null || customUrl.isEmpty()) {
 			if (!$(field).equals(field)) {

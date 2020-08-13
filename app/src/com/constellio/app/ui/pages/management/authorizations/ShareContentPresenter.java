@@ -45,6 +45,10 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 		return presenterService().getRecordVO(recordId, VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 
+	public String getCurrentUserId() {
+		return this.getCurrentUser().getId();
+	}
+
 	public void authorizationCreationRequested(AuthorizationVO authorizationVO) {
 		authorizationVO.setSharedBy(getCurrentUser().getId());
 		AuthorizationAddRequest authorization = toAuthorization(authorizationVO);
