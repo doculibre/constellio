@@ -1,16 +1,5 @@
 package com.constellio.app.start;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.DispatcherType;
-import javax.servlet.Filter;
-import javax.servlet.Servlet;
-
 import com.constellio.data.conf.FoldersLocator;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.Connector;
@@ -34,7 +23,15 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.webapp.WebInfConfiguration;
 import org.eclipse.jetty.webapp.WebXmlConfiguration;
 
-import com.constellio.model.conf.FoldersLocator;
+import javax.servlet.DispatcherType;
+import javax.servlet.Filter;
+import javax.servlet.Servlet;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ApplicationStarter {
 
@@ -77,7 +74,7 @@ public class ApplicationStarter {
 		handler.setClassLoader(Thread.currentThread().getContextClassLoader());
 
 		handler.getSessionHandler().getSessionCookieConfig().setHttpOnly(true);
-		if(params.isSSL() || params.isForceSecuredCookies()) {
+		if (params.isSSL() || params.isForceSecuredCookies()) {
 			handler.getSessionHandler().getSessionCookieConfig().setSecure(true);
 		}
 
