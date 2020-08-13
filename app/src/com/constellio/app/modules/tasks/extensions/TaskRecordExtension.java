@@ -2,6 +2,7 @@ package com.constellio.app.modules.tasks.extensions;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import com.constellio.app.modules.tasks.TaskConfigs;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.caches.IncompleteTasksUserCache;
 import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
@@ -13,6 +14,7 @@ import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
@@ -445,7 +447,14 @@ public class TaskRecordExtension extends RecordExtension {
 			htmlComments.append("<br/>");
 		}
 
-		newParameters.add(TASK_COMMENTS + ":" + formatToParameter(htmlComments.toString()));
+		boolean showComments = modelLayerFactory.getSystemConfigurationsManager().getValue(TaskConfigs.SHOW_COMMENTS);
+
+		if (showComments) {
+			newParameters.add(TASK_COMMENTS + ":" + formatToParameter(htmlComments.toString()));
+		} else {
+			newParameters.add(TASK_COMMENTS + ":" + formatToParameter(i18n.$("SystemConfigurationGroup.tasks.disabledComments")));
+			//TODO SBLAIS trouver un meilleur endroit pour placer cette ressource
+		}
 		emailToSend.setParameters(newParameters);
 	}
 
