@@ -264,6 +264,11 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		return buildTable(container, title);
 	}
 
+	@Override
+	public void partialRefresh() {
+		refreshTable();
+	}
+
 	private void addUsersGlobalGroupButtons(final GlobalGroupVODataProvider globalGroupVODataProvider,
 											ButtonsContainer buttonsContainer) {
 		buttonsContainer.addButton(new ContainerButton() {
