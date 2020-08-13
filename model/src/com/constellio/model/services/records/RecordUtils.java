@@ -31,8 +31,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
@@ -729,5 +731,25 @@ public class RecordUtils {
 			splittedByCollection.add(record.getCollection(), record);
 		}
 		return splittedByCollection.getNestedMap();
+	}
+
+	public static List<Record> compareRecords(List<Record> records, List<Metadata> comparedMetadatas) {
+		Record baseRecord = records.get(0);
+
+		Iterator currentTestedRecordIterator = records.iterator();
+		currentTestedRecordIterator.next();
+
+		while (currentTestedRecordIterator.hasNext()) {
+			Record currentRecord = (Record) currentTestedRecordIterator.next();
+			for (Metadata metadata : comparedMetadatas) {
+				if (!metadata.isSystemReserved()) {
+					if (!Objects.equals(baseRecord.get(metadata), currentRecord.get(metadata))) {
+						return records;
+					}
+				}
+			}
+		}
+
+		return Collections.emptyList();
 	}
 }
