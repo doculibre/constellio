@@ -889,13 +889,17 @@ public class AuthorizationsServices {
 	 */
 	public List<Authorization> getAllUserSharedRecords(User user) {
 		String userId = user.getId();
+		List<String> groupIds = user.getUserGroups();
 
 		SchemasRecordsServices schemas = schemas(user.getCollection());
 
 		Metadata principalsMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.PRINCIPALS);
 		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
 		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
-				.where(principalsMeta).isContainingText(userId).andWhere(sharedByMeta).isNotNull();
+				.whereAnyCondition(
+						where(principalsMeta).isContainingText(userId),
+						where(principalsMeta).isContainingTextFromAny(groupIds)
+				).andWhere(sharedByMeta).isNotNull();
 
 
 		List<Record> recordsSharedToUser = searchServices.search(new LogicalSearchQuery(condition));

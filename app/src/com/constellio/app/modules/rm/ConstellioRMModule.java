@@ -29,6 +29,7 @@ import com.constellio.app.modules.rm.extensions.RMMetadataMainCopyRuleFieldsExte
 import com.constellio.app.modules.rm.extensions.RMModulePageExtension;
 import com.constellio.app.modules.rm.extensions.RMOldSchemasBlockageRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMRecordAppExtension;
+import com.constellio.app.modules.rm.extensions.RMRecordAuthorisationPageExtension;
 import com.constellio.app.modules.rm.extensions.RMRecordCaptionExtension;
 import com.constellio.app.modules.rm.extensions.RMRecordNavigationExtension;
 import com.constellio.app.modules.rm.extensions.RMRequestTaskApprovedExtension;
@@ -275,6 +276,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo9_0_3_16());
 		scripts.add(new RMMigrationTo9_0_3_17());
 		scripts.add(new RMMigrationTo9_0_3_18());
+		scripts.add(new RMMigrationTo9_0_3_20());
 		//scripts.add(new RMMigrationTo9_0_666());
 		scripts.add(new RMMigrationTo9_1_0());
 		scripts.add(new RMMigrationTo9_1_0_14());
@@ -450,6 +452,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.searchCriterionExtensions.add(new RMDocumentPathCriterionExtension(appLayerFactory, collection));
 		extensions.searchCriterionExtensions.add(new RMFolderManualDisposalTypeCriterionExtension(appLayerFactory, collection));
 		extensions.viewableRecordVOTablePanelExtensions.add(new RMViewableRecordVOTablePanelExtension(appLayerFactory, collection));
+		extensions.recordAuthorisationPageExtensions.add(new RMRecordAuthorisationPageExtension());
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);

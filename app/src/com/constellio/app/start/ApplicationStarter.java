@@ -119,6 +119,7 @@ public class ApplicationStarter {
 
 			HttpConfiguration http_config = new HttpConfiguration();
 			http_config.setOutputBufferSize(32768);
+			http_config.setSendServerVersion(false);
 			http_config.setRequestHeaderSize(REQUEST_HEADER_SIZE);
 
 			ServerConnector http = new ServerConnector(server, new HttpConnectionFactory(http_config));
@@ -155,22 +156,27 @@ public class ApplicationStarter {
 				"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
 				"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
 				"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
-				"TLS_DHE_DSS_WITH_AES_128_GCM_SHA256",
+				//"TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
+				//"TLS_DHE_DSS_WITH_AES_128_GCM_SHA256",
 				"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
+				"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
+				"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+				"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384",
 				"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256",
 				"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
 				"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384",
-				"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
-				"TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
-				"TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
-				"TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
+				"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA"/*,
 				"TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
-				"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
-				"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"
+				"TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+				"TLS_DHE_RSA_WITH_AES_128_CBC_SHA256",
+				"TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
+				"TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+				"TLS_DHE_RSA_WITH_AES_256_CBC_SHA256"*/
 		);
 
 		HttpConfiguration https_config = new HttpConfiguration();
 		https_config.setOutputBufferSize(32768);
+		https_config.setSendServerVersion(false);
 		https_config.setRequestHeaderSize(REQUEST_HEADER_SIZE);
 
 		SecureRequestCustomizer src = new SecureRequestCustomizer();

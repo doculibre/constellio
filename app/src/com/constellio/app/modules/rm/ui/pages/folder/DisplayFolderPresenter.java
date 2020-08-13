@@ -1381,7 +1381,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 
-	public void changeFolderContentDataProvider(String value, Boolean includeTree) {
+	public void changeFolderContentDataProvider(String searchValue, Boolean includeTree) {
+		final String value = searchValue.endsWith("*") ? searchValue : searchValue + "*";
 		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder.build(defaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		MetadataSchema documentsSchema = getDocumentsSchema();
 		MetadataSchemaVO documentsSchemaVO = schemaVOBuilder.build(documentsSchema, VIEW_MODE.TABLE, view.getSessionContext());

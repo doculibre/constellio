@@ -1,6 +1,6 @@
 package com.constellio.app.modules.restapi.document.dao;
 
-import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
+import com.constellio.app.modules.restapi.core.exception.OptimisticLockRuntimeException;
 import com.constellio.app.modules.restapi.core.exception.UnresolvableOptimisticLockException;
 import com.constellio.app.modules.restapi.document.dto.DocumentContentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentDto;
@@ -104,7 +104,7 @@ public class DocumentDaoTest {
 		documentDao.getContent(record, version);
 	}
 
-	@Test(expected = OptimisticLockException.class)
+	@Test(expected = OptimisticLockRuntimeException.class)
 	public void testUpdateDocumentOptimisticLockException() throws Exception {
 		when(documentDao.getMetadataValue(record, anyString())).thenReturn(null);
 

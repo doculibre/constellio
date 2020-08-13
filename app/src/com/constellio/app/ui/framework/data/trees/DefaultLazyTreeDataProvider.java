@@ -98,7 +98,7 @@ public class DefaultLazyTreeDataProvider extends AbstractDataProvider implements
 	/**
 	 * Create a unique id, storing the node's local id, provider type and node type and it's parent unique id
 	 */
-	String nodeUniqueId(String parentUniqueId, TreeNode node) {
+	public static String nodeUniqueId(String parentUniqueId, TreeNode node) {
 		//We could use a map to have shorter names
 		if (parentUniqueId == null) {
 			return node.getProviderType() + ":" + node.getNodeType() + ":" + node.getId();

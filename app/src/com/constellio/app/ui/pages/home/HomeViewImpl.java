@@ -311,8 +311,9 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefre
 				HomeViewImpl.this.showErrorMessage(errorMessage);
 			}
 		});
-
-		tree.loadAndExpand(recordTree.getExpandedRecordIds());
+		if (provider.getTaxonomyCode().equals(recordTree.getExpendedRecordIdsLinkedToTaxonomieCode())) {
+			tree.loadAndExpand(recordTree.getExpandedRecordIds());
+		}
 
 		return tree;
 	}

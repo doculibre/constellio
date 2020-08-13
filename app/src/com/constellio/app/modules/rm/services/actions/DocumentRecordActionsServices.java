@@ -102,15 +102,9 @@ public class DocumentRecordActionsServices {
 			   rmModuleExtensions.isEditActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
-	public boolean isRenameActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) &&
-			   rm.wrapDocument(record).hasContent() &&
-			   !record.isLogicallyDeleted() &&
-			   rmModuleExtensions.isRenameActionPossibleOnDocument(rm.wrapDocument(record), user);
-	}
-
 	public boolean isRenameContentActionPossible(Record record, User user) {
 		return user.hasReadAccess().on(record) &&
+			   rm.wrapDocument(record).hasContent() &&
 			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isRenameContentActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
@@ -397,7 +391,7 @@ public class DocumentRecordActionsServices {
 			   rmModuleExtensions.isGenerateReportActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
-	public boolean isAddAuthorizationActionPossible(Record record, User user) {
+	public boolean isShareDocumenmtActionPossible(Record record, User user) {
 		return user.has(RMPermissionsTo.SHARE_DOCUMENT).on(record) &&
 			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isAddAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
@@ -409,12 +403,15 @@ public class DocumentRecordActionsServices {
 			   && !record.isLogicallyDeleted();
 	}
 
-	public boolean isManageAuthorizationActionPossible(Record record, User user) {
-		return user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record) &&
-			   user.hasWriteAndDeleteAccess().on(record) &&
+	public boolean isViewOrAddAuthorizationActionPossible(Record record, User user) {
+		return ((user.has(RMPermissionsTo.VIEW_DOCUMENT_AUTHORIZATIONS).on(record) && user.hasReadAccess().on(record))
+				|| (isEditActionPossible(record, user) &&
+					user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record) &&
+					user.hasWriteAndDeleteAccess().on(record))) &&
 			   !record.isLogicallyDeleted() &&
-			   rmModuleExtensions.isManageAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
+			   rmModuleExtensions.isViewOrAddAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
+
 
 	public boolean isConsultLinkActionPossible(Record record, User user) {
 		return user.hasReadAccess().on(record)
