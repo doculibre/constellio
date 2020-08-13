@@ -144,17 +144,17 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return isManageRetentionRulesGlobally() || user.has(RMPermissionsTo.CONSULT_RETENTIONRULE).globally();
+		return isManageRetentionRulesOnSomething() || isConsultRetentionRuleOnSomething();
 	}
 
 
-	public boolean isConsultRetentionRuleGlobally() {
-		return getCurrentUser().has(RMPermissionsTo.CONSULT_RETENTIONRULE).globally();
+	public boolean isConsultRetentionRuleOnSomething() {
+		return getCurrentUser().has(RMPermissionsTo.CONSULT_RETENTIONRULE).onSomething();
 	}
 
 
-	public boolean isManageRetentionRulesGlobally() {
-		return getCurrentUser().has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally();
+	public boolean isManageRetentionRulesOnSomething() {
+		return getCurrentUser().has(RMPermissionsTo.MANAGE_RETENTIONRULE).onSomething();
 	}
 
 	private boolean areDocumentRetentionRulesEnabled() {

@@ -1,14 +1,14 @@
 package com.constellio.model.services.pdf.pdtron.signature;
 
+import com.constellio.model.services.pdf.PdfAnnotation;
 import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
-import com.constellio.model.services.pdf.signature.PdfSignatureAnnotation;
 import org.jdom2.Content;
 import org.jdom2.Element;
 
 import java.awt.*;
 import java.util.List;
 
-public class PdfTronSignatureAnnotation extends PdfSignatureAnnotation {
+public class PdfTronSignatureAnnotation extends PdfAnnotation {
 
 	private static final String PAGE_ELEMENT_NAME = "page";
 	private static final String POSITION_ELEMENT_NAME = "rect";
@@ -23,7 +23,7 @@ public class PdfTronSignatureAnnotation extends PdfSignatureAnnotation {
 				annotation.getAttributeValue(USER_ELEMENT_NAME),
 				annotation.getAttributeValue(USERNAME_ELEMENT_NAME),
 				fetchImageData(annotation),
-				false,
+				true,
 				false
 		);
 	}

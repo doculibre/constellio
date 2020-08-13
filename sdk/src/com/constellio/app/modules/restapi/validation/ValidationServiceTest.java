@@ -1,13 +1,12 @@
 package com.constellio.app.modules.restapi.validation;
 
 import com.constellio.app.modules.restapi.core.exception.InvalidDateCombinationException;
-import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
+import com.constellio.app.modules.restapi.core.exception.OptimisticLockRuntimeException;
 import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
 import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
 import com.constellio.app.modules.restapi.resource.dto.AceDto;
-import com.constellio.app.modules.restapi.signature.SignatureService;
 import com.constellio.app.modules.restapi.validation.dao.ValidationDao;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
 import com.constellio.app.modules.restapi.validation.exception.InvalidSignatureException;
@@ -38,7 +37,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class ValidationServiceTest {
 
 	@Mock private ValidationDao validationDao;
-	@Mock private SignatureService signatureService;
 
 	@Mock private User user;
 	@Mock private Record record;
@@ -68,7 +66,7 @@ public class ValidationServiceTest {
 	public void setUp() throws Exception {
 		initMocks(this);
 
-		when(signatureService.sign(anyString(), anyString())).thenReturn(signature);
+		when(validationDao.sign(anyString(), anyString())).thenReturn(signature);
 
 		when(validationDao.getUserTokens(anyString(), anyBoolean(), anyBoolean())).thenReturn(singletonList(token));
 		when(validationDao.isUserAuthenticated(anyString(), anyString())).thenReturn(true);
@@ -96,7 +94,7 @@ public class ValidationServiceTest {
 	public void testValidateSignatureWithInvalidToken() throws Exception {
 		when(validationDao.getUserTokens(anyString(), anyBoolean(), anyBoolean()))
 				.thenReturn(Lists.newArrayList("fakeToken1", "fakeToken2"));
-		when(signatureService.sign(anyString(), anyString())).thenReturn("anotherSignature");
+		when(validationDao.sign(anyString(), anyString())).thenReturn("anotherSignature");
 
 		validationService.validateSignature(host, id, serviceKey, schemaType, method, date, expiration, version, physical,
 				copySourceId, signature);
@@ -190,7 +188,7 @@ public class ValidationServiceTest {
 		validationService.validateETag("1", "1", 1L);
 	}
 
-	@Test(expected = OptimisticLockException.class)
+	@Test(expected = OptimisticLockRuntimeException.class)
 	public void testValidateETagWithMismatch() {
 		validationService.validateETag("1", "1", 2L);
 	}

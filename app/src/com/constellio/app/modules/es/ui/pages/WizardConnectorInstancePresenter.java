@@ -17,8 +17,11 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +30,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class WizardConnectorInstancePresenter extends AddEditConnectorInstancePresenter {
+	private static Logger LOGGER = LoggerFactory.getLogger(WizardConnectorInstancePresenter.class);
 	public static final String SELECT_CONNECTOR_TYPE_TAB = "selectConnectorType";
 	public static final String ADD_CONNECTOR_INSTANCE = "addConnectorInstance";
 
@@ -63,7 +67,13 @@ public class WizardConnectorInstancePresenter extends AddEditConnectorInstancePr
 
 	@Override
 	public void saveButtonClicked(RecordVO recordVO) {
-		Record record = toRecord(recordVO);
+		Record record = null;
+		try {
+			record = toRecord(recordVO);
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
 		ConnectorInstance<?> connectorInstance = esSchemasRecordsServices.wrapConnectorInstance(record);
 
 		try {
@@ -80,7 +90,7 @@ public class WizardConnectorInstancePresenter extends AddEditConnectorInstancePr
 
 	public void validateConnectionInfoAreValid(RecordVO recordVO) {
 		String schemaCode = recordVO.getSchema().getCode();
-		Record record = toRecord(recordVO);
+		Record record = coreSchemas().get(recordVO.getId());
 
 		ConnectorUtil.ConnectionStatusResult connectonStatusResult = ConnectorUtil
 				.testAuthentication(schemaCode, record, esSchemasRecordsServices);

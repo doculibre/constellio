@@ -81,6 +81,18 @@ public interface SelectionComponent {
 
 	}
 
+	public static class SelectAllEvent extends SelectionChangeEvent {
+		public SelectAllEvent() {
+			setAllItemsSelected(true);
+		}
+	}
+
+	public static class DeselectAllEvent extends SelectionChangeEvent {
+		public DeselectAllEvent() {
+			setAllItemsDeselected(true);
+		}
+	}
+
 	public static interface SelectionChangeListener {
 
 		void selectionChanged(SelectionChangeEvent event);

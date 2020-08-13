@@ -36,27 +36,33 @@ import java.util.Locale;
 public class ConstellioImportRecordsServlet extends HttpServlet {
 
 	public static final String TEMP_FILE_RESSOURCE_NAME = "ConstellioImportRecordsServlet-tempFile";
+	private static final String PARAM_DATA_TYPE = "dataType";
+	private static final String PARAM_SIMULATE = "simulate";
+	private static final String RESPONSE_MSG_UNAUTHORIZED = "UNAUTHORIZED";
+	private static final String RESPONSE_MSG_SUCCESS = "SUCCESS";
 
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		PrintWriter writer = response.getWriter();
-		ValidationErrors importErrors = null;
+		ValidationErrors importErrors;
 		Throwable throwable = null;
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory());
 		try {
 			InputStream inputStream = request.getInputStream();
 			FileService fileService = modelLayerFactory().getDataLayerFactory().getIOServicesFactory().newFileService();
 			File tempFile = fileService.newTemporaryFile(TEMP_FILE_RESSOURCE_NAME);
-			String dataType = request.getHeader("dataType");
+			String dataType = request.getHeader(PARAM_DATA_TYPE);
+			Boolean isSimulation = Boolean.valueOf(request.getHeader(PARAM_SIMULATE));
+
 			try {
 				OutputStream fos = new BufferedOutputStream(new FileOutputStream(tempFile));
 				User user = authenticator.authenticateInCollection(request);
 				if (user == null) {
 					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-					System.out.println("UNAUTHORIZED");
-					writer.println("UNAUTHORIZED");
+					System.out.println(RESPONSE_MSG_UNAUTHORIZED);
+					writer.println(RESPONSE_MSG_UNAUTHORIZED);
 				} else {
 					byte[] buffer = new byte[4096];
 					int bytesRead;
@@ -71,7 +77,7 @@ public class ConstellioImportRecordsServlet extends HttpServlet {
 						}
 						fos.close();
 					}
-					importErrors = respond(tempFile, dataType, user);
+					importErrors = respond(tempFile, dataType, user, isSimulation);
 
 					if (!importErrors.isEmpty()) {
 						response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -82,8 +88,8 @@ public class ConstellioImportRecordsServlet extends HttpServlet {
 						}
 					} else {
 						response.setStatus(HttpServletResponse.SC_OK);
-						System.out.println("SUCCESS");
-						writer.println("SUCCESS");
+						System.out.println(RESPONSE_MSG_SUCCESS);
+						writer.println(RESPONSE_MSG_SUCCESS);
 					}
 
 				}
@@ -103,15 +109,18 @@ public class ConstellioImportRecordsServlet extends HttpServlet {
 		return ConstellioFactories.getInstance().getModelLayerFactory();
 	}
 
-	protected ValidationErrors respond(File file, String dataType, User user)
+	protected ValidationErrors respond(File file, String dataType, User user, boolean isSimulation)
 			throws Exception {
 		ImportDataProvider dataProvider = toDataProvider(file, dataType);
 
 		RecordsImportServices recordsImportServices = new RecordsImportServices(modelLayerFactory());
-
+		BulkImportParams params = new BulkImportParams().setAllowingReferencesToNonExistingUsers(false);
+		if (isSimulation) {
+			params.setSimulate(true);
+		}
 		try {
 			recordsImportServices.bulkImport(dataProvider, new LoggerBulkImportProgressionListener(), user,
-					new BulkImportParams().setAllowingReferencesToNonExistingUsers(false));
+					params);
 
 		} catch (ValidationException e) {
 			return e.getValidationErrors();

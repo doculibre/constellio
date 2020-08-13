@@ -1,10 +1,13 @@
 package com.constellio.app.modules.restapi.folder.dao;
 
+import com.constellio.app.modules.restapi.ConstellioRestApiModule;
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
-import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
+import com.constellio.app.modules.restapi.core.exception.OptimisticLockRuntimeException;
 import com.constellio.app.modules.restapi.core.exception.RecordCopyNotPermittedException;
 import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
 import com.constellio.app.modules.restapi.core.exception.UnresolvableOptimisticLockException;
+import com.constellio.app.modules.restapi.extensions.RestApiModuleExtensions;
+import com.constellio.app.modules.restapi.extensions.RestApiModuleExtensions.FolderCopyExtension;
 import com.constellio.app.modules.restapi.folder.dto.AdministrativeUnitDto;
 import com.constellio.app.modules.restapi.folder.dto.FolderDto;
 import com.constellio.app.modules.restapi.folder.dto.RetentionRuleDto;
@@ -23,6 +26,7 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.data.frameworks.extensions.SingleValueExtension;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -79,8 +83,17 @@ public class FolderDao extends ResourceDao {
 
 		Transaction transaction = buildTransaction(flush, user);
 
-		DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
-		Folder copyFolder = decommissioningService.duplicateStructureAndDocuments(sourceFolder, user, false);
+		RestApiModuleExtensions restApiModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRestApiModule.ID);
+		SingleValueExtension<FolderCopyExtension> folderCopyExtension = restApiModuleExtensions.getFolderCopyExtension();
+
+		Folder copyFolder;
+		if (folderCopyExtension.getValue() == null) {
+			DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
+			copyFolder = decommissioningService.duplicateStructureAndDocuments(sourceFolder, user, false);
+		} else {
+			copyFolder = folderCopyExtension.getValue().copy(new FolderCopyExtension.FolderCopyParams(sourceFolder, user));
+		}
+
 		if (folderDto != null) {
 			updateFolderMetadataValues(copyFolder.getWrappedRecord(), null, folderSchema, folderDto, true);
 			updateCustomMetadataValues(copyFolder.getWrappedRecord(), folderSchema, folderDto.getExtendedAttributes(), true);
@@ -141,7 +154,7 @@ public class FolderDao extends ResourceDao {
 		} catch (RecordServicesException.UnresolvableOptimisticLockingConflict e) {
 			throw new UnresolvableOptimisticLockException(folder.getId());
 		} catch (RecordServicesException.OptimisticLocking e) {
-			throw new OptimisticLockException(folder.getId(), folder.getETag(), e.getVersion());
+			throw new OptimisticLockRuntimeException(folder.getId(), folder.getETag(), e.getVersion());
 		}
 
 		return folderRecord;

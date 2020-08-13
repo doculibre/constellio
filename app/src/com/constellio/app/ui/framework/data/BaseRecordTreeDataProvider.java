@@ -157,7 +157,7 @@ public class BaseRecordTreeDataProvider extends AbstractDataProvider implements 
 	}
 
 	protected String getCaptionOf(Record record) {
-		return SchemaCaptionUtils.getCaptionForRecord(record, i18n.getLocale());
+		return SchemaCaptionUtils.getCaptionForRecord(record, i18n.getLocale(), true);
 	}
 
 	protected Resource getExpandedIconOf(Record record) {

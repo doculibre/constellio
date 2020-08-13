@@ -1,5 +1,6 @@
 package com.constellio.app.modules.restapi.core.dao;
 
+import com.constellio.app.modules.restapi.core.util.Algorithms;
 import com.constellio.app.modules.restapi.document.dao.DocumentDao;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordServices;
@@ -21,6 +22,11 @@ public class BaseDaoTest {
 	@Mock Record record;
 
 	@InjectMocks BaseDao baseDao = new DocumentDao();
+
+	private String data = "localhostidserviceKeyDOCUMENTGET20500101T080000Z36001.0";
+	private String key = "token";
+
+	private String expectedSignature = "vbTrKqAtjZGVeqku99GiqzV7S3pmQaD1gt7rng4GVQ8";
 
 	@Before
 	public void setUp() {
@@ -46,4 +52,29 @@ public class BaseDaoTest {
 		assertThat(record).isNull();
 	}
 
+	@Test
+	public void testSign() throws Exception {
+		String signature = baseDao.sign(key, data);
+
+		assertThat(signature).isEqualTo(expectedSignature);
+	}
+
+	@Test
+	public void testSignWithAlgorithmParameter() throws Exception {
+		String signature = baseDao.sign(key, data, Algorithms.HMAC_SHA_256);
+
+		assertThat(signature).isEqualTo(expectedSignature);
+	}
+
+	@Test
+	public void testSignWithWrongData() throws Exception {
+		String signature = baseDao.sign(key, data.concat("fake"));
+
+		assertThat(signature).isNotEqualTo(expectedSignature);
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testSignWithInvalidAlgorithm() throws Exception {
+		baseDao.sign(key, data, Algorithms.MD5);
+	}
 }

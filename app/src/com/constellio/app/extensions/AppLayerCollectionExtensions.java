@@ -14,6 +14,7 @@ import com.constellio.app.api.extensions.LabelTemplateExtension;
 import com.constellio.app.api.extensions.ListSchemaExtention;
 import com.constellio.app.api.extensions.MetadataDisplayCustomValueExtention;
 import com.constellio.app.api.extensions.MetadataFieldExtension;
+import com.constellio.app.api.extensions.MetadataFieldFactoryExtension;
 import com.constellio.app.api.extensions.PageExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.RecordDisplayFactoryExtension;
@@ -53,6 +54,7 @@ import com.constellio.app.api.extensions.params.ListSchemaExtraCommandParams;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
 import com.constellio.app.api.extensions.params.MetadataDisplayCustomValueExtentionParams;
 import com.constellio.app.api.extensions.params.MetadataFieldExtensionParams;
+import com.constellio.app.api.extensions.params.MetadataFieldFactoryBuildExtensionParams;
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
@@ -191,6 +193,8 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<SelectionPanelExtension> selectionPanelExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<MetadataFieldFactoryExtension> metadataFieldFactoryExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<RecordDisplayFactoryExtension> recordDisplayFactoryExtensions = new VaultBehaviorsList<>();
 
@@ -989,6 +993,17 @@ public class AppLayerCollectionExtensions {
 		}
 	}
 
+	public Field<?> metadataFieldFactoryBuild(MetadataFieldFactoryBuildExtensionParams params) {
+		for (MetadataFieldFactoryExtension extension : metadataFieldFactoryExtensions) {
+			Field<?> field = extension.build(params);
+			if (field != null) {
+				return field;
+			}
+		}
+
+		return null;
+	}
+
 	public void orderListOfElements(Record[] recordElements) {
 		for (LabelTemplateExtension extension : labelTemplateExtensions) {
 			extension.orderListOfElements(recordElements);
@@ -1082,4 +1097,10 @@ public class AppLayerCollectionExtensions {
 		return navigationHandledByExtension;
 	}
 
+
+	public boolean isSequencesActionPossibleOnSchemaRecord(Record record, User user) {
+		return schemaRecordExtentions.getBooleanValue(true,
+				(behavior) -> behavior.isSequencesActionPossible(
+						new SchemaRecordExtensionActionPossibleParams(record, user)));
+	}
 }

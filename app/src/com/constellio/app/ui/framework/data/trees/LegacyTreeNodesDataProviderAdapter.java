@@ -64,7 +64,7 @@ public class LegacyTreeNodesDataProviderAdapter implements TreeNodesProvider<Fas
 	protected TreeNode toTreeNode(TaxonomySearchRecord searchRecord) {
 		Record record = searchRecord.getRecord();
 		String type = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
-		String caption = SchemaCaptionUtils.getCaptionForRecord(record, i18n.getLocale());
+		String caption = SchemaCaptionUtils.getCaptionForRecord(record, i18n.getLocale(), true);
 		String description = record.get(Schemas.DESCRIPTION_STRING, NO_SUMMARY_METADATA_VALIDATION);
 		if (description == null) {
 			description = record.get(Schemas.DESCRIPTION_TEXT, NO_SUMMARY_METADATA_VALIDATION);

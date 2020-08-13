@@ -30,7 +30,7 @@ public class RetentionRuleReferenceDisplay extends ReferenceDisplay {
 		UserServices userServices = constellioFactories.getModelLayerFactory().newUserServices();
 		User user = userServices.getUserInCollection(username, collection);
 
-		return user.hasAny(RMPermissionsTo.MANAGE_RETENTIONRULE).globally() || user.has(RMPermissionsTo.CONSULT_RETENTIONRULE).globally();
+		return user.hasAny(RMPermissionsTo.MANAGE_RETENTIONRULE).onSomething() || user.has(RMPermissionsTo.CONSULT_RETENTIONRULE).onSomething();
 	}
 
 	@Override

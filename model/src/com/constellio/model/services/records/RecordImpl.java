@@ -542,7 +542,7 @@ public class RecordImpl implements Record {
 
 		if (metadata.isEncrypted()) {
 			EncryptionServices encryptionServices = metadata.getEncryptionServicesFactory().get();
-			return encryptionServices.decrypt(rawValue);
+			return encryptionServices.decryptWithAppKey(rawValue);
 		}
 
 		if (structuredValues == null) {
@@ -815,7 +815,7 @@ public class RecordImpl implements Record {
 
 				if (metadata.isEncrypted() && value != null) {
 					EncryptionServices encryptionServices = metadata.getEncryptionServicesFactory().get();
-					fields.put(entry.getKey(), encryptionServices.encrypt(value));
+					fields.put(entry.getKey(), encryptionServices.encryptWithAppKey(value));
 
 				} else if (metadata.getStructureFactory() != null) {
 					fields.put(entry.getKey(), convertStructuredValueToString(value, metadata));
@@ -959,7 +959,7 @@ public class RecordImpl implements Record {
 
 					if (metadata.isEncrypted() && value != null) {
 						EncryptionServices encryptionServices = metadata.getEncryptionServicesFactory().get();
-						convertedValues.put(entry.getKey(), encryptionServices.encrypt(value));
+						convertedValues.put(entry.getKey(), encryptionServices.encryptWithAppKey(value));
 					}
 
 					if (metadata.getStructureFactory() != null) {

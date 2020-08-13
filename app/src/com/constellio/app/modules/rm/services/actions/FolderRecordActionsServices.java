@@ -341,4 +341,7 @@ public class FolderRecordActionsServices {
 		return user.has(RMPermissionsTo.USE_MY_CART).globally();
 	}
 
+	public boolean isPutInContainerActionPossible(Record record, User user) {
+		return Toggle.PUT_IN_CONTAINER_ACTION.isEnabled() && hasUserWriteAccess(record, user);
+	}
 }

@@ -53,7 +53,7 @@ public class SearchRetentionRulesPresenter extends SingleSchemaBasePresenter<Sea
 	}
 
 	public boolean userHaveManageRetentionRulePermission() {
-		return getCurrentUser().has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally();
+		return getCurrentUser().has(RMPermissionsTo.MANAGE_RETENTIONRULE).onSomething();
 	}
 
 	public void backButtonClicked() {
@@ -81,7 +81,7 @@ public class SearchRetentionRulesPresenter extends SingleSchemaBasePresenter<Sea
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally() || user.has(RMPermissionsTo.CONSULT_RETENTIONRULE).globally();
+		return user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).onSomething() || user.has(RMPermissionsTo.CONSULT_RETENTIONRULE).onSomething();
 	}
 
 	@Override
