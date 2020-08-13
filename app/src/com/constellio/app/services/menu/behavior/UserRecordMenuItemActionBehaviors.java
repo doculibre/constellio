@@ -25,6 +25,7 @@ import com.constellio.model.services.records.RecordDeleteServicesRuntimeExceptio
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
@@ -57,12 +58,14 @@ public class UserRecordMenuItemActionBehaviors {
 	private UserServices userServices;
 	private RecordServices recordServices;
 	private String collection;
+	private SchemasRecordsServices core;
 
 	public UserRecordMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.userServices = modelLayerFactory.newUserServices();
 		this.recordServices = modelLayerFactory.newRecordServices();
+		this.core = new SchemasRecordsServices(collection, modelLayerFactory);
 	}
 
 	private Map<String, String> clone(Map<String, String> map) {
@@ -87,7 +90,9 @@ public class UserRecordMenuItemActionBehaviors {
 	}
 
 	public void addToGroup(List<User> userRecords, MenuItemActionBehaviorParams params) {
-		GroupWindowButton groupWindowButton = new GroupWindowButton(userRecords, params);
+		List<User> recordsList = core.getUsers(userRecords.stream().map(record -> record.getId()).collect(Collectors.toList()));
+
+		GroupWindowButton groupWindowButton = new GroupWindowButton(recordsList, params);
 		groupWindowButton.addToGroup();
 	}
 

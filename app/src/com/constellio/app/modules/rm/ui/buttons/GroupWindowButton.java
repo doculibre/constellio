@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.buttons;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.components.group.GroupSelectionAddRemoveFieldImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
@@ -20,6 +19,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserAddUpdateRequest;
@@ -33,15 +33,15 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class GroupWindowButton extends WindowButton {
 
-	private RMSchemasRecordsServices rm;
+	private SchemasRecordsServices core;
 	private MenuItemActionBehaviorParams params;
 	private AppLayerFactory appLayerFactory;
 	private RecordServices recordServices;
@@ -54,10 +54,6 @@ public class GroupWindowButton extends WindowButton {
 		click();
 	}
 
-	public GroupWindowButton(User record, MenuItemActionBehaviorParams params) {
-		this(Collections.singletonList(record), params);
-	}
-
 	public GroupWindowButton(List<User> records, MenuItemActionBehaviorParams params) {
 		super($("CollectionSecurityManagement.addToGroups"), $("CollectionSecurityManagement.selectGroups"));
 
@@ -66,7 +62,8 @@ public class GroupWindowButton extends WindowButton {
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 		this.collection = params.getView().getSessionContext().getCurrentCollection();
-		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.core = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+
 		this.records = records;
 	}
 
@@ -93,7 +90,6 @@ public class GroupWindowButton extends WindowButton {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				try {
-					//getUserServices().addUsersToGroup();
 					addToGroupsRequested(params.getView());
 					getWindow().close();
 				} catch (Exception e) {
@@ -137,6 +133,8 @@ public class GroupWindowButton extends WindowButton {
 		List<String> commonGroups = new ArrayList<>();
 		List<String> isToRemove = new ArrayList<>();
 		boolean firstIteration = true;
+
+
 		for (User user : records) {
 			if (firstIteration) {
 				commonGroups.addAll(user.getUserGroups());
@@ -159,19 +157,21 @@ public class GroupWindowButton extends WindowButton {
 
 	private void addToGroupsRequested(BaseView baseView) {
 
+		List<String> groupField = (List<String>) groupsField.getValue();
+		List<String> groupCodeList = core.getGroups(groupField).stream().map(user -> user.getCode()).collect(Collectors.toList());
+
 		for (User user : records) {
 			UserAddUpdateRequest userAddUpdateRequest = userServices.addUpdate(user.getUsername());
-			userAddUpdateRequest.addToGroupsInCollection((List<String>) groupsField.getValue(), collection);
+			userAddUpdateRequest.addToGroupsInCollection(groupCodeList, collection);
 			userServices.execute(userAddUpdateRequest);
 		}
-
+		baseView.partialRefresh();
 		baseView.showMessage($("CollectionSecurityManagement.addedUsersToGroups"));
 	}
 
 	private RecordVODataProvider getGroupDataProvider(SessionContext sessionContext) {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
-		final MetadataSchemaVO groupSchemaVO = schemaVOBuilder.build(rm.group.schema(), VIEW_MODE.TABLE, sessionContext);
+		final MetadataSchemaVO groupSchemaVO = schemaVOBuilder.build(core.group.schema(), VIEW_MODE.TABLE, sessionContext);
 		return new RecordVODataProvider(groupSchemaVO, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
 			@Override
 			public LogicalSearchQuery getQuery() {
@@ -181,9 +181,8 @@ public class GroupWindowButton extends WindowButton {
 	}
 
 	private LogicalSearchQuery getGroupsQuery() {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
-		MetadataSchemaType groupSchemaType = rm.group.schemaType();
+		MetadataSchemaType groupSchemaType = core.group.schemaType();
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 
