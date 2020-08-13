@@ -33,13 +33,13 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 	private TaskReminderEmailManager manager;
 	private SearchServices searchServices;
 	private UserServices userServices;
-	private List<EmailAddress> allAssigneesAddresses;
-	private List<EmailAddress> allAssigneeGroupsAddresses;
 	private List<EmailAddress> allAssigneeUsersAddresses;
 	private TaskReminder reminderAfterNow;
 	private TaskReminder reminderBeforeNow;
 	private TaskReminder reminderNow;
 	private RecordServices recordServices;
+
+	private EmailAddress aliceEmailAddress, bobEmailAddress, chuckEmailAddress, dakotaEmailAddress, charlesEmailAddress, gandalfEmailAddress;
 
 	@Before
 	public void setUp()
@@ -67,17 +67,18 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 				.addToGroupsInEachCollection(users.heroesIn(zeCollection).getCode()));
 		userServices.execute(users.chuckNorrisAddUpdateRequest());
 
-		EmailAddress aliceEmailAddress = new EmailAddress(users.alice().getTitle(), users.alice().getEmail());
-		EmailAddress bobEmailAddress = new EmailAddress(users.bob().getTitle(), users.bob().getEmail());
-		EmailAddress chuckEmailAddress = new EmailAddress(users.chuckNorris().getTitle(), users.chuckNorris().getEmail());
+		aliceEmailAddress = new EmailAddress(users.alice().getTitle(), users.alice().getEmail());
+		bobEmailAddress = new EmailAddress(users.bob().getTitle(), users.bob().getEmail());
+		chuckEmailAddress = new EmailAddress(users.chuckNorris().getTitle(), users.chuckNorris().getEmail());
+		dakotaEmailAddress = new EmailAddress(users.dakotaLIndien().getTitle(), users.dakotaLIndien().getEmail());
+		charlesEmailAddress = new EmailAddress(users.charles().getTitle(), users.charles().getEmail());
+		gandalfEmailAddress = new EmailAddress(users.gandalfLeblanc().getTitle(), users.gandalfLeblanc().getEmail());
 
 		reminderBeforeNow = new TaskReminder().setFixedDate(now.minusDays(1));
 		reminderAfterNow = new TaskReminder().setFixedDate(now.plusDays(1));
 		reminderNow = new TaskReminder().setFixedDate(now);
 
 		allAssigneeUsersAddresses = asList(aliceEmailAddress, chuckEmailAddress);
-		allAssigneeGroupsAddresses = asList(aliceEmailAddress, bobEmailAddress);
-		allAssigneesAddresses = asList(aliceEmailAddress, chuckEmailAddress, bobEmailAddress);
 		zeTask = schemas.newTask()
 				.setReminders(asList(reminderBeforeNow, reminderAfterNow, reminderNow))
 				.setAssigneeGroupsCandidates(asList(aliceAndBobGroupId))
@@ -133,7 +134,7 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 	public void givenTaskWithNextReminderOnBeforeNowAndValidAssignedToWhenManagerCalledThenReminderEmailGenerated()
 			throws Exception {
 		manager.generateReminderEmails();
-		assertValidEmailToSendCreated(allAssigneesAddresses);
+		assertValidEmailToSendCreated(asList(aliceEmailAddress, chuckEmailAddress, bobEmailAddress, charlesEmailAddress, dakotaEmailAddress, gandalfEmailAddress));
 	}
 
 	@Test
@@ -164,7 +165,7 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 		zeTask = saveAndReload(zeTask.setAssigneeUsersCandidates(new ArrayList<String>()));
 		assertThat(zeTask.getAssigneeUsersCandidates()).isEqualTo(new ArrayList<String>());
 		manager.generateReminderEmails();
-		assertValidEmailToSendCreated(allAssigneeGroupsAddresses);
+		assertValidEmailToSendCreated(asList(aliceEmailAddress, bobEmailAddress, charlesEmailAddress, gandalfEmailAddress, dakotaEmailAddress));
 	}
 
 	@Test
@@ -222,8 +223,7 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 				.where(schemas.emailToSend().getMetadata(EmailToSend.TEMPLATE)).isNotEqual(TASK_ASSIGNED_TO_YOU);
 		EmailToSend emailToSend = schemas
 				.wrapEmailToSend(searchServices.searchSingleResult(condition));
-		assertThat(emailToSend.getTo().size()).isEqualTo(expectedToEmails.size());
-		assertThat(emailToSend.getTo()).containsAll(expectedToEmails);
+		assertThat(emailToSend.getTo()).containsOnly(expectedToEmails.toArray(new EmailAddress[0]));
 		assertThat(emailToSend.getTemplate()).isEqualTo(TasksEmailTemplates.TASK_REMINDER);
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn().toLocalDate()).isEqualTo(now);
