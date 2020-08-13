@@ -55,4 +55,16 @@ public class ResponsiveUtils {
 		return desktop;
 	}
 
+	public static boolean isFileDropSupported() {
+		boolean supportsFileDrops;
+		Page page = Page.getCurrent();
+		WebBrowser browser = page.getWebBrowser();
+		if (browser.isWindowsPhone() || browser.isIOS() || browser.isAndroid()) {
+			supportsFileDrops = false;
+		} else {
+			supportsFileDrops = true;
+		}
+		return supportsFileDrops;
+	}
+
 }

@@ -3,7 +3,7 @@ package com.constellio.app.modules.restapi.validation;
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
 import com.constellio.app.modules.restapi.core.exception.InvalidDateCombinationException;
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
-import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
+import com.constellio.app.modules.restapi.core.exception.OptimisticLockRuntimeException;
 import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
 import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
@@ -146,7 +146,7 @@ public class ValidationService extends BaseService {
 
 	public void validateETag(String recordId, String eTag, long recordVersion) {
 		if (!eTag.equals(String.valueOf(recordVersion))) {
-			throw new OptimisticLockException(recordId, eTag, recordVersion);
+			throw new OptimisticLockRuntimeException(recordId, eTag, recordVersion);
 		}
 	}
 

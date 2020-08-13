@@ -23,7 +23,7 @@ public class CompositeTreeNodeDataProvider implements TreeNodesProvider<Composit
 
 	private Function<TreeNode, List<TreeNodesProvider<?>>> childTreeNodesProvidersFunction;
 
-	private static boolean DEBUG = true;
+	private static boolean DEBUG = false;
 
 	public CompositeTreeNodeDataProvider(
 			Function<TreeNode, List<TreeNodesProvider<?>>> childTreeNodesProvidersFunction) {

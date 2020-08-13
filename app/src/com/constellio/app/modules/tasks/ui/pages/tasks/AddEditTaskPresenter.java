@@ -2,9 +2,11 @@ package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.ui.pages.folder.MergeRecordsWindow;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.tasks.TaskConfigs;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.extensions.TaskAddEditTaskPresenterExtension;
@@ -14,6 +16,7 @@ import com.constellio.app.modules.tasks.extensions.api.params.TaskFormParams;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormRetValue;
 import com.constellio.app.modules.tasks.extensions.param.PromptUserParam;
 import com.constellio.app.modules.tasks.model.utils.DateUtils;
+import com.constellio.app.modules.tasks.TaskConfigs;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
@@ -70,6 +73,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.logging.LoggingServices;
@@ -121,6 +125,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private ListAddRemoveWorkflowInclusiveDecisionFieldImpl listAddRemoveWorkflowInclusiveDecision;
 	private TaskDecisionField field;
 	private TasksSchemasRecordsServices tasksSchemasRecordsServices;
+	private TaskConfigs taskConfigs;
 	private static Logger LOGGER = LoggerFactory.getLogger(AddEditTaskPresenter.class);
 	List<String> finishedOrClosedStatuses;
 	private RMModuleExtensions rmModuleExtensions;
@@ -146,6 +151,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		finishedOrClosedStatuses = getFinishedOrClosedStatuses();
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		taskConfigs = new TaskConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 	}
 
@@ -221,12 +227,38 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 	}
 
-
 	public void saveButtonClicked(RecordVO recordVO) {
+		Record record;
+		try {
+			record = toRecord(recordVO);
+		} catch (OptimisticLockException e) {
+			Record recordFromVo = recordVO.getRecord();
+			new MergeRecordsWindow() {
+				@Override
+				public void mergeButtonClick() {
+					try {
+						save(recordFromVo, recordVO);
+					} catch (Exception e) {
+						LOGGER.error(e.getMessage());
+						view.showErrorMessage(e.getMessage());
+					}
+				}
+
+				@Override
+				public void cancelButtonClick() {
+					cancelButtonClicked();
+				}
+			};
+			return;
+		}
+		save(record, recordVO);
+	}
+
+	public void save(Record record, RecordVO recordVO) {
 		if (recordVO == null) {
 			return;
 		}
-		final Task task = taskPresenterServices.toTask(new TaskVO(recordVO), toRecord(recordVO));
+		final Task task = taskPresenterServices.toTask(new TaskVO(recordVO), record);
 
 		try {
 
@@ -403,7 +435,10 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				task.setAssignee(getCurrentUser().getId());
 			}
 
-			task.setDueDate(TimeProvider.getLocalDate());
+			int defaultDueDate = taskConfigs.getDefaultDueDate();
+			if (defaultDueDate > -1) {
+				task.setDueDate(TimeProvider.getLocalDate().plusDays(defaultDueDate));
+			}
 			parentId = paramsMap.get("parentId");
 			task.setParentTask(parentId);
 
@@ -541,7 +576,13 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	public boolean isCompletedOrClosedStatus(RecordVO recordVO) {
-		Task task = tasksSchemas.wrapTask(toRecord(recordVO));
+		Task task = null;
+		try {
+			task = tasksSchemas.wrapTask(toRecord(recordVO));
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
 		TaskStatus statusType = tasksSchemasRecordsServices.getTaskStatus(task.getStatus());
 		if (statusType == null || statusType.getStatusType() == null) {
 			return false;
@@ -551,7 +592,13 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	public boolean isCompleted(RecordVO recordVO) {
-		Task task = tasksSchemas.wrapTask(toRecord(recordVO));
+		Task task = null;
+		try {
+			task = tasksSchemas.wrapTask(toRecord(recordVO));
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
 		TaskStatus statusType = tasksSchemasRecordsServices.getTaskStatus(task.getStatus());
 		if (statusType == null || statusType.getStatusType() == null) {
 			return false;
@@ -821,39 +868,44 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			newSchemaCode = Task.DEFAULT_SCHEMA;
 		}
 
-		Record taskRecord = toRecord(taskVO);
-		Task task = new Task(taskRecord, types());
+		try {
+			Record taskRecord = toRecord(taskVO);
+			Task task = new Task(taskRecord, types());
 
-		setSchemaCode(newSchemaCode);
-		task.changeSchemaTo(newSchemaCode);
-		MetadataSchema newSchema = task.getSchema();
+			setSchemaCode(newSchemaCode);
+			task.changeSchemaTo(newSchemaCode);
+			MetadataSchema newSchema = task.getSchema();
 
-		commitForm();
-		for (MetadataVO metadataVO : taskVO.getMetadatas()) {
-			String metadataCode = metadataVO.getCode();
-			String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
+			commitForm();
+			for (MetadataVO metadataVO : taskVO.getMetadatas()) {
+				String metadataCode = metadataVO.getCode();
+				String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
 
-			try {
-				Metadata matchingMetadata = newSchema.getMetadata(metadataCodeWithoutPrefix);
-				if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL && !matchingMetadata.isSystemReserved()) {
-					Object voMetadataValue = taskVO.get(metadataVO);
-					Object defaultValue = matchingMetadata.getDefaultValue();
-					Object voDefaultValue = metadataVO.getDefaultValue();
-					if (voMetadataValue == null && defaultValue == null) {
-						task.getWrappedRecord().set(matchingMetadata, voMetadataValue);
-					} else if (voMetadataValue != null && !voMetadataValue.equals(voDefaultValue)) {
-						task.getWrappedRecord().set(matchingMetadata, voMetadataValue);
+				try {
+					Metadata matchingMetadata = newSchema.getMetadata(metadataCodeWithoutPrefix);
+					if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL && !matchingMetadata.isSystemReserved()) {
+						Object voMetadataValue = taskVO.get(metadataVO);
+						Object defaultValue = matchingMetadata.getDefaultValue();
+						Object voDefaultValue = metadataVO.getDefaultValue();
+						if (voMetadataValue == null && defaultValue == null) {
+							task.getWrappedRecord().set(matchingMetadata, voMetadataValue);
+						} else if (voMetadataValue != null && !voMetadataValue.equals(voDefaultValue)) {
+							task.getWrappedRecord().set(matchingMetadata, voMetadataValue);
+						}
 					}
+				} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+					// Ignore
 				}
-			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
-				// Ignore
 			}
+
+			taskVO = voBuilder.build(task.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
+
+			view.setRecord(taskVO);
+			reloadForm();
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
 		}
-
-		taskVO = voBuilder.build(task.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
-
-		view.setRecord(taskVO);
-		reloadForm();
 	}
 
 	private BetaWorkflowTask loadTask() {
@@ -898,7 +950,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	private boolean currentUserHasWriteAuthorisation() {
-		return getCurrentUser().hasWriteAccess().on(toRecord(taskVO)) || !isEditMode();
+		return getCurrentUser().hasWriteAccess().on(taskVO.getRecord()) || !isEditMode();
 	}
 
 	private void adjustFieldsForCollaborators() {

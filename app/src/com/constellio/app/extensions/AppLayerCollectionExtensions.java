@@ -17,6 +17,7 @@ import com.constellio.app.api.extensions.MetadataFieldExtension;
 import com.constellio.app.api.extensions.MetadataFieldFactoryExtension;
 import com.constellio.app.api.extensions.PageExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
+import com.constellio.app.api.extensions.RecordAuthorisationPageExtension;
 import com.constellio.app.api.extensions.RecordDisplayFactoryExtension;
 import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
@@ -57,6 +58,7 @@ import com.constellio.app.api.extensions.params.MetadataFieldExtensionParams;
 import com.constellio.app.api.extensions.params.MetadataFieldFactoryBuildExtensionParams;
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
+import com.constellio.app.api.extensions.params.RecordAuthorisationPageExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryPostBuildExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
@@ -244,6 +246,8 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<ViewableRecordVOTablePanelExtension> viewableRecordVOTablePanelExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<RecordAuthorisationPageExtension> recordAuthorisationPageExtensions = new VaultBehaviorsList<>();
+
 	//Key : schema type code
 	//Values : record's code
 	public KeyListMap<String, String> lockedRecords = new KeyListMap<>();
@@ -257,6 +261,15 @@ public class AppLayerCollectionExtensions {
 	}
 
 	//----------------- Callers ---------------
+
+	public boolean isRecordAuthorisationPageAccessible(User user, Record record) {
+		return ExtensionUtils.getBooleanValue(recordAuthorisationPageExtensions, false, new BooleanCaller<RecordAuthorisationPageExtension>() {
+			@Override
+			public ExtensionBooleanResult call(RecordAuthorisationPageExtension behavior) {
+				return behavior.isAuthorisationPageAvalibleForUser(new RecordAuthorisationPageExtensionParams(record, user));
+			}
+		});
+	}
 
 	public List<AvailableSequence> getAvailableSequencesForRecord(Record record) {
 
@@ -1097,4 +1110,10 @@ public class AppLayerCollectionExtensions {
 		return navigationHandledByExtension;
 	}
 
+
+	public boolean isSequencesActionPossibleOnSchemaRecord(Record record, User user) {
+		return schemaRecordExtentions.getBooleanValue(true,
+				(behavior) -> behavior.isSequencesActionPossible(
+						new SchemaRecordExtensionActionPossibleParams(record, user)));
+	}
 }

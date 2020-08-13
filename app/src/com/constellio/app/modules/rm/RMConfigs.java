@@ -10,13 +10,6 @@ import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.app.modules.rm.model.enums.ReportsSortingMetadata;
-import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
-import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
-import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
-import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
-import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
-import com.constellio.app.modules.rm.model.enums.ReportsSortingMetadata;
-import com.constellio.app.modules.rm.model.enums.*;
 import com.constellio.app.modules.rm.validator.EndYearValueCalculator;
 import com.constellio.app.modules.rm.wrappers.RMDecommissioningTypeRequiredScript;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -112,7 +105,7 @@ public class RMConfigs {
 
 	// Agent configs
 	public static final SystemConfiguration AGENT_ENABLED, AGENT_SWITCH_USER_POSSIBLE, AGENT_DOWNLOAD_ALL_USER_CONTENT,
-			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING, AGENT_DISABLED_UNTIL_FIRST_CONNECTION, AGENT_MOVE_IMPORTED_FILES_TO_TRASH, AGENT_CREATE_DROP_DIR_SHORTCUT;
+			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING, AGENT_DISABLED_UNTIL_FIRST_CONNECTION, AGENT_MOVE_IMPORTED_FILES_TO_TRASH, AGENT_CREATE_DROP_DIR_SHORTCUT, AGENT_DELETE_IMPORTED_FILES;
 
 	// other
 	public static final SystemConfiguration OPEN_HOLDER, MAJOR_VERSION_FOR_NEW_FILE;
@@ -273,6 +266,8 @@ public class RMConfigs {
 
 		add(AGENT_CREATE_DROP_DIR_SHORTCUT = agent.createBooleanTrueByDefault("agentCreateDropDirShortcut"));
 
+		add(AGENT_DELETE_IMPORTED_FILES = agent.createBooleanTrueByDefault("deleteImportedFiles"));
+
 		SystemConfigurationGroup others = new SystemConfigurationGroup(ID, "others");
 
 		add(ENABLE_TYPE_RESTRICTION_IN_FOLDER = others.createBooleanFalseByDefault("enableTypeRestrictionInFolder")
@@ -325,7 +320,7 @@ public class RMConfigs {
 						.withDefaultValue(CompleteDatesWhenAddingFolderWithManualStatusChoice.DISABLED));
 
 		add(ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING = decommissioning
-				.createBooleanFalseByDefault("allowFolderSortingOfDecommissioningList").whichIsHidden());
+				.createBooleanTrueByDefault("allowFolderSortingOfDecommissioningList"));
 
 		add(LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS = others.createBooleanFalseByDefault("logFolderDocumentAccessWithCMIS"));
 
@@ -539,6 +534,10 @@ public class RMConfigs {
 
 	public boolean isAgentCreateDropDirShortcut() {
 		return manager.getValue(AGENT_CREATE_DROP_DIR_SHORTCUT);
+	}
+
+	public boolean isAgentDeleteImportedFiles() {
+		return manager.getValue(AGENT_DELETE_IMPORTED_FILES);
 	}
 
 	public int getFolderBorrowingDurationDays() {

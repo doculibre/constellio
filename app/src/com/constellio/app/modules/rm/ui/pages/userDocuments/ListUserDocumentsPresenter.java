@@ -33,6 +33,7 @@ import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -277,13 +278,17 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 	public void deleteButtonClicked(RecordVO userContentVO, boolean refreshUI) {
 		User currentUser = getCurrentUser();
 		String schemaTypeCode = userContentVO.getSchema().getTypeCode();
-		Record record;
+		Record record = null;
+		try {
+			record = toRecord(userContentVO);
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
+
 		if (UserFolder.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			this.setSchemaCode(UserFolder.DEFAULT_SCHEMA);
-			record = toRecord(userContentVO);
 			this.setSchemaCode(UserDocument.DEFAULT_SCHEMA);
-		} else {
-			record = toRecord(userContentVO);
 		}
 
 		try {

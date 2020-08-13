@@ -943,6 +943,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void refreshFolderContentAndFacets() {
+		refreshFacets(folderContentDataProvider);
 	}
 
 	@Override

@@ -28,14 +28,45 @@ public class TaxonomiesSearchServices {
 		this.modelLayerFactory = modelLayerFactory;
 	}
 
+	TaxonomiesSearchServicesQueryHandler handler(TaxonomiesSearchOptions options, GetChildrenContext ctx) {
+		if (ctx.getRecord() != null) {
+			return handler(options, ctx.getRecord());
 
-	TaxonomiesSearchServicesQueryHandler handler(TaxonomiesSearchOptions options) {
+		} else if (ctx.getTaxonomy() != null) {
+			return handler(options, ctx.getTaxonomy().getCode());
+
+		} else {
+			return handler(options, (Record) null);
+		}
+	}
+
+
+	TaxonomiesSearchServicesQueryHandler handler(TaxonomiesSearchOptions options, Record record) {
 		if (options.getFastContinueInfos() != null
-			|| !Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.isEnabled()) {
+			|| !Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.isEnabled()
+			|| isNavigatingUsingSmbTaxonomy(record)) {
 			return new TaxonomiesSearchServicesLegacyQueryHandler(modelLayerFactory);
 		} else {
 			return new TaxonomiesSearchServicesSummaryCacheQueryHandler(modelLayerFactory);
 		}
+	}
+
+	TaxonomiesSearchServicesQueryHandler handler(TaxonomiesSearchOptions options, String taxonomyCode) {
+		if (options.getFastContinueInfos() != null
+			|| !Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.isEnabled()
+			|| isNavigatingUsingSmbTaxonomy(taxonomyCode)) {
+			return new TaxonomiesSearchServicesLegacyQueryHandler(modelLayerFactory);
+		} else {
+			return new TaxonomiesSearchServicesSummaryCacheQueryHandler(modelLayerFactory);
+		}
+	}
+
+	private boolean isNavigatingUsingSmbTaxonomy(Record record) {
+		return record != null && record.getTypeCode().startsWith("connectorSmb");
+	}
+
+	private boolean isNavigatingUsingSmbTaxonomy(String taxonomyCode) {
+		return taxonomyCode != null && taxonomyCode.equals("smbFolders");
 	}
 
 	public List<TaxonomySearchRecord> getVisibleRootConcept(User user, String collection, String taxonomyCode,
@@ -49,7 +80,7 @@ public class TaxonomiesSearchServices {
 	}
 
 	public boolean findNonTaxonomyRecordsInStructure(Record record, TaxonomiesSearchOptions options) {
-		return handler(options).findNonTaxonomyRecordsInStructure(record, options);
+		return handler(options, record).findNonTaxonomyRecordsInStructure(record, options);
 	}
 
 	public List<TaxonomySearchRecord> getLinkableRootConcept(User user, String collection, String taxonomyCode,
@@ -90,7 +121,7 @@ public class TaxonomiesSearchServices {
 			return new TaxonomiesSearchServicesLegacyQueryHandler(modelLayerFactory)
 					.getVisibleChildConcept(ctx);
 		} else {
-			return handler(options).getVisibleChildConcept(ctx);
+			return handler(options, record).getVisibleChildConcept(ctx);
 		}
 
 	}
@@ -104,7 +135,7 @@ public class TaxonomiesSearchServices {
 			return new TaxonomiesSearchServicesLegacyQueryHandler(modelLayerFactory)
 					.getVisibleChildrenRecords(ctx);
 		} else {
-			return handler(options).getVisibleChildrenRecords(ctx);
+			return handler(options, record).getVisibleChildrenRecords(ctx);
 		}
 
 	}
@@ -129,7 +160,7 @@ public class TaxonomiesSearchServices {
 			return new TaxonomiesSearchServicesLegacyQueryHandler(modelLayerFactory).getVisibleRootConceptResponse(ctx);
 
 		} else {
-			return handler(options).getVisibleRootConceptResponse(ctx);
+			return handler(options, taxonomyCode).getVisibleRootConceptResponse(ctx);
 		}
 	}
 
@@ -140,7 +171,7 @@ public class TaxonomiesSearchServices {
 
 	public boolean isLinkable(final Record record, final Taxonomy taxonomy, TaxonomiesSearchOptions options) {
 
-		return handler(options).isLinkable(record, taxonomy, options);
+		return handler(options, record).isLinkable(record, taxonomy, options);
 	}
 
 	private LinkableTaxonomySearchResponse getLinkableConceptResponse(User user, String collection,
@@ -170,7 +201,7 @@ public class TaxonomiesSearchServices {
 				response = new TaxonomiesSearchServicesLegacyQueryHandler(modelLayerFactory)
 						.getLinkableConceptsForSelectionOfAPrincipalTaxonomyConceptBasedOnAuthorizations(ctx);
 			} else {
-				response = handler(options).getLinkableConceptsForSelectionOfAPrincipalTaxonomyConceptBasedOnAuthorizations(ctx);
+				response = handler(options, ctx).getLinkableConceptsForSelectionOfAPrincipalTaxonomyConceptBasedOnAuthorizations(ctx);
 			}
 
 
@@ -191,7 +222,7 @@ public class TaxonomiesSearchServices {
 					response = new TaxonomiesSearchServicesLegacyQueryHandler(modelLayerFactory)
 							.getVisibleChildrenRecords(ctx);
 				} else {
-					response = handler(options).getVisibleChildrenRecords(ctx);
+					response = handler(options, ctx).getVisibleChildrenRecords(ctx);
 				}
 			}
 
@@ -204,7 +235,7 @@ public class TaxonomiesSearchServices {
 				response = new TaxonomiesSearchServicesLegacyQueryHandler(modelLayerFactory)
 						.getLinkableConceptsForSelectionOfARecordUsingNonPrincipalTaxonomy(ctx);
 			} else {
-				response = handler(options).getLinkableConceptsForSelectionOfARecordUsingNonPrincipalTaxonomy(ctx);
+				response = handler(options, ctx).getLinkableConceptsForSelectionOfARecordUsingNonPrincipalTaxonomy(ctx);
 			}
 
 

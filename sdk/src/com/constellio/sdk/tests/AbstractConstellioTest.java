@@ -841,7 +841,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		givenSystemLanguageIs("fr");
 		givenCollection(collection, asList("fr", "en"));
 
-		SchemasSetup.prepareSetups(getModelLayerFactory().getMetadataSchemasManager(), getAppLayerFactory().getCollectionsManager());
+		SchemasSetup.prepareSetups(getModelLayerFactory().getMetadataSchemasManager(), getModelLayerFactory(), getAppLayerFactory().getCollectionsManager());
 		return getCurrentTestSession().getSchemaTestFeatures();
 	}
 
@@ -1033,6 +1033,14 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected void givenConfig(SystemConfiguration config, Object value) {
 		ensureNotUnitTest();
 		if (getModelLayerFactory().getSystemConfigurationsManager().setValue(config, value)) {
+			getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(true);
+		}
+	}
+
+	protected void givenConfig(SystemConfiguration config, File value) {
+		ensureNotUnitTest();
+		StreamFactory<InputStream> streamFactory = value == null ? null : getModelLayerFactory().getIOServicesFactory().newIOServices().newInputStreamFactory(value, "config-" + config.getCode());
+		if (getModelLayerFactory().getSystemConfigurationsManager().setValue(config, streamFactory)) {
 			getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(true);
 		}
 	}

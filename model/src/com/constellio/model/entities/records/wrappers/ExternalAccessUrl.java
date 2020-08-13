@@ -11,6 +11,7 @@ public class ExternalAccessUrl extends RecordWrapper {
 
 	public static final String TOKEN = "token";
 	public static final String FULLNAME = "fullname";
+	public static final String EMAIL = "email";
 	public static final String EXPIRATION_DATE = "expirationDate";
 	public static final String STATUS = "status";
 	public static final String ACCESS_RECORD = "accessRecord";
@@ -34,6 +35,15 @@ public class ExternalAccessUrl extends RecordWrapper {
 
 	public ExternalAccessUrl setFullname(String name) {
 		set(FULLNAME, name);
+		return this;
+	}
+
+	public String getEmail() {
+		return get(EMAIL);
+	}
+
+	public ExternalAccessUrl setEmail(String email) {
+		set(EMAIL, email);
 		return this;
 	}
 

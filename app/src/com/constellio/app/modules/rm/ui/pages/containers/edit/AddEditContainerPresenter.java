@@ -28,6 +28,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataList;
@@ -121,35 +122,40 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 		return !editMode || container.get(ContainerRecord.DECOMMISSIONING_TYPE) == null || getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
 	}
 
-	public void saveButtonClicked(RecordVO record) {
-		if (multipleMode) {
-			if (numberOfContainer < 1 || numberOfContainer > 100) {
-				view.showErrorMessage($("AddEditContainerView.invalidNumberOfContainer"));
-				return;
-			}
-			try {
-				createMultipleContainer(toRecord(record), numberOfContainer);
-				view.navigate().to(RMViews.class).archiveManagement();
-			} catch (RecordServicesException.ValidationException e) {
-				view.showMessage($(e.getErrors()));
+	public void saveButtonClicked(RecordVO recordVO) {
+		try {
+			Record record = toRecord(recordVO);
+			if (multipleMode) {
+				if (numberOfContainer < 1 || numberOfContainer > 100) {
+					view.showErrorMessage($("AddEditContainerView.invalidNumberOfContainer"));
+					return;
+				}
+				try {
+					createMultipleContainer(record, numberOfContainer);
+					view.navigate().to(RMViews.class).archiveManagement();
+				} catch (RecordServicesException.ValidationException e) {
+					view.showMessage($(e.getErrors()));
 
-			} catch (RecordServicesException e) {
-				view.showMessage($(e));
-			}
-		} else {
-			addOrUpdate(toRecord(record));
-
-			if(params != null && params.get(RMViews.FAV_GROUP_ID_KEY) != null) {
-				view.navigate().to(RMViews.class).displayContainerFromFavorites(record.getId(), params.get(RMViews.FAV_GROUP_ID_KEY));
-			} else if(Strings.isNotBlank(tabName) && Strings.isNotBlank(administrativeUnitId)) {
-				view.navigate().to(RMViews.class)
-						.displayContainerFromContainerByAdministrativeUnit(record.getId(), tabName, administrativeUnitId);
+				} catch (RecordServicesException e) {
+					view.showMessage($(e));
+				}
 			} else {
-				view.navigate().to(RMViews.class)
-						.displayContainer(record.getId());
-			}
-		}
+				addOrUpdate(record);
 
+				if (params != null && params.get(RMViews.FAV_GROUP_ID_KEY) != null) {
+					view.navigate().to(RMViews.class).displayContainerFromFavorites(recordVO.getId(), params.get(RMViews.FAV_GROUP_ID_KEY));
+				} else if (Strings.isNotBlank(tabName) && Strings.isNotBlank(administrativeUnitId)) {
+					view.navigate().to(RMViews.class)
+							.displayContainerFromContainerByAdministrativeUnit(recordVO.getId(), tabName, administrativeUnitId);
+				} else {
+					view.navigate().to(RMViews.class)
+							.displayContainer(recordVO.getId());
+				}
+			}
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
 	}
 
 	public void cancelRequested() {

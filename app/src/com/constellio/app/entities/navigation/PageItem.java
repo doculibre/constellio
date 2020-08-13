@@ -106,6 +106,7 @@ public abstract class PageItem implements CodedItem, Serializable {
 	public static abstract class RecordTree extends PageItem {
 
 		private int defaultDataProvider = -1;
+		private String expendedRecordIdsLinkedToTaxonomieCode = null;
 
 		private List<String> expandedRecordIds = Collections.emptyList();
 
@@ -128,6 +129,15 @@ public abstract class PageItem implements CodedItem, Serializable {
 		public void setExpandedRecordIds(List<String> expandedRecordIds) {
 			this.expandedRecordIds = expandedRecordIds;
 		}
+
+		public void setExpendedRecordIdsLinkedToTaxonomieCode(String taxonomieCode) {
+			this.expendedRecordIdsLinkedToTaxonomieCode = taxonomieCode;
+		}
+
+		public String getExpendedRecordIdsLinkedToTaxonomieCode() {
+			return this.expendedRecordIdsLinkedToTaxonomieCode;
+		}
+
 
 		public abstract List<LazyTreeDataProvider<String>> getDataProviders(
 				AppLayerFactory appLayerFactory, SessionContext sessionContext);

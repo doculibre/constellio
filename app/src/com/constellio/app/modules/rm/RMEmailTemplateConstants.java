@@ -22,8 +22,11 @@ public class RMEmailTemplateConstants {
 	public static final String ALERT_REACTIVATED_DENIED = "alertReactivatedDenied";
 	public static final String ALERT_BORROWING_EXTENTED_DENIED = "alertBorrowingExtendedDenied";
 	public static final String ALERT_BORROWING_PERIOD_ENDED = "alertBorrowingPeriodEnded";
+	public static final String ALERT_BORROWING_PERIOD_ENDED_V2 = "alertBorrowingPeriodEndedv2";
+	public static final String ALERT_BORROWING_PERIOD_ENDED_V2_EN = "alertBorrowingPeriodEndedv2_en";
 	public static final String ALERT_SHARE = "alertShareTemplate";
 	public static final String ACCEPTED = "Accepted";
 	public static final String DENIED = "Denied";
 	public static final String ALERT_DECOMMISSIONING_ENDED = "alertDecommissioningEnded";
+	public static final String EXTERNAL_SIGNATURE_REQUEST = "externalSignatureRequest";
 }

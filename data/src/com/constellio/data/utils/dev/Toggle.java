@@ -134,6 +134,8 @@ public class Toggle {
 
 	public static AvailableToggle IGNORE_CONFIGS_WHEN_SYNCHRONIZING_AZURE_RELATED_USERS_AND_GROUPS = newToggle(false);
 
+	public static AvailableToggle PUT_IN_CONTAINER_ACTION = newToggle(false);
+
 	public static AvailableToggle ENABLE_OFFICE365_EXCLUSIVE = newToggle(false);
 
 	public static AvailableToggle ENABLE_SIGNATURE = newToggle(false);

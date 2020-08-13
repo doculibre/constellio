@@ -28,15 +28,21 @@ import com.constellio.model.services.contents.ContentManagerRuntimeException.Con
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.pdf.PdfAnnotation;
 import com.constellio.model.services.pdf.signature.CreateVisibleSignature;
-import com.constellio.model.services.pdf.signature.PdfSignatureAnnotation;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.joda.time.LocalDateTime;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -62,13 +68,14 @@ public class PdfSignatureServices {
 		this.contentManager = modelLayerFactory.getContentManager();
 	}
 
-	public void signAndCertify(Record record, Metadata metadata, User user, List<PdfSignatureAnnotation> signatures)
+	public void signAndCertify(Record record, Metadata metadata, User user, List<PdfAnnotation> annotations)
 			throws PdfSignatureException {
-		signAndCertify(record, metadata, user, signatures, null);
+		signAndCertify(record, metadata, user, annotations, null);
 	}
 
 	@SuppressWarnings("rawtypes")
-	public void signAndCertify(Record record, Metadata metadata, User user, List<PdfSignatureAnnotation> signatures,
+	public void signAndCertify(Record record, Metadata metadata, User user,
+							   List<PdfAnnotation> annotations,
 							   String base64PdfContent)
 			throws PdfSignatureException {
 		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
@@ -131,32 +138,93 @@ public class PdfSignatureServices {
 				throw new PdfSignatureException_CannotReadKeystoreFileException();
 			}
 
-			if (signatures.size() < 1) {
+			if (annotations.size() < 1) {
 				throw new PdfSignatureException_NothingToSignException();
 			}
-			Collections.sort(signatures);
+			Collections.sort(annotations);
 
-			File signedDocument = null;
-			for (PdfSignatureAnnotation signature : signatures) {
-				File signatureFile = createTempFileFromBase64("signature", signature.getImageData());
-				if (signatureFile == null) {
-					throw new PdfSignatureException_CannotReadSignatureFileException();
+			List<PdfAnnotation> signedAnnotations = new ArrayList<>();
+			List<PdfAnnotation> notSignedAnnotations = new ArrayList<>();
+
+			for (PdfAnnotation annotation : annotations) {
+				if (annotation.isSignature()) {
+					signedAnnotations.add(annotation);
 				} else {
-					tempFiles.add(signatureFile);
-				}
+					notSignedAnnotations.add(annotation);
+				} 
+			}
+
+			if (!notSignedAnnotations.isEmpty()) {
+				PDDocument doc = null;
 				try {
-					String keystorePath = keystoreFile.getAbsolutePath();
-					String docToSignFilePath = docToSignFile.getAbsolutePath();
-					String signaturePath = signatureFile.getAbsolutePath();
-					signedDocument = CreateVisibleSignature.signDocument(keystorePath, keystorePass, docToSignFilePath, signaturePath, signature);
-					tempFiles.add(docToSignFile);
-					docToSignFile = signedDocument;
-				} catch (Exception e) {
+					doc = PDDocument.load(docToSignFile);
+
+					for (int i = 0; i < notSignedAnnotations.size(); i++) {
+						PdfAnnotation notSignedAnnotation = notSignedAnnotations.get(i);
+
+						int pageNumber = notSignedAnnotation.getPage();
+						//Retrieving the page
+						PDPage page = doc.getPage(pageNumber);
+
+						File initialsFile = createTempFileFromBase64("not_signed", notSignedAnnotation.getImageData());
+						if (initialsFile == null) {
+							throw new PdfSignatureException_CannotReadSignatureFileException();
+						} else {
+							tempFiles.add(initialsFile);
+						}
+					   
+						//Creating PDImageXObject object
+						PDImageXObject pdImage = PDImageXObject.createFromFile(initialsFile.getAbsolutePath(), doc);
+					   
+						//Creating the PDPageContentStream object
+						try (PDPageContentStream contents = new PDPageContentStream(doc, page, PDPageContentStream.AppendMode.APPEND, true)) {
+							//Drawing the image in the PDF document
+							Rectangle imagePosition = notSignedAnnotation.getPosition();
+							float adjustedY = (float) (imagePosition.getY() - imagePosition.getHeight());
+							imagePosition.setLocation((int) imagePosition.getX(), (int) adjustedY);
+							contents.drawImage(pdImage, (float) imagePosition.getX(), (float) imagePosition.getY(), (float) imagePosition.getWidth(), (float) imagePosition.getHeight());
+						}
+					}
+
+					File docWithInitialsFile = fileService.newTemporaryFile(docToSignFile.getName() + "_with_images.pdf");
+					tempFiles.add(docWithInitialsFile);
+					//Saving the document
+					doc.save(docWithInitialsFile);
+					docToSignFile = docWithInitialsFile;
+				} catch (IOException e) {
 					throw new PdfSignatureException_CannotSignDocumentException(e);
+				} finally {
+					ioServices.closeQuietly(doc);
 				}
 			}
 
-			uploadNewVersion(signedDocument, record, metadata, user);
+			File newDocumentVersionFile;
+			if (!signedAnnotations.isEmpty()) {
+				newDocumentVersionFile = null;
+				for (PdfAnnotation signature : signedAnnotations) {
+					File signatureFile = createTempFileFromBase64("signature", signature.getImageData());
+					if (signatureFile == null) {
+						throw new PdfSignatureException_CannotReadSignatureFileException();
+					} else {
+						tempFiles.add(signatureFile);
+					}
+					try {
+						String keystorePath = keystoreFile.getAbsolutePath();
+						String docToSignFilePath = docToSignFile.getAbsolutePath();
+						String signaturePath = signatureFile.getAbsolutePath();
+						newDocumentVersionFile = CreateVisibleSignature.signDocument(keystorePath, keystorePass, docToSignFilePath, signaturePath, signature);
+						tempFiles.add(docToSignFile);
+						docToSignFile = newDocumentVersionFile;
+					} catch (Exception e) {
+						throw new PdfSignatureException_CannotSignDocumentException(e);
+					}
+				}
+			} else {
+				newDocumentVersionFile = docToSignFile;
+			}
+
+			uploadNewVersion(newDocumentVersionFile, record, metadata, user);
+			modelLayerFactory.newLoggingServices().logSignedRecord(record, user, LocalDateTime.now());
 		} finally {
 			for (File tempFile : tempFiles) {
 				fileService.deleteQuietly(tempFile);
@@ -269,7 +337,7 @@ public class PdfSignatureServices {
 		if (parts.length != 2) {
 			return null;
 		}
-
+		String imageExtension = StringUtils.substringAfter(StringUtils.substringBefore(fileAsBase64Str, ";"), "image/");
 		String encodedText;
 		try {
 			encodedText = new String(parts[1].getBytes("UTF-8"));
@@ -278,7 +346,7 @@ public class PdfSignatureServices {
 		}
 		byte[] data = Base64.getDecoder().decode(encodedText);
 		FileService fileService = modelLayerFactory.getIOServicesFactory().newFileService();
-		File tempFile = fileService.newTemporaryFile(filename);
+		File tempFile = fileService.newTemporaryFile(filename, "." + imageExtension);
 
 		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 		try (OutputStream outputStream = ioServices.newFileOutputStream(tempFile, getClass().getSimpleName() + ".createTempFileFromBase64")) {

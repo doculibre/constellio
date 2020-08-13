@@ -9,10 +9,13 @@ public class ExternalAccessUser extends User {
 
 	private ExternalAccessUrl externalAccessUrl;
 
+	private String lastIPAddress;
+
 	public ExternalAccessUser(Record record, MetadataSchemaTypes types, Roles roles,
-							  ExternalAccessUrl externalAccessUrl) {
+							  ExternalAccessUrl externalAccessUrl, String lastIPAddress) {
 		super(record, types, roles);
 		this.externalAccessUrl = externalAccessUrl;
+		this.lastIPAddress = lastIPAddress;
 	}
 
 	public ExternalAccessUrl getExternalAccessUrl() {
@@ -21,7 +24,17 @@ public class ExternalAccessUser extends User {
 
 	@Override
 	public String getUsername() {
-		return externalAccessUrl.getFullname();
+		return externalAccessUrl.getFullname() + " (" + getEmail() + ")";
+	}
+
+	@Override
+	public String getEmail() {
+		return externalAccessUrl.getEmail();
+	}
+
+	@Override
+	public String getLastIPAddress() {
+		return this.lastIPAddress;
 	}
 
 	@Override

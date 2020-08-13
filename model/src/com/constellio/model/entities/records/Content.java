@@ -32,6 +32,8 @@ public interface Content extends ModifiableStructure {
 
 	Content checkOut(User user);
 
+	Content checkOut(User user, int checkoutSource);
+
 	Content checkIn();
 
 	Content cancelCheckOut();
@@ -62,6 +64,8 @@ public interface Content extends ModifiableStructure {
 	LocalDateTime getCheckoutDateTime();
 
 	String getCheckoutUserId();
+
+	Integer getCheckoutSource();
 
 	boolean isDirty();
 
