@@ -57,7 +57,7 @@ public class GroupCollectionMenuItemServices {
 					MenuItemAction menuItemAction = buildMenuItemAction(GROUP_CONSULT.name(),
 							isMenuItemActionPossible(GROUP_CONSULT.name(), groupRecords.get(0), user, params),
 							$("CollectionSecurityManagement.consult"), FontAwesome.SEARCH, -1, 100,
-							(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).consult(groupRecords, params));
+							(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).consult(groupRecords.get(0), params));
 					menuItemActions.add(menuItemAction);
 				}
 
@@ -65,7 +65,7 @@ public class GroupCollectionMenuItemServices {
 					MenuItemAction menuItemAction = buildMenuItemAction(GROUP_EDIT.name(),
 							isMenuItemActionPossible(GROUP_EDIT.name(), groupRecords.get(0), user, params),
 							$("CollectionSecurityManagement.edit"), FontAwesome.EDIT, -1, 150,
-							(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(groupRecords, params));
+							(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(groupRecords.get(0), params));
 					menuItemActions.add(menuItemAction);
 				}
 			}

@@ -101,7 +101,7 @@ public class CollectionSecurityManagementPresenter extends BasePresenter<Collect
 
 	public void addUserButtonClicked() {
 		String params = ParamUtils.addParams(NavigatorConfigurationService.COLLECTION_USER_LIST, null);
-		view.navigate().to().addUserCredential(params);
+		view.navigate().to().addEditUserCredential(params);
 
 	}
 }

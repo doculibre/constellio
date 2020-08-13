@@ -16,16 +16,13 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
-import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
@@ -38,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -162,15 +158,14 @@ public class GroupWindowButton extends WindowButton {
 	}
 
 	private void addToGroupsRequested(BaseView baseView) {
-		Transaction transaction = new Transaction(RecordUpdateOptions.validationExceptionSafeOptions());
-		List<Record> updateRecords = records.stream().map(group -> group.getWrappedRecord()).collect(Collectors.toList());
-		transaction.update(updateRecords);
-		try {
-			recordServices.execute(transaction);
-			baseView.showMessage($("CollectionSecurityManagement.addedUsersToGroups"));
-		} catch (Exception e) {
-			throw new ImpossibleRuntimeException(e);
+
+		for (User user : records) {
+			UserAddUpdateRequest userAddUpdateRequest = userServices.addUpdate(user.getUsername());
+			userAddUpdateRequest.addToGroupsInCollection((List<String>) groupsField.getValue(), collection);
+			userServices.execute(userAddUpdateRequest);
 		}
+
+		baseView.showMessage($("CollectionSecurityManagement.addedUsersToGroups"));
 	}
 
 	private RecordVODataProvider getGroupDataProvider(SessionContext sessionContext) {

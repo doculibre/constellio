@@ -47,6 +47,7 @@ public class SystemWideUserInfos {
 	@Getter
 	private Boolean systemAdmin;
 
+	@Getter
 	private Map<String, UserCredentialStatus> statuses = new HashMap<>();
 
 	@Getter
@@ -55,7 +56,10 @@ public class SystemWideUserInfos {
 	@Getter
 	private List<String> collections = new ArrayList<>();
 
+	@Getter
 	private Map<String, List<String>> groupCodes = new HashMap<>();
+
+	@Getter
 	private Map<String, List<String>> groupIds = new HashMap<>();
 
 	@Getter
@@ -138,7 +142,6 @@ public class SystemWideUserInfos {
 	public UserCredentialStatus getStatus(String collection) {
 		return statuses.get(collection);
 	}
-
 
 	public boolean isActiveInAnyCollection() {
 		return hasStatusInAnyCollection(UserCredentialStatus.ACTIVE);

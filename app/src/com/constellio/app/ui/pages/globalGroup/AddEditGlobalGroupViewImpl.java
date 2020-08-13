@@ -4,7 +4,6 @@ import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -37,9 +36,6 @@ public class AddEditGlobalGroupViewImpl extends BaseViewImpl implements AddEditG
 	@PropertyId("collections")
 	private OptionGroup collectionsField;
 
-	@PropertyId("status")
-	private OptionGroup statusField;
-
 	public AddEditGlobalGroupViewImpl() {
 		this.presenter = new AddEditGlobalGroupPresenter(this);
 	}
@@ -57,7 +53,6 @@ public class AddEditGlobalGroupViewImpl extends BaseViewImpl implements AddEditG
 			breadCrumb = parameters.substring(0, indexOfSlash);
 		}
 		paramsMap = ParamUtils.getParamsMap(parameters);
-		//		if (paramsMap.containsKey(GLOBAL_GROUP_CODE) && !paramsMap.containsKey(PARENT_GLOBAL_GROUP_CODE)) {
 		if (paramsMap.containsKey(GLOBAL_GROUP_CODE)) {
 			globalGroupVO = presenter.getGlobalGroupVO(paramsMap.get(GLOBAL_GROUP_CODE));
 			addActionMode = false;
@@ -110,16 +105,8 @@ public class AddEditGlobalGroupViewImpl extends BaseViewImpl implements AddEditG
 			}
 		}
 
-		statusField = new OptionGroup($("GlobalGroupView.status"));
-		statusField.addStyleName("status");
-		statusField.setId("status");
-		for (GlobalGroupStatus status : GlobalGroupStatus.values()) {
-			statusField.addItem(status);
-			statusField.setItemCaption(status, $("GlobalGroupView.status." + status.name()));
-		}
-		statusField.setEnabled(!addActionMode && globalGroupVO.isLocallyCreated());
 
-		return new BaseForm<GlobalGroupVO>(globalGroupVO, this, codeField, nameField, collectionsField, statusField) {
+		return new BaseForm<GlobalGroupVO>(globalGroupVO, this, codeField, nameField, collectionsField) {
 			@Override
 			protected void saveButtonClick(GlobalGroupVO globalGroupVO)
 					throws ValidationException {

@@ -45,7 +45,7 @@ public class ListUserCredentialsPresenterTest extends ConstellioTest {
 
 		presenter.addButtonClicked();
 
-		verify(userView.navigate().to(), times(1)).addUserCredential(NavigatorConfigurationService.USER_LIST + "/");
+		verify(userView.navigate().to(), times(1)).addEditUserCredential(NavigatorConfigurationService.USER_LIST + "/");
 	}
 
 	//@Test

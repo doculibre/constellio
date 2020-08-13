@@ -21,6 +21,7 @@ import static com.constellio.app.services.menu.UserCollectionMenuItemServices.Us
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_ADD_TO_GROUP;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_CHANGE_STATUS;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_CONSULT;
+import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_CREDENTIAL_GENERATE_TOKEN;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_DELETE;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_EDIT;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_MANAGE_ROLES;
@@ -47,14 +48,12 @@ public class UserCollectionMenuItemServices {
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
 
 		if (!userRecords.isEmpty()) {
-
-
 			if (userRecords.size() == 1) {
 				if (!filteredActionTypes.contains(USER_CONSULT.name())) {
 					MenuItemAction menuItemAction = buildMenuItemAction(USER_CONSULT.name(),
 							isMenuItemActionPossible(USER_CONSULT.name(), userRecords.get(0), user, params),
 							$("CollectionSecurityManagement.consult"), FontAwesome.SEARCH, -1, 100,
-							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).consult(userRecords, params));
+							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).consult(userRecords.get(0), params));
 					menuItemActions.add(menuItemAction);
 				}
 
@@ -62,7 +61,7 @@ public class UserCollectionMenuItemServices {
 					MenuItemAction menuItemAction = buildMenuItemAction(USER_EDIT.name(),
 							isMenuItemActionPossible(USER_EDIT.name(), userRecords.get(0), user, params),
 							$("CollectionSecurityManagement.edit"), FontAwesome.EDIT, -1, 150,
-							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(userRecords, params));
+							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(userRecords.get(0), params));
 					menuItemActions.add(menuItemAction);
 				}
 
@@ -70,7 +69,7 @@ public class UserCollectionMenuItemServices {
 					MenuItemAction menuItemAction = buildMenuItemAction(USER_MANAGE_SECURITY.name(),
 							isMenuItemActionPossible(USER_MANAGE_SECURITY.name(), userRecords.get(0), user, params),
 							$("CollectionSecurityManagement.manageSecurity"), FontAwesome.LOCK, -1, 450,
-							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).manageSecurity(userRecords, params));
+							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).manageSecurity(userRecords.get(0), params));
 					menuItemActions.add(menuItemAction);
 				}
 
@@ -78,7 +77,18 @@ public class UserCollectionMenuItemServices {
 					MenuItemAction menuItemAction = buildMenuItemAction(USER_MANAGE_ROLES.name(),
 							isMenuItemActionPossible(USER_MANAGE_ROLES.name(), userRecords.get(0), user, params),
 							$("CollectionSecurityManagement.manageRoles"), FontAwesome.USER_SECRET, -1, 500,
-							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).manageRole(userRecords, params));
+							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).manageRole(userRecords.get(0), params));
+
+					menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
+
+					menuItemActions.add(menuItemAction);
+				}
+
+				if (!filteredActionTypes.contains(USER_CREDENTIAL_GENERATE_TOKEN.name())) {
+					MenuItemAction menuItemAction = buildMenuItemAction(USER_CREDENTIAL_GENERATE_TOKEN.name(),
+							isMenuItemActionPossible(USER_CREDENTIAL_GENERATE_TOKEN.name(), userRecords.get(0), user, params),
+							$("DisplayUserCredentialView.generateTokenButton"), null, -1, 200,
+							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).generateToken(params));
 
 					menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
 
@@ -162,6 +172,8 @@ public class UserCollectionMenuItemServices {
 				return userRecordActionsServices.isManageSecurityActionPossible(record, user);
 			case USER_MANAGE_ROLES:
 				return userRecordActionsServices.isManageRoleActionPossible(record, user);
+			case USER_CREDENTIAL_GENERATE_TOKEN:
+				return userRecordActionsServices.isGenerateTokenActionPossibe(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
@@ -191,6 +203,7 @@ public class UserCollectionMenuItemServices {
 		USER_MANAGE_SECURITY,
 		USER_MANAGE_ROLES,
 		USER_SYNCHRONIZE,
-		USER_DESYNCHRONIZE
+		USER_DESYNCHRONIZE,
+		USER_CREDENTIAL_GENERATE_TOKEN
 	}
 }

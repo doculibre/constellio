@@ -20,6 +20,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.constellio.app.ui.application.NavigatorConfigurationService.GROUP_ADD_EDIT;
+import static com.constellio.app.ui.application.NavigatorConfigurationService.GROUP_DISPLAY;
+import static com.constellio.app.ui.pages.globalGroup.AddEditGlobalGroupViewImpl.GLOBAL_GROUP_CODE;
+
 public class CoreViews {
 	protected Navigator navigator;
 
@@ -100,7 +104,7 @@ public class CoreViews {
 	}
 
 	public void addGlobalGroup(String params) {
-		navigator.navigateTo(NavigatorConfigurationService.GROUP_ADD_EDIT + "/" + params);
+		navigator.navigateTo(GROUP_ADD_EDIT + "/" + params);
 	}
 
 	public void editTaxonomyConcept(String taxonomyCode, String conceptId, String schemaCode) {
@@ -158,6 +162,10 @@ public class CoreViews {
 
 	public void editCollectionUserRoles(String enityId) {
 		navigator.navigateTo(NavigatorConfigurationService.COLLECTION_USER_ROLES + "/" + enityId);
+	}
+
+	public void addEditGroup(String groupId) {
+		navigator.navigateTo(NavigatorConfigurationService.ADD_EDIT_GROUP + "/" + groupId);
 	}
 
 	public void displayCollectionGroup(String entityId) {
@@ -231,25 +239,49 @@ public class CoreViews {
 		navigator.navigateTo(viewPath);
 	}
 
-	public void listGlobalGroups() {
-		navigator.navigateTo(NavigatorConfigurationService.GROUP_LIST);
+	public void editGlobalGroup(String params) {
+		Map<String, String> paramsMap = new HashMap<>();
+		paramsMap.put(GLOBAL_GROUP_CODE, params);
+		String viewPath = ParamUtils.addParams(GROUP_ADD_EDIT, paramsMap);
+		navigator.navigateTo(viewPath);
 	}
 
-	public void editGlobalGroup(String params) {
-		navigator.navigateTo(NavigatorConfigurationService.GROUP_ADD_EDIT + "/" + params);
+	public void editGlobalGroup(Map<String, String> params) {
+		String viewPath = ParamUtils.addParams(GROUP_ADD_EDIT, params);
+		navigator.navigateTo(viewPath);
 	}
 
 	public void displayGlobalGroup(String params) {
-		navigator.navigateTo(NavigatorConfigurationService.GROUP_DISPLAY + "/" + params);
+		Map<String, String> paramsMap = new HashMap<>();
+		paramsMap.put(GLOBAL_GROUP_CODE, params);
+		String viewPath = ParamUtils.addParams(GROUP_DISPLAY, paramsMap);
+		navigator.navigateTo(viewPath);
+	}
+
+	public void displayGlobalGroup(Map<String, String> params) {
+		String viewPath = ParamUtils.addParams(GROUP_DISPLAY, params);
+		navigator.navigateTo(viewPath);
 	}
 
 	public void listUserCredentials() {
 		navigator.navigateTo(NavigatorConfigurationService.USER_LIST);
 	}
 
-	public void displayUserCredential(String params) {
-		navigator.navigateTo(NavigatorConfigurationService.USER_DISPLAY + "/" + params);
+	public void displayUserCredential(String username) {
+		Map<String, String> paramsMap = new HashMap<>();
+		paramsMap.put("username", username);
+		String viewWithParamsString = ParamUtils.addParams(NavigatorConfigurationService.USER_DISPLAY, paramsMap);
+		navigator.navigateTo(viewWithParamsString);
 	}
+
+	public void displayUserCredentialFromSecurityPage(String username) {
+		Map<String, String> paramsMap = new HashMap<>();
+		paramsMap.put("username", username);
+		paramsMap.put("fromSecurityPage", true + "");
+		String viewWithParamsString = ParamUtils.addParams(NavigatorConfigurationService.USER_DISPLAY, paramsMap);
+		navigator.navigateTo(viewWithParamsString);
+	}
+
 
 	public void showEventCategory(EventCategory specificEvent) {
 		navigator.navigateTo(NavigatorConfigurationService.EVENT_CATEGORY + "/" + specificEvent);
@@ -265,8 +297,11 @@ public class CoreViews {
 		navigator.navigateTo(viewWithParamsString);
 	}
 
-	public void editUserCredential(String params) {
-		navigator.navigateTo(NavigatorConfigurationService.USER_ADD_EDIT + "/" + params);
+	public void editUserCredential(String username) {
+		Map<String, String> paramsMap = new HashMap<>();
+		paramsMap.put("username", username);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.USER_ADD_EDIT, paramsMap);
+		navigator.navigateTo(viewPath);
 	}
 
 	public void addSchemaRecord(String schema) {
@@ -303,8 +338,13 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_VALUE_LIST_RECORDS + "/" + schema);
 	}
 
-	public void addUserCredential(String params) {
-		navigator.navigateTo(NavigatorConfigurationService.USER_ADD_EDIT + "/" + params);
+	public void addEditUserCredential(String userName) {
+		Map<String, String> params = new HashMap<>();
+		if (userName != null) {
+			params.put("username", userName);
+		}
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.USER_ADD_EDIT, params);
+		navigator.navigateTo(viewPath);
 	}
 
 	public void url(String url) {

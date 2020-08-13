@@ -146,19 +146,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 		});
 
-		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(GROUPS, GROUPS_ICON) {
-			@Override
-			public void activate(Navigation navigate) {
-				navigate.to().listGlobalGroups();
-			}
 
-			@Override
-			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
-						.has(user.getUsername());
-				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_GROUPS));
-			}
-		});
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(USERS, USERS_ICON) {
 			@Override
 			public void activate(Navigation navigate) {

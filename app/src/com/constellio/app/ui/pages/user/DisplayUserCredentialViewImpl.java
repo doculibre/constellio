@@ -20,6 +20,7 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -35,7 +36,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_CONSULT;
+import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_EDIT;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 @SuppressWarnings("serial")
 public class DisplayUserCredentialViewImpl extends BaseViewImpl implements DisplayUserCredentialView {
@@ -90,6 +94,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 	private TableStringFilter tableFilterAvailableGlobalGroups;
 	private final int batchSize = 100;
 
+
 	public DisplayUserCredentialViewImpl() {
 		this.presenter = new DisplayUserCredentialPresenter(this);
 	}
@@ -109,6 +114,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		paramsMap = ParamUtils.getParamsMap(parameters);
 		if (paramsMap.containsKey("username")) {
 			userCredentialVO = presenter.getUserCredentialVO(paramsMap.get("username"));
+			presenter.setUser(paramsMap.get("username"));
 		}
 		presenter.setParamsMap(paramsMap);
 		presenter.setBreadCrumb(breadCrumb);
@@ -124,6 +130,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		viewLayout = new VerticalLayout();
 		viewLayout.setSizeFull();
 		viewLayout.setSpacing(true);
+		viewLayout.setMargin(new MarginInfo(true));
 
 		usernameCaptionLabel = new Label($("UserCredentialView.username"));
 		usernameCaptionLabel.setId("username");
@@ -217,7 +224,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 
 	private Table buildUserGlobalGroupTable() {
 		final GlobalGroupVODataProvider globalGroupVODataProvider = presenter.getGlobalGroupVODataProvider();
-		List<GlobalGroupVO> userGlobalGroupVOs = globalGroupVODataProvider.listActiveGlobalGroupVOsFromUser(
+		List<GlobalGroupVO> userGlobalGroupVOs = globalGroupVODataProvider.getGlobalGroupThatUserisIn(
 				userCredentialVO.getUsername());
 		globalGroupVODataProvider.setGlobalGroupVOs(userGlobalGroupVOs);
 		Container container = new GlobalGroupVOLazyContainer(globalGroupVODataProvider, batchSize);
@@ -230,7 +237,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 
 	private Table buildAvailableGlobalGroupTable() {
 		final GlobalGroupVODataProvider globalGroupVODataProvider = presenter.getGlobalGroupVODataProvider();
-		List<GlobalGroupVO> availableGlobalGroupVOs = globalGroupVODataProvider.listGlobalGroupVOsNotContainingUser(
+		List<GlobalGroupVO> availableGlobalGroupVOs = globalGroupVODataProvider.getGlobalGroupThatUserisNotIn(
 				userCredentialVO.getUsername());
 		globalGroupVODataProvider.setGlobalGroupVOs(availableGlobalGroupVOs);
 		Container container = new GlobalGroupVOLazyContainer(globalGroupVODataProvider, batchSize);
@@ -323,12 +330,8 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		return new RecordVOActionButtonFactory(userCredentialVO).build();
-	}
-
-	@Override
-	protected boolean isOnlyQuickMenuActionVisible() {
-		return true;
+		return new RecordVOActionButtonFactory(presenter.getPageUserVO(), asList(USER_CONSULT.name(),
+				USER_EDIT.name())).build();
 	}
 
 	@Override
@@ -336,12 +339,20 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		return true;
 	}
 
-	@Override
-	protected List<Button> getQuickActionMenuButtons() {
-		List<Button> listButton = new ArrayList<>(super.getActionMenuButtons());
-
-		return listButton;
+	protected boolean alwaysUseLayoutForActionMenu() {
+		return true;
 	}
+
+	protected List<Button> getQuickActionMenuButtons() {
+		Button editFolderButton = new EditButton($("DisplayFolderView.editFolder")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.editFolderButtonClicked();
+			}
+		};
+		return asList(editFolderButton);
+	}
+
 
 	@Override
 	public void refreshTable() {

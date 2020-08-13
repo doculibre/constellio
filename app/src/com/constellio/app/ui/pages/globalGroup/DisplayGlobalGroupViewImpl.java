@@ -19,6 +19,7 @@ import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
 import com.constellio.app.ui.framework.data.UserCredentialVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -42,6 +43,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayGlobalGroupView {
 
 	public static final String PROPERTY_BUTTONS = "buttons";
+	public static final String GLOBAL_GROUP_CODE = "globalGroupCode";
 
 	private DisplayGlobalGroupPresenter presenter;
 
@@ -56,6 +58,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 	private final int batchSize = 100;
 
 	private BaseDisplay globalGroupDisplay;
+	private Group currentGroup;
 	private Table subGroupTable, userTable, availableUserTable;
 	private HorizontalLayout filterAndSearchButtonLayoutSubGroups, filterAndSearchButtonLayoutGlobalGroupsUser, filterAndSearchButtonLayoutAvailableUsers;
 	private TableStringFilter tableFilterSubGroups, tableFilterGlobalGroupsUser, tableFilterAvailableAvailableUsers;
@@ -77,8 +80,10 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 			breadCrumb = parameters.substring(0, indexOfSlash);
 		}
 		paramsMap = ParamUtils.getParamsMap(parameters);
-		if (paramsMap.containsKey("globalGroupCode")) {
-			globalGroupVO = presenter.getGlobalGroupVO(paramsMap.get("globalGroupCode"));
+		if (paramsMap.containsKey(GLOBAL_GROUP_CODE)) {
+			String groupCode = paramsMap.get("globalGroupCode");
+			globalGroupVO = presenter.getGlobalGroupVO(groupCode);
+			currentGroup = presenter.getGroup(groupCode);
 		}
 		presenter.setParamsMap(paramsMap);
 		presenter.setBreadCrumb(breadCrumb);
@@ -157,6 +162,9 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 
 	private Table buildUserTable() {
 		final UserCredentialVODataProvider dataProvider = presenter.getUserCredentialVODataProvider(globalGroupVO.getCode());
+		List<UserCredentialVO> availableUserCredentialVOs = dataProvider.listActifsUserCredentialVOsInGlobalGroup(
+				globalGroupVO.getCode());
+		dataProvider.setUserCredentialVOs(availableUserCredentialVOs);
 		Container container = new UserCredentialVOLazyContainer(dataProvider, batchSize);
 		ButtonsContainer buttonsContainer = new ButtonsContainer(container, PROPERTY_BUTTONS);
 		addUserButtons(dataProvider, buttonsContainer);
@@ -171,6 +179,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		List<UserCredentialVO> availableUserCredentialVOs = dataProvider.listActifsUserCredentialVOsNotInGlobalGroup(
 				globalGroupVO.getCode());
 		dataProvider.setUserCredentialVOs(availableUserCredentialVOs);
+
 		Container container = new UserCredentialVOLazyContainer(dataProvider, batchSize);
 		ButtonsContainer buttonsContainer = new ButtonsContainer(container, PROPERTY_BUTTONS);
 		buttonsContainer.addButton(new ContainerButton() {
@@ -228,7 +237,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 					protected void buttonClick(ClickEvent event) {
 						Integer index = (Integer) itemId;
 						UserCredentialVO entity = dataProvider.getUserCredentialVO(index);
-						presenter.displayUserCredentialButtonClicked(entity, globalGroupVO.getCode());
+						presenter.displayUserCredentialButtonClicked(entity);
 					}
 				};
 			}
@@ -242,7 +251,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 					protected void buttonClick(ClickEvent event) {
 						Integer index = (Integer) itemId;
 						UserCredentialVO entity = dataProvider.getUserCredentialVO(index);
-						presenter.editUserCredentialButtonClicked(entity, globalGroupVO.getCode());
+						presenter.editUserCredentialButtonClicked(entity);
 
 					}
 				};

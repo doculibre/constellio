@@ -39,11 +39,12 @@ public class GroupRecordMenuItemActionBehaviors {
 	}
 
 
-	public void edit(List<Group> groupRecords, MenuItemActionBehaviorParams params) {
-
+	public void edit(Group groupRecords, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to().editGlobalGroup(groupRecords.getCode());
 	}
 
-	public void consult(List<Group> groupRecords, MenuItemActionBehaviorParams params) {
+	public void consult(Group groupRecords, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to().displayGlobalGroup(groupRecords.getCode());
 	}
 
 	public void addUserToGroup(List<Group> groupRecords, MenuItemActionBehaviorParams params) {
