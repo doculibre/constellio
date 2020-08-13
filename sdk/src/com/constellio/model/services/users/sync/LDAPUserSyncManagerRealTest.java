@@ -28,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.stubbing.OngoingStubbing;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,7 +59,9 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 	public void setup()
 			throws Exception {
 		//givenConstellioProperties(LDAPTestConfig.getConfigMap());
-		prepareSystem(withZeCollection(), withCollection(businessCollection), withCollection(extraCollection));
+		prepareSystem(withZeCollection().withAllTestUsers(),
+				withCollection(businessCollection).withAllTestUsers(),
+				withCollection(extraCollection).withAllTestUsers());
 		modelLayerFactory = getModelLayerFactory();
 
 		saveValidLDAPConfigWithEntrepriseCollectionSelected();
@@ -84,24 +87,24 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		sync();
 
-		User importedUser = user("Nicolas", businessCollection);
-		UserCredential userCredentialImportedUser = user("Nicolas");
+		UserCredential userCredentialImportedUser = user("nicolas");
+		User importedUser = user("nicolas", businessCollection);
 		assertThat(importedUser.getFirstName()).isEqualTo("Nicolas");
 		assertThat(importedUser.getLastName()).isEqualTo("Belisle");
 		assertThat(importedUser.getEmail()).isEqualTo("nicolas@doculibre.ca");
 		assertThat(importedUser.getMsExchDelegateListBL()).isEmpty();
 		assertThat(userCredentialImportedUser.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
 
-		User importedUser2 = user("Philippe", businessCollection);
-		UserCredential userCredentialImportedUser2 = user("Philippe");
+		User importedUser2 = user("philippe", businessCollection);
+		UserCredential userCredentialImportedUser2 = user("philippe");
 		assertThat(importedUser2.getFirstName()).isEqualTo("Philippe");
 		assertThat(importedUser2.getLastName()).isEqualTo("Houle");
 		assertThat(importedUser2.getEmail()).isEqualTo("philippe@doculibre.ca");
 		assertThat(importedUser2.getMsExchDelegateListBL()).isEmpty();
 		assertThat(userCredentialImportedUser2.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
 
-		User importedUser3 = user("Dusty", businessCollection);
-		UserCredential userCredentialImportedUser3 = user("Dusty");
+		User importedUser3 = user("dusty", businessCollection);
+		UserCredential userCredentialImportedUser3 = user("dusty");
 		assertThat(importedUser3.getFirstName()).isEqualTo("Dusty");
 		assertThat(importedUser3.getLastName()).isEqualTo("Chien");
 		assertThat(importedUser3.getEmail()).isEqualTo("dusty@doculibre.ca");
@@ -174,20 +177,20 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 				.build());
 
 		createLocalDusty(true);
-		User businessDusty = user("Dusty", businessCollection);
+		User businessDusty = user("dusty", businessCollection);
 		assertThat(businessDusty).isNull();
 
 		sync();
 
-		businessDusty = user("Dusty", businessCollection);
-		UserCredential userCredentialImportedUser2 = user("Dusty");
+		businessDusty = user("dusty", businessCollection);
+		UserCredential userCredentialImportedUser2 = user("dusty");
 		assertThat(businessDusty.getFirstName()).isEqualTo("Dusty");
 		assertThat(businessDusty.getLastName()).isEqualTo("Chien");
 		assertThat(businessDusty.getEmail()).isEqualTo("dusty@doculibre.ca");
 		assertThat(userCredentialImportedUser2.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
 
 		User zeDusty = user("dusty", zeCollection);
-		UserCredential userCredentialZeDusty = user("Dusty");
+		UserCredential userCredentialZeDusty = user("dusty");
 		assertThat(zeDusty.getFirstName()).isEqualTo("Dusty");
 		assertThat(zeDusty.getLastName()).isEqualTo("Chien");
 		assertThat(zeDusty.getEmail()).isEqualTo("dusty@doculibre.ca");
@@ -209,12 +212,12 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		createLocalDusty(false);
 
-		User businessDusty = user("Dusty", businessCollection);
+		User businessDusty = user("dusty", businessCollection);
 		assertThat(businessDusty.getStatus()).isEqualTo(UserCredentialStatus.DISABLED);
 
 		sync();
 
-		businessDusty = user("Dusty", businessCollection);
+		businessDusty = user("dusty", businessCollection);
 		assertThat(businessDusty.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
 	}
 
@@ -238,8 +241,8 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		sync();
 
-		User importedUser2 = user("Philippe", businessCollection);
-		UserCredential userCredentialImportedUser2 = user("Philippe");
+		User importedUser2 = user("philippe", businessCollection);
+		UserCredential userCredentialImportedUser2 = user("philippe");
 		assertThat(importedUser2.getFirstName()).isEqualTo("Philippe");
 		assertThat(importedUser2.getLastName()).isEqualTo("Houle");
 		assertThat(importedUser2.getEmail()).isEqualTo("philippe@doculibre.ca");
@@ -255,8 +258,8 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		sync();
 
 		//Phillip is not synced, therefore keeps his change
-		importedUser2 = user("Philippe", businessCollection);
-		userCredentialImportedUser2 = user("Philippe");
+		importedUser2 = user("philippe", businessCollection);
+		userCredentialImportedUser2 = user("philippe");
 		assertThat(importedUser2.getFirstName()).isEqualTo("Phillip");
 		assertThat(importedUser2.getEmail()).isEqualTo("phillip@doculibre.ca");
 		assertThat(userCredentialImportedUser2.getSyncMode()).isEqualTo(UserSyncMode.NOT_SYNCED);
@@ -266,8 +269,8 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		saveChangedUser(importedUser2, userCredentialImportedUser2);
 		sync();
 
-		importedUser2 = user("Philippe", businessCollection);
-		userCredentialImportedUser2 = user("Philippe");
+		importedUser2 = user("philippe", businessCollection);
+		userCredentialImportedUser2 = user("philippe");
 		assertThat(importedUser2.getFirstName()).isEqualTo("Philippe");
 		assertThat(importedUser2.getLastName()).isEqualTo("Houle");
 		assertThat(importedUser2.getEmail()).isEqualTo("philippe@doculibre.ca");
@@ -295,8 +298,8 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		sync();
 
-		User importedUser = user("Nicolas", businessCollection);
-		UserCredential userCredentialImportedUser = user("Nicolas");
+		User importedUser = user("nicolas", businessCollection);
+		UserCredential userCredentialImportedUser = user("nicolas");
 		assertThat(importedUser.getFirstName()).isEqualTo("Nicolas");
 		assertThat(importedUser.getLastName()).isEqualTo("Belisle");
 		assertThat(importedUser.getEmail()).isEqualTo("nicolas@doculibre.ca");
@@ -311,8 +314,8 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		sync();
 
 		//Nicolas is synchronized again
-		importedUser = user("Nicolas", businessCollection);
-		userCredentialImportedUser = user("Nicolas");
+		importedUser = user("nicolas", businessCollection);
+		userCredentialImportedUser = user("nicolas");
 		assertThat(importedUser.getFirstName()).isEqualTo("Nicolas");
 		assertThat(importedUser.getEmail()).isEqualTo("nicolas@doculibre.ca");
 		assertThat(userCredentialImportedUser.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
@@ -353,8 +356,8 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		sync();
 
-		User importedUser = user("Philippe", businessCollection);
-		UserCredential userCredentialImportedUser = user("Philippe");
+		User importedUser = user("philippe", businessCollection);
+		UserCredential userCredentialImportedUser = user("philippe");
 		assertThat(importedUser.getFirstName()).isEqualTo("Philippe");
 		assertThat(importedUser.getEmail()).isEqualTo("philippe@doculibre.ca");
 		assertThat(userCredentialImportedUser.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
@@ -393,9 +396,9 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 				.add(caballeros, pilotes)
 				.build());
 
-		User businessPhil = user("Philippe", businessCollection);
-		User zePhil = user("Philippe", zeCollection);
-		User extraPhil = user("Philippe", extraCollection);
+		User businessPhil = user("philippe", businessCollection);
+		User zePhil = user("philippe", zeCollection);
+		User extraPhil = user("philippe", extraCollection);
 
 		assertThat(businessPhil.getUserGroups()).containsAll(asList(caballeros.getDistinguishedName(), pilotes.getDistinguishedName()));
 		assertThat(zePhil.getUserGroups()).containsAll(asList(caballeros.getDistinguishedName(), pilotes.getDistinguishedName()));
@@ -435,9 +438,9 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 				.add(caballeros, pilotes)
 				.build());
 
-		User businessNic = user("Nicolas", businessCollection);
-		User zeNic = user("Nicolas", zeCollection);
-		User extraNic = user("Nicolas", extraCollection);
+		User businessNic = user("nicolas", businessCollection);
+		User zeNic = user("nicolas", zeCollection);
+		User extraNic = user("nicolas", extraCollection);
 
 		assertThat(businessNic.getUserGroups()).containsOnly(pilotes.getDistinguishedName());
 		assertThat(zeNic.getUserGroups()).containsOnly(pilotes.getDistinguishedName());
@@ -467,7 +470,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		sync();
 
-		UserAddUpdateRequest userAddUpdateRequestBusiness = new UserAddUpdateRequest("Nicolas", asList(businessCollection, zeCollection), newArrayList());
+		UserAddUpdateRequest userAddUpdateRequestBusiness = new UserAddUpdateRequest("nicolas", asList(businessCollection, zeCollection), newArrayList());
 		userAddUpdateRequestBusiness.addToGroupsInCollection(asList("heroes"), businessCollection);
 		userAddUpdateRequestBusiness.addToGroupsInCollection(asList("legends"), zeCollection);
 		userServices.execute(userAddUpdateRequestBusiness);
@@ -481,11 +484,14 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		sync();
 
-		User businessNic = user("Nicolas", businessCollection);
-		User zeNic = user("Nicolas", zeCollection);
+		User businessNic = user("nicolas", businessCollection);
+		User zeNic = user("nicolas", zeCollection);
 
-		assertThat(businessNic.getUserGroups()).contains("heroes");
-		assertThat(zeNic.getUserGroups()).contains("legends");
+		Group localHeroes = group("heroes", businessCollection);
+		Group localLegends = group("legends", zeCollection);
+
+		assertThat(businessNic.getUserGroups()).contains(localHeroes.getId());
+		assertThat(zeNic.getUserGroups()).contains(localLegends.getId());
 	}
 
 	/**
@@ -511,7 +517,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		sync();
 
-		UserAddUpdateRequest userAddUpdateRequestBusiness = new UserAddUpdateRequest("Nicolas", asList(businessCollection), newArrayList());
+		UserAddUpdateRequest userAddUpdateRequestBusiness = new UserAddUpdateRequest("nicolas", asList(businessCollection), newArrayList());
 		userAddUpdateRequestBusiness.addToGroupsInCollection(asList("heroes"), businessCollection);
 		userServices.execute(userAddUpdateRequestBusiness);
 
@@ -530,9 +536,13 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		sync();
 
-		User businessNic = user("Nicolas", businessCollection);
+		User businessNic = user("nicolas", businessCollection);
 
-		assertThat(businessNic.getUserGroups()).containsAll(asList("heroes", "pilotes", "heroes"));
+		Group localHeroes = group("heroes", businessCollection);
+		Group localPilotes = group("pilotes", businessCollection);
+		Group localCaballeros = group("caballeros", businessCollection);
+
+		assertThat(businessNic.getUserGroups()).containsAll(asList(localHeroes.getId(), localPilotes.getId(), localCaballeros.getId()));
 	}
 
 	/**
@@ -553,7 +563,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		sync();
 
-		UserAddUpdateRequest userAddUpdateRequestBusiness = new UserAddUpdateRequest("Nicolas", asList(businessCollection), newArrayList());
+		UserAddUpdateRequest userAddUpdateRequestBusiness = new UserAddUpdateRequest("nicolas", asList(businessCollection), newArrayList());
 		userAddUpdateRequestBusiness.addToGroupsInCollection(asList("rumors"), businessCollection);
 		userServices.execute(userAddUpdateRequestBusiness);
 
@@ -567,7 +577,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		sync();
 
-		User businessNic = user("Nicolas", businessCollection);
+		User businessNic = user("nicolas", businessCollection);
 
 		assertThat(businessNic.getUserGroups()).doesNotContain("rumors");
 	}
@@ -578,7 +588,6 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 	 */
 	@Test
 	public void whenGroupLocallyCreatedIsSyncedLocallyCreatedUsersKeepTheirAssignationToGroup() {
-		UserServices userServices = modelLayerFactory.newUserServices();
 
 		LDAPGroup caballeros = caballeros();
 		LDAPGroup pilotes = pilotes();
@@ -601,9 +610,11 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		sync();
 
-		User chuck = user(chuckNorris, businessCollection);
+		User bigFoot = user(sasquatch, businessCollection);
 
-		assertThat(chuck.getUserGroups()).contains("rumors");
+		Group group = group(rumors, businessCollection);
+
+		assertThat(bigFoot.getUserGroups()).contains(group.getId());
 	}
 
 	/**
@@ -625,7 +636,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		sync();
 
-		UserAddUpdateRequest userAddUpdateRequestBusiness = new UserAddUpdateRequest("Nicolas", asList(businessCollection), newArrayList());
+		UserAddUpdateRequest userAddUpdateRequestBusiness = new UserAddUpdateRequest("nicolas", asList(businessCollection), newArrayList());
 		userAddUpdateRequestBusiness.addToGroupsInCollection(asList("rumors"), businessCollection);
 		userAddUpdateRequestBusiness.setSyncMode(UserSyncMode.NOT_SYNCED);
 		userServices.execute(userAddUpdateRequestBusiness);
@@ -640,9 +651,13 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		sync();
 
-		User businessNic = user("Nicolas", businessCollection);
+		User businessNic = user("nicolas", businessCollection);
 
-		assertThat(businessNic.getUserGroups()).containsAll(asList("pilotes", "caballeros", "rumors"));
+		Group pilotesLocal = group("pilotes", businessCollection);
+		Group caballerosLocal = group("caballeros", businessCollection);
+		Group rumorsLocal = group("rumors", businessCollection);
+
+		assertThat(businessNic.getUserGroups()).containsAll(asList(pilotesLocal.getId(), caballerosLocal.getId(), rumorsLocal.getId()));
 	}
 
 	/**
@@ -682,8 +697,8 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 				.build());
 		sync();
 
-		User businessNic = user("Nicolas", businessCollection);
-		User zeNic = user("Nicolas", zeCollection);
+		User businessNic = user("nicolas", businessCollection);
+		User zeNic = user("nicolas", zeCollection);
 
 		Group zePilotes = group("pilotes", zeCollection);
 		Group businessPilotes = group("pilotes", businessCollection);
@@ -908,9 +923,9 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		Group importedGroup = group("caballeros", businessCollection);
 		List<User> usersInCaballeros = users(importedGroup);
-		User importedUserPhil = user("Philippe", businessCollection);
-		User importedUserNicolas = user("Nicolas", businessCollection);
-		User importedUserDusty = user("Dusty", businessCollection);
+		User importedUserPhil = user("philippe", businessCollection);
+		User importedUserNicolas = user("nicolas", businessCollection);
+		User importedUserDusty = user("dusty", businessCollection);
 		assertThat(usersInCaballeros).containsAll(asList(importedUserNicolas, importedUserPhil, importedUserDusty));
 		assertThat(importedGroup.getCode()).isEqualTo("caballeros");
 
@@ -932,17 +947,17 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		sync();
 
 		Group importedGroup = group("rumors", businessCollection);
-		List<User> usersInRumors = users(importedGroup);
-		User importedUserPhil = user("Philippe", businessCollection);
-		User importedUserChuck = user(chuck, businessCollection);
-		assertThat(usersInRumors).contains(importedUserChuck, importedUserPhil);
+		List<String> usersInRumors = users(importedGroup).stream().map(x -> x.getUsername()).collect(Collectors.toList());
+		User importedUserPhil = user("philippe", businessCollection);
+		User importedUserBigFoot = user(sasquatch, businessCollection);
+		assertThat(usersInRumors).containsAll(asList(importedUserBigFoot.getUsername(), importedUserPhil.getUsername()));
 
 	}
 
 	@Test
 	public void givenMultipleCollectionSelectedWithOneNotSelectedSyncOnlySelected() throws RecordServicesException {
 		this.ldapUserSyncConfiguration =
-				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, extraCollection));
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection, extraCollection));
 		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
 		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
 		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
@@ -965,13 +980,13 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		sync();
 
 		//zecollection has none of the changes
-		User importedUser = user("Nicolas", zeCollection);
+		User importedUser = user("nicolas", zeCollection);
 		assertThat(importedUser).isNull();
 
-		User importedUser2 = user("Philippe", zeCollection);
+		User importedUser2 = user("philippe", zeCollection);
 		assertThat(importedUser2).isNull();
 
-		User importedUser3 = user("Dusty", zeCollection);
+		User importedUser3 = user("dusty", zeCollection);
 		assertThat(importedUser3).isNull();
 
 		//zecollection has chuck locally created
@@ -983,13 +998,13 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 
 		//extracollection has the changes of the changes
-		importedUser = user("Nicolas", extraCollection);
+		importedUser = user("nicolas", extraCollection);
 		assertThat(importedUser).isNotNull();
 
-		importedUser2 = user("Philippe", extraCollection);
+		importedUser2 = user("philippe", extraCollection);
 		assertThat(importedUser2).isNotNull();
 
-		importedUser3 = user("Dusty", extraCollection);
+		importedUser3 = user("dusty", extraCollection);
 		assertThat(importedUser3).isNotNull();
 
 		//extracollection has chuck Synced
@@ -1000,13 +1015,13 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		assertThat(localUser.getEmail()).isEqualTo("chuckofldap@doculibre.com");
 
 		//businesscollection has the changes of the changes
-		importedUser = user("Nicolas", businessCollection);
+		importedUser = user("nicolas", businessCollection);
 		assertThat(importedUser).isNotNull();
 
-		importedUser2 = user("Philippe", businessCollection);
+		importedUser2 = user("philippe", businessCollection);
 		assertThat(importedUser2).isNotNull();
 
-		importedUser3 = user("Dusty", businessCollection);
+		importedUser3 = user("dusty", businessCollection);
 		assertThat(importedUser3).isNotNull();
 
 		//businesscollection has chuck not synced
@@ -1027,6 +1042,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		UserServices userServices = modelLayerFactory.newUserServices();
 		GroupAddUpdateRequest pilotesLocal = new GroupAddUpdateRequest("pilotes");
 		pilotesLocal.setName("Les pilotes x-wing");
+		pilotesLocal.addCollection(businessCollection);
 		userServices.execute(pilotesLocal);
 		UserAddUpdateRequest philLocal = new UserAddUpdateRequest("Philippe", asList(businessCollection), asList("pilotes"));
 		philLocal.setEmail("philippe@doculibre.ca").setName("Philippe", "Houle");
@@ -1050,8 +1066,8 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		assertThat(pilotesLocalSync.isLocallyCreated()).isFalse();
 		assertThat(pilotesLocalSync.getCaption()).isEqualTo("Les pilotes du ciel");
 
-		User philippeSync = user("Philippe", businessCollection);
-		User nicolasSync = user("Nicolas", businessCollection);
+		User philippeSync = user("philippe", businessCollection);
+		User nicolasSync = user("nicolas", businessCollection);
 		User chuckSync = user(chuck, businessCollection);
 
 		assertThat(philippeSync.getUserGroups()).containsOnly(pilotesLocalSync.getId());
@@ -1065,6 +1081,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		UserServices userServices = modelLayerFactory.newUserServices();
 		GroupAddUpdateRequest pilotesLocal = new GroupAddUpdateRequest("pilotes");
 		pilotesLocal.setName("Les pilotes du ciel");
+		pilotesLocal.addCollection(businessCollection);
 		userServices.execute(pilotesLocal);
 		UserAddUpdateRequest philLocal = new UserAddUpdateRequest("Philippe", asList(businessCollection), asList("pilotes"));
 		philLocal.setEmail("philippe@doculibre.ca").setName("Philippe", "Houle");
@@ -1079,8 +1096,8 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		sync();
 
-		User importedUser2 = user("Philippe", businessCollection);
-		UserCredential userCredentialImportedUser2 = user("Philippe");
+		User importedUser2 = user("philippe", businessCollection);
+		UserCredential userCredentialImportedUser2 = user("philippe");
 		assertThat(importedUser2.getUserGroups()).isNotEmpty();
 		assertThat(group(importedUser2.getUserGroups().get(0), businessCollection).getCode()).isEqualTo("caballeros");
 	}
@@ -1192,27 +1209,28 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 	}
 
 	private LDAPGroup caballeros() {
-		return new LDAPGroup("caballeros", "The three cabaielleros");
+		return new LDAPGroup("The three caballeros", "caballeros");
 	}
 
 	private LDAPGroup pilotes() {
-		return new LDAPGroup("pilotes", "Les pilotes du ciel");
+		return new LDAPGroup("Les pilotes du ciel", "pilotes");
 	}
 
 	private LDAPGroup canadians() {
-		return new LDAPGroup("canadians", "Des canadiens");
+		return new LDAPGroup("Des canadiens", "canadians");
 	}
 
 	private LDAPGroup rumors() {
-		return new LDAPGroup("rumors", "The rumors");
+		return new LDAPGroup("The rumors", "rumors");
 	}
 
 	private void createLocalDusty(boolean isActive) {
 
 		UserAddUpdateRequest userAddUpdateRequest = new UserAddUpdateRequest("dusty", newArrayList(), newArrayList());
+		userAddUpdateRequest.setEmail("dusty@constellio.com");
 		userAddUpdateRequest.setStatusForAllCollections(isActive ? UserCredentialStatus.ACTIVE : UserCredentialStatus.DISABLED);
 
-		modelLayerFactory.newUserServices().createUser("Dusty", (req) -> userAddUpdateRequest.setName("Dusty", "le Chien")
+		modelLayerFactory.newUserServices().createUser("dusty", (req) -> userAddUpdateRequest.setName("Dusty", "le Chien")
 				.setEmail("dusty@constellio.com").addToCollections(zeCollection).addToGroupsInCollection(asList(heroes), zeCollection));
 	}
 

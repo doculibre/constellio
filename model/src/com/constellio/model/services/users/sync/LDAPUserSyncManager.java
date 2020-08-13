@@ -15,7 +15,6 @@ import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
-import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.security.global.UserSyncMode;
@@ -26,6 +25,7 @@ import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 import com.constellio.model.services.users.UserUtils;
 import com.constellio.model.services.users.sync.model.LDAPUsersAndGroups;
 import com.constellio.model.services.users.sync.model.UpdatedUsersAndGroups;
@@ -245,7 +245,7 @@ public class LDAPUserSyncManager implements StatefulService {
 				.filter(ldapUser ->
 						notSyncedUsers
 								.stream()
-								.anyMatch(x -> x.equals(ldapUser.getName())))
+								.noneMatch(x -> x.equals(ldapUser.getName())))
 				.collect(Collectors.toSet());
 
 		notSyncedUsers.stream().forEach(notsyncedUser -> updatedUsersAndGroups.addUsername(notsyncedUser.getUsername()));
@@ -256,11 +256,13 @@ public class LDAPUserSyncManager implements StatefulService {
 				com.constellio.model.services.users.UserAddUpdateRequest request = createUserCredentialsFromLdapUser(ldapUser, selectedCollectionsCodes);
 				try {
 					// Keep locally created groups of existing users
-
-					SystemWideUserInfos previousUserCredential = userServices
-							.getUserInfos(request.getUsername());
-					SystemWideUserInfos userCredentialByDn = userServices.getUserCredentialByDN(ldapUser.getId());
-					if (previousUserCredential == null) {
+					SystemWideUserInfos previousUserCredential = null;
+					SystemWideUserInfos userCredentialByDn = null;
+					try {
+						previousUserCredential = userServices
+								.getUserInfos(request.getUsername());
+						userCredentialByDn = userServices.getUserCredentialByDN(ldapUser.getId());
+					} catch (UserServicesRuntimeException_NoSuchUser noSuchUser) {
 						previousUserCredential = userServices.getUserCredentialByDN(ldapUser.getId());
 					}
 					if (previousUserCredential != null && userCredentialByDn != null
@@ -297,19 +299,8 @@ public class LDAPUserSyncManager implements StatefulService {
 							}
 						}
 					}
-					if (previousUserCredential != null) {
-						for (String collection : previousUserCredential.getCollections()) {
-							final List<String> newUserGlobalGroups = new ArrayList<>();
-							for (final String userGlobalGroup : previousUserCredential.getGroupCodes(collection)) {
-								final SystemWideGroup previousGlobalGroup = userServices.getNullableGroup(userGlobalGroup);
-								if (previousGlobalGroup != null && previousGlobalGroup.isLocallyCreated()) {
-									newUserGlobalGroups.add(previousGlobalGroup.getCode());
-								}
-							}
-							if (!newUserGlobalGroups.isEmpty()) {
-								request.addToGroupsInCollection(newUserGlobalGroups, collection);
-							}
-						}
+					if (previousUserCredential != null) { //User exists and is synced
+						request.setCollections(selectedCollectionsCodes);
 					}
 
 					userServices.execute(request);
@@ -346,7 +337,7 @@ public class LDAPUserSyncManager implements StatefulService {
 	private com.constellio.model.services.users.UserAddUpdateRequest createUserCredentialsFromLdapUser(
 			LDAPUser ldapUser,
 			List<String> selectedCollectionsCodes) {
-		String username = ldapUser.getName();
+		String username = ldapUser.getName() != null ? ldapUser.getName().toLowerCase() : null;
 		String firstName = notNull(ldapUser.getGivenName());
 		String lastName = notNull(ldapUser.getFamilyName());
 		String email = notNull(validateEmail(ldapUser.getEmail()));

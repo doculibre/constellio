@@ -303,7 +303,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 
 	private void safePhysicalDeleteAllUserCredentialsWithEmptyCollections(ModelLayerFactory modelLayerFactory)
 			throws Exception {
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		RecordDeleteServices recordServices = new RecordDeleteServices(modelLayerFactory);
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		SchemasRecordsServices systemSchemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 
@@ -314,9 +314,9 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 				//Transaction tx = new Transaction();
 				for (Record record : records) {
 					UserCredential userCredential = systemSchemas.wrapUserCredential(record);
-					if (userCredential.getCollections() == null || userCredential.getCollections().isEmpty()) {
-						recordServices.logicallyDelete(userCredential, User.GOD);
-						recordServices.physicallyDelete(userCredential, User.GOD);
+					if (!userCredential.getUsername().equals("admin") &&
+						(userCredential.getCollections() == null || userCredential.getCollections().isEmpty())) {
+						recordServices.physicallyDeleteNoMatterTheStatus(userCredential, User.GOD, new RecordPhysicalDeleteOptions());
 					}
 				}
 				//tx.setSkippingRequiredValuesValidation(true);
