@@ -120,7 +120,8 @@ public class SchemaTestFeatures {
 	private boolean isMockedManager(MetadataSchemasManager manager) {
 		collectionsManager = mock(CollectionsManager.class, "collectionsServices");
 		pluginManager = mock(ConstellioPluginManager.class, "pluginManager");
-		SchemasSetup.prepareSetups(manager, factoriesTestFeatures.getConstellioFactories().getModelLayerFactory(), null);
+		ModelLayerFactory modelLayerFactory = mock(ModelLayerFactory.class);
+		SchemasSetup.prepareSetups(manager, modelLayerFactory, null);
 		try {
 			reset(manager);
 			return true;

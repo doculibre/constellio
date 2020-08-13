@@ -96,19 +96,19 @@ public class SignatureExternalAccessWebServletGETAcceptanceTest extends Constell
 		}
 	}
 
-	@Test
-	public void whenCallingServiceWithToClosedAccessStatus()
-			throws Exception {
-
-		validAccess.setStatusForAllCollections(ExternalAccessUrlStatus.TO_CLOSE);
-		recordServices.update(validAccess);
-
-		try {
-			WebResponse response = callWebservice(validAccessId, validAccess.getToken(), validLanguage);
-		} catch (ScriptException ignored) {
-			// TODO --> Better handle redirection exception
-		}
-	}
+	//	@Test
+	//	public void whenCallingServiceWithToClosedAccessStatus()
+	//			throws Exception {
+	//
+	//		validAccess.setStatusForAllCollections(ExternalAccessUrlStatus.TO_CLOSE);
+	//		recordServices.update(validAccess);
+	//
+	//		try {
+	//			WebResponse response = callWebservice(validAccessId, validAccess.getToken(), validLanguage);
+	//		} catch (ScriptException ignored) {
+	//			// TODO --> Better handle redirection exception
+	//		}
+	//	}
 
 	@Test
 	public void whenCallingServiceWithMissingId()

@@ -40,7 +40,7 @@ public class ConstellioUploadContentInVaultServletAcceptTest extends ConstellioT
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
 		bobToken = userServices.generateToken(bobGratton);
-		userServices.addUpdateUserCredential(users.bob().setServiceKey(bobServiceKey).setSystemAdminEnabled());
+		userServices.execute(users.bobAddUpdateRequest().setServiceKey(bobServiceKey).setSystemAdminEnabled());
 
 		startApplication();
 	}
