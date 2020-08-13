@@ -28,6 +28,7 @@ public class Document extends RMObject {
 	public static final String FILENAME = "filename";
 	public static final String CONTENT_CHECKED_OUT_BY = "contentCheckedOutBy";
 	public static final String CONTENT_CHECKED_OUT_DATE = "contentCheckedOutDate";
+	public static final String CONTENT_CHECKED_OUT_FROM = "contentCheckedOutFrom";
 	public static final String IS_CHECKOUT_ALERT_SENT = "isCheckoutAlertSent";
 	public static final String TYPE = "type";
 	public static final String DOCUMENT_TYPE = "documentType";
@@ -74,6 +75,7 @@ public class Document extends RMObject {
 	public static final String IS_MODEL = "isModel";
 	public static final String CONTENT_HASHES = "contentHashes";
 	public static final String LINKED_TO = "linkedTo";
+	public static final String ENCRYTION_KEY = "encryptionKey";
 
 	public Document(Record record,
 					MetadataSchemaTypes types) {
@@ -474,6 +476,15 @@ public class Document extends RMObject {
 
 	public Document setLinkedTo(String folder) {
 		set(LINKED_TO, folder);
+		return this;
+	}
+
+	public String getEncryptionKey() {
+		return get(ENCRYTION_KEY);
+	}
+
+	public Document setEncryptionKey(String key) {
+		set(ENCRYTION_KEY, key);
 		return this;
 	}
 }

@@ -58,7 +58,7 @@ public class RecentItemProvider implements Serializable {
 		ArrayList<RecentItem> items = new ArrayList<>();
 		for (Record record : getRecentEvents()) {
 			RecordVO vo = builder.build(record, VIEW_MODE.TABLE, sessionContext);
-			String caption = SchemaCaptionUtils.getCaptionForRecord(record, sessionContext.getCurrentLocale());
+			String caption = SchemaCaptionUtils.getCaptionForRecord(record, sessionContext.getCurrentLocale(), true);
 			items.add(new RecentItem(vo, caption));
 		}
 		return items;

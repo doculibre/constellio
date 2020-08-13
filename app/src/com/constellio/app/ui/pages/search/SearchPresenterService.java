@@ -173,7 +173,7 @@ public class SearchPresenterService {
 			} else if (datastoreCode.endsWith("Id_s") || datastoreCode.endsWith("Id_ss")) {
 				Record record = recordServices.getDocumentById(value);
 				String keyShort = "caption." + record.getTypeCode() + ".record.short";
-				String caption = SchemaCaptionUtils.getShortCaptionForRecord(record, getLocale());
+				String caption = SchemaCaptionUtils.getShortCaptionForRecord(record, getLocale(), true);
 				if (keyShort.equals(caption)) {
 					String key = "caption." + record.getTypeCode() + ".record";
 

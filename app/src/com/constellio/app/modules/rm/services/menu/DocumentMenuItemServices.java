@@ -28,7 +28,6 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CHECK_IN;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CHECK_OUT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CONSULT_LINK;
-import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CONTENT_RENAME;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_COPY;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CREATE_PDF;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_DELETE;
@@ -46,8 +45,8 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_PRINT_LABEL;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_PUBLISH;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_REMOVE_TO_SELECTION;
-import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_RETURN_REMAINDER;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_RENAME_CONTENT;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_RETURN_REMAINDER;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UNPUBLISH;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UNSHARE;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UPLOAD;
@@ -120,13 +119,6 @@ public class DocumentMenuItemServices {
 					isMenuItemActionPossible(DOCUMENT_MOVE.name(), document, user, params),
 					$("DocumentContextMenu.changeParentFolder"), FontAwesome.FOLDER_O, -1, 425,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).move(document, params)));
-		}
-
-		if (!filteredActionTypes.contains(DOCUMENT_CONTENT_RENAME.name())) {
-			menuItemActions.add(buildMenuItemAction(DOCUMENT_CONTENT_RENAME.name(),
-					isMenuItemActionPossible(DOCUMENT_CONTENT_RENAME.name(), document, user, params),
-					$("DisplayDocumentView.renameContent"), FontAwesome.PENCIL_SQUARE_O, -1, 450,
-					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).rename(document, params)));
 		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_DELETE.name())) {
@@ -366,8 +358,6 @@ public class DocumentMenuItemServices {
 				return documentRecordActionsServices.getBorrowedMessage(record, user) != null;
 			case DOCUMENT_EDIT:
 				return documentRecordActionsServices.isEditActionPossible(record, user);
-			case DOCUMENT_CONTENT_RENAME:
-				return documentRecordActionsServices.isRenameActionPossible(record, user);
 			case DOCUMENT_RENAME_CONTENT:
 				return documentRecordActionsServices.isRenameContentActionPossible(record, user);
 			case DOCUMENT_DISPLAY:
@@ -456,7 +446,6 @@ public class DocumentMenuItemServices {
 		DOCUMENT_OPEN,
 		DOCUMENT_EDIT,
 		DOCUMENT_RENAME_CONTENT,
-		DOCUMENT_CONTENT_RENAME,
 		DOCUMENT_CONSULT_LINK,
 		DOCUMENT_DOWNLOAD,
 		DOCUMENT_MOVE,

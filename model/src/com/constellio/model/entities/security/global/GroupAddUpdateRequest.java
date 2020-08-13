@@ -61,8 +61,8 @@ public class GroupAddUpdateRequest {
 		return this;
 	}
 
-	public GroupAddUpdateRequest setParent(String parent) {
-		set(PARENT, parent);
+	public GroupAddUpdateRequest setParent(String parentGroupCode) {
+		set(PARENT, parentGroupCode);
 		return this;
 	}
 

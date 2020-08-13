@@ -71,6 +71,25 @@ public class EventFactory {
 		return event;
 	}
 
+	public Event newSignedRecordEvent(Record record, User user, String reason, LocalDateTime eventDateTime) {
+		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);
+		Event event = schemasRecords.newEvent();
+
+		event.setUsername(user.getUsername());
+		String ipAddress = user.getLastIPAddress();
+		event.setIp(ipAddress);
+
+		event.setType(EventType.SIGN_DOCUMENT);
+		event.setCreatedOn(eventDateTime);
+
+		setRecordMetadata(event, record);
+		if (reason != null) {
+			event.setReason(reason);
+		}
+
+		return event;
+	}
+
 	public Event newBatchProcessEvent(BatchProcess process, int totalModifiedRecords, String eventType) {
 		User user = modelLayerFactory.newUserServices().getUserInCollection(process.getUsername(), process.getCollection());
 		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);

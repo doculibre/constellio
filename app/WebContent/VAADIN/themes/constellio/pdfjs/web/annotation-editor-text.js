@@ -19,22 +19,28 @@ TextAnnotationEditor.prototype.setText = function(text) {
 	}
 }
 
-TextAnnotationEditor.prototype.getFormHtmlElement = function(annotation, saveButton, cancelButton) {	
+TextAnnotationEditor.prototype.getImageUrl = function(saveButton, cancelButton) {	
+	return this.imageUrl;
+};
+
+TextAnnotationEditor.prototype.getFormHtmlElement = function(annotation, actionButtonsElement, saveButton, cancelButton) {	
 	this.textFieldElement = document.createElement("input");
 	this.textFieldElement.setAttribute("type", "text");
 	this.textFieldElement.classList.add("text-annotation-editor-input");
 	
 	var self = this; // For nested functions
 	this.textFieldElement.onchange = function(e) {
-		self.setText(e.target.value);
+		var newText = e.target.value;
+		self.setText(newText);
+		annotation.setText(newText);
 	};
 	this.textFieldElement.addEventListener("keyup", function(e) {
 		// Number 13 is the "Enter" key on the keyboard
-		if (event.keyCode === 13) {
+		if (e.keyCode === 13) {
 			self.setText(e.target.value);
 			
 			// Cancel the default action, if needed
-			event.preventDefault();
+			e.preventDefault();
 			// Trigger the button element with a click
 			saveButton.click();
 		}
@@ -54,4 +60,4 @@ TextAnnotationEditor.prototype.open = function(annotation, callbackContext, save
 	this.setText(textValue);
 	AnnotationEditor.prototype.open.call(this, annotation, callbackContext, saveCallback, cancelCallback);
 	this.textFieldElement.value = this.getText();
-}	
+};

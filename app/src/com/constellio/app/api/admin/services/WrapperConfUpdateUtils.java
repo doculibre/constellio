@@ -1,7 +1,7 @@
 package com.constellio.app.api.admin.services;
 
-import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.io.services.facades.FileService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -14,21 +14,22 @@ import java.io.StringReader;
 
 public class WrapperConfUpdateUtils {
 
-	// Should not be used without changing parameter number because we already have a second item.
+	// Set an important TLS attribute - DO NOT REMOVE
 	public static void setSettingAdditionalEphemeralDHKeySize(File originalFile, FileService fileService) {
-		if(!originalFile.exists()) {
+		if (!originalFile.exists()) {
 			return;
 		}
 
 		int currentIndexOfAdditionalSetting = getLastAdditionalSettingNumber(originalFile);
 
 		setSetting(originalFile, fileService, "wrapper.java.additional." + getLastAdditionalSettingNumber(originalFile), "wrapper.java.additional."
-				+ (currentIndexOfAdditionalSetting + 1)
-				+ "=-Djdk.tls.ephemeralDHKeySize=2048");
+																														 + (currentIndexOfAdditionalSetting + 1)
+																														 + "=-Djdk.tls.ephemeralDHKeySize=2048");
 	}
 
-	public static void setSettingAdditionalTemporaryDirectory(File originalFile, File parentDirectory, FileService fileService) {
-		if(!originalFile.exists()) {
+	public static void setSettingAdditionalTemporaryDirectory(File originalFile, File parentDirectory,
+															  FileService fileService) {
+		if (!originalFile.exists()) {
 			return;
 		}
 
@@ -37,8 +38,8 @@ public class WrapperConfUpdateUtils {
 		int currentIndexOfAdditionalSetting = getLastAdditionalSettingNumber(originalFile);
 
 		setSetting(originalFile, fileService, "wrapper.java.additional."
-				+ currentIndexOfAdditionalSetting, "wrapper.java.additional."
-				+ (currentIndexOfAdditionalSetting + 1) + "=-Djava.io.tmpdir=" + path);
+											  + currentIndexOfAdditionalSetting, "wrapper.java.additional."
+																				 + (currentIndexOfAdditionalSetting + 1) + "=-Djava.io.tmpdir=" + path);
 	}
 
 	private static int getLastAdditionalSettingNumber(File originalFile) {
@@ -51,10 +52,10 @@ public class WrapperConfUpdateUtils {
 
 
 			while ((line = reader.readLine()) != null) {
-				if(line.startsWith("wrapper.java.additional.")) {
+				if (line.startsWith("wrapper.java.additional.")) {
 					String number = line.replace("wrapper.java.additional.", "");
-					number = number.substring(0,number.indexOf("="));
-					if(StringUtils.isNumeric(number)) {
+					number = number.substring(0, number.indexOf("="));
+					if (StringUtils.isNumeric(number)) {
 						int numFound = Integer.parseInt(number);
 						if (numFound > biggestNumberFound) {
 							biggestNumberFound = numFound;
@@ -66,7 +67,7 @@ public class WrapperConfUpdateUtils {
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		} finally {
-			if(reader != null) {
+			if (reader != null) {
 				try {
 					reader.close();
 				} catch (IOException e) {

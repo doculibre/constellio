@@ -10,13 +10,6 @@ import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.app.modules.rm.model.enums.ReportsSortingMetadata;
-import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
-import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
-import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
-import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
-import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
-import com.constellio.app.modules.rm.model.enums.ReportsSortingMetadata;
-import com.constellio.app.modules.rm.model.enums.*;
 import com.constellio.app.modules.rm.validator.EndYearValueCalculator;
 import com.constellio.app.modules.rm.wrappers.RMDecommissioningTypeRequiredScript;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -327,7 +320,7 @@ public class RMConfigs {
 						.withDefaultValue(CompleteDatesWhenAddingFolderWithManualStatusChoice.DISABLED));
 
 		add(ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING = decommissioning
-				.createBooleanFalseByDefault("allowFolderSortingOfDecommissioningList").whichIsHidden());
+				.createBooleanTrueByDefault("allowFolderSortingOfDecommissioningList"));
 
 		add(LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS = others.createBooleanFalseByDefault("logFolderDocumentAccessWithCMIS"));
 
@@ -543,14 +536,13 @@ public class RMConfigs {
 		return manager.getValue(AGENT_CREATE_DROP_DIR_SHORTCUT);
 	}
 
-	public int getFolderBorrowingDurationDays() {
-		return manager.getValue(FOLDER_BORROWING_DURATION_IN_DAYS);
-	}
-
 	public boolean isAgentDeleteImportedFiles() {
 		return manager.getValue(AGENT_DELETE_IMPORTED_FILES);
 	}
 
+	public int getFolderBorrowingDurationDays() {
+		return manager.getValue(FOLDER_BORROWING_DURATION_IN_DAYS);
+	}
 
 	public int getDocumentBorrowingDurationDays() {
 		return manager.getValue(DOCUMENT_BORROWING_DURATION_IN_DAYS);

@@ -9,11 +9,16 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 public class BetaAddEditWorkflowPresenter extends SingleSchemaBasePresenter<BetaAddEditWorkflowView> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(BetaAddEditWorkflowPresenter.class);
+
 	private boolean addView;
 
 	private BetaWorkflowVO workflowVO;
@@ -56,9 +61,14 @@ public class BetaAddEditWorkflowPresenter extends SingleSchemaBasePresenter<Beta
 	}
 
 	void saveButtonClicked() {
-		Record workflowRecord = toRecord(workflowVO);
-		addOrUpdate(workflowRecord);
-		view.navigate().to(TaskViews.class).displayWorkflow(workflowRecord.getId());
+		try {
+			Record workflowRecord = toRecord(workflowVO);
+			addOrUpdate(workflowRecord);
+			view.navigate().to(TaskViews.class).displayWorkflow(workflowRecord.getId());
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
 	}
 
 	void cancelButtonClicked() {

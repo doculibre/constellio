@@ -192,7 +192,7 @@ public class MetadataDeletionService {
 		Object defaultValue = metadata.getDefaultValue();
 		if (defaultValue != null) {
 			if (metadata.isEncrypted()) {
-				defaultValue = encryptionServices.encrypt(defaultValue.toString());
+				defaultValue = encryptionServices.encryptWithAppKey(defaultValue.toString());
 			}
 			query = from(schemaType).where(metadata).isNotEqual(defaultValue).andWhere(metadata)
 					.isNotNull();

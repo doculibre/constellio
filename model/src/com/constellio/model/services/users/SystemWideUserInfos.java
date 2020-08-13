@@ -175,4 +175,13 @@ public class SystemWideUserInfos {
 	public Set<String> getTokenKeys() {
 		return getAccessTokens().keySet();
 	}
+
+	public boolean isInGroupInAnyCollection(String groupCode) {
+		for (List<String> groupCodesOfACollection : groupCodes.values()) {
+			if (groupCodesOfACollection.contains(groupCode)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

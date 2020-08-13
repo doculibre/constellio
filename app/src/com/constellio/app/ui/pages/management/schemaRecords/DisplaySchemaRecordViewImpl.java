@@ -211,8 +211,14 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 	@Override
 	protected List<Button> getQuickActionMenuButtons() {
 		List<Button> quickActionMenuButtons = new ArrayList<>();
-		if (nestedView) {
-			if (presenter.isEditButtonVisible()) {
+		if (presenter.isEditButtonVisible()) {
+			editButton = new EditButton(false) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.editButtonClicked();
+				}
+			};
+			if (nestedView) {
 				quickActionMenuButtons.add(editButton);
 			}
 		}

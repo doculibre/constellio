@@ -12,16 +12,33 @@ SignaturePadAnnotation.prototype.getType = function() {
 	return "signature-pad-annotation";
 }
 
-SignaturePadAnnotation.prototype.isInitials = function() {
-	return this.initials;
+SignaturePadAnnotation.prototype.isSignature = function() {
+	return this.signature;
 };
 
-SignaturePadAnnotation.prototype.setInitials = function(initials) {
-	this.initials = initials;
+SignaturePadAnnotation.prototype.setSignature = function(signature) {
+	this.signature = signature;
 };
 
 SignaturePadAnnotation.prototype.getBakeInfoI10nKey = function() {
 	return "annotation.signature.bakeInfo";
+};	
+
+SignaturePadAnnotation.prototype.toJSON = function() {
+	var json = Annotation.prototype.toJSON.call(this);
+	json.signature = this.isSignature();
+	if (this.imageUrl) {
+		json.imageUrl = this.imageUrl;
+	}	
+	return json;
+};
+
+SignaturePadAnnotation.prototype.fromJSON = function(json) {
+	Annotation.prototype.fromJSON.call(this, json);
+	if (json.imageUrl) {
+		this.imageUrl = json.imageUrl;
+	}
+	this.signature = json.signature;
 };	
 
 SignaturePadAnnotation.prototype.bind = function(htmlElement) {

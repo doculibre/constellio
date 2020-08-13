@@ -55,7 +55,7 @@ public class TaxonomyRecordIdToContextCaptionConverter extends RecordIdToCaption
 						if (sb.length() > 0) {
 							sb.insert(0, DELIM);
 						}
-						String currentRecordCaption = SchemaCaptionUtils.getCaptionForRecord(currentRecord, locale);
+						String currentRecordCaption = SchemaCaptionUtils.getCaptionForRecord(currentRecord, locale, true);
 						sb.insert(0, currentRecordCaption);
 
 						String parentRecordId = currentRecord.getParentId();

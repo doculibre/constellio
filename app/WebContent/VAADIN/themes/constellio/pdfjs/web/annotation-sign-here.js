@@ -13,7 +13,7 @@ SignHereAnnotation.prototype.constructor = SignHereAnnotation;
 
 SignHereAnnotation.prototype.getType = function() {
 	return "sign-here-annotation";
-}
+}	
 
 SignHereAnnotation.prototype.getText = function() {
 	return this.text;	
@@ -25,6 +25,17 @@ SignHereAnnotation.prototype.setText = function(text) {
 		this.textNode.nodeValue = text;
 	}
 };
+
+SignHereAnnotation.prototype.toJSON = function() {
+	var json = Annotation.prototype.toJSON.call(this);
+	json.text = this.getText();
+	return json;
+};
+
+SignHereAnnotation.prototype.fromJSON = function(json) {
+	Annotation.prototype.fromJSON.call(this, json);
+	this.text = json.text;
+};	
 
 SignHereAnnotation.prototype.bind = function(htmlElement) {
 	Annotation.prototype.bind.call(this, htmlElement);

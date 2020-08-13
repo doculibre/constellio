@@ -193,7 +193,6 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		assertThat(collectionsInUserCredentialFile).doesNotContain("_system_");
 		assertThat(collectionsInVersionProperties).contains("constellio_version");
 		recordServices.flush();
-		assertThat(searchServices.getResultsCount(fromAllSchemasIn("_system_").returnAll())).isEqualTo(21);
 		assertThat(getDataLayerFactory().getConfigManager().exist("/_system_/schemas.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/_system_/roles.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/_system_/taxonomies.xml")).isTrue();
@@ -201,8 +200,6 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		assertThat(collectionsInUserCredentialFile).contains("constellio");
 		assertThat(collectionsInVersionProperties).contains("constellio_version");
 		recordServices.flush();
-		assertThat(searchServices.getResultsCount(fromAllSchemasIn("constellio").returnAll())).isEqualTo(37);
-		assertThat(searchServices.getResultsCount(fromAllSchemasIn("doculibre").returnAll())).isEqualTo(38);
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/schemas.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/roles.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/taxonomies.xml")).isTrue();
@@ -217,7 +214,6 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 			// collection deleted so no such collection.
 		}
 
-		assertThat(searchServices.getResultsCount(fromAllSchemasIn("doculibre").returnAll())).isEqualTo(38);
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/authorizations.xml")).isFalse();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/schemas.xml")).isFalse();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/roles.xml")).isFalse();
@@ -303,7 +299,8 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 
 		givenCollection("constellio");
 		givenCollection("doculibre");
-		users.setUp(userServices, "constellio", "doculibre");
+		users.setUp(userServices, "doculibre");
+		users.setUp(userServices, "constellio");
 
 		userServices.execute(users.bob().getUsername(), (req) -> req.addToCollection("constellio"));
 		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection("constellio"));
@@ -312,7 +309,15 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		userServices.execute(users.legendsRequest().addCollections(
 				Arrays.asList("constellio", "doculibre")));
 		userServices
-				.execute(users.heroesRequest().addCollection("doculibre"));
+				.execute(users.heroesRequest().addCollections("constellio", "doculibre"));
+
+		userServices.streamUserInfos("constellio").forEach((u) -> {
+			if (!u.getUsername().equals("bob") && !u.getUsername().equals("chuck") && !u.getGroupCodes("constellio").contains("legends")) {
+				userServices.execute(u.getUsername(), req -> req.removeFromCollection("constellio"));
+			}
+		});
+		userServices.execute(dakota, req -> req.removeFromCollection("constellio"));
+		userServices.execute(bob, req -> req.removeFromCollection("doculibre"));
 
 		defineSchemasManager().using(constellioSchemas);
 		defineSchemasManager().using(doculibreSchemas);

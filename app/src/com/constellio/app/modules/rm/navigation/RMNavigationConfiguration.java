@@ -463,7 +463,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.hasAny(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN, RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN).globally());
+				return visibleIf(user.hasAny(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN, RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN).onSomething());
 			}
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(UNIFORM_SUBDIVISIONS, UNIFORM_SUBDIVISIONS_ICON) {
@@ -486,7 +486,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.hasAny(RMPermissionsTo.MANAGE_RETENTIONRULE, RMPermissionsTo.CONSULT_RETENTIONRULE).globally());
+				return visibleIf(user.hasAny(RMPermissionsTo.MANAGE_RETENTIONRULE, RMPermissionsTo.CONSULT_RETENTIONRULE).onSomething());
 			}
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(BORROWINGS, BORROWINGS_ICON) {

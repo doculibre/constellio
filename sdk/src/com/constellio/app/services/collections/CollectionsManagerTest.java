@@ -125,7 +125,6 @@ public class CollectionsManagerTest extends ConstellioTest {
 		verify(collectionsManager).createCollectionConfigs("zeCollection");
 		verify(collectionsListManager).addCollection(eq("zeCollection"), eq(Arrays.asList("fr")), anyByte());
 		verify(migrationServices).migrate("zeCollection", null, true);
-		verify(userServices).addGlobalGroupsInCollection("zeCollection");
 		verify(collectionsManager).initializeCollection("zeCollection");
 	}
 

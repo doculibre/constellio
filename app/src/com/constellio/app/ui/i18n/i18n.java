@@ -445,8 +445,16 @@ public class i18n {
 	}
 
 	public static boolean isRightToLeft() {
-		Language language = getLanguage();
-		return Language.Arabic.equals(language);// || Language.French.equals(language);
+		/***
+		 * Catching exception to prevent error when accessing Constellio's web portal with a browser's default language who's not supported
+		 * The non supported language is change to the main language for the system later in the stack so the error is only noticeable on UI init
+		 ***/
+		try {
+			Language language = getLanguage();
+			return Language.Arabic.equals(language);// || Language.French.equals(language);
+		} catch (RuntimeException re) {
+			return false;
+		}
 	}
 
 }

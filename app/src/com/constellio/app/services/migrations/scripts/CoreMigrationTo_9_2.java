@@ -4,7 +4,11 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.rm.model.calculators.group.GroupCaptionCalculator;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -12,6 +16,7 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -135,6 +140,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 				e.printStackTrace();
 			}
 
+
 			//Les métadonnées suivantes seront déplacées dans User par le script de migration : domain, msExchangeDelegateList
 			//sauvegarder en map pour l'instant
 			transferDomainsAndMsDelegatesFromCredentialsToUser(userServices);
@@ -186,10 +192,6 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			MetadataBuilder userCreateMsExchange = userSchema.createUndeletable(User.MS_EXCHANGE_DELEGATE_LIST).setType(MetadataValueType.STRING)
 					.setMultivalue(true);
 
-//			typesBuilder.getDefaultSchema(User.SCHEMA_TYPE).getMetadata(User.ROLES)
-			//					.defineDataEntry().asCalculated(RolesCalculator2.class);
-
-
 			//GROUPS
 			//la métadonnée "usersAutomaticallyAddedToCollections" est supprimée
 			MetadataSchemaBuilder groupSchema = typesBuilder.getSchemaType(Group.SCHEMA_TYPE).getDefaultSchema();
@@ -204,7 +206,11 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 
 			//Les utilisateurs désactivés qui ne sont pas utilisés sont supprimé physiquement
 			userServices.safePhysicalDeleteAllUnusedUsers(collection);
+			configureTableMetadatas(collection, appLayerFactory);
 
+			//Calculator for Caption metadata
+			typesBuilder.getDefaultSchema(Group.SCHEMA_TYPE).get(Schemas.CAPTION.getLocalCode())
+					.defineDataEntry().asCalculated(GroupCaptionCalculator.class);
 		}
 
 	}
@@ -379,4 +385,24 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 				from(schemas.user.schemaType()).returnAll()));
 		return userRecord == null ? null : schemas.wrapUsers(userRecord);
 	}
+
+	private void configureTableMetadatas(String collection, AppLayerFactory appLayerFactory) {
+		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
+		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
+
+		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+		SchemaTypesDisplayTransactionBuilder transactionBuilder = displayManager.newTransactionBuilderFor(collection);
+
+		transactionBuilder.add(displayManager.getSchema(Collection.SYSTEM_COLLECTION, User.DEFAULT_SCHEMA)
+				.withNewTableMetadatas(User.DEFAULT_SCHEMA + "_" + User.USERNAME)
+				.withNewTableMetadatas(User.DEFAULT_SCHEMA + "_" + User.FIRSTNAME)
+				.withNewTableMetadatas(User.DEFAULT_SCHEMA + "_" + User.LASTNAME)
+				.withNewTableMetadatas(User.DEFAULT_SCHEMA + "_" + User.LAST_LOGIN));
+		transactionBuilder.add(displayManager.getSchema(Collection.SYSTEM_COLLECTION, Group.DEFAULT_SCHEMA)
+				.withNewTableMetadatas(Group.DEFAULT_SCHEMA + "_" + Group.CODE));
+
+		displayManager.execute(transactionBuilder.build());
+	}
+
+
 }

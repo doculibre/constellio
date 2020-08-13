@@ -156,6 +156,8 @@ public class EventType {
 
 	public static final String DELETE_VERSION_DOCUMENT = "delete_version_document";
 
+	public static final String SIGN_DOCUMENT = "sign_document";
+
 	//decommissiong
 	public static final String DECOMMISSIONING_LIST = "decommissioningList";
 

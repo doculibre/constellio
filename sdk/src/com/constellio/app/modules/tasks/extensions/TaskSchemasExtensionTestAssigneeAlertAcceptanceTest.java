@@ -299,9 +299,9 @@ public class TaskSchemasExtensionTestAssigneeAlertAcceptanceTest extends Constel
 	private List<String> getGroupUsersEmails(Group group) {
 		List<String> returnList = new ArrayList<>();
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		List<SystemWideUserInfos> groupUsers = userServices
-				.getGlobalGroupActifUsers(group.getCode());
-		for (SystemWideUserInfos user : groupUsers) {
+		List<User> groupUsers = tasksSchemas.searchUsers(from(tasksSchemas.user.schemaType())
+				.where(tasksSchemas.user.groups()).isEqualTo(group.getId()));
+		for (User user : groupUsers) {
 			String email = user.getEmail();
 			if (StringUtils.isNotBlank(email)) {
 				returnList.add(email);
