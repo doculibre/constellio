@@ -590,19 +590,26 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenUpdatingGroupMetadatasThenUpdated() {
+		services.createGroup("g1", (req) -> req.setName("Group 1").addCollections(collection1, collection3));
+		services.executeGroupRequest("g1", (req) -> req.setName("Group 1 modified"));
+
+		assertThatGroup("g1").hasName("Group 1 modified");
+	}
+
+	@Test
 	public void whenAddingAGroupToOtherCollectionsThenDoNotAddChildGroups() {
 		services.createGroup("g1", (req) -> req.setName("Group 1").addCollections(collection1, collection3));
 		services.createGroup("g2", (req) -> req.setName("Group 2").setParent("g1").addCollections(collection1));
 		services.createGroup("g3", (req) -> req.setName("Group 3").setParent("g2").addCollections(collection1));
 
-		services.createGroup("g2", (req) -> req.addCollections(collection2, collection3));
+		services.executeGroupRequest("g2", (req) -> req.addCollections(collection2, collection3));
 
 		assertThatGroup("g1").isInCollections(collection1, collection2, collection3).isActiveInAllItsCollections();
 		assertThatGroup("g2").isInCollections(collection1, collection2, collection3).isActiveInAllItsCollections()
-				.hasCaption("Group 1 | Group 2");
+				.hasCaption("Group 1 / Group 2");
 		assertThatGroup("g3").isInCollections(collection1).isActiveInAllItsCollections()
-				.hasCaption("Group 1 | Group 2 | Group 3");
-
+				.hasCaption("Group 1 / Group 2 / Group 3");
 	}
 
 	@Test
@@ -629,12 +636,11 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		services.executeGroupRequest("g2", (req) -> req.setParent("newParent"));
 
 		assertThatGroup("oldParent").isInCollections(collection1).isActiveInAllItsCollections();
-		assertThatGroup("newParent").isInCollections(collection1, collection2).isOnlyActiveIn(collection2);
+		assertThatGroup("newParent").isInCollections(collection1, collection2).isActiveInAllItsCollections();
 		assertThatGroup("g2").isInCollections(collection1).isActiveInAllItsCollections()
 				.hasCaption("New parent / Group 2");
 		assertThatGroup("g3").isInCollections(collection1).isActiveInAllItsCollections()
 				.hasCaption("New parent / Group 2 / Group 3");
-		assertThatGroup("newParent").isInCollections(collection1, collection2).isOnlyActiveIn(collection2);
 
 		services.executeGroupRequest("g2", (req) -> req.setParent(null));
 		assertThatGroup("g2").isInCollections(collection1).isActiveInAllItsCollections().hasCaption("Group 2");
@@ -650,7 +656,7 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 		services.executeGroupRequest("g2", (req) -> req.setParent(null));
 
-		assertThatGroup("g2").isInCollections(collection1).isActiveInAllItsCollections().hasCaption("Group 1 | Group 2");
+		assertThatGroup("g2").isInCollections(collection1).isActiveInAllItsCollections().hasCaption("Group 1 / Group 2");
 	}
 
 	@Test
@@ -1179,12 +1185,11 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		}
 
 		private GroupAssertions hasStatusIn(GlobalGroupStatus expectedStatus, List<String> collections) {
-			//TODO : Regarder avec Francis
 			for (String collection : collections) {
 				assertThat(group(groupCode, collection).getStatus()).isEqualTo(expectedStatus);
-				//assertThat(groupInfo(groupCode).getStatus(collection)).isEqualTo(expectedStatus);
+				assertThat(groupInfo(groupCode).getStatus(collection)).isEqualTo(expectedStatus);
 				boolean expectedLogicallyDeletedStatus = expectedStatus != GlobalGroupStatus.ACTIVE;
-				//assertThat(group(groupCode, collection).isLogicallyDeletedStatus()).isEqualTo(expectedLogicallyDeletedStatus);
+				assertThat(group(groupCode, collection).isLogicallyDeletedStatus()).isEqualTo(expectedLogicallyDeletedStatus);
 			}
 			return this;
 		}
@@ -1194,6 +1199,15 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 			assertThat(group.getCaption()).isEqualTo(expectedCaption);
 			for (String collection : group.getCollections()) {
 				assertThat(group(groupCode, collection).getCaption()).isEqualTo(expectedCaption);
+			}
+			return this;
+		}
+
+		public GroupAssertions hasName(String expectedName) {
+			SystemWideGroup group = groupInfo(groupCode);
+			assertThat(group.getName()).isEqualTo(expectedName);
+			for (String collection : group.getCollections()) {
+				assertThat(group(groupCode, collection).getTitle()).isEqualTo(expectedName);
 			}
 			return this;
 		}

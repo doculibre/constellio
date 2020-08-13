@@ -16,7 +16,7 @@ public class GroupCaptionCalculator extends StringMetadataValueCalculator {
 	ReferenceDependency<String> parentCaptionDependency = ReferenceDependency
 			.toAString(Group.PARENT, Schemas.CAPTION.getLocalCode());
 
-	LocalDependency<String> titleDependency = LocalDependency.toAString(Group.TITLE).whichIsRequired();
+	LocalDependency<String> titleDependency = LocalDependency.toAString(Group.TITLE);
 
 	@Override
 	public String calculate(CalculatorParameters parameters) {
