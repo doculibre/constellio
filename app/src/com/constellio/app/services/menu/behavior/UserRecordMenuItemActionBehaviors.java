@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -103,16 +104,36 @@ public class UserRecordMenuItemActionBehaviors {
 	}
 
 	public void delete(List<User> userRecords, MenuItemActionBehaviorParams params) {
-
+		List<User> synchronizedUsers = userRecords.stream()
+				.filter(u -> userServices.getUserCredential(u.getUsername()).getSyncMode().equals(UserSyncMode.SYNCED))
+				.collect(Collectors.toList());
 		Button deleteUserButton = new DeleteButton($("CollectionSecurityManagement.deleteUsers"), false) {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
+				for (User user : synchronizedUsers) {
+					userServices.getUserCredential(user.getUsername()).setSyncMode(UserSyncMode.NOT_SYNCED);
+				}
 				logicallyDeleteUsers(userRecords, params);
 			}
 
 			@Override
 			protected String getConfirmDialogMessage() {
-				return $("ConfirmDialog.confirmDeleteWithAllRecords", $("CollectionSecurityManagement.userLowerCase"));
+				return getDeleteUsersConfirmationMessage();
+			}
+
+			private String getDeleteUsersConfirmationMessage() {
+				if (synchronizedUsers.isEmpty()) {
+					return $("ConfirmDialog.confirmDeleteWithAllRecords", $("CollectionSecurityManagement.userLowerCase"));
+				} else {
+					List<String> synchroUsernamesList = synchronizedUsers.stream()
+							.map(u -> u.getUsername()).collect(Collectors.toList());
+					StringJoiner stringJoiner = new StringJoiner(",");
+					for (String username : synchroUsernamesList) {
+						stringJoiner.add(username);
+					}
+					this.setDialogMode(DialogMode.WARNING);
+					return $("CollectionSecurityManagement.confirmDeleteSynchronizedUsers", stringJoiner.toString());
+				}
 			}
 		};
 
@@ -158,11 +179,17 @@ public class UserRecordMenuItemActionBehaviors {
 					userCredential.setSyncMode(UserSyncMode.NOT_SYNCED);
 				}
 				userCredentialsToUpdate.add(userCredential);
+			} else {
+				params.getView().showErrorMessage($("CollectionSecurityManagement.userCreatedLocally", user.getUsername()));
 			}
 		}
 		if (!userCredentialsToUpdate.isEmpty()) {
 			try {
 				recordServices.update(userCredentialsToUpdate.stream().map(x -> x.getWrappedRecord()).collect(Collectors.toList()), params.getUser());
+				String confirmationMessage = isSynchronizing
+											 ? $("CollectionSecurityManagement.changedSynchronized")
+											 : $("CollectionSecurityManagement.changedDesynchronized");
+				params.getView().showMessage(confirmationMessage);
 			} catch (RecordServicesException e) {
 				log.error("User.cannotChangeSynchronization", e);
 				params.getView().showErrorMessage($("CollectionSecurityManagement.cannotChangeSynchronization"));
