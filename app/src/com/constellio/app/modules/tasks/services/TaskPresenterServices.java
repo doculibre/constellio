@@ -233,7 +233,6 @@ public class TaskPresenterServices {
 	public void deleteTask(Record record, User currentUser) {
 
 		recordServices.logicallyDelete(record, currentUser);
-		loggingServices.logDeleteRecordWithJustification(record, currentUser, "");
 		//recordServices.physicallyDelete(record, currentUser);
 	}
 

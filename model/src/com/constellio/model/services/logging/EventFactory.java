@@ -136,9 +136,7 @@ public class EventFactory {
 
 		if (record.isSaved()) {
 			if (record.isModified(Schemas.LOGICALLY_DELETED_STATUS)) {
-				// event.setType(EventType.DELETE + "_" + recordSchemaType);
-				// Deletions are logged separately
-				return null;
+				event.setType(EventType.DELETE + "_" + recordSchemaType);
 			} else {
 				event.setType(EventType.MODIFY + "_" + recordSchemaType);
 				setDeltaMetadata(event, record);

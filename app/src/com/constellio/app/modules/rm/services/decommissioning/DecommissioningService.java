@@ -1116,7 +1116,6 @@ public class DecommissioningService {
 		boolean putFirstInTrash = putFirstInTrash(record);
 		if (recordServices.validateLogicallyThenPhysicallyDeletable(record, user).isEmpty() || putFirstInTrash) {
 			recordServices.logicallyDelete(record, user);
-			modelLayerFactory.newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
 			if (physically && !putFirstInTrash) {
 				recordServices.physicallyDelete(record, user);
 			}
