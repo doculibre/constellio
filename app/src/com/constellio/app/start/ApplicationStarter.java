@@ -1,6 +1,7 @@
 package com.constellio.app.start;
 
 import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.utils.dev.Toggle;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -9,6 +10,7 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.FilterMapping;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -26,7 +28,10 @@ import org.eclipse.jetty.webapp.WebXmlConfiguration;
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.Servlet;
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -67,6 +72,16 @@ public class ApplicationStarter {
 		handler = new WebAppContext();
 		handler.setConfigurations(new Configuration[]{new WebXmlConfiguration(), new WebInfConfiguration(), new MetaInfConfiguration(), new FragmentConfiguration()});
 		handler.setContextPath("/constellio");
+
+		handler.setErrorHandler(new ErrorHandler() {
+			@Override
+			protected void writeErrorPage(HttpServletRequest request, Writer writer, int code, String message,
+										  boolean showStacks) throws IOException {
+				if (Toggle.SHOW_STACK_TRACE_UPON_ERRORS.isEnabled()) {
+					super.writeErrorPage(request, writer, code, message, showStacks);
+				}
+			}
+		});
 
 		handler.setBaseResource(new ResourceCollection(resources.toArray(new String[0])));
 
