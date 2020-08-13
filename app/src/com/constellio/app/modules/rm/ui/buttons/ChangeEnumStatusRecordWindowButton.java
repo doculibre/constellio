@@ -5,6 +5,7 @@ import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Component;
@@ -21,14 +22,18 @@ public abstract class ChangeEnumStatusRecordWindowButton<T extends Enum<T>> exte
 	private MenuItemActionBehaviorParams params;
 	private OptionGroup enumOptionsField;
 	private Class<T> enumType;
+	private UserCredentialStatus selectedValue;
 
 	public ChangeEnumStatusRecordWindowButton(String caption, String windowCaption, AppLayerFactory appLayerFactory,
-											  MenuItemActionBehaviorParams params, Class<T> enumType) {
+											  MenuItemActionBehaviorParams params, Class<T> enumType,
+											  UserCredentialStatus selectedValue) {
 		super(caption, windowCaption);
 
 		modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.params = params;
 		this.enumType = enumType;
+		this.enumOptionsField = new OptionGroup();
+		this.selectedValue = selectedValue;
 	}
 
 	@Override
@@ -52,9 +57,17 @@ public abstract class ChangeEnumStatusRecordWindowButton<T extends Enum<T>> exte
 					firstValue = (String) enumObject;
 				}
 				enumOptionsField.addItem((String) enumObject);
+			} else if (enumObject instanceof UserCredentialStatus) {
+				String statusValue = enumObject.toString();
+				if (firstValue == null) {
+					firstValue = statusValue;
+				}
+				enumOptionsField.addItem(statusValue);
 			}
 		}
-		if (firstValue != null) {
+		if (selectedValue != null) {
+			enumOptionsField.select(selectedValue.toString());
+		} else if (firstValue != null) {
 			enumOptionsField.select(firstValue);
 		}
 
@@ -68,6 +81,7 @@ public abstract class ChangeEnumStatusRecordWindowButton<T extends Enum<T>> exte
 			protected void buttonClick(ClickEvent event) {
 				try {
 					changeStatus(enumOptionsField.getValue());
+					params.getView().showMessage($("CollectionSecurityManagement.changedStatus"));
 					getWindow().close();
 				} catch (Exception e) {
 					e.printStackTrace();

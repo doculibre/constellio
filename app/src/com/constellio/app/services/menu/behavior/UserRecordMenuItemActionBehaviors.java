@@ -115,8 +115,9 @@ public class UserRecordMenuItemActionBehaviors {
 	}
 
 	public void changeStatus(List<User> userRecords, MenuItemActionBehaviorParams params) {
+		UserCredentialStatus currentStatus = userRecords.size() == 1 ? userRecords.get(0).getStatus() : null;
 		ChangeEnumStatusRecordWindowButton statusButton = new ChangeEnumStatusRecordWindowButton($("CollectionSecurityManagement.changeStatus"),
-				$("CollectionSecurityManagement.changeStatus"), appLayerFactory, params, UserCredentialStatus.class) {
+				$("CollectionSecurityManagement.changeStatus"), appLayerFactory, params, UserCredentialStatus.class, currentStatus) {
 			@Override
 			public void changeStatus(Object value) {
 
@@ -145,7 +146,6 @@ public class UserRecordMenuItemActionBehaviors {
 		List<UserCredential> userCredentialsToUpdate = new ArrayList<>();
 		for (User user : userRecords) {
 			UserCredential userCredential = userServices.getUserCredential(user.getUsername());
-
 			if (!userCredential.getSyncMode().equals(UserSyncMode.LOCALLY_CREATED)) {
 				if (isSynchronizing) {
 					userCredential.setSyncMode(UserSyncMode.SYNCED);
