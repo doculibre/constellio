@@ -98,6 +98,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.servlet.ConstellioImportRecordsServlet;
 import com.constellio.app.servlet.ConstellioUploadContentInVaultServlet;
 import com.constellio.app.start.ApplicationStarter;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
@@ -413,12 +414,6 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new ConstellioUploadContentInVaultServlet());
 		ApplicationStarter.registerServlet("/" + ConstellioRMModule.ID + "/importRecords",
 				new ConstellioImportRecordsServlet());
-
-		ApplicationStarter.registerServlet("/" + ConstellioRMModule.ID + "/uploadContentInVault",
-				new ConstellioUploadContentInVaultServlet());
-		ApplicationStarter.registerServlet("/" + ConstellioRMModule.ID + "/uploadRecords",
-				new ConstellioImportRecordsServlet());
-
 
 		extensions.schemaTypeAccessExtensions.add(new RMGenericRecordPageExtension());
 		extensions.schemaTypeAccessExtensions.add(new LabelSchemaRestrictionPageExtension());

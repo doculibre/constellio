@@ -400,7 +400,7 @@ public class DocumentMenuItemActionBehaviors {
 		document = loadingFullRecordIfSummary(document);
 		document.setPublished(true);
 		Button publishButton = new WindowButton($("DisplayDocumentView.publish"),
-				$("DisplayDocumentView.publish"), new WindowConfiguration(true, true, "30%", "300px")) {
+				$("DisplayDocumentView.publish"), new WindowConfiguration(true, true, "350px", "490px")) {
 			@Override
 			protected Component buildWindowContent() {
 				return new PublishDocumentViewImpl(params) {
