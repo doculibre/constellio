@@ -14,7 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.extensions.AppLayerSystemExtensions;
+import com.constellio.app.extensions.core.CoreMenuItemActionsExtension;
 import com.constellio.app.extensions.ui.AppSupportedExtensionExtension;
+import com.constellio.app.extensions.ui.CoreConstellioUIExtension;
 import com.constellio.app.services.extensions.AppRecordExtension;
 import com.constellio.app.services.extensions.core.CoreSearchFieldExtension;
 import com.constellio.app.services.extensions.core.CoreUserProfileFieldsExtension;
@@ -260,6 +264,8 @@ public class ConstellioEIM {
 		ApplicationStarter.registerServlet(RemovePdfJSSignatureServlet.PATH, new RemovePdfJSSignatureServlet());
 		ApplicationStarter.registerServlet(SavePdfJSAnnotationsServlet.PATH, new SavePdfJSAnnotationsServlet());
 		ApplicationStarter.registerServlet(SavePdfJSSignatureServlet.PATH, new SavePdfJSSignatureServlet());
+
+		setupAppLayerSystemExtensions(appLayerFactory);
 	}
 
 	static public void start(AppLayerFactory appLayerFactory, String collection) {
@@ -275,11 +281,17 @@ public class ConstellioEIM {
 
 	}
 
+	private static void setupAppLayerSystemExtensions(AppLayerFactory appLayerFactory) {
+		AppLayerSystemExtensions extensions = appLayerFactory.getExtensions().getSystemWideExtensions();
+		extensions.constellioUIExtentions.add(new CoreConstellioUIExtension(appLayerFactory));
+	}
+
 	private static void configureBaseAppLayerExtensions(AppLayerFactory appLayerFactory, String collection) {
-		appLayerFactory.getExtensions().forCollection(collection)
-				.pagesComponentsExtensions.add(new CoreUserProfileFieldsExtension(collection, appLayerFactory));
-		appLayerFactory.getExtensions().forCollection(collection)
-				.pagesComponentsExtensions.add(new CoreUserProfileSignatureFieldsExtension(collection, appLayerFactory));
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
+
+		extensions.pagesComponentsExtensions.add(new CoreUserProfileFieldsExtension(collection, appLayerFactory));
+		extensions.pagesComponentsExtensions.add(new CoreUserProfileSignatureFieldsExtension(collection, appLayerFactory));
+		extensions.menuItemActionsExtensions.add(new CoreMenuItemActionsExtension(collection, appLayerFactory));
 	}
 
 	private static void configureBaseModelLayerExtensions(AppLayerFactory appLayerFactory, String collection) {

@@ -16,14 +16,11 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
-import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServices;
@@ -33,19 +30,16 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-public class UsersAddToGroupsWindowButton extends WindowButton {
+public abstract class UsersSelectWindowButton extends WindowButton {
 
-	private RMSchemasRecordsServices rm;
+	private SchemasRecordsServices core;
 	private MenuItemActionBehaviorParams params;
 	private AppLayerFactory appLayerFactory;
 	private RecordServices recordServices;
@@ -58,11 +52,7 @@ public class UsersAddToGroupsWindowButton extends WindowButton {
 		click();
 	}
 
-	public UsersAddToGroupsWindowButton(Group record, MenuItemActionBehaviorParams params) {
-		this(Collections.singletonList(record), params);
-	}
-
-	public UsersAddToGroupsWindowButton(List<Group> records, MenuItemActionBehaviorParams params) {
+	public UsersSelectWindowButton(List<Group> records, MenuItemActionBehaviorParams params) {
 		super($("CollectionSecurityManagement.addToGroups"), $("CollectionSecurityManagement.selectUsers"));
 
 		this.params = params;
@@ -70,8 +60,20 @@ public class UsersAddToGroupsWindowButton extends WindowButton {
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 		this.collection = params.getView().getSessionContext().getCurrentCollection();
-		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.core = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 		this.records = records;
+	}
+
+	public SchemasRecordsServices getCore() {
+		return core;
+	}
+
+	public List<Group> getRecords() {
+		return records;
+	}
+
+	public List<String> getSelectedValues() {
+		return new ArrayList<>((java.util.Collection<? extends String>) userFields.getValue());
 	}
 
 	@Override
@@ -97,7 +99,7 @@ public class UsersAddToGroupsWindowButton extends WindowButton {
 			protected void buttonClick(ClickEvent event) {
 				try {
 					//getUserServices().addUsersToGroup();
-					addToGroupsRequested(params.getView());
+					saveButtonClick(params.getView());
 					getWindow().close();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -130,50 +132,7 @@ public class UsersAddToGroupsWindowButton extends WindowButton {
 		RecordVODataProvider groupDataProvider = getUserDataProvider(params.getView().getSessionContext());
 
 		UserSelectionAddRemoveFieldImpl usersDisplayOrderField = new UserSelectionAddRemoveFieldImpl(groupDataProvider.getIterator());
-		List<String> commonUsers = matchCommonGroupsIds(records);
-		usersDisplayOrderField.setValue(commonUsers);
 		return usersDisplayOrderField;
-	}
-
-	@NotNull
-	private List<String> matchCommonGroupsIds(List<Group> records) {
-		List<String> commonUsers = new ArrayList<>();
-		List<String> isToRemove = new ArrayList<>();
-		boolean firstIteration = true;
-
-		for (Group group : records) {
-			List<String> users = getUserServices()
-					.getAllUsersInGroup(group, false, true)
-					.stream().map(x -> x.getId()).collect(Collectors.toList());
-			if (firstIteration) {
-				commonUsers.addAll(users);
-				firstIteration = false;
-			} else {
-				for (String userId : commonUsers) {
-					if (users.stream().noneMatch(gr -> gr.equals(userId))) {
-						isToRemove.add(userId);
-					}
-				}
-			}
-		}
-		commonUsers.removeAll(isToRemove);
-		return commonUsers;
-	}
-
-	private UserServices getUserServices() {
-		return this.userServices;
-	}
-
-	private void addToGroupsRequested(BaseView baseView) {
-		Transaction transaction = new Transaction(RecordUpdateOptions.validationExceptionSafeOptions());
-		List<Record> updateRecords = records.stream().map(group -> group.getWrappedRecord()).collect(Collectors.toList());
-		transaction.update(updateRecords);
-		try {
-			recordServices.execute(transaction);
-			baseView.showMessage($("CollectionSecurityManagement.addedUsersToGroups"));
-		} catch (Exception e) {
-			throw new ImpossibleRuntimeException(e);
-		}
 	}
 
 	private RecordVODataProvider getUserDataProvider(SessionContext sessionContext) {
@@ -202,4 +161,6 @@ public class UsersAddToGroupsWindowButton extends WindowButton {
 
 		return query;
 	}
+
+	protected abstract void saveButtonClick(BaseView baseView);
 }

@@ -100,7 +100,7 @@ public class UserCredentialVODataProviderTest extends ConstellioTest {
 		when(voBuilder.build(chuckUserCredential)).thenReturn(chuckUserCredentialVO);
 		when(voBuilder.build(bobUserCredential)).thenReturn(bobUserCredentialVO);
 
-		dataProvider = spy(new UserCredentialVODataProvider(voBuilder, mockedFactories.getModelLayerFactory(), HEROES));
+		dataProvider = spy(new UserCredentialVODataProvider(voBuilder, mockedFactories.getModelLayerFactory(), HEROES, zeCollection));
 	}
 
 	@Test

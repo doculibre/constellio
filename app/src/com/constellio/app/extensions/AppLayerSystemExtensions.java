@@ -27,8 +27,8 @@ import com.constellio.app.ui.framework.components.ViewWindow;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.SystemWideGroup;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.vaadin.ui.Component;
 
 import javax.mail.internet.MimeMessage;
@@ -180,13 +180,9 @@ public class AppLayerSystemExtensions {
 						new GlobalGroupExtensionActionPossibleParams(globalGroup, user)));
 	}
 
-	public boolean isEditActionPossibleOnUserCredential(final UserCredential userCredential, final User user) {
-		return userCredentialGroupExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isEditActionPossible(
-						new UserCredentialExtensionActionPossibleParams(userCredential, user)));
-	}
+	public boolean isGenerateTokenActionPossibleOnSystemWideUserInfos(final SystemWideUserInfos userCredential,
+																	  final User user) {
 
-	public boolean isGenerateTokenActionPossibleOnUserCredential(final UserCredential userCredential, final User user) {
 		return userCredentialGroupExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isGenerateTokenActionPossible(
 						new UserCredentialExtensionActionPossibleParams(userCredential, user)));

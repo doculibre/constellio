@@ -89,7 +89,12 @@ public class SystemWideGroup {
 
 	@Deprecated
 	public Boolean getLogicallyDeletedStatus() {
-		return logicallyDeletedStatus;
+		if (logicallyDeletedStatus == null) {
+			return false;
+		} else {
+			return logicallyDeletedStatus;
+		}
+
 	}
 
 	@Deprecated

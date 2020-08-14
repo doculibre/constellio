@@ -3,8 +3,8 @@ package com.constellio.app.ui.framework.data;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
-import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("serial")
 public class GlobalGroupVODataProvider extends AbstractDataProvider {
@@ -25,11 +26,13 @@ public class GlobalGroupVODataProvider extends AbstractDataProvider {
 	private GlobalGroupToVOBuilder voBuilder;
 	private String filter;
 	private boolean hierarchical;
+	private String collection;
 
 	public GlobalGroupVODataProvider(GlobalGroupToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory,
-									 boolean hierarchical) {
+									 boolean hierarchical, String collection) {
 		this.voBuilder = voBuilder;
 		this.hierarchical = hierarchical;
+		this.collection = collection;
 		init(modelLayerFactory);
 	}
 
@@ -49,6 +52,10 @@ public class GlobalGroupVODataProvider extends AbstractDataProvider {
 		return filter;
 	}
 
+	public void setCollection(String collection) {
+		this.collection = collection;
+	}
+
 	public void setFilter(String filter) {
 
 		filteredGlobalGroupVOs = new ArrayList<>();
@@ -65,6 +72,10 @@ public class GlobalGroupVODataProvider extends AbstractDataProvider {
 			filteredGlobalGroupVOs.addAll(globalGroupVOs);
 		}
 	}
+	//
+	//	private doFilter(GLobalGr) {
+	//
+	//	}
 
 	public List<GlobalGroupVO> getGlobalGroupVOs() {
 		return filteredGlobalGroupVOs;
@@ -117,7 +128,9 @@ public class GlobalGroupVODataProvider extends AbstractDataProvider {
 		List<GlobalGroupVO> newGlobalGroupVOs = new ArrayList<>();
 		for (SystemWideGroup globalGroup : userServices.getAllGroups()) {
 			GlobalGroupVO globalGroupVO = voBuilder.build(globalGroup);
-			newGlobalGroupVOs.add(globalGroupVO);
+			if (collection == null || globalGroupVO.getCollections().contains(collection)) {
+				newGlobalGroupVOs.add(globalGroupVO);
+			}
 		}
 		sort(newGlobalGroupVOs);
 		setGlobalGroupVOs(newGlobalGroupVOs);
@@ -138,33 +151,22 @@ public class GlobalGroupVODataProvider extends AbstractDataProvider {
 		return filteredGlobalGroupVOs.subList(startIndex, toIndex);
 	}
 
-	public List<GlobalGroupVO> listActiveGlobalGroupVOsFromUser(String username) {
-		List<GlobalGroupVO> newGlobalGroupVOs = new ArrayList<>();
-		for (GlobalGroupVO globalGroupVO : filteredGlobalGroupVOs) {
-			List<SystemWideUserInfos> userCredentials = userServices.getGlobalGroupActifUsers(globalGroupVO.getCode());
-			for (SystemWideUserInfos userCredential : userCredentials) {
-				if (userCredential.getUsername().equals(username)) {
-					newGlobalGroupVOs.add(globalGroupVO);
-				}
-			}
-		}
-		sort(newGlobalGroupVOs);
-		return newGlobalGroupVOs;
+	public List<GlobalGroupVO> getGlobalGroupThatUserisNotIn(String username) {
+		SystemWideUserInfos currentUser = userServices.getUserInfos(username);
+
+		List<GlobalGroupVO> globalGroupVoList = userServices.streamGroupInfos().filter(u -> u.getCollections().contains(collection) && !currentUser.getGroupCodes(this.collection).contains(u.getCode())).map(u -> voBuilder.build(u)).collect(Collectors.toList());
+
+		sort(globalGroupVoList);
+		return globalGroupVoList;
 	}
 
-	public List<GlobalGroupVO> listGlobalGroupVOsNotContainingUser(String username) {
+	public List<GlobalGroupVO> getGlobalGroupThatUserisIn(String username) {
+		SystemWideUserInfos currentUser = userServices.getUserInfos(username);
 
-		List<GlobalGroupVO> newGlobalGroupVOs = new ArrayList<>();
-		List<GlobalGroupVO> userGlobalGroupVOs = listActiveGlobalGroupVOsFromUser(username);
-		List<String> userCodes = listCodes(userGlobalGroupVOs);
+		List<GlobalGroupVO> globalGroupVoList = userServices.streamGroupInfos().filter(u -> u.getCollections().contains(collection) && currentUser.getGroupCodes(this.collection).contains(u.getCode())).map(u -> voBuilder.build(u)).collect(Collectors.toList());
 
-		for (GlobalGroupVO globalGroupVO : listGlobalGroupVOs()) {
-			if (!userCodes.contains(globalGroupVO.getCode())) {
-				newGlobalGroupVOs.add(globalGroupVO);
-			}
-		}
-		sort(newGlobalGroupVOs);
-		return newGlobalGroupVOs;
+		sort(globalGroupVoList);
+		return globalGroupVoList;
 	}
 
 	public List<GlobalGroupVO> listGlobalGroupVOsWithUsersInCollection(String collection) {
@@ -216,10 +218,12 @@ public class GlobalGroupVODataProvider extends AbstractDataProvider {
 		});
 	}
 
-	public List<GlobalGroupVO> listActiveSubGlobalGroupsVOsFromGroup(String code) {
+	public List<GlobalGroupVO> listActiveSubGlobalGroupsVOsFromGroup(String id) {
 		List<GlobalGroupVO> newGlobalGroupVOs = new ArrayList<>();
+
+
 		for (GlobalGroupVO globalGroupVO : filteredGlobalGroupVOs) {
-			if (globalGroupVO.getParent() != null && globalGroupVO.getParent().equals(code)
+			if (globalGroupVO.getParent() != null && globalGroupVO.getParent().equals(id)
 				&& globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE) {
 				newGlobalGroupVOs.add(globalGroupVO);
 			}

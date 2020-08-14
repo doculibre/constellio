@@ -1,7 +1,9 @@
 package com.constellio.app.ui.pages.user;
 
-import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserCredentialVO;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
 import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
@@ -25,6 +27,7 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 
 	private Map<String, String> paramsMap;
 	private String breadCrumb;
+	private User pageUser;
 
 	public DisplayUserCredentialPresenter(DisplayUserCredentialView view) {
 		super(view);
@@ -47,6 +50,14 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 		return voBuilder.build(userCredential);
 	}
 
+	public void setUser(String username) {
+		this.pageUser = userServices.getUserInCollection(username, view.getCollection());
+	}
+
+	public UserVO getPageUserVO() {
+		return new UserToVOBuilder().build(pageUser.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext());
+	}
+
 	public void backButtonClicked() {
 		String viewNames[] = breadCrumb.split("/");
 		String backPage = viewNames[viewNames.length - 1];
@@ -64,27 +75,29 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 	}
 
 	public void displayGlobalGroupButtonClicked(String globalGroupCode, String username) {
-		paramsMap.put("username", username);
-		paramsMap.put("globalGroupCode", globalGroupCode);
-		String parameters = getParameters(NavigatorConfigurationService.USER_DISPLAY);
-		view.navigate().to().displayGlobalGroup(parameters);
+		Map<String, String> params = new HashMap<>();
+		params.put("username", username);
+		params.put("globalGroupCode", globalGroupCode);
+		view.navigate().to().displayGlobalGroup(params);
 	}
 
 	public void editGlobalGroupButtonClicked(String globalGroupCode, String username) {
-		paramsMap.put("globalGroupCode", globalGroupCode);
-		paramsMap.put("username", username);
-		String parameters = getParameters(NavigatorConfigurationService.USER_DISPLAY);
-		view.navigate().to().editGlobalGroup(parameters);
+		Map<String, String> params = new HashMap<>();
+		params.put("globalGroupCode", globalGroupCode);
+		params.put("username", username);
+		view.navigate().to().editGlobalGroup(params);
 	}
 
 	public void deleteGlobalGroupButtonClicked(String username, String globalGroupCode) {
+		UserAddUpdateRequest userUpdateRequest = userServices.addUpdate(username);
+		userUpdateRequest.removeFromGroupOfCollection(username, collection);
 		userServices.removeUserFromGlobalGroup(username, globalGroupCode);
 		view.refreshTable();
 	}
 
 	public void addGlobalGroupButtonClicked(String username, String globalGroupCode) {
 		UserAddUpdateRequest userUpdateRequest = userServices.addUpdate(username);
-		userUpdateRequest.addToGroupInEachCollection(globalGroupCode);
+		userUpdateRequest.addToGroupInCollection(globalGroupCode, collection);
 		userServices.execute(userUpdateRequest);
 		view.refreshTable();
 	}
@@ -106,7 +119,7 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 	}
 
 	GlobalGroupVODataProvider newGlobalGroupVODataProvider(GlobalGroupToVOBuilder voBuilder) {
-		return new GlobalGroupVODataProvider(voBuilder, modelLayerFactory, true);
+		return new GlobalGroupVODataProvider(voBuilder, modelLayerFactory, true, view.getCollection());
 	}
 
 	private void configureBreadCrumb(String backPage) {
@@ -165,5 +178,9 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 
 	public UserCredential getUserCredential(String userName) {
 		return userServices.getUserCredential(userName);
+	}
+
+	public void editFolderButtonClicked() {
+		view.navigate().to().editUserCredential(pageUser.getUsername());
 	}
 }

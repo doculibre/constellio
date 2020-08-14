@@ -11,7 +11,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,8 +68,6 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 	private void givenBreadCrumbAndParameters() {
 		Map<String, String> paramsMap = new HashMap<>();
 		paramsMap.put("username", DAKOTA);
-		presenter.setParamsMap(paramsMap);
-		presenter.setBreadCrumb("url1/url2/url3");
 	}
 
 	@Test
@@ -109,7 +106,6 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 		presenter.saveButtonClicked(dakotaCredentialVO);
 
 		dakotaCredential = userServices.getUserCredential(DAKOTA);
-		verify(userCredentialView.navigate().to()).url("url3/url1/url2/" + URLEncoder.encode("username=dakota", "UTF-8"));
 		assertThat(dakotaCredential.getFirstName()).isEqualTo("Dakota1");
 		assertThat(dakotaCredential.getGlobalGroups()).containsOnly(HEROES);
 		assertThat(dakotaCredential.getCollections()).containsOnly(zeCollection, "otherCollection");
@@ -162,7 +158,6 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 
 		presenter.saveButtonClicked(newUserCredentialVO);
 
-		verify(userCredentialView.navigate().to()).url("url3/url1/url2/" + URLEncoder.encode("username=user", "UTF-8"));
 		newUserCredential = userServices.getUserCredential("user");
 		assertThat(newUserCredential.getFirstName()).isEqualTo("User");
 		assertThat(newUserCredential.getGlobalGroups()).containsOnly(HEROES);
@@ -236,7 +231,6 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 
 		presenter.saveButtonClicked(newUserCredentialVO);
 
-		verify(userCredentialView.navigate().to()).url("url3/url1/url2/" + URLEncoder.encode("username=user", "UTF-8"));
 		newUserCredential = userServices.getUserCredential("user");
 		assertThat(newUserCredential.getFirstName()).isEqualTo("User");
 		assertThat(newUserCredential.getGlobalGroups()).containsOnly(HEROES);
@@ -244,15 +238,5 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 		assertThat(newUserCredential.getLastName()).isEqualTo("lastName");
 		assertThat(newUserCredential.getEmail()).isEqualTo("user@constellio.com");
 		assertThat(newUserCredential.getPersonalEmails()).isEqualTo(Arrays.asList("admin@gmail.com", "admin@hotmail.com"));
-	}
-
-	@Test
-	public void whenCancelButtonClickedThenNavigateToBackPage()
-			throws Exception {
-
-		presenter.cancelButtonClicked();
-
-		verify(userCredentialView.navigate().to()).url("url3/url1/url2/" + URLEncoder.encode("username=dakota",
-				"UTF-8"));
 	}
 }

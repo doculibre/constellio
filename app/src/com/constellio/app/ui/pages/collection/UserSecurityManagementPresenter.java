@@ -328,7 +328,7 @@ public class UserSecurityManagementPresenter extends SingleSchemaBasePresenter<S
 		//TODO
 		//Temporary until UserVO is switched
 		UserCredentialVO userEntity = (new UserCredentialToVOBuilder()).build(userServices().getUserCredential(entity.getUsername()));
-		String parameters = getParameters(userEntity);
-		view.navigate().to().displayUserCredential(parameters);
+
+		view.navigate().to().displayUserCredentialFromSecurityPage(userEntity.getUsername());
 	}
 }
