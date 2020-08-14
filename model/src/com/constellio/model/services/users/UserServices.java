@@ -639,7 +639,11 @@ public class UserServices {
 				throw new UserCredentialsManagerRuntimeException_CannotExecuteTransaction(e);
 			}
 		} else {
-			userCredentialsManager.addUpdate(savedUserCredential);
+			try {
+				modelLayerFactory.newRecordServices().add(userCredential);
+			} catch (RecordServicesException e) {
+				throw new UserCredentialsManagerRuntimeException_CannotExecuteTransaction(e);
+			}
 		}
 
 		//sync(toSystemWideUserInfos(savedUserCredential));
@@ -677,6 +681,12 @@ public class UserServices {
 
 		if (request.isMarkedForDeletionInAllCollections()) {
 			deleteGroup(request.getCode());
+		}
+
+		if (request.getMarkedForDeletionInCollections() != null && !request.getMarkedForDeletionInCollections().isEmpty()) {
+			for (String collection : request.getMarkedForDeletionInCollections()) {
+				deleteGroupFromCollection(request.getCode(), collection);
+			}
 		}
 
 		validateNewGroupMetadatas(request);
@@ -737,14 +747,9 @@ public class UserServices {
 
 
 	public SystemWideUserInfos getUserInfos(String username) {
-		UserCredential credential = userCredentialsManager.getUserCredential(username);
-		if (credential == null) {
-			throw new UserServicesRuntimeException_NoSuchUser(username);
-		}
-
-
-		return toSystemWideUserInfos(credential);
+		return toSystemWideUserInfos(getUserCredential(username));
 	}
+
 
 	private SystemWideUserInfos toSystemWideUserInfos(UserCredential credential) {
 		List<String> collections = new ArrayList<>();
@@ -872,7 +877,7 @@ public class UserServices {
 	}
 
 	public UserCredential getUser(String username) {
-		UserCredential credential = userCredentialsManager.getUserCredential(username);
+		UserCredential credential = getUserCredential(username);
 		if (credential == null) {
 			throw new UserServicesRuntimeException_NoSuchUser(username);
 		}
@@ -880,7 +885,7 @@ public class UserServices {
 	}
 
 	public UserCredential getUserConfigs(String username) {
-		UserCredential credential = userCredentialsManager.getUserCredential(username);
+		UserCredential credential = getUserCredential(username);
 		if (credential == null) {
 			throw new UserServicesRuntimeException_NoSuchUser(username);
 		}
@@ -1135,19 +1140,24 @@ public class UserServices {
 
 
 	void removeGroupFromCollectionsWithoutUserValidation(String group, List<String> collections) {
-		removeChildren(group, collections);
+		removeChildrenFromBigVault(group, collections);
 		removeFromBigVault(group, collections);
 	}
 
-	private void removeChildren(String group, List<String> collections) {
-		for (String collection : collections) {
-			for (Group child : getChildrenOfGroupInCollection(group, collection)) {
-				removeFromBigVault(child.getCode(), asList(collection));
-				removeChildren(child.getCode(), asList(collection));
-			}
+	private void removeChildren(String group, String collection) {
+		for (Group child : getChildrenOfGroupInCollection(group, collection)) {
+			deleteGroupFromCollection(child.getCode(), collection);
 		}
 	}
 
+	private void removeChildrenFromBigVault(String group, List<String> collections) {
+		for (String collection : collections) {
+			for (Group child : getChildrenOfGroupInCollection(group, collection)) {
+				removeFromBigVault(child.getCode(), asList(collection));
+				removeChildrenFromBigVault(child.getCode(), asList(collection));
+			}
+		}
+	}
 
 	public String giveNewServiceKey(String username) {
 		String nextToken = secondaryUniqueIdGenerator.next();
@@ -1335,7 +1345,7 @@ public class UserServices {
 			transaction = new Transaction();
 			if (request.getRemovedCollections() != null && request.getRemovedCollections().contains(collection)) {
 				removeGroupFrom(request.getCode(), collection);
-			} else {
+			} else if (canSyncGroup(request, collection)) {
 				sync(request, collection, transaction, group);
 			}
 			try {
@@ -1344,6 +1354,13 @@ public class UserServices {
 				throw new UserServicesRuntimeException_CannotExcuteTransaction(e);
 			}
 		}
+	}
+
+	private boolean canSyncGroup(GroupAddUpdateRequest request, String collection) {
+		if (request.getMarkedForDeletionInCollections() != null) {
+			return !request.getMarkedForDeletionInCollections().contains(collection);
+		}
+		return !request.isMarkedForDeletionInAllCollections() && request.getMarkedForDeletionInCollections() == null;
 	}
 
 	private List<String> getParentGroupCollections(GroupAddUpdateRequest request,
@@ -1744,12 +1761,14 @@ public class UserServices {
 			deletedUsers.add(schemas.wrapUser(record));
 		}
 		for (User user : deletedUsers) {
-			LOGGER.info("safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
-			try {
-				physicallyRemoveUser(user, collection);
-			} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
-				LOGGER.warn("Exception on safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
-				nonDeletedUsers.add(user);
+			if (!ADMIN.equals(user.getUsername())) {
+				LOGGER.info("safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
+				try {
+					physicallyRemoveUser(user, collection);
+				} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
+					LOGGER.warn("Exception on safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
+					nonDeletedUsers.add(user);
+				}
 			}
 		}
 
@@ -1777,9 +1796,17 @@ public class UserServices {
 		SystemWideGroup systemWideGroup = getNullableGroup(groupCode);
 		if (systemWideGroup != null) {
 			for (String collection : systemWideGroup.getCollections()) {
-				getGroupInCollection(groupCode, collection);
 				removeGroupFrom(groupCode, collection);
+				removeChildren(groupCode, collection);
 			}
+		}
+	}
+
+	private void deleteGroupFromCollection(String groupCode, String collection) {
+		SystemWideGroup systemWideGroup = getNullableGroup(groupCode);
+		if (systemWideGroup != null) {
+			removeGroupFrom(groupCode, collection);
+			removeChildren(groupCode, collection);
 		}
 	}
 

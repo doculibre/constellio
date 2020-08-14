@@ -340,20 +340,19 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 			return null;
 		}
 
-		value = StringUtils.trim(value);
-		if (type.getDatePattern() != null) {
-			return formatDateString(value, type);
-		} else if (type.getDataPattern() != null) {
-			return type.getDataPattern() + ":" + value;
-
-		} else if (type.isFilenameHashImport() && StringUtils.isNotBlank(value) && value.contains(":")) {
+        value = StringUtils.trim(value);
+        if (type.getDatePattern() != null) {
+            return formatDateString(value, type);
+        } else if (type.getDataPattern() != null) {
+            return type.getDataPattern() + ":" + value;
+        } else if (type.isFilenameHashImport() && StringUtils.isNotBlank(value) && value.contains(":")) {
 			String[] parts = value.split(":");
 			return new SimpleImportContent("hash:" + parts[1], parts[0], true, TimeProvider.getLocalDateTime());
 
 		} else {
-			return value;
-		}
-	}
+            return value;
+        }
+    }
 
 	public Object formatDateString(String value, ExcelDataType type) {
 		DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern(type.getDatePattern());

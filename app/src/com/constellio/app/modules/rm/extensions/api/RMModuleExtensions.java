@@ -318,9 +318,9 @@ public class RMModuleExtensions implements ModuleExtensions {
 				(behavior) -> behavior.isDeleteActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
-	public boolean isAddAuthorizationActionPossibleOnFolder(final Folder folder, final User user) {
+	public boolean isViewOrAddAuthorizationActionPossibleOnFolder(final Folder folder, final User user) {
 		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isAddAuthorizationActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+				(behavior) -> behavior.isViewOrAddAuthorizationActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
 	// TODO adapt to use lambda
@@ -386,9 +386,9 @@ public class RMModuleExtensions implements ModuleExtensions {
 				(behavior) -> behavior.isAddAuthorizationActionPossible(new DocumentExtensionActionPossibleParams(document, user)));
 	}
 
-	public boolean isManageAuthorizationActionPossibleOnDocument(final Document document, final User user) {
+	public boolean isViewOrAddAuthorizationActionPossibleOnDocument(final Document document, final User user) {
 		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isManageAuthorizationActionPossible(new DocumentExtensionActionPossibleParams(document, user)));
+				(behavior) -> behavior.isViewOrAddAuthorizationActionPossible(new DocumentExtensionActionPossibleParams(document, user)));
 	}
 
 	public boolean isGenerateReportActionPossibleOnDocument(final Document document, final User user) {

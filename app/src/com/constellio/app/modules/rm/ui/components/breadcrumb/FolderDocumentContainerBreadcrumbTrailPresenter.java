@@ -273,10 +273,10 @@ public class FolderDocumentContainerBreadcrumbTrailPresenter implements Serializ
 			handled = true;
 			TaxonomyElementBreadcrumbItem taxonomyElementBreadcrumbItem = (TaxonomyElementBreadcrumbItem) item;
 			String expandedRecordId = taxonomyElementBreadcrumbItem.getTaxonomyElementId();
-			breadcrumbTrail.navigate().to().home(taxonomyCode, expandedRecordId, null);
+			breadcrumbTrail.navigate().to().home(taxonomyCode, expandedRecordId);
 		} else if (item instanceof TaxonomyBreadcrumbItem) {
 			handled = true;
-			breadcrumbTrail.navigate().to().home(taxonomyCode, null, null);
+			breadcrumbTrail.navigate().to().home(taxonomyCode, null);
 		} else if (item instanceof SearchResultsBreadcrumbItem) {
 			handled = true;
 			SearchResultsBreadcrumbItem searchResultsBreadcrumbItem = (SearchResultsBreadcrumbItem) item;
