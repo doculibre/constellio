@@ -1347,7 +1347,7 @@ public class UserServices {
 			groupInCollection.setParent(parentId);
 		}
 		groupInCollection.set(Group.STATUS, groupSatus);
-		groupInCollection.set(Group.LOCALLY_CREATED, true);
+		groupInCollection.set(Group.LOCALLY_CREATED, !request.isLdapSyncRequest());
 		if ((request.getModifiedAttributes().get(GroupAddUpdateRequest.NAME) != null)) {
 			groupInCollection.setTitle((String) request.getModifiedAttributes().get(GroupAddUpdateRequest.NAME));
 		}
@@ -1373,7 +1373,7 @@ public class UserServices {
 			groupInCollection.setParent(parentId);
 		}
 		groupInCollection.set(Group.STATUS, groupSatus);
-		groupInCollection.set(Group.LOCALLY_CREATED, true);
+		groupInCollection.set(Group.LOCALLY_CREATED, group.getLocallyCreated());
 		groupInCollection.set(LOGICALLY_DELETED_STATUS, group.getLogicallyDeletedStatus());
 		groupInCollection.setTitle(group.getName());
 		if (groupInCollection.isDirty()) {

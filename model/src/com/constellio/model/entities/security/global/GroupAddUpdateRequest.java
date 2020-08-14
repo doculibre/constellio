@@ -88,6 +88,9 @@ public class GroupAddUpdateRequest {
 
 
 	public GroupAddUpdateRequest setLocallyCreated(boolean locallyCreated) {
+		if (!locallyCreated) {
+			ldapSyncRequest();
+		}
 		set(LOCALLY_CREATED, locallyCreated);
 		return this;
 	}
