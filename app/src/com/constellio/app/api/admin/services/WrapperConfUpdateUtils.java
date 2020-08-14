@@ -1,10 +1,5 @@
 package com.constellio.app.api.admin.services;
 
-import com.constellio.data.io.services.facades.FileService;
-import com.constellio.model.conf.FoldersLocator;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -12,9 +7,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import com.constellio.data.io.services.facades.FileService;
+import com.constellio.model.conf.FoldersLocator;
+
 public class WrapperConfUpdateUtils {
 
-	// Should not be used without changing parameter number because we already have a second item.
+	// Set an important TLS attribute - DO NOT REMOVE
 	public static void setSettingAdditionalEphemeralDHKeySize(File originalFile, FileService fileService) {
 		if(!originalFile.exists()) {
 			return;

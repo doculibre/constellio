@@ -1,5 +1,8 @@
 package com.constellio.app.services.migrations;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.extensions.core.CoreSearchFieldExtension;
 import com.constellio.app.services.extensions.core.CoreUserProfileFieldsExtension;
@@ -87,12 +90,10 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_428;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_2_11;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_2_7;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3_14;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3_22;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ConstellioEIM {
 
@@ -183,6 +184,7 @@ public class ConstellioEIM {
 		scripts.add(new CoreMigrationTo_9_0_2_7());
 		scripts.add(new CoreMigrationTo_9_0_2_11());
 		scripts.add(new CoreMigrationTo_9_0_3_14());
+		scripts.add(new CoreMigrationTo_9_0_3_22());
 
 		return scripts;
 	}
