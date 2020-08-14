@@ -4,21 +4,24 @@
 firefoxBinary=/firefox
 #phantomJSBinary=
 port=7070
+
 # === DATASTORE CONFIGURATION ===
 # *** WARNING : collections will be deleted ***3
 dao.records.type=http
 dao.records.http.url=http://192.168.86.66:8983/solr/
 dao.contents.type=filesystem
 dao.settings.type=filesystem
+
 # === RUN/SKIP TESTS CONFIGURATION ===
 skip.slowtests=false
-skip.uitests=true
+skip.uitests=false
 skip.drivertests=false
-skip.loadtests=true
+skip.loadtests=false
 skip.internettests=true
 skip.indevelopment=true
-skip.importtests=true
-skip.testsWithGradle=true
+skip.importtests=false
+skip.testsWithGradle=false
+
 tests.whitelist=
 tests.blacklist=com.constellio.model.conf.ldap.LDAPConfigurationManagerAcceptanceTest,\
 com.constellio.app.services.migrations.ComboMigrationsAcceptanceTest,\
