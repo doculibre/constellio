@@ -245,16 +245,16 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 
 	private RecordVODataProvider newFolderDataProvider(final Factory<LogicalSearchQuery> logicalSearchQueryFactory,
 													   SessionContextProvider sessionContextProvider) {
-
 		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 		SessionContext sessionContext = sessionContextProvider.getSessionContext();
 		FolderToVOBuilder voBuilder = new FolderToVOBuilder();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
 		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder.build(rm.folder.schema(), VIEW_MODE.TABLE, sessionContext);
+		User currentUser = rm.getUser(sessionContext.getCurrentUser().getId());
 		return new RecordVODataProvider(foldersSchemaVO, voBuilder, sessionContextProvider) {
 			@Override
 			public LogicalSearchQuery getQuery() {
-				return logicalSearchQueryFactory.get();
+				return logicalSearchQueryFactory.get().filteredWithUser(currentUser);
 			}
 		};
 	}
