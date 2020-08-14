@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.ui.buttons.CollectionsWindowButton.AddedToC
 import com.constellio.app.modules.rm.ui.buttons.DesynchronizationWarningDialog;
 import com.constellio.app.modules.rm.ui.buttons.GroupWindowButton;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -92,15 +93,47 @@ public class UserRecordMenuItemActionBehaviors {
 	}
 
 	public void addToGroup(List<User> userRecords, MenuItemActionBehaviorParams params) {
+		List<User> synchronizedUsers = ListSelectedSynchronizedUsers(userRecords);
+
 		List<User> recordsList = core.getUsers(userRecords.stream().map(record -> record.getId()).collect(Collectors.toList()));
 
-		GroupWindowButton groupWindowButton = new GroupWindowButton(recordsList, params);
+		GroupWindowButton groupWindowButton = new GroupWindowButton(recordsList, params) {
+			@Override
+			public void addToGroup() {
+				if (synchronizedUsers.isEmpty()) {
+					super.addToGroup();
+				} else {
+					new DesynchronizationWarningDialog(synchronizedUsers).showConfirm(ConstellioUI.getCurrent(), (ConfirmDialog.Listener) warningDialog -> {
+						if (warningDialog.isConfirmed()) {
+							super.addToGroup();
+						}
+					});
+				}
+
+			}
+		};
 		groupWindowButton.addToGroup();
 	}
 
 	public void addToCollection(List<User> userRecords, MenuItemActionBehaviorParams params) {
+		List<User> synchronizedUsers = ListSelectedSynchronizedUsers(userRecords);
 		List<Record> records = userRecords.stream().map(user -> user.getWrappedRecord()).collect(Collectors.toList());
-		CollectionsWindowButton cartWindowButton = new CollectionsWindowButton(records, params, AddedToCollectionRecordType.USER);
+		CollectionsWindowButton cartWindowButton = new CollectionsWindowButton(records, params, AddedToCollectionRecordType.USER) {
+
+
+			@Override
+			public void addToCollections() {
+				if (synchronizedUsers.isEmpty()) {
+					super.addToCollections();
+				} else {
+					new DesynchronizationWarningDialog(synchronizedUsers).showConfirm(ConstellioUI.getCurrent(), (ConfirmDialog.Listener) warningDialog -> {
+						if (warningDialog.isConfirmed()) {
+							super.addToCollections();
+						}
+					});
+				}
+			}
+		};
 		cartWindowButton.addToCollections();
 	}
 
@@ -112,8 +145,8 @@ public class UserRecordMenuItemActionBehaviors {
 				if (synchronizedUsers.isEmpty()) {
 					deleteUsersAction();
 				} else {
-					new DesynchronizationWarningDialog(synchronizedUsers).showConfirm(getUI(), (ConfirmDialog.Listener) dialog1 -> {
-						if (dialog1.isConfirmed()) {
+					new DesynchronizationWarningDialog(synchronizedUsers).showConfirm(ConstellioUI.getCurrent(), (ConfirmDialog.Listener) warningDialog -> {
+						if (warningDialog.isConfirmed()) {
 							deleteUsersAction();
 						}
 					});
@@ -183,7 +216,7 @@ public class UserRecordMenuItemActionBehaviors {
 		List<UserCredential> userCredentialsToUpdate = new ArrayList<>();
 		for (User user : userRecords) {
 			UserCredential userCredential = userServices.getUserCredential(user.getUsername());
-			if (!userCredential.getSyncMode().equals(UserSyncMode.LOCALLY_CREATED)) {
+			if (userCredential.getSyncMode().equals(UserSyncMode.LOCALLY_CREATED)) {        //todo remettre le !
 				if (isSynchronizing) {
 					userCredential.setSyncMode(UserSyncMode.SYNCED);
 				} else {
