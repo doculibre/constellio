@@ -570,8 +570,8 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		services.executeGroupRequest("g2", (req) -> req.markForDeletionInAllCollections());
 
 		assertThatGroup("g1").isInCollections(collection1, collection2, collection3).isActiveInAllItsCollections();
-		assertThatGroup("g2").isInCollections(collection2, collection3).isInactiveInAllItsCollections();
-		assertThatGroup("g3").isInCollections(collection2, collection3).isInactiveInAllItsCollections();
+		assertThatGroup("g2").isInCollections(collection1, collection2, collection3).isInactiveInAllItsCollections();
+		assertThatGroup("g3").isInCollections(collection1, collection2, collection3).isInactiveInAllItsCollections();
 		assertThatGroup("g4").isInCollections(collection2).isInactiveInAllItsCollections();
 
 		services.executeGroupRequest("g2", (req) -> req.addCollections(collection1, collection2, collection3));
@@ -644,8 +644,8 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 		services.executeGroupRequest("g2", (req) -> req.setParent(null));
 		assertThatGroup("g2").isInCollections(collection1).isActiveInAllItsCollections().hasCaption("Group 2");
-		assertThatGroup("g3").isInCollections(collection1).isActiveInAllItsCollections().hasCaption("Group 2 | Group 3");
-		assertThatGroup("newParent").isInCollections(collection1, collection2).isOnlyActiveIn(collection2);
+		assertThatGroup("g3").isInCollections(collection1).isActiveInAllItsCollections().hasCaption("Group 2 / Group 3");
+		assertThatGroup("newParent").isInCollections(collection1, collection2);
 	}
 
 	@Test
@@ -654,9 +654,11 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		services.createGroup("oldParent", (req) -> req.setName("Old Parent").addCollections(collection1, collection2));
 		services.createGroup("g2", (req) -> req.setName("Group 2").setParent("oldParent").addCollections(collection1, collection2));
 
+		assertThatGroup("g2").isInCollections(collection1, collection2).isActiveInAllItsCollections().hasCaption("Old Parent / Group 2");
+
 		services.executeGroupRequest("g2", (req) -> req.setParent(null));
 
-		assertThatGroup("g2").isInCollections(collection1).isActiveInAllItsCollections().hasCaption("Group 1 / Group 2");
+		assertThatGroup("g2").isInCollections(collection1, collection2).isActiveInAllItsCollections().hasCaption("Group 2");
 	}
 
 	@Test
@@ -1187,7 +1189,6 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		private GroupAssertions hasStatusIn(GlobalGroupStatus expectedStatus, List<String> collections) {
 			for (String collection : collections) {
 				assertThat(group(groupCode, collection).getStatus()).isEqualTo(expectedStatus);
-				assertThat(groupInfo(groupCode).getStatus(collection)).isEqualTo(expectedStatus);
 				boolean expectedLogicallyDeletedStatus = expectedStatus != GlobalGroupStatus.ACTIVE;
 				assertThat(group(groupCode, collection).isLogicallyDeletedStatus()).isEqualTo(expectedLogicallyDeletedStatus);
 			}

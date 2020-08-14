@@ -679,6 +679,12 @@ public class UserServices {
 			deleteGroup(request.getCode());
 		}
 
+		if (request.getMarkedForDeletionInCollections() != null && !request.getMarkedForDeletionInCollections().isEmpty()) {
+			for (String collection : request.getMarkedForDeletionInCollections()) {
+				deleteGroupFromCollection(request.getCode(), collection);
+			}
+		}
+
 		validateNewGroupMetadatas(request);
 		validateNewCollections(request);
 
@@ -1104,19 +1110,24 @@ public class UserServices {
 
 
 	void removeGroupFromCollectionsWithoutUserValidation(String group, List<String> collections) {
-		removeChildren(group, collections);
+		removeChildrenFromBigVault(group, collections);
 		removeFromBigVault(group, collections);
 	}
 
-	private void removeChildren(String group, List<String> collections) {
-		for (String collection : collections) {
-			for (Group child : getChildrenOfGroupInCollection(group, collection)) {
-				removeFromBigVault(child.getCode(), asList(collection));
-				removeChildren(child.getCode(), asList(collection));
-			}
+	private void removeChildren(String group, String collection) {
+		for (Group child : getChildrenOfGroupInCollection(group, collection)) {
+			deleteGroupFromCollection(child.getCode(), collection);
 		}
 	}
 
+	private void removeChildrenFromBigVault(String group, List<String> collections) {
+		for (String collection : collections) {
+			for (Group child : getChildrenOfGroupInCollection(group, collection)) {
+				removeFromBigVault(child.getCode(), asList(collection));
+				removeChildrenFromBigVault(child.getCode(), asList(collection));
+			}
+		}
+	}
 
 	public String giveNewServiceKey(String username) {
 		String nextToken = secondaryUniqueIdGenerator.next();
@@ -1304,7 +1315,7 @@ public class UserServices {
 			transaction = new Transaction();
 			if (request.getRemovedCollections() != null && request.getRemovedCollections().contains(collection)) {
 				removeGroupFrom(request.getCode(), collection);
-			} else {
+			} else if (canSyncGroup(request, collection)) {
 				sync(request, collection, transaction, group);
 			}
 			try {
@@ -1313,6 +1324,13 @@ public class UserServices {
 				throw new UserServicesRuntimeException_CannotExcuteTransaction(e);
 			}
 		}
+	}
+
+	private boolean canSyncGroup(GroupAddUpdateRequest request, String collection) {
+		if (request.getMarkedForDeletionInCollections() != null) {
+			return !request.getMarkedForDeletionInCollections().contains(collection);
+		}
+		return !request.isMarkedForDeletionInAllCollections() && request.getMarkedForDeletionInCollections() == null;
 	}
 
 	private List<String> getParentGroupCollections(GroupAddUpdateRequest request,
@@ -1743,9 +1761,17 @@ public class UserServices {
 		SystemWideGroup systemWideGroup = getNullableGroup(groupCode);
 		if (systemWideGroup != null) {
 			for (String collection : systemWideGroup.getCollections()) {
-				getGroupInCollection(groupCode, collection);
 				removeGroupFrom(groupCode, collection);
+				removeChildren(groupCode, collection);
 			}
+		}
+	}
+
+	private void deleteGroupFromCollection(String groupCode, String collection) {
+		SystemWideGroup systemWideGroup = getNullableGroup(groupCode);
+		if (systemWideGroup != null) {
+			removeGroupFrom(groupCode, collection);
+			removeChildren(groupCode, collection);
 		}
 	}
 
