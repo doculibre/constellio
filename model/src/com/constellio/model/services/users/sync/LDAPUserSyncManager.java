@@ -14,7 +14,6 @@ import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -325,19 +324,23 @@ public class LDAPUserSyncManager implements StatefulService {
 	}
 
 	private void removeGroupOnMissingSync(Set<LDAPGroup> ldapGroups, List<String> selectedCollectionsCodes) {
+
 		for (String collection :
 				selectedCollectionsCodes) {
+			List<Group> markForDeletion = new ArrayList<>();
 			List<Group> syncGroups = userServices.getAllGroupsInCollections(collection);
 			if (syncGroups != null) {
 				List<Group> syncGroupsCodes = syncGroups.stream().filter(x -> !x.isLocallyCreated())
 						.collect(Collectors.toList());
 				for (Group syncGroup : syncGroupsCodes) {
 					if (ldapGroups.stream().noneMatch(x -> x.getDistinguishedName().equals(syncGroup.getCode()))) {
-						recordServices.logicallyDelete(syncGroup.getWrappedRecord(), User.GOD);
+						markForDeletion.add(syncGroup);
 					}
 				}
 			}
+			//userServices.removeFromCollection(markForDeletion, collection);
 		}
+
 	}
 
 	private void removeUserFromGroupsMissingOnSync(List<String> selectedCollectionsCodes,
