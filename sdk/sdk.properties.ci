@@ -1,7 +1,7 @@
 # === WEB DRIVERS CONFIGURATION ===
 # if both are specified, phantomjs is used, unless you call newFirefoxWebDriver() in the test
-firefoxBinary=detect
-#firefoxBinary=
+#firefoxBinary=detect
+firefoxBinary=/firefox
 #phantomJSBinary=
 port=7070
 # === DATASTORE CONFIGURATION ===
