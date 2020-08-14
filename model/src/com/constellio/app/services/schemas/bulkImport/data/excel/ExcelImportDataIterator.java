@@ -5,6 +5,8 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.data.utils.LazyIterator;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.services.records.SimpleImportContent;
 import com.drew.metadata.MetadataException;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -29,6 +31,7 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
     public static final String ITEM = "item";
     public static final String MULTILINE = "multiline";
     public static final String LEGACY_ID = "importAsLegacyId";
+	public static final String FILENAME_HASH_CONTENT = "filename:hash";
 
     private ExcelSheet sheet;
     private int lineToParse = 1;
@@ -112,6 +115,8 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
                         dataType.setItem(line.replace(ITEM + "=", ""));
                     } else if (line.contains(MULTILINE)) {
                         dataType.setMultiline(true);
+					} else if (line.contains(FILENAME_HASH_CONTENT)) {
+						dataType.setFilenameHashImport(true);
                     } else if (line.contains(LEGACY_ID)) {
                         boolean isLegacyId = line.split("=", 2)[1].equalsIgnoreCase("true") ? true : false;
                         options.setImportAsLegacyId(isLegacyId);
@@ -335,7 +340,11 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
             return formatDateString(value, type);
         } else if (type.getDataPattern() != null) {
             return type.getDataPattern() + ":" + value;
-        } else {
+        } else if (type.isFilenameHashImport() && StringUtils.isNotBlank(value) && value.contains(":")) {
+			String[] parts = value.split(":");
+			return new SimpleImportContent("hash:" + parts[1], parts[0], true, TimeProvider.getLocalDateTime());
+
+		} else {
             return value;
         }
     }
@@ -376,4 +385,51 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
         }
         return dateFormat;
     }
+
+	//    private SimpleImportContent parseContent()
+	//            throws XMLStreamException {
+	//        boolean closeContent = false;
+	//
+	//
+	//        String fileName;
+	//        String comment;
+	//        boolean major;
+	//        LocalDateTime dateTime;
+	//        int endClose = 0;
+	//
+	//        List<ContentImportVersion> contentVersions = new ArrayList<>();
+	//
+	//        DateTimeFormatter datetimePattern;
+	//        try {
+	//            datetimePattern = DateTimeFormat.forPattern(patterns.get(DATETIME_PATTERN));
+	//        } catch (IllegalArgumentException e) {
+	//            datetimePattern = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+	//        }
+	//        while (xmlReader.hasNext() && !closeContent) {
+	//            int event = xmlReader.next();
+	//            if (event == XMLStreamConstants.END_ELEMENT) {
+	//                if (endClose == 0) {
+	//                    closeContent = true;
+	//                }
+	//                endClose--;
+	//            } else if (event == XMLStreamConstants.START_ELEMENT) {
+	//                endClose++;
+	//                url = xmlReader.getAttributeValue("", URL_ATTR);
+	//                fileName = xmlReader.getAttributeValue("", FILENAME_ATTR);
+	//                comment = xmlReader.getAttributeValue("", COMMENT_ATTR);
+	//                major = Boolean.parseBoolean(xmlReader.getAttributeValue("", MAJOR_ATTR));
+	//
+	//                try {
+	//                    String dateTimeStr = xmlReader.getAttributeValue("", LAST_MODIFICATION_DATETIME);
+	//                    dateTime = datetimePattern.parseLocalDateTime(dateTimeStr);
+	//                } catch (Exception exception) {
+	//                    dateTime = TimeProvider.getLocalDateTime();
+	//                }
+	//
+	//                contentVersions.add(new ContentImportVersion(url, fileName, major, comment, dateTime));
+	//            }
+	//        }
+	//
+	//        return new SimpleImportContent(contentVersions);
+	//    }
 }
