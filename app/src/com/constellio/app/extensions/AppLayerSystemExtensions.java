@@ -1,7 +1,16 @@
 package com.constellio.app.extensions;
 
-import com.constellio.app.api.extensions.*;
-import com.constellio.app.api.extensions.params.*;
+import com.constellio.app.api.extensions.BaseWindowExtension;
+import com.constellio.app.api.extensions.EmailExtension;
+import com.constellio.app.api.extensions.PagesComponentsExtension;
+import com.constellio.app.api.extensions.SchemaDisplayExtension;
+import com.constellio.app.api.extensions.UpdateModeExtension;
+import com.constellio.app.api.extensions.params.BaseWindowParams;
+import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
+import com.constellio.app.api.extensions.params.EmailMessageParams;
+import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
+import com.constellio.app.api.extensions.params.ParseEmailMessageParams;
+import com.constellio.app.api.extensions.params.SchemaDisplayParams;
 import com.constellio.app.extensions.api.GlobalGroupExtension;
 import com.constellio.app.extensions.api.GlobalGroupExtension.GlobalGroupExtensionActionPossibleParams;
 import com.constellio.app.extensions.api.UserCredentialExtension;

@@ -20,7 +20,7 @@ public class ESMigrationTo9_0_3 implements MigrationScript {
 
 	private class SchemaAlterationFor9_0_3 extends MetadataSchemasAlterationHelper {
 		SchemaAlterationFor9_0_3(String collection, MigrationResourcesProvider migrationResourcesProvider,
-							   AppLayerFactory appLayerFactory) {
+								 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

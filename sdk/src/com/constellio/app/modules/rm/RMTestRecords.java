@@ -1273,7 +1273,7 @@ public class RMTestRecords {
 				.setDocuments(documentsWhithDifferentCopyForEach(folder_A54, folder_A55, folder_A56));
 
 		try {
- 			recordServices.execute(transaction);
+			recordServices.execute(transaction);
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}

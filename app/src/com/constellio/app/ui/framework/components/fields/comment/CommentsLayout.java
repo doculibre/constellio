@@ -62,7 +62,7 @@ public abstract class CommentsLayout extends VerticalLayout {
 			addCommentsComponent.addStyleName(ValoTheme.BUTTON_LINK);
 			addCommentsComponent.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
 			addCommentsComponent.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-			
+
 			addComponent(addCommentsComponent);
 			setComponentAlignment(addCommentsComponent, Alignment.TOP_RIGHT);
 		}

@@ -2,7 +2,6 @@ package com.constellio.data.test;
 
 import com.constellio.data.utils.Octets;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Before;
 import org.junit.Test;
 

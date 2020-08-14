@@ -5,6 +5,7 @@ import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.pages.user.DisplayUserCredentialViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
@@ -77,8 +78,8 @@ public class UserCredentialMenuItemActionBehaviors {
 	}
 
 	public void generateToken(MenuItemActionBehaviorParams params) {
-		WindowButton windowButton = new WindowButton($("DisplayUserCredentialView.generateTokenButton"),
-				$("DisplayUserCredentialView.generateToken")) {
+		WindowButton windowButton = new WindowButton(null,
+				$("DisplayUserCredentialView.generateToken"), false, WindowConfiguration.modalDialog("500px", "300px")) {
 			@Override
 			protected Component buildWindowContent() {
 				UserCredentialVO userCredentialVO = (UserCredentialVO) params.getObjectRecordVO();
