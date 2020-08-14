@@ -28,6 +28,18 @@ public interface SettingsXMLFileConstants {
 	String SEQUENCES = "sequences";
 	String SEQUENCE = "sequence";
 
+	String SYSTEM = "system";
+	String VERSION = "version";
+	String MAJOR = "major";
+	String MINOR = "minor";
+	String REVISION = "revision";
+	String FULL = "full";
+	String ONLY_USR = "onlyUsr";
+
+	String PLUGINS = "plugins";
+	String PLUGIN = "plugin";
+	String PLUGIN_ID = "id";
+
 	String LABEL_TEMPLATES = "labelTemplates";
 
 	String DEFAULT_SCHEMA = "default-schema";
