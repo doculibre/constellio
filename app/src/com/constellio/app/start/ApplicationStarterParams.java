@@ -7,7 +7,6 @@ public class ApplicationStarterParams {
 	boolean joinServerThread;
 	File webContentDir;
 	int port;
-	boolean isForceSecuredCookies;
 
 	String keystorePassword;
 
@@ -48,15 +47,6 @@ public class ApplicationStarterParams {
 
 	public ApplicationStarterParams setSSLWithKeystorePassword(String keystorePassword) {
 		this.keystorePassword = keystorePassword;
-		return this;
-	}
-
-	public boolean isForceSecuredCookies() {
-		return isForceSecuredCookies;
-	}
-
-	public ApplicationStarterParams setForceSecuredCookies(boolean forceSecuredCookies) {
-		this.isForceSecuredCookies = forceSecuredCookies;
 		return this;
 	}
 }
