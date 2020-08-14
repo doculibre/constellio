@@ -198,6 +198,16 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		return taxonomiesManager.getEnabledTaxonomyWithCode(view.getCollection(), taxonomyCode);
 	}
 
+	public String getGuideKey() {
+		if (taxonomyCode.equals("admUnits")) {
+			return "guide.TaxonomyManagementImplAdminUnit";
+		} else if (taxonomyCode.equals("plan")) {
+			return "guide.TaxonomyManagementImplPlan";
+		}
+
+		return null;
+	}
+
 	public String getMultiLangualTitle() {
 		if (conceptId == null) {
 			return null;
