@@ -196,11 +196,6 @@ public class BaseTable extends Table implements SelectionComponent {
 	}
 
 	@Override
-	public boolean isSelectable() {
-		return false;
-	}
-
-	@Override
 	public void setPageLength(int pageLength) {
 		this.customPageLength = pageLength;
 		super.setPageLength(pageLength);
