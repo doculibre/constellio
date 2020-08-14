@@ -440,6 +440,8 @@ public class TaskRecordExtension extends RecordExtension {
 		}
 
 		StringBuilder htmlComments = new StringBuilder();
+		htmlComments.append(formatToParameter(i18n.$("SystemConfigurationGroup.tasks.comments") + "<br/>"));
+
 		for (Comment comment : task.getComments()) {
 			htmlComments.append(StringEscapeUtils.escapeHtml4(comment.getUsername() + " : " +
 															  comment.getDateTime().toString()) + "<br/>");
@@ -452,8 +454,7 @@ public class TaskRecordExtension extends RecordExtension {
 		if (showComments) {
 			newParameters.add(TASK_COMMENTS + ":" + formatToParameter(htmlComments.toString()));
 		} else {
-			newParameters.add(TASK_COMMENTS + ":" + formatToParameter(i18n.$("SystemConfigurationGroup.tasks.disabledComments")));
-			//TODO SBLAIS trouver un meilleur endroit pour placer cette ressource
+			newParameters.add(TASK_COMMENTS + ":");
 		}
 		emailToSend.setParameters(newParameters);
 	}
