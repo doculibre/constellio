@@ -57,7 +57,7 @@ public class TrimSchemasAcceptTest extends ConstellioTest {
 		System.out.println("fileLength before " + fileLength);
 		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaXMLReader1(new DefaultClassProvider())
 				.read(collectionInfo, originalDocument, new SolrDataStoreTypesFactory(), getModelLayerFactory());
-		MetadataSchemaTypes types = typesBuilder.build(new SolrDataStoreTypesFactory(), getModelLayerFactory());
+		MetadataSchemaTypes types = typesBuilder.build(new SolrDataStoreTypesFactory());
 
 		Document trimmedDocument = new MetadataSchemaXMLWriter3().write(types);
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
@@ -71,7 +71,7 @@ public class TrimSchemasAcceptTest extends ConstellioTest {
 
 		MetadataSchemaTypesBuilder types2Builder = new MetadataSchemaXMLReader2(new DefaultClassProvider())
 				.read(collectionInfo, getDocumentFromFile(outputFile), new SolrDataStoreTypesFactory(), getModelLayerFactory());
-		MetadataSchemaTypes types2 = types2Builder.build(new SolrDataStoreTypesFactory(), getModelLayerFactory());
+		MetadataSchemaTypes types2 = types2Builder.build(new SolrDataStoreTypesFactory());
 
 		for (MetadataSchemaType type1 : types.getSchemaTypes()) {
 			MetadataSchemaType type2 = types2.getSchemaType(type1.getCode());

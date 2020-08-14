@@ -77,4 +77,23 @@ public class HttpRequestUtils {
 		return baseURL.toString();
 	}
 
+	public static String getBaseURI(HttpServletRequest request) {
+		StringBuffer baseURI = new StringBuffer();
+		String scheme = request.getScheme();
+		String serverName = request.getServerName();
+		int serverPort = request.getServerPort();
+		String requestURI = request.getRequestURI();
+
+		baseURI.append(scheme);
+		baseURI.append("://");
+		baseURI.append(serverName);
+		if (serverPort != 80 && serverPort != 443) {
+			baseURI.append(":" + serverPort);
+		}
+		if (!"/".equals(requestURI)) {
+			baseURI.append(requestURI);
+		}
+		return baseURI.toString();
+	}
+
 }

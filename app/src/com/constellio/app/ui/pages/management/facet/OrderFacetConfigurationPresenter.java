@@ -8,6 +8,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -120,7 +121,7 @@ public class OrderFacetConfigurationPresenter extends BasePresenter<OrderFacetCo
 		return facets.get(code).getTitle();
 	}
 
-	public Record toRecord(RecordVO recordVO) {
+	public Record toRecord(RecordVO recordVO) throws OptimisticLockException {
 		SchemaPresenterUtils schemaPresenterUtils = new SchemaPresenterUtils(recordVO.getSchema().getCode(),
 				view.getConstellioFactories(), view.getSessionContext());
 		return schemaPresenterUtils.toRecord(recordVO);

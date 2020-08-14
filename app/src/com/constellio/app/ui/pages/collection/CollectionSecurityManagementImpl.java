@@ -40,6 +40,7 @@ public class CollectionSecurityManagementImpl extends BaseViewImpl implements Co
 	private TabSheet.SelectedTabChangeListener selectedTabChangeListener;
 
 	private Button addUserButton, addGroupButton;
+	private VerticalLayout groupsTab;
 
 	public enum TabType {USER, GROUP}
 
@@ -70,7 +71,8 @@ public class CollectionSecurityManagementImpl extends BaseViewImpl implements Co
 
 		tabSheet.addTab(userTab.createTabLayout(),
 				$("CollectionSecurityManagement.users"));
-		tabSheet.addTab(groupTab.createTabLayout(), $("CollectionSecurityManagement.groups"));
+		groupsTab = groupTab.createTabLayout();
+		tabSheet.addTab(groupsTab, $("CollectionSecurityManagement.groups"));
 
 		tabSheet.addSelectedTabChangeListener(selectedTabChangeListener = new TabSheet.SelectedTabChangeListener() {
 			@Override
@@ -83,6 +85,9 @@ public class CollectionSecurityManagementImpl extends BaseViewImpl implements Co
 				}
 			}
 		});
+
+		tabSheet.setSelectedTab(groupsTab);
+
 
 		contentLayout = new I18NHorizontalLayout(tabSheet);
 		contentLayout.setWidth("100%");

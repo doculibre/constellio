@@ -12,7 +12,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.pdf.pdfjs.signature.PdfJSAnnotations;
+import com.constellio.model.services.pdf.pdfjs.PdfJSAnnotations;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.security.roles.Roles;
@@ -103,7 +103,8 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 			Record tempUserRecord = recordServices.newRecordWithSchema(userSchema, UUID.randomUUID().toString());
 			Roles roles = rolesManager.getCollectionRoles(collection);
 			ExternalAccessUrl externalAccessUrl = new ExternalAccessUrl(recordServices.getDocumentById(accessId), types);
-			user = new ExternalAccessUser(tempUserRecord, types, roles, externalAccessUrl);
+			String ipAddress = request.getRemoteAddr();
+			user = new ExternalAccessUser(tempUserRecord, types, roles, externalAccessUrl, ipAddress);
 		} else {
 			user = null;
 		}

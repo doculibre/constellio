@@ -61,7 +61,7 @@ public class TempFileUploadToContentVersionVOConverter implements Converter<Obje
 		return Object.class;
 	}
 
-	private ContentVersionVO toContentVO(final TempFileUpload tempFileUpload) {
+	protected ContentVersionVO toContentVO(final TempFileUpload tempFileUpload) {
 		String fileName = tempFileUpload.getFileName();
 		String mimeType = tempFileUpload.getMimeType();
 		long length = tempFileUpload.getLength();

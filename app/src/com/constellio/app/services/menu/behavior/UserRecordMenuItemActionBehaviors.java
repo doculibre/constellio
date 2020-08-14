@@ -18,7 +18,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.security.global.UserSyncMode;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
@@ -26,6 +25,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
@@ -46,7 +46,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -63,6 +62,7 @@ public class UserRecordMenuItemActionBehaviors {
 
 	public UserRecordMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
+		this.collection = collection;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.userServices = modelLayerFactory.newUserServices();
 		this.recordServices = modelLayerFactory.newRecordServices();
@@ -104,46 +104,35 @@ public class UserRecordMenuItemActionBehaviors {
 	}
 
 	public void delete(List<User> userRecords, MenuItemActionBehaviorParams params) {
-		List<User> synchronizedUsers = userRecords.stream()
-				.filter(u -> userServices.getUserCredential(u.getUsername()).getSyncMode().equals(UserSyncMode.SYNCED))
-				.collect(Collectors.toList());
-		Button deleteUserButton = new DeleteButton($("CollectionSecurityManagement.deleteUsers"), false) {
+		Button deleteUserButton = new DeleteButton($("CollectionSecurityManagement.deleteGroups"), false) {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
-				for (User user : synchronizedUsers) {
-					userServices.getUserCredential(user.getUsername()).setSyncMode(UserSyncMode.NOT_SYNCED);
-				}
-				logicallyDeleteUsers(userRecords, params);
+				deleteUserFromCollection(userRecords);
+				params.getView().navigate().to().collectionSecurity();
+				params.getView().showMessage($("CollectionSecurityManagement.userRemovedFromCollection"));
 			}
 
 			@Override
 			protected String getConfirmDialogMessage() {
-				return getDeleteUsersConfirmationMessage();
-			}
-
-			private String getDeleteUsersConfirmationMessage() {
-				if (synchronizedUsers.isEmpty()) {
-					return $("ConfirmDialog.confirmDeleteWithAllRecords", $("CollectionSecurityManagement.userLowerCase"));
-				} else {
-					List<String> synchroUsernamesList = synchronizedUsers.stream()
-							.map(u -> u.getUsername()).collect(Collectors.toList());
-					StringJoiner stringJoiner = new StringJoiner(",");
-					for (String username : synchroUsernamesList) {
-						stringJoiner.add(username);
-					}
-					this.setDialogMode(DialogMode.WARNING);
-					return $("CollectionSecurityManagement.confirmDeleteSynchronizedUsers", stringJoiner.toString());
-				}
+				String recordType;
+				return $("ConfirmDialog.confirmDeleteWithAllRecords", $("CollectionSecurityManagement.userLowerCase"));
 			}
 		};
 
 		deleteUserButton.click();
 	}
 
+	public void deleteUserFromCollection(List<User> userRecords) {
+		for (User currentUser : userRecords) {
+			UserAddUpdateRequest userAddUpdateRequest = userServices.addUpdate(currentUser.getUsername());
+			userAddUpdateRequest.removeFromCollection(collection);
+			userServices.execute(userAddUpdateRequest);
+		}
+	}
+
 	public void changeStatus(List<User> userRecords, MenuItemActionBehaviorParams params) {
-		UserCredentialStatus currentStatus = userRecords.size() == 1 ? userRecords.get(0).getStatus() : null;
 		ChangeEnumStatusRecordWindowButton statusButton = new ChangeEnumStatusRecordWindowButton($("CollectionSecurityManagement.changeStatus"),
-				$("CollectionSecurityManagement.changeStatus"), appLayerFactory, params, UserCredentialStatus.class, currentStatus) {
+				$("CollectionSecurityManagement.changeStatus"), appLayerFactory, params, UserCredentialStatus.class) {
 			@Override
 			public void changeStatus(Object value) {
 
@@ -164,7 +153,7 @@ public class UserRecordMenuItemActionBehaviors {
 		params.getView().navigate().to().listPrincipalAccessAuthorizations(user.getId());
 	}
 
-	public void manageRole(User user, MenuItemActionBehaviorParams params) {
+	public void manageRoles(User user, MenuItemActionBehaviorParams params) {
 		params.getView().navigate().to().editCollectionUserRoles(user.getId());
 	}
 
@@ -172,6 +161,7 @@ public class UserRecordMenuItemActionBehaviors {
 		List<UserCredential> userCredentialsToUpdate = new ArrayList<>();
 		for (User user : userRecords) {
 			UserCredential userCredential = userServices.getUserCredential(user.getUsername());
+
 			if (!userCredential.getSyncMode().equals(UserSyncMode.LOCALLY_CREATED)) {
 				if (isSynchronizing) {
 					userCredential.setSyncMode(UserSyncMode.SYNCED);
@@ -179,17 +169,11 @@ public class UserRecordMenuItemActionBehaviors {
 					userCredential.setSyncMode(UserSyncMode.NOT_SYNCED);
 				}
 				userCredentialsToUpdate.add(userCredential);
-			} else {
-				params.getView().showErrorMessage($("CollectionSecurityManagement.userCreatedLocally", user.getUsername()));
 			}
 		}
 		if (!userCredentialsToUpdate.isEmpty()) {
 			try {
 				recordServices.update(userCredentialsToUpdate.stream().map(x -> x.getWrappedRecord()).collect(Collectors.toList()), params.getUser());
-				String confirmationMessage = isSynchronizing
-											 ? $("CollectionSecurityManagement.changedSynchronized")
-											 : $("CollectionSecurityManagement.changedDesynchronized");
-				params.getView().showMessage(confirmationMessage);
 			} catch (RecordServicesException e) {
 				log.error("User.cannotChangeSynchronization", e);
 				params.getView().showErrorMessage($("CollectionSecurityManagement.cannotChangeSynchronization"));
@@ -197,24 +181,7 @@ public class UserRecordMenuItemActionBehaviors {
 		}
 	}
 
-	private void logicallyDeleteUsers(List<User> users, MenuItemActionBehaviorParams params) {
-		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(User.DEFAULT_SCHEMA,
-				params.getView().getConstellioFactories(), params.getView().getSessionContext());
-		//TODO
-		//add when validate is done
-		//Need reason?
-		ValidationErrors validateLogicallyDeletable = new ValidationErrors();//userServices.validateLogicallyDeletable(users, params.getUser());
 
-		if (validateLogicallyDeletable.isEmpty()) {
-
-			boolean isDeleteSuccessful = delete(presenterUtils, params.getView(), users, "", false, 1);
-			if (isDeleteSuccessful) {
-				params.getView().navigate().to().collectionSecurity();
-			}
-		} else {
-			MessageUtils.getCannotDeleteWindow(validateLogicallyDeletable).openWindow();
-		}
-	}
 
 	private boolean delete(SchemaPresenterUtils presenterUtils, BaseView view, List<User> users, String reason,
 						   boolean physically, int waitSeconds) {

@@ -51,11 +51,12 @@ public class Group extends RecordWrapper {
 	//TODO Replace this method in release 8.2
 	public List<String> getAncestors() {
 		List<String> ancestors = getList(ANCESTORS);
-		if (ancestors.isEmpty()) {
-			return Collections.singletonList(wrappedRecord.getId());
-		} else {
-			return ancestors;
+		if (ancestors.contains(wrappedRecord.getId())) {
+			List<String> ancestorsWithoutRecordId = new ArrayList<>(ancestors);
+			ancestorsWithoutRecordId.remove(wrappedRecord.getId());
+			return ancestorsWithoutRecordId;
 		}
+		return ancestors;
 	}
 
 	//TODO Use this version in release 8.2, with a forced full reindexing

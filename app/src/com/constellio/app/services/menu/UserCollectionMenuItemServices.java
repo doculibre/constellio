@@ -77,7 +77,7 @@ public class UserCollectionMenuItemServices {
 					MenuItemAction menuItemAction = buildMenuItemAction(USER_MANAGE_ROLES.name(),
 							isMenuItemActionPossible(USER_MANAGE_ROLES.name(), userRecords.get(0), user, params),
 							$("CollectionSecurityManagement.manageRoles"), FontAwesome.USER_SECRET, -1, 500,
-							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).manageRole(userRecords.get(0), params));
+							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).manageRoles(userRecords.get(0), params));
 
 					menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
 

@@ -16,6 +16,7 @@ import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActio
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.services.menu.SchemaRecordMenuItemServices.SchemaRecordMenuItemActionType.SCHEMA_RECORD_DELETE;
 import static com.constellio.app.services.menu.SchemaRecordMenuItemServices.SchemaRecordMenuItemActionType.SCHEMA_RECORD_EDIT;
+import static com.constellio.app.services.menu.SchemaRecordMenuItemServices.SchemaRecordMenuItemActionType.SCHEMA_RECORD_SEQUENCES;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SchemaRecordMenuItemServices {
@@ -46,6 +47,12 @@ public class SchemaRecordMenuItemServices {
 					$("deleteWithIcon"), null, -1, 100,
 					(ids) -> new SchemaRecordMenuItemActionBehaviors(collection, appLayerFactory).delete(record, params)));
 		}
+		if (!excludedActionTypes.contains(SCHEMA_RECORD_SEQUENCES.name())) {
+			menuItemActions.add(buildMenuItemAction(SCHEMA_RECORD_SEQUENCES.name(),
+					isMenuItemActionPossible(SCHEMA_RECORD_SEQUENCES.name(), record, user, params),
+					$("DisplaySchemaRecordView.sequences"), null, -1, 200,
+					(ids) -> new SchemaRecordMenuItemActionBehaviors(collection, appLayerFactory).sequences(record, params)));
+		}
 
 		return menuItemActions;
 	}
@@ -58,6 +65,8 @@ public class SchemaRecordMenuItemServices {
 				return schemaRecordActionsServices.isEditActionPossible(record, user);
 			case SCHEMA_RECORD_DELETE:
 				return schemaRecordActionsServices.isDeleteActionPossible(record, user);
+			case SCHEMA_RECORD_SEQUENCES:
+				return schemaRecordActionsServices.isSequencesActionPossible(record, user, params.getView());
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
@@ -80,5 +89,6 @@ public class SchemaRecordMenuItemServices {
 	enum SchemaRecordMenuItemActionType {
 		SCHEMA_RECORD_EDIT,
 		SCHEMA_RECORD_DELETE,
+		SCHEMA_RECORD_SEQUENCES,
 	}
 }

@@ -15,6 +15,11 @@ public class SchemaRecordExtention {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
+	public ExtensionBooleanResult isSequencesActionPossible(
+			SchemaRecordExtensionActionPossibleParams schemaRecordExtensionActionPossibleParams) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
 	public static class SchemaRecordExtensionActionPossibleParams {
 		private Record record;
 		private User user;

@@ -156,6 +156,14 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.COLLECTION_USER_LIST);
 	}
 
+	public void collectionSecurityShowGroupFirst() {
+		Map<String, String> params = new HashMap<>();
+		params.put("groupTabSelectedFirst", true + "");
+
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.COLLECTION_USER_LIST, params);
+		navigator.navigateTo(viewPath);
+	}
+
 	public void displayCollectionUser(String entityId) {
 		navigator.navigateTo(NavigatorConfigurationService.COLLECTION_USER + "/" + entityId);
 	}

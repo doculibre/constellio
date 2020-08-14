@@ -2,7 +2,7 @@ package com.constellio.app.modules.restapi.document.dao;
 
 import com.constellio.app.modules.restapi.core.exception.CannotReadContentException;
 import com.constellio.app.modules.restapi.core.exception.ConsolidationException;
-import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
+import com.constellio.app.modules.restapi.core.exception.OptimisticLockRuntimeException;
 import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.exception.UnresolvableOptimisticLockException;
@@ -95,7 +95,7 @@ public class DocumentDao extends ResourceDao {
 		} catch (RecordServicesException.UnresolvableOptimisticLockingConflict e) {
 			throw new UnresolvableOptimisticLockException(document.getId());
 		} catch (RecordServicesException.OptimisticLocking e) {
-			throw new OptimisticLockException(document.getId(), document.getETag(), e.getVersion());
+			throw new OptimisticLockRuntimeException(document.getId(), document.getETag(), e.getVersion());
 		}
 
 		return documentRecord;

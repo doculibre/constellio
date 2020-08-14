@@ -59,7 +59,8 @@ public class MetadataSchemaSearchMethodsAcceptanceTest extends ConstellioTest {
 
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(manager.getSchemaTypes("zeCollection"), new DefaultClassProvider());
+		typesBuilder = (new MetadataSchemaTypesBuilder(manager.getSchemaTypes("zeCollection").getCollectionInfo()))
+				.modify(manager.getSchemaTypes("zeCollection"), getModelLayerFactory(), new DefaultClassProvider());
 
 		MetadataSchemaTypeBuilder type1Builder = typesBuilder.getOrCreateNewSchemaType("type1")
 				.addLabel(Language.French, "type1");
@@ -88,12 +89,13 @@ public class MetadataSchemaSearchMethodsAcceptanceTest extends ConstellioTest {
 		MetadataBuilder type2Schema2Metadata1Builder = newMetadata(type2Schema2Builder, "customMetadata21");
 		MetadataBuilder type2Schema2Metadata2Builder = newMetadata(type2Schema2Builder, "customMetadata22");
 
-		types = typesBuilder.build(typesFactory, getModelLayerFactory());
+		types = typesBuilder.build(typesFactory);
 
 		if (testCase.equals(givenBuilderObtainedFromManager) || testCase.equals(givenFinalEnityObtainedFromManager)) {
 			manager.saveUpdateSchemaTypes(typesBuilder);
 			types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes("zeCollection");
-			typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
+			typesBuilder = (new MetadataSchemaTypesBuilder(manager.getSchemaTypes("zeCollection").getCollectionInfo()))
+					.modify(types, getModelLayerFactory(), new DefaultClassProvider());
 		}
 		builderMode = testCase.equals(givenBuilder) || testCase.equals(givenBuilderObtainedFromManager);
 	}

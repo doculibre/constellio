@@ -116,6 +116,11 @@ public class BaseTable extends Table implements SelectionComponent {
 		init();
 	}
 
+	@Override
+	public boolean isSelectable() {
+		return false;
+	}
+
 	public boolean isUnknownEnd() {
 		return false;
 	}

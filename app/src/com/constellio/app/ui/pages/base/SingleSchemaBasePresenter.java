@@ -15,6 +15,7 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
@@ -169,11 +170,11 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 		return isDeletetionSuccessful;
 	}
 
-	protected Record toRecord(RecordVO recordVO) {
+	protected Record toRecord(RecordVO recordVO) throws OptimisticLockException {
 		return schemaPresenterUtils.toRecord(recordVO);
 	}
 
-	protected Record toRecord(RecordVO recordVO, boolean newMinorEmpty) {
+	protected Record toRecord(RecordVO recordVO, boolean newMinorEmpty) throws OptimisticLockException {
 		return schemaPresenterUtils.toRecord(recordVO, newMinorEmpty);
 	}
 

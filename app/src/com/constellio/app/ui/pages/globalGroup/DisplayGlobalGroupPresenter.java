@@ -3,8 +3,11 @@ package com.constellio.app.ui.pages.globalGroup;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.GlobalGroupVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
 import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
 import com.constellio.app.ui.framework.data.UserCredentialVODataProvider;
@@ -31,6 +34,7 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 	private Map<String, String> paramsMap;
 	private String breadCrumb;
 	private SchemasRecordsServices core;
+	private RecordVO pageGroup;
 
 	public DisplayGlobalGroupPresenter(DisplayGlobalGroupView view) {
 		super(view);
@@ -53,6 +57,17 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 		GlobalGroupToVOBuilder voBuilder = new GlobalGroupToVOBuilder();
 		return voBuilder.build(globalGroup);
 	}
+
+	public void setPageGroup(String code) {
+		Group group = userServices.getGroupInCollection(code, view.getCollection());
+
+		this.pageGroup = new RecordToVOBuilder().build(group.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext());
+	}
+
+	public RecordVO getPageGroup() {
+		return this.pageGroup;
+	}
+
 	public void backButtonClicked() {
 		navigateToBackPage();
 	}
@@ -220,5 +235,9 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_GROUPS);
+	}
+
+	public void editGroupButtonClicked() {
+		view.navigate().to().editGlobalGroup(pageGroup.get(Group.CODE) + "");
 	}
 }

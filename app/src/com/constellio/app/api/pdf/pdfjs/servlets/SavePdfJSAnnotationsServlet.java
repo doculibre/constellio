@@ -4,7 +4,7 @@ import com.constellio.app.api.pdf.pdfjs.services.PdfJSServices;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.services.pdf.pdfjs.signature.PdfJSAnnotations;
+import com.constellio.model.services.pdf.pdfjs.PdfJSAnnotations;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;

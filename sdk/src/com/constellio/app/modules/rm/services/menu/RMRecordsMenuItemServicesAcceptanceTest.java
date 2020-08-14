@@ -103,7 +103,9 @@ public class RMRecordsMenuItemServicesAcceptanceTest extends ConstellioTest {
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_TASK.name(), MenuItemActionStateStatus.DISABLED),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE.name(), MenuItemActionStateStatus.DISABLED),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNPUBLISH.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_GENERATE_REPORT.name(), MenuItemActionStateStatus.DISABLED)
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_GENERATE_REPORT.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_PUT_IN_CONTAINER.name(), MenuItemActionStateStatus.DISABLED)
+
 		));
 
 	}
@@ -145,7 +147,8 @@ public class RMRecordsMenuItemServicesAcceptanceTest extends ConstellioTest {
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_TASK.name(), MenuItemActionStateStatus.DISABLED),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE.name(), MenuItemActionStateStatus.DISABLED),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNPUBLISH.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_GENERATE_REPORT.name(), MenuItemActionStateStatus.DISABLED)
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_GENERATE_REPORT.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_PUT_IN_CONTAINER.name(), MenuItemActionStateStatus.DISABLED)
 		));
 
 	}
@@ -186,7 +189,8 @@ public class RMRecordsMenuItemServicesAcceptanceTest extends ConstellioTest {
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_TASK.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNPUBLISH.name(), MenuItemActionStateStatus.HIDDEN),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_GENERATE_REPORT.name(), MenuItemActionStateStatus.VISIBLE)
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_GENERATE_REPORT.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_PUT_IN_CONTAINER.name(), MenuItemActionStateStatus.HIDDEN)
 		));
 
 	}

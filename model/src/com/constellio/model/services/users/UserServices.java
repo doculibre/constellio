@@ -63,6 +63,7 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUserNameOrPassword;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUsername;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_LastNameRequired;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NameRequired;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
@@ -289,16 +290,22 @@ public class UserServices {
 
 		List<String> userGroups = new ArrayList<>(user.getUserGroups());
 		if (request.getAddToGroup() != null) {
-			for (String groupId : request.getAddToGroup()) {
-				if (getGroupInCollection(groupId, collection) != null) {
-					userGroups.add(getGroupInCollection(groupId, collection).getId());
+			for (String groupCode : request.getAddToGroup()) {
+				if (getGroupInCollection(groupCode, collection) != null) {
+					String groupId = getGroupInCollection(groupCode, collection).getId();
+					if (!userGroups.contains(groupId)) {
+						userGroups.add(groupId);
+					}
 				}
 			}
 		}
 		if (request.getAddToGroupInCollection() != null && request.getAddToGroupInCollection().keySet().contains(collection)) {
-			for (String groupId : request.getAddToGroupInCollection().get(collection)) {
-				if (getGroupInCollection(groupId, collection) != null) {
-					userGroups.add(getGroupInCollection(groupId, collection).getId());
+			for (String groupCode : request.getAddToGroupInCollection().get(collection)) {
+				if (getGroupInCollection(groupCode, collection) != null) {
+					String groupId = getGroupInCollection(groupCode, collection).getId();
+					if (!userGroups.contains(groupId)) {
+						userGroups.add(groupId);
+					}
 				}
 			}
 		}
@@ -307,6 +314,17 @@ public class UserServices {
 			for (String groupCode : removeFromGroup) {
 				if (getGroupInCollection(groupCode, collection) != null) {
 					userGroups.remove(getGroupInCollection(groupCode, collection).getId());
+				}
+			}
+		}
+		Map<String, List<String>> removeFromGroupInCollection = request.getRemoveFromGroupInCollection();
+		if (removeFromGroupInCollection != null && removeFromGroupInCollection.keySet().contains(collection)) {
+			for (String groupCode : removeFromGroupInCollection.get(collection)) {
+				if (getGroupInCollection(groupCode, collection) != null) {
+					String groupId = getGroupInCollection(groupCode, collection).getId();
+					if (userGroups.contains(groupId)) {
+						userGroups.remove(groupId);
+					}
 				}
 			}
 		}
@@ -657,15 +675,13 @@ public class UserServices {
 	public void execute(GroupAddUpdateRequest request) {
 		SystemWideGroup systemWideGroup = getNullableGroup(request.getCode());
 
-		if (systemWideGroup == null && (request.getNewCollections() == null || request.getNewCollections().isEmpty())) {
-			throw new RuntimeException("Group must have at least one collection");
-		}
-
 		if (request.isMarkedForDeletionInAllCollections()) {
 			deleteGroup(request.getCode());
 		}
 
+		validateNewGroupMetadatas(request);
 		validateNewCollections(request);
+
 		sync(request);
 		if (request.getModifiedAttributes().containsKey(GlobalGroup.STATUS)) {
 			if (request.getModifiedAttributes().get(GlobalGroup.STATUS) == GlobalGroupStatus.ACTIVE) {
@@ -705,6 +721,20 @@ public class UserServices {
 		}
 	}
 
+	private void validateNewGroupMetadatas(GroupAddUpdateRequest request) {
+		SystemWideGroup systemWideGroup = getNullableGroup(request.getCode());
+		if (systemWideGroup == null) {
+			if ((request.getNewCollections() == null || request.getNewCollections().isEmpty())) {
+				throw new UserServicesRuntimeException_AtLeastOneCollectionRequired(request.getCode());
+			}
+
+			if (request.getModifiedAttributes().get(GroupAddUpdateRequest.NAME) == null) {
+				throw new UserServicesRuntimeException_NameRequired(request.getCode());
+			}
+		}
+
+	}
+
 
 	public SystemWideUserInfos getUserInfos(String username) {
 		UserCredential credential = userCredentialsManager.getUserCredential(username);
@@ -723,9 +753,11 @@ public class UserServices {
 		Map<String, List<String>> groupIds = new HashMap<>();
 		Map<String, List<String>> groupCodes = new HashMap<>();
 
+		String title = credential.getTitle();
 		for (String collection : modelLayerFactory.getCollectionsListManager().getCollectionsExcludingSystem()) {
 			User userInCollection = existingUserOrNull(credential.getUsername(), collection);
 			if (userInCollection != null) {
+				title = userInCollection.getTitle();
 				collections.add(collection);
 				statuses.put(collection, userInCollection.getStatus());
 
@@ -748,7 +780,7 @@ public class UserServices {
 				.email(credential.getEmail())
 				.groupIds(groupIds)
 				.groupCodes(groupCodes)
-				.title(credential.getTitle())
+				.title(title)
 				.serviceKey(credential.getServiceKey())
 				.systemAdmin(credential.isSystemAdmin())
 				.statuses(statuses)
@@ -887,26 +919,63 @@ public class UserServices {
 	public SystemWideGroup getNullableGroup(String groupCode) {
 		List<Group> groupsInCollection = new ArrayList<>();
 		List<String> wideGroupCollections = new ArrayList<>();
+		GlobalGroupStatus groupStatus = GlobalGroupStatus.INACTIVE;
 		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			Group groupInCollection = getGroupInCollection(groupCode, collection);
 			if (groupInCollection != null) {
 				groupsInCollection.add(groupInCollection);
 				wideGroupCollections.add(collection);
+				if (GlobalGroupStatus.ACTIVE.equals(groupInCollection.getStatus())) {
+					groupStatus = GlobalGroupStatus.ACTIVE;
+				}
 			}
 		}
-		return !groupsInCollection.isEmpty() ? build(groupsInCollection.get(0), wideGroupCollections) : null;
+		return !groupsInCollection.isEmpty() ? build(groupsInCollection.get(0), wideGroupCollections, groupStatus) : null;
 	}
 
-	public SystemWideGroup getNullableGroup(GroupAddUpdateRequest request) {
-		Group groupInCollection = null;
+	private SystemWideGroup getGroup(GroupAddUpdateRequest request) {
+		List<Group> groupsInCollection = new ArrayList<>();
 		List<String> wideGroupCollections = new ArrayList<>();
+		Group groupInCollection;
+		GlobalGroupStatus groupStatus = GlobalGroupStatus.INACTIVE;
 		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			groupInCollection = getGroupInCollection(request.getCode(), collection);
 			if (groupInCollection != null) {
+				groupsInCollection.add(groupInCollection);
 				wideGroupCollections.add(collection);
+				if (GlobalGroupStatus.ACTIVE.equals(groupInCollection.getStatus())) {
+					groupStatus = GlobalGroupStatus.ACTIVE;
+				}
 			}
 		}
-		return groupInCollection != null ? build(groupInCollection, wideGroupCollections) : build(request);
+		return !groupsInCollection.isEmpty() ? build(groupsInCollection.get(0), wideGroupCollections, groupStatus) : build(request);
+	}
+
+	public SystemWideGroup build(Group group, List<String> wideGroupCollections, GlobalGroupStatus groupStatus) {
+		String parentCode = null;
+		if (group.getParent() != null) {
+			parentCode = recordServices.getDocumentById(group.getParent()).get(Schemas.CODE);
+		}
+
+		List<String> ancestorsCodes = new ArrayList<>();
+		List<String> ancestorsIds = group.getAncestors();
+		if (ancestorsIds != null) {
+			for (String ancestorId : ancestorsIds) {
+				ancestorsCodes.add(recordServices.getDocumentById(ancestorId).get(Schemas.CODE));
+			}
+		}
+
+		return SystemWideGroup.builder()
+				.code(group.getCode())
+				.name(group.getTitle())
+				.collections(wideGroupCollections)
+				.parent(parentCode)
+				.groupStatus(groupStatus)
+				.hierarchy(group.getHierarchy())
+				.logicallyDeletedStatus(group.getLogicallyDeletedStatus())
+				.caption(group.getCaption())
+				.ancestors(ancestorsCodes)
+				.build();
 	}
 
 	public SystemWideGroup build(Group group, List<String> wideGroupCollections) {
@@ -918,6 +987,14 @@ public class UserServices {
 			parentCode = core.getGroup(group.getParent()).getCode();
 		}
 
+		List<String> ancestorsCodes = new ArrayList<>();
+		List<String> ancestorsIds = group.getAncestors();
+		if (ancestorsIds != null) {
+			for (String ancestorId : ancestorsIds) {
+				ancestorsCodes.add(recordServices.getDocumentById(ancestorId).get(Schemas.CODE));
+			}
+		}
+
 		return SystemWideGroup.builder()
 				.code(group.getCode())
 				.name(group.getTitle())
@@ -927,18 +1004,21 @@ public class UserServices {
 				.hierarchy(group.getHierarchy())
 				.locallyCreated(group.isLocallyCreated())
 				.logicallyDeletedStatus(group.getLogicallyDeletedStatus())
+				.caption(group.getCaption())
+				.ancestors(ancestorsCodes)
 				.build();
 	}
 
 	public SystemWideGroup build(GroupAddUpdateRequest request) {
+		String parentCode = (String) request.getModifiedAttributes().get(GroupAddUpdateRequest.PARENT);
 		GlobalGroupStatus status = (GlobalGroupStatus) request.getModifiedAttributes().get(GroupAddUpdateRequest.STATUS);
 		return SystemWideGroup.builder()
 				.code(request.getCode())
 				.name((String) request.getModifiedAttributes().get(GroupAddUpdateRequest.NAME))
 				.collections(request.getNewCollections())
-				//				.parent(globalGroup.getParent())
 				.groupStatus(status != null ? status : GlobalGroupStatus.ACTIVE)
 				.hierarchy((String) request.getModifiedAttributes().get(GroupAddUpdateRequest.HIERARCHY))
+				.parent(parentCode)
 				//				.logicallyDeletedStatus(group.getLogicallyDeletedStatus())
 				.build();
 	}
@@ -1222,10 +1302,42 @@ public class UserServices {
 	}
 
 	public void sync(GroupAddUpdateRequest request) {
+		SystemWideGroup group = getGroup(request);
+		Set<String> groupCollections = new HashSet<>();
+		if (group != null && group.getCollections() != null) {
+			groupCollections.addAll(group.getCollections());
+		}
+		if (request.getNewCollections() != null) {
+			groupCollections.addAll(request.getNewCollections());
+		}
+
 		Transaction transaction;
-		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
+		String parent = (String) request.getModifiedAttributes().get(GroupAddUpdateRequest.PARENT);
+		if (parent == null) {
+			parent = group.getParent();
+		}
+		List<String> parentGroupCollections = getParentGroupCollections(request, new ArrayList<>(groupCollections), parent);
+
+		if (!parentGroupCollections.isEmpty()) {
+			SystemWideGroup parentGroup = getGroup(parent);
+			for (String collection : parentGroupCollections) {
+				transaction = new Transaction();
+				sync(parentGroup, collection, transaction);
+				try {
+					recordServices.execute(transaction);
+				} catch (RecordServicesException e) {
+					throw new UserServicesRuntimeException_CannotExcuteTransaction(e);
+				}
+			}
+		}
+
+		for (String collection : groupCollections) {
 			transaction = new Transaction();
-			sync(request, collection, transaction);
+			if (request.getRemovedCollections() != null && request.getRemovedCollections().contains(collection)) {
+				removeGroupFrom(request.getCode(), collection);
+			} else {
+				sync(request, collection, transaction, group);
+			}
 			try {
 				recordServices.execute(transaction);
 			} catch (RecordServicesException e) {
@@ -1234,46 +1346,55 @@ public class UserServices {
 		}
 	}
 
-	private void sync(GroupAddUpdateRequest request, String collection, Transaction transaction) {
-		String groupCode = request.getCode();
-		SystemWideGroup group = getNullableGroup(request);
-		List<String> collections = new ArrayList<>();
-		if (request.getNewCollections() != null) {
-			collections.addAll(request.getNewCollections());
-		}
-		if (group != null && group.getCollections() != null) {
-			collections.addAll(group.getCollections());
-		}
-		Group groupInCollection = getGroupInCollection(groupCode, collection);
-
-		if (request.getRemovedCollections() != null && request.getRemovedCollections().contains(collection)) {
-			if (groupInCollection != null) {
-				removeGroupFrom(groupCode, collection);
-			}
-		} else if (collections.contains(collection)) {
-			if (groupInCollection == null) {
-				groupInCollection = newGroupInCollection(collection);
-			}
-			groupInCollection.set(Group.CODE, group.getCode());
-
-			if (request.getModifiedAttributes().containsKey(GroupAddUpdateRequest.PARENT)) {
-				String parentId = null;
-				String parentcode = (String) request.getModifiedAttributes().get(GroupAddUpdateRequest.PARENT);
-				if (parentcode != null) {
-					parentId = getGroupIdInCollection(parentcode, collection);
+	private List<String> getParentGroupCollections(GroupAddUpdateRequest request,
+												   List<String> childGroupCollections, String parent) {
+		List<String> inactiveCollections = new ArrayList<>();
+		if (parent != null) {
+			List<String> parentGroupCollections = getGroup(parent).getCollections();
+			for (String collection : childGroupCollections) {
+				if (!parentGroupCollections.contains(collection)) {
+					inactiveCollections.add(collection);
 				}
-				groupInCollection.set(Group.PARENT, parentId);
-			}
-			//		groupInCollection.set(Group.IS_GLOBAL, true);
-			groupInCollection.set(Group.STATUS, group.getStatus(collection));
-			groupInCollection.set(Group.LOCALLY_CREATED, true);
-			groupInCollection.set(LOGICALLY_DELETED_STATUS, group.getLogicallyDeletedStatus());
-			groupInCollection.setTitle(group.getName());
-			if (groupInCollection.isDirty()) {
-				transaction.add(groupInCollection.getWrappedRecord());
 			}
 		}
+		return inactiveCollections;
+	}
 
+	private void sync(GroupAddUpdateRequest request, String collection,
+					  Transaction transaction, SystemWideGroup group) {
+		String groupCode = request.getCode();
+		Group groupInCollection = getGroupInCollection(groupCode, collection);
+		if (groupInCollection == null) {
+			groupInCollection = newGroupInCollection(collection);
+		}
+
+		groupInCollection.set(Group.CODE, groupCode);
+
+		Map<String, Object> modifiedAttributes = request.getModifiedAttributes();
+
+		if (modifiedAttributes.containsKey(GroupAddUpdateRequest.PARENT)) {
+			String parentCode = (String) modifiedAttributes.get(GroupAddUpdateRequest.PARENT);
+			if (parentCode != null) {
+				String parentId = getGroupIdInCollection(parentCode, collection);
+				groupInCollection.setParent(parentId);
+			} else {
+				groupInCollection.setParent(null);
+			}
+		} else if (group.getParent() != null) {
+			String parentId = getGroupIdInCollection(group.getParent(), collection);
+			groupInCollection.setParent(parentId);
+		}
+
+		groupInCollection.set(Group.STATUS, GlobalGroupStatus.ACTIVE);
+		groupInCollection.set(Group.LOCALLY_CREATED, true);
+		if ((modifiedAttributes.get(GroupAddUpdateRequest.NAME) != null)) {
+			groupInCollection.setTitle((String) modifiedAttributes.get(GroupAddUpdateRequest.NAME));
+		} else {
+			groupInCollection.setTitle(group.getName());
+		}
+		if (groupInCollection.isDirty()) {
+			transaction.add(groupInCollection.getWrappedRecord());
+		}
 	}
 
 	private void sync(SystemWideGroup group, String collection, Transaction transaction) {
@@ -1282,13 +1403,19 @@ public class UserServices {
 		if (groupInCollection == null) {
 			groupInCollection = newGroupInCollection(collection);
 		}
-		groupInCollection.set(Group.CODE, group.getCode());
-		String parentId = getGroupParentId(group, collection);
-		groupInCollection.set(Group.PARENT, parentId);
-		//		groupInCollection.set(Group.IS_GLOBAL, true);
-		groupInCollection.set(Group.STATUS, group.getStatus(collection));
+		groupInCollection.set(Group.CODE, groupCode);
+
+		if (group.getParent() != null) {
+			String parentId = null;
+			String parentcode = group.getParent();
+			if (parentcode != null) {
+				parentId = getGroupIdInCollection(parentcode, collection);
+			}
+			groupInCollection.setParent(parentId);
+		}
+		groupInCollection.set(Group.STATUS, GlobalGroupStatus.ACTIVE);
+		groupInCollection.set(Group.LOCALLY_CREATED, true);
 		groupInCollection.set(LOGICALLY_DELETED_STATUS, group.getLogicallyDeletedStatus());
-		//		groupInCollection.set(LOGICALLY_DELETED_ON, group.getLogicallyDeletedStatus());
 		if (!collection.equals(SYSTEM_COLLECTION)) {
 			groupInCollection.set(Group.STATUS, group.getStatus(collection));
 		}
@@ -1797,18 +1924,6 @@ public class UserServices {
 		//		return isGroupAndAllHisAncestorsActive(globalGroup);
 	}
 
-	private boolean isGroupAndAllHisAncestorsActive(SystemWideGroup globalGroup) {
-		if (globalGroup.getStatus() == GlobalGroupStatus.INACTIVE) {
-			return false;
-
-		} else if (globalGroup.getParent() != null) {
-			return isGroupAndAllHisAncestorsActive(globalGroupsManager.getGlobalGroupWithCode(globalGroup.getParent()));
-
-		} else {
-			return true;
-		}
-	}
-
 
 	public com.constellio.model.services.users.UserAddUpdateRequest addUpdate(String username) {
 		UserCredential userCredential = getUserCredential(username);
@@ -1955,11 +2070,14 @@ public class UserServices {
 
 	//TODO Users should be able to have different groups from a collection to an other, this service break this
 	@Deprecated
-	public List<SystemWideUserInfos> getGlobalGroupActifUsers(String groupCode) {
-		return userCredentialsManager.getUserCredentialsInGlobalGroup(groupCode)
-				.stream().map((u) -> getUserInfos(u.getUsername())).collect(toList());
+	public List<SystemWideUserInfos> getGlobalGroupActifUsers(String collection, String groupCode) {
+		return streamUserInfos().filter(u -> u.getGroupCodes(collection).contains(groupCode)).collect(Collectors.toList());
 	}
 
+	@Deprecated
+	public List<SystemWideUserInfos> getGlobalGroupActifUsers(String groupCode) {
+		return streamUserInfos().filter(u -> u.isInGroupInAnyCollection(groupCode)).collect(Collectors.toList());
+	}
 
 	//Use execute instead
 	@Deprecated

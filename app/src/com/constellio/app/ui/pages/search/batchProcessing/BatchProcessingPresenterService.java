@@ -894,7 +894,6 @@ public class BatchProcessingPresenterService {
 		MetadataSchemaType type = schemas.getTypes().getSchemaType(typeCode);
 		Map<String, Object> fieldsModifications = getFieldsModifications(selectedType, formVO, metadatasToEmpty);
 
-		query.setPreferAnalyzedFields(true);
 		return new BatchProcessRequest(null, query, user, type, fieldsModifications);
 	}
 
