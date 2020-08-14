@@ -941,7 +941,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		sync();
 
 		Group importedGroup = group("caballeros", businessCollection);
-		List<String> usersInCaballeros = users(importedGroup).stream().map(x -> x.getUsername()).collect(Collectors.toList());
+		List<String> usersInCaballeros = users(importedGroup).stream().map(user -> user.getUsername()).collect(Collectors.toList());
 		User importedUserPhil = user("philippe", businessCollection);
 		User importedUserNicolas = user("nicolas", businessCollection);
 		User importedUserDusty = user("dusty", businessCollection);
@@ -967,7 +967,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		sync();
 
 		Group importedGroup = group("rumors", businessCollection);
-		List<String> usersInRumors = users(importedGroup).stream().map(x -> x.getUsername()).collect(Collectors.toList());
+		List<String> usersInRumors = users(importedGroup).stream().map(user -> user.getUsername()).collect(Collectors.toList());
 		User importedUserPhil = user("philippe", businessCollection);
 		User importedUserBigFoot = user(sasquatch, businessCollection);
 		assertThat(usersInRumors).containsAll(asList(importedUserBigFoot.getUsername(), importedUserPhil.getUsername()));
