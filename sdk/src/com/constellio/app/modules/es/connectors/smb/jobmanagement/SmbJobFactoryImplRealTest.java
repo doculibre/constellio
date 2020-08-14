@@ -18,7 +18,6 @@ import com.constellio.app.modules.es.services.crawler.DefaultConnectorEventObser
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

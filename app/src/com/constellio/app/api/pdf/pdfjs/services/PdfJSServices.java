@@ -75,12 +75,13 @@ public class PdfJSServices {
 	}
 
 	public String getExternalViewerUrl(Record record, Metadata metadata, User user, Locale locale, String serviceKey,
-							   String token, boolean includeConstellioUrl) {
+									   String token, boolean includeConstellioUrl) {
 		return getViewerUrl(record, metadata, user, locale, null, null, serviceKey, token, includeConstellioUrl);
 	}
 
-	public String getInternalViewerUrl(Record record, Metadata metadata, User user, Locale locale, String contentPathPrefix,
-							   String contentPreviewPath, String serviceKey, String token) {
+	public String getInternalViewerUrl(Record record, Metadata metadata, User user, Locale locale,
+									   String contentPathPrefix,
+									   String contentPreviewPath, String serviceKey, String token) {
 		return getViewerUrl(record, metadata, user, locale, contentPathPrefix, contentPreviewPath, serviceKey, token, false);
 	}
 
@@ -118,7 +119,7 @@ public class PdfJSServices {
 				contentPreviewParams.append("&accessId=" + externalAccessUser.getExternalAccessUrl().getId());
 			}
 			contentPreviewParams.append("&ts=" + System.currentTimeMillis());
-			
+
 			Content content = record.get(metadata);
 			String filename = content.getCurrentVersion().getFilename();
 			if (!StringUtils.endsWith(filename, ".pdf")) {
@@ -239,7 +240,7 @@ public class PdfJSServices {
 			String signatureExtension = FilenameUtils.getExtension(signatureContentVersion.getFilename()).toLowerCase();
 			try (InputStream in = contentManager.getContentInputStream(hash, getClass().getSimpleName() + ".getSignatureBase64")) {
 				byte[] imageBytes = ioServices.readBytes(in);
-				String urlFirstPart = "data:image/" + signatureExtension +";base64,";
+				String urlFirstPart = "data:image/" + signatureExtension + ";base64,";
 				signatureBase64Url = urlFirstPart + new String(Base64.getEncoder().encodeToString(imageBytes));
 			} catch (ContentManagerRuntimeException_NoSuchContent e) {
 				log.warn("No signature for user " + user.getUsername(), e);

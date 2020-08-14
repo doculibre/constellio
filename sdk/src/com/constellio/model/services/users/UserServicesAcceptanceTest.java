@@ -40,7 +40,6 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.annotations.LoadTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;

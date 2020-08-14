@@ -222,7 +222,8 @@ public class MetadataToVOBuilder implements Serializable {
 			boolean isMultiLingual, Locale locale,
 			Map<String, Object> customParameters,
 			CollectionInfoVO collectionInfoVO, boolean sortable,
-			boolean summaryMetadata, Integer maxLength, String measurementUnit, Map<Locale, String> metadataHelpMessages) {
+			boolean summaryMetadata, Integer maxLength, String measurementUnit,
+			Map<Locale, String> metadataHelpMessages) {
 		return new MetadataVO(id, metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
 				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, metadataSortingType, allowedReferences,
 				enabled,

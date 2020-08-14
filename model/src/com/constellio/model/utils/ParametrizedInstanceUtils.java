@@ -5,12 +5,10 @@ import com.constellio.model.entities.batchprocess.JsonSerializable;
 import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.CannotInstanciate;
 import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.NoSuchConstructor;
 import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.UnsupportedArgument;
-import org.jdom2.Content;
 import org.jdom2.Element;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
-import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -116,7 +114,7 @@ public class ParametrizedInstanceUtils {
 			object = LocalDate.parse(value);
 		} else if (EnumWithSmallCode.class.isAssignableFrom(childClass)) { // ENUM CHECK
 			object = EnumWithSmallCodeUtils.toEnum(childClass, value);
-		} else if(JsonSerializable.class.isAssignableFrom(childClass)) {
+		} else if (JsonSerializable.class.isAssignableFrom(childClass)) {
 			object = JsonSerializable.deserialize(value, childClass);
 		} else {
 			object = childClass.getConstructor(String.class).newInstance(value);
@@ -201,8 +199,8 @@ public class ParametrizedInstanceUtils {
 
 			if (EnumWithSmallCode.class.isAssignableFrom(parameter.getClass())) {
 				child.setText("" + EnumWithSmallCodeUtils.toSmallCode((EnumWithSmallCode) parameter));
-			} else if(JsonSerializable.class.isAssignableFrom(parameter.getClass())) {
-			    child.setText(((JsonSerializable) parameter).serialize());
+			} else if (JsonSerializable.class.isAssignableFrom(parameter.getClass())) {
+				child.setText(((JsonSerializable) parameter).serialize());
 			} else {
 				child.setText("" + parameter.toString());
 			}
