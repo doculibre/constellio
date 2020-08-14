@@ -363,13 +363,15 @@ public class RecordVOTable extends BaseTable {
 	@Override
 	public boolean isMenuBarColumn() {
 		boolean menuBarForSchema = false;
-		for (MetadataSchemaVO schemaVO : schemaVOs) {
-			String schemaCode = schemaVO.getCode();
-			List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
-			for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
-				if (recordMenuBarHandler.isMenuBarForSchemaCode(schemaCode)) {
-					menuBarForSchema = true;
-					break;
+		if (schemaVOs != null) {
+			for (MetadataSchemaVO schemaVO : schemaVOs) {
+				String schemaCode = schemaVO.getCode();
+				List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
+				for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
+					if (recordMenuBarHandler.isMenuBarForSchemaCode(schemaCode)) {
+						menuBarForSchema = true;
+						break;
+					}
 				}
 			}
 		}
