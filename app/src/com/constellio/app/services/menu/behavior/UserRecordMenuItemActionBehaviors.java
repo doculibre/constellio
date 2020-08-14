@@ -2,13 +2,13 @@ package com.constellio.app.services.menu.behavior;
 
 import com.constellio.app.modules.rm.ui.buttons.ChangeEnumStatusRecordWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CollectionsSelectWindowButton;
+import com.constellio.app.modules.rm.ui.buttons.DeleteUsersWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.DesynchronizationWarningDialog;
 import com.constellio.app.modules.rm.ui.buttons.GroupWindowButton;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -27,7 +27,6 @@ import com.constellio.model.services.users.UserServices;
 import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
 import com.vaadin.server.ExternalResource;
-import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -145,34 +144,8 @@ public class UserRecordMenuItemActionBehaviors {
 	}
 
 	public void delete(List<User> userRecords, MenuItemActionBehaviorParams params) {
-		List<User> synchronizedUsers = ListSelectedSynchronizedUsers(userRecords);
-		Button deleteUserButton = new DeleteButton($("CollectionSecurityManagement.deleteGroups"), false) {
-			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				if (synchronizedUsers.isEmpty()) {
-					deleteUsersAction();
-				} else {
-					new DesynchronizationWarningDialog(synchronizedUsers).showConfirm(ConstellioUI.getCurrent(), (ConfirmDialog.Listener) warningDialog -> {
-						if (warningDialog.isConfirmed()) {
-							deleteUsersAction();
-						}
-					});
-				}
-			}
-
-			@Override
-			protected String getConfirmDialogMessage() {
-				return $("ConfirmDialog.confirmDeleteWithAllRecords", $("CollectionSecurityManagement.userLowerCase"));
-			}
-
-			private void deleteUsersAction() {
-				deleteUserFromCollection(userRecords);
-				params.getView().navigate().to().collectionSecurity();
-				params.getView().showMessage($("CollectionSecurityManagement.userRemovedFromCollection"));
-			}
-		};
-
-		deleteUserButton.click();
+		DeleteUsersWindowButton deleteUsersWindowButton = new DeleteUsersWindowButton(userRecords, params);
+		deleteUsersWindowButton.click();
 	}
 
 	private List<User> ListSelectedSynchronizedUsers(List<User> userRecords) {
@@ -181,19 +154,11 @@ public class UserRecordMenuItemActionBehaviors {
 				.collect(Collectors.toList());
 	}
 
-	public void deleteUserFromCollection(List<User> userRecords) {
-		for (User currentUser : userRecords) {
-			UserAddUpdateRequest userAddUpdateRequest = userServices.addUpdate(currentUser.getUsername());
-			userAddUpdateRequest.removeFromCollection(collection);
-			userServices.execute(userAddUpdateRequest);
-		}
-	}
 
 	public void changeStatus(List<User> userRecords, MenuItemActionBehaviorParams params) {
 		UserCredentialStatus currentStatus = userRecords.size() == 1 ? userRecords.get(0).getStatus() : null;
-		List<User> synchronizedUsers = ListSelectedSynchronizedUsers(userRecords);
 		ChangeEnumStatusRecordWindowButton statusButton = new ChangeEnumStatusRecordWindowButton($("CollectionSecurityManagement.changeStatus"),
-				$("CollectionSecurityManagement.changeStatus"), appLayerFactory, params, UserCredentialStatus.class, currentStatus, synchronizedUsers) {
+				$("CollectionSecurityManagement.changeStatus"), appLayerFactory, params, UserCredentialStatus.class, currentStatus, userRecords) {
 			@Override
 			public void changeStatus(Object value) {
 
@@ -222,7 +187,7 @@ public class UserRecordMenuItemActionBehaviors {
 		List<UserCredential> userCredentialsToUpdate = new ArrayList<>();
 		for (User user : userRecords) {
 			UserCredential userCredential = userServices.getUserCredential(user.getUsername());
-			if (userCredential.getSyncMode().equals(UserSyncMode.LOCALLY_CREATED)) {        //todo remettre le !
+			if (!userCredential.getSyncMode().equals(UserSyncMode.LOCALLY_CREATED)) {
 				if (isSynchronizing) {
 					userCredential.setSyncMode(UserSyncMode.SYNCED);
 				} else {

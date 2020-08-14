@@ -1,13 +1,17 @@
 package com.constellio.app.modules.rm.ui.buttons;
 
+import com.constellio.app.modules.rm.ui.field.CollectionSelectOptionField;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.UserServices;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -17,6 +21,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -27,11 +32,11 @@ public abstract class ChangeEnumStatusRecordWindowButton<T extends Enum<T>> exte
 	private OptionGroup enumOptionsField;
 	private Class<T> enumType;
 	private UserCredentialStatus selectedValue;
-	private List<User> synchronizedUsers;
+	private List<User> users;
 
 	public ChangeEnumStatusRecordWindowButton(String caption, String windowCaption, AppLayerFactory appLayerFactory,
 											  MenuItemActionBehaviorParams params, Class<T> enumType,
-											  UserCredentialStatus selectedValue, List<User> synchronizedUsers) {
+											  UserCredentialStatus selectedValue, List<User> users) {
 		super(caption, windowCaption);
 
 		modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -39,7 +44,7 @@ public abstract class ChangeEnumStatusRecordWindowButton<T extends Enum<T>> exte
 		this.enumType = enumType;
 		this.enumOptionsField = new OptionGroup();
 		this.selectedValue = selectedValue;
-		this.synchronizedUsers = synchronizedUsers;
+		this.users = users;
 	}
 
 	@Override
@@ -47,6 +52,7 @@ public abstract class ChangeEnumStatusRecordWindowButton<T extends Enum<T>> exte
 		VerticalLayout mainLayout = new VerticalLayout();
 		mainLayout.setMargin(new MarginInfo(true, true, false, true));
 		mainLayout.setSizeFull();
+		mainLayout.setSpacing(true);
 
 		HorizontalLayout enumLayout = new HorizontalLayout();
 		enumLayout.setSpacing(true);
@@ -78,6 +84,13 @@ public abstract class ChangeEnumStatusRecordWindowButton<T extends Enum<T>> exte
 		}
 
 		mainLayout.addComponents(enumLayout);
+		List<Record> userRecords = users.stream().map(u -> u.getWrappedRecord()).collect(Collectors.toList());
+
+		HorizontalLayout collectionsLayout = new HorizontalLayout();
+		collectionsLayout.addComponent(new CollectionSelectOptionField(params.getView().getConstellioFactories().getAppLayerFactory(), userRecords));
+		collectionsLayout.setSpacing(true);
+
+		mainLayout.addComponent(collectionsLayout);
 		BaseButton saveButton;
 		BaseButton cancelButton;
 		HorizontalLayout buttonLayout = new HorizontalLayout();
@@ -86,16 +99,19 @@ public abstract class ChangeEnumStatusRecordWindowButton<T extends Enum<T>> exte
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				try {
+					List<User> synchronizedUsers = ListSynchronizedUsers();
 					if (!synchronizedUsers.isEmpty()) {
-						new DesynchronizationWarningDialog(synchronizedUsers).showConfirm(getUI(), (ConfirmDialog.Listener) dialog -> {
-							if (dialog.isConfirmed()) {
-								changeStatus();
+						new DesynchronizationWarningDialog(synchronizedUsers).show(getUI(), new ConfirmDialog.Listener() {
+							@Override
+							public void onClose(ConfirmDialog dialog) {
+								if (dialog.isConfirmed()) {
+									changeStatus();
+								}
 							}
 						});
 					} else {
 						changeStatus();
 					}
-
 				} catch (Exception e) {
 					e.printStackTrace();
 					params.getView().showErrorMessage(MessageUtils.toMessage(e));
@@ -121,6 +137,13 @@ public abstract class ChangeEnumStatusRecordWindowButton<T extends Enum<T>> exte
 
 
 		return mainLayout;
+	}
+
+	private List<User> ListSynchronizedUsers() {
+		UserServices userServices = params.getView().getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newUserServices();
+		return users.stream()
+				.filter(u -> userServices.getUserCredential(u.getUsername()).getSyncMode().equals(UserSyncMode.SYNCED))
+				.collect(Collectors.toList());
 	}
 
 	private void changeStatus() {
