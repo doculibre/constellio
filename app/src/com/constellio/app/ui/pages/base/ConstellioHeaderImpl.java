@@ -84,13 +84,7 @@ import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.ui.themes.ValoTheme;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -130,8 +124,6 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	private CollectionCodeToLabelConverter collectionCodeToLabelConverter = new CollectionCodeToLabelConverter();
 	private HashMap<String, MenuItem> collectionButtons = new HashMap<>();
 	private Locale locale;
-
-	private List<NavigationItem> actionMenuItems;
 
 	public ConstellioHeaderImpl() {
 		presenter = new ConstellioHeaderPresenter(this);
@@ -657,7 +649,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			@Override
 			public boolean isVisible() {
 				AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
-				return presenter.getCurrentUser().has(RMPermissionsTo.USE_MY_CART).globally() && containsOnly(
+				return presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && containsOnly(
 						param.getSchemaTypeCodes(),
 						asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE));
 			}
@@ -670,7 +662,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		SelectionPanelExtension.setStyles(windowButton);
 		AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
 		windowButton.setEnabled(
-				presenter.getCurrentUser().has(RMPermissionsTo.USE_MY_CART).globally() && containsOnly(param.getSchemaTypeCodes(),
+				presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && containsOnly(param.getSchemaTypeCodes(),
 						asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE)));
 		windowButton.setVisible(isEnabled());
 		return windowButton;
@@ -737,7 +729,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	}
 
 	public Navigator getNavigator() {
-		return ConstellioUI.getCurrent().getNavigator();
+		return UI.getCurrent().getNavigator();
 	}
 
 	@Override
@@ -806,49 +798,23 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		headerMenu.setAutoOpen(true);
 		headerMenu.addStyleName("header-action-menu");
 		MenuItem headerMenuRoot = headerMenu.addItem($("ConstellioHeader.actions"), FontAwesome.BARS, null);
-		actionMenuItems = presenter.getActionMenuItems();
-		final Map<NavigationItem, MenuItem> menuItems = new HashMap<>();
-		for (final NavigationItem navigationItem : actionMenuItems) {
-			MenuItem menuItem = headerMenuRoot.addItem($("ConstellioHeader." + navigationItem.getCode()), new MenuBar.Command() {
+		for (final NavigationItem item : presenter.getActionMenuItems()) {
+			ComponentState state = presenter.getStateFor(item);
+
+			MenuItem menuItem = headerMenuRoot.addItem($("ConstellioHeader." + item.getCode()), new MenuBar.Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
-					navigationItem.activate(navigate());
+					item.activate(navigate());
 				}
 			});
-			menuItems.put(navigationItem, menuItem);
-			updateMenuItem(navigationItem, menuItem);
+			if (item.getFontAwesome() != null) {
+				menuItem.setIcon(item.getFontAwesome());
+			}
+			menuItem.setVisible(state.isVisible());
+			menuItem.setEnabled(state.isEnabled());
+			menuItem.setStyleName(item.getCode());
 		}
-		getNavigator().addViewChangeListener(new ViewChangeListener() {
-			@Override
-			public boolean beforeViewChange(ViewChangeEvent event) {
-				return true;
-			}
-
-			@Override
-			public void afterViewChange(ViewChangeEvent event) {
-				View oldView = event.getOldView();
-				View newView = event.getNewView();
-				if (oldView instanceof BaseView && newView instanceof BaseView) {
-					for (NavigationItem navigationItem : actionMenuItems) {
-						MenuItem menuItem = menuItems.get(navigationItem);
-						navigationItem.viewChanged((BaseView) oldView, (BaseView) newView);
-						updateMenuItem(navigationItem, menuItem);
-					}
-				}
-			}
-		});
 		return headerMenu;
-	}
-
-	protected void updateMenuItem(NavigationItem navigationItem, MenuItem menuItem) {
-		menuItem.setText($("ConstellioHeader." + navigationItem.getCode()));
-		ComponentState state = presenter.getStateFor(navigationItem);
-		if (navigationItem.getFontAwesome() != null) {
-			menuItem.setIcon(navigationItem.getFontAwesome());
-		}
-		menuItem.setVisible(state.isVisible());
-		menuItem.setEnabled(state.isEnabled());
-		menuItem.setStyleName(navigationItem.getCode());
 	}
 
 	public Navigation navigate() {

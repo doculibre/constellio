@@ -104,6 +104,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new ESMigrationTo8_0_1());
 		scripts.add(new ESMigrationTo8_0_2());
 		scripts.add(new ESMigrationTo8_1_1());
+		scripts.add(new ESMigrationTo8_3_1_54());
 
 		return scripts;
 	}
