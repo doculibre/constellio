@@ -1,16 +1,15 @@
 package com.constellio.app.modules.rm.ui.buttons;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.util.MessageUtils;
-import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
@@ -20,14 +19,14 @@ import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class CollectionsWindowButton extends WindowButton {
+public abstract class CollectionsSelectWindowButton extends WindowButton {
 
-	private RMSchemasRecordsServices rm;
+	private SchemasRecordsServices core;
 	private MenuItemActionBehaviorParams params;
 	private AppLayerFactory appLayerFactory;
 	private RecordServices recordServices;
@@ -45,24 +44,30 @@ public class CollectionsWindowButton extends WindowButton {
 		USER, GROUP
 	}
 
-	public CollectionsWindowButton(Record record, MenuItemActionBehaviorParams params,
-								   AddedToCollectionRecordType addedRecordType) {
-		this(Collections.singletonList(record), params, addedRecordType);
-	}
 
-	public CollectionsWindowButton(List<Record> records, MenuItemActionBehaviorParams params,
-								   AddedToCollectionRecordType addedRecordType) {
-		super($("CollectionSecurityManagement.selectCollections"), $("CollectionSecurityManagement.addToCollections"));
+	public CollectionsSelectWindowButton(String title, List<Record> records, MenuItemActionBehaviorParams params) {
+		super($("CollectionSecurityManagement.selectCollections"), title);
 
 		this.params = params;
 		this.appLayerFactory = params.getView().getConstellioFactories().getAppLayerFactory();
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 		this.collection = params.getView().getSessionContext().getCurrentCollection();
-		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.core = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 		this.records = records;
-		this.addedRecordType = addedRecordType;
 		this.collectionsField = new OptionGroup($("CollectionSecurityManagement.selectCollections"));
+	}
+
+	public List<Record> getRecords() {
+		return records;
+	}
+
+	public List<String> getSelectedValues() {
+		return new ArrayList<String>((java.util.Collection<? extends String>) collectionsField.getValue());
+	}
+
+	public SchemasRecordsServices getCore() {
+		return core;
 	}
 
 	@Override
@@ -83,10 +88,6 @@ public class CollectionsWindowButton extends WindowButton {
 		for (String collection : appLayerFactory.getCollectionsManager().getCollectionCodes()) {
 			if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
 				collectionsField.addItem(appLayerFactory.getCollectionsManager().getCollection(collection).getTitle());
-				boolean existsforAll = records.stream().allMatch(record -> record.getCollection().equals(collection));
-				if (existsforAll) {
-					collectionsField.select(collection);
-				}
 			}
 		}
 
@@ -99,8 +100,7 @@ public class CollectionsWindowButton extends WindowButton {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				try {
-					//getUserServices().addUsersToCollections(records, collectionField);
-					addToCollectionRequested(params.getView());
+					saveButtonClick(params.getView());
 					getWindow().close();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -129,28 +129,5 @@ public class CollectionsWindowButton extends WindowButton {
 		return mainLayout;
 	}
 
-	private UserServices getUserServices() {
-		return this.userServices;
-	}
-
-	private void addToCollectionRequested(BaseView baseView) {
-
-		//Transaction transaction = new Transaction(RecordUpdateOptions.validationExceptionSafeOptions());
-		//transaction.update(records);
-		try {
-			//recordServices.execute(transaction);
-			switch (addedRecordType) {
-				case USER:
-					baseView.showMessage($("CollectionSecurityManagement.addedUserToCollections"));
-					break;
-				case GROUP:
-					baseView.showMessage($("CollectionSecurityManagement.addedGroupToCollections"));
-					break;
-			}
-
-		} catch (Exception e) {
-			throw new ImpossibleRuntimeException(e);
-		}
-
-	}
+	protected abstract void saveButtonClick(BaseView baseView);
 }

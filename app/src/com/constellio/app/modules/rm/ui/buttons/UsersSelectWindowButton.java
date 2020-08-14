@@ -23,7 +23,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
@@ -31,16 +30,14 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-public class UsersAddToGroupsWindowButton extends WindowButton {
+public abstract class UsersSelectWindowButton extends WindowButton {
 
 	private SchemasRecordsServices core;
 	private MenuItemActionBehaviorParams params;
@@ -55,7 +52,7 @@ public class UsersAddToGroupsWindowButton extends WindowButton {
 		click();
 	}
 
-	public UsersAddToGroupsWindowButton(List<Group> records, MenuItemActionBehaviorParams params) {
+	public UsersSelectWindowButton(List<Group> records, MenuItemActionBehaviorParams params) {
 		super($("CollectionSecurityManagement.addToGroups"), $("CollectionSecurityManagement.selectUsers"));
 
 		this.params = params;
@@ -65,6 +62,18 @@ public class UsersAddToGroupsWindowButton extends WindowButton {
 		this.collection = params.getView().getSessionContext().getCurrentCollection();
 		this.core = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 		this.records = records;
+	}
+
+	public SchemasRecordsServices getCore() {
+		return core;
+	}
+
+	public List<Group> getRecords() {
+		return records;
+	}
+
+	public List<String> getSelectedValues() {
+		return new ArrayList<>((java.util.Collection<? extends String>) userFields.getValue());
 	}
 
 	@Override
@@ -90,7 +99,7 @@ public class UsersAddToGroupsWindowButton extends WindowButton {
 			protected void buttonClick(ClickEvent event) {
 				try {
 					//getUserServices().addUsersToGroup();
-					addToGroupsRequested(params.getView());
+					saveButtonClick(params.getView());
 					getWindow().close();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -123,53 +132,7 @@ public class UsersAddToGroupsWindowButton extends WindowButton {
 		RecordVODataProvider groupDataProvider = getUserDataProvider(params.getView().getSessionContext());
 
 		UserSelectionAddRemoveFieldImpl usersDisplayOrderField = new UserSelectionAddRemoveFieldImpl(groupDataProvider.getIterator());
-		List<String> commonUsers = matchCommonGroupsIds(records);
-		usersDisplayOrderField.setValue(commonUsers);
 		return usersDisplayOrderField;
-	}
-
-	@NotNull
-	private List<String> matchCommonGroupsIds(List<Group> records) {
-		List<String> commonUsers = new ArrayList<>();
-		List<String> isToRemove = new ArrayList<>();
-		boolean firstIteration = true;
-
-		for (Group group : records) {
-			List<String> users = getUserServices()
-					.getAllUsersInGroup(group, false, true)
-					.stream().map(x -> x.getId()).collect(Collectors.toList());
-			if (firstIteration) {
-				commonUsers.addAll(users);
-				firstIteration = false;
-			} else {
-				for (String userId : commonUsers) {
-					if (users.stream().noneMatch(gr -> gr.equals(userId))) {
-						isToRemove.add(userId);
-					}
-				}
-			}
-		}
-		commonUsers.removeAll(isToRemove);
-		return commonUsers;
-	}
-
-	private UserServices getUserServices() {
-		return this.userServices;
-	}
-
-	private void addToGroupsRequested(BaseView baseView) {
-
-		List<String> userFieldsValue = (List<String>) userFields.getValue();
-		List<String> userCodeList = core.getUsers(userFieldsValue).stream().map(user -> user.getUsername()).collect(Collectors.toList());
-		List<String> groupCodeList = records.stream().map(group -> group.getCode()).collect(Collectors.toList());
-
-		for (String username : userCodeList) {
-			UserAddUpdateRequest userAddUpdateRequest = userServices.addUpdate(username);
-			userAddUpdateRequest.addToGroupsInCollection(groupCodeList, collection);
-			userServices.execute(userAddUpdateRequest);
-		}
-		baseView.partialRefresh();
-		baseView.showMessage($("CollectionSecurityManagement.addedUsersToGroups"));
 	}
 
 	private RecordVODataProvider getUserDataProvider(SessionContext sessionContext) {
@@ -198,4 +161,6 @@ public class UsersAddToGroupsWindowButton extends WindowButton {
 
 		return query;
 	}
+
+	protected abstract void saveButtonClick(BaseView baseView);
 }
