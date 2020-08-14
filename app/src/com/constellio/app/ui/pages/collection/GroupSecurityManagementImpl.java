@@ -132,7 +132,9 @@ public class GroupSecurityManagementImpl extends BaseViewImpl implements Securit
 		viewerPanel.addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
-
+				RecordVOItem recordItem = (RecordVOItem) event.getItem();
+				GroupVO groupVO = (GroupVO) recordItem.getRecord();
+				navigate().to().displayGlobalGroup(groupVO.getCode());
 			}
 		});
 		viewerPanel.addStyleName("folder-content-table");

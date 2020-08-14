@@ -4,8 +4,10 @@ import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
@@ -51,9 +53,13 @@ public class AlertOverdueTasksBackgroundAction implements Runnable {
 				.where(tasksSchemas.userTask.dueDate()).isLessThan(getCurrentDate())
 				.andWhere(tasksSchemas.userTask.status()).isNotIn(tasksSchemas.getFinishedOrClosedStatuses())
 				.andWhere(tasksSchemas.userTask.reminderFrequency()).isNotNull()
-				.andWhere(Schemas.COLLECTION).isEqualTo(collection));
+				.andWhere(Schemas.COLLECTION).isEqualTo(collection)
+				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull());
 
-		SearchResponseIterator<Record> overdueTaskIterator = searchServices.recordsIterator(query, 1000);
+		SearchResponseIterator<Record> overdueTaskIterator = searchServices.recordsIterator(query, 500);
+		Transaction transaction = new Transaction();
+		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+
 		while (overdueTaskIterator.hasNext()) {
 			Task task = tasksSchemas.wrapTask(overdueTaskIterator.next());
 			LocalDate dueDate = task.getDueDate();
@@ -71,39 +77,29 @@ public class AlertOverdueTasksBackgroundAction implements Runnable {
 					} else {
 						numberOfRemindersAlreadySent++;
 					}
+					Task taskToUpdate = task.setLastReminder(getCurrentDateTime()).setNumberOfReminders(numberOfRemindersAlreadySent);
 					if (userIdToSendEmailTo != null) {
-						sendEmail(task, userIdToSendEmailTo);
-						try {
-							recordServices.update(task.setLastReminder(getCurrentDateTime()).setNumberOfReminders(numberOfRemindersAlreadySent));
-						} catch (RecordServicesException e) {
-							e.printStackTrace();
-						}
-
-					} else {
-						try {
-							recordServices.update(task.setLastReminder(getCurrentDateTime()).setNumberOfReminders(numberOfRemindersAlreadySent));
-						} catch (RecordServicesException e) {
-							e.printStackTrace();
-						}
+						sendEmail(task, userIdToSendEmailTo, transaction);
 					}
-
+					transaction.update(taskToUpdate.getWrappedRecord());
 				}
 			}
 		}
+		try {
+			recordServices.execute(transaction);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
 	}
 
-	protected void sendEmail(Task task, String userId) {
+	protected void sendEmail(Task task, String userId, Transaction transaction) {
 		TaskReminderEmailManager taskReminderEmailManager = new TaskReminderEmailManager(appLayerFactory, collection);
 		User userToSendMessageTo = new SchemasRecordsServices(collection, modelLayerFactory).getUser(userId);
 		String email = userToSendMessageTo.getEmail();
 		if (!StringUtils.isBlank(email)) {
 			EmailAddress emailAddress = new EmailAddress(userToSendMessageTo.getTitle(), email);
 			EmailToSend emailToSend = taskReminderEmailManager.createEmailToSend(task, asList(emailAddress));
-			try {
-				recordServices.add(emailToSend);
-			} catch (RecordServicesException e) {
-				e.printStackTrace();
-			}
+			transaction.add(emailToSend);
 		}
 	}
 

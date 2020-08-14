@@ -1,8 +1,7 @@
 package com.constellio.app.services.menu.behavior;
 
 import com.constellio.app.modules.rm.ui.buttons.ChangeEnumStatusRecordWindowButton;
-import com.constellio.app.modules.rm.ui.buttons.CollectionsWindowButton;
-import com.constellio.app.modules.rm.ui.buttons.CollectionsWindowButton.AddedToCollectionRecordType;
+import com.constellio.app.modules.rm.ui.buttons.CollectionsSelectWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.DesynchronizationWarningDialog;
 import com.constellio.app.modules.rm.ui.buttons.GroupWindowButton;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -13,8 +12,6 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
-import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -22,10 +19,8 @@ import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
@@ -118,8 +113,20 @@ public class UserRecordMenuItemActionBehaviors {
 	public void addToCollection(List<User> userRecords, MenuItemActionBehaviorParams params) {
 		List<User> synchronizedUsers = ListSelectedSynchronizedUsers(userRecords);
 		List<Record> records = userRecords.stream().map(user -> user.getWrappedRecord()).collect(Collectors.toList());
-		CollectionsWindowButton cartWindowButton = new CollectionsWindowButton(records, params, AddedToCollectionRecordType.USER) {
+		CollectionsSelectWindowButton collectionSelectWindowButton = new CollectionsSelectWindowButton($("CollectionSecurityManagement.addedUserToCollections"), records, params) {
+			@Override
+			protected void saveButtonClick(BaseView baseView) {
+				List<String> collectionCodes = getSelectedValues();
 
+				for (Record record : records) {
+					User currentUser = getCore().wrapUser(record);
+					UserAddUpdateRequest userAddUpdateRequest = userServices.addUpdate(currentUser.getUsername());
+					userAddUpdateRequest.addToCollections(collectionCodes);
+					userServices.execute(userAddUpdateRequest);
+				}
+
+				baseView.showMessage($("CollectionSecurityManagement.addedGroupToCollections"));
+			}
 
 			@Override
 			public void addToCollections() {
@@ -134,7 +141,7 @@ public class UserRecordMenuItemActionBehaviors {
 				}
 			}
 		};
-		cartWindowButton.addToCollections();
+		collectionSelectWindowButton.addToCollections();
 	}
 
 	public void delete(List<User> userRecords, MenuItemActionBehaviorParams params) {
@@ -155,7 +162,6 @@ public class UserRecordMenuItemActionBehaviors {
 
 			@Override
 			protected String getConfirmDialogMessage() {
-				String recordType;
 				return $("ConfirmDialog.confirmDeleteWithAllRecords", $("CollectionSecurityManagement.userLowerCase"));
 			}
 
@@ -240,25 +246,6 @@ public class UserRecordMenuItemActionBehaviors {
 			}
 		}
 	}
-
-
-	private boolean delete(SchemaPresenterUtils presenterUtils, BaseView view, List<User> users, String reason,
-						   boolean physically, int waitSeconds) {
-		boolean isDeletetionSuccessful = false;
-		try {
-			for (User user : users) {
-				presenterUtils.delete(user.getWrappedRecord(), reason, physically, waitSeconds);
-			}
-			isDeletetionSuccessful = true;
-		} catch (RecordServicesRuntimeException_CannotLogicallyDeleteRecord exception) {
-			view.showErrorMessage(MessageUtils.toMessage(exception));
-		} catch (RecordDeleteServicesRuntimeException exception) {
-			view.showErrorMessage($("deletionFailed") + "\n" + MessageUtils.toMessage(exception));
-		}
-
-		return isDeletetionSuccessful;
-	}
-
 
 	public void generateToken(MenuItemActionBehaviorParams params) {
 		WindowButton windowButton = new WindowButton($("DisplayUserCredentialView.generateTokenButton"),

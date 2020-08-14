@@ -32,7 +32,7 @@ public class IsStartingWithTextCriterionTest extends ConstellioTest {
 	public void whenGettingSolrQueryThenQueryIsCorrect() {
 		IsStartingWithTextCriterion criterion = new IsStartingWithTextCriterion(value);
 
-		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo("textMetadata:value*");
+		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo("textMetadata:value* OR textMetadata:value");
 	}
 
 	@Test
@@ -41,7 +41,7 @@ public class IsStartingWithTextCriterionTest extends ConstellioTest {
 
 		IsStartingWithTextCriterion criterion = new IsStartingWithTextCriterion(value);
 
-		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo("textMetadata:value\\ with\\ spaces*");
+		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo("textMetadata:value\\ with\\ spaces* OR textMetadata:value\\ with\\ spaces");
 	}
 
 	@Test
@@ -50,7 +50,7 @@ public class IsStartingWithTextCriterionTest extends ConstellioTest {
 
 		IsStartingWithTextCriterion criterion = new IsStartingWithTextCriterion(value);
 
-		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo("textMetadata:value\\*with\\*asterisks*");
+		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo("textMetadata:value\\*with\\*asterisks* OR textMetadata:value\\*with\\*asterisks");
 	}
 
 	@Test
@@ -59,7 +59,7 @@ public class IsStartingWithTextCriterionTest extends ConstellioTest {
 
 		IsStartingWithTextCriterion criterion = new IsStartingWithTextCriterion(value);
 
-		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo("textMetadata:value\\?with\\?wildcards*");
+		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo("textMetadata:value\\?with\\?wildcards* OR textMetadata:value\\?with\\?wildcards");
 	}
 
 	@Test

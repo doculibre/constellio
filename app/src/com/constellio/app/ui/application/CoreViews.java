@@ -80,14 +80,12 @@ public class CoreViews {
 		navigator.navigateTo("/" + fragment);
 	}
 
-	public void home(String taxonomyCode, String expandedRecordId, String taxonomyMetadata) {
+	public void home(String taxonomyCode, String expandedRecordId) {
 		clearBreadcrumbTrail();
 		Map<String, String> params = new HashMap<>();
 		params.put("tab", CoreNavigationConfiguration.TAXONOMIES);
 		params.put("taxonomyCode", taxonomyCode);
-		if (taxonomyMetadata != null) {
-			params.put("taxonomyMetadata", taxonomyMetadata);
-		}
+
 		if (expandedRecordId != null) {
 			params.put("expandedRecordId", expandedRecordId);
 		}

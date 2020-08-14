@@ -3,8 +3,9 @@ package com.constellio.app.modules.restapi.user;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.service.BaseRestfulService;
 import com.constellio.app.modules.restapi.core.util.AuthorizationUtils;
-import com.constellio.app.modules.restapi.user.dto.UserSignatureContentDto;
-import com.constellio.app.modules.restapi.user.dto.UserSignatureDto;
+import com.constellio.app.modules.restapi.user.dto.UserCredentialsContentDto;
+import com.constellio.app.modules.restapi.user.dto.UserCredentialsDto;
+import com.constellio.app.modules.restapi.user.dto.UsersByCollectionDto;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.google.common.base.Strings;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,7 +42,51 @@ public class UserRestfulService extends BaseRestfulService {
 	private UserService userService;
 
 	@GET
-	@Path("signature")
+	@Path("credentials")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Operation(summary = "Get user credentials", description = "Return the user credentials. (Only id at the moment)")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(ref = "UserCredential"))),
+			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
+	public Response getCredentials(
+			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
+			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
+			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
+
+		validateAuthentication(authentication);
+		validateRequiredParameter(serviceKey, "serviceKey");
+
+		String token = AuthorizationUtils.getToken(authentication);
+		UserCredentialsDto userDto = userService.getCredentials(host, token, serviceKey);
+		return Response.ok(userDto).build();
+	}
+
+	@GET
+	@Path("credentials/collections")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Operation(summary = "Get collections for this user", description = "Return a list of user by collection.")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(ref = "User"))),
+			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
+	public Response getUsersByCollection(
+			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
+			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
+			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
+
+		validateAuthentication(authentication);
+		validateRequiredParameter(serviceKey, "serviceKey");
+
+		String token = AuthorizationUtils.getToken(authentication);
+		UsersByCollectionDto userDto = userService.getUsersByCollection(host, token, serviceKey);
+		return Response.ok(userDto).build();
+	}
+
+	@GET
+	@Path("credentials/signature")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Operation(summary = "Get user signature", description = "Stream the content of the user profile signature")
 	@ApiResponses(value = {
@@ -62,14 +107,14 @@ public class UserRestfulService extends BaseRestfulService {
 
 		String token = AuthorizationUtils.getToken(authentication);
 
-		UserSignatureContentDto contentDto = userService.getContent(host, token, serviceKey, UserCredential.ELECTRONIC_SIGNATURE);
+		UserCredentialsContentDto contentDto = userService.getContent(host, token, serviceKey, UserCredential.ELECTRONIC_SIGNATURE);
 		return Response.ok(contentDto.getContent(), contentDto.getMimeType())
 				.header("Content-Disposition", "attachment; filename=\"" + contentDto.getFilename() + "\"")
 				.build();
 	}
 
 	@POST
-	@Path("signature")
+	@Path("credentials/signature")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Operation(summary = "Set user signature", description = "Set the content of the user profile signature.<br><br>" +
 															 "This is a multipart/form-data request. The body must contains two parts:<br>" +
@@ -84,7 +129,7 @@ public class UserRestfulService extends BaseRestfulService {
 	public Response setSignature(
 			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
 			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
-			@Valid @FormDataParam("userSignature") UserSignatureDto userSignature,
+			@Valid @FormDataParam("userSignature") UserCredentialsContentDto userSignature,
 			@Parameter(schema = @Schema(type = "string", format = "binary")) @FormDataParam("file") InputStream fileStream,
 			@Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileHeader,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
@@ -106,7 +151,7 @@ public class UserRestfulService extends BaseRestfulService {
 	}
 
 	@DELETE
-	@Path("signature")
+	@Path("credentials/signature")
 	@Operation(summary = "Delete user signature", description = "Delete the content of the user profile signature")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "204", description = "No Content"),
@@ -128,7 +173,7 @@ public class UserRestfulService extends BaseRestfulService {
 	}
 
 	@GET
-	@Path("initials")
+	@Path("credentials/initials")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Operation(summary = "Get user initials", description = "Stream the content of the user profile initials")
 	@ApiResponses(value = {
@@ -149,14 +194,14 @@ public class UserRestfulService extends BaseRestfulService {
 
 		String token = AuthorizationUtils.getToken(authentication);
 
-		UserSignatureContentDto contentDto = userService.getContent(host, token, serviceKey, UserCredential.ELECTRONIC_INITIALS);
+		UserCredentialsContentDto contentDto = userService.getContent(host, token, serviceKey, UserCredential.ELECTRONIC_INITIALS);
 		return Response.ok(contentDto.getContent(), contentDto.getMimeType())
 				.header("Content-Disposition", "attachment; filename=\"" + contentDto.getFilename() + "\"")
 				.build();
 	}
 
 	@POST
-	@Path("initials")
+	@Path("credentials/initials")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Operation(summary = "Set user initials", description = "Set the content of the user profile initials.<br><br>" +
 															"This is a multipart/form-data request. The body must contains two parts:<br>" +
@@ -171,7 +216,7 @@ public class UserRestfulService extends BaseRestfulService {
 	public Response setInitials(
 			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
 			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
-			@Valid @FormDataParam("userInitials") UserSignatureDto userInitials,
+			@Valid @FormDataParam("userInitials") UserCredentialsContentDto userInitials,
 			@Parameter(schema = @Schema(type = "string", format = "binary")) @FormDataParam("file") InputStream fileStream,
 			@Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileHeader,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
@@ -193,7 +238,7 @@ public class UserRestfulService extends BaseRestfulService {
 	}
 
 	@DELETE
-	@Path("initials")
+	@Path("credentials/initials")
 	@Operation(summary = "Delete user initials", description = "Delete the content of the user profile initials")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "204", description = "No Content"),

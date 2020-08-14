@@ -48,6 +48,9 @@ public class UserCredential extends RecordWrapper {
 	public static final String ELECTRONIC_INITIALS = "electronicInitials";
 	public static final String AZURE_USERNAME = "azureUsername";
 
+	public static final String TEAMS_FAVORITES_DISPLAY_ORDER = "teamsFavoritesDisplayOrder";
+	public static final String TEAMS_HIDDEN_FAVORITES = "teamsHiddenFavorites";
+
 	public UserCredential(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}

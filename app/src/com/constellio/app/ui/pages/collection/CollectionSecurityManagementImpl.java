@@ -86,7 +86,9 @@ public class CollectionSecurityManagementImpl extends BaseViewImpl implements Co
 			}
 		});
 
-		tabSheet.setSelectedTab(groupsTab);
+		if (presenter.isGroupTabSelectedFirst()) {
+			tabSheet.setSelectedTab(groupsTab);
+		}
 
 
 		contentLayout = new I18NHorizontalLayout(tabSheet);
