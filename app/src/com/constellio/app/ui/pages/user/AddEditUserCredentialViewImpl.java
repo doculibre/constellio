@@ -13,7 +13,6 @@ import com.vaadin.data.validator.EmailValidator;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 
@@ -81,20 +80,14 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 
 	private void setupParamsAndVO(ViewChangeEvent event) {
 		String parameters = event.getParameters();
-		int indexOfSlash = parameters.lastIndexOf("/");
-		String breadCrumb = "";
-		if (indexOfSlash != -1) {
-			breadCrumb = parameters.substring(0, indexOfSlash);
-		}
+
 		paramsMap = ParamUtils.getParamsMap(parameters);
-		if (paramsMap.containsKey("username")) {
+		if (paramsMap != null && paramsMap.get("username") != null) {
 			userCredentialVO = presenter.getUserCredentialVO(paramsMap.get("username"));
 			addActionMode = false;
 		} else {
 			userCredentialVO = new UserCredentialVO();
 		}
-		presenter.setParamsMap(paramsMap);
-		presenter.setBreadCrumb(breadCrumb);
 	}
 
 	@Override

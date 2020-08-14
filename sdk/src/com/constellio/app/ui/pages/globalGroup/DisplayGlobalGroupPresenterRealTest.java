@@ -114,7 +114,7 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 	public void whenDisplayUserCredentialButtonClickedThenNavigateToDisplayUserCredential()
 			throws Exception {
 
-		presenter.displayUserCredentialButtonClicked(dakotaCredentialVO, HEROES);
+		presenter.displayUserCredentialButtonClicked(dakotaCredentialVO);
 
 		verify(globalGroupView.navigate().to(), times(1))
 				.displayUserCredential("url1/url2/url3/" + NavigatorConfigurationService.GROUP_DISPLAY + "/" + URLEncoder
@@ -125,7 +125,7 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 	public void whenEditUserCredentialButtonClickedThenNavigateToEditUserCredential()
 			throws Exception {
 
-		presenter.editUserCredentialButtonClicked(dakotaCredentialVO, HEROES);
+		presenter.editUserCredentialButtonClicked(dakotaCredentialVO);
 
 		verify(globalGroupView.navigate().to(), times(1))
 				.editUserCredential("url1/url2/url3/" + NavigatorConfigurationService.GROUP_DISPLAY + "/" + URLEncoder

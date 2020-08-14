@@ -3,7 +3,6 @@ package com.constellio.app.ui.pages.user;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
@@ -39,9 +38,7 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 	private transient CollectionsListManager collectionsListManager;
 	private transient LoggingServices loggingServices;
 	private boolean editMode = false;
-	private Map<String, String> paramsMap;
 	private String username;
-	private String breadCrumb;
 	private Set<String> collections;
 
 	public AddEditUserCredentialPresenter(AddEditUserCredentialView view) {
@@ -63,11 +60,11 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 	}
 
 	public UserCredentialVO getUserCredentialVO(String username) {
-		UserCredential userCredential = null;
+		SystemWideUserInfos userCredential = null;
 		this.username = username;
 		if (!username.isEmpty()) {
 			editMode = true;
-			userCredential = userServices.getUserCredential(username);
+			userCredential = userServices.getUserInfos(username);
 		}
 		UserCredentialToVOBuilder voBuilder = new UserCredentialToVOBuilder();
 		UserCredentialVO userCredentialVO = userCredential != null ? voBuilder.build(userCredential) : new UserCredentialVO();
@@ -108,8 +105,7 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 			view.showErrorMessage(MessageUtils.toMessage(e));
 			return;
 		}
-		paramsMap.put("username", entity.getUsername());
-		setupNavigateBackPage();
+		view.navigate().to().previousView();
 	}
 
 	private boolean validateEntityInfos(UserCredentialVO entity, String username) {
@@ -184,9 +180,8 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 				.setPersonalEmails(personalEmails)
 				.setServiceKey(userCredentialVO.getServiceKey())
 				.setSystemAdmin(userCredentialVO.isSystemAdmin())
-				.setGlobalGroups(userCredentialVO.getGlobalGroups())
 				.setCollections(new ArrayList<>(userCredentialVO.getCollections()))
-				.setStatusForAllCollections(status)
+				.setStatusForCollection(status, collection)
 				.setDomain(domain)
 				.setMsExchDelegateListBL(Arrays.asList(""))
 				.setDn(null)
@@ -213,7 +208,7 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 	}
 
 	public void cancelButtonClicked() {
-		setupNavigateBackPage();
+		view.navigate().to().previousView();
 	}
 
 	public boolean isEditMode() {
@@ -224,35 +219,8 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 		return collectionsListManager.getCollectionsExcludingSystem();
 	}
 
-	public void setParamsMap(Map<String, String> paramsMap) {
-		this.paramsMap = paramsMap;
-	}
-
 	public String getUsername() {
 		return username;
-	}
-
-	public void setBreadCrumb(String breadCrumb) {
-		this.breadCrumb = breadCrumb;
-	}
-
-	private void setupNavigateBackPage() {
-		String viewNames[] = breadCrumb.split("/");
-		String backPage = viewNames[viewNames.length - 1];
-		breadCrumb = breadCrumb.replace(backPage, "");
-		if (breadCrumb.endsWith("/")) {
-			breadCrumb = breadCrumb.substring(0, breadCrumb.length() - 1);
-		}
-		Map<String, Object> newParamsMap = new HashMap<>();
-		newParamsMap.putAll(paramsMap);
-		String parameters = ParamUtils.addParams(breadCrumb, newParamsMap);
-		while (parameters.contains("//")) {
-			parameters = parameters.replace("//", "/");
-		}
-		if (!backPage.endsWith("/") && !parameters.startsWith("/")) {
-			backPage += "/";
-		}
-		view.navigate().to().url(backPage + parameters);
 	}
 
 	public boolean canAndOrModify(String usernameInEdition) {

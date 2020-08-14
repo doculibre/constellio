@@ -1,8 +1,8 @@
 package com.constellio.app.ui.framework.builders;
 
 import com.constellio.app.ui.entities.GlobalGroupVO;
-import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -18,9 +18,10 @@ public class GlobalGroupToVOBuilder implements Serializable {
 		collections.addAll(globalGroup.getCollections());
 		String parent = globalGroup.getParent();
 		GlobalGroupStatus status = globalGroup.getStatus();
+		boolean isLogicallyDeleted = globalGroup.getLogicallyDeletedStatus();
 		boolean locallyCreated = globalGroup.isLocallyCreated();
 
 
-		return new GlobalGroupVO(code, name, collections, parent, status, locallyCreated);
+		return new GlobalGroupVO(code, name, collections, parent, isLogicallyDeleted ? GlobalGroupStatus.INACTIVE : GlobalGroupStatus.ACTIVE, locallyCreated);
 	}
 }

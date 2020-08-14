@@ -1,32 +1,31 @@
 package com.constellio.app.services.action;
 
 
-import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.extensions.AppLayerSystemExtensions;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.users.UserServices;
 
 public class UserRecordActionsServices {
 
-	private RMSchemasRecordsServices rm;
-	private RMModuleExtensions rmModuleExtensions;
+	private SchemasRecordsServices core;
 	private AppLayerFactory appLayerFactory;
 	private ModelLayerFactory modelLayerFactory;
 	private String collection;
 	private UserServices userServices;
+	private AppLayerSystemExtensions appLayerSystemExtensions;
 
 	public UserRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
-		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.core = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.userServices = modelLayerFactory.newUserServices();
-		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
+		this.appLayerSystemExtensions = appLayerFactory.getExtensions().getSystemWideExtensions();
 	}
 
 	public boolean isEditActionPossible(Record record, User user) {
@@ -74,4 +73,10 @@ public class UserRecordActionsServices {
 			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS);
 	}
 
+	public boolean isGenerateTokenActionPossibe(Record record, User user) {
+		String username = core.wrapUser(record).getUsername();
+
+		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
+			   && appLayerSystemExtensions.isGenerateTokenActionPossibleOnSystemWideUserInfos(userServices.getUserInfos(username), user);
+	}
 }

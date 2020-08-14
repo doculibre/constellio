@@ -1,18 +1,24 @@
 package com.constellio.app.ui.pages.globalGroup;
 
+import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.GlobalGroupVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
 import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
 import com.constellio.app.ui.framework.data.UserCredentialVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 
@@ -27,6 +33,8 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 
 	private Map<String, String> paramsMap;
 	private String breadCrumb;
+	private SchemasRecordsServices core;
+	private RecordVO pageGroup;
 
 	public DisplayGlobalGroupPresenter(DisplayGlobalGroupView view) {
 		super(view);
@@ -41,12 +49,23 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 
 	private void init() {
 		userServices = modelLayerFactory.newUserServices();
+		this.core = new SchemasRecordsServices(view.getCollection(), view.getConstellioFactories().getModelLayerFactory());
 	}
 
 	public GlobalGroupVO getGlobalGroupVO(String code) {
 		SystemWideGroup globalGroup = userServices.getGroup(code);
 		GlobalGroupToVOBuilder voBuilder = new GlobalGroupToVOBuilder();
 		return voBuilder.build(globalGroup);
+	}
+
+	public void setPageGroup(String code) {
+		Group group = userServices.getGroupInCollection(code, view.getCollection());
+
+		this.pageGroup = new RecordToVOBuilder().build(group.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext());
+	}
+
+	public RecordVO getPageGroup() {
+		return this.pageGroup;
 	}
 
 	public void backButtonClicked() {
@@ -67,34 +86,33 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 		return newUserCredentialVODataProvider(groupCode, voBuilder);
 	}
 
+	public Group getGroup(String groupCode) {
+		return core.getGroupWithCode(groupCode);
+	}
+
 	public GlobalGroupVODataProvider getGlobalGroupVODataProvider() {
 		GlobalGroupToVOBuilder voBuilder = newGlobalGroupVOBuilder();
 		return newGlobalGroupVODataProvider(voBuilder);
 	}
 
-	public void displayUserCredentialButtonClicked(UserCredentialVO entity, String globalGroupCode) {
-		paramsMap.put("username", entity.getUsername());
-		paramsMap.put("globalGroupCode", globalGroupCode);
-		String parameters = getParameters();
-		view.navigate().to().displayUserCredential(parameters);
-
+	public void displayUserCredentialButtonClicked(UserCredentialVO entity) {
+		view.navigate().to().displayUserCredential(entity.getUsername());
 	}
 
-	public void editUserCredentialButtonClicked(UserCredentialVO entity, String globalGroupCode) {
-		paramsMap.put("username", entity.getUsername());
-		paramsMap.put("globalGroupCode", globalGroupCode);
-		String parameters = getParameters();
-		view.navigate().to().editUserCredential(parameters);
+	public void editUserCredentialButtonClicked(UserCredentialVO entity) {
+		view.navigate().to().editUserCredential(entity.getUsername());
 	}
 
 	public void deleteUserCredentialButtonClicked(UserCredentialVO userCredentialVO, String globalGroupCode) {
-		userServices.removeUserFromGlobalGroup(userCredentialVO.getUsername(), globalGroupCode);
+		UserAddUpdateRequest userAddUpdateRequest = userServices.addUpdate(userCredentialVO.getUsername());
+
+		userAddUpdateRequest.removeFromGroupOfCollection(globalGroupCode, collection);
 		view.refreshTable();
 	}
 
 	public void addUserCredentialButtonClicked(String globalGroupCode, String username) {
 		UserAddUpdateRequest userCredentialRequest = userServices.addUpdate(username);
-		userCredentialRequest.addToGroupInEachCollection(globalGroupCode);
+		userCredentialRequest.addToGroupInCollection(globalGroupCode, view.getCollection());
 		userServices.execute(userCredentialRequest);
 		view.refreshTable();
 	}
@@ -121,7 +139,8 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 	private String getParameters() {
 		Map<String, Object> newParamsMap = new HashMap<>();
 		newParamsMap.putAll(paramsMap);
-		return ParamUtils.addParams(breadCrumb + "/" + NavigatorConfigurationService.GROUP_DISPLAY, newParamsMap);
+
+		return ParamUtils.addParams(NavigatorConfigurationService.GROUP_DISPLAY, newParamsMap);
 	}
 
 	public void navigateToBackPage() {
@@ -160,7 +179,11 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 
 	UserCredentialVODataProvider newUserCredentialVODataProvider(String groupCode,
 																 UserCredentialToVOBuilder voBuilder) {
-		return new UserCredentialVODataProvider(voBuilder, modelLayerFactory, groupCode);
+		return new UserCredentialVODataProvider(voBuilder, modelLayerFactory, groupCode, view.getCollection());
+	}
+
+	UserToVOBuilder newUserVOBuilder() {
+		return new UserToVOBuilder();
 	}
 
 	UserCredentialToVOBuilder newUserCredentialVOBuilder() {
@@ -168,7 +191,9 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 	}
 
 	GlobalGroupVODataProvider newGlobalGroupVODataProvider(GlobalGroupToVOBuilder voBuilder) {
-		return new GlobalGroupVODataProvider(voBuilder, modelLayerFactory, true);
+		GlobalGroupVODataProvider globalGroupVODataProvider = new GlobalGroupVODataProvider(voBuilder, modelLayerFactory, true, view.getCollection());
+		globalGroupVODataProvider.setCollection(view.getCollection());
+		return globalGroupVODataProvider;
 	}
 
 	GlobalGroupToVOBuilder newGlobalGroupVOBuilder() {
@@ -176,13 +201,11 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 	}
 
 	public void displaySubGroupCliked(GlobalGroupVO entity) {
-		String parameters = getParameters(entity);
-		view.navigate().to().displayGlobalGroup(parameters);
+		view.navigate().to().displayGlobalGroup(getParameters(entity));
 	}
 
 	public void editSubGroupButtonClicked(GlobalGroupVO entity) {
-		String parameters = getParameters(entity);
-		view.navigate().to().editGlobalGroup(parameters);
+		view.navigate().to().editGlobalGroup(getParameters(entity));
 	}
 
 	public void deleteSubGroupButtonClicked(GlobalGroupVO entity) {
@@ -196,8 +219,8 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 		view.refreshTable();
 	}
 
-	private String getParameters(GlobalGroupVO entity) {
-		Map<String, Object> params = new HashMap<>();
+	private Map<String, String> getParameters(GlobalGroupVO entity) {
+		Map<String, String> params = new HashMap<>();
 		params.putAll(paramsMap);
 		if (entity.getParent() != null) {
 			params.put("parentGlobalGroupCode", entity.getParent());
@@ -205,11 +228,16 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 			params.remove("parentGlobalGroupCode");
 		}
 		params.put("globalGroupCode", entity.getCode());
-		return ParamUtils.addParams(breadCrumb + "/" + NavigatorConfigurationService.GROUP_DISPLAY, params);
+
+		return params;
 	}
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_GROUPS);
+	}
+
+	public void editGroupButtonClicked() {
+		view.navigate().to().editGlobalGroup(pageGroup.get(Group.CODE) + "");
 	}
 }

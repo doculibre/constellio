@@ -1,9 +1,9 @@
 package com.constellio.app.ui.pages.globalGroup;
 
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -142,22 +141,7 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 	}
 
 	private void navigateToBackPage() {
-		String viewNames[] = breadCrumb.split("/");
-		String backPage = viewNames[viewNames.length - 1];
-		breadCrumb = breadCrumb.replace(backPage, "");
-		if (breadCrumb.endsWith("/")) {
-			breadCrumb = breadCrumb.substring(0, breadCrumb.length() - 1);
-		}
-		if (paramsMap.containsKey("parentGlobalGroupCode")) {
-			paramsMap.put("globalGroupCode", paramsMap.get("parentGlobalGroupCode"));
-			paramsMap.remove("parentGlobalGroupCode");
-		}
-		Map<String, Object> newParamsMap = new HashMap<>();
-		newParamsMap.putAll(paramsMap);
-		String parameters = ParamUtils.addParams(breadCrumb, newParamsMap);
-		parameters = cleanParameters(parameters);
-		backPage = correctUrlSlash(backPage, parameters);
-		view.navigate().to().url(backPage + parameters);
+		view.navigate().to(CoreViews.class).previousView();
 	}
 
 	private String correctUrlSlash(String backPage, String parameters) {

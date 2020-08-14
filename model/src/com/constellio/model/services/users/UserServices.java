@@ -983,6 +983,37 @@ public class UserServices {
 				.build();
 	}
 
+	public SystemWideGroup build(Group group, List<String> wideGroupCollections) {
+		String parentCode = null;
+
+		SchemasRecordsServices core = new SchemasRecordsServices(group.getCollection(), modelLayerFactory);
+
+		if (group.getParent() != null) {
+			parentCode = core.getGroup(group.getParent()).getCode();
+		}
+
+		List<String> ancestorsCodes = new ArrayList<>();
+		List<String> ancestorsIds = group.getAncestors();
+		if (ancestorsIds != null) {
+			for (String ancestorId : ancestorsIds) {
+				ancestorsCodes.add(recordServices.getDocumentById(ancestorId).get(Schemas.CODE));
+			}
+		}
+
+		return SystemWideGroup.builder()
+				.code(group.getCode())
+				.name(group.getTitle())
+				.collections(wideGroupCollections)
+				.parent(parentCode)
+				.groupStatus(group.getStatus())
+				.hierarchy(group.getHierarchy())
+				.locallyCreated(group.isLocallyCreated())
+				.logicallyDeletedStatus(group.getLogicallyDeletedStatus())
+				.caption(group.getCaption())
+				.ancestors(ancestorsCodes)
+				.build();
+	}
+
 	public SystemWideGroup build(GroupAddUpdateRequest request) {
 		String parentCode = (String) request.getModifiedAttributes().get(GroupAddUpdateRequest.PARENT);
 		GlobalGroupStatus status = (GlobalGroupStatus) request.getModifiedAttributes().get(GroupAddUpdateRequest.STATUS);
@@ -1402,6 +1433,9 @@ public class UserServices {
 		groupInCollection.set(Group.STATUS, GlobalGroupStatus.ACTIVE);
 		groupInCollection.set(Group.LOCALLY_CREATED, true);
 		groupInCollection.set(LOGICALLY_DELETED_STATUS, group.getLogicallyDeletedStatus());
+		if (!collection.equals(SYSTEM_COLLECTION)) {
+			groupInCollection.set(Group.STATUS, group.getStatus(collection));
+		}
 		groupInCollection.setTitle(group.getName());
 		if (groupInCollection.isDirty()) {
 			transaction.add(groupInCollection.getWrappedRecord());
@@ -2003,12 +2037,12 @@ public class UserServices {
 
 	public List<SystemWideGroup> getActiveGroups() {
 		return streamGroupInfos().filter(g -> g.getGroupStatus() == GlobalGroupStatus.ACTIVE).collect(toList());
-
 	}
 
 	public List<SystemWideGroup> getAllGroups() {
 		return streamGroupInfos().collect(toList());
 	}
+
 
 	public Stream<SystemWideGroup> streamGroupInfos() {
 		//TODO Refact Francis : Improve performance!
