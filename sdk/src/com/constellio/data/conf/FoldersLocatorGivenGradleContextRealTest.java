@@ -18,7 +18,7 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 
 	static File constellio, constellioApp, constellioData, constellioModel, webinf, conf, buildLibs, constellioProperties,
 			constellioSetupProperties, deploy, cmdTxt, uploadConstellioWar, temp, importation, custom, settings, sdk,
-			languageProfiles, dict, appProjectWebContent, bpmns, anotherTemp, smtpMail, i18n, resourcesReports,
+			languageProfiles, dict, appProjectWebContent, bpmns, anotherTemp, smtpMail, i18n, resourcesReports, classesFolder,
 			buildData, vaadin, themes, themesConstellio, themesConstellioImages, crypt, workFolder;
 	FoldersLocator foldersLocator;
 	private static String classpath;
@@ -41,6 +41,7 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 		smtpMail = new File(conf, "smtpMail");
 		appProjectWebContent = new File(constellioApp, "WebContent");
 		languageProfiles = new File(constellio, "languageProfiles");
+		classesFolder = new File(webinf, "classes");
 		dict = new File(constellio, "dict");
 		i18n = new File(constellio, "resources_i18n");
 		settings = new File(conf, "settings");
@@ -139,6 +140,12 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 	public void whenGetConstellioLanguageSchemasFolderThenReturnCorrectFolder()
 			throws Exception {
 		Assertions.assertThat(foldersLocator.getLanguageProfiles().getAbsolutePath()).isEqualTo(languageProfiles.getAbsolutePath());
+	}
+
+	@Test
+	public void whenGetClassesPropFolderThenReturnCorrectFolder()
+			throws Exception {
+		Assertions.assertThat(foldersLocator.getWebClasses().getAbsolutePath()).isEqualTo(classesFolder.getAbsolutePath());
 	}
 
 	@Test

@@ -25,7 +25,7 @@ public class FoldersLocatorGivenTomcatContextRealTest extends ConstellioTestWith
 	static String givenJavaRootFolderIsTomcatInstallationFolder = "givenJavaRootFolderIsTomcatInstallationFolder";
 	static String givenJavaRootFolderIsTomcatWebappFolder = "givenJavaRootFolderIsTomcatWebappFolder";
 	static File constellioProperties, constellioSetupProperties, tomcatInstallationFolder, conf, importation, bin, webapp,
-			webapps, webinf, deploy, temp, uploadConstellioWar, settings, buildData,
+			webapps, webinf, deploy, temp, uploadConstellioWar, settings, buildData, classesFolder,
 			i18n_resources, lib, languageProfiles, dict, bpmns, anotherTemp, smtpMail, crypt;
 	String testCase;
 	FoldersLocator foldersLocator;
@@ -66,6 +66,7 @@ public class FoldersLocatorGivenTomcatContextRealTest extends ConstellioTestWith
 		uploadConstellioWar = new File(tomcatInstallationFolder, "constellio.war");
 		buildData = new File(webapp, "data.txt");
 		languageProfiles = new File(webinf, "languageProfiles");
+		classesFolder = new File(webinf, "classes");
 		i18n_resources = new File(webinf, "i18n_resources");
 		dict = new File(webinf, "dict");
 		crypt = new File(conf, "key.txt");
@@ -142,6 +143,12 @@ public class FoldersLocatorGivenTomcatContextRealTest extends ConstellioTestWith
 	public void whenGetConstellioLanguageSchemasFolderThenReturnCorrectFolder()
 			throws Exception {
 		Assertions.assertThat(foldersLocator.getLanguageProfiles()).is(samePath(languageProfiles));
+	}
+
+	@Test
+	public void whenGetClassesPropFolderThenReturnCorrectFolder()
+			throws Exception {
+		Assertions.assertThat(foldersLocator.getWebClasses()).is(samePath(classesFolder));
 	}
 
 	@Test

@@ -475,6 +475,18 @@ public class FoldersLocator {
 		}
 	}
 
+	public File getWebClasses() {
+		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+			return new File(getConstellioWebinfFolder(), "classes");
+
+		} else if (getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
+			return new File(getConstellioWebinfFolder(), "classes");
+
+		} else {
+			return new File(getConstellioWebappFolder(), "classes");
+		}
+	}
+
 	public File getModulesResourcesFolder() {
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
 			return new File(getConstellioWebinfFolder(), "modules-resources");

@@ -37,7 +37,7 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 	static File constellioWorkspace, constellioPlugins, constellioPluginsSdk, constellio, constellioApp, constellioData, constellioModel, webinf, conf, buildLibs, constellioProperties,
 			constellioSetupProperties, deploy, cmdTxt, uploadConstellioWar, temp, importation, custom, settings, sdk,
 			languageProfiles, dict, appProjectWebContent, bpmns, anotherTemp, smtpMail, i18n, resourcesReports,
-			buildData, vaadin, themes, themesConstellio, themesConstellioImages, crypt,
+			buildData, vaadin, themes, themesConstellio, themesConstellioImages, crypt, classesFolder,
 			modelBuildClassesMainComConstellioModelConf, modelBinComConstellioModelConf, workFolder;
 	String testCase;
 	private FoldersLocator foldersLocator;
@@ -86,8 +86,9 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 		smtpMail = new File(conf, "smtpMail");
 		//appProject = new File(constellio, "app");
 		appProjectWebContent = new File(constellioApp, "WebContent");
-		languageProfiles = new File(constellio, "languageProfiles");
+		classesFolder = new File(constellio, "classes");
 		dict = new File(constellio, "dict");
+		languageProfiles = new File(constellio, "languageProfiles");
 		i18n = new File(constellio, "resources_i18n");
 		settings = new File(conf, "settings");
 		constellioProperties = new File(conf, "constellio.properties");
@@ -209,6 +210,12 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 	public void whenGetConstellioLanguageSchemasFolderThenReturnCorrectFolder()
 			throws Exception {
 		assertThatFile(foldersLocator.getLanguageProfiles()).isEqualTo(languageProfiles);
+	}
+
+	@Test
+	public void whenGetClassesPropFolderThenReturnCorrectFolder()
+			throws Exception {
+		assertThatFile(foldersLocator.getWebClasses()).isEqualTo(classesFolder);
 	}
 
 	@Test
