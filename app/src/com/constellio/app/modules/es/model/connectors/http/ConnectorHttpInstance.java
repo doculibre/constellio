@@ -34,6 +34,8 @@ public class ConnectorHttpInstance extends ConnectorInstance<ConnectorHttpInstan
 	public static final String PASSWORD = "password";
 	public static final String DOMAIN = "domain";
 
+	public static final String IGNORE_ROBOTS_TXT = "ignoreRobotsTxt";
+
 	public ConnectorHttpInstance(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_CODE);
 	}
@@ -163,6 +165,15 @@ public class ConnectorHttpInstance extends ConnectorInstance<ConnectorHttpInstan
 	@Override
 	public ConnectorHttpInstance setTitle(String title) {
 		super.setTitle(title);
+		return this;
+	}
+
+	public boolean isIgnoreRobotsTxt() {
+		return getBooleanWithDefaultValue(IGNORE_ROBOTS_TXT, false);
+	}
+
+	public ConnectorHttpInstance setIgnoreRobotsTxt(boolean ignoreRobotsTxt) {
+		set(IGNORE_ROBOTS_TXT, ignoreRobotsTxt);
 		return this;
 	}
 
