@@ -141,6 +141,8 @@ public class Toggle {
 
 	public static AvailableToggle ENABLE_SIGNATURE = newToggle(false);
 
+	public static AvailableToggle SHOW_STACK_TRACE_UPON_ERRORS = newToggle(false);
+
 	public static AvailableToggle ENABLE_CLOUD_SYSADMIN_FEATURES = newToggle(false);
 
 	public static AvailableToggle VALIDATE_USER_COLLECTIONS = newToggle(true);

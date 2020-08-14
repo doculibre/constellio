@@ -1710,12 +1710,14 @@ public class UserServices {
 			deletedUsers.add(schemas.wrapUser(record));
 		}
 		for (User user : deletedUsers) {
-			LOGGER.info("safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
-			try {
-				physicallyRemoveUser(user, collection);
-			} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
-				LOGGER.warn("Exception on safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
-				nonDeletedUsers.add(user);
+			if (!ADMIN.equals(user.getUsername())) {
+				LOGGER.info("safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
+				try {
+					physicallyRemoveUser(user, collection);
+				} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
+					LOGGER.warn("Exception on safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
+					nonDeletedUsers.add(user);
+				}
 			}
 		}
 

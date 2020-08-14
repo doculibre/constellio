@@ -46,7 +46,7 @@ public class ConstellioImportRecordsServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		PrintWriter writer = response.getWriter();
-		ValidationErrors importErrors;
+		ValidationErrors importErrors = null;
 		Throwable throwable = null;
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory());
 		try {

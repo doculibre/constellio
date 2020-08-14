@@ -4,12 +4,9 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -25,41 +22,55 @@ public class RMMigrationTo9_0_0_45 extends MigrationHelper implements MigrationS
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory)
 			throws Exception {
-		new SchemaAlterationFor9_0_0_45(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new SchemaAlterationFor9_0_0_45_step1_setEssentialInSummary(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
-	class SchemaAlterationFor9_0_0_45 extends MetadataSchemasAlterationHelper {
+	class SchemaAlterationFor9_0_0_45_step1_setEssentialInSummary extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationFor9_0_0_45(String collection, MigrationResourcesProvider migrationResourcesProvider,
-											  AppLayerFactory appLayerFactory) {
+		protected SchemaAlterationFor9_0_0_45_step1_setEssentialInSummary(String collection,
+																		  MigrationResourcesProvider migrationResourcesProvider,
+																		  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+			for (MetadataSchemaBuilder metadataSchemaBuilder : typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getAllSchemas()) {
 
-			MetadataBuilder categoryCode = typesBuilder.getDefaultSchema(Category.SCHEMA_TYPE).getMetadata(Category.CODE);
-			MetadataSchemaBuilder folder = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE);
-			MetadataSchemaBuilder document = typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE);
+				//These cache insertions are necessary to avoid queries with document add/updates
+				metadataSchemaBuilder.get(Folder.OPENING_DATE).setEnabled(true);
+				metadataSchemaBuilder.get(Folder.CLOSING_DATE).setEnabled(true);
+				metadataSchemaBuilder.get(Folder.ACTUAL_DEPOSIT_DATE).setEnabled(true);
+				metadataSchemaBuilder.get(Folder.ACTUAL_DESTRUCTION_DATE).setEnabled(true);
+				metadataSchemaBuilder.get(Folder.ACTUAL_TRANSFER_DATE).setEnabled(true);
+				metadataSchemaBuilder.get(Folder.EXPECTED_DESTRUCTION_DATE).setEnabled(true);
+				metadataSchemaBuilder.get(Folder.EXPECTED_TRANSFER_DATE).setEnabled(true);
+				metadataSchemaBuilder.get(Folder.EXPECTED_DEPOSIT_DATE).setEnabled(true);
+				metadataSchemaBuilder.get(Schemas.CAPTION).setEnabled(true);
+				metadataSchemaBuilder.get(Schemas.SCHEMA_AUTOCOMPLETE_FIELD).setEnabled(true);
+				metadataSchemaBuilder.get(Folder.MAIN_COPY_RULE).setEnabled(true);
+				metadataSchemaBuilder.get(Schemas.PATH).setEnabled(true);
+				metadataSchemaBuilder.get(Schemas.ALL_REMOVED_AUTHS).setEnabled(true);
+				metadataSchemaBuilder.get(Schemas.ATTACHED_ANCESTORS).setEnabled(true);
+			}
+
+			MetadataSchemaBuilder defaultSchemaaBuilder = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
 
 			//These cache insertions are necessary to avoid queries with document add/updates
-			folder.get(Folder.OPENING_DATE).setEnabled(true).setEssentialInSummary(true);
-			folder.get(Folder.CLOSING_DATE).setEnabled(true).setEnabled(true).setEssentialInSummary(true);
-			folder.get(Folder.ACTUAL_DEPOSIT_DATE).setEnabled(true).setEssentialInSummary(true);
-			folder.get(Folder.ACTUAL_DESTRUCTION_DATE).setEnabled(true).setEssentialInSummary(true);
-			folder.get(Folder.ACTUAL_TRANSFER_DATE).setEnabled(true).setEssentialInSummary(true);
-			folder.get(Folder.EXPECTED_DESTRUCTION_DATE).setEnabled(true).setEssentialInSummary(true);
-			folder.get(Folder.EXPECTED_TRANSFER_DATE).setEnabled(true).setEssentialInSummary(true);
-			folder.get(Folder.EXPECTED_DEPOSIT_DATE).setEnabled(true).setEssentialInSummary(true);
-			folder.get(Schemas.CAPTION).setEnabled(true).setEssentialInSummary(true);
-			folder.get(Schemas.SCHEMA_AUTOCOMPLETE_FIELD).setEnabled(true).setEssentialInSummary(true);
-			folder.get(Folder.MAIN_COPY_RULE).setEnabled(true).setEssentialInSummary(true);
-			folder.get(Schemas.PATH).setEnabled(true).setEssentialInSummary(true);
-			folder.get(Schemas.ALL_REMOVED_AUTHS).setEnabled(true).setEssentialInSummary(true);
-			folder.get(Schemas.ATTACHED_ANCESTORS).setEnabled(true).setEssentialInSummary(true);
-
-			document.get(Document.FOLDER_CATEGORY_CODE).defineDataEntry().asCopied(folder.get(Document.FOLDER_CATEGORY), categoryCode);
-
+			defaultSchemaaBuilder.get(Folder.OPENING_DATE).setEssentialInSummary(true);
+			defaultSchemaaBuilder.get(Folder.CLOSING_DATE).setEssentialInSummary(true);
+			defaultSchemaaBuilder.get(Folder.ACTUAL_DEPOSIT_DATE).setEssentialInSummary(true);
+			defaultSchemaaBuilder.get(Folder.ACTUAL_DESTRUCTION_DATE).setEssentialInSummary(true);
+			defaultSchemaaBuilder.get(Folder.ACTUAL_TRANSFER_DATE).setEssentialInSummary(true);
+			defaultSchemaaBuilder.get(Folder.EXPECTED_DESTRUCTION_DATE).setEssentialInSummary(true);
+			defaultSchemaaBuilder.get(Folder.EXPECTED_TRANSFER_DATE).setEssentialInSummary(true);
+			defaultSchemaaBuilder.get(Folder.EXPECTED_DEPOSIT_DATE).setEssentialInSummary(true);
+			defaultSchemaaBuilder.get(Schemas.CAPTION).setEssentialInSummary(true);
+			defaultSchemaaBuilder.get(Schemas.SCHEMA_AUTOCOMPLETE_FIELD).setEssentialInSummary(true);
+			defaultSchemaaBuilder.get(Folder.MAIN_COPY_RULE).setEssentialInSummary(true);
+			defaultSchemaaBuilder.get(Schemas.PATH).setEssentialInSummary(true);
+			defaultSchemaaBuilder.get(Schemas.ALL_REMOVED_AUTHS).setEssentialInSummary(true);
+			defaultSchemaaBuilder.get(Schemas.ATTACHED_ANCESTORS).setEssentialInSummary(true);
 		}
 	}
 }
