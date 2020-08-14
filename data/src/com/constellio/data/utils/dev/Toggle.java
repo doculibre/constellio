@@ -10,6 +10,9 @@ import java.util.Map;
 
 public class Toggle {
 
+
+	public static AvailableToggle EXPORT_SAVESTATES_USING_WITH_FAILSAFE = newToggle(true);
+
 	public static AvailableToggle SDK_CACHE_INTEGRITY_VALIDATION = newToggle(false);
 	public static AvailableToggle SDK_REQUEST_CACHE_VALIDATION = newToggle();
 
@@ -23,6 +26,7 @@ public class Toggle {
 	public static AvailableToggle FORCE_ROLLBACK = newToggle();
 	public static AvailableToggle LOST_PRIVATE_KEY = newToggle();
 	public static AvailableToggle EXTERNAL_TOKENS_DISABLED = newToggle();
+	public static AvailableToggle MARKED_RECORDS_IN_SAVESTATES_DISABLED = newToggle();
 	public static AvailableToggle NO_WEBSERVICES_PASSWORDS_VALIDATIONS = newToggle();
 	public static AvailableToggle STORAGE_SPACE_CAPACITIY_VALIDATION = newToggle(true);
 	public static AvailableToggle ALERT_USERS_EMAIL = newToggle(true);

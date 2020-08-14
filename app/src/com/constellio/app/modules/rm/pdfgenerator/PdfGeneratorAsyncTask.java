@@ -58,6 +58,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static com.constellio.data.dao.services.contents.ContentDao.MoveToVaultOption.ONLY_IF_INEXISTING;
+
 public class PdfGeneratorAsyncTask implements AsyncTask {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PdfGeneratorAsyncTask.class);
@@ -437,7 +439,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 		try {
 			inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION);
 			File file = conversionManager.convertToPDF(inputStream, filename, tempFolder);
-			contentDao.moveFileToVault(file, hash + ".preview");
+			contentDao.moveFileToVault(hash + ".preview", file, ONLY_IF_INEXISTING);
 		} catch (Throwable t) {
 			LOGGER.warn("Cannot convert content '" + filename + "' with hash '" + hash + "'", t);
 		} finally {

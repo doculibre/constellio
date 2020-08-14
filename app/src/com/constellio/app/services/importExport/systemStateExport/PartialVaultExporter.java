@@ -12,7 +12,6 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -61,22 +60,12 @@ public class PartialVaultExporter {
 		}
 
 		for (String hash : hashes) {
-			File srcFile = contentDao.getFileOf(hash);
-			File parentFolder = srcFile.getParentFile();
-
 			for (String filename : asList(hash, hash + "__parsed", hash + ".preview")) {
-				File fileToCopy = new File(parentFolder, filename);
-				if (fileToCopy.exists()) {
-					File destFile = new File(fileToCopy.getAbsolutePath()
-							.replace(contentDaoBaseFolder.getAbsolutePath(), exportedPartialFolder.getAbsolutePath()));
+				contentDao.readonlyConsumeIfExists(filename, (f) -> {
+					File destFile = new File(exportedPartialFolder, contentDao.getLocalRelativePath(filename));
 					destFile.getParentFile().mkdirs();
-					try {
-						FileUtils.copyFile(srcFile, destFile);
-
-					} catch (IOException e) {
-						throw new RuntimeException(e);
-					}
-				}
+					FileUtils.copyFile(f, destFile);
+				});
 			}
 		}
 
