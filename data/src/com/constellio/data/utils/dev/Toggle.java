@@ -33,6 +33,7 @@ public class Toggle {
 	public static AvailableToggle FORCE_ROLLBACK = newToggle();
 	public static AvailableToggle LOST_PRIVATE_KEY = newToggle();
 	public static AvailableToggle EXTERNAL_TOKENS_DISABLED = newToggle();
+	public static AvailableToggle MARKED_RECORDS_IN_SAVESTATES_DISABLED = newToggle();
 	public static AvailableToggle NO_WEBSERVICES_PASSWORDS_VALIDATIONS = newToggle();
 	public static AvailableToggle STORAGE_SPACE_CAPACITIY_VALIDATION = newToggle(true);
 	public static AvailableToggle ALERT_USERS_EMAIL = newToggle(true);
