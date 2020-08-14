@@ -43,6 +43,7 @@ import com.constellio.app.modules.es.migrations.ESMigrationTo8_0;
 import com.constellio.app.modules.es.migrations.ESMigrationTo8_0_1;
 import com.constellio.app.modules.es.migrations.ESMigrationTo8_0_2;
 import com.constellio.app.modules.es.migrations.ESMigrationTo8_1_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo8_3_1_54;
 import com.constellio.app.modules.es.migrations.ESMigrationTo9_0;
 import com.constellio.app.modules.es.migrations.ESMigrationTo9_0_3;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
