@@ -74,9 +74,7 @@ public class ApplicationStarter {
 		handler.setClassLoader(Thread.currentThread().getContextClassLoader());
 
 		handler.getSessionHandler().getSessionCookieConfig().setHttpOnly(true);
-		if (params.isSSL() || params.isForceSecuredCookies()) {
-			handler.getSessionHandler().getSessionCookieConfig().setSecure(true);
-		}
+		//https://bugs.eclipse.org/bugs/show_bug.cgi?id=326612 secure cookie is already enable automatically
 
 		server.setHandler(handler);
 
