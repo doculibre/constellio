@@ -111,6 +111,7 @@ import static com.constellio.app.services.schemas.bulkImport.Resolver.toResolver
 import static com.constellio.data.utils.LangUtils.replacingLiteral;
 import static com.constellio.data.utils.ThreadUtils.iterateOverRunningTaskInParallel;
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -1292,7 +1293,7 @@ public class RecordsImportServicesExecutor {
 
 		if (!resolverCache.isAvailable(referenceType, resolver.metadata, resolver.value)) {
 
-			if (isReferenceInReversedOrder(metadata)) {
+			if (isReferenceInReversedOrder(metadata) || isSelfReferencingUSR(metadata)) {
 				if (typeBatchImportContext.typeImportContext.secondPhaseImport) {
 					throw new SkippedBecauseOfFailedDependency();
 
@@ -1346,6 +1347,12 @@ public class RecordsImportServicesExecutor {
 
 			return resolvedValue;
 		}
+	}
+
+	private boolean isSelfReferencingUSR(Metadata metadata) {
+		return metadata.getLocalCode().startsWith("USR")
+			   && metadata.getType() == REFERENCE
+			   && metadata.getReferencedSchemaType().getCode().equals(metadata.getSchemaTypeCode());
 	}
 
 	private boolean isReferenceInReversedOrder(Metadata metadata) {

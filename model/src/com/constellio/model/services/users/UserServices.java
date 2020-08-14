@@ -639,7 +639,11 @@ public class UserServices {
 				throw new UserCredentialsManagerRuntimeException_CannotExecuteTransaction(e);
 			}
 		} else {
-			userCredentialsManager.addUpdate(savedUserCredential);
+			try {
+				modelLayerFactory.newRecordServices().add(userCredential);
+			} catch (RecordServicesException e) {
+				throw new UserCredentialsManagerRuntimeException_CannotExecuteTransaction(e);
+			}
 		}
 
 		//sync(toSystemWideUserInfos(savedUserCredential));
@@ -743,14 +747,9 @@ public class UserServices {
 
 
 	public SystemWideUserInfos getUserInfos(String username) {
-		UserCredential credential = userCredentialsManager.getUserCredential(username);
-		if (credential == null) {
-			throw new UserServicesRuntimeException_NoSuchUser(username);
-		}
-
-
-		return toSystemWideUserInfos(credential);
+		return toSystemWideUserInfos(getUserCredential(username));
 	}
+
 
 	private SystemWideUserInfos toSystemWideUserInfos(UserCredential credential) {
 		List<String> collections = new ArrayList<>();
@@ -878,7 +877,7 @@ public class UserServices {
 	}
 
 	public UserCredential getUser(String username) {
-		UserCredential credential = userCredentialsManager.getUserCredential(username);
+		UserCredential credential = getUserCredential(username);
 		if (credential == null) {
 			throw new UserServicesRuntimeException_NoSuchUser(username);
 		}
@@ -886,7 +885,7 @@ public class UserServices {
 	}
 
 	public UserCredential getUserConfigs(String username) {
-		UserCredential credential = userCredentialsManager.getUserCredential(username);
+		UserCredential credential = getUserCredential(username);
 		if (credential == null) {
 			throw new UserServicesRuntimeException_NoSuchUser(username);
 		}
@@ -1728,12 +1727,14 @@ public class UserServices {
 			deletedUsers.add(schemas.wrapUser(record));
 		}
 		for (User user : deletedUsers) {
-			LOGGER.info("safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
-			try {
-				physicallyRemoveUser(user, collection);
-			} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
-				LOGGER.warn("Exception on safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
-				nonDeletedUsers.add(user);
+			if (!ADMIN.equals(user.getUsername())) {
+				LOGGER.info("safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
+				try {
+					physicallyRemoveUser(user, collection);
+				} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
+					LOGGER.warn("Exception on safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
+					nonDeletedUsers.add(user);
+				}
 			}
 		}
 

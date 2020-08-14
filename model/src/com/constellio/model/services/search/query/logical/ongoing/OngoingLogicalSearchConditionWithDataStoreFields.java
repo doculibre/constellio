@@ -78,6 +78,14 @@ public class OngoingLogicalSearchConditionWithDataStoreFields {
 		return isAny(logicalSearchValueConditionList);
 	}
 
+	public LogicalSearchCondition isContainingTextFromAny(List<String> values) {
+		List<LogicalSearchValueCondition> logicalSearchValueConditionList = new ArrayList<>();
+		for (String value : values) {
+			logicalSearchValueConditionList.add(LogicalSearchQueryOperators.containingText(value));
+		}
+		return isAny(logicalSearchValueConditionList);
+	}
+
 	public LogicalSearchCondition isEndingWithText(String value) {
 		return is(LogicalSearchQueryOperators.endingWithText(value));
 	}

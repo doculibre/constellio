@@ -27,7 +27,6 @@ public class CreateBaseSaveStateBackgroundAction implements Runnable {
 			lastGenerate = TimeProvider.getLocalDate();
 		}
 
-
 	}
 
 	protected boolean isOfficeHours() {

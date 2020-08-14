@@ -1043,6 +1043,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	void selectRecordVO(Object itemId, ItemClickEvent event, boolean reload) {
 		Object newSelectedItemId = itemId;
 		table.setValue(newSelectedItemId);
+		table.refreshRenderedCells();
 
 		Boolean compressionChange;
 		if (selectedItemId == null && newSelectedItemId != null) {

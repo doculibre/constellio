@@ -12,6 +12,7 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
@@ -70,7 +71,13 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout vertical = new VerticalLayout();
+		vertical.setSpacing(false);
 		buildDateFields();
+
+		Label label = new Label($("PublishDocumentView.viewTitle", record.getTitle()));
+		label.addStyleName("h1");
+		label.setCaptionAsHtml(true);
+
 		BaseForm baseForm = new BaseForm<DocumentVO>(
 				new DocumentVO(record), this, publishStartDate, publishEndDate) {
 
@@ -98,7 +105,9 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 			}
 		};
 		//		vertical.addComponent(buildLabel());
+		vertical.addComponent(label);
 		vertical.addComponent(baseForm);
+		vertical.setComponentAlignment(baseForm, Alignment.MIDDLE_CENTER);
 		return vertical;
 	}
 
