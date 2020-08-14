@@ -23,6 +23,13 @@ public class TempFileUpload implements Serializable {
 		this.tempFile = tempFile;
 	}
 
+	public void replaceTempFile(File newFile) {
+		delete();
+
+		this.length = newFile.length();
+		this.tempFile = newFile;
+	}
+
 	public final String getFileName() {
 		return fileName;
 	}

@@ -66,7 +66,7 @@ public class ListExcelReportPresenterAcceptanceTest extends ConstellioTest {
 		List<String> possibleSchema = asList("containerRecord", "document", "connectorHttpDocument", "connectorSmbDocument",
 				"folder", "storageSpace", "userTask", "connectorLdapUserDocument");
 		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection)
-				.build(new FakeDataStoreTypeFactory(), getModelLayerFactory());
+				.build(new FakeDataStoreTypeFactory());
 		int compteur = 0;
 		for (String schema : possibleSchema) {
 			String titleTest = "test " + (++compteur);

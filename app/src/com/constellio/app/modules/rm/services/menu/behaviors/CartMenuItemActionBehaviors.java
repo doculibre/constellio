@@ -72,6 +72,7 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
@@ -280,7 +281,12 @@ public class CartMenuItemActionBehaviors {
 			button = new DeleteButton(false) {
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					deletionRequested(null, cart, params);
+					try {
+						deletionRequested(null, cart, params);
+					} catch (RecordDeleteServicesRuntimeException e) {
+						params.getView().showMessage(i18n.$("deletionFailed") + "\n" + MessageUtils.toMessage(e));
+						return;
+					}
 				}
 
 				@Override
@@ -294,7 +300,12 @@ public class CartMenuItemActionBehaviors {
 			button = new DeleteWithJustificationButton(false) {
 				@Override
 				protected void deletionConfirmed(String reason) {
-					deletionRequested(reason, cart, params);
+					try {
+						deletionRequested(reason, cart, params);
+					} catch (RecordDeleteServicesRuntimeException e) {
+						params.getView().showMessage(i18n.$("deletionFailed") + "\n" + MessageUtils.toMessage(e));
+						return;
+					}
 				}
 
 				@Override

@@ -34,7 +34,7 @@ public abstract class RenameDialogButton extends WindowButton {
 	@Override
 	protected Component buildWindowContent() {
 		final TextField title = new BaseTextField();
-		title.setValue(originalValue);
+		title.setValue(this.getOriginalValue());
 		title.setWidth("100%");
 
 		final Button save = new BaseButton($("DisplayDocumentView.renameContentConfirm")) {

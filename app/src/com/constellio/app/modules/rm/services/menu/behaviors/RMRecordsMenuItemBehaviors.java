@@ -48,6 +48,8 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.BaseLink;
+import com.constellio.app.ui.framework.buttons.ContainersButton;
+import com.constellio.app.ui.framework.buttons.ContainersButton.ContainersAssigner;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
@@ -59,6 +61,7 @@ import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -71,11 +74,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.ContentVersion;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -89,6 +87,7 @@ import com.constellio.model.services.emails.EmailServices;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -127,7 +126,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.Map;
 
 import static com.constellio.app.ui.framework.clipboard.CopyToClipBoard.copyConsultationLinkToClipBoard;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -819,7 +817,12 @@ public class RMRecordsMenuItemBehaviors {
 			button = new DeleteButton(false) {
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					deletionRequested(null, recordIds, params);
+					try {
+						deletionRequested(null, recordIds, params);
+					} catch (RecordDeleteServicesRuntimeException e) {
+						params.getView().showMessage(i18n.$("deletionFailed") + "\n" + MessageUtils.toMessage(e));
+						return;
+					}
 					Page.getCurrent().reload();
 				}
 
@@ -838,7 +841,12 @@ public class RMRecordsMenuItemBehaviors {
 			button = new DeleteWithJustificationButton(false) {
 				@Override
 				protected void deletionConfirmed(String reason) {
-					deletionRequested(reason, recordIds, params);
+					try {
+						deletionRequested(reason, recordIds, params);
+					} catch (RecordDeleteServicesRuntimeException e) {
+						params.getView().showMessage(i18n.$("deletionFailed") + "\n" + MessageUtils.toMessage(e));
+						return;
+					}
 					Page.getCurrent().reload();
 				}
 
@@ -1201,5 +1209,33 @@ public class RMRecordsMenuItemBehaviors {
 
 	private List<Record> getSelectedRecords(List<String> selectedRecordIds) {
 		return recordServices.getRecordsById(collection, selectedRecordIds);
+	}
+
+	public void putInContainer(List<String> ids, MenuItemActionBehaviorParams params) {
+		ContainersAssigner selector = new ContainersAssigner() {
+			@Override
+			public void putRecordsInContainer(String containerId) {
+				Transaction transaction = new Transaction();
+				if (containerId == null) {
+					log.error("Invalid null container", containerId);
+					return;
+				}
+				ContainerRecord container = rm.getContainerRecord(containerId);
+				if (container == null) {
+					log.error("Invalid null container", containerId);
+					return;
+				}
+				//TODO by batch
+				for (String recordId : ids) {
+					transaction.add(rm.getFolder(recordId).setContainer(container));
+				}
+				try {
+					recordServices.executeHandlingImpactsAsync(transaction);
+				} catch (RecordServicesException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		};
+		new ContainersButton(selector).click();
 	}
 }

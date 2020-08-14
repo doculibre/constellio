@@ -22,7 +22,7 @@ public class RobotBreadcrumbTrailPresenter implements Serializable {
 	public RobotBreadcrumbTrailPresenter createItems() {
 		for (Robot robot : service().loadAncestors(robotId)) {
 			String id = robot.getId();
-			String caption = getCaptionForRecord(robot.getWrappedRecord(), trail.getSessionContext().getCurrentLocale());
+			String caption = getCaptionForRecord(robot.getWrappedRecord(), trail.getSessionContext().getCurrentLocale(), true);
 			boolean current = robotId.equals(id);
 			trail.addItem(new RobotBreadcrumbItem(id, caption, !current));
 		}

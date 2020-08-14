@@ -183,14 +183,11 @@ public class FolderRecordActionsServices {
 			   rmModuleExtensions.isCreateDecommissioningListActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
-	// linkTo
-
-	public boolean isAddAuthorizationActionPossible(Record record, User user) {
-		return isEditActionPossible(record, user) &&
-			   user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(record) &&
-			   user.hasWriteAndDeleteAccess().on(record) &&
+	public boolean isViewOrAddAuthorizationActionPossible(Record record, User user) {
+		return ((user.has(RMPermissionsTo.VIEW_FOLDER_AUTHORIZATIONS).on(record) && user.hasReadAccess().on(record))
+				|| (isEditActionPossible(record, user) && user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(record) && user.hasWriteAndDeleteAccess().on(record))) &&
 			   !record.isLogicallyDeleted() &&
-			   rmModuleExtensions.isAddAuthorizationActionPossibleOnFolder(rm.wrapFolder(record), user);
+			   rmModuleExtensions.isViewOrAddAuthorizationActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
 	public boolean isShareActionPossible(Record record, User user) {
@@ -341,4 +338,7 @@ public class FolderRecordActionsServices {
 		return user.has(RMPermissionsTo.USE_MY_CART).globally();
 	}
 
+	public boolean isPutInContainerActionPossible(Record record, User user) {
+		return Toggle.PUT_IN_CONTAINER_ACTION.isEnabled() && hasUserWriteAccess(record, user);
+	}
 }

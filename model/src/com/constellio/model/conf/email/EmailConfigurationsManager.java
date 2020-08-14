@@ -45,7 +45,7 @@ public class EmailConfigurationsManager
 																final String collection) {
 		validateEmailConfiguration(emailServerConfiguration);
 
-		String encryptedPassword = modelLayerFactory.newEncryptionServices().encrypt(emailServerConfiguration.getPassword());
+		String encryptedPassword = (String) modelLayerFactory.newEncryptionServices().encryptWithAppKey(emailServerConfiguration.getPassword());
 		final EmailServerConfiguration emailServerConfigurationToBeSaved = new BaseEmailServerConfiguration(
 				emailServerConfiguration.getUsername(),
 				encryptedPassword, emailServerConfiguration.getDefaultSenderEmail(),
@@ -80,7 +80,7 @@ public class EmailConfigurationsManager
 		validateEmailConfiguration(emailServerConfiguration);
 		final EmailServerConfiguration emailServerConfigurationToBeSaved;
 		if (encryptPassword) {
-			String encryptedPassword = modelLayerFactory.newEncryptionServices().encrypt(emailServerConfiguration.getPassword());
+			String encryptedPassword = (String) modelLayerFactory.newEncryptionServices().encryptWithAppKey(emailServerConfiguration.getPassword());
 			emailServerConfigurationToBeSaved = new BaseEmailServerConfiguration(emailServerConfiguration.getUsername(),
 					encryptedPassword, emailServerConfiguration.getDefaultSenderEmail(),
 					emailServerConfiguration.getProperties(), emailServerConfiguration.isEnabled());
@@ -132,7 +132,7 @@ public class EmailConfigurationsManager
 			return config;
 		} else if (config != null) {
 			String password = config.getPassword();
-			String decryptedPassword = modelLayerFactory.newEncryptionServices().decrypt(password);
+			String decryptedPassword = (String) modelLayerFactory.newEncryptionServices().decryptWithAppKey(password);
 
 			return new BaseEmailServerConfiguration(config.getUsername(), decryptedPassword, config.getDefaultSenderEmail(),
 					config.getProperties(), config.isEnabled());

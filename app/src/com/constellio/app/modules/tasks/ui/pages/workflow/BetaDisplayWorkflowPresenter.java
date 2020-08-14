@@ -21,9 +21,12 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,6 +36,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class BetaDisplayWorkflowPresenter extends SingleSchemaBasePresenter<BetaDisplayWorkflowView> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(BetaDisplayWorkflowPresenter.class);
+
 	private BetaWorkflowVO workflowVO;
 	private List<BetaWorkflowTaskVO> workflowTaskVOs;
 	private transient BetaWorkflowServices workflowServices;
@@ -103,6 +108,9 @@ public class BetaDisplayWorkflowPresenter extends SingleSchemaBasePresenter<Beta
 			view.navigate().to(TaskViews.class).listWorkflows();
 		} catch (RecordServicesRuntimeException_CannotLogicallyDeleteRecord exception) {
 			view.showErrorMessage(MessageUtils.toMessage(exception));
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
 		}
 	}
 
@@ -175,7 +183,7 @@ public class BetaDisplayWorkflowPresenter extends SingleSchemaBasePresenter<Beta
 										 BetaWorkflowTaskVO workflowTaskVO) {
 		try {
 			SessionContext sessionContext = view.getSessionContext();
-			Record workflowRecord = toRecord(workflowVO);
+			Record workflowRecord = recordServices().getDocumentById(workflowTaskVO.getId());
 			BetaWorkflow workflow = new BetaWorkflow(workflowRecord, types());
 			if (!decisions.isEmpty()) {
 				workflowServices.createDecisionModelTaskAfter(workflow, workflowTaskVO, taskType, taskTitle, decisions,

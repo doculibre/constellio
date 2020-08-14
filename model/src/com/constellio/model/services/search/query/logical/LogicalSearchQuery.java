@@ -21,7 +21,6 @@ import com.constellio.model.services.search.query.SearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.security.SecurityTokenManager;
-import com.constellio.model.services.security.SecurityTokenManager.UserTokens;
 import lombok.Getter;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -717,10 +716,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 		@Override
 		public boolean isExecutableInCache() {
-			SecurityTokenManager securityTokenManager = user.getRolesDetails().getSchemasRecordsServices()
-					.getModelLayerFactory().getSecurityTokenManager();
-			UserTokens tokens = securityTokenManager.getTokens(user);
-			return forSelectionOfSchemaType == null && tokens.getAllowTokens().isEmpty() && tokens.getShareAllowTokens().isEmpty();
+			return forSelectionOfSchemaType == null;
 		}
 
 		@Override

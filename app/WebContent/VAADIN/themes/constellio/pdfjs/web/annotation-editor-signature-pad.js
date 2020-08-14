@@ -61,32 +61,34 @@ SignaturePadAnnotationEditor.prototype.initSignaturePad = function(annotation, a
 		var signaturePadActionsElement = document.createElement("div");
 		//signaturePadActionsElement.classList.add("signature-pad--actions");
 		
-		var clearButton = document.createElement("button");
-		clearButton.onclick = function(e) {
+		this.clearButton = document.createElement("button");
+		this.clearButton.onclick = function(e) {
 			self.signaturePad.clear();
 		};
-		clearButton.innerHTML = this.i10n("buttons.clear", "Clear");
+		this.clearButton.innerHTML = this.i10n("buttons.clear", "Clear");
 		
-		var undoButton = document.createElement("button");
-		undoButton.onclick = function(e) {
+		this.undoButton = document.createElement("button");
+		this.undoButton.onclick = function(e) {
 			var data = self.signaturePad.toData();
 			if (data) {
 				data.pop(); // remove the last dot or line
 				self.signaturePad.fromData(data);
 			}
 		};
-		undoButton.innerHTML = this.i10n("buttons.undo", "Undo");	
+		this.undoButton.innerHTML = this.i10n("buttons.undo", "Undo");	
 
 		signaturePadContainerElement.appendChild(signaturePadElement);
 		signaturePadElement.appendChild(signaturePadBodyElement);
 		signaturePadBodyElement.appendChild(this.canvasElement);
 		signaturePadContainerElement.appendChild(signaturePadFooterElement);
-		signaturePadFooterElement.appendChild(descriptionElement);
+		//signaturePadFooterElement.appendChild(descriptionElement);
 		signaturePadFooterElement.appendChild(signaturePadActionsElement);
-		actionButtonsElement.appendChild(clearButton);
-		actionButtonsElement.appendChild(undoButton);
 		
 		this.formElement = signaturePadContainerElement;
+	}
+	if (!document.body.contains(this.clearButton)) {
+		actionButtonsElement.appendChild(this.clearButton);
+		actionButtonsElement.appendChild(this.undoButton);
 	}
 };	
 

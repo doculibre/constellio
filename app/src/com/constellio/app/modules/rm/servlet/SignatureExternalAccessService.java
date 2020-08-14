@@ -39,21 +39,23 @@ public class SignatureExternalAccessService {
 		schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, appLayerFactory.getModelLayerFactory());
 	}
 
-	public String accessExternalSignature(String accessId, String token, String language)
+	public String accessExternalSignature(String accessId, String token, String language, String ipAddress)
 			throws SignatureExternalAccessServiceException {
 
 		SignatureExternalAccessDao dao = new SignatureExternalAccessDao(appLayerFactory);
-		return dao.accessExternalSignature(accessId, token, language);
+		return dao.accessExternalSignature(accessId, token, language, ipAddress);
 	}
 
 	public String createExternalSignatureUrl(String authorization, String serviceKey, String documentId,
-											 String externalUserFullname, String expirationDate, String language)
+											 String externalUserFullname, String externalUserEmail,
+											 String expirationDate, String language)
 			throws SignatureExternalAccessServiceException {
 
 		validateAuth(authorization, serviceKey);
 
 		SignatureExternalAccessDao dao = new SignatureExternalAccessDao(appLayerFactory);
-		return dao.createExternalSignatureUrl(getUsernameByServiceKey(serviceKey), documentId, externalUserFullname, expirationDate, language);
+		return dao.createExternalSignatureUrl(getUsernameByServiceKey(serviceKey), documentId, externalUserFullname,
+				externalUserEmail, expirationDate, language);
 	}
 
 	private void validateAuth(String authorization, String serviceKey)

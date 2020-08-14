@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.wrappers.triggers.TriggerAction;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -68,11 +69,16 @@ public class TriggerActionWindowForm extends WindowButton {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
 				recordForm.commit();
-				RecordVO newActionTriggerVO = presenter.changeSchemaAfterTypeChange(triggerActionVO, isAdd);
-				if (newActionTriggerVO != null) {
-					RecordForm newActionTriggerForm = getNewActionTriggerForm(newActionTriggerVO);
-					mainLayout.replaceComponent(actionTriggerForm, newActionTriggerForm);
-					actionTriggerForm = newActionTriggerForm;
+				try {
+					RecordVO newActionTriggerVO = presenter.changeSchemaAfterTypeChange(triggerActionVO, isAdd);
+					if (newActionTriggerVO != null) {
+						RecordForm newActionTriggerForm = getNewActionTriggerForm(newActionTriggerVO);
+						mainLayout.replaceComponent(actionTriggerForm, newActionTriggerForm);
+						actionTriggerForm = newActionTriggerForm;
+					}
+				} catch (OptimisticLockException e) {
+					// FIXME
+					throw new RuntimeException(e);
 				}
 			}
 		});

@@ -115,7 +115,7 @@ public class AuthorizationToVOBuilder extends RecordToVOBuilder implements Seria
 							   receivedFromMetadata.getLabel(withLocale(sessionContext.getCurrentLocale()));
 
 		String recordCaption = receivedFromValue == null ? null : getCaptionForRecord(receivedFromValue,
-				sessionContext.getCurrentLocale());
+				sessionContext.getCurrentLocale(), true);
 		String authorizationType = authorization.isNegative() ? $(DISABLE) : $(ENABLE);
 		AuthorizationVO authorizationVO = new AuthorizationVO(users, groups, records, accessRoles, userRoles, userRolesTitles,
 				authorization.getId(), authorization.getStartDate(),

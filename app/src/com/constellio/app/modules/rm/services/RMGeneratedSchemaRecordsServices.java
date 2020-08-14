@@ -1206,6 +1206,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("contentHashes");
 		}
 
+		public Metadata isCheckoutAlertSent() {
+			return metadata("isCheckoutAlertSent");
+		}
+
 		public Metadata copyStatus() {
 			return metadata("copyStatus");
 		}
@@ -1216,6 +1220,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata documentType() {
 			return metadata("documentType");
+		}
+
+		public Metadata encryptionKey() {
+			return metadata("encryptionKey");
 		}
 
 		public Metadata essential() {
@@ -1256,10 +1264,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata inheritedRetentionRule() {
 			return metadata("inheritedRetentionRule");
-		}
-
-		public Metadata isCheckoutAlertSent() {
-			return metadata("isCheckoutAlertSent");
 		}
 
 		public Metadata isModel() {
@@ -1705,6 +1709,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	public class SchemaTypeShortcuts_folder_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_folder_default(String schemaCode) {
 			super(schemaCode);
+		}
+
+		public Metadata abbreviation() {
+			return metadata("abbreviation");
 		}
 
 		public Metadata activeRetentionPeriodCode() {

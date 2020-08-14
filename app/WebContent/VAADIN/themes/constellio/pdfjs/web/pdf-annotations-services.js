@@ -9,63 +9,7 @@ function PDFAnnotationsServices(config) {
 }
 
 PDFAnnotationsServices.prototype.fromJSON = function(json) {
-	var pdfAnnotations = new PDFAnnotations(json["version"]);
-	var pagesAndAnnotationJSONs = json["pagesAndAnnotations"];
-
-	var pageNumbers = Object.keys(pagesAndAnnotationJSONs)
-	for (var i = 0; i < pageNumbers.length; i++) {
-		var pageNumber = pageNumbers[i];
-		var pageAnnotations = [];
-		var pageAnnotationJSONs = pagesAndAnnotationJSONs[pageNumber];
-		for (var j = 0; j < pageAnnotationJSONs.length; j++) {
-			var pageAnnotationJSON = pageAnnotationJSONs[j];
-			var pageAnnotation = this.parseAnnotationJSON(pageAnnotationJSON);
-			if (pageAnnotation) {
-				pageAnnotations.push(pageAnnotation);
-			}
-		}
-		pdfAnnotations.setPageAnnotations(pageNumber, pageAnnotations);
-	}
-	return pdfAnnotations;
-};	
-
-PDFAnnotationsServices.prototype.parseAnnotationJSON = function(json) {
-	var type = json["type"];
-	var annotation;
-	if (type == "text-annotation") {
-		annotation = new TextAnnotation();
-		annotation.setText(json["text"]);
-	} else if (type == "signature-text-annotation") {
-		annotation = new SignatureTextAnnotation();
-		annotation.setText(json["text"]);
-		annotation.setInitials("" + json["initials"]);
-	} else if (type == "image-annotation") {
-		annotation = new ImageAnnotation();
-		annotation.setUrl(json["url"]);
-	} else if (type == "signature-image-annotation") {
-		annotation = new SignatureImageAnnotation();
-		annotation.setUrl("" + json["url"]);
-		annotation.setInitials("" + json["initials"]);
-	} else if (type == "signature-pad-annotation") {
-		annotation = new SignatureImageAnnotation();
-		annotation.setUrl(json["imageUrl"]);
-		annotation.setInitials("" + json["initials"]);
-	} else if (type == "sign-here-annotation") {
-		annotation = new SignHereAnnotation();
-		annotation.setText(json["text"]);
-	} else {
-		annotation = new Annotation();
-	}
-	annotation.id = json["id"];
-	annotation.x = json["x"];
-	annotation.y = json["y"];
-	annotation.width = json["width"];
-	annotation.height = json["height"];
-	annotation.readOnly = json["readOnly"];
-	annotation.baked = json["baked"];
-	annotation.bakeUser = json["bakeUser"];
-	annotation.bakeDate = json["bakeDate"];
-	return annotation;
+	return PDFAnnotations.prototype.fromJSON(json);
 };
 
 PDFAnnotationsServices.prototype.getPDFAnnotations = function(success, fail) {
@@ -112,11 +56,7 @@ PDFAnnotationsServices.prototype.savePDFAnnotations = function(pdfAnnotations, s
 	var self = this; 
 
 	if (this.saveServiceUrl) {
-		var pdfAnnotationsJson = {
-			apiVersion: "" + pdfAnnotations.apiVersion,
-			version: "" + pdfAnnotations.version,
-			pagesAndAnnotations: pdfAnnotations.pagesAndAnnotations
-		};
+		var pdfAnnotationsJson = pdfAnnotations.toJSON();
 		var stringifiedPdfAnnotations = JSON.stringify(pdfAnnotationsJson);
 		$.ajaxQueue({
 			url: this.saveServiceUrl,
@@ -137,29 +77,8 @@ PDFAnnotationsServices.prototype.savePDFAnnotations = function(pdfAnnotations, s
 	}
 };
 
-PDFAnnotationsServices.prototype.getSignatureAnnotations = function(pdfAnnotations) {
-	var signatureAnnotations = [];
-	// Using attributes instead of calling functions because pdfAnnotations may be a copy
-	var pagesWithAnnotations = Object.keys(pdfAnnotations.pagesAndAnnotations);
-	for (var i = 0; i < pagesWithAnnotations.length; i++) {
-		var pageWithAnnotation = pagesWithAnnotations[i];
-		var pageAnnotations = pdfAnnotations.pagesAndAnnotations[pageWithAnnotation];
-		for (var j = 0; j < pageAnnotations.length; j++) {
-			var pageAnnotation = pageAnnotations[j];
-			var annotationType = pageAnnotation["type"];
-			if (!pageAnnotation["readOnly"] && 
-				("signature-image-annotation" == annotationType 
-				|| "signature-pad-annotation" == annotationType 
-				|| "signature-text-annotation" == annotationType)) {
-				signatureAnnotations.push(pageAnnotation);
-			} 
-		}
-	}
-	return signatureAnnotations;
-};	
-
 PDFAnnotationsServices.prototype.makeSignatureAnnotationsReadOnly = function(pdfAnnotations) {
-	var signatureAnnotations = this.getSignatureAnnotations(pdfAnnotations);
+	var signatureAnnotations = pdfAnnotations.getSignatureAnnotations();
 	for (var i = 0; i < signatureAnnotations.length; i++) {
 		var signatureAnnotation = signatureAnnotations[i];
 		signatureAnnotation["readOnly"] = true;
@@ -169,7 +88,7 @@ PDFAnnotationsServices.prototype.makeSignatureAnnotationsReadOnly = function(pdf
 PDFAnnotationsServices.prototype.certifyPDFSignatures = function(pdfAnnotations, success, fail) {
 	var self = this;
 	
-	var signatureAnnotations = this.getSignatureAnnotations(pdfAnnotations);
+	var signatureAnnotations = pdfAnnotations.getSignatureAnnotations();
 	var atLeastOneSignatureAnnotation = signatureAnnotations.length > 0;
 
 	if (!atLeastOneSignatureAnnotation) {
@@ -180,11 +99,7 @@ PDFAnnotationsServices.prototype.certifyPDFSignatures = function(pdfAnnotations,
 		//var pdfAnnotationsCopy = JSON.parse(JSON.stringify(pdfAnnotations));
 		//this.makeSignatureAnnotationsReadOnly(pdfAnnotationsCopy);
 
-		var pdfAnnotationsJson = {
-			apiVersion: "" + pdfAnnotations.apiVersion,
-			version: "" + pdfAnnotations.version,
-			pagesAndAnnotations: pdfAnnotations.pagesAndAnnotations
-		};
+		var pdfAnnotationsJson = pdfAnnotations.toJSON();
 		var stringifiedPdfAnnotations = JSON.stringify(pdfAnnotationsJson);
 		$.ajaxQueue({
 			url: self.certifyServiceUrl,

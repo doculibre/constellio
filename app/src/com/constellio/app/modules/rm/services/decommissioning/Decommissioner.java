@@ -51,7 +51,9 @@ import com.constellio.model.services.records.RecordServicesWrapperRuntimeExcepti
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.jodconverter.office.OfficeException;
@@ -434,8 +436,11 @@ public abstract class Decommissioner {
 						}
 						if (createPDFa && content != null) {
 							try {
-								content = createPDFa(content);
-								loggingServices.logPdfAGeneration(document, user);
+								String fileExtension = FilenameUtils.getExtension(content.getCurrentVersion().getFilename());
+								if (!("pdf".equalsIgnoreCase(fileExtension))) {
+									content = createPDFa(content);
+									loggingServices.logPdfAGeneration(document, user);
+								}
 							} catch (NullPointerException e) {
 								e.printStackTrace();
 							} catch (RuntimeException e) {
@@ -446,7 +451,7 @@ public abstract class Decommissioner {
 										errorParameters.put("documentId", document.getId());
 										errorParameters.put("documentTitle", document.getTitle());
 										errorParameters.put("hash", content.getId());
-										validationErrors.add(Decommissioner.class, COULD_NOT_GENERATE_PDFA_ERROR, errorParameters);
+										validationErrors.add(Decommissioner.class, COULD_NOT_GENERATE_PDFA_ERROR, errorParameters, ExceptionUtils.getStackTrace(e));
 										break;
 									}
 								}

@@ -639,7 +639,11 @@ public class UserServices {
 				throw new UserCredentialsManagerRuntimeException_CannotExecuteTransaction(e);
 			}
 		} else {
-			userCredentialsManager.addUpdate(savedUserCredential);
+			try {
+				modelLayerFactory.newRecordServices().add(userCredential);
+			} catch (RecordServicesException e) {
+				throw new UserCredentialsManagerRuntimeException_CannotExecuteTransaction(e);
+			}
 		}
 
 		//sync(toSystemWideUserInfos(savedUserCredential));
@@ -737,14 +741,9 @@ public class UserServices {
 
 
 	public SystemWideUserInfos getUserInfos(String username) {
-		UserCredential credential = userCredentialsManager.getUserCredential(username);
-		if (credential == null) {
-			throw new UserServicesRuntimeException_NoSuchUser(username);
-		}
-
-
-		return toSystemWideUserInfos(credential);
+		return toSystemWideUserInfos(getUserCredential(username));
 	}
+
 
 	private SystemWideUserInfos toSystemWideUserInfos(UserCredential credential) {
 		List<String> collections = new ArrayList<>();
@@ -872,7 +871,7 @@ public class UserServices {
 	}
 
 	public UserCredential getUser(String username) {
-		UserCredential credential = userCredentialsManager.getUserCredential(username);
+		UserCredential credential = getUserCredential(username);
 		if (credential == null) {
 			throw new UserServicesRuntimeException_NoSuchUser(username);
 		}
@@ -880,7 +879,7 @@ public class UserServices {
 	}
 
 	public UserCredential getUserConfigs(String username) {
-		UserCredential credential = userCredentialsManager.getUserCredential(username);
+		UserCredential credential = getUserCredential(username);
 		if (credential == null) {
 			throw new UserServicesRuntimeException_NoSuchUser(username);
 		}
@@ -1267,7 +1266,7 @@ public class UserServices {
 		Transaction transaction;
 		for (String collection : group.getCollections()) {
 			transaction = new Transaction();
-			sync(group, collection, GlobalGroupStatus.ACTIVE, transaction);
+			sync(group, collection, transaction);
 			try {
 				recordServices.execute(transaction);
 			} catch (RecordServicesException e) {
@@ -1278,7 +1277,7 @@ public class UserServices {
 
 	public void sync(GroupAddUpdateRequest request) {
 		SystemWideGroup group = getGroup(request);
-		List<String> groupCollections = new ArrayList<>();
+		Set<String> groupCollections = new HashSet<>();
 		if (group != null && group.getCollections() != null) {
 			groupCollections.addAll(group.getCollections());
 		}
@@ -1287,13 +1286,17 @@ public class UserServices {
 		}
 
 		Transaction transaction;
-		List<String> parentGroupInactiveCollections = getParentGroupInactiveCollections(request, groupCollections);
-		if (!parentGroupInactiveCollections.isEmpty()) {
-			String parent = (String) request.getModifiedAttributes().get(GroupAddUpdateRequest.PARENT);
+		String parent = (String) request.getModifiedAttributes().get(GroupAddUpdateRequest.PARENT);
+		if (parent == null) {
+			parent = group.getParent();
+		}
+		List<String> parentGroupCollections = getParentGroupCollections(request, new ArrayList<>(groupCollections), parent);
+
+		if (!parentGroupCollections.isEmpty()) {
 			SystemWideGroup parentGroup = getGroup(parent);
-			for (String collection : parentGroupInactiveCollections) {
+			for (String collection : parentGroupCollections) {
 				transaction = new Transaction();
-				sync(parentGroup, collection, GlobalGroupStatus.INACTIVE, transaction);
+				sync(parentGroup, collection, transaction);
 				try {
 					recordServices.execute(transaction);
 				} catch (RecordServicesException e) {
@@ -1307,7 +1310,7 @@ public class UserServices {
 			if (request.getRemovedCollections() != null && request.getRemovedCollections().contains(collection)) {
 				removeGroupFrom(request.getCode(), collection);
 			} else {
-				sync(request, collection, GlobalGroupStatus.ACTIVE, transaction);
+				sync(request, collection, transaction, group);
 			}
 			try {
 				recordServices.execute(transaction);
@@ -1317,9 +1320,8 @@ public class UserServices {
 		}
 	}
 
-	private List<String> getParentGroupInactiveCollections(GroupAddUpdateRequest request,
-														   List<String> childGroupCollections) {
-		String parent = (String) request.getModifiedAttributes().get(GroupAddUpdateRequest.PARENT);
+	private List<String> getParentGroupCollections(GroupAddUpdateRequest request,
+												   List<String> childGroupCollections, String parent) {
 		List<String> inactiveCollections = new ArrayList<>();
 		if (parent != null) {
 			List<String> parentGroupCollections = getGroup(parent).getCollections();
@@ -1332,8 +1334,8 @@ public class UserServices {
 		return inactiveCollections;
 	}
 
-	private void sync(GroupAddUpdateRequest request, String collection, GlobalGroupStatus groupSatus,
-					  Transaction transaction) {
+	private void sync(GroupAddUpdateRequest request, String collection,
+					  Transaction transaction, SystemWideGroup group) {
 		String groupCode = request.getCode();
 		Group groupInCollection = getGroupInCollection(groupCode, collection);
 		if (groupInCollection == null) {
@@ -1341,22 +1343,35 @@ public class UserServices {
 		}
 
 		groupInCollection.set(Group.CODE, groupCode);
-		String parentCode = (String) request.getModifiedAttributes().get(GroupAddUpdateRequest.PARENT);
-		if (parentCode != null) {
-			String parentId = getGroupIdInCollection(parentCode, collection);
+
+		Map<String, Object> modifiedAttributes = request.getModifiedAttributes();
+
+		if (modifiedAttributes.containsKey(GroupAddUpdateRequest.PARENT)) {
+			String parentCode = (String) modifiedAttributes.get(GroupAddUpdateRequest.PARENT);
+			if (parentCode != null) {
+				String parentId = getGroupIdInCollection(parentCode, collection);
+				groupInCollection.setParent(parentId);
+			} else {
+				groupInCollection.setParent(null);
+			}
+		} else if (group.getParent() != null) {
+			String parentId = getGroupIdInCollection(group.getParent(), collection);
 			groupInCollection.setParent(parentId);
 		}
-		groupInCollection.set(Group.STATUS, groupSatus);
-		groupInCollection.set(Group.LOCALLY_CREATED, !request.isLdapSyncRequest());
-		if ((request.getModifiedAttributes().get(GroupAddUpdateRequest.NAME) != null)) {
-			groupInCollection.setTitle((String) request.getModifiedAttributes().get(GroupAddUpdateRequest.NAME));
+
+		groupInCollection.set(Group.STATUS, GlobalGroupStatus.ACTIVE);
+		groupInCollection.set(Group.LOCALLY_CREATED,  !request.isLdapSyncRequest());
+		if ((modifiedAttributes.get(GroupAddUpdateRequest.NAME) != null)) {
+			groupInCollection.setTitle((String) modifiedAttributes.get(GroupAddUpdateRequest.NAME));
+		} else {
+			groupInCollection.setTitle(group.getName());
 		}
 		if (groupInCollection.isDirty()) {
 			transaction.add(groupInCollection.getWrappedRecord());
 		}
 	}
 
-	private void sync(SystemWideGroup group, String collection, GlobalGroupStatus groupSatus, Transaction transaction) {
+	private void sync(SystemWideGroup group, String collection, Transaction transaction) {
 		String groupCode = group.getCode();
 		Group groupInCollection = getGroupInCollection(groupCode, collection);
 		if (groupInCollection == null) {
@@ -1372,7 +1387,7 @@ public class UserServices {
 			}
 			groupInCollection.setParent(parentId);
 		}
-		groupInCollection.set(Group.STATUS, groupSatus);
+		groupInCollection.set(Group.STATUS, GlobalGroupStatus.ACTIVE);
 		groupInCollection.set(Group.LOCALLY_CREATED, group.getLocallyCreated());
 		groupInCollection.set(LOGICALLY_DELETED_STATUS, group.getLogicallyDeletedStatus());
 		groupInCollection.setTitle(group.getName());
@@ -1599,10 +1614,6 @@ public class UserServices {
 		return userCredential == null ? null : getUserInfos(userCredential.getUsername());
 	}
 
-	public List<UserCredential> getUsersNotSynced() {
-		List<Record> records = searchServices.search(userCredentialsManager.getUserCredentialNotSynced());
-		return records.stream().map(record -> schemas.wrapCredential(record)).collect(toList());
-	}
 
 	List<Group> getChildrenOfGroupInCollection(String groupParentCode, String collection) {
 		List<Group> groups = new ArrayList<>();
@@ -1704,12 +1715,14 @@ public class UserServices {
 			deletedUsers.add(schemas.wrapUser(record));
 		}
 		for (User user : deletedUsers) {
-			LOGGER.info("safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
-			try {
-				physicallyRemoveUser(user, collection);
-			} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
-				LOGGER.warn("Exception on safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
-				nonDeletedUsers.add(user);
+			if (!ADMIN.equals(user.getUsername())) {
+				LOGGER.info("safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
+				try {
+					physicallyRemoveUser(user, collection);
+				} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
+					LOGGER.warn("Exception on safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
+					nonDeletedUsers.add(user);
+				}
 			}
 		}
 

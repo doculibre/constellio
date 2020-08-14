@@ -104,7 +104,7 @@ public abstract class DocumentExtension {
 	}
 
 
-	public ExtensionBooleanResult isManageAuthorizationActionPossible(
+	public ExtensionBooleanResult isViewOrAddAuthorizationActionPossible(
 			DocumentExtensionActionPossibleParams documentExtensionActionPossibleParams) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}

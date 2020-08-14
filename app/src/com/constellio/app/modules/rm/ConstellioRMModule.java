@@ -29,6 +29,7 @@ import com.constellio.app.modules.rm.extensions.RMMetadataMainCopyRuleFieldsExte
 import com.constellio.app.modules.rm.extensions.RMModulePageExtension;
 import com.constellio.app.modules.rm.extensions.RMOldSchemasBlockageRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMRecordAppExtension;
+import com.constellio.app.modules.rm.extensions.RMRecordAuthorisationPageExtension;
 import com.constellio.app.modules.rm.extensions.RMRecordCaptionExtension;
 import com.constellio.app.modules.rm.extensions.RMRecordNavigationExtension;
 import com.constellio.app.modules.rm.extensions.RMRequestTaskApprovedExtension;
@@ -70,6 +71,7 @@ import com.constellio.app.modules.rm.extensions.schema.RMExcelReportSchemaExtens
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
 import com.constellio.app.modules.rm.extensions.ui.RMConstellioUIExtention;
 import com.constellio.app.modules.rm.extensions.ui.RMDocumentPathCriterionExtension;
+import com.constellio.app.modules.rm.extensions.ui.RMFolderManualDisposalTypeCriterionExtension;
 import com.constellio.app.modules.rm.extensions.ui.RMViewableRecordVOTablePanelExtension;
 import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
@@ -96,6 +98,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.servlet.ConstellioImportRecordsServlet;
 import com.constellio.app.servlet.ConstellioUploadContentInVaultServlet;
 import com.constellio.app.start.ApplicationStarter;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
@@ -271,6 +274,10 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo9_0_3_11());
 		scripts.add(new RMMigrationTo9_0_3_12());
 		scripts.add(new RMMigrationTo9_0_3_13());
+		scripts.add(new RMMigrationTo9_0_3_16());
+		scripts.add(new RMMigrationTo9_0_3_17());
+		scripts.add(new RMMigrationTo9_0_3_18());
+		scripts.add(new RMMigrationTo9_0_3_20());
 		//scripts.add(new RMMigrationTo9_0_666());
 		scripts.add(new RMMigrationTo9_1_0());
 		scripts.add(new RMMigrationTo9_1_0_14());
@@ -280,6 +287,9 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo9_1_0_23());
 		scripts.add(new RMMigrationTo9_1_0_24());
 		scripts.add(new RMMigrationTo9_1_10());
+		scripts.add(new RMMigrationTo9_1_0_30());
+		scripts.add(new RMMigrationTo9_1_10_1());
+		scripts.add(new RMMigrationTo9_1_0_30());
 
 		return scripts;
 	}
@@ -407,12 +417,6 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		ApplicationStarter.registerServlet("/" + ConstellioRMModule.ID + "/importRecords",
 				new ConstellioImportRecordsServlet());
 
-		ApplicationStarter.registerServlet("/" + ConstellioRMModule.ID + "/uploadContentInVault",
-				new ConstellioUploadContentInVaultServlet());
-		ApplicationStarter.registerServlet("/" + ConstellioRMModule.ID + "/uploadRecords",
-				new ConstellioImportRecordsServlet());
-
-
 		extensions.schemaTypeAccessExtensions.add(new RMGenericRecordPageExtension());
 		extensions.schemaTypeAccessExtensions.add(new LabelSchemaRestrictionPageExtension());
 		extensions.taxonomyAccessExtensions.add(new RMTaxonomyPageExtension(collection));
@@ -443,7 +447,9 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.pagesComponentsExtensions.add(new RMManageAuthorizationsPageExtension(collection, appLayerFactory));
 		extensions.sipExtensions.add(new RMSIPExtension(collection, appLayerFactory));
 		extensions.searchCriterionExtensions.add(new RMDocumentPathCriterionExtension(appLayerFactory, collection));
+		extensions.searchCriterionExtensions.add(new RMFolderManualDisposalTypeCriterionExtension(appLayerFactory, collection));
 		extensions.viewableRecordVOTablePanelExtensions.add(new RMViewableRecordVOTablePanelExtension(appLayerFactory, collection));
+		extensions.recordAuthorisationPageExtensions.add(new RMRecordAuthorisationPageExtension());
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);
