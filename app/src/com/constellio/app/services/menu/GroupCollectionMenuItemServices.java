@@ -114,7 +114,7 @@ public class GroupCollectionMenuItemServices {
 				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_MANAGE_SECURITY.name(),
 						isMenuItemActionPossible(GROUP_MANAGE_SECURITY.name(), groupRecords.get(0), user, params),
 						$("CollectionSecurityManagement.manageSecurity"), FontAwesome.LOCK, -1, 400,
-						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).manageSecurity(groupRecords, params));
+						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).manageSecurity(groupRecords.get(0), params));
 				menuItemActions.add(menuItemAction);
 			}
 
@@ -122,7 +122,7 @@ public class GroupCollectionMenuItemServices {
 				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_MANAGE_ROLES.name(),
 						isMenuItemActionPossible(GROUP_MANAGE_ROLES.name(), groupRecords.get(0), user, params),
 						$("CollectionSecurityManagement.manageRoles"), FontAwesome.USER_SECRET, -1, 500,
-						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).manageRoles(groupRecords, params));
+						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).manageRoles(groupRecords.get(0), params));
 
 				menuItemActions.add(menuItemAction);
 			}

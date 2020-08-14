@@ -964,6 +964,18 @@ public class UserServices {
 				ancestorsCodes.add(recordServices.getDocumentById(ancestorId).get(Schemas.CODE));
 			}
 		}
+
+		return SystemWideGroup.builder()
+				.code(group.getCode())
+				.name(group.getTitle())
+				.collections(wideGroupCollections)
+				.parent(parentCode)
+				.groupStatus(groupStatus)
+				.hierarchy(group.getHierarchy())
+				.logicallyDeletedStatus(group.getLogicallyDeletedStatus())
+				.caption(group.getCaption())
+				.ancestors(ancestorsCodes)
+				.build();
 	}
 
 	public SystemWideGroup build(Group group, List<String> wideGroupCollections) {

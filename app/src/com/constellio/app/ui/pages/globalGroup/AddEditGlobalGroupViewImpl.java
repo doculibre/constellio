@@ -105,6 +105,8 @@ public class AddEditGlobalGroupViewImpl extends BaseViewImpl implements AddEditG
 			}
 		}
 
+		collectionsField.setEnabled(addActionMode);
+
 
 		return new BaseForm<GlobalGroupVO>(globalGroupVO, this, codeField, nameField, collectionsField) {
 			@Override

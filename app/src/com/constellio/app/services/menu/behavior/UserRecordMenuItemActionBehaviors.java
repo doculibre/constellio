@@ -18,7 +18,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.security.global.UserSyncMode;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
@@ -26,6 +25,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
@@ -62,6 +62,7 @@ public class UserRecordMenuItemActionBehaviors {
 
 	public UserRecordMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
+		this.collection = collection;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.userServices = modelLayerFactory.newUserServices();
 		this.recordServices = modelLayerFactory.newRecordServices();
@@ -103,20 +104,30 @@ public class UserRecordMenuItemActionBehaviors {
 	}
 
 	public void delete(List<User> userRecords, MenuItemActionBehaviorParams params) {
-
-		Button deleteUserButton = new DeleteButton($("CollectionSecurityManagement.deleteUsers"), false) {
+		Button deleteUserButton = new DeleteButton($("CollectionSecurityManagement.deleteGroups"), false) {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
-				logicallyDeleteUsers(userRecords, params);
+				deleteUserFromCollection(userRecords);
+				params.getView().navigate().to().collectionSecurity();
+				params.getView().showMessage($("CollectionSecurityManagement.userRemovedFromCollection"));
 			}
 
 			@Override
 			protected String getConfirmDialogMessage() {
+				String recordType;
 				return $("ConfirmDialog.confirmDeleteWithAllRecords", $("CollectionSecurityManagement.userLowerCase"));
 			}
 		};
 
 		deleteUserButton.click();
+	}
+
+	public void deleteUserFromCollection(List<User> userRecords) {
+		for (User currentUser : userRecords) {
+			UserAddUpdateRequest userAddUpdateRequest = userServices.addUpdate(currentUser.getUsername());
+			userAddUpdateRequest.removeFromCollection(collection);
+			userServices.execute(userAddUpdateRequest);
+		}
 	}
 
 	public void changeStatus(List<User> userRecords, MenuItemActionBehaviorParams params) {
@@ -142,7 +153,7 @@ public class UserRecordMenuItemActionBehaviors {
 		params.getView().navigate().to().listPrincipalAccessAuthorizations(user.getId());
 	}
 
-	public void manageRole(User user, MenuItemActionBehaviorParams params) {
+	public void manageRoles(User user, MenuItemActionBehaviorParams params) {
 		params.getView().navigate().to().editCollectionUserRoles(user.getId());
 	}
 
@@ -170,24 +181,7 @@ public class UserRecordMenuItemActionBehaviors {
 		}
 	}
 
-	private void logicallyDeleteUsers(List<User> users, MenuItemActionBehaviorParams params) {
-		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(User.DEFAULT_SCHEMA,
-				params.getView().getConstellioFactories(), params.getView().getSessionContext());
-		//TODO
-		//add when validate is done
-		//Need reason?
-		ValidationErrors validateLogicallyDeletable = new ValidationErrors();//userServices.validateLogicallyDeletable(users, params.getUser());
 
-		if (validateLogicallyDeletable.isEmpty()) {
-
-			boolean isDeleteSuccessful = delete(presenterUtils, params.getView(), users, "", false, 1);
-			if (isDeleteSuccessful) {
-				params.getView().navigate().to().collectionSecurity();
-			}
-		} else {
-			MessageUtils.getCannotDeleteWindow(validateLogicallyDeletable).openWindow();
-		}
-	}
 
 	private boolean delete(SchemaPresenterUtils presenterUtils, BaseView view, List<User> users, String reason,
 						   boolean physically, int waitSeconds) {

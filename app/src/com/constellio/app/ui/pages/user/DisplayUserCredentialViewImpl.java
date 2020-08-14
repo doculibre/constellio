@@ -349,7 +349,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 	}
 
 	protected List<Button> getQuickActionMenuButtons() {
-		Button editFolderButton = new EditButton($("DisplayFolderView.editFolder")) {
+		Button editFolderButton = new EditButton($("edit")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.editFolderButtonClicked();

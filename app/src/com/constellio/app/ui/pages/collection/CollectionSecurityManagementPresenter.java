@@ -27,7 +27,7 @@ public class CollectionSecurityManagementPresenter extends BasePresenter<Collect
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private User user;
 
-	private Map<String, String> params = null;
+	private boolean groupTabSelectedFirst = false;
 
 	private transient ConstellioEIMConfigs eimConfigs;
 	private transient RMConfigs rmConfigs;
@@ -64,12 +64,15 @@ public class CollectionSecurityManagementPresenter extends BasePresenter<Collect
 	}
 
 	public void viewAssembled() {
-
 		selectInitialTabForUser();
 	}
 
 	public void forParams(String params) {
+		Map<String, String> paramMap = ParamUtils.getParamsMap(params);
 
+		if (paramMap != null) {
+			groupTabSelectedFirst = paramMap.get("groupTabSelectedFirst") != null;
+		}
 	}
 
 	void userTabSelected() {
