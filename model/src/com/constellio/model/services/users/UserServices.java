@@ -1360,7 +1360,7 @@ public class UserServices {
 		}
 
 		groupInCollection.set(Group.STATUS, GlobalGroupStatus.ACTIVE);
-		groupInCollection.set(Group.LOCALLY_CREATED,  !request.isLdapSyncRequest());
+		groupInCollection.set(Group.LOCALLY_CREATED, !request.isLdapSyncRequest());
 		if ((modifiedAttributes.get(GroupAddUpdateRequest.NAME) != null)) {
 			groupInCollection.setTitle((String) modifiedAttributes.get(GroupAddUpdateRequest.NAME));
 		} else {
@@ -2155,5 +2155,10 @@ public class UserServices {
 	@Deprecated
 	public void removeUserFromGlobalGroup(String username, String globalGroupCode) {
 		execute(username, (req) -> req.removeFromGroupOfEachCollection(globalGroupCode));
+	}
+
+	public List<UserCredential> getUsersNotSynced() {
+		List<Record> records = searchServices.search(userCredentialsManager.getUserCredentialNotSynced());
+		return records.stream().map(x -> schemas.wrapCredential(x)).collect(toList());
 	}
 }
