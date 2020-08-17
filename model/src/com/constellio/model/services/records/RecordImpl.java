@@ -1126,6 +1126,10 @@ public class RecordImpl implements Record {
 	}
 
 	private Object correctValue(Object value) {
+
+		if (value instanceof Integer) {
+			return ((Integer) value).intValue();
+		}
 		if (value instanceof Number) {
 			return ((Number) value).doubleValue();
 		} else if (value instanceof EnumWithSmallCode) {
