@@ -460,7 +460,7 @@ public class FoldersLocator {
 	}
 
 	public File getPluginsRepository() {
-		return new File(getConstellioProject().getParentFile(), concatTenantFolder("constellio-plugins"));
+		return new File(getConstellioProject().getParentFile(), "constellio-plugins");
 	}
 
 	public File getPluginsSDKProject() {

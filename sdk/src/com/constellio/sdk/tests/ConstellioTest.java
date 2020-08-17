@@ -1,6 +1,7 @@
 package com.constellio.sdk.tests;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.dev.Toggle.AvailableToggle;
 import com.constellio.model.entities.records.Record;
@@ -12,7 +13,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
-import com.constellio.data.utils.TenantUtils;
 import com.constellio.sdk.tests.annotations.PreserveState;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
 import org.apache.commons.lang.StringUtils;
@@ -240,8 +240,9 @@ public class ConstellioTest extends AbstractConstellioTest {
 	@After
 	public void checkCacheAfterTest() throws Exception {
 
-		if (!failureDetectionTestWatcher.isFailed() && isUnitTestStatic() && ConstellioFactories.isInitialized()
-			&& cacheIntegrityCheckedAfterTest && Toggle.SDK_CACHE_INTEGRITY_VALIDATION.isEnabled()) {
+		if (!failureDetectionTestWatcher.isFailed() && isUnitTestStatic() &&
+			Toggle.SDK_CACHE_INTEGRITY_VALIDATION.isEnabled() && ConstellioFactories.isInitialized() &&
+			cacheIntegrityCheckedAfterTest) {
 
 			ConstellioFactories.getInstance().getDataLayerFactory()
 					.getDataLayerLogger().setPrintAllQueriesLongerThanMS(10000);
