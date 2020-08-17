@@ -192,8 +192,6 @@ public interface ContentDao {
 
 	void deleteFileNameContaining(String contentId, String filter);
 
-	LocalDateTime getLastModification(String contentId);
-
 	String getLocalRelativePath(String id);
 
 	IOServices getIOServices();

@@ -177,6 +177,11 @@ public class AzureBlobStorageContentDao implements StatefulService, ContentDao {
 	}
 
 	@Override
+	public void deleteFileNameContaining(String contentId, String filter) {
+		// FIXME added after merge
+	}
+
+	@Override
 	public CloseableStreamFactory<InputStream> getContentInputStreamFactory(String id)
 			throws ContentDaoException_NoSuchContent {
 		DaoFile file = getFile(id);

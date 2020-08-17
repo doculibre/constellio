@@ -102,10 +102,10 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
+import static com.constellio.data.conf.FoldersLocator.usingAppWrapper;
 import static com.constellio.data.dao.services.contents.ContentDao.MoveToVaultOption.ONLY_IF_INEXISTING;
 import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.utils.dev.Toggle.LOG_CONVERSION_FILENAME_AND_SIZE;
-import static com.constellio.data.conf.FoldersLocator.usingAppWrapper;
 import static com.constellio.model.entities.enums.ParsingBehavior.ASYNC_PARSING_FOR_ALL_CONTENTS;
 import static com.constellio.model.entities.enums.ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -1446,13 +1446,13 @@ public class ContentManager implements StatefulService {
 			return false;
 		} else {
 			String filename = file.getName();
-			if (filename.endsWith("tlogs") || filename.endsWith("tlogs-backup") || filename.endsWith(".tlog") || filename.equals("tlogBaseFile.zip") || filename.equals("tlog-infos.txt") || path.endsWith("shared") || path.getParent().endsWith("shared")) {
+			if (filename.endsWith("tlogs") || filename.endsWith("tlogs-backup") || filename.endsWith(".tlog") || filename.equals("tlogBaseFile.zip") || filename.equals("tlog-infos.txt")) {
 				return false;
-
+				// FIXME commented for merge
+				//} else if (path.endsWith("shared") || path.getParent().endsWith("shared")) {
 			} else if (filename.endsWith(".preview") || filename.endsWith(".thumbnails")
 					   || filename.endsWith("__parsed") || filename.endsWith(".jpegConversion")) {
 				return false;
-
 			} else {
 				return true;
 			}
