@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.buttons;
 
 import com.constellio.app.modules.rm.ui.components.group.GroupSelectionAddRemoveFieldImpl;
+import com.constellio.app.modules.rm.ui.field.CollectionSelectOptionField;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -49,6 +50,7 @@ public class GroupWindowButton extends WindowButton {
 	private String collection;
 	private List<User> records;
 	private AdditionnalRecordField groupsField;
+	private CollectionSelectOptionField collectionsField;
 
 	public void addToGroup() {
 		click();
@@ -80,11 +82,20 @@ public class GroupWindowButton extends WindowButton {
 
 		groupsField = buildFavoritesDisplayOrderField(records, params);
 
+		HorizontalLayout collectionSelectLayout = new HorizontalLayout();
+		collectionSelectLayout.setCaption("");
+		userSelectLayout.setSpacing(true);
+		userSelectLayout.setSizeFull();
+		collectionsField = new CollectionSelectOptionField(appLayerFactory, records.stream().map(r -> r.getWrappedRecord()).collect(Collectors.toList()));
+		collectionSelectLayout.addComponent(collectionsField);
+
+
 		BaseButton saveButton;
 		BaseButton cancelButton;
 		userSelectLayout.addComponent(groupsField);
 		I18NHorizontalLayout buttonLayout = new I18NHorizontalLayout();
 		mainLayout.addComponents(userSelectLayout);
+		mainLayout.addComponent(collectionSelectLayout);
 
 		buttonLayout.addComponent(saveButton = new BaseButton($("save")) {
 			@Override
@@ -162,12 +173,15 @@ public class GroupWindowButton extends WindowButton {
 
 		for (User user : records) {
 			UserAddUpdateRequest userAddUpdateRequest = userServices.addUpdate(user.getUsername());
-			userAddUpdateRequest.addToGroupsInCollection(groupCodeList, collection);
+			for (String selectedCollection : collectionsField.getSelectedValues()) {
+				userAddUpdateRequest.addToGroupsInCollection(groupCodeList, selectedCollection);
+			}
 			userServices.execute(userAddUpdateRequest);
 		}
 		baseView.partialRefresh();
 		baseView.showMessage($("CollectionSecurityManagement.addedUsersToGroups"));
 	}
+
 
 	private RecordVODataProvider getGroupDataProvider(SessionContext sessionContext) {
 		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();

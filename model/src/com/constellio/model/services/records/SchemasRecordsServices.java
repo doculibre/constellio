@@ -113,6 +113,10 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return credentialSchema().getMetadata(UserCredential.STATUS);
 	}
 
+	public Metadata syncStatus() {
+		return credentialSchema().getMetadata(UserCredential.SYNC_MODE);
+	}
+
 	public Metadata credentialCollections() {
 		return credentialSchema().getMetadata(UserCredential.COLLECTIONS);
 	}

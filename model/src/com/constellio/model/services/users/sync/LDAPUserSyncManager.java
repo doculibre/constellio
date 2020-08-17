@@ -10,24 +10,27 @@ import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.services.LDAPServices;
-import com.constellio.model.conf.ldap.services.LDAPServices.LDAPUsersAndGroups;
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
-import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
-import com.constellio.model.entities.security.global.SystemWideGroup;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.validators.EmailValidator;
-import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
 import com.constellio.model.services.users.SystemWideUserInfos;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 import com.constellio.model.services.users.UserUtils;
+import com.constellio.model.services.users.sync.model.LDAPUsersAndGroups;
+import com.constellio.model.services.users.sync.model.UpdatedUsersAndGroups;
 import com.google.common.base.Joiner;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Transformer;
@@ -46,6 +49,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class LDAPUserSyncManager implements StatefulService {
 	private final static Logger LOGGER = LoggerFactory.getLogger(LDAPUserSyncManager.class);
@@ -57,15 +61,31 @@ public class LDAPUserSyncManager implements StatefulService {
 	BackgroundThreadsManager backgroundThreadsManager;
 	boolean processingSynchronizationOfUsers = false;
 	DataLayerFactory dataLayerFactory;
+	LDAPServicesFactory ldapServicesFactory;
+	ModelLayerFactory modelLayerFactory;
 
 	private ConstellioJobManager constellioJobManager;
 
 	public LDAPUserSyncManager(ModelLayerFactory modelLayerFactory) {
+		this.modelLayerFactory = modelLayerFactory;
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.userServices = modelLayerFactory.newUserServices();
 		this.dataLayerFactory = modelLayerFactory.getDataLayerFactory();
 		this.ldapConfigurationManager = modelLayerFactory.getLdapConfigurationManager();
 		this.constellioJobManager = modelLayerFactory.getDataLayerFactory().getConstellioJobManager();
+		this.ldapServicesFactory = new LDAPServicesFactory();
+	}
+
+	public LDAPUserSyncManager(LDAPConfigurationManager ldapConfigurationManager,
+							   RecordServices recordServices, DataLayerFactory dataLayerFactory,
+							   UserServices userServices, ConstellioJobManager constellioJobManager,
+							   LDAPServicesFactory ldapServicesFactory) {
+		this.recordServices = recordServices;
+		this.userServices = userServices;
+		this.dataLayerFactory = dataLayerFactory;
+		this.ldapConfigurationManager = ldapConfigurationManager;
+		this.constellioJobManager = constellioJobManager;
+		this.ldapServicesFactory = ldapServicesFactory;
 	}
 
 	@Override
@@ -167,13 +187,14 @@ public class LDAPUserSyncManager implements StatefulService {
 		this.userSyncConfiguration = ldapConfigurationManager.getLDAPUserSyncConfiguration(true);
 		this.serverConfiguration = ldapConfigurationManager.getLDAPServerConfiguration();
 
-		List<String> usersIdsBeforeSynchronisation = getAllUsersNames();
-		List<String> groupsIdsBeforeSynchronisation = getGroupsIds();
+
+		List<String> selectedCollectionsCodes = userSyncConfiguration.getSelectedCollectionsCodes();
+		//Get all users of collection
 
 		List<String> usersIdsAfterSynchronisation = new ArrayList<>();
 		List<String> groupsIdsAfterSynchronisation = new ArrayList<>();
-		LDAPServices ldapServices = LDAPServicesFactory.newLDAPServices(serverConfiguration.getDirectoryType());
-		List<String> selectedCollectionsCodes = userSyncConfiguration.getSelectedCollectionsCodes();
+
+		LDAPServices ldapServices = this.ldapServicesFactory.newLDAPServices(serverConfiguration.getDirectoryType());
 
 		//FIXME cas rare mais possible nom d utilisateur/de groupe non unique (se trouvant dans des urls differentes)
 		for (String url : getNonEmptyUrls(serverConfiguration)) {
@@ -188,20 +209,8 @@ public class LDAPUserSyncManager implements StatefulService {
 
 			UpdatedUsersAndGroups updatedUsersAndGroups = updateUsersAndGroups(ldapUsers, ldapGroups, selectedCollectionsCodes,
 					ldapSynchProgressionInfo);
-
-			usersIdsAfterSynchronisation.addAll(updatedUsersAndGroups.getUsersNames());
-			groupsIdsAfterSynchronisation.addAll(updatedUsersAndGroups.getGroupsCodes());
 		}
 
-		//remove inexistingUsers
-		List<String> removedUsersIds = (List<String>) CollectionUtils
-				.subtract(usersIdsBeforeSynchronisation, usersIdsAfterSynchronisation);
-		removeUsersExceptAdmins(removedUsersIds);
-
-		//remove inexistingGroups
-		List<String> removedGroupsIds = (List<String>) CollectionUtils
-				.subtract(groupsIdsBeforeSynchronisation, groupsIdsAfterSynchronisation);
-		removeGroups(removedGroupsIds);
 	}
 
 	private List<String> getNonEmptyUrls(LDAPServerConfiguration serverConfiguration) {
@@ -216,8 +225,10 @@ public class LDAPUserSyncManager implements StatefulService {
 													   List<String> selectedCollectionsCodes,
 													   LDAPSynchProgressionInfo ldapSynchProgressionInfo) {
 		UpdatedUsersAndGroups updatedUsersAndGroups = new UpdatedUsersAndGroups();
+		removeGroupOnMissingSync(ldapGroups, selectedCollectionsCodes);
 		for (LDAPGroup ldapGroup : ldapGroups) {
-			GroupAddUpdateRequest group = createGlobalGroupFromLdapGroup(ldapGroup, selectedCollectionsCodes);
+			GroupAddUpdateRequest group = createGroupFromLdapGroup(ldapGroup, selectedCollectionsCodes);
+			//
 			try {
 				userServices.execute(group);
 				updatedUsersAndGroups.addGroupCode(group.getCode());
@@ -229,17 +240,32 @@ public class LDAPUserSyncManager implements StatefulService {
 			}
 		}
 
-		for (LDAPUser ldapUser : ldapUsers) {
+		List<UserCredential> notSyncedUsers = userServices.getUsersNotSynced();
+
+		//filter out not synced
+		Set<LDAPUser> syncLdapUsers = ldapUsers
+				.stream()
+				.filter(ldapUser ->
+						notSyncedUsers
+								.stream()
+								.noneMatch(x -> x.equals(ldapUser.getName())))
+				.collect(Collectors.toSet());
+
+		notSyncedUsers.stream().forEach(notsyncedUser -> updatedUsersAndGroups.addUsername(notsyncedUser.getUsername()));
+
+		//update list of synchro users
+		for (LDAPUser ldapUser : syncLdapUsers) {
 			if (!ldapUser.getName().toLowerCase().equals("admin")) {
 				com.constellio.model.services.users.UserAddUpdateRequest request = createUserCredentialsFromLdapUser(ldapUser, selectedCollectionsCodes);
-
 				try {
 					// Keep locally created groups of existing users
-
-					SystemWideUserInfos previousUserCredential = userServices
-							.getUserInfos(request.getUsername());
-					SystemWideUserInfos userCredentialByDn = userServices.getUserCredentialByDN(ldapUser.getId());
-					if (previousUserCredential == null) {
+					SystemWideUserInfos previousUserCredential = null;
+					SystemWideUserInfos userCredentialByDn = null;
+					try {
+						previousUserCredential = userServices
+								.getUserInfos(request.getUsername());
+						userCredentialByDn = userServices.getUserCredentialByDN(ldapUser.getId());
+					} catch (UserServicesRuntimeException_NoSuchUser noSuchUser) {
 						previousUserCredential = userServices.getUserCredentialByDN(ldapUser.getId());
 					}
 					if (previousUserCredential != null && userCredentialByDn != null
@@ -276,45 +302,67 @@ public class LDAPUserSyncManager implements StatefulService {
 							}
 						}
 					}
-					if (previousUserCredential != null) {
-						for (String collection : previousUserCredential.getCollections()) {
-							final List<String> newUserGlobalGroups = new ArrayList<>();
-							for (final String userGlobalGroup : previousUserCredential.getGroupCodes(collection)) {
-								final SystemWideGroup previousGlobalGroup = userServices.getNullableGroup(userGlobalGroup);
-								if (previousGlobalGroup != null && previousGlobalGroup.isLocallyCreated()) {
-									newUserGlobalGroups.add(previousGlobalGroup.getCode());
-								}
-							}
-							if (!newUserGlobalGroups.isEmpty()) {
-								request.addToGroupsInCollection(newUserGlobalGroups, collection);
-							}
-						}
+					if (previousUserCredential != null) { //User exists and is synced
+						request.setCollections(selectedCollectionsCodes);
+						removeUserFromGroupsMissingOnSync(selectedCollectionsCodes, request, previousUserCredential);
 					}
-
 
 					userServices.execute(request);
 					updatedUsersAndGroups.addUsername(UserUtils.cleanUsername(ldapUser.getName()));
+
 				} catch (Throwable e) {
 					LOGGER.error("User ignored due to error when trying to add it " + request.getUsername(), e);
 				}
+			}
+		}
 
-			}
-			if (ldapSynchProgressionInfo != null) {
-				ldapSynchProgressionInfo.processedGroupsAndUsers++;
-			}
+		if (ldapSynchProgressionInfo != null) {
+			ldapSynchProgressionInfo.processedGroupsAndUsers++;
 		}
 
 		return updatedUsersAndGroups;
 	}
 
-	private GroupAddUpdateRequest createGlobalGroupFromLdapGroup(LDAPGroup ldapGroup,
-																 List<String> selectedCollectionsCodes) {
+	private void removeGroupOnMissingSync(Set<LDAPGroup> ldapGroups, List<String> selectedCollectionsCodes) {
+
+		for (String collection :
+				selectedCollectionsCodes) {
+			List<Group> markForDeletion = new ArrayList<>();
+			List<Group> syncGroups = userServices.getAllGroupsInCollections(collection);
+			if (syncGroups != null) {
+				List<Group> syncGroupsCodes = syncGroups.stream().filter(x -> !x.isLocallyCreated())
+						.collect(Collectors.toList());
+				for (Group syncGroup : syncGroupsCodes) {
+					if (ldapGroups.stream().noneMatch(x -> x.getDistinguishedName().equals(syncGroup.getCode()))) {
+						markForDeletion.add(syncGroup);
+					}
+				}
+			}
+			//userServices.removeFromCollection(markForDeletion, collection);
+		}
+
+	}
+
+	private void removeUserFromGroupsMissingOnSync(List<String> selectedCollectionsCodes,
+												   final UserAddUpdateRequest request,
+												   SystemWideUserInfos previousUserCredential) {
+		for (String collection : selectedCollectionsCodes) {
+			previousUserCredential.getGroupCodes(collection);
+			for (String groupCode : previousUserCredential.getGroupCodes(collection)) {
+				if (!request.getAddToGroup().contains(groupCode)) {
+					request.removeFromGroupOfCollection(groupCode, collection);
+				}
+			}
+		}
+	}
+
+	private GroupAddUpdateRequest createGroupFromLdapGroup(LDAPGroup ldapGroup,
+														   List<String> selectedCollectionsCodes) {
 		String code = ldapGroup.getDistinguishedName();
 		String name = ldapGroup.getSimpleName();
 		Set<String> usersAutomaticallyAddedToCollections;
 		try {
-			SystemWideGroup group = userServices.getGroup(code);
-			usersAutomaticallyAddedToCollections = new HashSet<>(group.getCollections());
+			usersAutomaticallyAddedToCollections = new HashSet<>();
 			usersAutomaticallyAddedToCollections.addAll(selectedCollectionsCodes);
 		} catch (UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup e) {
 			usersAutomaticallyAddedToCollections = new HashSet<>();
@@ -326,7 +374,7 @@ public class LDAPUserSyncManager implements StatefulService {
 	private com.constellio.model.services.users.UserAddUpdateRequest createUserCredentialsFromLdapUser(
 			LDAPUser ldapUser,
 			List<String> selectedCollectionsCodes) {
-		String username = ldapUser.getName();
+		String username = ldapUser.getName() != null ? ldapUser.getName().toLowerCase() : null;
 		String firstName = notNull(ldapUser.getGivenName());
 		String lastName = notNull(ldapUser.getFamilyName());
 		String email = notNull(validateEmail(ldapUser.getEmail()));
@@ -363,6 +411,7 @@ public class LDAPUserSyncManager implements StatefulService {
 				.setSystemAdmin(false)
 				.addToGroupsInEachCollection(globalGroups)
 				.setStatusForAllCollections(userStatus)
+				.setSyncMode(UserSyncMode.SYNCED)
 				.setDomain("")
 				.setMsExchDelegateListBL(msExchDelegateListBL)
 				.setDn(ldapUser.getId());
@@ -391,77 +440,10 @@ public class LDAPUserSyncManager implements StatefulService {
 		return (value == null) ? "" : value;
 	}
 
-	private void removeUsersExceptAdmins(List<String> removedUsersIds) {
-		for (String userId : removedUsersIds) {
-			if (!userId.equals(LDAPAuthenticationService.ADMIN_USERNAME)) {
-				try {
-					userServices.getUserConfigs(userId);
-
-					;
-					if (!userServices.has(userId).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY)) {
-						SystemWideUserInfos userCredential = userServices.getUserInfos(userId);
-						userServices.removeUserCredentialAndUser(userCredential);
-					}
-				} catch (UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser e) {
-					// User no longer exists
-				}
-			}
-		}
-	}
-
-	private void removeGroups(List<String> removedGroupsIds) {
-		SystemWideUserInfos admin = userServices.getUserInfos(LDAPAuthenticationService.ADMIN_USERNAME);
-		for (String groupId : removedGroupsIds) {
-			SystemWideGroup group = userServices.getGroup(groupId);
-			userServices.logicallyRemoveGroupHierarchy(admin, group);
-		}
-	}
-
-	private List<String> getGroupsIds() {
-		List<String> groups = new ArrayList<>();
-		List<SystemWideGroup> globalGroups = userServices.getAllGroups();
-		for (SystemWideGroup globalGroup : globalGroups) {
-			if (!globalGroup.isLocallyCreated()) {
-				groups.add(globalGroup.getCode());
-			}
-		}
-		return groups;
-	}
-
-	private List<String> getAllUsersNames() {
-		List<String> usernames = new ArrayList<>();
-		List<SystemWideUserInfos> userCredentials = userServices.getAllUserCredentials();//getUserCredentials();
-		for (SystemWideUserInfos userCredential : userCredentials) {
-			usernames.add(userCredential.getUsername());
-		}
-		return usernames;
-	}
-
 	public boolean isSynchronizing() {
 		return this.processingSynchronizationOfUsers;
 	}
 
-	private class UpdatedUsersAndGroups {
-
-		private Set<String> usersNames = new HashSet<>();
-		private Set<String> groupsCodes = new HashSet<>();
-
-		public void addUsername(String username) {
-			usersNames.add(username);
-		}
-
-		public Set<String> getUsersNames() {
-			return usersNames;
-		}
-
-		public Set<String> getGroupsCodes() {
-			return groupsCodes;
-		}
-
-		public void addGroupCode(String groupCode) {
-			groupsCodes.add(groupCode);
-		}
-	}
 
 	public static class LDAPSynchProgressionInfo {
 		int totalGroupsAndUsers = 0;

@@ -7,6 +7,7 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -198,6 +199,11 @@ public class SolrUserCredentialsManager {
 	UserCredential getUserCredentialByDN(String dn) {
 		Record record = recordServices.getRecordByMetadata(schemas.credentialDN(), dn);
 		return record != null ? schemas.wrapUserCredential(record) : null;
+	}
+
+	LogicalSearchQuery getUserCredentialNotSynced() {
+		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).where(schemas.syncStatus()).is(UserSyncMode.NOT_SYNCED))
+				.sortAsc(Schemas.TITLE);
 	}
 
 	String getUsernameByServiceKey(String serviceKey) {

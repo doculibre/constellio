@@ -1060,6 +1060,12 @@ public class UserServices {
 		return schemas.getGroupWithCode(groupCode);
 	}
 
+	public Group getGroupInCollectionById(String id, String collection) {
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		return schemas.getGroup(id);
+	}
+
+
 	@Deprecated
 	//Will be removed with newer system
 	public void addGlobalGroupsInCollection(String collection) {
@@ -1418,7 +1424,7 @@ public class UserServices {
 
 		groupInCollection.set(Group.STATUS, GlobalGroupStatus.ACTIVE);
 		groupInCollection.set(Schemas.LOGICALLY_DELETED_STATUS, false);
-		groupInCollection.set(Group.LOCALLY_CREATED, true);
+		groupInCollection.set(Group.LOCALLY_CREATED, !request.isLdapSyncRequest());
 		if ((modifiedAttributes.get(GroupAddUpdateRequest.NAME) != null)) {
 			groupInCollection.setTitle((String) modifiedAttributes.get(GroupAddUpdateRequest.NAME));
 		} else {
@@ -1446,7 +1452,7 @@ public class UserServices {
 			groupInCollection.setParent(parentId);
 		}
 		groupInCollection.set(Group.STATUS, GlobalGroupStatus.ACTIVE);
-		groupInCollection.set(Group.LOCALLY_CREATED, true);
+		groupInCollection.set(Group.LOCALLY_CREATED, group.getLocallyCreated());
 		groupInCollection.set(LOGICALLY_DELETED_STATUS, group.getLogicallyDeletedStatus());
 		if (!collection.equals(SYSTEM_COLLECTION)) {
 			groupInCollection.set(Group.STATUS, group.getStatus(collection));
@@ -2224,5 +2230,10 @@ public class UserServices {
 	@Deprecated
 	public void removeUserFromGlobalGroup(String username, String globalGroupCode) {
 		execute(username, (req) -> req.removeFromGroupOfEachCollection(globalGroupCode));
+	}
+
+	public List<UserCredential> getUsersNotSynced() {
+		List<Record> records = searchServices.search(userCredentialsManager.getUserCredentialNotSynced());
+		return records.stream().map(x -> schemas.wrapCredential(x)).collect(toList());
 	}
 }

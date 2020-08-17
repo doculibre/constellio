@@ -11,6 +11,7 @@ import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
 import com.constellio.model.conf.ldap.user.LDAPUserBuilder;
 import com.constellio.model.services.users.sync.LDAPFastBind;
+import com.constellio.model.services.users.sync.model.LDAPUsersAndGroups;
 import com.google.common.base.Joiner;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
@@ -117,7 +118,17 @@ public class LDAPServicesImpl implements LDAPServices {
 					SearchResult entry = (SearchResult) results.next();
 
 					LDAPGroup group = buildLDAPGroup(entry);
-					groups.add(group);
+					if (groups.stream().noneMatch(x -> x.getDistinguishedName().equals(group.getDistinguishedName()))) {
+						groups.add(group);
+						if (group.getMembers() != null) {//users do not have members and groups without childs are rejected
+							for (String child :
+									group.getMembers()) {
+								if (groups.stream().noneMatch(x -> x.getDistinguishedName().equals(child))) {
+									groups.addAll(searchGroupsFromContext(ctx, updateGroupContainerSearch(groupsContainer, child)));
+								}
+							}
+						}
+					}
 				}
 
 				// Examine the paged results control response
@@ -279,6 +290,13 @@ public class LDAPServicesImpl implements LDAPServices {
 			for (int i = 0; i < members.size(); i++) {
 				String userId = (String) members.get(i);
 				returnGroup.addUser(userId);
+			}
+		}
+		Attribute memberOf = attrs.get(LDAPGroup.MEMBER_OF);
+		if (memberOf != null) {
+			for (int i = 0; i < memberOf.size(); i++) {
+				String groupId = (String) memberOf.get(i);
+				returnGroup.addParent(groupId);
 			}
 		}
 		return returnGroup;
@@ -713,5 +731,16 @@ public class LDAPServicesImpl implements LDAPServices {
 			returnSet.addAll(user.getUserGroups());
 		}
 		return returnSet;
+	}
+
+	private String updateGroupContainerSearch(String container, String newGroup) {
+		String[] splitContainer = container.split(",");
+		for (int i = 0; i < splitContainer.length; i++) {
+			if (splitContainer[i].contains("OU=")) {
+				splitContainer[i] = "OU=" + newGroup;
+				break;
+			}
+		}
+		return String.join(",", splitContainer);
 	}
 }

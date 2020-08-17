@@ -2,11 +2,13 @@ package com.constellio.app.services.menu.behavior;
 
 import com.constellio.app.modules.rm.ui.buttons.ChangeEnumStatusRecordWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CollectionsSelectWindowButton;
+import com.constellio.app.modules.rm.ui.buttons.DeleteUsersWindowButton;
+import com.constellio.app.modules.rm.ui.buttons.DesynchronizationWarningDialog;
 import com.constellio.app.modules.rm.ui.buttons.GroupWindowButton;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -25,7 +27,6 @@ import com.constellio.model.services.users.UserServices;
 import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
 import com.vaadin.server.ExternalResource;
-import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -86,13 +87,30 @@ public class UserRecordMenuItemActionBehaviors {
 	}
 
 	public void addToGroup(List<User> userRecords, MenuItemActionBehaviorParams params) {
+		List<User> synchronizedUsers = ListSelectedSynchronizedUsers(userRecords);
+
 		List<User> recordsList = core.getUsers(userRecords.stream().map(record -> record.getId()).collect(Collectors.toList()));
 
-		GroupWindowButton groupWindowButton = new GroupWindowButton(recordsList, params);
+		GroupWindowButton groupWindowButton = new GroupWindowButton(recordsList, params) {
+			@Override
+			public void addToGroup() {
+				if (synchronizedUsers.isEmpty()) {
+					super.addToGroup();
+				} else {
+					new DesynchronizationWarningDialog(synchronizedUsers).showConfirm(ConstellioUI.getCurrent(), (ConfirmDialog.Listener) warningDialog -> {
+						if (warningDialog.isConfirmed()) {
+							super.addToGroup();
+						}
+					});
+				}
+
+			}
+		};
 		groupWindowButton.addToGroup();
 	}
 
 	public void addToCollection(List<User> userRecords, MenuItemActionBehaviorParams params) {
+		List<User> synchronizedUsers = ListSelectedSynchronizedUsers(userRecords);
 		List<Record> records = userRecords.stream().map(user -> user.getWrappedRecord()).collect(Collectors.toList());
 		CollectionsSelectWindowButton collectionSelectWindowButton = new CollectionsSelectWindowButton($("CollectionSecurityManagement.addedUserToCollections"), records, params) {
 			@Override
@@ -108,39 +126,39 @@ public class UserRecordMenuItemActionBehaviors {
 
 				baseView.showMessage($("CollectionSecurityManagement.addedGroupToCollections"));
 			}
+
+			@Override
+			public void addToCollections() {
+				if (synchronizedUsers.isEmpty()) {
+					super.addToCollections();
+				} else {
+					new DesynchronizationWarningDialog(synchronizedUsers).showConfirm(ConstellioUI.getCurrent(), (ConfirmDialog.Listener) warningDialog -> {
+						if (warningDialog.isConfirmed()) {
+							super.addToCollections();
+						}
+					});
+				}
+			}
 		};
 		collectionSelectWindowButton.addToCollections();
 	}
 
 	public void delete(List<User> userRecords, MenuItemActionBehaviorParams params) {
-		Button deleteUserButton = new DeleteButton($("CollectionSecurityManagement.deleteGroups"), false) {
-			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				deleteUserFromCollection(userRecords);
-				params.getView().navigate().to().collectionSecurity();
-				params.getView().showMessage($("CollectionSecurityManagement.userRemovedFromCollection"));
-			}
-
-			@Override
-			protected String getConfirmDialogMessage() {
-				return $("ConfirmDialog.confirmDeleteWithAllRecords", $("CollectionSecurityManagement.userLowerCase"));
-			}
-		};
-
-		deleteUserButton.click();
+		DeleteUsersWindowButton deleteUsersWindowButton = new DeleteUsersWindowButton(userRecords, params);
+		deleteUsersWindowButton.click();
 	}
 
-	public void deleteUserFromCollection(List<User> userRecords) {
-		for (User currentUser : userRecords) {
-			UserAddUpdateRequest userAddUpdateRequest = userServices.addUpdate(currentUser.getUsername());
-			userAddUpdateRequest.removeFromCollection(collection);
-			userServices.execute(userAddUpdateRequest);
-		}
+	private List<User> ListSelectedSynchronizedUsers(List<User> userRecords) {
+		return userRecords.stream()
+				.filter(u -> userServices.getUserCredential(u.getUsername()).getSyncMode().equals(UserSyncMode.SYNCED))
+				.collect(Collectors.toList());
 	}
+
 
 	public void changeStatus(List<User> userRecords, MenuItemActionBehaviorParams params) {
+		UserCredentialStatus currentStatus = userRecords.size() == 1 ? userRecords.get(0).getStatus() : null;
 		ChangeEnumStatusRecordWindowButton statusButton = new ChangeEnumStatusRecordWindowButton($("CollectionSecurityManagement.changeStatus"),
-				$("CollectionSecurityManagement.changeStatus"), appLayerFactory, params, UserCredentialStatus.class) {
+				$("CollectionSecurityManagement.changeStatus"), appLayerFactory, params, UserCredentialStatus.class, currentStatus, userRecords) {
 			@Override
 			public void changeStatus(Object value) {
 
@@ -169,7 +187,6 @@ public class UserRecordMenuItemActionBehaviors {
 		List<UserCredential> userCredentialsToUpdate = new ArrayList<>();
 		for (User user : userRecords) {
 			UserCredential userCredential = userServices.getUserCredential(user.getUsername());
-
 			if (!userCredential.getSyncMode().equals(UserSyncMode.LOCALLY_CREATED)) {
 				if (isSynchronizing) {
 					userCredential.setSyncMode(UserSyncMode.SYNCED);
@@ -177,11 +194,17 @@ public class UserRecordMenuItemActionBehaviors {
 					userCredential.setSyncMode(UserSyncMode.NOT_SYNCED);
 				}
 				userCredentialsToUpdate.add(userCredential);
+			} else {
+				params.getView().showErrorMessage($("CollectionSecurityManagement.userCreatedLocally", user.getUsername()));
 			}
 		}
 		if (!userCredentialsToUpdate.isEmpty()) {
 			try {
 				recordServices.update(userCredentialsToUpdate.stream().map(x -> x.getWrappedRecord()).collect(Collectors.toList()), params.getUser());
+				String confirmationMessage = isSynchronizing
+											 ? $("CollectionSecurityManagement.changedSynchronized")
+											 : $("CollectionSecurityManagement.changedDesynchronized");
+				params.getView().showMessage(confirmationMessage);
 			} catch (RecordServicesException e) {
 				log.error("User.cannotChangeSynchronization", e);
 				params.getView().showErrorMessage($("CollectionSecurityManagement.cannotChangeSynchronization"));
