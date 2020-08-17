@@ -41,6 +41,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.modules.rm.model.enums.DisposalType.DEPOSIT;
@@ -379,6 +380,48 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(document1).isNull();
 
 	}
+
+
+	@Test
+	public void givenNonEmptyDataFolderWhenImportingFromZipThenFolderContentUploadedToVault() throws Exception {
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		File uploadedFile1 = newTempFileWithContent("file1.txt", "I am the value");
+
+
+		String uploadedFile1Hash = "xRSHnQtqTxAt4hDUJ7aLCbo9on8=";//contentManager.upload(uploadedFile1).getHash();
+
+		File zipFile = buildZipWithContent(Arrays.asList(uploadedFile1));
+
+		importServices.bulkImport(XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile), progressionListener, admin);
+		assertThat(contentManager.getParsedContent(uploadedFile1Hash) != null);
+		assertThat(contentManager.getParsedContent(uploadedFile1Hash).getParsedContent().equals("I am the value"));
+	}
+
+	@Test
+	public void givenNonEmptyDataFolderWithOtherRecordsWhenImportingFromZipThenFolderContentUploadedToVault()
+			throws Exception {
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		File uploadedFile1 = newTempFileWithContent("file1.txt", "I am the value");
+		File uploadedFile2 = newTempFileWithContent("file2.txt", "I am another value");
+
+
+		String uploadedFile1Hash = "xRSHnQtqTxAt4hDUJ7aLCbo9on8=";//contentManager.upload(uploadedFile1).getHash();
+		String uploadedFile2Hash = "6IbfpsIQP8-ZhYcfY0JEm_xbss4=";
+
+		File zipFile = buildZipWithContent(Arrays.asList(uploadedFile1, uploadedFile2), "administrativeUnit.xml",
+				"category.xml", "containerRecord.xml", "ddvContainerRecordType.xml", "folder.xml", "document.xml",
+				"retentionRule.xml", "ddvDocumentType.xml", "decommissioningList.xml");
+		File destination = new File("C:\\Users\\Constellio\\Desktop\\constellio\\dev\\workflows", zipFile.getName());
+		FileUtils.copyFile(zipFile, destination);
+
+		importServices.bulkImport(XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile), progressionListener, admin);
+		assertThat(contentManager.getParsedContent(uploadedFile1Hash) != null);
+		assertThat(contentManager.getParsedContent(uploadedFile2Hash) != null);
+
+		assertThat(contentManager.getParsedContent(uploadedFile1Hash).getParsedContent().equals("I am the value"));
+		assertThat(contentManager.getParsedContent(uploadedFile1Hash).getParsedContent().equals("I am another value"));
+	}
+
 
 
 	private void importAndValidate() {
@@ -721,6 +764,39 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 			File resourceFile = getTestResourceFile(resourceFilename);
 			FileUtils.copyFile(resourceFile, fileInTempFolder);
 		}
+
+		getIOLayerFactory().newZipService().zip(zipFile, asList(tempFolder.listFiles()));
+
+		return zipFile;
+	}
+
+	private File buildZipWithContent(List<File> contentFiles, String... templateFiles)
+			throws Exception {
+
+		File tempFolder = newTempFolder();
+		File zipFile = new File(newTempFolder(), StringUtils.replace(StringUtils.join(templateFiles, "_"), ":", "-") + "testdata.zip");
+
+		for (String file : templateFiles) {
+			String filenameInTempFolder = file;
+			String resourceFilename = file;
+			if (file.contains(":")) {
+				resourceFilename = file.split(":")[0];
+				filenameInTempFolder = file.split(":")[1];
+			}
+
+			File fileInTempFolder = new File(tempFolder, filenameInTempFolder);
+			File resourceFile = getTestResourceFile(resourceFilename);
+			FileUtils.copyFile(resourceFile, fileInTempFolder);
+		}
+
+		if (!contentFiles.isEmpty()) {
+			File dataFolder = new File(tempFolder, "data");
+			for (File contentFile : contentFiles) {
+				File destination = new File(dataFolder, contentFile.getName());
+				FileUtils.copyFile(contentFile, destination);
+			}
+		}
+
 
 		getIOLayerFactory().newZipService().zip(zipFile, asList(tempFolder.listFiles()));
 

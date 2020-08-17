@@ -6,6 +6,7 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.builder.ImportDataBuilder;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -100,5 +101,10 @@ public class DummyImportDataProvider implements ImportDataProvider {
 
 			}
 		};
+	}
+
+	@Override
+	public List<File> getImportedContents() {
+		return null;
 	}
 }

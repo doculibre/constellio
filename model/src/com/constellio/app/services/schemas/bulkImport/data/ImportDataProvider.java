@@ -1,5 +1,6 @@
 package com.constellio.app.services.schemas.bulkImport.data;
 
+import java.io.File;
 import java.util.List;
 
 public interface ImportDataProvider {
@@ -14,5 +15,7 @@ public interface ImportDataProvider {
 	List<String> getAvailableSchemaTypes();
 
 	ImportDataIterator newDataIterator(String schemaType);
+
+	List<File> getImportedContents();
 
 }

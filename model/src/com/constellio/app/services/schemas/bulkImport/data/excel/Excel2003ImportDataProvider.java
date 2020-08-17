@@ -21,6 +21,11 @@ public class Excel2003ImportDataProvider implements ImportDataProvider {
 
 	private Workbook workbook;
 
+	@Override
+	public List<File> getImportedContents() {
+		return null;
+	}
+
 	public Excel2003ImportDataProvider(File excelFile) {
 		this.excelFile = excelFile;
 	}

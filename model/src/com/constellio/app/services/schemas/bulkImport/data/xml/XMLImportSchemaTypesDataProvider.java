@@ -8,6 +8,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 
 import java.io.File;
 import java.io.Reader;
+import java.util.List;
 
 public class XMLImportSchemaTypesDataProvider extends XMLImportDataProvider implements ImportDataProvider {
 
@@ -47,4 +48,8 @@ public class XMLImportSchemaTypesDataProvider extends XMLImportDataProvider impl
 		return TEMP_FOLDER_STREAM_NAME;
 	}
 
+	@Override
+	public List<File> getImportedContents() {
+		return null;
+	}
 }
