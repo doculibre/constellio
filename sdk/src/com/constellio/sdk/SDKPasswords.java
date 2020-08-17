@@ -281,6 +281,21 @@ public class SDKPasswords {
 
 	//
 	// Utils
+
+	// Azure Account credentials
+	public static String testAzureAccountName() {
+		return getValue("testAzure.accountName");
+	}
+
+	public static String testAzureAccountPassword() {
+		return getValue("testAzure.accountPassword");
+	}
+
+	public static String testAzureConnectionString() {
+		return getValue("testAzure.connectionString");
+	}
+	//
+
 	private synchronized static void loadCorrectIfRequired() {
 		if (sdkPasswords == null) {
 			File sdkPasswordsFile = new File(new FoldersLocator().getPluginsSDKProject(), "sdkpasswords.properties");

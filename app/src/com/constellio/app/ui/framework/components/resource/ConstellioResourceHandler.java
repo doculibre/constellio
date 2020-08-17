@@ -8,11 +8,13 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImageUtils;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
+import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -302,9 +304,13 @@ public class ConstellioResourceHandler implements RequestHandler {
 		if (content != null) {
 			ContentVersion contentVersion = content.getVersion(version);
 			String hash = contentVersion.getHash();
-			File file = ConstellioFactories.getInstance().getModelLayerFactory().getContentManager()
-					.getContentDao().getFileOf(hash);
-			return ImageUtils.isImageOversized(file);
+			try {
+				ParsedContent parsedContent = ConstellioFactories.getInstance().getModelLayerFactory().getContentManager()
+						.getParsedContent(hash);
+				return ImageUtils.isImageOversized((Double) parsedContent.getProperties().get("height"));
+			} catch (ContentManagerException_ContentNotParsed contentManagerException_contentNotParsed) {
+				return false;
+			}
 		}
 		return false;
 	}

@@ -14,6 +14,7 @@ import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.ContentDaoException;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 import com.constellio.data.dao.services.contents.ContentDaoRuntimeException;
+import com.constellio.data.dao.services.contents.DaoFile;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
@@ -90,7 +91,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1424,32 +1424,11 @@ public class ContentManager implements StatefulService {
 	}
 
 	public Stream<VaultContentEntry> stream() {
-		Stream<Path> pathStream = modelLayerFactory.getContentManager().getContentDao().streamVaultContent((path) -> {
+		Stream<DaoFile> daoFileStream = modelLayerFactory.getContentManager().getContentDao().streamVaultContent((file) -> filterVaultContent(file));
 
-			if (path.toFile().isDirectory()) {
-				return false;
-
-			} else {
-				String filename = path.toFile().getName();
-				if (path.endsWith("tlogs") || path.getParent().endsWith("tlogs")
-					|| path.endsWith("shared") || path.getParent().endsWith("shared")
-					|| filename.endsWith("tlogs-backup")) {
-					return false;
-
-				} else if (filename.endsWith(".preview") || filename.endsWith(".thumbnails")
-						   || filename.endsWith("__parsed") || filename.endsWith(".jpegConversion")) {
-					return false;
-
-				} else {
-					return true;
-				}
-
-			}
-		});
-
-		return pathStream.map((p -> {
-			String hash = p.toFile().getName();
-			return new VaultContentEntry(p.toFile()) {
+		return daoFileStream.map((daoFile -> {
+			String hash = daoFile.getName();
+			return new VaultContentEntry(daoFile) {
 				@Override
 				public Optional<ParsedContent> loadParsedContent() {
 					try {
@@ -1462,7 +1441,23 @@ public class ContentManager implements StatefulService {
 		}));
 	}
 
-	;
+	public boolean filterVaultContent(DaoFile file) {
+		if (file.isDirectory()) {
+			return false;
+		} else {
+			String filename = file.getName();
+			if (filename.endsWith("tlogs") || filename.endsWith("tlogs-backup") || filename.endsWith(".tlog") || filename.equals("tlogBaseFile.zip") || filename.equals("tlog-infos.txt") || path.endsWith("shared") || path.getParent().endsWith("shared")) {
+				return false;
+
+			} else if (filename.endsWith(".preview") || filename.endsWith(".thumbnails")
+					   || filename.endsWith("__parsed") || filename.endsWith(".jpegConversion")) {
+				return false;
+
+			} else {
+				return true;
+			}
+		}
+	}
 
 	protected static class VaultScanResults {
 		private StringBuilder reportMessage = new StringBuilder();
