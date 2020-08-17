@@ -747,7 +747,11 @@ public class UserServices {
 
 
 	public SystemWideUserInfos getUserInfos(String username) {
-		return toSystemWideUserInfos(getUserCredential(username));
+		UserCredential userCredential = getUserCredential(username);
+		if (userCredential == null) {
+			throw new UserServicesRuntimeException_NoSuchUser(username);
+		}
+		return toSystemWideUserInfos(userCredential);
 	}
 
 
@@ -772,8 +776,6 @@ public class UserServices {
 							.map(groupId -> recordServices.getDocumentById(groupId).<String>get(Schemas.CODE))
 							.collect(toList()));
 				}
-
-
 			}
 		}
 
@@ -1320,30 +1322,13 @@ public class UserServices {
 		if (request.getNewCollections() != null) {
 			groupCollections.addAll(request.getNewCollections());
 		}
-
 		Transaction transaction;
 		String parent = (String) request.getModifiedAttributes().get(GroupAddUpdateRequest.PARENT);
-		if (parent == null) {
-			parent = group.getParent();
-		}
-		List<String> parentGroupCollections = getParentGroupCollections(request, new ArrayList<>(groupCollections), parent);
-
-		if (!parentGroupCollections.isEmpty()) {
-			SystemWideGroup parentGroup = getGroup(parent);
-			for (String collection : parentGroupCollections) {
-				transaction = new Transaction();
-				sync(parentGroup, collection, transaction);
-				try {
-					recordServices.execute(transaction);
-				} catch (RecordServicesException e) {
-					throw new UserServicesRuntimeException_CannotExcuteTransaction(e);
-				}
-			}
-		}
-
+		syncParentHierarchy(parent, group, groupCollections);
 		for (String collection : groupCollections) {
 			transaction = new Transaction();
 			if (request.getRemovedCollections() != null && request.getRemovedCollections().contains(collection)) {
+				syncChildrenHierarchy(group.getCode(), collection);
 				removeGroupFrom(request.getCode(), collection);
 			} else if (canSyncGroup(request, collection)) {
 				sync(request, collection, transaction, group);
@@ -1356,6 +1341,36 @@ public class UserServices {
 		}
 	}
 
+	private void syncParentHierarchy(String parent, SystemWideGroup group, Set<String> groupCollections) {
+		if (parent == null) {
+			parent = group.getParent();
+		}
+
+		List<String> parentGroupCollections = getParentGroupCollections(new ArrayList<>(groupCollections), parent);
+		if (!parentGroupCollections.isEmpty()) {
+			SystemWideGroup parentGroup = getGroup(parent);
+			Transaction transaction;
+			for (String collection : parentGroupCollections) {
+				transaction = new Transaction();
+				sync(parentGroup, collection, transaction);
+				try {
+					recordServices.execute(transaction);
+				} catch (RecordServicesException e) {
+					throw new UserServicesRuntimeException_CannotExcuteTransaction(e);
+				}
+			}
+			syncParentHierarchy(null, parentGroup, groupCollections);
+		}
+	}
+
+	private void syncChildrenHierarchy(String groupCode, String collection) {
+		List<Group> childrenOfGroupInCollection = getChildrenOfGroupInCollection(groupCode, collection);
+		for (Group child : childrenOfGroupInCollection) {
+			syncChildrenHierarchy(child.getCode(), collection);
+			removeGroupFrom(child.getCode(), collection);
+		}
+	}
+
 	private boolean canSyncGroup(GroupAddUpdateRequest request, String collection) {
 		if (request.getMarkedForDeletionInCollections() != null) {
 			return !request.getMarkedForDeletionInCollections().contains(collection);
@@ -1363,18 +1378,17 @@ public class UserServices {
 		return !request.isMarkedForDeletionInAllCollections() && request.getMarkedForDeletionInCollections() == null;
 	}
 
-	private List<String> getParentGroupCollections(GroupAddUpdateRequest request,
-												   List<String> childGroupCollections, String parent) {
-		List<String> inactiveCollections = new ArrayList<>();
+	private List<String> getParentGroupCollections(List<String> childGroupCollections, String parent) {
+		List<String> newParentGroupCollections = new ArrayList<>();
 		if (parent != null) {
 			List<String> parentGroupCollections = getGroup(parent).getCollections();
 			for (String collection : childGroupCollections) {
 				if (!parentGroupCollections.contains(collection)) {
-					inactiveCollections.add(collection);
+					newParentGroupCollections.add(collection);
 				}
 			}
 		}
-		return inactiveCollections;
+		return newParentGroupCollections;
 	}
 
 	private void sync(GroupAddUpdateRequest request, String collection,
@@ -1403,6 +1417,7 @@ public class UserServices {
 		}
 
 		groupInCollection.set(Group.STATUS, GlobalGroupStatus.ACTIVE);
+		groupInCollection.set(Schemas.LOGICALLY_DELETED_STATUS, false);
 		groupInCollection.set(Group.LOCALLY_CREATED, true);
 		if ((modifiedAttributes.get(GroupAddUpdateRequest.NAME) != null)) {
 			groupInCollection.setTitle((String) modifiedAttributes.get(GroupAddUpdateRequest.NAME));
