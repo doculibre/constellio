@@ -15,6 +15,7 @@ import com.constellio.app.services.importExport.systemStateExport.SystemStateExp
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.dao.dto.records.RecordId;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.utils.LazyIterator;
@@ -274,7 +275,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		filenameSB.append(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
 		filenameSB.append(".zip");
 		String filename = filenameSB.toString();
-		
+
 		File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
 				.newTemporaryFolder(EXPORT_FOLDER_RESOURCE);
 		File file = new File(folder, filename);
