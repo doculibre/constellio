@@ -17,9 +17,13 @@ public class TenantUtils {
 		return tenant != null ? "" + getTenant().getId() : null;
 	}
 
-	public static Byte getByteTenantId() {
+	public static String getTenantCode() {
 		TenantProperties tenant = getTenant();
-		return tenant != null ? getTenant().getId() : null;
+		return tenant != null ? "" + getTenant().getCode() : null;
+	}
+
+	public static byte getByteTenantId() {
+		return getTenant().getId();
 	}
 
 	private static TenantProperties getTenant() {
