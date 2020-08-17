@@ -712,14 +712,6 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			}
 
 			@Override
-			public boolean isVisible() {
-				AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
-				return presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && containsOnly(
-					param.getSchemaTypeCodes(),
-					asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE));
-			}
-
-			@Override
 			public LogicalSearchQuery getQuery() {
 				return null;
 			}
