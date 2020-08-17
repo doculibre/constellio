@@ -447,7 +447,7 @@ public class TaskRecordExtension extends RecordExtension {
 
 		for (Comment comment : task.getComments()) {
 			htmlComments.append(StringEscapeUtils.escapeHtml4(comment.getUsername() + " : " +
-															  comment.getDateTime().toString()) + "<br/>");
+															  comment.getCreationDateTime().toString()) + "<br/>");
 			htmlComments.append(StringEscapeUtils.escapeHtml4(comment.getMessage()).replace("\n", "<br/>") + "<br/>");
 			htmlComments.append("<br/>");
 		}
