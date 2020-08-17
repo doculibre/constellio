@@ -409,7 +409,7 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 						rightClickEvent.setClientY(event.getClientY());
 						rightClickEvent.setRelativeX(event.getRelativeX());
 						rightClickEvent.setRelativeY(event.getRelativeY());
-						for(ItemClickListener clickListener: adaptee.getItemClickListeners()) {
+						for (ItemClickListener clickListener : adaptee.getItemClickListeners()) {
 							clickListener.itemClick(new ItemClickEvent(LazyTree.this, getItem(object), object, CAPTION_PROPERTY, rightClickEvent));
 						}
 					}

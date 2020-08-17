@@ -11,6 +11,8 @@ import java.util.List;
 
 public class ImportedSettings {
 
+	ImportedSystemVersion importedSystemVersion = new ImportedSystemVersion();
+
 	List<ImportedLabelTemplate> importedLabelTemplates = new ArrayList<>();
 
 	List<ImportedConfig> configs = new ArrayList<>();
@@ -69,6 +71,16 @@ public class ImportedSettings {
 
 	public ImportedSettings setCollectionsSettings(List<ImportedCollectionSettings> collectionsSettings) {
 		this.collectionsSettings = collectionsSettings;
+		return this;
+	}
+
+	public ImportedSystemVersion getImportedSystemVersion() {
+		return importedSystemVersion;
+	}
+
+	public ImportedSettings setImportedSystemVersion(
+			ImportedSystemVersion importedSystemVersion) {
+		this.importedSystemVersion = importedSystemVersion;
 		return this;
 	}
 

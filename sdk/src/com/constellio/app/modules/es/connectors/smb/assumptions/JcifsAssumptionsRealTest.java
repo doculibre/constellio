@@ -4,7 +4,6 @@ import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommand;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommandFactory;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommandFactory.SmbTestCommandType;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;

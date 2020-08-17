@@ -117,7 +117,7 @@ public class TaskMenuItemServices {
 		if (!filteredActionTypes.contains(TASK_SHARE.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(TASK_SHARE.name(),
 					isMenuItemActionPossible(TASK_SHARE.name(), task, user, params),
-					$("DisplayTaskView.share"), null, -1, 700,
+					$("DisplayTaskView.share"), FontAwesome.PAPER_PLANE_O, -1, 700,
 					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).shareTask(task, params));
 			menuItemActions.add(menuItemAction);
 		}

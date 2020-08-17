@@ -15,7 +15,7 @@ import com.constellio.app.modules.restapi.folder.dao.FolderDao;
 import com.constellio.app.modules.restapi.health.HealthService;
 import com.constellio.app.modules.restapi.health.dao.HealthDao;
 import com.constellio.app.modules.restapi.record.RecordService;
-import com.constellio.app.modules.restapi.record.dao.RecordDao;à
+import com.constellio.app.modules.restapi.record.dao.RecordDao;
 import com.constellio.app.modules.restapi.taxonomy.TaxonomyService;
 import com.constellio.app.modules.restapi.taxonomy.dao.TaxonomyDao;
 import com.constellio.app.modules.restapi.url.UrlService;

@@ -83,10 +83,6 @@ public class Excel2007ImportDataProvider implements ImportDataProvider {
 		try {
 
 
-
-
-
-
 			opcPackage = OPCPackage.open(new FileInputStream(workbookFile));
 			return new XSSFWorkbook(opcPackage);
 		} catch (InvalidFormatException | IOException e) {

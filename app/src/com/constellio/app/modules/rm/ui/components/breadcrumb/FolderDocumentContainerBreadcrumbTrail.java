@@ -60,7 +60,7 @@ public class FolderDocumentContainerBreadcrumbTrail extends TitleBreadcrumbTrail
 			recordId = null;
 		} else if (item instanceof GroupFavoritesBreadcrumbItem) {
 			recordId = ((GroupFavoritesBreadcrumbItem)item).getFavoriteGroupId();
-		} else if (item instanceof FavoritesBreadcrumbItem){
+		} else if (item instanceof FavoritesBreadcrumbItem) {
 			recordId = null;
 		} else if (item instanceof LastViewedFoldersDocumentsBreadcrumbItem) {
 			recordId = null;

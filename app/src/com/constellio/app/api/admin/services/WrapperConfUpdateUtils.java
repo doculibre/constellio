@@ -1,7 +1,7 @@
 package com.constellio.app.api.admin.services;
 
-import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.io.services.facades.FileService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 

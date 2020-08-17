@@ -137,10 +137,10 @@ public class HttpServletRequestAuthenticator {
 		try {
 			byte[] tokenOrPassword = userToken.getBytes(Charset.forName("UTF-8"));
 
-			boolean authenticated = modelLayerFactory.newAuthenticationService().authenticate(username, new String(tokenOrPassword));
 			UserCredential userCredential = userServices.getUser(username);
+			boolean authenticated = userCredential.getTokenKeys().contains(new String(tokenOrPassword));
 			if (!authenticated) {
-				authenticated = userCredential.getTokenKeys().contains(new String(tokenOrPassword));
+				authenticated = modelLayerFactory.newAuthenticationService().authenticate(username, new String(tokenOrPassword));
 			}
 
 			if (authenticated) {

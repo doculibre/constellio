@@ -152,7 +152,7 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 		String fileHash1 = hashingService.getHashFromFile(tempFile1);
 
 		try {
-			fileSystemContentDao.moveFileToVault(fileHash1,tempFile1,  ONLY_IF_INEXISTING);
+			fileSystemContentDao.moveFileToVault(fileHash1, tempFile1, ONLY_IF_INEXISTING);
 			fail("The file vault move should fail.");
 		} catch (FileSystemContentDaoRuntimeException e) {
 			// Ok the exception is expected.

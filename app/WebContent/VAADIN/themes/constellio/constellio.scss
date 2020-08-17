@@ -1520,11 +1520,12 @@ $popup-view-z-index: 3;
     	.gwt-MenuItem {
     		padding-left: 0px;
     		padding-right: 0px;
-    		span {
-    			padding-left: 10px;
-    		}
-    	}
-    }
+
+			span {
+				padding-left: 10px;
+			}
+		}
+	}
 
 	.filters-panel {
 		.v-filterselect {
@@ -3083,9 +3084,9 @@ $popup-view-z-index: 3;
 		background-color: white;
 		font-weight: 400;
 
-	    .sidebar {
-	    	overflow-y: hidden;
-	    }
+		.sidebar {
+			overflow-y: hidden;
+		}
 
 		.header {
 			//height: $header-height;
@@ -3469,14 +3470,14 @@ $popup-view-z-index: 3;
 					}
 
 				    .action-menu-layout {
-					    width: 225px;
-					    border: 1px solid #3a434d;
-					    border-radius: 4px;
+						width: 250px;
+						border: 1px solid #3a434d;
+						border-radius: 4px;
 
 						.v-button {
 							padding-left: 8px;
-					    	color: white;
-					    	font-weight: normal;
+							color: white;
+							font-weight: normal;
 							text-decoration: none;
 							font-size: 14px;
 							width: 100%;
@@ -3824,12 +3825,12 @@ $popup-view-z-index: 3;
 	    	margin-top: -30px;
 	    }
 
-  		.viewable-record-table-panel {
-	  		.action-menu-bar-layout {
-	  			top: 10px;
-	  			right: 50px;
-	  		}
-  		}
+		.viewable-record-table-panel {
+			.action-menu-bar-layout {
+				top: 10px;
+				right: 50px;
+			}
+		}
 
 		.viewable-record-table {
 			.v-table-table {
@@ -3905,8 +3906,7 @@ $popup-view-z-index: 3;
 			position: absolute;
 			bottom: 0px;
 			width: 100%;
-    	}
-
+		}
 		.valo-menu-constellio-version {
 			margin-top: 110px;
 			white-space: normal;
@@ -3955,11 +3955,11 @@ $popup-view-z-index: 3;
     		}
     	}
 
-    	.folder-content-table {
-	    	.v-scrollable {
-	    		overflow-x: auto;
-	    	}
-    	}
+		.folder-content-table {
+			.v-scrollable {
+				overflow-x: auto;
+			}
+		}
 
 		.viewable-record-table {
 			.v-table-table {
@@ -4019,12 +4019,12 @@ $popup-view-z-index: 3;
 	    	margin-top: -30px;
 	    }
 
-  		.viewable-record-table-panel {
-	  		.action-menu-bar-layout {
-	  			top: -60px;
-	  			right: 50px;
-	  		}
-  		}
+		.viewable-record-table-panel {
+			.action-menu-bar-layout {
+				top: -60px;
+				right: 50px;
+			}
+		}
 
 		.viewable-record-table {
 			.v-table-table {
@@ -4839,7 +4839,7 @@ $popup-view-z-index: 3;
     			direction: rtl;
 
     			.facet-title, .sort-title {
-    				direction: ltr;
+					direction: ltr;
 					padding-left: 0px;
 					padding-right: 13px;
 				}
@@ -4969,8 +4969,8 @@ $popup-view-z-index: 3;
 
 	            			.agent-link {
 	            				padding-right: initial;
-	            				padding-left: 26px;
-	            			}
+								padding-left: 26px;
+							}
 						}
 
 						.v-label-display-value {
@@ -5052,8 +5052,8 @@ $popup-view-z-index: 3;
 
             			.agent-link {
             				padding-right: initial;
-            				padding-left: 26px;
-            			}
+							padding-left: 26px;
+						}
 					}
 
 					.v-label-display-value {
@@ -5075,7 +5075,7 @@ $popup-view-z-index: 3;
 					.display-value-retentionRule_default_copyRetentionRules, .display-value-retentionRule_default_documentCopyRetentionRules {
 						padding-right: initial;
 					}
-					
+
 				}
 			}
         }
@@ -5089,7 +5089,7 @@ $popup-view-z-index: 3;
             padding-right: initial;
             padding-left: 320px;
     	}
-    	
+
     	.v-slot-search-result-facets {
     		float: left;
     	}
@@ -5126,7 +5126,7 @@ $popup-view-z-index: 3;
             		padding-right: initial;
             		padding-left: 260px;
 				}
-			
+
 			}
         }
 
@@ -5144,11 +5144,11 @@ $popup-view-z-index: 3;
             padding-right: initial;
             padding-left: 320px;
     	}
-    	
+
     	.v-slot-search-result-facets {
-    		float: left;    		
+    		float: left;
     	}
-	    
+
 	}
 
     .v-ui[width-range~="0-800px"].right-to-left {
@@ -5158,12 +5158,12 @@ $popup-view-z-index: 3;
 				right: initial;
 				left: 220px;
 			}
-			
+
 			.header-collection-menu {
 				right: initial;
 				left: 290px;
 			}
-			
+
 			.header-action-menu {
 				right: initial;
 				left: 150px;

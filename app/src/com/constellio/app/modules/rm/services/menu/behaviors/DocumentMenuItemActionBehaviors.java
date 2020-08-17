@@ -376,8 +376,8 @@ public class DocumentMenuItemActionBehaviors {
 								}
 							}
 						} catch (Throwable e) {
-							log.warn("Error when trying to move this document to folder " + newParentId, e);
-							showErrorMessage("DocumentContextMenu.changeParentFolderException");
+							log.error("Error when trying to move this document to folder " + newParentId, e);
+							showErrorMessage($("DocumentContextMenu.changeParentFolderException"));
 						}
 						getWindow().close();
 					}
@@ -400,7 +400,7 @@ public class DocumentMenuItemActionBehaviors {
 		document = loadingFullRecordIfSummary(document);
 		document.setPublished(true);
 		Button publishButton = new WindowButton($("DisplayDocumentView.publish"),
-				$("DisplayDocumentView.publish"), new WindowConfiguration(true, true, "30%", "300px")) {
+				$("DisplayDocumentView.publish"), new WindowConfiguration(true, true, "350px", "490px")) {
 			@Override
 			protected Component buildWindowContent() {
 				return new PublishDocumentViewImpl(params) {

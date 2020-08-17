@@ -140,9 +140,9 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		exportToXML(options);
 	}
 
-	void exportSchemasClicked() {
+	void exportSchemasClicked(boolean personalizedMetadataOnly) {
 		SettingsExportOptions options = new SettingsExportOptions();
-		options.setOnlyUSR(true);
+		options.setOnlyUSR(personalizedMetadataOnly);
 		options.setExportingAsCurrentCollection(true);
 
 		SettingsExportServices services = new SettingsExportServices(appLayerFactory);
