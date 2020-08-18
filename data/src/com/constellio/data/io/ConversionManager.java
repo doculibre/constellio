@@ -1,5 +1,6 @@
 package com.constellio.data.io;
 
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
@@ -7,7 +8,7 @@ import com.constellio.data.extensions.extensions.configManager.ExtensionConverte
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImageUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.detect.Detector;
@@ -165,9 +166,13 @@ public class ConversionManager implements StatefulService {
 
 	private static final Map<String, String> COPY_EXTENSIONS = new HashMap<>();
 
-	public static String[] SUPPORTED_EXTENSIONS = new String[0];
+	private static String[] SUPPORTED_EXTENSIONS = new String[0];
 
 	private static boolean openOfficeOrLibreOfficeInstalled = false;
+
+	private static OfficeManager officeManager;
+	private static final Object officeManagerLock = new Object();
+	private static boolean officeManagerStarted = false;
 
 	static {
 		try {
@@ -222,21 +227,19 @@ public class ConversionManager implements StatefulService {
 	private final IOServices ioServices;
 	private int numberOfProcesses;
 	private String onlineConversionUrl;
-	private OfficeManager officeManager;
 	private AbstractConverter delegate;
 	private ExecutorService executor;
-	private static DataLayerSystemExtensions extensions;
+	private DataLayerSystemExtensions extensions;
+
+	private boolean tiffFilesSupported;
 
 	public ConversionManager(IOServices ioServices, int numberOfProcesses, String onlineConversionUrl,
-							 DataLayerSystemExtensions extensions) {
+							 DataLayerSystemExtensions extensions, DataLayerConfiguration dataLayerConfiguration) {
 		this.ioServices = ioServices;
 		this.numberOfProcesses = numberOfProcesses;
 		this.onlineConversionUrl = onlineConversionUrl;
 		this.extensions = extensions;
-	}
-
-	public static String[] getSupportedExtensions() {
-		return (String[]) ArrayUtils.addAll(SUPPORTED_EXTENSIONS, extensions.getSupportedExtensionExtensions());
+		this.tiffFilesSupported = dataLayerConfiguration.areTiffFilesConvertedForPreview();
 	}
 
 	public boolean isOpenOfficeOrLibreOfficeInstalled() {
@@ -247,34 +250,49 @@ public class ConversionManager implements StatefulService {
 	public void initialize() {
 	}
 
-	private synchronized void ensureInitialized() {
+	private void ensureInitialized() {
 		if (openOfficeOrLibreOfficeInstalled && executor == null) {
 			executor = newFixedThreadPool(numberOfProcesses);
 
 			DocumentFormatRegistry formatRegistry = DefaultDocumentFormatRegistry.getInstance();
 			if (onlineConversionUrl != null) {
-				officeManager = OnlineOfficeManager.builder().taskExecutionTimeout(CONVERSION_TIMEOUT).poolSize(numberOfProcesses).urlConnection(onlineConversionUrl)
-						.build();
+				synchronized (officeManagerLock) {
+					if (officeManager == null) {
+						officeManager = OnlineOfficeManager.builder().taskExecutionTimeout(CONVERSION_TIMEOUT).poolSize(numberOfProcesses).urlConnection(onlineConversionUrl)
+								.build();
+					}
+					startOfficeManager();
+				}
 
 				delegate = OnlineConverter.builder()
 						.officeManager(officeManager)
 						.formatRegistry(formatRegistry)
 						.build();
 			} else {
-				int[] portNumbers = getPortNumbers();
-				officeManager = LocalOfficeManager.builder().taskExecutionTimeout(CONVERSION_TIMEOUT).install().portNumbers(portNumbers).build();
+				synchronized (officeManagerLock) {
+					if (officeManager == null) {
+						int[] portNumbers = getPortNumbers();
+						officeManager = LocalOfficeManager.builder().taskExecutionTimeout(CONVERSION_TIMEOUT).install().portNumbers(portNumbers).build();
+					}
+					startOfficeManager();
+				}
 
-				delegate =
-						LocalConverter.builder()
-								.officeManager(officeManager)
-								.formatRegistry(formatRegistry)
-								.build();
+				delegate = LocalConverter.builder()
+						.officeManager(officeManager)
+						.formatRegistry(formatRegistry)
+						.build();
 			}
-			try {
+		}
+	}
+
+	private void startOfficeManager() {
+		try {
+			if (!officeManagerStarted) {
 				officeManager.start();
-			} catch (OfficeException e) {
-				throw new RuntimeException(e);
+				officeManagerStarted = true;
 			}
+		} catch (OfficeException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -330,18 +348,15 @@ public class ConversionManager implements StatefulService {
 
 	public File convertToJPEG(InputStream inputStream, Dimension dimension, String mimetype, String originalName,
 							  File workingFolder) throws Exception {
-		BufferedImage bufferedImage = ImageIO.read(inputStream);
+		File outputfile = createTempFile("jpegConversion", originalName + ".jpg", workingFolder);
 		if (dimension != null && ImageUtils.isImageOversized(dimension.getHeight())) {
-			String ext = FilenameUtils.getExtension(originalName);
-			File outputfile = createTempFile("jpegConversion", originalName + "." + ext, workingFolder);
-			BufferedImage resizedImage = ImageUtils.resize(bufferedImage);
-			ImageIO.write(resizedImage, ext, outputfile);
-			return outputfile;
+			BufferedImage resizedImage = ImageUtils.resizeWithSubSampling(inputStream);
+			ImageIO.write(resizedImage, "jpg", outputfile);
 		} else {
-			File outputfile = createTempFile("jpegConversion", originalName + ".jpg", workingFolder);
+			BufferedImage bufferedImage = ImageIO.read(inputStream);
 			ImageIO.write(bufferedImage, "jpg", outputfile);
-			return outputfile;
 		}
+		return outputfile;
 	}
 
 	@Override
@@ -357,10 +372,16 @@ public class ConversionManager implements StatefulService {
 			}
 
 			// Stop the office process
-			try {
-				officeManager.stop();
-			} catch (OfficeException e) {
-				LOGGER.warn("Problem while closing OfficeManager", e);
+			synchronized (officeManagerLock) {
+				try {
+					if (officeManager != null) {
+						officeManager.stop();
+						officeManager = null;
+					}
+					officeManagerStarted = false;
+				} catch (OfficeException e) {
+					LOGGER.warn("Problem while closing OfficeManager", e);
+				}
 			}
 		}
 	}
@@ -379,7 +400,10 @@ public class ConversionManager implements StatefulService {
 		if (openOfficeOrLibreOfficeInstalled) {
 			ensureInitialized();
 			String fileExtension = FilenameUtils.getExtension(input.getName());
-			if (Arrays.asList(extensions.getSupportedExtensionExtensions()).contains(fileExtension)) {
+			if (fileExtension.equalsIgnoreCase("tif") || fileExtension.equalsIgnoreCase("tiff")) {
+				// Special case, ignore
+				throw new RuntimeException("PDF conversion is not supported for tiff");
+			} else if (Arrays.asList(extensions.getSupportedExtensionExtensions()).contains(fileExtension)) {
 				ExtensionConverter converter = extensions.getConverterForSupportedExtension(fileExtension);
 				if (converter != null) {
 					FileInputStream inputStream = null;
@@ -510,13 +534,27 @@ public class ConversionManager implements StatefulService {
 		return pdfaFormat;
 	}
 
-	public static boolean isSupportedExtension(String ext) {
-		for (String aSupportedExtension : getSupportedExtensions()) {
+	public String[] getAllSupportedExtensions() {
+		List<String> supportedExtensions = new ArrayList<>();
+		String[] potentiallySupportedExtensions = ArrayUtils.addAll(SUPPORTED_EXTENSIONS, extensions.getSupportedExtensionExtensions());
+		supportedExtensions.addAll(Arrays.asList(potentiallySupportedExtensions));
+		if (!tiffFilesSupported) {
+			supportedExtensions.remove("tif");
+			supportedExtensions.remove("tiff");
+		}
+		return supportedExtensions.toArray(new String[0]);
+	}
+
+	public String[] getPreviewSupportedExtensions() {
+		return ArrayUtils.removeElements(getAllSupportedExtensions(), extensions.getExtentionDisabledForPreviewConvertion());
+	}
+
+	public boolean isSupportedExtension(String ext) {
+		for (String aSupportedExtension : getPreviewSupportedExtensions()) {
 			if (aSupportedExtension.equalsIgnoreCase(ext)) {
 				return true;
 			}
 		}
-
 		return false;
 	}
 }

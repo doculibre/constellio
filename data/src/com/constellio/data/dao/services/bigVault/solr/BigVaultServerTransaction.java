@@ -2,6 +2,7 @@ package com.constellio.data.dao.services.bigVault.solr;
 
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.solr.common.SolrInputDocument;
 
@@ -108,6 +109,7 @@ public class BigVaultServerTransaction {
 		return this;
 	}
 
+	@JsonIgnore
 	private List<String> getAddUpdateDeleteRecordIds() {
 		List<String> ids = new ArrayList<>();
 		for (SolrInputDocument doc : newDocuments) {
@@ -126,24 +128,27 @@ public class BigVaultServerTransaction {
 		return ToStringBuilder.reflectionToString(this);
 	}
 
+	@JsonIgnore
 	public boolean isOnlyAdd() {
 		return updatedDocuments.isEmpty() && deletedQueries.isEmpty() && deletedRecords.isEmpty();
 	}
 
+	@JsonIgnore
 	public boolean isParallelisable() {
-		boolean parallelisable = false;
 		if (deletedRecords.isEmpty() && deletedQueries.isEmpty()) {
-			parallelisable = true;
 
 			for (SolrInputDocument solrInputDocument : updatedDocuments) {
 				String id = (String) solrInputDocument.getFieldValue("id");
 				if (!id.startsWith("idx_rfc")) {
-					parallelisable = false;
+					return false;
 				}
 			}
 
+			return true;
+
+		} else {
+			return false;
 		}
-		return parallelisable;
 	}
 
 	public boolean isInTestRollbackMode() {
@@ -155,6 +160,7 @@ public class BigVaultServerTransaction {
 		return this;
 	}
 
+	@JsonIgnore
 	public boolean isRequiringLock() {
 
 		int updatedDocumentsWithOptimisticLocking = 0;
@@ -168,6 +174,12 @@ public class BigVaultServerTransaction {
 
 		return updatedDocumentsWithOptimisticLocking > 1 || (updatedDocumentsWithOptimisticLocking == 1
 															 && newDocuments.size() > 0);
+
+	}
+
+	public boolean isEmpty() {
+		return updatedDocuments.isEmpty() && newDocuments.isEmpty()
+			   && deletedQueries.isEmpty() && deletedRecords.isEmpty();
 
 	}
 }

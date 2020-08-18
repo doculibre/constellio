@@ -79,7 +79,7 @@ public class RMRecordsMenuItemServicesAcceptanceTest extends ConstellioTest {
 				.containsAll(Arrays.stream(RMRecordsMenuItemActionType.values())
 						.map(RMRecordsMenuItemActionType::name).collect(Collectors.toList()));
 
-		assertThat(actions).extracting("type", "state.status").containsExactly(
+		assertThat(actions).extracting("type", "state.status").isEqualTo(asList(
 				tuple("CONSULTATION_LINK", MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_ADD_CART.name(), MenuItemActionStateStatus.VISIBLE),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_MOVE.name(), MenuItemActionStateStatus.VISIBLE),
@@ -88,11 +88,106 @@ public class RMRecordsMenuItemServicesAcceptanceTest extends ConstellioTest {
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_SEND_EMAIL.name(), MenuItemActionStateStatus.DISABLED),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_PDF.name(), MenuItemActionStateStatus.DISABLED),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_PRINT_LABEL.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BORROW.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BORROW_REQUEST.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CANCEL_RETURN.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN_REQUEST.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN_REMAINDER.name(), MenuItemActionStateStatus.DISABLED),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_REMOVE_SELECTION.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_DOWNLOAD_ZIP.name(), MenuItemActionStateStatus.DISABLED),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_DELETE.name(), MenuItemActionStateStatus.VISIBLE),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK.name(), MenuItemActionStateStatus.VISIBLE)
-		);
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CHECKIN.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_TASK.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNPUBLISH.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_GENERATE_REPORT.name(), MenuItemActionStateStatus.DISABLED)
+		));
+
+	}
+
+	@Test
+	public void givenRecordsContainsDocumentFolderAndContainersThenReturnCorrectActionStates() {
+		List<Record> currentRecords = asList(records.getFolder_A01().getWrappedRecord(),
+				records.getDocumentWithContent_A19().getWrappedRecord(),
+				records.getContainerBac01().getWrappedRecord());
+
+		List<MenuItemAction> actions = menuItemServices.getActionsForRecords(currentRecords, params);
+
+		assertThat(actions.stream().map(MenuItemAction::getType).collect(Collectors.toList()))
+				.containsAll(Arrays.stream(RMRecordsMenuItemActionType.values())
+						.map(RMRecordsMenuItemActionType::name).collect(Collectors.toList()));
+
+		assertThat(actions).extracting("type", "state.status").isEqualTo(asList(
+				tuple("CONSULTATION_LINK", MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_ADD_CART.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_MOVE.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_COPY.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_SIP.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_SEND_EMAIL.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_PDF.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_PRINT_LABEL.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BORROW.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BORROW_REQUEST.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CANCEL_RETURN.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN_REQUEST.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN_REMAINDER.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_REMOVE_SELECTION.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_DOWNLOAD_ZIP.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_DELETE.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK.name(), MenuItemActionStateStatus.VISIBLE),
+				//tuple(RMRecordsMenuItemActionType.RMRECORDS_CHECKOUT.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CHECKIN.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_TASK.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNPUBLISH.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_GENERATE_REPORT.name(), MenuItemActionStateStatus.DISABLED)
+		));
+
+	}
+
+	@Test
+	public void givenRecordsContainsStorageSpacesThenReturnCorrectActionStates() {
+		List<Record> currentRecords = asList(records.getStorageSpaceS01().getWrappedRecord(),
+				records.getStorageSpaceS01_02().getWrappedRecord());
+
+		List<MenuItemAction> actions = menuItemServices.getActionsForRecords(currentRecords, params);
+
+		assertThat(actions.stream().map(MenuItemAction::getType).collect(Collectors.toList()))
+				.containsAll(Arrays.stream(RMRecordsMenuItemActionType.values())
+						.map(RMRecordsMenuItemActionType::name).collect(Collectors.toList()));
+
+		assertThat(actions).extracting("type", "state.status").isEqualTo(asList(
+				tuple("CONSULTATION_LINK", MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_ADD_CART.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_MOVE.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_COPY.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_SIP.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_SEND_EMAIL.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_PDF.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_PRINT_LABEL.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BORROW.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BORROW_REQUEST.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CANCEL_RETURN.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN_REQUEST.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN_REMAINDER.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_REMOVE_SELECTION.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_DOWNLOAD_ZIP.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_DELETE.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK.name(), MenuItemActionStateStatus.VISIBLE),
+				//tuple(RMRecordsMenuItemActionType.RMRECORDS_CHECKOUT.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CHECKIN.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_TASK.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNPUBLISH.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_GENERATE_REPORT.name(), MenuItemActionStateStatus.VISIBLE)
+		));
 
 	}
 

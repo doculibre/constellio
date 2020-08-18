@@ -1,5 +1,6 @@
 package com.constellio.data.events;
 
+import com.constellio.data.dao.services.Stats;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_DataIsNotSerializable;
 import com.constellio.data.utils.TimeProvider;
@@ -119,15 +120,13 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 	}
 
 	boolean sendAndReceive() {
-		List<Event> received = receiveNewEvents();
 
-		receivingEvents(received);
+		List<Event> received = Stats.compilerFor("EventBus-receive").log(this::receiveNewEvents);
+		Stats.compilerFor("EventBus-handleReceived").log(() -> receivingEvents(received));
 
 		List<EventReadyToSend> sending = getNewEventsToSend();
 		if (sending.size() > 0 || received.size() > 0) {
-			sendNewEvents(sending, received);
-			//		} else {
-			//			commit();
+			Stats.compilerFor("EventBus-send").log(() -> sendNewEvents(sending, received));
 		}
 
 		return sending.size() < SENDING_BATCH_LIMIT && received.size() < RECEIVING_BATCH_LIMIT;
@@ -147,23 +146,26 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 	}
 
 	void deleteOldEvents() {
-		String query = "timestamp_d:[* TO " + TimeProvider.getLocalDateTime().minus(eventLifespan).toDate().getTime() + "]";
-		try {
-			client.deleteByQuery(query);
-		} catch (SolrServerException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
 
-		query = "-timestamp_d:*";
-		try {
-			client.deleteByQuery(query);
-		} catch (SolrServerException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		Stats.compilerFor("EventBus-clean").log(() -> {
+			String query = "timestamp_d:[* TO " + TimeProvider.getLocalDateTime().minus(eventLifespan).toDate().getTime() + "]";
+			try {
+				client.deleteByQuery(query);
+			} catch (SolrServerException e) {
+				throw new RuntimeException(e);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+
+			query = "-timestamp_d:*";
+			try {
+				client.deleteByQuery(query);
+			} catch (SolrServerException e) {
+				throw new RuntimeException(e);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		});
 	}
 
 	protected void receivingEvents(List<Event> received) {
@@ -352,9 +354,10 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 		eventReadyToSend.event = event;
 		eventReadyToSend.serializedData = serializedData;
 
-		synchronized (sendQueue) {
-
-			sendQueue.add(eventReadyToSend);
+		if (!paused) {
+			synchronized (sendQueue) {
+				sendQueue.add(eventReadyToSend);
+			}
 		}
 	}
 

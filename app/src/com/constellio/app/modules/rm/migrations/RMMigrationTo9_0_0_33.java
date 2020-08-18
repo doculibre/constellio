@@ -11,6 +11,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+//9.0
 public class RMMigrationTo9_0_0_33 implements MigrationScript {
 
 	@Override

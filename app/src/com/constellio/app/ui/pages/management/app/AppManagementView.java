@@ -128,7 +128,10 @@ public class AppManagementView extends BaseViewImpl implements AdminViewGroup {
 		updateButton.setImmediate(true);
 		updateButton.setWidth("-1px");
 		updateButton.setHeight("-1px");
-		mainLayout.addComponent(updateButton);
+
+		if (presenter.hasUpdatePermission()) {
+			mainLayout.addComponent(updateButton);
+		}
 
 		restartButton = new Button();
 		restartButton.setCaption("[Restart application]");

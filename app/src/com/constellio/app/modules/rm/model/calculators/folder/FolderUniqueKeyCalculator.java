@@ -37,7 +37,8 @@ public class FolderUniqueKeyCalculator extends AbstractMetadataValueCalculator<S
 			for (Map<String, Object> currentMap : listMap) {
 				String code = (String) currentMap.get(METADATA_CODE);
 				String localeCode = TypeConvertionUtil.getMetadataLocalCode(code);
-				Metadata metadata = values.getAvailableMetadatasWithAValue().getMetadataWithLocalCode(localeCode);
+				Metadata metadata = values.getAvailableMetadatasWithAValue().stream().filter((m) ->
+						m.getLocalCode().equals(localeCode)).findFirst().orElse(null);
 
 				if (metadata != null) {
 					if (metadata.isMultivalue()) {

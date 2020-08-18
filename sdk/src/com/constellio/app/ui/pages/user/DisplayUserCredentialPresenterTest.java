@@ -101,17 +101,6 @@ public class DisplayUserCredentialPresenterTest extends ConstellioTest {
 	}
 
 	//@Test
-	public void whenEditButtonClickedThenNavigateToEditUserWithUsernameInParam()
-			throws Exception {
-
-		presenter.editButtonClicked(dakotaCredentialVO);
-
-		verify(userCredentialView.navigate().to(), times(1))
-				.editUserCredential("url1/url2/url3/" + NavigatorConfigurationService.USER_DISPLAY + "/" + URLEncoder
-						.encode("username=dakota.indien", "UTF-8"));
-	}
-
-	//@Test
 	public void whenDisplayGlobalGroupButtonClickedThenNavigateToDisplayGlobalGroupWithUsernameInParam()
 			throws Exception {
 

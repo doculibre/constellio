@@ -8,6 +8,7 @@ import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
 import com.constellio.app.ui.pages.search.criteria.RelativeCriteria.RelativeSearchOperator;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -93,6 +94,21 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Test
+	public void whenSearchingAnalyzedFieldAndExactExpressionWithFuzzySearchOperatorThenGoodResults()
+			throws RecordServicesException {
+		recordServices.update(records.getFolder_A48().setTitle("~Fuzzy S~earch"));
+
+		assertWhenSearchingFolderTitleWithExactMatch("~Fuzzy S~earch").containsOnly("A48");
+		assertWhenSearchingFolderTitleWithExactMatch("~fuzzy s~earch").isEmpty();
+		assertWhenSearchingFolderTitleWithExactMatch("~fuzzy").isEmpty();
+
+		assertWhenSearchingFolderTitleWithoutExactMatch("~Fuzzy").containsOnly("A48");
+		assertWhenSearchingFolderTitleWithoutExactMatch("s~earch").containsOnly("A48");
+		assertWhenSearchingFolderTitleWithoutExactMatch("~fuzzy*").containsOnly("A48");
+		assertWhenSearchingFolderTitleWithoutExactMatch("~fuzzy").containsOnly("A48");
 	}
 
 	@Test

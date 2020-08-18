@@ -3,7 +3,9 @@ package com.constellio.sdk.tests.selenium;
 import com.constellio.app.client.services.AdminServicesSession;
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.client.cmis.client.CmisSessionBuilder;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.services.tenant.TenantService;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTestSession;
 import com.constellio.sdk.tests.FactoriesTestFeatures;
@@ -124,7 +126,14 @@ public class SeleniumTestFeatures {
 			startApplication();
 
 		}
-		String url = "http://localhost:" + port + "/constellio/";
+		String url;
+
+		if (TenantUtils.isSupportingTenants()) {
+			url = "http://" + TenantService.getInstance().getTenantById(TenantUtils.getByteTenantId()).getHostnames().get(0) + "/constellio/";
+		} else {
+			url = "http://localhost:" + port + "/constellio/";
+		}
+
 
 		return CmisSessionBuilder.forAppUrl(url);
 
@@ -411,7 +420,7 @@ public class SeleniumTestFeatures {
 		assertThat(cmis11).exists().isDirectory();
 		assertThat(cmis11.listFiles()).isNotEmpty();
 
-		ApplicationStarter.startApplication(keepAlive, webContent, portSSL, SDKPasswords.sslKeystorePassword());
+		ApplicationStarter.startApplication(keepAlive, webContent, Integer.valueOf(SDKPasswords.sslPort()), SDKPasswords.sslKeystorePassword());
 
 		applicationStarted = true;
 		System.out.println("Application started in " + (new Date().getTime() - time) + "ms");

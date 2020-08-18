@@ -2,7 +2,6 @@ package com.constellio.data.test;
 
 import com.constellio.data.utils.Octets;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -12,7 +11,7 @@ import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class RandomWordsIteratorRealTest extends ConstellioTest {
 
 	RandomWordsIterator randomFrenchWordsIterators, randomEnglishWordsIterators;

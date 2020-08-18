@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 public class SplitGitCommentsMain {
 
@@ -53,11 +54,13 @@ public class SplitGitCommentsMain {
 		sprints.add(new Sprint("Année 2017", new LocalDate(2017, 2, 1), new LocalDate(2018, 1, 31)));
 		sprints.add(new Sprint("Année 2018", new LocalDate(2018, 2, 1), new LocalDate(2019, 1, 31)));
 		sprints.add(new Sprint("Année 2019", new LocalDate(2019, 2, 1), new LocalDate(2020, 1, 31)));
+		sprints.add(new Sprint("Année 2020", new LocalDate(2020, 2, 1), new LocalDate(2021, 1, 31)));
 
 	}
 
 	public static void main(String argv[])
 			throws Exception {
+		Locale.setDefault(Locale.ENGLISH);
 		List<String> commitsOfAllRepos = new ArrayList<String>();
 		commitsOfAllRepos.addAll(FileUtils.readLines(constellioGitLog));
 		commitsOfAllRepos.addAll(FileUtils.readLines(constellioPluginsGitLog));
@@ -65,8 +68,11 @@ public class SplitGitCommentsMain {
 		Collections.sort(commitsOfAllRepos, new Comparator<String>() {
 			@Override
 			public int compare(String o1, String o2) {
-				LocalDateTime dateTime1 = LocalDateTime.parse(o1.split("\",\"")[2].replace("\"", ""), formatter);
-				LocalDateTime dateTime2 = LocalDateTime.parse(o2.split("\",\"")[2].replace("\"", ""), formatter);
+				String convertedO1 = o1.split("\",\"")[2].replace("\"", "");
+				String convertedO2 = o2.split("\",\"")[2].replace("\"", "");
+
+				LocalDateTime dateTime1 = LocalDateTime.parse(convertedO1, formatter);
+				LocalDateTime dateTime2 = LocalDateTime.parse(convertedO2, formatter);
 
 				return dateTime1.compareTo(dateTime2);
 			}

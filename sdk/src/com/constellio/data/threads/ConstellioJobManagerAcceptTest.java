@@ -1,6 +1,7 @@
 package com.constellio.data.threads;
 
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 
+@SlowTest
 public class ConstellioJobManagerAcceptTest extends ConstellioTest {
 
 	static AtomicInteger counter = new AtomicInteger();
@@ -56,6 +58,21 @@ public class ConstellioJobManagerAcceptTest extends ConstellioTest {
 		assertThat(counter.get()).isGreaterThan(1);
 
 		backgroundThreadsManager.close();
+
+	}
+
+	@Test
+	public void whenStartedAndClosedMultipleTimesThenOk()
+			throws Exception {
+		backgroundThreadsManager.addJob(new ConstellioJobManagerAcceptTest.Job2(), false);
+		backgroundThreadsManager.close();
+		backgroundThreadsManager.initialize();
+		backgroundThreadsManager.onSystemStarted();
+		backgroundThreadsManager.addJob(new ConstellioJobManagerAcceptTest.Job2(), false);
+		backgroundThreadsManager.close();
+		backgroundThreadsManager.initialize();
+		backgroundThreadsManager.onSystemStarted();
+		backgroundThreadsManager.addJob(new ConstellioJobManagerAcceptTest.Job2(), false);
 
 	}
 

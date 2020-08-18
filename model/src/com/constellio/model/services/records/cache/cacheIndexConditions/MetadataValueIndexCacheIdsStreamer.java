@@ -1,8 +1,8 @@
 package com.constellio.model.services.records.cache.cacheIndexConditions;
 
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.services.records.RecordId;
 import com.constellio.model.services.records.cache.MetadataIndexCacheDataStore;
 
 import java.util.Iterator;
@@ -12,16 +12,17 @@ public class MetadataValueIndexCacheIdsStreamer implements SortedIdsStreamer {
 	private MetadataSchemaType schemaType;
 	private Metadata metadata;
 	private Object value;
+	private MetadataIndexCacheDataStore dataStore;
 
 	public MetadataValueIndexCacheIdsStreamer(MetadataSchemaType schemaType,
-											  Metadata metadata, Object value) {
+											  Metadata metadata, Object value, MetadataIndexCacheDataStore dataStore) {
 		this.schemaType = schemaType;
 		this.metadata = metadata;
 		this.value = value;
+		this.dataStore = dataStore;
 	}
 
-	@Override
-	public Iterator<RecordId> iterator(MetadataIndexCacheDataStore dataStore) {
+	public Iterator<RecordId> iterator() {
 		return dataStore.iteratorIds(schemaType, metadata, value);
 
 		//		dataStore.getLockMechanism().obtainSchemaTypeReadingPermit(schemaType);

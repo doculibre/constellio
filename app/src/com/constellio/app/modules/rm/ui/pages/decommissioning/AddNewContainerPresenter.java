@@ -1,12 +1,10 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerPresenter;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.ui.entities.RecordVO;
@@ -15,6 +13,9 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddNewContainerPresenter extends AddEditContainerPresenter {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AddNewContainerPresenter.class);
 	private transient RMSchemasRecordsServices rmRecordsServices;
 	private transient RMConfigs rmConfigs;
 
@@ -52,7 +54,13 @@ public class AddNewContainerPresenter extends AddEditContainerPresenter {
 	@Override
 	public void saveButtonClicked(RecordVO recordVO) {
 		DecommissioningList decommissioningList = rmRecordsServices().getDecommissioningList(listId);
-		ContainerRecord container = rmRecordsServices().wrapContainerRecord(toRecord(recordVO));
+		ContainerRecord container = null;
+		try {
+			container = rmRecordsServices().wrapContainerRecord(toRecord(recordVO));
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
 		if (!canEditAdministrativeUnit()) {
 			container.setAdministrativeUnit(decommissioningList.getAdministrativeUnit());
 		}
@@ -82,9 +90,9 @@ public class AddNewContainerPresenter extends AddEditContainerPresenter {
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
 		DecommissioningList decommissioningList = rmRecordsServices().wrapDecommissioningList(restrictedRecord);
-		AdministrativeUnit administrativeUnit = rmRecordsServices().getAdministrativeUnit(decommissioningList.getAdministrativeUnit());
 		DecommissioningSecurityService decommissioningSecurityService = new DecommissioningSecurityService(view.getCollection(), appLayerFactory);
-		return user.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).on(administrativeUnit) || decommissioningSecurityService.hasPermissionToCreateTransferOnList(decommissioningList, user);
+		return decommissioningSecurityService.canCreateContainers(user) &&
+			   decommissioningSecurityService.hasAccessToDecommissioningListPage(decommissioningList, user);
 	}
 
 	private RMSchemasRecordsServices rmRecordsServices() {

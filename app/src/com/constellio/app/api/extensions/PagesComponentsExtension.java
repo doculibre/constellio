@@ -4,7 +4,7 @@ import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitEx
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
-import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
+import com.constellio.app.ui.framework.components.fields.ExtraTabAdditionalRecordField;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +33,7 @@ public class PagesComponentsExtension {
 
 	}
 
-	public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
+	public List<ExtraTabAdditionalRecordField> getExtraTabAdditionalRecordFields(RecordFieldsExtensionParams params) {
 		return new ArrayList<>();
 	}
 }

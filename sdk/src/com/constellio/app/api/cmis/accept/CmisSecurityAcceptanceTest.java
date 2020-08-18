@@ -10,13 +10,13 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.contents.ContentManagementAcceptTest;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordHierarchyServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.AuthorizationsServices;
-import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
@@ -243,38 +243,45 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 		return assertThat(children).extracting("id");
 	}
 
+
 	@Test
 	public void whenNavigatingThenReturnOnlyReadableFolders()
 			throws Exception {
-
 		session = newCMISSessionAsUserInZeCollection(admin);
 		Folder cmisFolder1_doc1 = cmisFolder(zeCollectionRecords.folder1_doc1);
 		Folder cmisFolder2 = cmisFolder(zeCollectionRecords.folder2);
+
+
 		cmisFolder1_doc1.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, RW)), REPOSITORYDETERMINED);
 		cmisFolder2.addAcl(asList(ace(bobGratton, RW)), REPOSITORYDETERMINED);
 		waitForBatchProcess();
 
-		List<CmisObject> descendants = getDescendants("/");
-		assertThat(descendants).hasSize(35);
+		assertThat(users.bobIn(zeCollection).hasReadAccess().on(zeCollectionRecords.folder2)).isTrue();
+		assertThat(users.bobIn(zeCollection).hasReadAccess().on(zeCollectionRecords.folder2_2)).isTrue();
 
+		List<CmisObject> descendants = getDescendants("/");
+		assertThat(descendants).extracting("id")
+				.containsOnly("taxo_taxo1", "taxo_taxo2", "zetaxo1_fond1", "zetaxo1_category2", "zetaxo1_fond1_1", "zetaxo1_category2_1", "folder4", "folder3", "folder3_doc1", "folder4_1", "folder4_2", "folder4_1_doc1", "folder4_2_doc1", "zetaxo1_category1", "folder1", "folder2", "folder1_doc1", "folder2_1", "folder2_2", "folder2_2_doc1", "folder2_2_doc2", "zetaxo2_unit1", "zetaxo2_station2", "zetaxo2_unit1_1", "zetaxo2_station2_1", "folder1", "folder2", "folder2_1", "folder2_2", "folder2_2_doc1", "folder2_2_doc2", "folder1_doc1", "zetaxo2_station1", "folder5", "folder5_doc1")
+				.hasSize(35);
 		session = newCMISSessionAsUserInZeCollection(aliceWonderland);
 		descendants = getDescendants("/");
-		assertThat(descendants).hasSize(35);
-
+		assertThat(descendants).extracting("id")
+				.containsOnly("taxo_taxo1", "taxo_taxo2", "zetaxo1_fond1", "zetaxo1_category2", "zetaxo1_fond1_1", "zetaxo1_category2_1", "folder4", "folder3", "folder3_doc1", "folder4_1", "folder4_2", "folder4_1_doc1", "folder4_2_doc1", "zetaxo1_category1", "folder1", "folder2", "folder1_doc1", "folder2_1", "folder2_2", "folder2_2_doc1", "folder2_2_doc2", "zetaxo2_unit1", "zetaxo2_station2", "zetaxo2_unit1_1", "zetaxo2_station2_1", "folder1", "folder2", "folder2_1", "folder2_2", "folder2_2_doc1", "folder2_2_doc2", "folder1_doc1", "zetaxo2_station1", "folder5", "folder5_doc1")
+				.hasSize(35);
 		session = newCMISSessionAsUserInZeCollection(dakota);
 		descendants = getDescendants("/");
-		assertThat(descendants).hasSize(35);
-
+		assertThat(descendants).extracting("id")
+				.containsOnly("taxo_taxo1", "taxo_taxo2", "zetaxo1_fond1", "zetaxo1_category2", "zetaxo1_fond1_1", "zetaxo1_category2_1", "folder4", "folder3", "folder3_doc1", "folder4_1", "folder4_2", "folder4_1_doc1", "folder4_2_doc1", "zetaxo1_category1", "folder1", "folder2", "folder1_doc1", "folder2_1", "folder2_2", "folder2_2_doc1", "folder2_2_doc2", "zetaxo2_unit1", "zetaxo2_station2", "zetaxo2_unit1_1", "zetaxo2_station2_1", "folder1", "folder2", "folder2_1", "folder2_2", "folder2_2_doc1", "folder2_2_doc2", "folder1_doc1", "zetaxo2_station1", "folder5", "folder5_doc1")
+				.hasSize(35);
 		session = newCMISSessionAsUserInZeCollection(bobGratton);
-
 		//Bob can access this record, because it contains record which he has access.
 		assertThat(session.getObjectByPath("/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/zetaxo2_station2_1")).isNotNull();
 		assertThat(session.getObject("zetaxo2_station2_1")).isNotNull();
-
 		session.getObjectByPath("/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/folder1/folder1_doc1");
 		descendants = getDescendants("/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/zetaxo2_station2_1/folder2");
-		assertThat(descendants).hasSize(4);
-
+		assertThat(descendants).extracting("id")
+				.containsOnly("folder2_1", "folder2_2", "folder2_2_doc2", "folder2_2_doc1")
+				.hasSize(4);
 		session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
 		session.getObjectByPath("/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/folder1/folder1_doc1");
 		try {
@@ -284,7 +291,6 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 			assertThat(e.getMessage())
 					.contains("L'utilisateur charles n'a pas de droit en lecture sur l'enregistrement folder2 - folder2");
 		}
-
 		try {
 			session.getObject("folder2");
 			Fail.fail("Charles has access to folder2 but should not");
@@ -293,6 +299,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 					.contains("L'utilisateur charles n'a pas de droit en lecture sur l'enregistrement folder2 - folder2");
 		}
 	}
+
 
 	@Test
 	public void whenCreatingFolderInFolderThenOnlyWorksWithParentWriteAuthorization()
@@ -1170,7 +1177,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 		StringBuilder stringBuilder = new StringBuilder();
 		for (Taxonomy taxonomy : taxonomiesManager.getEnabledTaxonomies(zeCollection)) {
 			stringBuilder.append(taxonomy.getCode() + " : \n");
-			for (Record record : new ConceptNodesTaxonomySearchServices(getModelLayerFactory())
+			for (Record record : new RecordHierarchyServices(getModelLayerFactory())
 					.getRootConcept(zeCollection, taxonomy.getCode(), new TaxonomiesSearchOptions().setRows(100))) {
 
 				printConcept(user, taxonomy.getCode(), record, 1, stringBuilder);

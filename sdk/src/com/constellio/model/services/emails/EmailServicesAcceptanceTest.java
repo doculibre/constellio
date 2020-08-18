@@ -5,7 +5,6 @@ import com.constellio.model.services.emails.EmailServicesRuntimeException.EmailS
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +50,7 @@ public class EmailServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@InternetTest
-	@SlowTest
+	// Confirm @SlowTest
 	@Test
 	public void whenSendEmailThenOk()
 			throws Exception {
@@ -75,7 +74,7 @@ public class EmailServicesAcceptanceTest extends ConstellioTest {
 		email.setText("Message");
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test(expected = EmailServicesException.EmailServerException.class)
 	public void givenInvalidServerParametersWhenSendEmailThenEmailServerException()
 			throws Exception {
@@ -86,7 +85,7 @@ public class EmailServicesAcceptanceTest extends ConstellioTest {
 		emailServices.sendEmail(email);
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test(expected = EmailServicesException.EmailServerException.class)
 	public void givenInvalidCredentialsWhenSendEmailThenEmailServerException()
 			throws Exception {
@@ -99,7 +98,7 @@ public class EmailServicesAcceptanceTest extends ConstellioTest {
 		emailServices.sendEmail(email);
 	}
 
-	@SlowTest
+	// Confirm @SlowTest
 	@Test(expected = EmailServicesException.EmailPermanentException.class)
 	public void givenInvalidEmailWhenSendEmailThenEmailPermanentException()
 			throws Exception {

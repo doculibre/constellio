@@ -18,6 +18,7 @@ import com.constellio.app.services.importExport.settings.model.ImportedMetadataS
 import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
 import com.constellio.app.services.importExport.settings.model.ImportedSequence;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedSystemVersion;
 import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
 import com.constellio.app.services.importExport.settings.model.ImportedType;
 import com.constellio.app.services.importExport.settings.model.ImportedValueList;
@@ -117,27 +118,41 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	Users users = new Users();
 
 	//-------------------------------------------------------------------------------------
-	SystemConfigurationsManager systemConfigurationsManager;
-	MetadataSchemasManager metadataSchemasManager;
-	SchemasDisplayManager schemasDisplayManager;
-	LabelTemplateManager labelTemplateManager;
-	boolean runTwice;
-	SettingsImportServices services;
-	ImportedSettings settings = new ImportedSettings();
-	ImportedCollectionSettings zeCollectionSettings;
-	ImportedCollectionSettings anotherCollectionSettings;
+	protected SystemConfigurationsManager systemConfigurationsManager;
+	protected MetadataSchemasManager metadataSchemasManager;
+	protected SchemasDisplayManager schemasDisplayManager;
+	protected LabelTemplateManager labelTemplateManager;
+	protected boolean runTwice;
+	protected SettingsImportServices services;
+	protected ImportedSettings settings = new ImportedSettings();
+	protected ImportedCollectionSettings zeCollectionSettings;
+	protected ImportedCollectionSettings anotherCollectionSettings;
 	@Mock
-	AppLayerFactory appLayerFactory;
+	protected AppLayerFactory appLayerFactory;
 	@Mock
-	AppLayerExtensions extensions;
+	protected AppLayerExtensions extensions;
 	@Mock
-	AppLayerSystemExtensions systemExtensions;
+	protected AppLayerSystemExtensions systemExtensions;
 
 	@Test
 	public void whenImportingLabelTemplatesThenCorrectlyImported()
 			throws ValidationException {
 		when(appLayerFactory.getExtensions()).thenReturn(extensions);
 		when(extensions.getSystemWideExtensions()).thenReturn(systemExtensions);
+
+		List<String> plugins = new ArrayList<>();
+		plugins.add("plugin1");
+		plugins.add("plugin2");
+		ImportedSystemVersion importedSystemVersion = new ImportedSystemVersion();
+
+		importedSystemVersion.setPlugins(plugins);
+		importedSystemVersion.setFullVersion("5.0.1");
+		importedSystemVersion.setMajorVersion(5);
+		importedSystemVersion.setMinorVersion(0);
+		importedSystemVersion.setMinorRevisionVersion(0);
+		importedSystemVersion.setOnlyUSR(true);
+
+		settings.setImportedSystemVersion(importedSystemVersion);
 
 		settings.addImportedLabelTemplate(getTestResourceContent("template1.xml"));
 		importSettings();
@@ -150,6 +165,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				"Ze template #1");
 
 		settings = new ImportedSettings();
+		settings.setImportedSystemVersion(importedSystemVersion);
 		settings.addImportedLabelTemplate(getTestResourceContent("template1b.xml"));
 		settings.addImportedLabelTemplate(getTestResourceContent("template2.xml"));
 		importSettings();
@@ -167,6 +183,86 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				"Code de plan justifié à gauche (Avery 5159)", "Code de plan justifié à gauche (Avery 5161)",
 				"Code de plan justifié à gauche (Avery 5162)", "Code de plan justifié à gauche (Avery 5163)",
 				"Ze template #1b", "Ze template #2");
+
+		runTwice = false;
+	}
+
+	@Test(expected = com.constellio.model.frameworks.validation.ValidationException.class)
+	public void whenImportingTemplatesOfdifferentVersionThenDoNotImport()
+			throws ValidationException {
+		when(appLayerFactory.getExtensions()).thenReturn(extensions);
+		when(extensions.getSystemWideExtensions()).thenReturn(systemExtensions);
+
+		ImportedSystemVersion importedSystemVersion = new ImportedSystemVersion();
+
+		importedSystemVersion.setFullVersion("5.0.1");
+		importedSystemVersion.setMajorVersion(5);
+		importedSystemVersion.setMinorVersion(0);
+		importedSystemVersion.setMinorRevisionVersion(1);
+		importedSystemVersion.setOnlyUSR(false);
+
+		settings.setImportedSystemVersion(importedSystemVersion);
+
+		settings.addImportedLabelTemplate(getTestResourceContent("template1.xml"));
+		importSettings();
+
+	}
+
+	@Test(expected = com.constellio.model.frameworks.validation.ValidationException.class)
+	public void whenImportingTemplatesOfDifferentPluginsThenDoNotImport()
+			throws ValidationException {
+		when(appLayerFactory.getExtensions()).thenReturn(extensions);
+		when(extensions.getSystemWideExtensions()).thenReturn(systemExtensions);
+
+		List<String> plugins = new ArrayList<>();
+		plugins.add("plugin1");
+		plugins.add("plugin2");
+		ImportedSystemVersion importedSystemVersion = new ImportedSystemVersion();
+
+		importedSystemVersion.setPlugins(plugins);
+		importedSystemVersion.setFullVersion("5.0.0");
+		importedSystemVersion.setMajorVersion(5);
+		importedSystemVersion.setMinorVersion(0);
+		importedSystemVersion.setMinorRevisionVersion(0);
+		importedSystemVersion.setOnlyUSR(false);
+
+		settings.setImportedSystemVersion(importedSystemVersion);
+
+		settings.addImportedLabelTemplate(getTestResourceContent("template1.xml"));
+		importSettings();
+
+	}
+
+	@Test
+	public void whenImportingTemplatesOfDifferentPluginsDevThenImport()
+			throws ValidationException {
+		when(appLayerFactory.getExtensions()).thenReturn(extensions);
+		when(extensions.getSystemWideExtensions()).thenReturn(systemExtensions);
+
+		List<String> plugins = new ArrayList<>();
+		plugins.add("MU");
+		plugins.add("devtools");
+		ImportedSystemVersion importedSystemVersion = new ImportedSystemVersion();
+
+		importedSystemVersion.setPlugins(plugins);
+		importedSystemVersion.setFullVersion("5.0.0");
+		importedSystemVersion.setMajorVersion(5);
+		importedSystemVersion.setMinorVersion(0);
+		importedSystemVersion.setMinorRevisionVersion(0);
+		importedSystemVersion.setOnlyUSR(false);
+
+
+		settings.setImportedSystemVersion(importedSystemVersion);
+
+		settings.addImportedLabelTemplate(getTestResourceContent("template1.xml"));
+		importSettings();
+
+		assertThat(labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE)).extracting("name").containsOnly(
+				"Code de plan justifié à droite (Avery 5159)", "Code de plan justifié à droite (Avery 5161)",
+				"Code de plan justifié à droite (Avery 5162)", "Code de plan justifié à droite (Avery 5163)",
+				"Code de plan justifié à gauche (Avery 5159)", "Code de plan justifié à gauche (Avery 5161)",
+				"Code de plan justifié à gauche (Avery 5162)", "Code de plan justifié à gauche (Avery 5163)",
+				"Ze template #1");
 
 		runTwice = false;
 	}
@@ -557,7 +653,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 						.setHierarchical(false)));
 
 		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings("calculatedCloseDateUnknown")
-				.containsOnly("Le code de la collection est vide ou null")
+				.containsOnly("Le code de la collection est vide ou nul")
 				.doesNotContain("The collection's code is empty or null");
 
 		assertThatErrorsWhileImportingSettingsExtracting()
@@ -1086,12 +1182,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		MetadataSchema folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
 		List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy1));
 		assertThat(references).hasSize(1);
-		assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
+		assertThat(references).extracting("referencedSchemaTypeCode").containsOnly(TAXO_1_CODE);
 
 		MetadataSchema documentSchemaType = schemaTypes.getDefaultSchema(DOCUMENT);
 		references = documentSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy1));
 		assertThat(references).hasSize(1);
-		assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
+		assertThat(references).extracting("referencedSchemaTypeCode").containsOnly(TAXO_1_CODE);
 
 		Taxonomy taxonomy2 = getAppLayerFactory().getModelLayerFactory()
 				.getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_2_CODE);
@@ -1143,12 +1239,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		MetadataSchema folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
 		List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy1));
 		assertThat(references).hasSize(1);
-		assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
+		assertThat(references).extracting("referencedSchemaTypeCode").containsOnly(TAXO_1_CODE);
 
 		MetadataSchema documentSchemaType = schemaTypes.getDefaultSchema(DOCUMENT);
 		references = documentSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy1));
 		assertThat(references).hasSize(1);
-		assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
+		assertThat(references).extracting("referencedSchemaTypeCode").containsOnly(TAXO_1_CODE);
 
 		importedTaxonomy1.setClassifiedTypes(toListOfString("document"));
 
@@ -1160,12 +1256,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
 		references = folderSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy1));
 		assertThat(references).hasSize(1);
-		assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
+		assertThat(references).extracting("referencedSchemaTypeCode").containsOnly(TAXO_1_CODE);
 
 		documentSchemaType = schemaTypes.getDefaultSchema(DOCUMENT);
 		references = documentSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy1));
 		assertThat(references).hasSize(1);
-		assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
+		assertThat(references).extracting("referencedSchemaTypeCode").containsOnly(TAXO_1_CODE);
 
 	}
 
@@ -1324,12 +1420,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		MetadataSchema folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
 		List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy));
 		assertThat(references).hasSize(1);
-		assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
+		assertThat(references).extracting("referencedSchemaTypeCode").containsOnly(TAXO_1_CODE);
 
 		MetadataSchema documentSchemaType = schemaTypes.getDefaultSchema(DOCUMENT);
 		references = documentSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy));
 		assertThat(references).hasSize(1);
-		assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
+		assertThat(references).extracting("referencedSchemaTypeCode").containsOnly(TAXO_1_CODE);
 	}
 
 	@Test
@@ -1753,7 +1849,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.doesNotContain("folder_default_m1", "folder_custom_m2");
 
 		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_custom_title")
+				.contains("folder_default_title")
 				.doesNotContain("folder_default_m1", "folder_custom_m2");
 	}
 
@@ -1935,9 +2031,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.contains("folder_custom_title", "folder_custom_m1")
 				.doesNotContain("folder_custom_m2");
 
-		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_custom_title", "folder_custom_m1")
-				.doesNotContain("folder_custom_m2");
 	}
 
 	// VisibleInForm=true, visibleInDisplay=true, visibleInTables= false, visiInSearchResult=false
@@ -1982,9 +2075,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.contains("folder_custom_title", "folder_custom_m1")
 				.doesNotContain("folder_custom_m2");
 
-		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_custom_title", "folder_custom_m1")
-				.doesNotContain("folder_custom_m2");
 	}
 
 	// default_m1: visibleInDisplay=true, visibleInSearch=true, visibleInForm=false, visibleInTables=false
@@ -2038,9 +2128,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.contains("folder_custom_title")
 				.doesNotContain("folder_default_m1", "folder_custom_m2");
 
-		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_custom_title")
-				.doesNotContain("folder_default_m1", "folder_custom_m2");
 	}
 
 	// default_m1: visibleInDisplay=false, visibleInSearch=true, visibleInForm=true, visibleInTables=false
@@ -2091,9 +2178,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.contains("folder_custom_title")
 				.doesNotContain("folder_default_m1", "folder_custom_m2");
 
-		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_custom_title")
-				.doesNotContain("folder_default_m1", "folder_custom_m2");
 	}
 
 	// default_m1: visibleInDisplay=true, visibleInSearch=true, visibleInForm=true, visibleInTables=true
@@ -2140,9 +2224,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.contains("folder_custom_title", "folder_custom_m1")
 				.doesNotContain("folder_default_m1", "folder_custom_m2");
 
-		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_custom_title", "folder_custom_m1")
-				.doesNotContain("folder_default_m1", "folder_custom_m2");
 	}
 
 	// default_m1: visibleInDisplay=false, visibleInSearch=true, visibleInForm=false, visibleInTables=true
@@ -2189,9 +2270,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.contains("folder_custom_title", "folder_custom_m1")
 				.doesNotContain("folder_default_m1", "folder_custom_m2");
 
-		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_custom_title", "folder_custom_m1")
-				.doesNotContain("folder_default_m1", "folder_custom_m2");
 	}
 
 	@Test
@@ -2406,9 +2484,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		SchemaDisplayConfig customFolder = getAppLayerFactory()
 				.getMetadataSchemasDisplayManager().getSchema(zeCollection, "folder_custom");
-		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_custom_title", "folder_custom_m1", "folder_custom_m3", "folder_custom_m5")
-				.doesNotContain("folder_custom_m2", "folder_custom_m4", "folder_custom_m6");
 
 		//Reverse flags and re-import
 		m1.setVisibleInTables(false);
@@ -2426,10 +2501,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.contains("folder_default_title", "folder_default_m2", "folder_default_m5")
 				.doesNotContain("folder_default_m1", "folder_default_m6");
 
-		customFolder = schemasDisplayManager.getSchema(zeCollection, "folder_custom");
-		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_custom_title", "folder_custom_m2", "folder_custom_m4", "folder_custom_m6")
-				.doesNotContain("folder_custom_m1", "folder_custom_m3", "folder_custom_m5");
 	}
 
 	@Test
@@ -2558,15 +2629,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		metadataCodes = schemasDisplayManager.getSchema(zeCollection, "folder_default").getTableMetadataCodes();
 		assertThat(metadataCodes).contains("folder_default_title", "folder_default_m1").doesNotContain("folder_default_m2");
 
-		metadataCodes = schemasDisplayManager.getSchema(zeCollection, "folder_custom1").getTableMetadataCodes();
-		assertThat(metadataCodes).contains("folder_custom1_title", "folder_custom1_m1").doesNotContain("folder_custom1_m2");
-
-		metadataCodes = schemasDisplayManager.getSchema(zeCollection, "folder_custom2").getTableMetadataCodes();
-		assertThat(metadataCodes).contains("folder_custom2_title", "folder_custom2_m2").doesNotContain("folder_custom2_m1");
-
-		metadataCodes = schemasDisplayManager.getSchema(zeCollection, "folder_custom3").getTableMetadataCodes();
-		assertThat(metadataCodes).contains("folder_custom3_title", "folder_custom3_m2").doesNotContain("folder_custom3_m1");
-
 		//Reverse flags and re-import
 		m1.setVisibleInTablesIn(asList("custom2", "custom3"));
 		m2.setVisibleInTablesIn(asList("default", "custom1"));
@@ -2575,14 +2637,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		metadataCodes = schemasDisplayManager.getSchema(zeCollection, "folder_default").getTableMetadataCodes();
 		assertThat(metadataCodes).contains("folder_default_title", "folder_default_m2").doesNotContain("folder_default_m1");
 
-		metadataCodes = schemasDisplayManager.getSchema(zeCollection, "folder_custom1").getTableMetadataCodes();
-		assertThat(metadataCodes).contains("folder_custom1_title", "folder_custom1_m2").doesNotContain("folder_custom1_m1");
-
-		metadataCodes = schemasDisplayManager.getSchema(zeCollection, "folder_custom2").getTableMetadataCodes();
-		assertThat(metadataCodes).contains("folder_custom2_title", "folder_custom2_m1").doesNotContain("folder_custom2_m2");
-
-		metadataCodes = schemasDisplayManager.getSchema(zeCollection, "folder_custom3").getTableMetadataCodes();
-		assertThat(metadataCodes).contains("folder_custom3_title", "folder_custom3_m1").doesNotContain("folder_custom3_m2");
 	}
 
 	@Test
@@ -3590,7 +3644,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		}
 	}
 
-	private void importSettings()
+	protected void importSettings()
 			throws com.constellio.model.frameworks.validation.ValidationException {
 		try {
 			// write settings1 to file ==> file2

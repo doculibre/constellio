@@ -19,6 +19,7 @@ import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2003ImportDataProvider;
+import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2007ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -26,6 +27,7 @@ import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
@@ -39,6 +41,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.modules.rm.model.enums.DisposalType.DEPOSIT;
@@ -48,10 +51,12 @@ import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
+import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.fail;
 
 public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
@@ -137,7 +142,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		List<Comment> decomListComments = decomList.getComments();
 		assertThat(decomList.getTitle()).isEqualTo("test42");
 		assertThat(decomListComments.get(0).getMessage()).isEqualTo("message test");
-		assertThat(decomListComments.get(0).getDateTime()).isInstanceOf(LocalDateTime.class);
+		assertThat(decomListComments.get(0).getCreationDateTime()).isInstanceOf(LocalDateTime.class);
 		assertThat(decomListComments.get(0).getUsername()).isEqualTo("admin");
 
 		assertThat(decomListComments.get(1).getMessage()).isEqualTo("super message");
@@ -252,14 +257,168 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 	public void whenImportingAnExcelFileThenImportedCorrectly()
 			throws Exception {
 
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		String hash1 = contentManager.upload(newTempFileWithContent("file.txt", "I am the first value")).getHash();
+		String hash2 = contentManager.upload(newTempFileWithContent("file.txt", "I am the second value")).getHash();
+		String hash3 = contentManager.upload(newTempFileWithContent("file.txt", "I am the third value")).getHash();
+		String hash4 = contentManager.upload(newTempFileWithContent("file.txt", "I am the fourth value")).getHash();
+		String hash5 = contentManager.upload(newTempFileWithContent("file.txt", "I am the fifth value")).getHash();
+		String hash6 = contentManager.upload(newTempFileWithContent("file.txt", "I am the sixth value")).getHash();
+
 		File excelFile = getTestResourceFile("datas.xls");
 		File excelFileModified = getTestResourceFile("datasModified.xls");
 
 		importServices.bulkImport(Excel2003ImportDataProvider.fromFile(excelFile), progressionListener, admin);
 
 		importAndValidate();
+		Document document1 = rm.getDocumentByLegacyId("1");
+		assertThat(document1.getContent()).isNotNull();
+		assertThat(document1.getContent().getCurrentVersion().getHash()).isEqualTo(hash1);
+		assertThat(document1.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier1.txt");
+
+		Document document2 = rm.getDocumentByLegacyId("2");
+		assertThat(document2.getContent()).isNotNull();
+		assertThat(document2.getContent().getCurrentVersion().getHash()).isEqualTo(hash2);
+		assertThat(document2.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier2.txt");
+
+		Document document3 = rm.getDocumentByLegacyId("3");
+		assertThat(document3.getContent()).isNotNull();
+		assertThat(document3.getContent().getCurrentVersion().getHash()).isEqualTo(hash3);
+		assertThat(document3.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier3.txt");
+
+
 		importAndValidateWithModifications(Excel2003ImportDataProvider.fromFile(excelFileModified));
+		document1 = rm.getDocumentByLegacyId("1");
+		assertThat(document1.getContent()).isNotNull();
+		assertThat(document1.getContent().getCurrentVersion().getHash()).isEqualTo(hash4);
+		assertThat(document1.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier4.txt");
+
+		document2 = rm.getDocumentByLegacyId("2");
+		assertThat(document2.getContent()).isNotNull();
+		assertThat(document2.getContent().getCurrentVersion().getHash()).isEqualTo(hash5);
+		assertThat(document2.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier5.txt");
+
+		document3 = rm.getDocumentByLegacyId("3");
+		assertThat(document3.getContent()).isNotNull();
+		assertThat(document3.getContent().getCurrentVersion().getHash()).isEqualTo(hash6);
+		assertThat(document3.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier6.txt");
+
 	}
+
+
+	@Test
+	public void whenImportingAnExcel2007FileThenImportedCorrectly()
+			throws Exception {
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		String hash1 = contentManager.upload(newTempFileWithContent("file.txt", "I am the first value")).getHash();
+		String hash2 = contentManager.upload(newTempFileWithContent("file.txt", "I am the second value")).getHash();
+		String hash3 = contentManager.upload(newTempFileWithContent("file.txt", "I am the third value")).getHash();
+		String hash4 = contentManager.upload(newTempFileWithContent("file.txt", "I am the fourth value")).getHash();
+		String hash5 = contentManager.upload(newTempFileWithContent("file.txt", "I am the fifth value")).getHash();
+		String hash6 = contentManager.upload(newTempFileWithContent("file.txt", "I am the sixth value")).getHash();
+
+		File excelFile = getTestResourceFile("datas.xlsx");
+		File excelFileModified = getTestResourceFile("datasModified.xlsx");
+
+		importServices.bulkImport(Excel2007ImportDataProvider.fromFile(excelFile), progressionListener, admin);
+
+		importAndValidate();
+		Document document1 = rm.getDocumentByLegacyId("1");
+		assertThat(document1.getContent()).isNotNull();
+		assertThat(document1.getContent().getCurrentVersion().getHash()).isEqualTo(hash1);
+		assertThat(document1.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier1.txt");
+
+		Document document2 = rm.getDocumentByLegacyId("2");
+		assertThat(document2.getContent()).isNotNull();
+		assertThat(document2.getContent().getCurrentVersion().getHash()).isEqualTo(hash2);
+		assertThat(document2.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier2.txt");
+
+		Document document3 = rm.getDocumentByLegacyId("3");
+		assertThat(document3.getContent()).isNotNull();
+		assertThat(document3.getContent().getCurrentVersion().getHash()).isEqualTo(hash3);
+		assertThat(document3.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier3.txt");
+
+
+		importAndValidateWithModifications(Excel2007ImportDataProvider.fromFile(excelFileModified));
+		document1 = rm.getDocumentByLegacyId("1");
+		assertThat(document1.getContent()).isNotNull();
+		assertThat(document1.getContent().getCurrentVersion().getHash()).isEqualTo(hash4);
+		assertThat(document1.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier4.txt");
+
+		document2 = rm.getDocumentByLegacyId("2");
+		assertThat(document2.getContent()).isNotNull();
+		assertThat(document2.getContent().getCurrentVersion().getHash()).isEqualTo(hash5);
+		assertThat(document2.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier5.txt");
+
+		document3 = rm.getDocumentByLegacyId("3");
+		assertThat(document3.getContent()).isNotNull();
+		assertThat(document3.getContent().getCurrentVersion().getHash()).isEqualTo(hash6);
+		assertThat(document3.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier6.txt");
+
+	}
+
+	@Test
+	public void whenImportingAnExcel2007FileWithMissingContentThenErrors()
+			throws Exception {
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		String hash1 = contentManager.upload(newTempFileWithContent("file.txt", "I am the first value")).getHash();
+		String hash2 = contentManager.upload(newTempFileWithContent("file.txt", "I am the second value")).getHash();
+
+		File excelFile = getTestResourceFile("datas.xlsx");
+		try {
+			importServices.bulkImport(Excel2007ImportDataProvider.fromFile(excelFile), progressionListener, admin);
+			fail("Exception expected");
+		} catch (ValidationException e) {
+			assertThat(frenchMessages(e)).containsOnly("Document 3 : Le contenu «PDnNE4i3IjJ9FFN1HzE_5FXROBs=» n'existe pas dans la voûte");
+
+		}
+
+		importAndValidate();
+		Document document1 = rm.getDocumentByLegacyId("1");
+		assertThat(document1).isNull();
+
+	}
+
+
+	@Test
+	public void givenNonEmptyDataFolderWhenImportingFromZipThenFolderContentUploadedToVault() throws Exception {
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		File uploadedFile1 = newTempFileWithContent("file1.txt", "I am the value");
+
+
+		String uploadedFile1Hash = "xRSHnQtqTxAt4hDUJ7aLCbo9on8=";//contentManager.upload(uploadedFile1).getHash();
+
+		File zipFile = buildZipWithContent(Arrays.asList(uploadedFile1));
+
+		importServices.bulkImport(XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile), progressionListener, admin);
+		assertThat(contentManager.getParsedContent(uploadedFile1Hash) != null);
+		assertThat(contentManager.getParsedContent(uploadedFile1Hash).getParsedContent().equals("I am the value"));
+	}
+
+	@Test
+	public void givenNonEmptyDataFolderWithOtherRecordsWhenImportingFromZipThenFolderContentUploadedToVault()
+			throws Exception {
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		File uploadedFile1 = newTempFileWithContent("file1.txt", "I am the value");
+		File uploadedFile2 = newTempFileWithContent("file2.txt", "I am another value");
+
+
+		String uploadedFile1Hash = "xRSHnQtqTxAt4hDUJ7aLCbo9on8=";//contentManager.upload(uploadedFile1).getHash();
+		String uploadedFile2Hash = "6IbfpsIQP8-ZhYcfY0JEm_xbss4=";
+
+		File zipFile = buildZipWithContent(Arrays.asList(uploadedFile1, uploadedFile2), "administrativeUnit.xml",
+				"category.xml", "containerRecord.xml", "ddvContainerRecordType.xml", "folder.xml", "document.xml",
+				"retentionRule.xml", "ddvDocumentType.xml", "decommissioningList.xml");
+		importServices.bulkImport(XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile), progressionListener, admin);
+		assertThat(contentManager.getParsedContent(uploadedFile1Hash) != null);
+		assertThat(contentManager.getParsedContent(uploadedFile2Hash) != null);
+
+		assertThat(contentManager.getParsedContent(uploadedFile1Hash).getParsedContent().equals("I am the value"));
+		assertThat(contentManager.getParsedContent(uploadedFile1Hash).getParsedContent().equals("I am another value"));
+	}
+
 
 	private void importAndValidate() {
 		Category category1 = rm.wrapCategory(expectedRecordWithLegacyId("22200"));
@@ -601,6 +760,39 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 			File resourceFile = getTestResourceFile(resourceFilename);
 			FileUtils.copyFile(resourceFile, fileInTempFolder);
 		}
+
+		getIOLayerFactory().newZipService().zip(zipFile, asList(tempFolder.listFiles()));
+
+		return zipFile;
+	}
+
+	private File buildZipWithContent(List<File> contentFiles, String... templateFiles)
+			throws Exception {
+
+		File tempFolder = newTempFolder();
+		File zipFile = new File(newTempFolder(), StringUtils.replace(StringUtils.join(templateFiles, "_"), ":", "-") + "testdata.zip");
+
+		for (String file : templateFiles) {
+			String filenameInTempFolder = file;
+			String resourceFilename = file;
+			if (file.contains(":")) {
+				resourceFilename = file.split(":")[0];
+				filenameInTempFolder = file.split(":")[1];
+			}
+
+			File fileInTempFolder = new File(tempFolder, filenameInTempFolder);
+			File resourceFile = getTestResourceFile(resourceFilename);
+			FileUtils.copyFile(resourceFile, fileInTempFolder);
+		}
+
+		if (!contentFiles.isEmpty()) {
+			File dataFolder = new File(tempFolder, "data");
+			for (File contentFile : contentFiles) {
+				File destination = new File(dataFolder, contentFile.getName());
+				FileUtils.copyFile(contentFile, destination);
+			}
+		}
+
 
 		getIOLayerFactory().newZipService().zip(zipFile, asList(tempFolder.listFiles()));
 

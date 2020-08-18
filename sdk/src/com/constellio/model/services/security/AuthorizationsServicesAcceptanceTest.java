@@ -28,9 +28,9 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername;
+import com.constellio.model.services.security.SecurityAcceptanceTestSetup.FolderSchema;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.data.utils.LangUtils.asSortedList;
 import static com.constellio.model.entities.enums.GroupAuthorizationsInheritance.FROM_CHILD_TO_PARENT;
 import static com.constellio.model.entities.records.wrappers.Event.PERMISSION_USERS;
 import static com.constellio.model.entities.records.wrappers.Event.RECORD_ID;
@@ -206,6 +207,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
+	//TODO Dylan : Réparer ce test en tri
 	public void whenRecordIsSecurableThenHasAncestors()
 			throws Exception {
 
@@ -213,23 +215,23 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				.extractingMetadatas(IDENTIFIER, ATTACHED_ANCESTORS).containsOnly(
 				tuple(TAXO1_FOND1, asList(TAXO1_FOND1)),
 				tuple(TAXO1_FOND1_1, asList(TAXO1_FOND1, TAXO1_FOND1_1)),
-				tuple(FOLDER4_1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4, FOLDER4_1)),
-				tuple(FOLDER4_2, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4, FOLDER4_2)),
-				tuple(FOLDER2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2)),
-				tuple(FOLDER1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER1)),
-				tuple(TAXO1_CATEGORY1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1)),
-				tuple(FOLDER2_2_DOC2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2, FOLDER2_2_DOC2)),
-				tuple(FOLDER3, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3)),
-				tuple(FOLDER4, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4)),
-				tuple(FOLDER2_2_DOC1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2, FOLDER2_2_DOC1)),
-				tuple(FOLDER4_2_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4, FOLDER4_2, FOLDER4_2_DOC1)),
-				tuple(FOLDER1_DOC1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER1, FOLDER1_DOC1)),
-				tuple(FOLDER2_1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_1)),
-				tuple(FOLDER2_2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2)),
-				tuple(TAXO1_CATEGORY2, asList(TAXO1_FOND1, TAXO1_CATEGORY2)),
-				tuple(TAXO1_CATEGORY2_1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1)),
-				tuple(FOLDER3_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)),
-				tuple(FOLDER4_1_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1))
+				tuple(FOLDER4_1, asList(FOLDER4, FOLDER4_1, TAXO1_CATEGORY2, TAXO1_FOND1)),
+				tuple(FOLDER4_2, asList(FOLDER4, FOLDER4_2, TAXO1_CATEGORY2, TAXO1_FOND1)),
+				tuple(FOLDER2, asList(FOLDER2, TAXO1_CATEGORY1, TAXO1_FOND1, TAXO1_FOND1_1)),
+				tuple(FOLDER1, asList(FOLDER1, TAXO1_CATEGORY1, TAXO1_FOND1, TAXO1_FOND1_1)),
+				tuple(TAXO1_CATEGORY1, asList(TAXO1_CATEGORY1, TAXO1_FOND1, TAXO1_FOND1_1)),
+				tuple(FOLDER2_2_DOC2, asList(FOLDER2, FOLDER2_2, FOLDER2_2_DOC2, TAXO1_CATEGORY1, TAXO1_FOND1, TAXO1_FOND1_1)),
+				tuple(FOLDER3, asList(FOLDER3, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, TAXO1_FOND1)),
+				tuple(FOLDER4, asList(FOLDER4, TAXO1_CATEGORY2, TAXO1_FOND1)),
+				tuple(FOLDER2_2_DOC1, asList(FOLDER2, FOLDER2_2, FOLDER2_2_DOC1, TAXO1_CATEGORY1, TAXO1_FOND1, TAXO1_FOND1_1)),
+				tuple(FOLDER4_2_DOC1, asList(FOLDER4, FOLDER4_2, FOLDER4_2_DOC1, TAXO1_CATEGORY2, TAXO1_FOND1)),
+				tuple(FOLDER1_DOC1, asList(FOLDER1, FOLDER1_DOC1, TAXO1_CATEGORY1, TAXO1_FOND1, TAXO1_FOND1_1)),
+				tuple(FOLDER2_1, asList(FOLDER2, FOLDER2_1, TAXO1_CATEGORY1, TAXO1_FOND1, TAXO1_FOND1_1)),
+				tuple(FOLDER2_2, asList(FOLDER2, FOLDER2_2, TAXO1_CATEGORY1, TAXO1_FOND1, TAXO1_FOND1_1)),
+				tuple(TAXO1_CATEGORY2, asList(TAXO1_CATEGORY2, TAXO1_FOND1)),
+				tuple(TAXO1_CATEGORY2_1, asList(TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, TAXO1_FOND1)),
+				tuple(FOLDER3_DOC1, asList(FOLDER3, FOLDER3_DOC1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, TAXO1_FOND1)),
+				tuple(FOLDER4_1_DOC1, asList(FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, TAXO1_CATEGORY2, TAXO1_FOND1))
 		);
 
 		detach(FOLDER4);
@@ -237,25 +239,25 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
 				.extractingMetadatas(IDENTIFIER, ATTACHED_ANCESTORS).containsOnly(
-				tuple("taxo1_fond1", asList("taxo1_fond1")),
-				tuple("taxo1_fond1_1", asList("taxo1_fond1", "taxo1_fond1_1")),
-				tuple("taxo1_category1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1")),
-				tuple("taxo1_category2", asList("taxo1_fond1", "taxo1_category2")),
-				tuple("taxo1_category2_1", asList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1")),
-				tuple("folder1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder1")),
-				tuple("folder3", asList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1", "folder3")),
-				tuple("folder1_doc1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder1", "folder1_doc1")),
-				tuple("folder3_doc1", asList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1", "folder3", "folder3_doc1")),
-				tuple("folder4", asList("folder4", "-taxo1_fond1", "-taxo1_category2")),
-				tuple("folder4_1", asList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_1")),
-				tuple("folder4_2", asList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_2")),
-				tuple("folder4_1_doc1", asList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_1", "folder4_1_doc1")),
-				tuple("folder4_2_doc1", asList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_2", "folder4_2_doc1")),
-				tuple("folder2", asList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1")),
-				tuple("folder2_1", asList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1", "folder2_1")),
-				tuple("folder2_2", asList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1", "folder2_2")),
-				tuple("folder2_2_doc2", asList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1", "folder2_2", "folder2_2_doc2")),
-				tuple("folder2_2_doc1", asList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1", "folder2_2", "folder2_2_doc1"))
+				tuple("taxo1_fond1", asSortedList("taxo1_fond1")),
+				tuple("taxo1_fond1_1", asSortedList("taxo1_fond1", "taxo1_fond1_1")),
+				tuple("taxo1_category1", asSortedList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1")),
+				tuple("taxo1_category2", asSortedList("taxo1_fond1", "taxo1_category2")),
+				tuple("taxo1_category2_1", asSortedList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1")),
+				tuple("folder1", asSortedList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder1")),
+				tuple("folder3", asSortedList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1", "folder3")),
+				tuple("folder1_doc1", asSortedList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder1", "folder1_doc1")),
+				tuple("folder3_doc1", asSortedList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1", "folder3", "folder3_doc1")),
+				tuple("folder4", asSortedList("folder4")),
+				tuple("folder4_1", asSortedList("folder4", "folder4_1")),
+				tuple("folder4_2", asSortedList("folder4", "folder4_2")),
+				tuple("folder4_1_doc1", asSortedList("folder4", "folder4_1", "folder4_1_doc1")),
+				tuple("folder4_2_doc1", asSortedList("folder4", "folder4_2", "folder4_2_doc1")),
+				tuple("folder2", asSortedList("folder2")),
+				tuple("folder2_1", asSortedList("folder2", "folder2_1")),
+				tuple("folder2_2", asSortedList("folder2", "folder2_2")),
+				tuple("folder2_2_doc2", asSortedList("folder2", "folder2_2", "folder2_2_doc2")),
+				tuple("folder2_2_doc1", asSortedList("folder2", "folder2_2", "folder2_2_doc1"))
 		);
 
 		reset(FOLDER2);
@@ -263,25 +265,25 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
 				.extractingMetadatas(IDENTIFIER, ATTACHED_ANCESTORS).containsOnly(
-				tuple("taxo1_fond1", asList("taxo1_fond1")),
-				tuple("taxo1_fond1_1", asList("taxo1_fond1", "taxo1_fond1_1")),
-				tuple("taxo1_category1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1")),
-				tuple("taxo1_category2", asList("taxo1_fond1", "taxo1_category2")),
-				tuple("taxo1_category2_1", asList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1")),
-				tuple("folder1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder1")),
-				tuple("folder3", asList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1", "folder3")),
-				tuple("folder1_doc1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder1", "folder1_doc1")),
-				tuple("folder3_doc1", asList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1", "folder3", "folder3_doc1")),
-				tuple("folder2", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2")),
-				tuple("folder2_1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_1")),
-				tuple("folder2_2", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_2")),
-				tuple("folder2_2_doc2", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_2", "folder2_2_doc2")),
-				tuple("folder2_2_doc1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_2", "folder2_2_doc1")),
-				tuple("folder4_1", asList("folder4_1", "-folder4", "--taxo1_fond1", "--taxo1_category2")),
-				tuple("folder4_1_doc1", asList("folder4_1", "-folder4", "--taxo1_fond1", "--taxo1_category2", "folder4_1_doc1")),
-				tuple("folder4", asList("folder4", "-taxo1_fond1", "-taxo1_category2")),
-				tuple("folder4_2", asList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_2")),
-				tuple("folder4_2_doc1", asList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_2", "folder4_2_doc1"))
+				tuple("taxo1_fond1", asSortedList("taxo1_fond1")),
+				tuple("taxo1_fond1_1", asSortedList("taxo1_fond1", "taxo1_fond1_1")),
+				tuple("taxo1_category1", asSortedList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1")),
+				tuple("taxo1_category2", asSortedList("taxo1_fond1", "taxo1_category2")),
+				tuple("taxo1_category2_1", asSortedList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1")),
+				tuple("folder1", asSortedList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder1")),
+				tuple("folder3", asSortedList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1", "folder3")),
+				tuple("folder1_doc1", asSortedList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder1", "folder1_doc1")),
+				tuple("folder3_doc1", asSortedList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1", "folder3", "folder3_doc1")),
+				tuple("folder2", asSortedList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2")),
+				tuple("folder2_1", asSortedList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_1")),
+				tuple("folder2_2", asSortedList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_2")),
+				tuple("folder2_2_doc2", asSortedList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_2", "folder2_2_doc2")),
+				tuple("folder2_2_doc1", asSortedList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_2", "folder2_2_doc1")),
+				tuple("folder4_1", asSortedList("folder4_1", "-folder4")),
+				tuple("folder4_1_doc1", asSortedList("folder4_1", "-folder4", "folder4_1_doc1")),
+				tuple("folder4", asSortedList("folder4")),
+				tuple("folder4_2", asSortedList("folder4", "folder4_2")),
+				tuple("folder4_2_doc1", asSortedList("folder4", "folder4_2", "folder4_2_doc1"))
 		);
 	}
 
@@ -672,6 +674,24 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
+	public void givenAuthorizationIsSharedReturnUserIdSharingOnly() throws Exception {
+
+		User dakotaUser = users.dakotaLIndienIn(zeCollection);
+		//chuck already has full access
+		auth1 = add(authorizationForUser(bob).on(FOLDER4).givingUserWhoShared(dakotaUser).givingReadWriteDeleteAccess());
+		auth2 = add(authorizationForGroup(heroes).on(FOLDER4).givingReadAccess());
+
+		for (RecordVerifier verify : $(FOLDER4)) {
+			verify.usersWithDeleteAccess().containsOnly(bob, chuck);
+		}
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(FOLDER4).givingReadWriteDelete().forPrincipals(bob),
+				authOnRecord(FOLDER4).givingRead().forPrincipals(heroes)
+		);
+	}
+
+	@Test
 	public void givenAccessTypesOfAuthorizationAreModifiedOnSameRecordOfAuthorizationThenNotDuplicatedAndInstantaneousEffectOnSecurity()
 			throws Exception {
 
@@ -875,6 +895,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER1, FOLDER2, FOLDER2_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(sasquatch, dakota, gandalf, chuck, edouard);
 			verifyRecord.usersWithRole(ROLE1).containsOnly(sasquatch, dakota, gandalf, edouard);
+			verifyRecord.usersWithRole(ROLE1).containsOnly(sasquatch, dakota, gandalf, edouard);
 		}
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
@@ -882,6 +903,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 			verifyRecord.usersWithRole(ROLE2).containsOnly(sasquatch, dakota, gandalf, edouard);
 		}
+
 
 	}
 
@@ -1810,16 +1832,22 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).on(records.taxo1_category2_1())).isTrue();
 		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).on(records.folder3())).isTrue();
 		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).onSomething()).isTrue();
+		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).onAnyTaxonomyConcept(true)).isTrue();
+		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).onAnyTaxonomyConcept(false)).isTrue();
 
 		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).on(records.taxo1_category2())).isFalse();
 		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).on(records.taxo1_category2_1())).isTrue();
 		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).on(records.folder3())).isTrue();
 		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).onSomething()).isTrue();
+		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).onAnyTaxonomyConcept(true)).isTrue();
+		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).onAnyTaxonomyConcept(false)).isTrue();
 
 		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).on(records.taxo1_category2())).isFalse();
 		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).on(records.taxo1_category2_1())).isFalse();
 		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).on(records.folder3())).isTrue();
 		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).onSomething()).isTrue();
+		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).onAnyTaxonomyConcept(true)).isTrue();
+		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).onAnyTaxonomyConcept(false)).isTrue();
 
 		for (String permission : asList(PERMISSION_OF_ROLE1, PERMISSION_OF_ROLE2, PERMISSION_OF_ROLE3)) {
 			assertThat(users.dakotaLIndienIn(zeCollection).has(permission).on(records.taxo1_category2())).isTrue();
@@ -1827,6 +1855,13 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			assertThat(users.dakotaLIndienIn(zeCollection).has(permission).on(records.folder3())).isTrue();
 			assertThat(users.dakotaLIndienIn(zeCollection).has(permission).onSomething()).isTrue();
 		}
+
+		assertThat(users.dakotaLIndienIn(zeCollection).has(PERMISSION_OF_ROLE1).onAnyTaxonomyConcept(true)).isTrue();
+		assertThat(users.dakotaLIndienIn(zeCollection).has(PERMISSION_OF_ROLE2).onAnyTaxonomyConcept(true)).isTrue();
+		assertThat(users.dakotaLIndienIn(zeCollection).has(PERMISSION_OF_ROLE3).onAnyTaxonomyConcept(true)).isTrue();
+		assertThat(users.dakotaLIndienIn(zeCollection).has(PERMISSION_OF_ROLE1).onAnyTaxonomyConcept(false)).isFalse();
+		assertThat(users.dakotaLIndienIn(zeCollection).has(PERMISSION_OF_ROLE2).onAnyTaxonomyConcept(false)).isFalse();
+		assertThat(users.dakotaLIndienIn(zeCollection).has(PERMISSION_OF_ROLE3).onAnyTaxonomyConcept(false)).isFalse();
 
 		/*****
 		 * Excluding global
@@ -2107,6 +2142,51 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
+	public void whenDeleteMoreThan1000AuthorizationsThenDeletedFromEveryRecords()
+			throws Exception {
+
+		reset(FOLDER4);
+		detach(FOLDER4);
+		FolderSchema schema = setup.folderSchema;
+
+		List<Record> folder4SubFolders = new ArrayList<>();
+		for (int i = 0; i < 1000; i++) {
+			Record record = new TestRecord(schema);
+			record.set(schema.title(), aString());
+			record.set(schema.parent(), FOLDER4);
+
+			try {
+				getModelLayerFactory().newRecordServices().add(record);
+				folder4SubFolders.add(record);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		auth1 = addWithoutUser(authorizationForUser(bob).on(FOLDER4).givingReadWriteDeleteAccess());
+		auth2 = addWithoutUser(authorizationForUser(charles).on(FOLDER4).givingReadAccess());
+
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(bob, charles, chuck);
+		verifyRecord(FOLDER4).usersWithWriteAccess().containsOnly(bob, chuck);
+		verifyRecord(FOLDER4).usersWithDeleteAccess().containsOnly(bob, chuck);
+
+		services.execute(authorizationDeleteRequest(auth1, zeCollection)
+				.setReattachIfLastAuthDeleted(false)
+				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
+
+		assertThatAllAuthorizations().containsOnly(authOnRecord(FOLDER4).givingRead().forPrincipals(charles));
+		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
+		verifyRecord(FOLDER4).usersWithReadAccess().doesNotContain(bob);
+
+		recordServices.flush();
+
+		assertThatRecords(schemas.searchEvents(ALL)).extractingMetadatas(RECORD_ID, PERMISSION_USERS, TYPE, USERNAME)
+				.containsOnly(tuple("folder4", "Bob 'Elvis' Gratton", "delete_permission_folder", "chuck"));
+
+		checkIfChuckNorrisHasAccessToEverythingInZeCollection = false;
+	}
+
+	@Test
 	public void whenDeleteLastAuthorizationOfAttachedRecordThenNoAuthorization()
 			throws Exception {
 
@@ -2260,6 +2340,10 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER3).usersWithReadAccess().containsOnly(alice, charles, chuck);
 
 		recordServices.update(records.taxo1_category2_1().set(setup.category.parentOfCategory(), null));
+
+		//TODO Francis Added during the 9.1 refact, was not required before
+		reindex();
+
 		verifyRecord(TAXO1_CATEGORY1).usersWithReadAccess().containsOnly(alice, chuck);
 		verifyRecord(FOLDER2).usersWithReadAccess().containsOnly(alice, chuck);
 		verifyRecord(TAXO1_CATEGORY2).usersWithReadAccess().containsOnly(bob, chuck);
@@ -2298,7 +2382,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenAGroupHasALotOfUsersThenNoBAtchProcessRequired()
 			throws Exception {
 
@@ -3523,6 +3607,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 
 		detach(FOLDER4);
+
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);

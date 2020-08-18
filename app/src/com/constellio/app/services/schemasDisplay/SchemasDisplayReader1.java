@@ -6,9 +6,11 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.SchemaUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +44,7 @@ public class SchemasDisplayReader1 {
 	private static final String METADATA_DISPLAY_CONFIGS = "MetadataDisplayConfigs";
 	private static final String INPUT_TYPE = "InputType";
 	private static final String DISPLAY_TYPE = "DisplayType";
+	private static final String SORTING_TYPE = "SortingType";
 	private static final String VISIBLE_IN_ADVANCED_SEARCH = "VisibleInAdvancedSearch";
 	private static final String HIGHLIGHT = "Highlight";
 	private static final String METADATA_GROUPS_LABELS = "MetadataGroupsLabels";
@@ -49,6 +52,9 @@ public class SchemasDisplayReader1 {
 	private static final String METADATA_GROUP = "metadataGroup";
 	private static final String METADATA_GROUP_CODE = "code";
 	private static final String LABELS = "labels";
+	private static final String HELP_MESSAGE = "HelpMessage";
+
+	public static final String HELP_MESSAGE_CODE_SEPARATOR = "_";
 
 	MetadataSchemaTypes types;
 	Document document;
@@ -182,13 +188,13 @@ public class SchemasDisplayReader1 {
 					Element displayMetadataCodesElement = schemaDisplayConfigsElement.getChild(DISPLAY_METADATA_CODES);
 
 					List<String> displayMetadataCodes = new ArrayList<>();
-					addElementValuesToList(schema, displayMetadataCodesElement, displayMetadataCodes);
+					addElementValuesToListRestrictingToMetadatasOfSchema(schema, displayMetadataCodesElement, displayMetadataCodes);
 
 					Element formMetadataCodesElement = schemaDisplayConfigsElement.getChild(FORM_METADATA_CODES);
 
 					List<String> formMetadataCodes = new ArrayList<>();
 					List<String> formHiddenMetadataCodes = new ArrayList<>();
-					addElementValuesToList(schema, formMetadataCodesElement, formMetadataCodes);
+					addElementValuesToListRestrictingToMetadatasOfSchema(schema, formMetadataCodesElement, formMetadataCodes);
 
 					for (Metadata metadata : SchemaDisplayUtils.getRequiredMetadatasInSchemaForm(schema)) {
 						if (!formMetadataCodes.contains(metadata.getCode())) {
@@ -216,13 +222,13 @@ public class SchemasDisplayReader1 {
 							.getChild(SEARCH_RESULTS_METADATA_CODES);
 
 					List<String> searchResultsMetadataCodes = new ArrayList<>();
-					addElementValuesToList(schema, searchResultsMetadataCodesElement, searchResultsMetadataCodes);
+					addElementValuesToListRestrictingToMetadatasOfSchema(schema, searchResultsMetadataCodesElement, searchResultsMetadataCodes);
 
 					Element tableMetadataCodesElement = schemaDisplayConfigsElement
 							.getChild(TABLE_METADATA_CODES);
 
 					List<String> tableMetadataCodes = new ArrayList<>();
-					addElementValuesToList(schema, tableMetadataCodesElement, tableMetadataCodes);
+					addElementValuesToListRestrictingToMetadatasOfSchemaType(schema.getSchemaType(), tableMetadataCodesElement, tableMetadataCodes);
 
 					SchemaDisplayConfig schemaDisplayConfig = new SchemaDisplayConfig(collection, schemaCode,
 							displayMetadataCodes, formMetadataCodes, formHiddenMetadataCodes,
@@ -235,12 +241,31 @@ public class SchemasDisplayReader1 {
 		return map;
 	}
 
-	private void addElementValuesToList(MetadataSchema schema, Element element,
-										List<String> list) {
+	private void addElementValuesToListRestrictingToMetadatasOfSchema(MetadataSchema schema, Element element,
+																	  List<String> list) {
 		if (element != null) {
 			for (Element e : element.getChildren()) {
-				if (schema.hasMetadataWithCode(e.getName())) {
-					list.add(e.getName());
+				Metadata metadata = schema.getMetadataWithCodeOrNull(e.getName());
+				if (metadata != null) {
+					if (schema.hasInheritance()) {
+						list.add(metadata.getCode());
+					} else {
+						list.add(metadata.getInheritance() == null ? metadata.getCode() : metadata.getInheritance().getCode());
+					}
+				}
+			}
+		}
+	}
+
+
+	private void addElementValuesToListRestrictingToMetadatasOfSchemaType(MetadataSchemaType schemaType,
+																		  Element element,
+																		  List<String> list) {
+		if (element != null) {
+			for (Element e : element.getChildren()) {
+				Metadata metadata = schemaType.getMetadataWithCodeOrNull(e.getName());
+				if (metadata != null) {
+					list.add(metadata.getInheritance() == null ? metadata.getCode() : metadata.getInheritance().getCode());
 				}
 			}
 		}
@@ -296,10 +321,29 @@ public class SchemasDisplayReader1 {
 		if (displayTypeString == null) {
 			displayTypeString = "VERTICAL";
 		}
+		Map<Language, String> helpMessages = readHelpMessages(metadataDisplayConfigElement);
 		MetadataInputType metadataInputType = MetadataInputType.valueOf(inputTypeString);
 		MetadataDisplayType metadataDisplayType = MetadataDisplayType.valueOf(displayTypeString);
+
+		String sortingTypeString = metadataDisplayConfigElement.getAttributeValue(SORTING_TYPE);
+		if (sortingTypeString == null) {
+			sortingTypeString = "ENTRY_ORDER";
+		}
+		MetadataSortingType metadataSortingType = MetadataSortingType.valueOf(sortingTypeString);
+
 		MetadataDisplayConfig metadataDisplayConfig = new MetadataDisplayConfig(collection, metadataCode,
-				visibleInAdvancedSearch, metadataInputType, highlight, metadataGroup, metadataDisplayType);
+				visibleInAdvancedSearch, metadataInputType, highlight, metadataGroup, metadataDisplayType,
+				helpMessages, metadataSortingType);
 		return metadataDisplayConfig;
+	}
+
+	private Map<Language, String> readHelpMessages(Element metadataDisplayConfigElement) {
+		Map<Language, String> helpMessages = new HashMap<>();
+
+		for (Language language : languages) {
+			helpMessages.put(language, metadataDisplayConfigElement
+					.getAttributeValue(HELP_MESSAGE + HELP_MESSAGE_CODE_SEPARATOR + language.getCode()));
+		}
+		return helpMessages;
 	}
 }

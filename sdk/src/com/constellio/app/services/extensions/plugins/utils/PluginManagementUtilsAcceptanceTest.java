@@ -1,5 +1,6 @@
 package com.constellio.app.services.extensions.plugins.utils;
 
+import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils.NewPluginsInNewWar;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -147,11 +148,35 @@ public class PluginManagementUtilsAcceptanceTest extends ConstellioTest {
 		File tempFolder = newTempFolder();
 		File otherTempFolder = newTempFolder();
 
-		PluginManagementUtils.markNewPluginsInNewWar(tempFolder, "plugin1.jar");
-		PluginManagementUtils.markNewPluginsInNewWar(tempFolder, "plugin2.jar");
-		PluginManagementUtils.markNewPluginsInNewWar(otherTempFolder, "plugin3.jar");
+		PluginManagementUtils.markNewPluginsInNewWar(tempFolder, "plugin1.jar", null);
+		PluginManagementUtils.markNewPluginsInNewWar(tempFolder, "plugin2.jar", null);
+		PluginManagementUtils.markNewPluginsInNewWar(otherTempFolder, "plugin3.jar", null);
 
-		assertThat(PluginManagementUtils.getNewPluginsInNewWar(tempFolder)).containsOnly("plugin1.jar", "plugin2.jar");
+		assertThat(PluginManagementUtils.getNewPluginsInNewWar(tempFolder)).usingFieldByFieldElementComparator().containsOnly(
+				new NewPluginsInNewWar("plugin1.jar", null), new NewPluginsInNewWar("plugin2.jar", null));
+
+		PluginManagementUtils.clearNewPluginsInNewWar(tempFolder);
+		assertThat(PluginManagementUtils.getNewPluginsInNewWar(tempFolder)).isEmpty();
+
+	}
+
+	@Test
+	public void whenMarkPluginsToInstallForTenantThenMarked()
+			throws Exception {
+
+		File tempFolder = newTempFolder();
+		File otherTempFolder = newTempFolder();
+
+		PluginManagementUtils.markNewPluginsInNewWar(tempFolder, "plugin1.jar", "1");
+		PluginManagementUtils.markNewPluginsInNewWar(tempFolder, "plugin2.jar", "1");
+		PluginManagementUtils.markNewPluginsInNewWar(tempFolder, "plugin2.jar", "2");
+		PluginManagementUtils.markNewPluginsInNewWar(tempFolder, "plugin3.jar", "3");
+
+		assertThat(PluginManagementUtils.getNewPluginsInNewWar(tempFolder)).usingFieldByFieldElementComparator().containsOnly(
+				new NewPluginsInNewWar("plugin1.jar", "1"),
+				new NewPluginsInNewWar("plugin2.jar", "1"),
+				new NewPluginsInNewWar("plugin2.jar", "2"),
+				new NewPluginsInNewWar("plugin3.jar", "3"));
 
 		PluginManagementUtils.clearNewPluginsInNewWar(tempFolder);
 		assertThat(PluginManagementUtils.getNewPluginsInNewWar(tempFolder)).isEmpty();

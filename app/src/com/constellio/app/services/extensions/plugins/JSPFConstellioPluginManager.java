@@ -14,11 +14,16 @@ import com.constellio.app.services.extensions.plugins.PluginServices.PluginsRepl
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus;
 import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
+import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils.NewPluginsInNewWar;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.utils.ScriptsUtils;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocatorMode;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
+import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.model.entities.modules.ConstellioPlugin;
 import com.constellio.model.entities.modules.Module;
 import net.xeoh.plugins.base.PluginManager;
@@ -40,6 +45,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.ID_MISMATCH;
 import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_EXISTING_ID;
@@ -63,6 +69,8 @@ import static com.constellio.app.services.extensions.plugins.pluginInfo.Constell
 public class JSPFConstellioPluginManager implements StatefulService, ConstellioPluginManager {
 	private static final Logger LOGGER = LogManager.getLogger(JSPFConstellioPluginManager.class);
 	public static final String PREVIOUS_PLUGINS = "previousPlugins";
+
+	public static List<InstallableModule> availablePluginsForTestOnly = new ArrayList<>();
 
 	private final File pluginsDirectory;
 	private PluginManager pluginManager;
@@ -107,15 +115,17 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 						new File(pluginsDirectory, PREVIOUS_PLUGINS));
 			} catch (PluginsReplacementException e) {
 				for (String pluginId : e.getPluginsWithReplacementExceptionIds()) {
-					pluginConfigManger.invalidateModule(pluginId, IO_EXCEPTION, e);
+					if (pluginConfigManger.getPluginInfo(pluginId) != null) {
+						pluginConfigManger.invalidateModule(pluginId, IO_EXCEPTION, e);
+					}
 				}
 			}
 
 			for (ConstellioPluginInfo pluginInfo : getPlugins(ENABLED, DISABLED, READY_TO_INSTALL)) {
-				LOGGER.info("Detected plugin : " + pluginInfo.getCode());
+				LOGGER.warn("Detected plugin for tenant " + TenantUtils.getTenantId() + " : " + pluginInfo.getCode(), new Exception());
 				installValidPlugin(pluginInfo);
 			}
-			handlePluginsDependency();
+			//handlePluginsDependency();
 
 			//Be aware of order : invalid are last plugins to be handled
 			for (ConstellioPluginInfo pluginInfo : getPlugins(INVALID)) {
@@ -125,25 +135,25 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 
 	}
 
-	//TODO in future version
-	private void handlePluginsDependency() {
-		for (InstallableModule pluginModule : validUploadedPlugins.values()) {
-			//1. ensure no module depend on invalid module otherwise it is also invalid
-			List<String> dependencies = pluginModule.getDependencies();
-			if (dependencies != null) {
-				for (String dependency : dependencies) {
-					if (!registeredModules.keySet().contains(dependency)) {
-						InstallableModule dependOnModule = validUploadedPlugins.get(dependency);
-						if (dependOnModule == null
-							|| pluginConfigManger.getPluginInfo(dependency).getPluginStatus() == DISABLED) {
-							//TODO disable and remove from validUploadedPlugins see avec Cis
-						}
-					}
-				}
-			}
-			//2. cyclic dependency is not supported hence save only oldest plugins
-		}
-	}
+	//	//TODO in future version
+	//	private void handlePluginsDependency() {
+	//		for (InstallableModule pluginModule : validUploadedPlugins.values()) {
+	//			//1. ensure no module depend on invalid module otherwise it is also invalid
+	//			List<String> dependencies = pluginModule.getDependencies();
+	//			if (dependencies != null) {
+	//				for (String dependency : dependencies) {
+	//					if (!registeredModules.keySet().contains(dependency)) {
+	//						InstallableModule dependOnModule = validUploadedPlugins.get(dependency);
+	//						if (dependOnModule == null
+	//							|| pluginConfigManger.getPluginInfo(dependency).getPluginStatus() == DISABLED) {
+	//							//TODO disable and remove from validUploadedPlugins see avec Cis
+	//						}
+	//					}
+	//				}
+	//			}
+	//			//2. cyclic dependency is not supported hence save only oldest plugins
+	//		}
+	//	}
 
 	private void installInvalidPlugin(String pluginId) {
 		PluginServices helperService = newPluginServices();
@@ -266,8 +276,16 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	public List<InstallableModule> getRegistredModulesAndActivePlugins() {
 		ensureStarted();
 		List<InstallableModule> plugins = new ArrayList<>();
-		plugins.addAll(registeredModules.values());
-		plugins.addAll(getActivePluginModules());
+
+		Collection<InstallableModule> registeredModulesValues = registeredModules.values();
+		LOGGER.info("Registered module values for tenant '" + TenantUtils.getTenantId() + "' are : " +
+					registeredModulesValues.stream().map(InstallableModule::getId).collect(Collectors.toList()));
+		plugins.addAll(registeredModulesValues);
+
+		Collection<InstallableModule> activePluginModules = getActivePluginModules();
+		LOGGER.info("Active plugin modules for tenant '" + TenantUtils.getTenantId() + "' are : " +
+					activePluginModules.stream().map(InstallableModule::getId).collect(Collectors.toList()));
+		plugins.addAll(activePluginModules);
 		return plugins;
 	}
 
@@ -279,7 +297,6 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		return plugins;
 	}
 
-	public static List<InstallableModule> availablePluginsForTestOnly = new ArrayList<>();
 
 	@Override
 	public List<InstallableModule> getActivePluginModules() {
@@ -371,12 +388,16 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		jarfileInNextWarLibs.delete();
 		try {
 			FileUtils.copyFile(jarFile, jarfileInNextWarPlugins);
-			FileUtils.moveFile(jarFile, jarfileInNextWarLibs);
+			if (TenantUtils.isSupportingTenants()) {
+				FileUtils.copyFile(jarFile, jarfileInNextWarLibs);
+			} else {
+				FileUtils.moveFile(jarFile, jarfileInNextWarLibs);
+			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 
-		PluginManagementUtils.markNewPluginsInNewWar(nextWebapp, jarfileInNextWarPlugins.getName());
+		PluginManagementUtils.markNewPluginsInNewWar(nextWebapp, jarfileInNextWarPlugins.getName(), TenantUtils.getTenantId());
 
 		return null;
 	}
@@ -384,23 +405,25 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	public void markNewPluginsInNewWarAsInstalled(FoldersLocator foldersLocator) {
 		File webapp = foldersLocator.getConstellioWebappFolder();
 		File plugins = foldersLocator.getPluginsJarsFolder();
-		List<String> newPluginsFileNames = PluginManagementUtils.getNewPluginsInNewWar(webapp);
+		List<NewPluginsInNewWar> newPluginsFileNames = PluginManagementUtils.getNewPluginsInNewWar(webapp);
 
 		if (!newPluginsFileNames.isEmpty()) {
-			for (String newPluginFilename : newPluginsFileNames) {
-				File newPlugin = new File(plugins, newPluginFilename);
-				PluginServices helperService = newPluginServices();
-				ConstellioPluginInfo newPluginInfo;
-				try {
-					newPluginInfo = helperService.extractPluginInfo(newPlugin);
-					validateId(newPluginInfo.getCode());
-				} catch (Exception e) {
-					throw new ImpossibleRuntimeException(e);
-				}
+			for (NewPluginsInNewWar newPluginsInNewWar : newPluginsFileNames) {
+				if (LangUtils.isEqual(newPluginsInNewWar.getTenantId(), TenantUtils.getTenantId())) {
+					File newPlugin = new File(plugins, newPluginsInNewWar.getFilename());
+					PluginServices helperService = newPluginServices();
+					ConstellioPluginInfo newPluginInfo;
+					try {
+						newPluginInfo = helperService.extractPluginInfo(newPlugin);
+						validateId(newPluginInfo.getCode());
+					} catch (Exception e) {
+						throw new ImpossibleRuntimeException(e);
+					}
 
-				LOGGER.info("mark plugin " + newPluginFilename + "' in new war '" + webapp.getAbsolutePath() + "' as installed");
-				pluginConfigManger.installPlugin(newPluginInfo.getCode(), newPluginInfo.getTitle(),
-						newPluginInfo.getVersion(), newPluginInfo.getRequiredConstellioVersion());
+					LOGGER.info("mark plugin " + newPluginsInNewWar.getFilename() + "' in new war '" + webapp.getAbsolutePath() + "' as installed for tenant '" + TenantUtils.getTenantId() + "'");
+					pluginConfigManger.installPlugin(newPluginInfo.getCode(), newPluginInfo.getTitle(),
+							newPluginInfo.getVersion(), newPluginInfo.getRequiredConstellioVersion());
+				}
 			}
 		}
 		PluginManagementUtils.clearNewPluginsInNewWar(webapp);
@@ -485,8 +508,57 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	}
 
 	@Override
+	public List<String> getPluginsFromAnyTenants(ConstellioPluginStatus... statuses) {
+		Set<String> returnList = new HashSet<>();
+		if (TenantUtils.isSupportingTenants()) {
+
+
+			ScriptsUtils.forEachAvailableAndFailedTenants((tenantId, appLayerFactory) -> {
+				//Should work event if the tenant failed to start (only requires an initialized ConfigManager)
+
+				try {
+					appLayerFactory.getPluginManager().getPlugins(statuses).forEach((info) -> returnList.add(info.getCode()));
+				} catch (Throwable t) {
+
+					LOGGER.info("Update is not considering tenant '" + tenantId + "'", t);
+				}
+			});
+
+			ScriptsUtils.forEachAvailableAndFailedTenants((tenantId, appLayerFactory) -> {
+				appLayerFactory.getPluginManager().getPlugins(statuses).forEach((info) -> returnList.add(info.getCode()));
+			});
+
+		} else {
+			List<ConstellioPluginInfo> pluginsFromTenant = ConstellioFactories
+					.getInstance().getAppLayerFactory().getPluginManager().getPlugins(statuses);
+			pluginsFromTenant.forEach((info) -> returnList.add(info.getCode()));
+		}
+		return new ArrayList<>(returnList);
+
+	}
+
+	@Override
 	public List<String> getPluginsOfEveryStatus() {
 		return pluginConfigManger.getAllPluginsCodes();
+	}
+
+	public List<String> getPluginsOfEveryStatusFromAnyTenants() {
+		if (TenantUtils.isSupportingTenants()) {
+			Set<String> returnList = new HashSet<>();
+			ScriptsUtils.forEachAvailableAndFailedTenants((tenantId, appLayerFactory) -> {
+				//Should work event if the tenant failed to start (only requires an initialized ConfigManager)
+
+				try {
+					returnList.addAll(appLayerFactory.getPluginManager().getPluginsOfEveryStatus());
+				} catch (Throwable t) {
+
+					LOGGER.info("Update is not considering tenant '" + tenantId + "'", t);
+				}
+			});
+			return new ArrayList<>(returnList);
+		} else {
+			return getPluginsOfEveryStatus();
+		}
 	}
 
 	@Override

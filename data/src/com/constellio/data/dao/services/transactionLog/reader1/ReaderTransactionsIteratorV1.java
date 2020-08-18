@@ -10,7 +10,9 @@ import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRepla
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CannotParseLogCommand;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.KeyListMap;
+import com.constellio.data.utils.LangUtils.StringReplacer;
 import com.constellio.data.utils.LazyIterator;
+import com.constellio.data.utils.dev.Toggle;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 
@@ -20,6 +22,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import static com.constellio.data.utils.LangUtils.isEmptyList;
+import static com.constellio.data.utils.LangUtils.replacingLiteral;
 
 public class ReaderTransactionsIteratorV1 extends LazyIterator<BigVaultServerTransaction> {
 
@@ -54,7 +59,13 @@ public class ReaderTransactionsIteratorV1 extends LazyIterator<BigVaultServerTra
 			addOperationToTransaction(transaction, currentAddUpdateLines);
 		}
 
-		return transaction;
+		if (transaction.isEmpty()) {
+			return getNextOrNull();
+		} else {
+			return transaction;
+		}
+
+
 	}
 
 	private void addOperationToTransaction(BigVaultServerTransaction transaction, List<String> currentAddUpdateLines) {
@@ -112,7 +123,74 @@ public class ReaderTransactionsIteratorV1 extends LazyIterator<BigVaultServerTra
 		String id = firstLineParts[1];
 		String version = firstLineParts[2];
 		SolrInputDocument document = buildAddUpdateDocument(currentAddUpdateLines, id);
-		addUpdate(transaction, document, version);
+
+		if (!isSkipped(document)) {
+
+//			if (document.getFieldNames().size() < 10) {
+			//				System.out.println("Small transaction : " + document.getFieldNames());
+			//				for (String fieldName : document.getFieldNames()) {
+			//					System.out.println(" - " + fieldName + "= " + document.getFieldValue(fieldName));
+			//				}
+			//				System.out.println("");
+			//			}
+
+			addUpdate(transaction, document, version);
+		}
+	}
+
+	private boolean isSkipped(SolrInputDocument document) {
+		if (!Toggle.MARKED_RECORDS_IN_SAVESTATES_DISABLED.isEnabled()) {
+			return false;
+		}
+		if (document.size() == 2 && (document.getFieldNames().contains("markedForReindexing_s")
+									 || document.getFieldNames().contains("markedForPreviewConversion_s")
+									 || document.getFieldNames().contains("markedForParsing_s"))) {
+			return true;
+		}
+
+		if (document.size() < 10 && document.getFieldNames().contains("markedForPreviewConversion_s")) {
+			return hasInterestingValues(document);
+		}
+
+		return false;
+	}
+
+	private boolean hasInterestingValues(SolrInputDocument document) {
+		boolean hasFieldWithStuff = false;
+		for (String fieldName : document.getFieldNames()) {
+			if (!fieldName.endsWith("txt_fr") && !fieldName.equals("id")
+				&& !fieldName.equals("markedForReindexing_s")
+				&& !fieldName.equals("markedForPreviewConversion_s")
+				&& !fieldName.equals("markedForParsing_s")
+				&& !fieldName.equals("migrationDataVersion_d")
+				&& !fieldName.equals("estimatedSize_i")) {
+				Object value = document.getFieldValue(fieldName);
+				if (value != null && !isSetNullMap(value)) {
+					hasFieldWithStuff = true;
+				}
+			}
+		}
+		return !hasFieldWithStuff;
+	}
+
+	private boolean isSetNullMap(Object value) {
+		if (value == null) {
+			return false;
+		}
+		if (value instanceof Map) {
+			Map map = (Map) value;
+			if (map.containsKey("set")) {
+
+				Object settedValue = map.get("set");
+				return settedValue == null || isEmptyList(settedValue);
+
+			} else {
+				return false;
+			}
+
+		} else {
+			return false;
+		}
 	}
 
 	private SolrInputDocument buildAddUpdateDocument(List<String> currentAddUpdateLines, String id) {
@@ -182,8 +260,10 @@ public class ReaderTransactionsIteratorV1 extends LazyIterator<BigVaultServerTra
 		return inputDocument;
 	}
 
+	private StringReplacer stringReplacer = replacingLiteral("__LINEBREAK__", "\n");
+
 	private Object convertValueForLogReplay(String field, String value) {
-		return value.replace("__LINEBREAK__", "\n");
+		return stringReplacer.replaceOn(value);
 	}
 
 	private boolean isFirstLineOfOperation(String line) {

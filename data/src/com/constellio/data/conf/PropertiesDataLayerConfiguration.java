@@ -1,15 +1,19 @@
 package com.constellio.data.conf;
 
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.Duration;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 import static com.constellio.data.conf.SolrServerType.HTTP;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 
 public class PropertiesDataLayerConfiguration extends PropertiesConfiguration implements DataLayerConfiguration {
 
@@ -68,8 +72,8 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 			setFile("secondTransactionLog.folder", value);
 		}
 
-		public void setSecondTransactionLogMode(String value) {
-			setString("secondTransactionLog.mode", value);
+		public void setSecondTransactionLogMode(SecondTransactionLogType value) {
+			setEnum("secondTransactionLog.mode", value);
 		}
 
 		public void setReplayTransactionStartVersion(long value) {
@@ -138,6 +142,10 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 			setString("dao.records.http.url", url);
 		}
 
+		public void setRecordsDaoCollection(String value) {
+			setString("dao.records.collection", value);
+		}
+
 		public void setContentDaoType(ContentDaoType contentDaoType) {
 			setEnum("dao.contents.type", contentDaoType);
 		}
@@ -146,14 +154,63 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 			setEnum(RECORD_TYPE, solrServerType);
 		}
 
+		public void setMicrosoftSqlServerUrl(String value) {
+			setString("sql.server.url", value);
+		}
+
+		public void setMicrosoftSqlServerDatabase(String value) {
+			setString("sql.server.database", value);
+		}
+
+		public void setMicrosoftSqlServeruser(String value) {
+			setString("sql.server.user", value);
+		}
+
+		public void setMicrosoftSqlServerpassword(String value) {
+			setString("sql.server.password", value);
+		}
+
+		public void setMicrosoftSqlServerencrypt(boolean value) {
+			setBoolean("sql.server.encrypt", value);
+		}
+
+		public void setMicrosoftSqlServertrustServerCertificate(boolean value) {
+			setBoolean("sql.server.trustServerCertificate", value);
+		}
+
+		public void setMicrosoftSqlServerloginTimeout(int value) {
+			setInt("sql.server.loginTimeout", value);
+		}
+
+		public void setSolrMinimalReplicationFactor(int replicationFactor) {
+			setInt("replicationFactorLog.minimalReplicationFactor", replicationFactor);
+		}
+
 	}
 
 	public SolrServerType getRecordsDaoSolrServerType() {
 		return (SolrServerType) getRequiredEnum(RECORD_TYPE, SolrServerType.class);
 	}
 
+	@Override
+	public boolean isCopyingRecordsInSearchCollection() {
+		return getBoolean("dao.records.copyInSearchCollection", false);
+	}
+
 	public String getRecordsDaoHttpSolrServerUrl() {
 		return getRequiredString("dao.records.http.url");
+	}
+
+	public String getRecordsDaoCollection() {
+		return getString("dao.records.collection", null);
+	}
+
+	public String getEventsDaoCollection() {
+		return getString("dao.events.collection", null);
+	}
+
+	public String getNotificationsDaoCollection() {
+		return getString("dao.notifications.collection", null);
 	}
 
 	public String getRecordsDaoCloudSolrServerZKHost() {
@@ -162,6 +219,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	public boolean isRecordsDaoHttpSolrServerFaultInjectionEnabled() {
 		return getBoolean("dao.records.http.faultInjection", false);
+	}
+
+	@Override
+	public boolean useSolrTupleStreamsIfSupported() {
+		return getBoolean("dao.records.useTuppleStreamsIfSupported", true);
 	}
 
 	public ContentDaoType getContentDaoType() {
@@ -215,6 +277,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
+	public int getSequentialIdReservedBatchSize() {
+		return getInt("idGenerator.sequential.reservedBatchSize", 1000);
+	}
+
+	@Override
 	public IdGeneratorType getSecondaryIdGeneratorType() {
 		return (IdGeneratorType) getEnum("secondaryIdGenerator.type", IdGeneratorType.UUID_V1);
 	}
@@ -230,8 +297,8 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
-	public String getSecondTransactionLogMode() {
-		return getString("secondTransactionLog.mode", "xml");
+	public SecondTransactionLogType getSecondTransactionLogMode() {
+		return (SecondTransactionLogType) getEnum("secondTransactionLog.mode", SecondTransactionLogType.XML);
 	}
 
 	@Override
@@ -246,6 +313,12 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	@Override
 	public CacheType getCacheType() {
 		return (CacheType) getEnum("dao.cache", CacheType.MEMORY);
+	}
+
+	@Override
+	public List<String> getSubvaults() {
+		String commaSeparatedSubvaults = getString("dao.contents.filesystem.subvaults", null);
+		return StringUtils.isBlank(commaSeparatedSubvaults) ? emptyList() : asList(commaSeparatedSubvaults.split(","));
 	}
 
 	@Override
@@ -309,6 +382,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return getBoolean("writeZZRecords", false);
 	}
 
+
 	@Override
 	public HashingEncoding getHashingEncoding() {
 		return (HashingEncoding) getEnum("hashing.encoding", HashingEncoding.BASE64);
@@ -329,6 +403,16 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	@Override
 	public boolean isInRollbackTestMode() {
 		return getBoolean("secondTransactionLog.checkRollback", false);
+	}
+
+	@Override
+	public boolean isAsyncSQLSecondTransactionLogInsertion() {
+		return getBoolean("secondTransactionLog.sql.async", true);
+	}
+
+	@Override
+	public boolean isReplaySQLSecondTransactionLogDuringOfficeHours() {
+		return getBoolean("secondTransactionLog.sql.replayTransactionsDuringOfficeHours", false);
 	}
 
 	@Override
@@ -378,6 +462,52 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
+	public boolean areTiffFilesConvertedForPreview() {
+		return getBoolean("conversion.tiffConversion.enabled", true);
+	}
+
+	@Override
+	public String getMicrosoftSqlServerUrl() {
+		return getString("sql.server.url", null);
+	}
+
+	@Override
+	public String getMicrosoftSqlServerDatabase() {
+		return getString("sql.server.database", null);
+	}
+
+	@Override
+	public String getMicrosoftSqlServeruser() {
+		return getString("sql.server.user", null);
+	}
+
+	@Override
+	public String getMicrosoftSqlServerpassword() {
+		return getString("sql.server.password", null);
+	}
+
+	@Override
+	public boolean getMicrosoftSqlServerencrypt() {
+		return getBoolean("sql.server.encrypt", false);
+	}
+
+	@Override
+	public boolean getMicrosoftSqlServertrustServerCertificate() {
+		return getBoolean("sql.server.trustServerCertificate", false);
+	}
+
+	@Override
+	public int getMicrosoftSqlServerloginTimeout() {
+		return getInt("sql.server.loginTimeout", 0);
+	}
+
+
+	@Override
+	public int getSolrMinimalReplicationFactor() {
+		return getInt("replicationFactorLog.minimalReplicationFactor", 2);
+	}
+
+	@Override
 	public ElectionServiceType getElectionServiceType() {
 		return (ElectionServiceType) getEnum("leaderElectionMethod.type", ElectionServiceType.STANDALONE);
 	}
@@ -385,5 +515,45 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	@Override
 	public boolean isSystemDistributed() {
 		return getElectionServiceType() != ElectionServiceType.STANDALONE;
+	}
+
+	@Override
+	public String getAzureBlobStorageConnectionString() {
+		return getRequiredString("dao.contents.azure.connectionString");
+	}
+
+	@Override
+	public String getAzureBlobStorageConnectionAccountName() {
+		return getRequiredString("dao.contents.azure.accountName");
+	}
+
+	@Override
+	public String getAzureBlobStorageConnectionAccountKey() {
+		return getRequiredString("dao.contents.azure.accountKey");
+	}
+
+	@Override
+	public void setAzureBlobStorageConnectionAccountName(String accountName) {
+		setString("dao.contents.azure.accountName", accountName);
+	}
+
+	@Override
+	public void setAzureBlobStorageConnectionAccountKey(String accountKey) {
+		setString("dao.contents.azure.accountKey", accountKey);
+	}
+
+	@Override
+	public void setAzureBlobStorageContainerName(String containerName) {
+		setString("dao.contents.azure.containerName", containerName);
+	}
+
+	@Override
+	public void setAzureBlobStorageConnectionString(String containerName) {
+		setString("dao.contents.azure.connectionString", containerName);
+	}
+
+	@Override
+	public String getAzureBlobStorageContainerName() {
+		return getRequiredString("dao.contents.azure.containerName");
 	}
 }

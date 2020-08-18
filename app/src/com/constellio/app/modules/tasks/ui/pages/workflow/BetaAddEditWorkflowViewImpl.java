@@ -39,7 +39,7 @@ public class BetaAddEditWorkflowViewImpl extends BaseViewImpl implements BetaAdd
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		return new RecordForm(workflowVO) {
+		return new RecordForm(workflowVO, getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {

@@ -18,19 +18,22 @@ public class SearchCriteriaPresenterUtils extends BasePresenterUtils {
 	}
 
 	public final Map<String, String> getMetadataSchemasList(String schemaTypeCode) {
-		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(
-				constellioFactories.getModelLayerFactory().getSystemConfigurationsManager());
 		Map<String, String> metadataSchemasMap = new HashMap<>();
 		String collection = sessionContext.getCurrentCollection();
 		String language = sessionContext.getCurrentLocale().getLanguage();
 		List<MetadataSchema> metadataSchemas = getConstellioFactories().getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
 				.getSchemaType(schemaTypeCode).getAllSchemas();
 		for (MetadataSchema metadataSchema : metadataSchemas) {
-			if (metadataSchema.isActive() || configs.areInactifSchemasEnabledInSearch()) {
+			if (showMetadataSchema(metadataSchema)) {
 				metadataSchemasMap.put(metadataSchema.getCode(), metadataSchema.getLabel(Language.withCode(language)));
 			}
 		}
 		return metadataSchemasMap;
+	}
+
+	public boolean showMetadataSchema(MetadataSchema metadataSchema) {
+		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(constellioFactories.getModelLayerFactory().getSystemConfigurationsManager());
+		return metadataSchema.isActive() || configs.areInactifSchemasEnabledInSearch();
 	}
 }

@@ -19,10 +19,10 @@ import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.records.RecordHierarchyServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserPhotosServices;
 
@@ -43,7 +43,7 @@ public class UnclassifiedDataSIPWriter {
 	MetadataSchemaTypes types;
 	Language language;
 	SearchServices searchServices;
-	ConceptNodesTaxonomySearchServices taxonomySearchServices;
+	RecordHierarchyServices recordHierarchyServices;
 	TaxonomiesManager taxonomiesManager;
 	ConfigManager configManager;
 	IOServices ioServices;
@@ -67,7 +67,7 @@ public class UnclassifiedDataSIPWriter {
 		this.language = Language.withLocale(locale);
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		this.taxonomiesManager = appLayerFactory.getModelLayerFactory().getTaxonomiesManager();
-		this.taxonomySearchServices = new ConceptNodesTaxonomySearchServices(appLayerFactory.getModelLayerFactory());
+		this.recordHierarchyServices = new RecordHierarchyServices(appLayerFactory.getModelLayerFactory());
 		this.configManager = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getConfigManager();
 		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
 		this.progressInfo = progressInfo;

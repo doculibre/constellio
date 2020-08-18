@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class AbstractTaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
-	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
+	protected boolean VALIDATE_SOLR_QUERIES_COUNT = true;
 
 	private AtomicInteger queriesCount = new AtomicInteger();
 	private AtomicInteger facetsCount = new AtomicInteger();
@@ -36,7 +36,7 @@ public class AbstractTaxonomiesSearchServicesAcceptanceTest extends ConstellioTe
 
 						String stacktrace = substringAfter(substringAfter(ExceptionUtils.getStackTrace(new Exception()), "\n"), "\n");
 
-						if (stacktrace.contains(className)) {
+						if (stacktrace.contains(className) && (params.getQueryName() == null || !params.getQueryName().contains("*SDK*"))) {
 							queriesCount.incrementAndGet();
 							returnedDocumentsCount.addAndGet(params.getReturnedResultsCount());
 							String[] facetQuery = params.getSolrParams().getParams("facet.query");

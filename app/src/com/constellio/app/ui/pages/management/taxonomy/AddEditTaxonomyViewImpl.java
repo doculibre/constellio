@@ -21,6 +21,7 @@ import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -124,6 +125,10 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 
 			abbreviationBaseTextField.addStyleName("title");
 			baseTextFieldAbbreviationMap.put(Language.withCode(languageCode), abbreviationBaseTextField);
+
+			titleBaseTextField.addValidator(presenter.newIllegalCharactersValidator(titleBaseTextField.getCaption()));
+			abbreviationBaseTextField
+					.addValidator(presenter.newIllegalCharactersValidator(abbreviationBaseTextField.getCaption()));
 		}
 
 
@@ -211,9 +216,6 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 				}
 
 				taxonomyVO.setTitle(titleMap);
-				if (!ViewErrorDisplay.validateFieldsContent(baseTextFieldTitleMap, AddEditTaxonomyViewImpl.this)) {
-					return;
-				}
 
 				Map<Language, String> abbreviationMap = new HashMap<>();
 				for (Language language : baseTextFieldAbbreviationMap.keySet()) {
@@ -224,6 +226,12 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 					}
 				}
 				taxonomyVO.setAbbreviation(abbreviationMap);
+
+				List<BaseTextField> baseTextFieldToValidate = new ArrayList<>(baseTextFieldTitleMap.values());
+				baseTextFieldToValidate.addAll(baseTextFieldAbbreviationMap.values());
+				if (!ViewErrorDisplay.validateFieldsContent(baseTextFieldToValidate, AddEditTaxonomyViewImpl.this)) {
+					return;
+				}
 
 				boolean isMultiValue = false;
 

@@ -20,7 +20,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import jcifs.smb.NtlmPasswordAuthentication;
 import org.assertj.core.groups.Tuple;
 import org.joda.time.Duration;
@@ -94,7 +93,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenMinimalShareWhenCrawlingThenGetAllDocumentsAndFolders()
 			throws RecordServicesException {
 
@@ -123,7 +122,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenMinimalShareWithNewDocumentWhenCrawlingThenCrawlNewDocument()
 			throws RecordServicesException {
 		String newFileName = "newFile.txt";
@@ -155,7 +154,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenMinimalShareWithNewEmptyFolderWhenCrawlingThenCrawlNewEmptyFolder()
 			throws RecordServicesException {
 		String newFolderName = "newFolder/";
@@ -223,7 +222,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenMinimalShareWithDeletedDocumentWhenCrawlingThenRemoveDocument()
 			throws RecordServicesException {
 
@@ -251,7 +250,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenMinimalShareWithDeleteEmptyFolderWhenCrawlingThenRemoveFolder()
 			throws RecordServicesException, IOException {
 		String newFolder = "newFolder/";
@@ -283,7 +282,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenMinimalShareDeleteFolderWithContentWhenCrawlingThenRemoveFolderAndContent()
 			throws RecordServicesException {
 
@@ -311,7 +310,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenMinimalShareWithModifiedDocumentWhenCrawlingThenUpdateDocument()
 			throws RecordServicesException {
 		String modifiedContent = "Modified Content";

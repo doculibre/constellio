@@ -4,6 +4,7 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.io.streamFactories.StreamFactoryWithFilename;
 import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
+import com.constellio.data.utils.ImageUtils;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -40,6 +41,7 @@ import org.apache.tika.parser.pdf.PDFParserConfig;
 import org.apache.tika.parser.pdf.PDFParserConfig.OCR_STRATEGY;
 import org.apache.tika.sax.BodyContentHandler;
 
+import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -179,6 +181,7 @@ public class FileParser {
 		BodyContentHandler handler = new BodyContentHandler(maxParsedContentLengthInKO * 1000);
 		Metadata metadata = new Metadata();
 
+		Dimension dimension = null;
 		InputStream inputStream = null;
 		try {
 			inputStream = inputStreamFactory.create(READ_STREAM_FOR_PARSING_WITH_TIKA);
@@ -193,6 +196,10 @@ public class FileParser {
 					autoDetectParsers.set(parser = newAutoDetectParser());
 				}
 				parser.parse(inputStream, handler, metadata, configureParseContext(parser, ocr));
+			}
+			String type = metadata.get(Metadata.CONTENT_TYPE);
+			if (type != null && type.startsWith("image")) {
+				dimension = ImageUtils.getImageDimension(inputStream);
 			}
 
 		} catch (Throwable t) {
@@ -210,14 +217,13 @@ public class FileParser {
 		//parsedContent = patternForChar.matcher(parsedContent).replaceAll("");
 		parsedContent = patternForSpaceAndReturn.matcher(parsedContent).replaceAll("");
 		String language = detectLanguage ? languageDetectionManager.tryDetectLanguage(parsedContent) : null;
-		Map<String, Object> properties = getPropertiesHashMap(metadata, type);
+		Map<String, Object> properties = getPropertiesHashMap(metadata, type, dimension);
 		Map<String, List<String>> styles = null;
 		try {
 			styles = getStylesDoc(inputStreamFactory, type);
 		} catch (Throwable t) {
 			throw new FileParserException_CannotExtractStyles(t, type);
 		}
-
 		ParsedContent content = new ParsedContent(parsedContent, language, type, length, properties, styles);
 		content.setDescription(metadata.get(Metadata.DESCRIPTION));
 		content.setTitle(metadata.get(Metadata.TITLE));
@@ -278,6 +284,7 @@ public class FileParser {
 		Metadata metadata = new Metadata();
 
 		InputStream inputStream = null;
+		Dimension dimension = null;
 		try {
 			inputStream = inputStreamFactory.create(READ_STREAM_FOR_PARSING_WITH_TIKA);
 			if (forkParserEnabled) {
@@ -292,6 +299,7 @@ public class FileParser {
 				}
 				parser.parse(inputStream, handler, metadata, configureParseContext(parser, ocr));
 			}
+			dimension = ImageUtils.getImageDimension(inputStream);
 		} catch (Throwable t) {
 			if (!t.getClass().getSimpleName().equals("WriteLimitReachedException")) {
 				String detectedMimetype = metadata.get(Metadata.CONTENT_TYPE);
@@ -305,7 +313,7 @@ public class FileParser {
 		String type = metadata.get(Metadata.CONTENT_TYPE);
 		String parsedContent = handler.toString().trim();
 		String language = detectLanguage ? languageDetectionManager.tryDetectLanguage(parsedContent) : null;
-		Map<String, Object> properties = getPropertiesHashMap(metadata, type);
+		Map<String, Object> properties = getPropertiesHashMap(metadata, type, dimension);
 		Map<String, List<String>> styles = null;
 		try {
 			styles = getStylesDoc(inputStreamFactory, type);
@@ -315,9 +323,30 @@ public class FileParser {
 		return new ParsedContent(parsedContent, language, type, length, properties, styles);
 	}
 
-	protected Map<String, Object> getPropertiesHashMap(Metadata metadata, String mimeType) {
-		HashMap<String, Object> properties = new HashMap<String, Object>();
+	protected Map<String, Object> getPropertiesHashMap(Metadata metadata, String mimeType, Dimension dimension) {
+		HashMap<String, Object> properties = new HashMap<>();
+		for (String propertyName : metadata.names()) {
+			addPropertyTo(properties, metadata, propertyName, propertyName);
+		}
+		addAndConfigureBaseProperties(properties, metadata);
 
+		if (mimeType.contains("xml")) {
+			addCommentsTo(properties, metadata, "Comments", TikaCoreProperties.DESCRIPTION, "_x000d_");
+			addPropertyTo(properties, metadata, "Company", TikaCoreProperties.PUBLISHER);
+		} else {
+			addCommentsTo(properties, metadata, "Comments", TikaCoreProperties.COMMENTS, "[\r]");
+			addPropertyTo(properties, metadata, "Company", "Company");
+		}
+
+		if (dimension != null && mimeType.startsWith("image")) {
+			properties.put("width", dimension.width);
+			properties.put("height", dimension.height);
+		}
+
+		return properties;
+	}
+
+	private void addAndConfigureBaseProperties(HashMap<String, Object> properties, Metadata metadata) {
 		addKeywordsTo(properties, metadata, "Keywords", TikaCoreProperties.KEYWORDS);
 		addPropertyTo(properties, metadata, "Title", TikaCoreProperties.TITLE);
 		addPropertyTo(properties, metadata, "Comments", TikaCoreProperties.COMMENTS);
@@ -329,16 +358,6 @@ public class FileParser {
 		addPropertyTo(properties, metadata, "CC", Message.MESSAGE_CC);
 		addPropertyTo(properties, metadata, "From", Message.MESSAGE_FROM);
 		addPropertyTo(properties, metadata, "To", Message.MESSAGE_TO);
-
-		if (mimeType.contains("xml")) {
-			addCommentsTo(properties, metadata, "Comments", TikaCoreProperties.DESCRIPTION, "_x000d_");
-			addPropertyTo(properties, metadata, "Company", TikaCoreProperties.PUBLISHER);
-		} else {
-			addCommentsTo(properties, metadata, "Comments", TikaCoreProperties.COMMENTS, "[\r]");
-			addPropertyTo(properties, metadata, "Company", "Company");
-		}
-
-		return properties;
 	}
 
 	//For Property
@@ -535,9 +554,10 @@ public class FileParser {
 
 		TesseractOCRConfig tesseractOCRConfig = new TesseractOCRConfig();
 		//tesseractOCRConfig.setEnableImageProcessing(1);
-		tesseractOCRConfig.setLanguage("fra+eng");
-		//		tesseractOCRConfig.setTesseractPath("C:\\Program Files (x86)\\Tesseract-OCR");
-		//		tesseractOCRConfig.setTessdataPath("C:\\Program Files (x86)\\Tesseract-OCR\\tessdata");
+		tesseractOCRConfig.setLanguage("fra+eng+ara");
+		// IMPORTANT do not commit these lines
+		//tesseractOCRConfig.setTesseractPath("C:\\Program Files\\Tesseract-OCR");
+		//tesseractOCRConfig.setTessdataPath("C:\\Program Files\\Tesseract-OCR\\tessdata");
 		parseContext.set(TesseractOCRConfig.class, tesseractOCRConfig);
 
 		PDFParserConfig pdfConfig = new PDFParserConfig();

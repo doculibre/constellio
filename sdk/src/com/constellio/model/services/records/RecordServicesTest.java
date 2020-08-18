@@ -1,6 +1,7 @@
 package com.constellio.model.services.records;
 
 import com.constellio.app.services.collections.CollectionsManager;
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
@@ -14,6 +15,7 @@ import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.RecordDaoRuntimeException_RecordsFlushingFailed;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.Factory;
@@ -25,7 +27,6 @@ import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -46,7 +47,6 @@ import com.constellio.model.services.migrations.RecordMigrationsManager;
 import com.constellio.model.services.migrations.RequiredRecordMigrations;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_RecordsFlushingFailed;
 import com.constellio.model.services.records.RecordServicesRuntimeException.UnresolvableOptimsiticLockingCausingInfiniteLoops;
-import com.constellio.model.services.records.RecordServicesRuntimeException.UserCannotReadDocument;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
@@ -110,7 +110,7 @@ public class RecordServicesTest extends ConstellioTest {
 	private final Long theDocumentCount = aLong();
 	long theNewVersion = 9L;
 
-	Map<String, Object> dtoValues = asMap("schema_string", (Object) "schematype_default", "collection_s", "zeCollection");
+	Map<String, Object> dtoValues = asMap("schema_s", (Object) "schematype_default", "collection_s", "zeCollection");
 	RecordDTO firstSearchResult = new SolrRecordDTO("1", 1, null, dtoValues, RecordDTOMode.FULLY_LOADED);
 	RecordDTO secondSearchResult = new SolrRecordDTO("2", 1, null, dtoValues, RecordDTOMode.FULLY_LOADED);
 	List<RecordDTO> theSearchResults = Arrays.asList(firstSearchResult, secondSearchResult);
@@ -120,6 +120,7 @@ public class RecordServicesTest extends ConstellioTest {
 	@Mock MetadataSchemasManager schemaManager;
 	@Mock RecordDao recordDao;
 	@Mock RecordDao eventsDao;
+	@Mock RecordDao searchDao;
 	@Mock RecordDao notificationsDao;
 	@Mock RecordsCaches recordsCaches;
 	@Mock RecordsCache recordsCache;
@@ -211,6 +212,8 @@ public class RecordServicesTest extends ConstellioTest {
 	MetadataSchemaTypes metadataSchemaTypes;
 	@Mock MetadataSchemaType metadataSchemaType;
 	@Mock MetadataSchema metadataSchema;
+	@Mock DataLayerFactory dataLayerFactory;
+	@Mock DataLayerConfiguration dataLayerConfiguration;
 
 	@Before
 	public void setUp()
@@ -252,6 +255,12 @@ public class RecordServicesTest extends ConstellioTest {
 		when(secondRecord.getVersion()).thenReturn(secondRecordVersion);
 		when(thirdRecord.getVersion()).thenReturn(thirdRecordVersion);
 
+
+		when(dataLayerConfiguration.isCopyingRecordsInSearchCollection()).thenReturn(false);
+
+		when(dataLayerFactory.getDataLayerConfiguration()).thenReturn(dataLayerConfiguration);
+
+		when(modelFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
 		when(modelFactory.getBatchProcessesManager()).thenReturn(batchProcessesManager);
 		when(modelFactory.getMetadataSchemasManager()).thenReturn(schemaManager);
 		when(modelFactory.newSearchServices()).thenReturn(searchServices);
@@ -271,7 +280,7 @@ public class RecordServicesTest extends ConstellioTest {
 		when(collectionsManager.getCollectionLanguages(zeCollection)).thenReturn(Arrays.asList("fr", "en"));
 
 		recordServices = spy(
-				(RecordServicesImpl) new RecordServicesImpl(recordDao, eventsDao, notificationsDao, modelFactory, typesFactory,
+				(RecordServicesImpl) new RecordServicesImpl(recordDao, eventsDao, searchDao, notificationsDao, modelFactory, typesFactory,
 						uniqueIdGenerator, recordsCaches));
 		doNothing().when(recordServices).sleep(anyLong());
 
@@ -336,16 +345,6 @@ public class RecordServicesTest extends ConstellioTest {
 		assertThat(recordServices.documentsCount()).isEqualTo(theDocumentCount);
 	}
 
-	@Test
-	public void givenRecordDTOWhenGetDocumentByIdThenRecordHasRecordDTO()
-			throws Exception {
-		when(recordDao.get(theId, true)).thenReturn(recordDTO);
-
-		RecordImpl recordObtained = (RecordImpl) recordServices.getDocumentById(theId);
-
-		assertThat(recordObtained.getRecordDTO()).isEqualTo(recordDTO);
-	}
-
 	@SuppressWarnings("unchecked")
 	@Test(expected = RecordServicesRuntimeException.NoSuchRecordWithId.class)
 	public void givenInexistentIdWhenGetDocumentByIdThenThrowException()
@@ -357,53 +356,6 @@ public class RecordServicesTest extends ConstellioTest {
 
 	}
 
-	@SuppressWarnings("unchecked")
-	@Test(expected = UserCannotReadDocument.class)
-	public void givenUnauthorizedAccessWhenGetDocumentByIdThenThrowException()
-			throws Exception {
-		User theUser = mock(User.class, "theUser");
-
-		when(recordDao.get(theId, true)).thenReturn(recordDTO);
-		when(authorizationServices.canRead(eq(theUser), any(Record.class))).thenReturn(false);
-		when(modelFactory.newAuthorizationsServices()).thenReturn(authorizationServices);
-
-		when(schemaManager.getSchemaTypeOf(any(Record.class))).thenReturn(metadataSchemaType);
-		when(metadataSchemaType.hasSecurity()).thenReturn(true);
-
-		recordServices.getDocumentById(theId, theUser);
-	}
-
-	@Test
-	public void givenAuthorizedAccessWhenGetDocumentByIdThenRecordReturned()
-			throws Exception {
-		User theUser = mock(User.class, "theUser");
-
-		when(recordDao.get(theId, true)).thenReturn(recordDTO);
-
-		when(authorizationServices.canRead(eq(theUser), any(Record.class))).thenReturn(true);
-		when(modelFactory.newAuthorizationsServices()).thenReturn(authorizationServices);
-
-		when(schemaManager.getSchemaTypeOf(any(Record.class))).thenReturn(metadataSchemaType);
-		when(metadataSchemaType.hasSecurity()).thenReturn(true);
-
-		assertThat(recordServices.getDocumentById(theId, theUser)).isNotNull();
-	}
-
-	@Test
-	public void givenRecordOfSchemaTypeWithoutSecurityWhenGetDocumentByIdThenRecordReturned()
-			throws Exception {
-		User theUser = mock(User.class, "theUser");
-
-		when(recordDao.get(theId, true)).thenReturn(recordDTO);
-
-		when(authorizationServices.canRead(eq(theUser), any(Record.class))).thenReturn(false);
-		when(modelFactory.newAuthorizationsServices()).thenReturn(authorizationServices);
-
-		when(schemaManager.getSchemaTypeOf(any(Record.class))).thenReturn(metadataSchemaType);
-		when(metadataSchemaType.hasSecurity()).thenReturn(false);
-
-		assertThat(recordServices.getDocumentById(theId, theUser)).isNotNull();
-	}
 
 	@Test
 	public void whenAddingRecordThenSaveInTransaction()
@@ -627,7 +579,6 @@ public class RecordServicesTest extends ConstellioTest {
 		verify(recordServices)
 				.handleOptimisticLocking(any(TransactionDTO.class), eq(transaction), eq(recordModificationImpactHandler),
 						eq(optimisticLockingException), anyInt());
-		verifyZeroInteractions(recordDao);
 	}
 
 	@Test
@@ -657,7 +608,7 @@ public class RecordServicesTest extends ConstellioTest {
 		doNothing().when(recordServices).refreshRecordsAndCaches(anyString(), anyList(), anySet(), anyList(),
 				any(TransactionResponseDTO.class), any(MetadataSchemaTypes.class), any(RecordProvider.class));
 
-		doNothing().when(recordServices).mergeRecords(eq(transaction), anyString());
+		doNothing().when(recordServices).mergeRecords(eq(transaction), any(OptimisticLocking.class));
 		doNothing().when(recordServices).executeWithImpactHandler(any(Transaction.class),
 				any(RecordModificationImpactHandler.class));
 
@@ -665,7 +616,7 @@ public class RecordServicesTest extends ConstellioTest {
 				optimisticLockingException, 3);
 
 		InOrder inOrder = inOrder(recordServices);
-		inOrder.verify(recordServices).mergeRecords(eq(transaction), anyString());
+		inOrder.verify(recordServices).mergeRecords(eq(transaction), any(OptimisticLocking.class));
 		inOrder.verify(recordServices).executeWithImpactHandler(transaction, recordModificationImpactHandler, false, 4);
 	}
 
@@ -679,7 +630,7 @@ public class RecordServicesTest extends ConstellioTest {
 		doNothing().when(recordServices).refreshRecordsAndCaches(anyString(), anyList(), anySet(), anyList(),
 				any(TransactionResponseDTO.class), any(MetadataSchemaTypes.class), any(RecordProvider.class));
 
-		doNothing().when(recordServices).mergeRecords(any(Transaction.class), anyString());
+		doNothing().when(recordServices).mergeRecords(any(Transaction.class), any(OptimisticLocking.class));
 
 		doNothing().when(recordServices).execute(any(Transaction.class));
 
@@ -687,7 +638,7 @@ public class RecordServicesTest extends ConstellioTest {
 				.handleOptimisticLocking(mock(TransactionDTO.class), transaction, null, optimisticLockingException, 2);
 
 		InOrder inOrder = inOrder(recordServices);
-		inOrder.verify(recordServices).mergeRecords(eq(transaction), anyString());
+		inOrder.verify(recordServices).mergeRecords(eq(transaction), any(OptimisticLocking.class));
 		inOrder.verify(recordServices).execute(transaction, 3);
 	}
 
@@ -708,7 +659,9 @@ public class RecordServicesTest extends ConstellioTest {
 
 		when(searchServices.search(query.capture())).thenReturn(modifiedRecords);
 
-		recordServices.mergeRecords(transaction, "zeId");
+		OptimisticLocking optimisticLocking = mock(OptimisticLocking.class);
+		when(optimisticLocking.getId()).thenReturn("zeId");
+		recordServices.mergeRecords(transaction, optimisticLocking);
 
 		verify(firstRecord).merge(eq(newFirstRecordVersion), any(MetadataSchema.class));
 		verify(secondRecord).merge(eq(newSecondRecordVersion), any(MetadataSchema.class));
@@ -746,7 +699,9 @@ public class RecordServicesTest extends ConstellioTest {
 				eq(newSecondRecordVersion), any(MetadataSchema.class));
 		when(searchServices.search(any(LogicalSearchQuery.class))).thenReturn(modifiedRecords);
 
-		recordServices.mergeRecords(transaction, "zeId");
+		OptimisticLocking optimisticLocking = mock(OptimisticLocking.class);
+		when(optimisticLocking.getId()).thenReturn("zeId");
+		recordServices.mergeRecords(transaction, optimisticLocking);
 	}
 
 	@Test
@@ -1012,7 +967,8 @@ public class RecordServicesTest extends ConstellioTest {
 		when(zeRecord.isDirty()).thenReturn(true);
 		when(zeRecord.getSchemaCode()).thenReturn("zeSchemaType_default");
 		Transaction transaction = new Transaction(zeRecord);
-		doNothing().when(recordServices).mergeRecords(any(Transaction.class), anyString());
+		doNothing().when(recordServices).mergeRecords(any(Transaction.class), any(OptimisticLocking.class));
+		when(metadataSchemaType.getCode()).thenReturn("fakeSchemaTypeForTest");
 		when(schemaManager.getSchemaTypeOf(any(Record.class))).thenReturn(metadataSchemaType);
 		doThrow(RecordDaoException.OptimisticLocking.class).when(recordDao).execute(any(TransactionDTO.class));
 
@@ -1037,7 +993,7 @@ public class RecordServicesTest extends ConstellioTest {
 		when(zeRecord.getId()).thenReturn("anId");
 		when(zeRecord.isDirty()).thenReturn(true);
 		Transaction transaction = new Transaction(zeRecord);
-		doNothing().when(recordServices).mergeRecords(any(Transaction.class), anyString());
+		doNothing().when(recordServices).mergeRecords(any(Transaction.class), any(OptimisticLocking.class));
 
 		doThrow(RecordDaoException.OptimisticLocking.class).when(recordDao).execute(any(TransactionDTO.class));
 
@@ -1109,6 +1065,7 @@ public class RecordServicesTest extends ConstellioTest {
 
 		verify(recordDao).flush();
 		verify(eventsDao).flush();
+		verify(searchDao).flush();
 
 	}
 

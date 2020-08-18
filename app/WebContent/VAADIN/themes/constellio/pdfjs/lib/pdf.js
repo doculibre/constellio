@@ -144,7 +144,8 @@ var AnnotationType = {
   TRAPNET: 23,
   WATERMARK: 24,
   THREED: 25,
-  REDACT: 26
+  REDACT: 26,
+  SIGNATURE: 27
 };
 var AnnotationFlag = {
   INVISIBLE: 0x01,
@@ -1508,6 +1509,8 @@ AnnotationElementFactory.prototype = {
             break;
           case 'Ch':
             return new ChoiceWidgetAnnotationElement(parameters);
+          case 'Sig':
+            return new WidgetAnnotationElement(parameters);
         }
         return new WidgetAnnotationElement(parameters);
       case AnnotationType.POPUP:

@@ -7,7 +7,6 @@ import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellK
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
-import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
 import com.constellio.data.utils.dev.Toggle;
 import com.jensjansson.pagedtable.PagedTable;
 import com.vaadin.data.Property;
@@ -120,7 +119,12 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 		List<Object> visibleColumns = new ArrayList<>(Arrays.asList(getVisibleColumns()));
 		visibleColumns.remove(CHECKBOX_PROPERTY);
 		visibleColumns.add(0, CHECKBOX_PROPERTY);
-		setVisibleColumns(visibleColumns.toArray(new Object[0]));
+		try {
+			setVisibleColumns(visibleColumns.toArray(new Object[0]));
+		} catch (Exception e) {
+			e.printStackTrace();
+			// FIXME
+		}
 		return super.newColumnsManager();
 	}
 
@@ -240,8 +244,6 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 						component.setEnabled(event.getSelectionSize() > 0);
 					} else if (component instanceof BatchProcessingButton) {
 						((BatchProcessingButton) component).hasResultSelected(event.getSelectionSize() > 0);
-					} else if (component instanceof BatchProcessingModifyingOneMetadataButton) {
-						((BatchProcessingModifyingOneMetadataButton) component).hasResultSelected(event.getSelectionSize() > 0);
 					}
 				}
 			}
@@ -257,7 +259,7 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 	}
 
 	private boolean isComponentDisabledBySelection(Component component) {
-		return !(component instanceof BatchProcessingButton || component instanceof BatchProcessingModifyingOneMetadataButton || component instanceof ReportTabButton);
+		return !(component instanceof BatchProcessingButton || component instanceof ReportTabButton);
 	}
 
 	private void fireSelectionChangeEvent() {

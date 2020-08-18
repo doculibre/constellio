@@ -3,10 +3,12 @@ package com.constellio.model.services.logging;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
@@ -51,11 +53,51 @@ public class EventFactory {
 		return event;
 	}
 
+	public Event newFailedLoginEvent(String username, String ip) {
+		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+		Event event = schemasRecords.newEvent();
+		event.setCreatedOn(TimeProvider.getLocalDateTime());
+		event.setUsername(username);
+		event.setIp(ip);
+		event.setType(EventType.ATTEMPTED_OPEN_SESSION);
+		return event;
+	}
+
 	public Event newLogoutEvent(User user) {
 		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);
 		Event event = schemasRecords.newEvent();
 		setDefaultMetadata(event, user);
 		event.setType(EventType.CLOSE_SESSION);
+		return event;
+	}
+
+	public Event newSignedRecordEvent(Record record, User user, String reason, LocalDateTime eventDateTime) {
+		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);
+		Event event = schemasRecords.newEvent();
+
+		event.setUsername(user.getUsername());
+		String ipAddress = user.getLastIPAddress();
+		event.setIp(ipAddress);
+
+		event.setType(EventType.SIGN_DOCUMENT);
+		event.setCreatedOn(eventDateTime);
+
+		setRecordMetadata(event, record);
+		if (reason != null) {
+			event.setReason(reason);
+		}
+
+		return event;
+	}
+
+	public Event newBatchProcessEvent(BatchProcess process, int totalModifiedRecords, String eventType) {
+		User user = modelLayerFactory.newUserServices().getUserInCollection(process.getUsername(), process.getCollection());
+		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);
+		Event event = schemasRecords.newEvent();
+		setDefaultMetadata(event, user);
+		event.setBatchProcessId(process.getId());
+		event.setTotalModifiedRecord(totalModifiedRecords);
+		event.setType(eventType);
 		return event;
 	}
 
@@ -108,7 +150,8 @@ public class EventFactory {
 
 	private void setRecordMetadata(Event event, Record record) {
 		event.setRecordId(record.getId());
-		String principalPath = record.get(Schemas.PRINCIPAL_PATH);
+		String principalPath = record.get(metadataSchemasManager.getSchemaOf(record).get(Schemas.PRINCIPAL_PATH.getLocalCode()));
+
 		event.setEventPrincipalPath(principalPath);
 		Object title = record.get(Schemas.TITLE);
 		if (title != null) {
@@ -119,7 +162,7 @@ public class EventFactory {
 	private void setDefaultMetadata(Event event, User user) {
 		event.setUsername(user.getUsername());
 		List<String> roles = user.getAllRoles();
-		event.setUserRoles(StringUtils.join(roles.toArray(), "; "));
+		//event.setUserRoles(StringUtils.join(roles.toArray(), "; "));
 		event.setCreatedOn(TimeProvider.getLocalDateTime());
 		String ipAddress = user.getLastIPAddress();
 		event.setIp(ipAddress);
@@ -136,10 +179,9 @@ public class EventFactory {
 		String recordSchemaType = schemaUtils.getSchemaTypeCode(recordSchema);
 
 		if (record.isSaved()) {
-			if (record.isModified(Schemas.LOGICALLY_DELETED_STATUS)) {
-				// event.setType(EventType.DELETE + "_" + recordSchemaType);
-				// Deletions are logged separately
-				return null;
+			if (record.isModified(Schemas.LOGICALLY_DELETED_STATUS)
+				|| record.isModified(Schemas.LOGICALLY_DELETED_ON)) {
+				event.setType(EventType.DELETE + "_" + recordSchemaType);
 			} else {
 				event.setType(EventType.MODIFY + "_" + recordSchemaType);
 				setDeltaMetadata(event, record);
@@ -260,6 +302,7 @@ public class EventFactory {
 		event.setPermissionUsers(authorizationPrincipalsString);
 		event.setPermissionDateRange(dateRangeString);
 		event.setPermissionRoles(authorizationRolesString);
+		event.setSharedBy(authorization.getSharedBy());
 		event.setDelta(deltaString);
 		event.setNegative(negative);
 		Record currentRecord = recordServices.getDocumentById(recordId);

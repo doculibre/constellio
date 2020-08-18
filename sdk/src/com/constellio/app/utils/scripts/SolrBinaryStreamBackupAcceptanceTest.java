@@ -2,10 +2,9 @@ package com.constellio.app.utils.scripts;
 
 import com.constellio.data.conf.PropertiesDataLayerConfiguration;
 import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.common.SolrInputDocument;
@@ -17,7 +16,11 @@ import org.junit.rules.TemporaryFolder;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +28,7 @@ import java.util.zip.GZIPInputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class SolrBinaryStreamBackupAcceptanceTest extends ConstellioTest {
 
 	private String solrUrl;
@@ -65,22 +68,29 @@ public class SolrBinaryStreamBackupAcceptanceTest extends ConstellioTest {
 		File sdkProject = new FoldersLocator().getSDKProject();
 		File resourcesDir = new File(sdkProject, "sdk-resources");
 		String pathInResourcesDir = "com/constellio/app/utils/scripts/SolrBackup";
-		referenceBackup =  new File(resourcesDir, pathInResourcesDir);
+		referenceBackup = new File(resourcesDir, pathInResourcesDir);
 		assertThat(referenceBackup.exists());
 	}
 
 	@Test
 	public void testImportExport() throws Exception {
-		String[] importArgs = new String[] {"--import", referenceBackup.getPath(), solrUrl};
+		String[] importArgs = new String[]{"--import", referenceBackup.getPath(), solrUrl};
 		SolrBinaryStreamBackup.main(importArgs);
 
 		File tempOutputDir = newTempFolder();
-		String[] outputArgs = new String[] {"--export", tempOutputDir.getPath(), solrUrl};
+		String[] outputArgs = new String[]{"--export", tempOutputDir.getPath(), solrUrl};
 		SolrBinaryStreamBackup.main(outputArgs);
 
 		assertBackupEqual(new File(tempOutputDir, "records.output"), new File(referenceBackup, "records.output"));
 		assertBackupEqual(new File(tempOutputDir, "events.output"), new File(referenceBackup, "events.output"));
 		assertBackupEqual(new File(tempOutputDir, "notifications.output"), new File(referenceBackup, "notifications.output"));
+
+		try {
+			getModelLayerFactory();
+		} catch (Exception e) {
+			//Exploding to prevent a failure of the next test
+		}
+
 	}
 
 	private void assertBackupEqual(File output1, File output2) throws Exception {
@@ -109,7 +119,7 @@ public class SolrBinaryStreamBackupAcceptanceTest extends ConstellioTest {
 		XMLLoader loader = new XMLLoader();
 
 		try (FileInputStream fis = new FileInputStream(backupFile);
-			 BufferedInputStream bis = new BufferedInputStream(fis, 128*1024);
+			 BufferedInputStream bis = new BufferedInputStream(fis, 128 * 1024);
 			 GZIPInputStream gzipInputStream = new GZIPInputStream(bis);
 			 DataInputStream dis = new DataInputStream(gzipInputStream)) {
 			for (int xmlLength = dis.readInt(); xmlLength > 0; xmlLength = dis.readInt()) {

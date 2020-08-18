@@ -125,8 +125,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				"borrowingDate:" + localDate, "returnDate:" + folder.getBorrowPreviewReturnDate(),
 				"currentUser:System Admin (admin)", "borrowingType:" + BorrowingType.BORROW,
 				"borrowerEntered:Chuck Norris (chuck)", "title:" + folder.getTitle(),
-				"constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
+				"constellioURL:http://localhost:7070/constellio/",
+				"recordURL:http://localhost:7070/constellio/#!displayFolder/" + folder.getId(),
 				"recordType_fr:dossier", "recordType_en:folder",
 				"isAccepted:Oui"
 		);
@@ -159,8 +159,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				"borrowingDate:" + localDate, "returnDate:" + LocalDate.now().plusDays(7),
 				"currentUser:System Admin (admin)", "borrowingType:" + BorrowingType.BORROW,
 				"borrowerEntered:Chuck Norris (chuck)", "title:" + folder.getTitle(),
-				"constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
+				"constellioURL:http://localhost:7070/constellio/",
+				"recordURL:http://localhost:7070/constellio/#!displayFolder/" + folder.getId(),
 				"recordType_fr:dossier", "recordType_en:folder",
 				"isAccepted:Non"
 		);
@@ -193,8 +193,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				"borrowingDate:" + localDate, "returnDate:" + container.getPlanifiedReturnDate(),
 				"currentUser:System Admin (admin)", "borrowingType:" + BorrowingType.BORROW,
 				"borrowerEntered:Chuck Norris (chuck)", "title:" + container.getTitle(),
-				"constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + container.getId(),
+				"constellioURL:http://localhost:7070/constellio/",
+				"recordURL:http://localhost:7070/constellio/#!displayContainer/" + container.getId(),
 				"recordType_en:container", "recordType_fr:contenant",
 				"isAccepted:Oui"
 		);
@@ -227,8 +227,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				"borrowingDate:" + localDate, "returnDate:" + LocalDate.now().plusDays(7),
 				"currentUser:System Admin (admin)", "borrowingType:" + BorrowingType.BORROW,
 				"borrowerEntered:Chuck Norris (chuck)", "title:" + container.getTitle(),
-				"constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + container.getId(),
+				"constellioURL:http://localhost:7070/constellio/",
+				"recordURL:http://localhost:7070/constellio/#!displayContainer/" + container.getId(),
 				"recordType_en:container", "recordType_fr:contenant",
 				"isAccepted:Non"
 		);
@@ -261,8 +261,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
 				"currentUser:System Admin (admin)", "returnDate:" + localDate,
-				"title:" + folder.getTitle(), "constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
+				"title:" + folder.getTitle(), "constellioURL:http://localhost:7070/constellio/",
+				"recordURL:http://localhost:7070/constellio/#!displayFolder/" + folder.getId(),
 				"recordType_fr:dossier", "recordType_en:folder",
 				"isAccepted:Oui"
 		);
@@ -295,8 +295,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
 				"currentUser:System Admin (admin)", "returnDate:" + localDate,
-				"title:" + folder.getTitle(), "constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
+				"title:" + folder.getTitle(), "constellioURL:http://localhost:7070/constellio/",
+				"recordURL:http://localhost:7070/constellio/#!displayFolder/" + folder.getId(),
 				"recordType_fr:dossier", "recordType_en:folder",
 				"isAccepted:Non"
 		);
@@ -305,8 +305,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 	@Test
 	public void givenReturnRequestCompletedAndApprovedThenReturnContainer()
 			throws RecordServicesException {
-		recordServices.update(records.getContainerBac13().setBorrowed(true).setBorrower(records.getChuckNorris().getId()));
-		RMTask task = rm.wrapRMTask(taskSchemas.newReturnContainerRequestTask(records.getChuckNorris().getId(),
+		recordServices.update(records.getContainerBac13().setBorrowed(true).setBorrower(records.getAdmin().getId()));
+		RMTask task = rm.wrapRMTask(taskSchemas.newReturnContainerRequestTask(records.getAdmin().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13,
 				records.getContainerBac13().getTitle()).getWrappedRecord());
 		recordServices.add((RecordWrapper) task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
@@ -318,7 +318,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		container = records.getContainerBac13();
 		assertThat(container.getBorrowed()).isNull();
 
-		EmailAddress adresseReceiver = new EmailAddress("Chuck Norris", "chuck@doculibre.com");
+		EmailAddress adresseReceiver = new EmailAddress("System Admin", "admin@organization.com");
 		EmailToSend emailToSend = getEmailToSend(ALERT_RETURNED_ACCEPTED);
 		assertThat(emailToSend).isNotNull();
 		assertThat(emailToSend.getTemplate()).isEqualTo(ALERT_RETURNED_ACCEPTED);
@@ -329,8 +329,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
 				"currentUser:System Admin (admin)", "returnDate:" + localDate,
-				"title:" + container.getTitle(), "constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + container.getId(),
+				"title:" + container.getTitle(), "constellioURL:http://localhost:7070/constellio/",
+				"recordURL:http://localhost:7070/constellio/#!displayContainer/" + container.getId(),
 				"recordType_en:container", "recordType_fr:contenant",
 				"isAccepted:Oui"
 		);
@@ -363,8 +363,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
 				"currentUser:System Admin (admin)", "returnDate:" + localDate,
-				"title:" + container.getTitle(), "constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + container.getId(),
+				"title:" + container.getTitle(), "constellioURL:http://localhost:7070/constellio/",
+				"recordURL:http://localhost:7070/constellio/#!displayContainer/" + container.getId(),
 				"recordType_en:container", "recordType_fr:contenant",
 				"isAccepted:Non"
 		);
@@ -400,8 +400,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
 				"currentUser:System Admin (admin)", "returnDate:" + folder.getBorrowPreviewReturnDate(),
-				"title:" + folder.getTitle(), "constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
+				"title:" + folder.getTitle(), "constellioURL:http://localhost:7070/constellio/",
+				"recordURL:http://localhost:7070/constellio/#!displayFolder/" + folder.getId(),
 				"recordType_fr:dossier", "recordType_en:folder", "extensionDate:" + localDate,
 				"isAccepted:Oui",
 				"isAccepted:Oui", "borrowerEntered:Chuck Norris (chuck)"
@@ -438,8 +438,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
 				"currentUser:System Admin (admin)", "returnDate:" + folder.getBorrowPreviewReturnDate().plusDays(7),
-				"title:" + folder.getTitle(), "constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
+				"title:" + folder.getTitle(), "constellioURL:http://localhost:7070/constellio/",
+				"recordURL:http://localhost:7070/constellio/#!displayFolder/" + folder.getId(),
 				"recordType_fr:dossier", "recordType_en:folder", "extensionDate:" + localDate,
 				"isAccepted:Non",
 				"isAccepted:Non", "borrowerEntered:Chuck Norris (chuck)"
@@ -476,8 +476,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:Demande de renouvellement d'emprunt du contenant: 10_A_06",
 				"currentUser:System Admin (admin)", "returnDate:" + containerRecord.getPlanifiedReturnDate(),
-				"title:" + containerRecord.getTitle(), "constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + containerRecord.getId(),
+				"title:" + containerRecord.getTitle(), "constellioURL:http://localhost:7070/constellio/",
+				"recordURL:http://localhost:7070/constellio/#!displayContainer/" + containerRecord.getId(),
 				"recordType_en:container", "recordType_fr:contenant", "extensionDate:" + localDate,
 				"isAccepted:Oui",
 				"isAccepted:Oui", "borrowerEntered:Chuck Norris (chuck)"
@@ -514,8 +514,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:Demande de renouvellement d'emprunt du contenant: 10_A_06",
 				"currentUser:System Admin (admin)", "returnDate:" + containerRecord.getPlanifiedReturnDate().plusDays(7),
-				"title:" + containerRecord.getTitle(), "constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + containerRecord.getId(),
+				"title:" + containerRecord.getTitle(), "constellioURL:http://localhost:7070/constellio/",
+				"recordURL:http://localhost:7070/constellio/#!displayContainer/" + containerRecord.getId(),
 				"recordType_en:container", "recordType_fr:contenant", "extensionDate:" + localDate,
 				"isAccepted:Non",
 				"isAccepted:Non", "borrowerEntered:Chuck Norris (chuck)"
@@ -556,8 +556,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				"subject:" + StringEscapeUtils.escapeHtml4(task.getTitle()),
 				"reactivationDate:" + localDate,
 				"currentUser:System Admin (admin)", "title:" + StringEscapeUtils.escapeHtml4(folder.getTitle()),
-				"constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
+				"constellioURL:http://localhost:7070/constellio/",
+				"recordURL:http://localhost:7070/constellio/#!displayFolder/" + folder.getId(),
 				"recordType_fr:dossier", "recordType_en:folder",
 				"isAccepted:Oui"
 		);
@@ -597,8 +597,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				"subject:" + StringEscapeUtils.escapeHtml4(task.getTitle()),
 				"reactivationDate:" + localDate,
 				"currentUser:System Admin (admin)", "title:" + StringEscapeUtils.escapeHtml4(folder.getTitle()),
-				"constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
+				"constellioURL:http://localhost:7070/constellio/",
+				"recordURL:http://localhost:7070/constellio/#!displayFolder/" + folder.getId(),
 				"recordType_fr:dossier", "recordType_en:folder",
 				"isAccepted:Non"
 		);
@@ -648,8 +648,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				"subject:" + StringEscapeUtils.escapeHtml4(task.getTitle()),
 				"reactivationDate:" + localDate,
 				"currentUser:System Admin (admin)", "title:" + StringEscapeUtils.escapeHtml4(records.getContainerBac13().getTitle()),
-				"constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + records.containerId_bac13,
+				"constellioURL:http://localhost:7070/constellio/",
+				"recordURL:http://localhost:7070/constellio/#!displayContainer/" + records.containerId_bac13,
 				"recordType_en:container", "recordType_fr:contenant",
 				"isAccepted:Oui"
 		);
@@ -699,8 +699,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				"subject:" + StringEscapeUtils.escapeHtml4(task.getTitle()),
 				"reactivationDate:" + localDate,
 				"currentUser:System Admin (admin)", "title:" + StringEscapeUtils.escapeHtml4(records.getContainerBac13().getTitle()),
-				"constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + records.containerId_bac13,
+				"constellioURL:http://localhost:7070/constellio/",
+				"recordURL:http://localhost:7070/constellio/#!displayContainer/" + records.containerId_bac13,
 				"recordType_en:container", "recordType_fr:contenant",
 				"isAccepted:Non"
 		);

@@ -4,7 +4,7 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.TimeProvider.DefaultTimeProvider;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.sdk.tests.schemas.SchemaTestFeatures;
 import com.constellio.sdk.tests.selenium.SeleniumTestFeatures;
 import org.apache.commons.io.FileUtils;
@@ -17,6 +17,8 @@ import java.util.Locale;
 import java.util.Map;
 
 public class ConstellioTestSession {
+
+	private static FileSystemTestFeatures survivingFileSystemTestFeatures;
 
 	private static ConstellioTestSession session;
 	private Map<String, String> sdkProperties;
@@ -56,8 +58,11 @@ public class ConstellioTestSession {
 
 			ensureLog4jAndRepositoryProperties();
 
-			session.fileSystemTestFeatures = new FileSystemTestFeatures("temp-test", sdkProperties,
-					constellioTest);
+			session.fileSystemTestFeatures = survivingFileSystemTestFeatures;
+			survivingFileSystemTestFeatures = null;
+			if (session.fileSystemTestFeatures == null) {
+				session.fileSystemTestFeatures = new FileSystemTestFeatures("temp-test", sdkProperties, constellioTest);
+			}
 			session.factoriesTestFeatures = new FactoriesTestFeatures(session.fileSystemTestFeatures, sdkProperties,
 					checkRollback);
 
@@ -120,7 +125,7 @@ public class ConstellioTestSession {
 		SeleniumTestFeatures.afterAllTests();
 	}
 
-	public void close(boolean firstClean, boolean failed) {
+	public void close(boolean firstClean, boolean failed, boolean restarting) {
 		Throwable exception = null;
 
 		if (seleniumTestFeatures != null) {
@@ -128,7 +133,11 @@ public class ConstellioTestSession {
 		}
 
 		if (batchProcessTestFeature != null) {
-			batchProcessTestFeature.afterTest();
+			try {
+				batchProcessTestFeature.afterTest();
+			} catch (RuntimeException e) {
+				exception = e;
+			}
 		}
 
 		if (saveStateFeature != null) {
@@ -143,7 +152,7 @@ public class ConstellioTestSession {
 		try {
 			try {
 				if (factoriesTestFeatures != null) {
-					runnables = factoriesTestFeatures.afterTest();
+					runnables = factoriesTestFeatures.afterTest(restarting);
 				}
 			} finally {
 
@@ -151,7 +160,11 @@ public class ConstellioTestSession {
 					streamsTestFeatures.afterTest();
 				}
 				if (fileSystemTestFeatures != null) {
-					fileSystemTestFeatures.close();
+					if (restarting) {
+						survivingFileSystemTestFeatures = fileSystemTestFeatures;
+					} else {
+						fileSystemTestFeatures.close();
+					}
 				}
 				if (schemaTestFeatures != null) {
 					schemaTestFeatures.afterTest(firstClean);
@@ -226,4 +239,7 @@ public class ConstellioTestSession {
 		return skipTestsRule.isMainTest() || skipTestsRule.isInDevelopmentTest();
 	}
 
+	public void closeForRestarting() {
+		close(false, false, true);
+	}
 }

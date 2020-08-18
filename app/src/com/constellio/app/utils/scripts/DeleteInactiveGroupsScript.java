@@ -7,7 +7,6 @@ import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -60,7 +59,11 @@ public class DeleteInactiveGroupsScript extends ScriptWithLogOutput {
 			}
 
 			if (!used) {
-				deleteInactiveGlobalGroup(globalGroup, collections);
+				try {
+					deleteInactiveGlobalGroup(globalGroup, collections);
+				} catch (Exception e) {
+					outputLogger.warn(String.format("Global group '%s' skipped", globalGroup.getCode()));
+				}
 			}
 		}
 	}

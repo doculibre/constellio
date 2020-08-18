@@ -3,6 +3,7 @@ package com.constellio.model.services.schemas.builders;
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import com.constellio.model.entities.calculators.MultiMetadatasValueCalculator;
 import com.constellio.model.entities.schemas.entries.AggregatedCalculator;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregationType;
@@ -196,7 +197,7 @@ public class DataEntryBuilder {
 			interfaces.addAll(asList(aClass.getInterfaces()));
 		}
 
-		if (interfaces.contains(MetadataValueCalculator.class) || interfaces.contains(InitializedMetadataValueCalculator.class)) {
+		if (interfaces.contains(MetadataValueCalculator.class) || interfaces.contains(MultiMetadatasValueCalculator.class) || interfaces.contains(InitializedMetadataValueCalculator.class)) {
 			try {
 				metadata.dataEntry = new CalculatedDataEntry(calculatorClass.newInstance());
 			} catch (InstantiationException | IllegalAccessException e) {

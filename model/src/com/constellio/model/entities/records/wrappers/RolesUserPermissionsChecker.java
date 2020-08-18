@@ -8,11 +8,13 @@ import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SecurityModelAuthorization;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.security.roles.Roles;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
@@ -115,13 +117,63 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 		}
 		Set<String> userPermissionsOnRecord = getUserPermissionsSpecificallyOnRecord(record);
 
+		return matches(userPermissionsOnRecord);
+	}
+
+	@Override
+	public boolean onAnyRecord(Predicate<SecurityModelAuthorization> predicate, boolean includingGlobal) {
+		if (user.getStatus() != UserCredentialStatus.ACTIVE) {
+			return false;
+		}
+		Set<String> allUserPermissions = new HashSet<>();
+		addUserPermissionsOnAnyRecords(allUserPermissions, predicate);
+		if (includingGlobal) {
+			addUserPermissionsGlobally(allUserPermissions);
+		}
+		return matches(allUserPermissions);
+
+	}
+
+	private void addUserPermissionsGlobally(Set<String> allUserPermissions) {
+		for (String userRoleCode : user.getAllRoles()) {
+			Role role = roles.getRole(userRoleCode);
+			allUserPermissions.addAll(role.getOperationPermissions());
+		}
+	}
+
+	@NotNull
+	private void addUserPermissionsOnAnyRecords(Set<String> allUserPermissions,
+												Predicate<SecurityModelAuthorization> predicate) {
+		SecurityModel securityModel = user.getRolesDetails().getSecurityModel();
+
+		for (SecurityModelAuthorization auth : securityModel.getAuthorizationsToPrincipal(user.getId(), true)) {
+			if (predicate == null || predicate.test(auth)) {
+				try {
+					for (String roleOrAccess : auth.getDetails().getRoles()) {
+						if (!roleOrAccess.equals(READ) && !roleOrAccess.equals(WRITE) && !roleOrAccess.equals(DELETE)) {
+							Role role = roles.getRole(roleOrAccess);
+							if (role != null) {
+								allUserPermissions.addAll(role.getOperationPermissions());
+							}
+						}
+					}
+				} catch (Exception e) {
+					LOGGER.error(e.toString());
+				}
+			}
+		}
+	}
+
+	private boolean matches(Set<String> allUserPermissions) {
 		if (anyRoles) {
-			return LangUtils.containsAny(asList(permissions), LangUtils.withoutNulls(userPermissionsOnRecord));
+			return LangUtils.containsAny(asList(permissions), LangUtils.withoutNulls(allUserPermissions));
 		} else {
+
 			for (String permission : permissions) {
-				if (permission != null && !userPermissionsOnRecord.contains(permission)) {
+				if (permission != null && !allUserPermissions.contains(permission)) {
 					return false;
 				}
+
 			}
 			return true;
 		}
@@ -131,49 +183,10 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 	public boolean onSomething() {
 		if (user.getStatus() != UserCredentialStatus.ACTIVE) {
 			return false;
-		}
-
-		SecurityModel securityModel = user.getRolesDetails().getSecurityModel();
-
-		Set<String> allUserPermissions = new HashSet<>();
-		for (SecurityModelAuthorization auth : securityModel.getAuthorizationsToPrincipal(user.getId(), true)) {
-			try {
-				for (String roleOrAccess : auth.getDetails().getRoles()) {
-					if (!roleOrAccess.equals(READ) && !roleOrAccess.equals(WRITE) && !roleOrAccess.equals(DELETE)) {
-						Role role = roles.getRole(roleOrAccess);
-						if (role != null) {
-							allUserPermissions.addAll(role.getOperationPermissions());
-						}
-					}
-				}
-			} catch (Exception e) {
-				LOGGER.error(e.toString());
-			}
-		}
-
-		for (String userRoleCode : user.getAllRoles()) {
-			Role role = roles.getRole(userRoleCode);
-			allUserPermissions.addAll(role.getOperationPermissions());
-		}
-		if (anyRoles) {
-			boolean result = LangUtils.containsAny(asList(permissions), LangUtils.withoutNulls(allUserPermissions));
-
-			if (!result) {
-				//LOGGER.info("User '" + user.getUsername() + "' has no permissions in " + StringUtils
-				//		.join(allUserPermissions, ", ") + " on something");
-			}
-
-			return result;
-		} else {
-
-			for (String permission : permissions) {
-				if (permission != null && !allUserPermissions.contains(permission)) {
-					//LOGGER.info("User '" + user.getUsername() + "' doesn't have permission '" + permission + "' on something");
-					return false;
-				}
-
-			}
+		} else if (user.isSystemAdmin()) {
 			return true;
 		}
+
+		return onAnyRecord((a) -> Boolean.TRUE, true);
 	}
 }

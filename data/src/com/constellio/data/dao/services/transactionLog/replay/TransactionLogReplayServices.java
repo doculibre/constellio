@@ -12,7 +12,7 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 
-public class TransactionLogReplayServices {
+public class TransactionLogReplayServices implements TransactionLogReplay<File> {
 
 	public static int PARALLELISM = 8;
 
@@ -43,6 +43,7 @@ public class TransactionLogReplayServices {
 
 	}
 
+	@Override
 	public void replayTransactionLogs(List<File> tLogs) {
 		TransactionsLogImportHandler transactionsLogImportHandler = new TransactionsLogImportHandler(
 				bigVaultServer, dataLayerLogger, PARALLELISM);

@@ -8,4 +8,5 @@ public interface RecoveryService {
 	void rollback(Throwable t);
 
 	boolean isInRollbackMode();
+
 }

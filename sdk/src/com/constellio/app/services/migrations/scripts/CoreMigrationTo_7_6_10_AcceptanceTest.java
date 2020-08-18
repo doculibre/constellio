@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Test;
 
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
@@ -13,6 +14,7 @@ import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
+@SlowTest
 public class CoreMigrationTo_7_6_10_AcceptanceTest extends ConstellioTest {
 
 	@Test

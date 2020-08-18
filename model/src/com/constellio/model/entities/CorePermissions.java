@@ -28,6 +28,7 @@ public class CorePermissions {
 	public static final String MODIFY_PUBLIC_SAVED_SEARCH = permission(SYSTEM, "modifyPublicSavedSearch");
 	public static final String DELETE_PUBLIC_SAVED_SEARCH = permission(SYSTEM, "deletePublicSavedSearch");
 	public static final String MODIFY_RECORDS_USING_BATCH_PROCESS = permission(SYSTEM, "batchProcess");
+	public static final String MODIFY_UNLIMITED_RECORDS_USING_BATCH_PROCESS = permission(SYSTEM, "unlimitedBatchProcess");
 	public static final String VIEW_LOGIN_NOTIFICATION_ALERT = permission(SYSTEM, "viewLoginNotificationAlert");
 	// Collection management
 	public static final String COLLECTION_MANAGEMENT = "management.collection";
@@ -36,6 +37,7 @@ public class CorePermissions {
 	public static final String MANAGE_TAXONOMIES = permission(COLLECTION_MANAGEMENT, "manageTaxonomies");
 	public static final String MANAGE_VALUELIST = permission(COLLECTION_MANAGEMENT, "manageValueList");
 	public static final String MANAGE_METADATASCHEMAS = permission(COLLECTION_MANAGEMENT, "manageMetadataSchemas");
+	public static final String MANAGE_GLOBAL_LINKS = permission(COLLECTION_MANAGEMENT, "manageGlobalLinks");
 	public static final String MANAGE_SECURITY = permission(COLLECTION_MANAGEMENT, "manageSecurity");
 	public static final String MANAGE_SEARCH_BOOST = permission(COLLECTION_MANAGEMENT, "manageSearchBoost");
 	public static final String MANAGE_METADATAEXTRACTOR = permission(COLLECTION_MANAGEMENT, "manageMetadataExtractor");
@@ -62,6 +64,7 @@ public class CorePermissions {
 	public static final String MANAGE_SYSTEM_CONFIGURATION = permission(SYSTEM_MANAGEMENT, "manageSystemConfiguration");
 	public static final String MANAGE_SYSTEM_GROUPS = permission(SYSTEM_MANAGEMENT, "manageSystemGroups");
 	public static final String MANAGE_SYSTEM_GROUPS_ACTIVATION = permission(SYSTEM_MANAGEMENT, "manageSystemGroupsActivation");
+
 	//	public static final String MANAGE_SYSTEM_USERS_ACTIVATION = permission(SYSTEM_MANAGEMENT, "manageSystemUsersActivation");
 	public static final String MANAGE_SYSTEM_USERS = permission(SYSTEM_MANAGEMENT, "manageSystemUsers");
 	public static final String MANAGE_SYSTEM_COLLECTIONS = permission(SYSTEM_MANAGEMENT, "manageSystemCollections");
@@ -73,6 +76,7 @@ public class CorePermissions {
 	public static final String MANAGE_LABELS = permission(SYSTEM_MANAGEMENT, "manageLabels");
 	public static final String MANAGE_PRINTABLE_REPORT = permission(SYSTEM_MANAGEMENT, "managePrintableReport");
 	public static final String VIEW_SYSTEM_BATCH_PROCESSES = permission(SYSTEM_MANAGEMENT, "viewSystemBatchProcesses");
+	public static final String EDIT_ALL_ANNOTATION = permission(SYSTEM_MANAGEMENT, "editAllAnnotation");
 
 	public static final List<String> SYSTEM_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(SYSTEM_MANAGEMENT);
 

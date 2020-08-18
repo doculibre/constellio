@@ -47,10 +47,16 @@ public class ImageViewer extends CustomComponent {
 		this.recordVO = recordVO;
 		this.metadataCode = metadataCode;
 		this.contentVersionVO = contentVersionVO;
+		init();
 	}
 
 	public ImageViewer(File file) {
 		this.file = file;
+		init();
+	}
+
+	private void init() {
+		setVisible(computeVisibility());
 	}
 
 	@Override
@@ -163,6 +169,31 @@ public class ImageViewer extends CustomComponent {
 			t.printStackTrace();
 			setVisible(false);
 		}
+	}
+
+	private boolean computeVisibility() {
+		boolean visible;
+
+		if (recordVO != null) {
+			String version = contentVersionVO.getVersion();
+			String filename = contentVersionVO.getFileName();
+			if (Arrays.asList(NEED_CONVERSION_EXTENSIONS).contains(recordVO.getExtension()) ||
+				ConstellioResourceHandler.isContentOversized(recordVO.getId(), metadataCode, version)) {
+				if (ConstellioResourceHandler.hasContentJpegConversion(recordVO.getId(), metadataCode, version)) {
+					visible = true;
+				} else {
+					visible = false;
+				}
+			} else {
+				visible = true;
+			}
+		} else if (file != null) {
+			visible = true;
+		} else {
+			visible = false;
+		}
+
+		return visible;
 	}
 
 	public void show() {

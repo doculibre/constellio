@@ -6,6 +6,7 @@ import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable.RecentItem;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
+import com.constellio.app.entities.navigation.PageItem.SharedItemsTables;
 import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -13,6 +14,8 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.components.PlaceHolder;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
@@ -22,10 +25,12 @@ import com.constellio.app.ui.framework.components.tree.TreeItemClickListener;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
-import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.data.TreeNode;
 import com.constellio.app.ui.framework.decorators.contextmenu.ContextMenuDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
@@ -42,7 +47,6 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.Tree.TreeDragMode;
@@ -55,11 +59,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
+import static com.constellio.app.ui.framework.data.trees.DefaultLazyTreeDataProvider.toTreeNodeSupportingLegacyProviders;
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class HomeViewImpl extends BaseViewImpl implements HomeView {
+public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefresh {
 
 	private final HomePresenter presenter;
 	private List<PageItem> tabs;
@@ -93,9 +99,11 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 		Map<String, Tab> tabsByCode = new HashMap<>();
 		for (PageItem item : tabs) {
-			Tab tab = tabSheet.addTab(new PlaceHolder(), $("HomeView.tab." + item.getCode()));
-			tab.setVisible(isTabVisible(tab));
-			tabsByCode.put(item.getCode(), tab);
+			if (!(item instanceof CustomItem) || presenter.isCustomItemVisible((CustomItem) item)) {
+				Tab tab = tabSheet.addTab(new PlaceHolder(), $("HomeView.tab." + item.getCode()));
+				tab.setVisible(isTabVisible(tab));
+				tabsByCode.put(item.getCode(), tab);
+			}
 		}
 
 		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
@@ -115,7 +123,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		int indexOfSelectedTab = tabSheet.getTabPosition(tab);
 		PageItem tabSource = tabs.get(indexOfSelectedTab);
 
-		if(tabSource instanceof CustomItem) {
+		if (tabSource instanceof CustomItem) {
 			return presenter.isCustomItemVisible((CustomItem) tabSource);
 		} else {
 			return true;
@@ -132,6 +140,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			return;
 		}
 
+
 		int position = tabSheet.getTabPosition(tab);
 		PageItem item = tabs.get(position);
 
@@ -139,6 +148,11 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		tabSheet.setSelectedTab(position);
 
 		PlaceHolder tabComponent = (PlaceHolder) tab.getComponent();
+
+		if (presenter.isRefreshable(item.getCode())) {
+			tabComponent.setCompositionRoot(null);
+		}
+
 		if (tabComponent.getComponentCount() == 0) {
 			tabComponent.setCompositionRoot(buildComponentFor(tab));
 		}
@@ -156,6 +170,8 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				return buildRecordTable((RecordTable) tabSource);
 			case RECORD_TREE:
 				return buildRecordTreeOrRecordMultiTree((RecordTree) tabSource);
+			case SHARED_ITEMS_TABLES:
+				return buildSharedTabs((SharedItemsTables) tabSource);
 			case CUSTOM_ITEM:
 				return buildCustomComponent((CustomItem) tabSource);
 			default:
@@ -163,11 +179,52 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		}
 	}
 
+	private Component getSelectedTabComponent() {
+		Component selectedTabComponent;
+
+		PlaceHolder placeHolder = (PlaceHolder) tabSheet.getSelectedTab();
+		Component compositionRoot = placeHolder.getCompositionRoot();
+		if (compositionRoot != null) {
+			if (compositionRoot instanceof TabSheet) {
+				TabSheet subTabSheet = (TabSheet) compositionRoot;
+				Component subTabSheetSelectedTab = subTabSheet.getSelectedTab();
+				if (subTabSheetSelectedTab instanceof PlaceHolder) {
+					PlaceHolder subTabSheetSelectedTabPlaceHolder = (PlaceHolder) subTabSheet.getSelectedTab();
+					selectedTabComponent = subTabSheetSelectedTabPlaceHolder.getCompositionRoot();
+				} else if (subTabSheetSelectedTab instanceof RecordLazyTreeTabSheet.PlaceHolder) {
+					RecordLazyTreeTabSheet.PlaceHolder subTabSheetSelectedTabPlaceHolder =
+							(RecordLazyTreeTabSheet.PlaceHolder) subTabSheet.getSelectedTab();
+					selectedTabComponent = subTabSheetSelectedTabPlaceHolder.getCompositionRoot();
+				} else {
+					selectedTabComponent = subTabSheetSelectedTab;
+				}
+			} else {
+				selectedTabComponent = compositionRoot;
+			}
+		} else {
+			selectedTabComponent = null;
+		}
+
+		return selectedTabComponent;
+	}
+
 	private Component buildRecentItemTable(RecentItemTable tabSource) {
 		String tableId = "HomeView." + tabSource.getCode();
 		String schemaTypeCode = tabSource.getSchemaType();
+		getUIContext().setAttribute(BaseBreadcrumbTrail.RECENT_ITEMS, schemaTypeCode);
 		List<RecentItem> recentItems = tabSource.getItems(getConstellioFactories().getAppLayerFactory(), getSessionContext());
 		return new ViewableRecentItemTablePanel(schemaTypeCode, tableId, recentItems);
+	}
+
+	private Component buildSharedTabs(final SharedItemsTables sharedItemsTables) {
+
+		Map<String, RecordVODataProvider> dataProviders = sharedItemsTables
+				.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
+		TabSheet tabs = new TabSheet();
+		for (Entry<String, RecordVODataProvider> dataProvider : dataProviders.entrySet()) {
+			tabs.addTab(buildTable(dataProvider.getValue()), $(dataProvider.getKey()));
+		}
+		return tabs;
 	}
 
 	private Component buildRecordTable(final RecordTable recordTable) {
@@ -175,6 +232,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
 		return buildTable(dataProvider);
 	}
+
 
 	private Component buildTable(RecordVODataProvider dataProvider) {
 		final ViewableRecordVOTablePanel table = new ViewableRecordItemTablePanel(dataProvider);
@@ -185,7 +243,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	}
 
 	private Component buildRecordTreeOrRecordMultiTree(RecordTree recordTree) {
-		List<RecordLazyTreeDataProvider> providers = recordTree.getDataProviders(
+		List<LazyTreeDataProvider<String>> providers = recordTree.getDataProviders(
 				getConstellioFactories().getAppLayerFactory(), getSessionContext());
 		return providers.size() > 1 ?
 			   buildRecordMultiTree(recordTree, providers) :
@@ -193,10 +251,10 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	}
 
 	private RecordLazyTreeTabSheet buildRecordMultiTree(final RecordTree recordTree,
-														List<RecordLazyTreeDataProvider> providers) {
+														List<LazyTreeDataProvider<String>> providers) {
 		final RecordLazyTreeTabSheet subTabSheet = new RecordLazyTreeTabSheet(providers) {
 			@Override
-			protected RecordLazyTree newLazyTree(RecordLazyTreeDataProvider dataProvider, int bufferSize) {
+			protected RecordLazyTree newLazyTree(LazyTreeDataProvider<String> dataProvider, int bufferSize) {
 				return buildRecordTree(recordTree, dataProvider);
 			}
 		};
@@ -211,7 +269,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		return modelLayerFactory.getSystemConfigs().getLazyTreeBufferSize();
 	}
 
-	private RecordLazyTree buildRecordTree(RecordTree recordTree, final RecordLazyTreeDataProvider provider) {
+	private RecordLazyTree buildRecordTree(RecordTree recordTree, final LazyTreeDataProvider<String> provider) {
 		RecordLazyTree tree = new RecordLazyTree(provider, getBufferSizeFromConfig());
 		tree.addItemClickListener(new TreeItemClickListener() {
 
@@ -225,8 +283,11 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			@Override
 			public void itemClick(ItemClickEvent event) {
 				if (event.getButton() == MouseButton.LEFT) {
-					String recordId = (String) event.getItemId();
-					clickNavigating = presenter.recordClicked(recordId, provider.getTaxonomyCode(), false);
+					TreeNode treeNode = toTreeNodeSupportingLegacyProviders((String) event.getItemId());
+
+					if (treeNode.isRecord()) {
+						clickNavigating = presenter.recordClicked(treeNode.getId(), provider.getTaxonomyCode(), false);
+					}
 				} else {
 					clickNavigating = true;
 				}
@@ -252,8 +313,9 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				HomeViewImpl.this.showErrorMessage(errorMessage);
 			}
 		});
-
-		tree.loadAndExpand(recordTree.getExpandedRecordIds());
+		if (provider.getTaxonomyCode().equals(recordTree.getExpendedRecordIdsLinkedToTaxonomieCode())) {
+			tree.loadAndExpand(recordTree.getExpandedRecordIds());
+		}
 
 		return tree;
 	}
@@ -289,15 +351,41 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		this.contextMenuDecorators.remove(decorator);
 	}
 
-	private static class PlaceHolder extends CustomComponent {
-		@Override
-		public void setCompositionRoot(Component compositionRoot) {
-			super.setCompositionRoot(compositionRoot);
-		}
+	@Override
+	public void recordChanged(String recordId) {
+		presenter.recordChanged(recordId);
+	}
 
-		@Override
-		public Component getCompositionRoot() {
-			return super.getCompositionRoot();
+	public void updateCaption(String recordId, String newCaption) {
+		Component selectedTabComponent = getSelectedTabComponent();
+		if (selectedTabComponent instanceof RecordLazyTree) {
+			RecordLazyTree recordLazyTree = (RecordLazyTree) selectedTabComponent;
+			recordLazyTree.setItemCaption(recordId, newCaption);
+		}
+	}
+
+	@Override
+	public void doPartialRefresh() {
+		if (presenter.isRefreshable(getSelectedTabCode())) {
+			Component component = tabSheet.getSelectedTab();
+
+			tabSheet.getTab(tabSheet.getSelectedTab());
+
+			if (component instanceof PlaceHolder) {
+				PlaceHolder placeHolder = (PlaceHolder) component;
+				placeHolder.setHeightUndefined();
+
+				Component compositionRoot = placeHolder.getCompositionRoot();
+				compositionRoot.setHeightUndefined();
+				if (compositionRoot instanceof ViewableRecordItemTablePanel) {
+					ViewableRecordItemTablePanel tablePanel = (ViewableRecordItemTablePanel) compositionRoot;
+
+					tablePanel.setHeightUndefined();
+
+					RecordVOLazyContainer recordVOLazyContainer = (RecordVOLazyContainer) tablePanel.getRecordVOContainer();
+					recordVOLazyContainer.forceRefresh();
+				}
+			}
 		}
 	}
 
@@ -337,7 +425,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				return new ObjectProperty<>(value);
 			} else if (Schemas.TITLE_CODE.equals(propertyId) || (propertyId instanceof MetadataVO && ((MetadataVO) propertyId).codeMatches(Schemas.TITLE_CODE))) {
 				RecentItem recentItem = (RecentItem) itemId;
-				String value = recentItem.getCaption();
+				String value = recentItem.getTitle();
 				return new ObjectProperty<>(value);
 			}
 			return super.getContainerProperty(itemId, propertyId);
@@ -376,7 +464,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 					}
 				}
 			});
-			setVisibleColumns();
+			//setVisibleColumns();
 			setSelectionActionButtons();
 		}
 	}
@@ -514,5 +602,19 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				}
 			};
 		}
+	}
+
+	@Override
+	public BaseView getNestedView() {
+		BaseView nestedView;
+		Component selectedTabComponent = getSelectedTabComponent();
+		if (selectedTabComponent instanceof ViewableRecordVOTablePanel) {
+			ViewableRecordVOTablePanel viewerPanel = (ViewableRecordVOTablePanel) selectedTabComponent;
+			Component panelContent = viewerPanel.getPanelContent();
+			nestedView = panelContent instanceof BaseView ? (BaseView) panelContent : null;
+		} else {
+			nestedView = null;
+		}
+		return nestedView;
 	}
 }

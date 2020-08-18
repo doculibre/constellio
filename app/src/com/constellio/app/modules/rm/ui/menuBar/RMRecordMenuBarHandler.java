@@ -1,11 +1,14 @@
 package com.constellio.app.modules.rm.ui.menuBar;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
@@ -21,7 +24,8 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.ui.MenuBar;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 
@@ -56,12 +60,27 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 
 	@Override
 	public MenuBar get(RecordVO recordVO) {
-		String schemaTypeCode = recordVO.getSchema().getTypeCode();
-		if (Document.SCHEMA_TYPE.equals(schemaTypeCode) || Folder.SCHEMA_TYPE.equals(schemaTypeCode) || ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			return new RecordVOMenuBar(recordVO, Collections.emptyList());
+		String schemaTypeCode = recordVO == null ? null : recordVO.getSchema().getTypeCode();
+		if (recordVO != null && isSchemaTypeSupported(schemaTypeCode)) {
+			RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions()
+					.forCollection(recordVO.getRecord().getCollection())
+					.forModule(ConstellioRMModule.ID);
+
+			List<String> filteredActions = new ArrayList<String>() {{
+				addAll(rmModuleExtensions.getFilteredActionsForContainers());
+				addAll(rmModuleExtensions.getFilteredActionsForFolders());
+			}};
+			return new RecordVOMenuBar(recordVO, filteredActions, appLayerFactory);
 		} else {
 			return null;
 		}
+	}
+
+	private boolean isSchemaTypeSupported(String schemaTypeCode) {
+		return Document.SCHEMA_TYPE.equals(schemaTypeCode)
+			   || Folder.SCHEMA_TYPE.equals(schemaTypeCode)
+			   || ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)
+			   || StorageSpace.SCHEMA_TYPE.equals(schemaTypeCode);
 	}
 
 	public RecordVO getDocumentVO(RecordVO recordVO) {

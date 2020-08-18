@@ -44,11 +44,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Predicate;
 
 import static com.constellio.data.utils.LangUtils.isNotEmptyValue;
+import static com.constellio.model.entities.schemas.Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS;
 import static com.constellio.model.entities.schemas.Schemas.CREATED_ON_CODE;
 import static com.constellio.model.entities.schemas.Schemas.DESCRIPTION_TEXT;
-import static com.constellio.model.entities.schemas.Schemas.PATH_PARTS;
+import static com.constellio.model.entities.schemas.Schemas.DETACHED_PRINCIPAL_ANCESTORS_INT_IDS;
+import static com.constellio.model.entities.schemas.Schemas.ESTIMATED_SIZE;
+import static com.constellio.model.entities.schemas.Schemas.PRINCIPALS_ANCESTORS_INT_IDS;
+import static com.constellio.model.entities.schemas.Schemas.PRINCIPAL_CONCEPTS_INT_IDS;
+import static com.constellio.model.entities.schemas.Schemas.SECONDARY_CONCEPTS_INT_IDS;
 import static com.constellio.model.entities.schemas.Schemas.TITLE_CODE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
@@ -80,13 +86,29 @@ public class RecordEADBuilder {
 
 	private Locale locale;
 
+	private Predicate<Metadata> metadataIgnore;
+
 	public RecordEADBuilder(AppLayerFactory appLayerFactory, Locale locale, ValidationErrors errors) {
+		this(appLayerFactory, locale, errors, null);
+	}
+
+	public RecordEADBuilder(AppLayerFactory appLayerFactory, Locale locale, ValidationErrors errors,
+							Predicate<Metadata> metadataIgnore) {
 		this.errors = errors;
 		this.locale = locale;
 		this.appLayerFactory = appLayerFactory;
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.collectionsManager = appLayerFactory.getCollectionsManager();
+		setMetadataIgnore(metadataIgnore);
+	}
+
+	public void setMetadataIgnore(Predicate<Metadata> metadataIgnore) {
+		this.metadataIgnore = metadataIgnore == null ? metadata -> true : metadataIgnore.negate();
+	}
+
+	public Predicate<Metadata> getMetadataIgnore() {
+		return metadataIgnore.negate();
 	}
 
 	public boolean isIncludeRelatedMaterials() {
@@ -129,7 +151,6 @@ public class RecordEADBuilder {
 				eadXmlWriter.addMetadataWithSimpleValue(metadata, recordCtx.getRecord().get(metadata));
 			}
 		}
-
 	}
 
 	private void writeContentMetadata(RecordInsertionContext recordCtx, Metadata metadata) {
@@ -222,7 +243,7 @@ public class RecordEADBuilder {
 				mappedStructure = new TreeMap<String, Object>();
 				mappedStructure.put("userId", comment.getUserId());
 				mappedStructure.put("username", comment.getUsername());
-				mappedStructure.put("dateTime", comment.getDateTime());
+				mappedStructure.put("dateTime", comment.getCreationDateTime());
 				mappedStructure.put("message", comment.getMessage());
 			}
 
@@ -310,7 +331,9 @@ public class RecordEADBuilder {
 
 		if (includeRelatedMaterials) {
 			Iterator<Record> recordsIterator = appLayerFactory.getModelLayerFactory().newSearchServices()
-					.recordsIterator(fromAllSchemasIn(record.getCollection()).where(PATH_PARTS).isEqualTo(record.getId()));
+					.recordsIterator(fromAllSchemasIn(record.getCollection())
+							.where(PRINCIPALS_ANCESTORS_INT_IDS).isEqualTo(record.getRecordId().intValue())
+							.orWhere(Schemas.SECONDARY_CONCEPTS_INT_IDS).isEqualTo(record.getRecordId().intValue()));
 
 			while (recordsIterator.hasNext()) {
 				Record linkedRecord = recordsIterator.next();
@@ -348,8 +371,12 @@ public class RecordEADBuilder {
 	}
 
 	private boolean isMetadataIncludedInEAD(Metadata metadata) {
-		return includeArchiveDescriptionMetadatasFromODDs
-			   || !METADATAS_ALWAYS_IN_ARCHIVE_DESCRIPTION.contains(metadata.getLocalCode());
+		if (metadata.isSameLocalCodeThanAny(ESTIMATED_SIZE, PRINCIPALS_ANCESTORS_INT_IDS, PRINCIPAL_CONCEPTS_INT_IDS,
+				SECONDARY_CONCEPTS_INT_IDS, ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS, DETACHED_PRINCIPAL_ANCESTORS_INT_IDS)) {
+			return false;
+		}
+		return (includeArchiveDescriptionMetadatasFromODDs
+				|| !METADATAS_ALWAYS_IN_ARCHIVE_DESCRIPTION.contains(metadata.getLocalCode())) && metadataIgnore.test(metadata);
 	}
 
 	public void build(RecordInsertionContext recordCtx, File file) throws IOException {
@@ -367,12 +394,14 @@ public class RecordEADBuilder {
 		eadXmlWriter.addHeader(collectionInfo, collectionName, record.getSchemaCode(), schemaTypeLabel, schemaLabel);
 		eadXmlWriter.addArchdesc(archdesc, record.getId(), record.getTitle());
 
-		for (Metadata metadata : types.getSchemaOf(record).getMetadatas()) {
-			if (isMetadataIncludedInEAD(metadata)
-				&& isNotEmptyValue(record.getValues(metadata))) {
-				addMetadata(recordCtx, metadata);
-			}
-		}
+		types.getSchemaOf(record).getMetadatas().stream().filter(metadataIgnore).forEachOrdered(
+				metadata -> {
+					if (isMetadataIncludedInEAD(metadata)
+						&& isNotEmptyValue(record.getValues(metadata))) {
+						addMetadata(recordCtx, metadata);
+					}
+				}
+		);
 
 		eadXmlWriter.build(recordCtx.getSipXMLPath(), errors, file);
 	}

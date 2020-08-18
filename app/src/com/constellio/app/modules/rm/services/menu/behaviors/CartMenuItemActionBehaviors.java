@@ -6,8 +6,6 @@ import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportParameters;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportWriterFactory;
@@ -20,10 +18,11 @@ import com.constellio.app.modules.rm.services.menu.behaviors.ui.CartBatchProcess
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMMessageUtil;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
+import com.constellio.app.modules.rm.ui.buttons.BorrowWindowButton;
+import com.constellio.app.modules.rm.ui.buttons.RenameDialogButton;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.ui.pages.cart.CartView;
-import com.constellio.app.modules.rm.ui.pages.cart.RenameDialog;
 import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -43,7 +42,6 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -55,13 +53,9 @@ import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
-import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
-import com.constellio.data.utils.Factory;
-import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -73,6 +67,7 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
@@ -92,14 +87,13 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
-import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 @Slf4j
@@ -136,7 +130,7 @@ public class CartMenuItemActionBehaviors {
 	}
 
 	public void rename(Cart cart, MenuItemActionBehaviorParams params) {
-		RenameDialog button = new RenameDialog(null,
+		RenameDialogButton button = new RenameDialogButton(null,
 				$("CartView.reNameCartGroup"),
 				$("CartView.reNameCartGroup"), false) {
 			@Override
@@ -190,34 +184,6 @@ public class CartMenuItemActionBehaviors {
 		Page.getCurrent().open(resource, null, false);
 	}
 
-	public void batchDuplicate(Cart cart, MenuItemActionBehaviorParams params) {
-		if (!cartActionsServices.isBatchDuplicateActionPossible(cart.getWrappedRecord(), params.getUser())) {
-			params.getView().showErrorMessage($("CartView.cannotDuplicate"));
-			return;
-		}
-		List<Folder> folders = cartUtil.getCartFolders(cart.getId());
-		for (Folder folder : folders) {
-			if (!rmModuleExtensions.isCopyActionPossibleOnFolder(folder, params.getUser())) {
-				params.getView().showErrorMessage($("CartView.actionBlockedByExtension"));
-				return;
-			}
-		}
-
-		try {
-			DecommissioningService service = new DecommissioningService(params.getView().getCollection(), appLayerFactory);
-			for (Folder folder : folders) {
-				if (!folder.isLogicallyDeletedStatus()) {
-					service.duplicateStructureAndSave(folder, params.getUser());
-				}
-			}
-			params.getView().showMessage($("CartView.duplicated"));
-		} catch (RecordServicesException.ValidationException e) {
-			params.getView().showErrorMessage($(e.getErrors()));
-		} catch (Exception e) {
-			params.getView().showErrorMessage(e.getMessage());
-		}
-	}
-
 	public void documentBatchProcessing(Cart cart, MenuItemActionBehaviorParams params) {
 		Button button = buildBatchProcessingButton(Document.SCHEMA_TYPE, cart.getId(), params);
 
@@ -243,72 +209,10 @@ public class CartMenuItemActionBehaviors {
 		CartBatchProcessingPresenter cartBatchProcessingPresenter =
 				new CartBatchProcessingPresenter(appLayerFactory, params.getUser(), cartId, params.getView());
 
-		BatchProcessingMode mode = cartBatchProcessingPresenter.getBatchProcessingMode();
-		WindowButton button;
-		if (mode.equals(ALL_METADATA_OF_SCHEMA)) {
-			button = new BatchProcessingButton(cartBatchProcessingPresenter, new CartBatchProcessingViewImpl(schemaType, cartBatchProcessingPresenter));
-		} else if (mode.equals(ONE_METADATA)) {
-			button = new BatchProcessingModifyingOneMetadataButton(cartBatchProcessingPresenter, new CartBatchProcessingViewImpl(schemaType, cartBatchProcessingPresenter));
-		} else {
-			throw new RuntimeException("Unsupported mode " + mode);
-		}
+		WindowButton button = new BatchProcessingButton(cartBatchProcessingPresenter,
+				new CartBatchProcessingViewImpl(schemaType, cartBatchProcessingPresenter));
 
 		return button;
-	}
-
-	public void foldersLabels(Cart cart, MenuItemActionBehaviorParams params) {
-		Button button = buildLabelsButton(Folder.SCHEMA_TYPE, cart.getId(), params);
-		button.click();
-	}
-
-	public void documentLabels(Cart cart, MenuItemActionBehaviorParams params) {
-		Button button = buildLabelsButton(Document.SCHEMA_TYPE, cart.getId(), params);
-		button.click();
-	}
-
-	public void containerRecordLabels(Cart cart, MenuItemActionBehaviorParams params) {
-		Button button = buildLabelsButton(ContainerRecord.SCHEMA_TYPE, cart.getId(), params);
-		button.click();
-	}
-
-	public List<LabelTemplate> getCustomTemplates(String schemaType) {
-		LabelTemplateManager labelTemplateManager = appLayerFactory.getLabelTemplateManager();
-		return labelTemplateManager.listExtensionTemplates(schemaType);
-	}
-
-	public List<LabelTemplate> getDefaultTemplates(String schemaType) {
-		LabelTemplateManager labelTemplateManager = appLayerFactory.getLabelTemplateManager();
-		return labelTemplateManager.listTemplates(schemaType);
-	}
-
-	private Button buildLabelsButton(final String schemaType, String cartId, MenuItemActionBehaviorParams params) {
-		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-			@Override
-			public List<LabelTemplate> get() {
-				return getCustomTemplates(schemaType);
-			}
-		};
-		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-			@Override
-			public List<LabelTemplate> get() {
-				return getDefaultTemplates(schemaType);
-			}
-		};
-		SessionContext sessionContext = params.getView().getSessionContext();
-		LabelButtonV2 labelsButton = new LabelButtonV2(
-				$("SearchView.printLabels"),
-				$("SearchView.printLabels"),
-				customLabelTemplatesFactory,
-				defaultLabelTemplatesFactory,
-				appLayerFactory,
-				params.getView().getCollection(),
-				sessionContext.getCurrentUser()
-		);
-
-		labelsButton.setElementsWithIds(cartUtil.getNotDeletedRecordsIds(schemaType, params.getUser(), cartId),
-				schemaType, sessionContext);
-
-		return labelsButton;
 	}
 
 	public void batchDelete(Cart cart, MenuItemActionBehaviorParams params) {
@@ -317,7 +221,12 @@ public class CartMenuItemActionBehaviors {
 			button = new DeleteButton(false) {
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					deletionRequested(null, cart, params);
+					try {
+						deletionRequested(null, cart, params);
+					} catch (RecordDeleteServicesRuntimeException e) {
+						params.getView().showMessage(i18n.$("deletionFailed") + "\n" + MessageUtils.toMessage(e));
+						return;
+					}
 				}
 
 				@Override
@@ -331,7 +240,12 @@ public class CartMenuItemActionBehaviors {
 			button = new DeleteWithJustificationButton(false) {
 				@Override
 				protected void deletionConfirmed(String reason) {
-					deletionRequested(reason, cart, params);
+					try {
+						deletionRequested(reason, cart, params);
+					} catch (RecordDeleteServicesRuntimeException e) {
+						params.getView().showMessage(i18n.$("deletionFailed") + "\n" + MessageUtils.toMessage(e));
+						return;
+					}
 				}
 
 				@Override
@@ -722,6 +636,20 @@ public class CartMenuItemActionBehaviors {
 		};
 
 		reportGeneratorButton.click();
+	}
+
+	public void borrow(Cart cart, MenuItemActionBehaviorParams params) {
+		borrow(Arrays.asList(cart), params);
+	}
+
+	public void borrow(List<Cart> carts, MenuItemActionBehaviorParams params) {
+		List<Record> records = new ArrayList<>();
+		for (Cart cart : carts) {
+			records.add(cart.getWrappedRecord());
+		}
+
+		Button borrowButton = new BorrowWindowButton(records, params);
+		borrowButton.click();
 	}
 
 	private class CartNewReportPresenter implements NewReportPresenter {

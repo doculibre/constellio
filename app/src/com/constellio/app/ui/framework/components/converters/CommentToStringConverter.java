@@ -31,7 +31,7 @@ public class CommentToStringConverter implements Converter<String, Comment> {
 
 			comment = new Comment();
 			comment.setMessage(value);
-			comment.setDateTime(new LocalDateTime());
+			comment.setCreationDateTime(new LocalDateTime());
 			comment.setUser(user);
 		} else {
 			comment = null;

@@ -856,7 +856,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	private void deselectAllFolders(BaseTable foldersTable) {
 		Collection<?> itemIds = foldersTable.getItemIds();
 		for (Object itemId : itemIds) {
-			((FolderDetailVO) itemId).setSelected(true);
+			((FolderDetailVO) itemId).setSelected(false);
 		}
 
 		Container container = foldersTable.getContainerDataSource();
@@ -1202,7 +1202,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new DecommissionBreadcrumbTrail(getTitle(), null, null, null, this);
+		return new DecommissionBreadcrumbTrail(getTitle(), null, null, null, this, false);
 	}
 
 	private class ContentsTableGenerator implements ColumnGenerator {
@@ -1248,7 +1248,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		private Object generateDownloadLinkCell(ContentVersionVO contentVersionVO) {
 			String filename = contentVersionVO.getFileName();
-			return new ContentVersionDisplay(decommissioningList, contentVersionVO, filename, new BaseUpdatableContentVersionPresenter());
+			return new ContentVersionDisplay(decommissioningList, contentVersionVO, filename, DecommissioningList.CONTENTS, new BaseUpdatableContentVersionPresenter());
 		}
 
 		private Object generateUserCell(ContentVersionVO contentVersionVO) {

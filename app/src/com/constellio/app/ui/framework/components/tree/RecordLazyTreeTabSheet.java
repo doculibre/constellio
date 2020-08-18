@@ -3,7 +3,8 @@ package com.constellio.app.ui.framework.components.tree;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.converters.TaxonomyCodeToCaptionConverter;
-import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.TreeDataProviderFactory;
 import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -18,7 +19,7 @@ import java.util.Locale;
 public class RecordLazyTreeTabSheet extends TabSheet {
 
 	private int bufferSize;
-	private List<RecordLazyTreeDataProvider> dataProviders;
+	private List<LazyTreeDataProvider<String>> dataProviders;
 	private TaxonomyCodeToCaptionConverter captionConverter = new TaxonomyCodeToCaptionConverter();
 
 	private static int getBufferSizeFromConfig() {
@@ -35,11 +36,11 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 		this(toDataProviders(taxonomyCodes), bufferSize);
 	}
 
-	public RecordLazyTreeTabSheet(List<RecordLazyTreeDataProvider> dataProviders) {
+	public RecordLazyTreeTabSheet(List<LazyTreeDataProvider<String>> dataProviders) {
 		this(dataProviders, getBufferSizeFromConfig());
 	}
 
-	public RecordLazyTreeTabSheet(List<RecordLazyTreeDataProvider> dataProviders, int bufferSize) {
+	public RecordLazyTreeTabSheet(List<LazyTreeDataProvider<String>> dataProviders, int bufferSize) {
 		this.dataProviders = dataProviders;
 		this.bufferSize = bufferSize;
 		int selectedTab = -1;
@@ -52,7 +53,7 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 
 		//		PlaceHolder firstPlaceHolder = null;
 		for (int i = 0; i < dataProviders.size(); i++) {
-			RecordLazyTreeDataProvider dataProvider = dataProviders.get(i);
+			LazyTreeDataProvider<String> dataProvider = dataProviders.get(i);
 			String taxonomyCode = dataProvider.getTaxonomyCode();
 			String lazyTreeCaption = getCaptionForTaxonomyCode(taxonomyCode);
 
@@ -116,16 +117,16 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 		}
 	}
 
-	private static List<RecordLazyTreeDataProvider> toDataProviders(String[] taxonomyCodes) {
-		List<RecordLazyTreeDataProvider> dataProviders = new ArrayList<>();
+	private static List<LazyTreeDataProvider<String>> toDataProviders(String[] taxonomyCodes) {
+		List<LazyTreeDataProvider<String>> dataProviders = new ArrayList<>();
 		for (String taxonomyCode : taxonomyCodes) {
-			RecordLazyTreeDataProvider dataProvider = new RecordLazyTreeDataProvider(taxonomyCode, ConstellioUI.getCurrentSessionContext().getCurrentCollection());
+			LazyTreeDataProvider<String> dataProvider = TreeDataProviderFactory.forTaxonomy(taxonomyCode, ConstellioUI.getCurrentSessionContext().getCurrentCollection());
 			dataProviders.add(dataProvider);
 		}
 		return dataProviders;
 	}
 
-	protected RecordLazyTree newLazyTree(RecordLazyTreeDataProvider dataProvider, int bufferSize) {
+	protected RecordLazyTree newLazyTree(LazyTreeDataProvider<String> dataProvider, int bufferSize) {
 		return new RecordLazyTree(dataProvider, bufferSize);
 	}
 
@@ -133,10 +134,15 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 		return captionConverter.convertToPresentation(taxonomyCode, String.class, getLocale());
 	}
 
-	private static class PlaceHolder extends CustomComponent {
+	public static class PlaceHolder extends CustomComponent {
 		@Override
 		public void setCompositionRoot(Component compositionRoot) {
 			super.setCompositionRoot(compositionRoot);
+		}
+
+		@Override
+		public Component getCompositionRoot() {
+			return super.getCompositionRoot();
 		}
 	}
 }

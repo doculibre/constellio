@@ -2,7 +2,7 @@ package com.constellio.app.conf;
 
 import com.constellio.data.conf.PropertiesConfiguration;
 import com.constellio.data.utils.Factory;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.Language;
 import com.constellio.model.services.encrypt.EncryptionServices;

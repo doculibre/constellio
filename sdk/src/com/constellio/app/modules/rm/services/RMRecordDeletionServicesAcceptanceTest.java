@@ -11,7 +11,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -27,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Created by Constelio on 2016-11-01.
  */
-@SlowTest
+// Confirm @SlowTest
 public class RMRecordDeletionServicesAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	SearchServices searchServices;

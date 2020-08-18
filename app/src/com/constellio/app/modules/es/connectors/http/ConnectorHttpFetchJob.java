@@ -72,6 +72,9 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 	private final ESSchemasRecordsServices es;
 
 	private final int maxLevel;
+
+	private final boolean ignoreRobotsTxt;
+
 	private static final RobotsTxtFactory robotsTxtFactory = new RobotsTxtFactory();
 
 	public ConnectorHttpFetchJob(ConnectorHttp connector, ConnectorHttpInstance instance,
@@ -84,6 +87,7 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 		this.connectorLogger = connectorLogger;
 		this.es = connectorHttp.getEs();
 		this.maxLevel = instance.getMaxLevel();
+		this.ignoreRobotsTxt = instance.isIgnoreRobotsTxt();
 		UrlAcceptor urlAcceptor = new ConnectorUrlAcceptor(instance);
 		fileParser = connectorHttp.getEs().getModelLayerFactory().newFileParser();
 		hashingService = connectorHttp.getEs().getModelLayerFactory().getIOServicesFactory().newHashingService(BASE64);
@@ -98,7 +102,7 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 			for (ConnectorHttpDocument httpDocument : documents) {
 				String url = httpDocument.getURL();
 
-				if (!robotsTxtFactory.isAuthorizedPath(url)) {
+				if (!this.ignoreRobotsTxt  && !robotsTxtFactory.isAuthorizedPath(url)) {
 					String path = getClass().getClassLoader().getResource(PATH_TO_NOINDEX_HTML).getPath();
 					if (StringUtils.startsWith(path, PROTOCOL)) {
 						url = path;

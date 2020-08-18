@@ -2,6 +2,7 @@ package com.constellio.app.services.importExport.settings;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.modules.es.constants.ESTaxonomies;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.ValueListServices;
@@ -16,6 +17,7 @@ import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedTab;
 import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
 import com.constellio.app.services.importExport.settings.model.ImportedType;
+import com.constellio.app.services.importExport.settings.utils.SystemVersionService;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.model.entities.Language;
@@ -53,6 +55,7 @@ import static java.util.Arrays.asList;
 public class SettingsExportServices {
 
 	AppLayerFactory appLayerFactory;
+	SystemVersionService systemVersionService;
 	SystemConfigurationsManager systemConfigurationsManager;
 	MetadataSchemasManager schemasManager;
 	SequencesManager sequencesManager;
@@ -64,6 +67,7 @@ public class SettingsExportServices {
 	public SettingsExportServices(AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
 
+		this.systemVersionService = new SystemVersionService(appLayerFactory);
 		validationErrors = new ValidationErrors();
 		systemConfigurationsManager = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager();
 		schemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
@@ -76,6 +80,8 @@ public class SettingsExportServices {
 		validate(asList(collection));
 
 		ImportedSettings settings = new ImportedSettings();
+
+		settings.setImportedSystemVersion(systemVersionService.getSystemVersion(options));
 
 		if (options.isExportingConfigs()) {
 			appendSystemConfigurations(settings);
@@ -105,6 +111,8 @@ public class SettingsExportServices {
 		validate(collections);
 
 		ImportedSettings settings = new ImportedSettings();
+
+		settings.setImportedSystemVersion(systemVersionService.getSystemVersion(options));
 
 		if (options.isExportingConfigs()) {
 			appendSystemConfigurations(settings);
@@ -302,7 +310,10 @@ public class SettingsExportServices {
 			importedMetadata.setType(metadata.getType().name());
 
 			if (MetadataValueType.REFERENCE.equals(metadata.getType())) {
-				importedMetadata.setReferencedType(metadata.getReferencedSchemaType());
+				importedMetadata.setReferencedType(metadata.getReferencedSchemaTypeCode());
+				if (metadata.isMultivalue() && displayConfig.getSortingType() == MetadataSortingType.ALPHANUMERICAL_ORDER) {
+					importedMetadata.setSortingType(MetadataSortingType.ALPHANUMERICAL_ORDER.getCode());
+				}
 			}
 
 			importedMetadata.setUnique(metadata.isUniqueValue());

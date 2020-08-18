@@ -1,5 +1,6 @@
 package com.constellio.model.entities.records.wrappers;
 
+import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.Record;
@@ -7,7 +8,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.constellio.model.entities.structures.MapStringListStringStructure;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.Roles;
 import org.joda.time.LocalDateTime;
@@ -17,6 +17,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.model.entities.records.Record.GetMetadataOption.DIRECT_GET_FROM_DTO;
+import static com.constellio.model.entities.records.Record.GetMetadataOption.RARELY_HAS_VALUE;
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
@@ -37,6 +39,7 @@ public class User extends RecordWrapper {
 	//public static final String GROUPS_AUTHORIZATIONS = "groupsauthorizations";
 	//public static final String ALL_USER_AUTHORIZATIONS = "alluserauthorizations";
 	public static final String USER_TOKENS = "usertokens";
+	public static final String AZURE_USER = "azureuser";
 	public static final String COLLECTION_READ_ACCESS = "collectionReadAccess";
 	public static final String COLLECTION_WRITE_ACCESS = "collectionWriteAccess";
 	public static final String COLLECTION_DELETE_ACCESS = "collectionDeleteAccess";
@@ -52,7 +55,6 @@ public class User extends RecordWrapper {
 	public static final String STATUS = "status";
 	public static final String SIGNATURE = "signature";
 	public static final String LOGIN_LANGUAGE_CODE = "loginLanguageCode";
-	public static final String VISIBLE_TABLE_COLUMNS = "visibleTableColumns";
 	public static final String FAX = "fax";
 	public static final String ADDRESS = "address";
 	public static final String AGENT_ENABLED = "agentEnabled";
@@ -60,6 +62,7 @@ public class User extends RecordWrapper {
 	public static final String USER_DOCUMENT_SIZE_SUM = "userDocumentSizeSum";
 	public static final String TAXONOMY_DISPLAY_ORDER = "taxonomyDisplayOrder";
 	public static final String DO_NOT_RECEIVE_EMAILS = "doNotReceiveEmails";
+	public static final String ENABLE_FACETS_APPLY_BUTTON = "enableFacetsApplyButton";
 	public static final String AUTOMATIC_TASK_ASSIGNATION = "automaticTaskAssignation";
 	public static final String AUTOMATIC_TASK_ASSIGNATION_WORKFLOWS = "automaticTaskAssignationWorkflows";
 	public static final String ASSIGNATION_EMAIL_RECEPTION_DISABLED = "assignationEmailReceptionDisabled";
@@ -156,6 +159,15 @@ public class User extends RecordWrapper {
 		return this;
 	}
 
+	public String getAzureUser() {
+		return get(AZURE_USER);
+	}
+
+	public User setAzureUser(String azureuser) {
+		set(AZURE_USER, azureuser);
+		return this;
+	}
+
 	public User setLastIPAddress(String value) {
 		set(LAST_IP_ADDRESS, value);
 		return this;
@@ -233,12 +245,18 @@ public class User extends RecordWrapper {
 		return this;
 	}
 
+	public User addUserRoles(String... roles) {
+		add(ROLES, roles);
+		return this;
+	}
+
 	public boolean hasCollectionReadWriteOrDeleteAccess() {
 		return hasCollectionReadAccess() || hasCollectionWriteAccess() || hasCollectionDeleteAccess();
 	}
 
 	public boolean hasCollectionReadAccess() {
-		return getBooleanWithDefaultValue(COLLECTION_READ_ACCESS, false);
+		Boolean value = get(COLLECTION_READ_ACCESS, DIRECT_GET_FROM_DTO, RARELY_HAS_VALUE);
+		return value == null ? false : value;
 	}
 
 	public User setCollectionReadAccess(boolean access) {
@@ -247,7 +265,8 @@ public class User extends RecordWrapper {
 	}
 
 	public boolean hasCollectionWriteAccess() {
-		return getBooleanWithDefaultValue(COLLECTION_WRITE_ACCESS, false);
+		Boolean value = get(COLLECTION_WRITE_ACCESS, DIRECT_GET_FROM_DTO, RARELY_HAS_VALUE);
+		return value == null ? false : value;
 	}
 
 	public User setCollectionWriteAccess(boolean access) {
@@ -256,7 +275,8 @@ public class User extends RecordWrapper {
 	}
 
 	public boolean hasCollectionDeleteAccess() {
-		return getBooleanWithDefaultValue(COLLECTION_DELETE_ACCESS, false);
+		Boolean value = get(COLLECTION_DELETE_ACCESS, DIRECT_GET_FROM_DTO, RARELY_HAS_VALUE);
+		return value == null ? false : value;
 	}
 
 	public User setCollectionDeleteAccess(boolean access) {
@@ -357,6 +377,12 @@ public class User extends RecordWrapper {
 	}
 
 	public UserCredentialStatus getStatus() {
+		RecordDTO recordDTO = wrappedRecord.getRecordDTO();
+		if (recordDTO != null) {
+			return UserCredentialStatus.fastConvert((String) recordDTO.getFields().get("status_s"));
+
+		}
+
 		return get(STATUS);
 	}
 
@@ -371,39 +397,6 @@ public class User extends RecordWrapper {
 
 	public User setSignature(String signature) {
 		set(SIGNATURE, signature);
-		return this;
-	}
-
-	public boolean isVisibleTableColumnsConfiguredFor(String tableId) {
-		MapStringListStringStructure structure = get(VISIBLE_TABLE_COLUMNS);
-		return structure != null && structure.get(tableId) != null && !structure.get(tableId).isEmpty();
-	}
-
-	public List<String> getVisibleTableColumnsFor(String tableId) {
-		MapStringListStringStructure structure = get(VISIBLE_TABLE_COLUMNS);
-		if (structure == null) {
-			return new ArrayList<>();
-		} else {
-			return structure.get(tableId);
-		}
-	}
-
-	public MapStringListStringStructure getVisibleTableColumns() {
-		return get(VISIBLE_TABLE_COLUMNS);
-	}
-
-	public User setVisibleTableColumns(String tableId, List<String> columns) {
-		MapStringListStringStructure value = get(VISIBLE_TABLE_COLUMNS);
-		if (value == null) {
-			value = new MapStringListStringStructure();
-			setVisibleTableColumns(value);
-		}
-		value.put(tableId, columns);
-		return this;
-	}
-
-	public User setVisibleTableColumns(MapStringListStringStructure value) {
-		set(VISIBLE_TABLE_COLUMNS, value);
 		return this;
 	}
 
@@ -601,6 +594,10 @@ public class User extends RecordWrapper {
 
 	public boolean isNotReceivingEmails() {
 		return Boolean.TRUE.equals(DO_NOT_RECEIVE_EMAILS);
+	}
+
+	public boolean isApplyFacetsEnabled() {
+		return Boolean.TRUE.equals(get(ENABLE_FACETS_APPLY_BUTTON));
 	}
 
 	public boolean isAutomaticTaskAssignation() {

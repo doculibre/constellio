@@ -5,6 +5,9 @@ import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.MoreLikeThisDTO;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordId;
+import com.constellio.data.dao.services.Stats;
+import com.constellio.data.dao.services.Stats.CallStatCompiler;
 import com.constellio.data.dao.services.bigVault.LazyResultsIterator;
 import com.constellio.data.dao.services.bigVault.LazyResultsKeepingOrderIterator;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
@@ -14,6 +17,7 @@ import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
 import com.constellio.data.utils.Holder;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.LazyIterator;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -44,11 +48,16 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery.UserFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderContext;
 import com.constellio.model.services.security.SecurityTokenManager;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.io.Tuple;
+import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.FacetParams;
@@ -62,6 +71,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -76,6 +86,7 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
@@ -93,6 +104,8 @@ import static com.constellio.model.services.search.query.ReturnedMetadatasFilter
 import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.onlySummaryFields;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.INEXISTENT_COLLECTION_42;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
 import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.DEFAULT;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -146,7 +159,7 @@ public class SearchServices {
 		this.logicalSearchQueryExecutorInCache = new LogicalSearchQueryExecutorInCache(this, recordsCaches,
 				metadataSchemasManager,
 				modelLayerFactory.getSearchConfigurationsManager(),
-				modelLayerFactory.getExtensions().getSystemWideExtensions(), mainDataLanguage);
+				modelLayerFactory.getExtensions().getSystemWideExtensions(), systemConfigs, mainDataLanguage);
 	}
 
 	public LogicalSearchQueryExecutorInCache getQueryExecutorInCache() {
@@ -162,8 +175,51 @@ public class SearchServices {
 		return disconnectableRecordsCaches;
 	}
 
-	public SPEQueryResponse query(LogicalSearchQuery query) {
+
+	public SPEQueryResponse queryUsingsolr(LogicalSearchQuery query) {
 		return buildResponse(query);
+	}
+
+	public SPEQueryResponse query(LogicalSearchQuery query) {
+		if (!query.isHighlighting() && logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
+
+			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
+				List<Record> records = searchUsingCache(new LogicalSearchQuery(query));
+
+				if (query.getSortFields() == null || query.getSortFields().isEmpty()) {
+					Set<String> cacheRecordIds = records.stream().limit(query.getNumberOfRows())
+							.map(Record::getId).collect(Collectors.toSet());
+					Set<String> solrRecordIds = searchUsingSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"))
+							.stream().map(Record::getId).collect(Collectors.toSet());
+
+					if (!cacheRecordIds.equals(solrRecordIds)) {
+						throw new RuntimeException("Cached query execution problem\nExpected : " + solrRecordIds
+												   + "\nWas : " + cacheRecordIds);
+					}
+				} else {
+					List<String> cacheRecordIds = records.stream().limit(query.getNumberOfRows())
+							.map(Record::getId).collect(Collectors.toList());
+					List<String> solrRecordIds = searchUsingSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"))
+							.stream().map(Record::getId).collect(Collectors.toList());
+
+					if (!cacheRecordIds.equals(solrRecordIds)) {
+						throw new RuntimeException("Cached query execution problem\nExpected : " + solrRecordIds
+												   + "\nWas : " + cacheRecordIds);
+					}
+				}
+
+			}
+
+			List<Record> records = searchUsingCache(new LogicalSearchQuery(query).setNumberOfRows(1_000_000));
+
+			int to = Math.min(query.getStartRow() + query.getNumberOfRows(), records.size());
+			return new SPEQueryResponse(records.subList(query.getStartRow(), to), records.size());
+
+		} else {
+			return queryUsingsolr(query);
+		}
+
+
 	}
 
 	@Deprecated
@@ -205,20 +261,46 @@ public class SearchServices {
 	}
 
 	private List<Record> searchUsingCache(LogicalSearchQuery query) {
-		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
-			Stream<Record> stream = logicalSearchQueryExecutorInCache.stream(query);
-			List<Record> records = stream.collect(Collectors.toList());
-			stream.close();
-			return records;
-		} else {
-			return search(query);
+
+		try {
+			if (!query.getCacheableQueries().isEmpty() &&
+				query.getCacheableQueries().stream().allMatch(logicalSearchQueryExecutorInCache::isQueryExecutableInCache)) {
+
+				List<Record> records = new ArrayList<>();
+				for (LogicalSearchQuery cacheableQuery : query.getCacheableQueries()) {
+					records.addAll(logicalSearchQueryExecutorInCache.stream(cacheableQuery).collect(Collectors.toList()));
+				}
+
+				return records;
+
+				//				return query.getCacheableQueries().stream()
+				//						.map(query1 -> logicalSearchQueryExecutorInCache.stream(query1))
+				//						.flatMap(Function.identity())
+				//						//.sorted(query.getSortFields()) // FIXME sort or not?
+				//						.collect(Collectors.toList());
+			} else if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
+				return retrieveRecordsUsingCache(query);
+			} else {
+				return searchUsingSolr(query);
+			}
+
+		} catch (LogicalSearchQueryExecutionCancelledException e) {
+			return searchUsingSolr(new LogicalSearchQuery(query)
+					.setName("Query cancelled by cache : " + e.getMessage() + (query.getName() == null ? "" : " : " + query.getName())));
 		}
 	}
 
 	private List<Record> searchUsingSolr(LogicalSearchQuery query) {
-		return query(query).getRecords();
+		return queryUsingsolr(query).getRecords();
 	}
 
+	private List<Record> retrieveRecordsUsingCache(LogicalSearchQuery query)
+			throws LogicalSearchQueryExecutionCancelledException {
+		Stream<Record> stream = logicalSearchQueryExecutorInCache.stream(query);
+		List<Record> records = stream.collect(Collectors.toList());
+		stream.close();
+		return records;
+	}
 
 	@Deprecated
 	public List<String> cachedSearchRecordIds(LogicalSearchQuery query) {
@@ -226,15 +308,14 @@ public class SearchServices {
 	}
 
 	public List<MoreLikeThisRecord> searchWithMoreLikeThis(LogicalSearchQuery query) {
-		return query(query).getMoreLikeThisRecords();
+		return queryUsingsolr(query).getMoreLikeThisRecords();
 	}
 
 	public Stream<Record> stream(MetadataSchemaType schemaType, boolean summary) {
 		return streamFromSolr(schemaType, summary);
 	}
 
-	public int getIdealBatchSize(MetadataSchemaType schemaType) {
-
+	public int getMaxRecordSize(MetadataSchemaType schemaType) {
 		LogicalSearchQuery maxSizeQuery = new LogicalSearchQuery(from(schemaType).returnAll());
 		maxSizeQuery.sortDesc(ESTIMATED_SIZE);
 		maxSizeQuery.setNumberOfRows(1);
@@ -244,12 +325,16 @@ public class SearchServices {
 
 		List<Record> records = search(maxSizeQuery);
 		if (records.isEmpty()) {
-			return 100;
+			return 1_000_000;
 		} else {
-			int maxRecordSize = records.get(0).get(ESTIMATED_SIZE);
-			return 100_000_000 / maxRecordSize;
-
+			Record record = records.get(0);
+			Integer value = record.get(ESTIMATED_SIZE);
+			return value == null ? 1_000_000 : value;
 		}
+	}
+
+	public int getIdealBatchSize(MetadataSchemaType schemaType) {
+		return 100_000_000 / getMaxRecordSize(schemaType);
 	}
 
 	public Stream<Record> streamFromSolr(MetadataSchemaType schemaType, boolean summary) {
@@ -308,6 +393,17 @@ public class SearchServices {
 
 	}
 
+	@AllArgsConstructor
+	public static class RecordIdVersion {
+
+		@Getter
+		RecordId recordId;
+
+		@Getter
+		long version;
+	}
+
+
 	public Stream<Record> stream(LogicalSearchQuery query) {
 		return stream(query, 1000);
 	}
@@ -324,40 +420,45 @@ public class SearchServices {
 
 		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
 
-			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
+			try {
+				if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
 
-				if (query.getSortFields() == null || query.getSortFields().isEmpty()) {
-					Set<String> recordsFromCacheStream = logicalSearchQueryExecutorInCache.stream(query)
-							.map(Record::getId).collect(Collectors.toSet());
-					Set<String> recordsFromSolrStream = streamFromSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"))
-							.map(Record::getId).collect(Collectors.toSet());
+					if (query.getSortFields() == null || query.getSortFields().isEmpty()) {
+						Set<String> recordsFromCacheStream = logicalSearchQueryExecutorInCache.stream(query)
+								.map(Record::getId).collect(Collectors.toSet());
+						Set<String> recordsFromSolrStream = streamFromSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"))
+								.map(Record::getId).collect(Collectors.toSet());
 
-					if (!recordsFromCacheStream.equals(recordsFromSolrStream)) {
-						throw new RuntimeException("Cached query execution problem\nExpected : " + recordsFromSolrStream
-												   + "\nWas : " + recordsFromCacheStream);
+						if (!recordsFromCacheStream.equals(recordsFromSolrStream)) {
+							throw new RuntimeException("Cached query execution problem\nExpected : " + recordsFromSolrStream
+													   + "\nWas : " + recordsFromCacheStream);
+						}
+					} else {
+						List<String> recordsFromCacheStream = logicalSearchQueryExecutorInCache.stream(query)
+								.map(Record::getId).collect(Collectors.toList());
+						List<String> recordsFromSolrStream = streamFromSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"))
+								.map(Record::getId).collect(Collectors.toList());
+
+						if (!recordsFromCacheStream.equals(recordsFromSolrStream)) {
+							throw new RuntimeException("Cached query execution problem\nExpected : " + recordsFromSolrStream
+													   + "\nWas : " + recordsFromCacheStream);
+						}
 					}
+
+					Stream<Record> cacheStream = logicalSearchQueryExecutorInCache.stream(query);
+					Stream<Record> solrStream = streamFromSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"));
+					return new StreamValidator<>(solrStream, cacheStream, !query.getSortFields().isEmpty());
+
 				} else {
-					List<String> recordsFromCacheStream = logicalSearchQueryExecutorInCache.stream(query)
-							.map(Record::getId).collect(Collectors.toList());
-					List<String> recordsFromSolrStream = streamFromSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"))
-							.map(Record::getId).collect(Collectors.toList());
-
-					if (!recordsFromCacheStream.equals(recordsFromSolrStream)) {
-						throw new RuntimeException("Cached query execution problem\nExpected : " + recordsFromSolrStream
-												   + "\nWas : " + recordsFromCacheStream);
-					}
+					return logicalSearchQueryExecutorInCache.stream(query);
 				}
-
-				Stream<Record> cacheStream = logicalSearchQueryExecutorInCache.stream(query);
-				Stream<Record> solrStream = streamFromSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"));
-				return new StreamValidator<>(solrStream, cacheStream, !query.getSortFields().isEmpty());
-
-			} else {
-				return logicalSearchQueryExecutorInCache.stream(query);
+			} catch (LogicalSearchQueryExecutionCancelledException e) {
+				return streamFromSolr(new LogicalSearchQuery(query)
+						.setName("Query cancelled by cache : " + e.getMessage() + (query.getName() == null ? "" : " : " + query.getName())), batchSize);
 			}
 
 		} else {
-			return streamFromSolr(query);
+			return streamFromSolr(query, batchSize);
 		}
 	}
 
@@ -399,9 +500,11 @@ public class SearchServices {
 
 				if (parallel) {
 					final LinkedBlockingQueue<Holder<Record>> queue = new LinkedBlockingQueue<>(batchSize * 3);
+					final CallStatCompiler statCompiler = Stats.getCurrentStatCompiler();
 
-					new Thread(() -> {
+					Runnable runnable = () -> {
 						try {
+
 							super.forEach((r) -> {
 								try {
 									queue.put(new Holder(r));
@@ -416,7 +519,9 @@ public class SearchServices {
 								throw new RuntimeException(e);
 							}
 						}
-					}).start();
+					};
+
+					new Thread(statCompiler == null ? runnable : () -> statCompiler.log(runnable)).start();
 
 					Record nextRecord;
 					try {
@@ -467,7 +572,7 @@ public class SearchServices {
 				String facet = condition.getSolrQuery(newSolrQueryBuilderContext(clonedQuery));
 				clonedQuery.addQueryFacet("filterMatch", facet);
 				clonedQuery.setNumberOfRows(0);
-				SPEQueryResponse response = query(clonedQuery);
+				SPEQueryResponse response = queryUsingsolr(clonedQuery);
 				return response.getNumFound() == 0 || response.getNumFound() == response.getQueryFacetCount(facet);
 
 			}
@@ -618,49 +723,53 @@ public class SearchServices {
 
 	public Record searchSingleResult(LogicalSearchCondition condition) {
 
-		if (logicalSearchQueryExecutorInCache.isConditionExecutableInCache(condition, DEFAULT)) {
-			Record record = searchSingleResultUsingCache(condition);
+		try {
+			if (logicalSearchQueryExecutorInCache.isConditionExecutableInCache(condition, DEFAULT)) {
+				Record record = searchSingleResultUsingCache(condition);
 
-			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
-				Record recordFromSolr = searchSingleResultUsingSolr(condition);
+				if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
+					Record recordFromSolr = searchSingleResultUsingSolr(condition);
 
-				String recordId = record == null ? null : record.getId();
-				String recordFromSolrId = recordFromSolr == null ? null : recordFromSolr.getId();
+					String recordId = record == null ? null : record.getId();
+					String recordFromSolrId = recordFromSolr == null ? null : recordFromSolr.getId();
 
-				if (!LangUtils.isEqual(recordId, recordFromSolrId)) {
-					throw new RuntimeException("Cached query execution problem");
+					if (!LangUtils.isEqual(recordId, recordFromSolrId)) {
+						throw new RuntimeException("Cached query execution problem");
+					}
+
+
 				}
 
+				return record;
 
-			}
+			} else if (logicalSearchQueryExecutorInCache.isConditionExecutableInCache(condition, onlySummaryFields(), DEFAULT)) {
+				Record recordSummary = searchSingleResultUsingCache(condition);
 
-			return record;
+				if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
+					Record recordFromSolr = searchSingleResultUsingSolr(condition);
 
-		} else if (logicalSearchQueryExecutorInCache.isConditionExecutableInCache(condition, onlySummaryFields(), DEFAULT)) {
-			Record recordSummary = searchSingleResultUsingCache(condition);
+					String recordId = recordSummary == null ? null : recordSummary.getId();
+					String recordFromSolrId = recordFromSolr == null ? null : recordFromSolr.getId();
 
-			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
-				Record recordFromSolr = searchSingleResultUsingSolr(condition);
+					if (!LangUtils.isEqual(recordId, recordFromSolrId)) {
+						throw new RuntimeException("Cached query execution problem");
+					}
 
-				String recordId = recordSummary == null ? null : recordSummary.getId();
-				String recordFromSolrId = recordFromSolr == null ? null : recordFromSolr.getId();
-
-				if (!LangUtils.isEqual(recordId, recordFromSolrId)) {
-					throw new RuntimeException("Cached query execution problem");
 				}
 
+				return recordSummary == null ? null : recordServices.getDocumentById(recordSummary.getId());
+
+			} else {
+				return searchSingleResultUsingSolr(condition);
 			}
-
-			return recordSummary == null ? null : recordServices.getDocumentById(recordSummary.getId());
-
-		} else {
+		} catch (LogicalSearchQueryExecutionCancelledException ignored) {
 			return searchSingleResultUsingSolr(condition);
 		}
 	}
 
 	@Nullable
 	private Record searchSingleResultUsingSolr(LogicalSearchCondition condition) {
-		SPEQueryResponse response = query(new LogicalSearchQuery(condition).filteredByVisibilityStatus(ALL).setNumberOfRows(1));
+		SPEQueryResponse response = queryUsingsolr(new LogicalSearchQuery(condition).filteredByVisibilityStatus(ALL).setNumberOfRows(1));
 		if (response.getNumFound() > 1) {
 			SolrQueryBuilderContext params = new SolrQueryBuilderContext(false, new ArrayList<>(), "?", null, null, null) {
 			};
@@ -670,7 +779,8 @@ public class SearchServices {
 	}
 
 	@Nullable
-	private Record searchSingleResultUsingCache(LogicalSearchCondition condition) {
+	private Record searchSingleResultUsingCache(LogicalSearchCondition condition)
+			throws LogicalSearchQueryExecutionCancelledException {
 		List<Record> records = logicalSearchQueryExecutorInCache.stream(condition).limit(2).collect(Collectors.toList());
 		if (records.size() > 1) {
 			SolrQueryBuilderContext params = new SolrQueryBuilderContext(false, new ArrayList<>(), "?", null, null, null) {
@@ -895,26 +1005,31 @@ public class SearchServices {
 		LogicalSearchQuery clonedQuery = new LogicalSearchQuery(query);
 		clonedQuery.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
 		clonedQuery.clearSort();
-		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(clonedQuery)) {
-			Stream<Record> stream = logicalSearchQueryExecutorInCache.stream(clonedQuery);
-			long count = stream.count();
-			stream.close();
+		try {
+			if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(clonedQuery)) {
+				Stream<Record> stream = logicalSearchQueryExecutorInCache.stream(clonedQuery);
+				long count = stream.count();
+				stream.close();
 
-			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
-				long countFromSolr = getResultCountUsingSolr(new LogicalSearchQuery(clonedQuery).setName("*SDK* Validate cache"));
+				if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
+					long countFromSolr = getResultCountUsingSolr(new LogicalSearchQuery(clonedQuery).setName("*SDK* Validate cache"));
 
-				if (count != countFromSolr) {
-					checkForCacheProblems();
-					throw new RuntimeException("Cached query execution problem");
+					if (count != countFromSolr) {
+						checkForCacheProblems();
+						throw new RuntimeException("Cached query execution problem");
+					}
+
+
 				}
 
+				return count;
 
+			} else {
+				return getResultCountUsingSolr(clonedQuery);
 			}
-
-			return count;
-
-		} else {
-			return getResultCountUsingSolr(clonedQuery);
+		} catch (LogicalSearchQueryExecutionCancelledException e) {
+			return getResultCountUsingSolr(new LogicalSearchQuery(clonedQuery)
+					.setName("Query cancelled by cache : " + e.getMessage() + (query.getName() == null ? "" : " : " + query.getName())));
 		}
 	}
 
@@ -933,7 +1048,8 @@ public class SearchServices {
 		int oldNumberOfRows = query.getNumberOfRows();
 		query.setNumberOfRows(0);
 		ModifiableSolrParams params = addSolrModifiableParams(query);
-		long result = dataStoreDao(query.getDataStore()).query(query.getName(), params).getNumFound();
+		RecordDao recordDao = dataStoreDao(query.getDataStore());
+		long result = recordDao == null ? 0 : recordDao.query(query.getName(), params).getNumFound();
 		query.setNumberOfRows(oldNumberOfRows);
 		return result;
 	}
@@ -946,7 +1062,7 @@ public class SearchServices {
 	public List<String> searchRecordIds(LogicalSearchQuery query) {
 		query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
 		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
-			return stream(query).map(Record::getId).collect(Collectors.toList());
+			return stream(query, 10000).map(Record::getId).collect(Collectors.toList());
 
 		} else {
 
@@ -980,6 +1096,103 @@ public class SearchServices {
 				return recordDTO.getId();
 			}
 		};
+	}
+
+
+	public Iterator<RecordIdVersion> recordsIdVersionIteratorUsingSolr(MetadataSchemaType schemaType) {
+		if (systemConfigs.isRunningWithSolr6() && modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration()
+				.useSolrTupleStreamsIfSupported()) {
+			return recordsIdVersionIteratorUsingSolrTupleStream(schemaType, null);
+
+		} else {
+			return recordsIdVersionIteratorUsingSolrIterator(schemaType, null);
+		}
+	}
+
+
+	public Iterator<RecordIdVersion> recordsIdVersionIteratorUsingSolrIterator(MetadataSchemaType schemaType,
+																			   Metadata sort) {
+		LogicalSearchQuery query = new LogicalSearchQuery(from(schemaType).returnAll());
+		if (sort != null) {
+			query.sortAsc(sort);
+		}
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
+		query.filteredByVisibilityStatus(ALL);
+		query.filteredByStatus(StatusFilter.ALL);
+		final Iterator<Record> iterator = sort == null ? recordsIterator(query, 5000) : recordsIteratorKeepingOrder(query, 5000);
+
+		return new LazyIterator<RecordIdVersion>() {
+			@Override
+			protected RecordIdVersion getNextOrNull() {
+				if (iterator.hasNext()) {
+					Record record = iterator.next();
+					return new RecordIdVersion(record.getRecordId(), record.getVersion());
+
+				} else {
+					return null;
+				}
+			}
+		};
+	}
+
+
+	public Iterator<RecordIdVersion> recordsIdVersionIteratorUsingSolrTupleStream(MetadataSchemaType schemaType,
+																				  Metadata sort) {
+
+		Map<String, String> props = new HashMap<>();
+		props.put("q", "schema_s:" + schemaType.getCode() + "_*");
+		props.put("fq", "collection_s:" + schemaType.getCollection());
+		//props.put("qt", "/export");
+		if (sort == null) {
+			props.put("sort", "id asc");
+			props.put("fl", "id, _version_");
+		} else {
+			props.put("sort", sort.getDataStoreCode() + " asc");
+			props.put("fl", "id, _version_," + sort.getDataStoreCode());
+		}
+
+		props.put("rows", "100000000");
+
+		TupleStream tupleStream = dataStoreDao(DataStore.RECORDS).tupleStream(props);
+
+		try {
+			tupleStream.open();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		AtomicInteger count = new AtomicInteger();
+		return new LazyIterator<RecordIdVersion>() {
+
+			@Override
+			protected RecordIdVersion getNextOrNull() {
+
+				try {
+
+					Tuple tuple = tupleStream.read();
+					if (tuple.EOF) {
+						LOGGER.info("Fetching ids and versions of schema type '" + schemaType.getCollection() + ":" + schemaType.getCode() + "' using tuple stream method finished : " + count.get());
+						tupleStream.close();
+						return null;
+					} else {
+						//LOGGER.info("Fetching ids and versions of schema type '" + schemaType.getCollection() + ":" + schemaType.getCode() + "' using tuple stream method ... : " + count.get());
+						count.incrementAndGet();
+						RecordId id = RecordId.toId(tuple.getString("id"));
+						long version = tuple.getLong("_version_");
+						return new RecordIdVersion(id, version);
+					}
+				} catch (IOException e) {
+					try {
+						tupleStream.close();
+					} catch (IOException e1) {
+						throw new RuntimeException(e1);
+					}
+					throw new RuntimeException(e);
+				}
+			}
+		};
+
+
 	}
 
 	public Iterator<String> reverseRecordsIdsIterator(LogicalSearchQuery query) {
@@ -1098,41 +1311,16 @@ public class SearchServices {
 			} else {
 				params.add(CommonParams.QT, "/spell");
 				params.add(ShardParams.SHARDS_QT, "/spell");
-
 			}
 		}
-		if (query.getFreeTextQuery() != null) {
-			User user = null;
-			if (query.getUserFilters() != null && query.getUserFilters().size() > 0) {
-				user = query.getUserFilters().get(0).getUser();
-			}
-			String qf = getQfFor(ctx.getLanguages(), query.getLanguage(), query.getFieldBoosts(), ctx.getSearchedSchemaTypes(), user);
-			params.add(DisMaxParams.QF, qf);
-			params.add(DisMaxParams.PF, qf);
-			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
-				int mm = calcMM(query.getFreeTextQuery());
-				params.add(DisMaxParams.MM, "" + mm);
-				if (systemConfigs.isRunningWithSolr6()) {
-					params.add(DisMaxParams.MM, "1");
-					params.add("q.op", "AND");
-				}
-			} else {
-				params.add(DisMaxParams.MM, "1");
-				if (systemConfigs.isRunningWithSolr6()) {
-					params.add("q.op", "OR");
-				}
-			}
-			params.add("defType", "edismax");
-			params.add(DisMaxParams.BQ, "\"" + query.getFreeTextQuery() + "\"");
 
-			for (SearchBoost boost : query.getQueryBoosts()) {
-				params.add(DisMaxParams.BQ, boost.getKey() + "^" + boost.getValue());
-			}
-		}
+		addParamsForFreeTextSearch(params, query.getFreeTextQuery(), query.getUserFilters(),
+				ctx.getLanguages(), query.getLanguage(), mainDataLanguage,
+				query.getFieldBoosts(), query.getQueryBoosts(), ctx.getSearchedSchemaTypes(), systemConfigs);
 
 		if (query.getUserFilters() != null) {
 			for (UserFilter userFilter : query.getUserFilters()) {
-				params.add(CommonParams.FQ, userFilter.buildFQ(securityTokenManager));
+				params.add(CommonParams.FQ, userFilter.buildFQ(securityTokenManager, query));
 			}
 		}
 
@@ -1175,6 +1363,13 @@ public class SearchServices {
 			params.add(CommonParams.SORT, sort);
 		}
 
+		//		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()
+		//			&& modelLayerFactory != null
+		//			&& modelLayerFactory.getRecordsCaches() != null
+		//			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+		//			params.set(CommonParams.FL, "id");
+		//
+		//		} else
 		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().getAcceptedFields() != null) {
 			List<String> fields = new ArrayList<>();
 			fields.add("id");
@@ -1195,23 +1390,13 @@ public class SearchServices {
 				}
 			}
 
+
 			params.set(CommonParams.FL, StringUtils.join(fields.toArray(), ","));
 
 		}
 
 		if (query.isHighlighting() && ctx.getTypes() != null) {
-			HashSet<String> highligthedMetadatas = new HashSet<>();
-			for (Metadata metadata : ctx.getTypes().getSearchableMetadatas()) {
-				for (String language : ctx.getLanguages()) {
-					highligthedMetadatas.add(metadata.getAnalyzedField(language).getDataStoreCode());
-				}
-			}
-
-			params.add(HighlightParams.HIGHLIGHT, "true");
-			params.add(HighlightParams.FIELDS, StringUtils.join(highligthedMetadatas, " "));
-			params.add(HighlightParams.SNIPPETS, "1");
-			params.add(HighlightParams.FRAGSIZE, "140");
-			params.add(HighlightParams.MERGE_CONTIGUOUS_FRAGMENTS, "true");
+			addParamsForHighlight(params, ctx.getTypes().getSearchableMetadatas(), ctx.getLanguages());
 		}
 
 		if (query.isSpellcheck()) {
@@ -1288,7 +1473,83 @@ public class SearchServices {
 			params.add(CommonParams.Q, StringUtils.defaultString(query.getFreeTextQuery(), "*:*"));
 		}
 
+		if (Toggle.DEBUG_SOLR_TIMINGS.isEnabled()) {
+			params.add("debug", "timing");
+		}
+
 		return params;
+	}
+
+	public static void addParamsForFreeTextSearch(ModifiableSolrParams params, String freeTextQuery,
+												  List<UserFilter> userFilters,
+												  List<String> languages, String queryLanguage, String mainDataLanguage,
+												  List<SearchBoost> fieldBoosts, List<SearchBoost> queryBoosts,
+												  List<MetadataSchemaType> searchedSchemaTypes,
+												  ConstellioEIMConfigs systemConfigs) {
+		if (freeTextQuery != null) {
+			User user = null;
+			if (userFilters != null && userFilters.size() > 0) {
+				user = userFilters.get(0).getUser();
+			}
+			String qf = getQfFor(languages, queryLanguage, mainDataLanguage, fieldBoosts, searchedSchemaTypes, user).trim();
+			params.add(DisMaxParams.QF, qf);
+			params.add(DisMaxParams.PF, qf);
+			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
+				int mm = calcMM(freeTextQuery);
+				params.add(DisMaxParams.MM, "" + mm);
+				if (systemConfigs.isRunningWithSolr6()) {
+					params.add(DisMaxParams.MM, "1");
+					params.add("q.op", "AND");
+				}
+			} else {
+				params.add(DisMaxParams.MM, "1");
+				if (systemConfigs.isRunningWithSolr6()) {
+					params.add("q.op", "OR");
+				}
+			}
+
+			if (systemConfigs.isAlwaysSearchUsingEDismax() || isFreeTextRequiringEDismax(freeTextQuery)) {
+				params.add("defType", "edismax");
+			} else {
+				params.add("defType", "dismax");
+			}
+
+			if (systemConfigs.isSearchUsingTermsInBQ()) {
+				params.add(DisMaxParams.BQ, "\"" + freeTextQuery + "\"");
+			}
+
+			for (SearchBoost boost : queryBoosts) {
+				params.add(DisMaxParams.BQ, boost.getKey() + "^" + boost.getValue());
+			}
+		}
+	}
+
+	public static void addParamsForHighlight(ModifiableSolrParams params, List<Metadata> searchableMetadatas,
+											 List<String> languages) {
+		HashSet<String> highligthedMetadatas = new HashSet<>();
+		for (Metadata metadata : searchableMetadatas) {
+			for (String language : languages) {
+				highligthedMetadatas.add(metadata.getAnalyzedField(language).getDataStoreCode());
+			}
+		}
+
+		params.add(HighlightParams.HIGHLIGHT, "true");
+		params.add(HighlightParams.FIELDS, StringUtils.join(highligthedMetadatas, " "));
+		params.add(HighlightParams.SNIPPETS, "1");
+		params.add(HighlightParams.FRAGSIZE, "140");
+		params.add(HighlightParams.MERGE_CONTIGUOUS_FRAGMENTS, "true");
+	}
+
+	public static boolean isFreeTextRequiringEDismax(String freeTextQuery) {
+		if (freeTextQuery == null) {
+			return false;
+
+		} else {
+			String freeText = freeTextQuery.toLowerCase();
+			return freeText.contains("?") || freeText.contains("*") || freeText.contains("(")
+				   || freeText.contains(")") || freeText.contains("and") || freeText.contains("or")
+				   || freeText.contains("not");
+		}
 	}
 
 	@NotNull
@@ -1391,7 +1652,7 @@ public class SearchServices {
 	 * @param userQuery
 	 * @return
 	 */
-	private int calcMM(String userQuery) {
+	static public int calcMM(String userQuery) {
 		HashSet queryTerms = new HashSet(asList(StringUtils.split(StringUtils.lowerCase(userQuery))));
 		queryTerms.removeAll(asList(STOP_WORDS_FR));
 		return queryTerms.size();
@@ -1399,6 +1660,12 @@ public class SearchServices {
 
 	String getQfFor(List<String> languages, String queryLanguage, List<SearchBoost> boosts,
 					List<MetadataSchemaType> searchedSchemaTypes, User user) {
+		return getQfFor(languages, queryLanguage, mainDataLanguage, boosts, searchedSchemaTypes, user);
+	}
+
+	public static String getQfFor(List<String> languages, String queryLanguage, String mainDataLanguage,
+								  List<SearchBoost> boosts,
+								  List<MetadataSchemaType> searchedSchemaTypes, User user) {
 		StringBuilder sb = new StringBuilder();
 
 		Set<String> fields = new HashSet<>();
@@ -1503,8 +1770,9 @@ public class SearchServices {
 				queryResponseDTO.getFieldsStatistics());
 		SPEQueryResponse response = new SPEQueryResponse(fieldFacetValues, facetPivotValues, statisticsValues,
 				queryFacetValues, queryResponseDTO.getQtime(), queryResponseDTO.getNumFound(), records,
-				queryResponseDTO.getHighlights(), queryResponseDTO.isCorrectlySpelt(),
-				queryResponseDTO.getSpellCheckerSuggestions(), moreLikeThisResult);
+				queryResponseDTO.getHighlights(), queryResponseDTO.getDebugMap(),
+				queryResponseDTO.isCorrectlySpelt(), queryResponseDTO.getSpellCheckerSuggestions(), moreLikeThisResult);
+
 
 		if (query.getResultsProjection() != null) {
 			return query.getResultsProjection().project(query, response);
@@ -1515,7 +1783,57 @@ public class SearchServices {
 
 	private QueryResponseDTO queryDao(LogicalSearchQuery query) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
-		return dataStoreDao(query.getDataStore()).query(query.getName(), params);
+		QueryResponseDTO responseDTO = null;
+		if (modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().isCopyingRecordsInSearchCollection()
+			&& isSupportedInSearchCollection(query, params)) {
+			responseDTO = dataStoreDao(DataStore.SEARCH).query(query.getName(), params);
+
+			//			QueryResponseDTO expectedResponseDTO = dataStoreDao(query.getDataStore()).query(query.getName(), params);
+			//
+			//			List<String> ids = responseDTO.getResults().stream().map(RecordDTO::getId).collect(Collectors.toList());
+			//			List<String> expectedIds = expectedResponseDTO.getResults().stream().map(RecordDTO::getId)
+			//					.collect(Collectors.toList());
+			//
+			//			if (!ids.equals(expectedIds)) {
+			//				System.out.println("Ids : " + ids);
+			//				System.out.println("Expected ids : " + expectedIds);
+			//				System.out.println();
+			//			} else {
+			//				System.out.println("Success!");
+			//			}
+
+		} else {
+			responseDTO = dataStoreDao(query.getDataStore()).query(query.getName(), params);
+		}
+
+		if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()
+			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+
+			List<RecordDTO> loadedFromCacheRecordsDTO = new ArrayList<>();
+			//todo Keep a short term history of deleted records, in the case they were returned by a query at the same moment
+
+			for (RecordDTO recordDTOWithId : responseDTO.getResults()) {
+				loadedFromCacheRecordsDTO.add(modelLayerFactory.getRecordsCaches()
+						.getRecordSummary(recordDTOWithId.getId()).getRecordDTO());
+			}
+
+
+			return responseDTO = new QueryResponseDTO(
+					loadedFromCacheRecordsDTO, (int) responseDTO.getQtime(), responseDTO.getNumFound(),
+					responseDTO.getFieldFacetValues(),
+					responseDTO.getFieldFacetPivotValues(),
+					responseDTO.getFieldsStatistics(),
+					responseDTO.getQueryFacetValues(), responseDTO.getHighlights(),
+					responseDTO.getDebugMap(), responseDTO.isCorrectlySpelt(),
+					responseDTO.getSpellCheckerSuggestions(), responseDTO.getMoreLikeThisResults()
+			);
+		} else {
+			return responseDTO;
+		}
+	}
+
+	private boolean isSupportedInSearchCollection(LogicalSearchQuery query, ModifiableSolrParams params) {
+		return query.getReturnedMetadatas().isOnlyId() && query.getFreeTextQuery() != null;
 	}
 
 	private List<MoreLikeThisRecord> getResultWithMoreLikeThis(List<MoreLikeThisDTO> moreLikeThisResults) {
@@ -1564,15 +1882,6 @@ public class SearchServices {
 		return result;
 	}
 
-	private void addUserFilter(ModifiableSolrParams params, List<UserFilter> userFilters) {
-		if (userFilters == null) {
-			return;
-		}
-
-		for (UserFilter userFilter : userFilters) {
-			params.add(CommonParams.FQ, userFilter.buildFQ(securityTokenManager));
-		}
-	}
 
 	public List<Record> getAllRecords(MetadataSchemaType schemaType) {
 
@@ -1605,6 +1914,8 @@ public class SearchServices {
 	RecordDao dataStoreDao(String dataStore) {
 		if (dataStore == null || dataStore.equals(DataStore.RECORDS)) {
 			return modelLayerFactory.getDataLayerFactory().newRecordDao();
+		} else if (dataStore == null || dataStore.equals(DataStore.SEARCH)) {
+			return modelLayerFactory.getDataLayerFactory().newSearchDao();
 		} else {
 			return modelLayerFactory.getDataLayerFactory().newEventsDao();
 		}
@@ -1645,4 +1956,211 @@ public class SearchServices {
 	public Set<String> getHashesOf(LogicalSearchCondition condition) {
 		return getHashesOf(new LogicalSearchQuery(condition));
 	}
+
+
+	public List<RecordId> recordsIdSortedByTitleUsingTupleStream(MetadataSchemaType schemaType,
+																 Metadata metadata,
+																 Consumer<Integer> progressionConsumer) {
+
+		String message = "Fetching sortValues of schema type '" + schemaType.getCode() + "' of collection '" + schemaType.getCollection() + "' using tuple stream method";
+		LOGGER.info(message + " - starting");
+		Map<String, String> props = new HashMap<>();
+		props.put("q", "schema_s:" + schemaType.getCode() + "_*");
+		props.put("fq", "collection_s:" + schemaType.getCollection());
+
+		StringBuilder fields = new StringBuilder("id,");
+		StringBuilder sort = new StringBuilder();
+
+		if (metadata.isSortable()) {
+			sort.append(metadata.getSortMetadata().getDataStoreCode());
+			sort.append(" asc");
+			sort.append(", ");
+
+			fields.append(metadata.getSortMetadata().getDataStoreCode());
+			fields.append(", ");
+		}
+
+		sort.append(metadata.getDataStoreCode());
+		sort.append(" asc");
+
+		fields.append(metadata.getDataStoreCode());
+
+		props.put("sort", sort.toString());
+		props.put("fl", fields.toString());
+		props.put("rows", "1000000000");
+
+		TupleStream tupleStream = dataStoreDao(DataStore.RECORDS).tupleStream(props);
+
+		try {
+			tupleStream.open();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		AtomicInteger count = new AtomicInteger();
+
+		List<RecordId> ids = new ArrayList<>();
+		try {
+
+			Tuple tuple = null;
+			while (!(tuple = tupleStream.read()).EOF) {
+				ids.add(RecordId.toId(tuple.getString("id")));
+				progressionConsumer.accept(count.incrementAndGet());
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} finally {
+			try {
+				tupleStream.close();
+			} catch (IOException e1) {
+				throw new RuntimeException(e1);
+			}
+		}
+
+		return ids;
+		//
+		//
+		//
+		//
+
+		//
+		//		List<LogicalSearchCondition> conditions = typesWithSortableTitle.stream()
+		//				.map((typeCode) -> where(Schemas.SCHEMA).isStartingWithText(typeCode + "_"))
+		//				.collect(Collectors.toList());
+		//
+		//		LogicalSearchQuery query = new LogicalSearchQuery(fromEveryTypesOfEveryCollection().whereAnyCondition(conditions));
+		//		query.sortAsc(Schemas.TITLE.getSortField());
+		//		query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
+		//		query.filteredByVisibilityStatus(ALL);
+		//		query.filteredByStatus(StatusFilter.ALL);
+		//		Iterator<Record> idIterator = recordsIteratorKeepingOrder(query, 100000);
+		//
+		//		long rows = getResultsCount(query);
+		//		AtomicInteger progress = new AtomicInteger();
+		//
+		//		List<RecordId> ids = new ArrayList<>();
+		//
+		//		while (idIterator.hasNext()) {
+		//			if (progress.incrementAndGet() % 100000 == 0) {
+		//				LOGGER.info("loading ids " + progress.get() + "/" + rows);
+		//			}
+		//			ids.add(RecordId.id(idIterator.next().getId()));
+		//		}
+		//
+		//		return ids;
+	}
+
+
+	public List<RecordId> recordsIdSortedByTitleUsingIterator(MetadataSchemaType schemaType, Metadata metadata,
+															  Consumer<Integer> progressionConsumer) {
+
+		LogicalSearchQuery query = new LogicalSearchQuery(from(schemaType).returnAll());
+		if (metadata.isSortable()) {
+			query.sortAsc(metadata.getSortField());
+		}
+		query.sortAsc(metadata);
+
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
+		query.filteredByVisibilityStatus(ALL);
+		query.filteredByStatus(StatusFilter.ALL);
+		query.setQueryExecutionMethod(QueryExecutionMethod.USE_SOLR);
+		Iterator<Record> idIterator = recordsIteratorKeepingOrder(query, 100000);
+
+		AtomicInteger progress = new AtomicInteger();
+		List<RecordId> ids = new ArrayList<>();
+		while (idIterator.hasNext()) {
+			ids.add(RecordId.id(idIterator.next().getId()));
+			progressionConsumer.accept(progress.incrementAndGet());
+		}
+
+		return ids;
+	}
+
+	public Iterator<RecordId> recordsIdIteratorExceptEvents() {
+		if (systemConfigs.isRunningWithSolr6() && modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration()
+				.useSolrTupleStreamsIfSupported()) {
+			return recordsIdIteratorExceptEventsUsingTupleStream();
+
+		} else {
+			return recordsIdIteratorExceptEventsUsingQueryIterator();
+		}
+	}
+
+	public Iterator<RecordId> recordsIdIteratorExceptEventsUsingQueryIterator() {
+		LogicalSearchQuery query = new LogicalSearchQuery(fromEveryTypesOfEveryCollection()
+				.where(Schemas.SCHEMA).isNot(startingWithText("event_")));
+		query.sortAsc(Schemas.IDENTIFIER);
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
+		query.filteredByVisibilityStatus(ALL);
+		query.filteredByStatus(StatusFilter.ALL);
+		Iterator<String> idIterator = recordsIdsIterator(query);
+
+		long rows = getResultsCount(query);
+		AtomicInteger progress = new AtomicInteger();
+		return new LazyIterator<RecordId>() {
+			@Override
+			protected RecordId getNextOrNull() {
+
+				if (progress.incrementAndGet() % 100000 == 0) {
+					LOGGER.info("loading ids " + progress.get() + "/" + rows);
+				}
+				return idIterator.hasNext() ? RecordId.toId(idIterator.next()) : null;
+			}
+		};
+
+	}
+
+	public Iterator<RecordId> recordsIdIteratorExceptEventsUsingTupleStream() {
+
+		LOGGER.info("Fetching ids using tuple stream method...");
+		Map<String, String> props = new HashMap<>();
+		props.put("q", "-schema_s:" + "event_*");
+		//props.put("qt", "/export");
+		props.put("sort", "id asc");
+		props.put("fl", "id");
+		props.put("rows", "1000000000");
+
+		TupleStream tupleStream = dataStoreDao(DataStore.RECORDS).tupleStream(props);
+
+		try {
+			tupleStream.open();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		AtomicInteger count = new AtomicInteger();
+
+		return new LazyIterator<RecordId>() {
+
+			@Override
+			protected RecordId getNextOrNull() {
+
+				try {
+
+					Tuple tuple = tupleStream.read();
+					if (tuple.EOF) {
+						LOGGER.info("Fetching ids using tuple stream method : " + count.get() + " (finished)");
+						tupleStream.close();
+						return null;
+					} else {
+						if (count.get() % 50000 == 0) {
+							LOGGER.info("Fetching ids using tuple stream method : " + count.get());
+						}
+						count.incrementAndGet();
+						return RecordId.toId(tuple.getString("id"));
+					}
+				} catch (IOException e) {
+					try {
+						tupleStream.close();
+					} catch (IOException e1) {
+						throw new RuntimeException(e1);
+					}
+					throw new RuntimeException(e);
+				}
+			}
+		};
+
+
+	}
+
 }

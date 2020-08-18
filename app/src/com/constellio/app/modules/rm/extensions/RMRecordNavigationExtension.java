@@ -5,6 +5,7 @@ import com.constellio.app.extensions.records.RecordNavigationExtensionUtils;
 import com.constellio.app.extensions.records.params.NavigationParams;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -16,6 +17,7 @@ import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -107,6 +109,8 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 			constellioNavigator.displayRetentionRule(recordId);
 		} else if (Category.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			constellioNavigator.displayCategory(recordId);
+		} else if (AdministrativeUnit.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			constellioNavigator.displayAdminUnit(recordId);
 		} else {
 			throw new UnsupportedOperationException("No navigation for schema type code " + schemaTypeCode);
 		}
@@ -123,6 +127,8 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 			viewForSchemaTypeCode = true;
 		} else if (Category.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			viewForSchemaTypeCode = true;
+		} else if (AdministrativeUnit.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			viewForSchemaTypeCode = true;
 		} else {
 			viewForSchemaTypeCode = RetentionRule.SCHEMA_TYPE.equals(schemaTypeCode);
 		}
@@ -135,8 +141,14 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 		boolean activeLink;
 		String schemaTypeCode = navigationParams.getSchemaTypeCode();
 		if (isViewForSchemaTypeCode(schemaTypeCode)) {
-			String schemaTypeLabel = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-					.getSchemaType(schemaTypeCode).getLabel(Language.withLocale(currentLocale)).toLowerCase();
+			MetadataSchemaType schemaType = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(schemaTypeCode);
+			String schemaTypeLabel = schemaType.getLabel(Language.withLocale(currentLocale));
+			if (schemaTypeLabel == null && !schemaType.getLabels().isEmpty()) {
+				schemaTypeLabel = schemaType.getLabels().values().iterator().next();
+			} else {
+				schemaTypeLabel = schemaType.getCode();
+			}
+			schemaTypeLabel = schemaTypeLabel.toLowerCase();
 			Map<String, Object> params = new HashMap<>();
 			params.put("schemaType", schemaTypeLabel);
 			final String errorMessage = $("ReferenceDisplay.cannotDisplayLogicallyDeletedRecord", params);
@@ -149,7 +161,8 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 					public void buttonClick(ClickEvent event) {
 						if (isRecordInTrash) {
 							RecordNavigationExtensionUtils.showMessage(errorMessage);
-						} else if (!isOpenInViewer(referenceDisplay)) {
+							//						} else if (!isOpenInViewer(referenceDisplay)) {
+						} else {	
 							navigateToView(navigationParams.setOpenInNewTab(referenceDisplay.isOpenLinkInNewTab()));
 						}
 					}

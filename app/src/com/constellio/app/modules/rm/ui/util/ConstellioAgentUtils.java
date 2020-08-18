@@ -1,6 +1,9 @@
 package com.constellio.app.modules.rm.ui.util;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.extensions.api.AgentExtension.AgentUrlExtension.GetAgentUrlParams;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.appManagement.AppManagementService;
 import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
@@ -15,9 +18,10 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.utils.HttpRequestUtils;
 import com.constellio.data.utils.UnicodeUtils;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.AgentStatus;
@@ -69,9 +73,16 @@ public class ConstellioAgentUtils {
 	}
 
 	public static String getAgentBaseURL(HttpServletRequest request) {
+		return getAgentBaseURL(request, null);
+	}
+
+	public static String getAgentBaseURL(HttpServletRequest request, AppLayerFactory appLayerFactory) {
 		String agentBaseURL;
 		// FIXME Should not obtain ConstellioFactories through singleton
-		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+		if (appLayerFactory == null) {
+			appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		}
+		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 		if (rmConfigs.isAgentEnabled()) {
@@ -137,10 +148,18 @@ public class ConstellioAgentUtils {
 
 	public static String getAgentURL(RecordVO recordVO, ContentVersionVO contentVersionVO, HttpServletRequest request,
 									 SessionContext sessionContext) {
+		return getAgentURL(recordVO, contentVersionVO, request, sessionContext, null);
+	}
+
+	public static String getAgentURL(RecordVO recordVO, ContentVersionVO contentVersionVO, HttpServletRequest request,
+									 SessionContext sessionContext, AppLayerFactory appLayerFactory) {
 		String agentURL;
 		if (recordVO != null && contentVersionVO != null && isAgentSupported(request)) {
 			// FIXME Should not obtain ConstellioFactories through singleton
-			ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+			if (appLayerFactory == null) {
+				appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+			}
+			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 			SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 			RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 			UserVO userVO = sessionContext.getCurrentUser();
@@ -151,9 +170,22 @@ public class ConstellioAgentUtils {
 				agentStatus = AgentStatus.ENABLED;
 			}
 			if (rmConfigs.isAgentEnabled() && agentStatus == AgentStatus.ENABLED && (!(recordVO instanceof UserDocumentVO) || rmConfigs.isAgentEditUserDocuments())) {
+				RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions()
+						.forCollection(recordVO.getRecord().getCollection()).forModule(ConstellioRMModule.ID);
+				if (rmModuleExtensions.getAgentExtensions().getAgentUrlExtension().getValue() != null) {
+					if (request == null) {
+						request = VaadinServletService.getCurrentServletRequest();
+					}
+					User user = userServices.getUserInCollection(userVO.getUsername(), recordVO.getRecord().getCollection());
+					String url = rmModuleExtensions.getAgentExtensions().getAgentUrlExtension().getValue()
+							.getAgentUrl(new GetAgentUrlParams(user, recordVO.getId(), request));
+					if (url != null) {
+						return url;
+					}
+				}
 				String resourcePath = getResourcePath(recordVO, contentVersionVO, sessionContext);
 				if (resourcePath != null) {
-					String agentBaseURL = getAgentBaseURL(request);
+					String agentBaseURL = getAgentBaseURL(request, appLayerFactory);
 					StringBuffer sb = new StringBuffer();
 					sb.append(agentBaseURL);
 					sb.append(resourcePath);
@@ -229,9 +261,9 @@ public class ConstellioAgentUtils {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 
 		Record record = recordVO.getRecord();
-		if (record == null) {
-			record = recordServices.getDocumentById(recordVO.getId());
-		}
+		//		if (record == null || record.getRecordDTOMode() != RecordDTOMode.FULLY_LOADED) {
+		//			record = recordServices.getDocumentById(recordVO.getId());
+		//		}
 		String schemaCode = record.getSchemaCode();
 		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 

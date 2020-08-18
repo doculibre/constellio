@@ -4,7 +4,6 @@ import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommand;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommandFactory;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommandFactory.SmbTestCommandType;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
@@ -96,7 +95,7 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 
 	//@Test(expected = SmbException.class)
 
-	@SlowTest
+	// Confirm @SlowTest
 	/**
 	 * smbFile.exists() throws "jcifs.smb.SmbException: Failed to connect: 0.0.0.0<00>/192.168.1.207" on a wrong ip.
 	 * It takes about 30 seconds to throw the exception.
@@ -258,7 +257,7 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 
 	//@Test(expected = SmbException.class)
 
-	@SlowTest
+	// Confirm @SlowTest
 	/**
 	 * smbFile.length() throws jcifs.smb.SmbException: Failed to connect: 0.0.0.0<00>/192.168.1.207
 	 */

@@ -31,7 +31,6 @@ public class ParsedContentConverter {
 				stringBuilder.append(parameterKey + "=" + parameterValue + "\n");
 			}
 		}
-
 		stringBuilder.append(SEPARATOR);
 		stringBuilder.append(encodeString(parsedContent.getParsedContent()));
 		return stringBuilder.toString();

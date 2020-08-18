@@ -1,6 +1,7 @@
 package com.constellio.model.conf;
 
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.conf.PropertiesConfiguration;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.services.encrypt.EncryptionServices;
@@ -85,6 +86,14 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 
 		public void setRecordsVolatileCacheMemorySize(String volatileCacheSizeInMemory) {
 			setString("dao.cache.volatileCacheSizeInMemory", volatileCacheSizeInMemory);
+		}
+
+		public void setPersistStringRecordIdLegacyMapping(boolean persistLegacyMapping) {
+			setBoolean("dao.stringRecordIds.persistLegacyMapping", persistLegacyMapping);
+		}
+
+		public void setForceCacheLoadingFromSolr(boolean forcingCacheLoadingFromSolr) {
+			setBoolean("dao.cache.forcingCacheLoadingFromSolr", forcingCacheLoadingFromSolr);
 		}
 	}
 
@@ -217,6 +226,37 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 
 	public long getRecordsVolatileCacheMemorySize() {
 		return getBytesSize("dao.cache.volatileCacheSizeInMemory", "250M");
+	}
+
+	@Override
+	public boolean isForcingCacheLoadingFromSolr() {
+		return getBoolean("dao.cache.forcingCacheLoadingFromSolr", false);
+	}
+
+	@Override
+	public boolean isForcingCacheSortValuesLoadingFromSolr() {
+		return getBoolean("dao.cache.forcingCacheSortValuesLoadingFromSolr", false);
+	}
+
+	@Override
+	public boolean isLoadingIdsFromVaultWhenPossible() {
+		return getBoolean("dao.cache.loadingIdsFromVaultWhenPossible", true);
+	}
+
+
+	@Override
+	public boolean isSummaryCacheEnabled() {
+		return getBoolean("caches.summary.enabled", true);
+	}
+
+	@Override
+	public long getReindexingThreadMaxBatchMemorySize() {
+		return getBytesSize("reindexing.threadBatchMaxMemorySize", "1M");
+	}
+
+	@Override
+	public boolean isPersistingStringRecordIdLegacyMapping() {
+		return getBoolean("dao.stringRecordIds.persistLegacyMapping", true);
 	}
 
 

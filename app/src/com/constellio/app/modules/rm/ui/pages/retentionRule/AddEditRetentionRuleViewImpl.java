@@ -99,7 +99,7 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 
 	private class RetentionRuleForm extends RecordForm {
 		public RetentionRuleForm(RecordVO record) {
-			super(record, new RetentionRuleFieldFactory());
+			super(record, new RetentionRuleFieldFactory(), AddEditRetentionRuleViewImpl.this.getConstellioFactories());
 		}
 
 		@Override

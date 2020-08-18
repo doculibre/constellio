@@ -7,11 +7,12 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
+import com.constellio.app.ui.framework.components.layouts.I18NCssLayout;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup.DisabledMenuViewGroup;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocatorMode;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.vaadin.navigator.View;
@@ -345,6 +346,13 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		String firstName = currentUser.getFirstName();
 		String lastName = currentUser.getLastName();
 
+		StringBuilder userNameBuilder = new StringBuilder();
+		userNameBuilder.append(firstName);
+		if (StringUtils.isNotBlank(lastName)) {
+			userNameBuilder.append(" ");
+			userNameBuilder.append(lastName);
+		}
+
 		//		if (currentUser.getEmail() != null && currentUser.getEmail().startsWith("elizabeth.madera")) {
 		//			userSettingsItem = userMenu.addItem("", new ThemeResource("images/profiles/egg2.jpg"), null);
 		//
@@ -362,7 +370,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			StreamResource resource = new StreamResource(source, currentUser.getUsername() + ".png");
 			userSettingsItem = userMenu.addItem("", resource, null);
 		}
-		userSettingsItem.setText("<span class=\"user-caption\">" + firstName + " " + lastName + "</span>");
+		userSettingsItem.setText("<span class=\"user-caption\">" + userNameBuilder.toString() + "</span>");
 		userSettingsItem.setStyleName(STYLE_USER_SETTINGS);
 
 		userSettingsItem.addItem($("ConstellioMenu.editProfile"), new Command() {
@@ -382,7 +390,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		//			}
 		//		});
 		final String collection = sessionContext.getCurrentCollection();
-		for (String language : presenter.getCollectionLanguages(collection)) {
+		for (String language : presenter.getCollectionLanguagesExceptCurrent(collection)) {
 			userSettingsItem.addSeparator();
 			userSettingsItem.addItem(language, new Command() {
 				@Override
@@ -412,7 +420,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	}
 
 	private Component buildBadgeWrapper(final Component menuItemButton, final Label badgeLabel) {
-		CssLayout badgeWrapper = new CssLayout(menuItemButton);
+		I18NCssLayout badgeWrapper = new I18NCssLayout(menuItemButton);
 		badgeWrapper.addStyleName("badgewrapper");
 		badgeWrapper.addStyleName(ValoTheme.MENU_ITEM);
 		badgeWrapper.setWidth(100.0f, Unit.PERCENTAGE);

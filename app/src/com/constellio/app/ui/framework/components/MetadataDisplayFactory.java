@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.api.extensions.params.MetadataDisplayCustomValueExtentionParams;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
@@ -25,6 +26,7 @@ import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsDisplayImpl;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.AllowedReferences;
@@ -39,7 +41,6 @@ import com.vaadin.server.ResourceReference;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -49,6 +50,8 @@ import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -111,7 +114,7 @@ public class MetadataDisplayFactory implements Serializable {
 					}
 				}
 				if (!elementDisplayComponents.isEmpty()) {
-					displayComponent = newCollectionValueDisplayComponent(elementDisplayComponents);
+					displayComponent = newCollectionValueDisplayComponent(metadataVO, elementDisplayComponents);
 					displayComponent.setVisible(hasAVisibleComponent);
 				} else {
 					displayComponent = null;
@@ -199,7 +202,7 @@ public class MetadataDisplayFactory implements Serializable {
 						if (!url.startsWith("http://") && !url.startsWith("https://")) {
 							url = "http://" + url;
 						}
-						Link link = new BaseLink(url, new ExternalResource(url));
+						BaseLink link = new BaseLink(url, new ExternalResource(url));
 						link.setTargetName("_blank");
 						displayComponent = link;
 					} else {
@@ -226,7 +229,7 @@ public class MetadataDisplayFactory implements Serializable {
 					break;
 				case CONTENT:
 					ContentVersionVO contentVersionVO = (ContentVersionVO) displayValue;
-					displayComponent = new ContentVersionDisplay(recordVO, contentVersionVO, new BaseUpdatableContentVersionPresenter());
+					displayComponent = new ContentVersionDisplay(recordVO, contentVersionVO, metadata.getLocalCode(), new BaseUpdatableContentVersionPresenter());
 					break;
 				case REFERENCE:
 					switch (metadataInputType) {
@@ -285,8 +288,18 @@ public class MetadataDisplayFactory implements Serializable {
 	//		return new DownloadContentVersionLink(contentVersionVO);
 	//	}
 
-	public Component newCollectionValueDisplayComponent(List<Component> elementDisplayComponents) {
+	public Component newCollectionValueDisplayComponent(MetadataVO metadataVO,
+														List<Component> elementDisplayComponents) {
 		VerticalLayout verticalLayout = new VerticalLayout();
+		if (metadataVO.getMetadataSortingType() == MetadataSortingType.ALPHANUMERICAL_ORDER) {
+			Collections.sort(elementDisplayComponents, new Comparator<Component>() {
+				@Override
+				public int compare(Component o1, Component o2) {
+					return LangUtils.compareStrings(o1.getCaption(), o2.getCaption());
+				}
+			});
+		}
+
 		for (Component elementDisplayComponent : elementDisplayComponents) {
 			verticalLayout.addComponent(elementDisplayComponent);
 		}
@@ -496,10 +509,10 @@ public class MetadataDisplayFactory implements Serializable {
 							//									if (viewHrefTag != null) {
 							//										displayValueString = viewHrefTag;
 							//									} else {
-							//										displayValueString = converter.convertToPresentation(referenceRecordId, String.class, locale);
+							//										displayValueString = conversion.convertToPresentation(referenceRecordId, String.class, locale);
 							//									}
 							//								} else {
-							//									displayValueString = converter.convertToPresentation(referenceRecordId, String.class, locale);
+							//									displayValueString = conversion.convertToPresentation(referenceRecordId, String.class, locale);
 							//								}
 							//							} else {
 							//								displayValueString = null;

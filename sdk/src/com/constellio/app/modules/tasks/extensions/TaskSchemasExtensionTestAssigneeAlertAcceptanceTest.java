@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.extensions;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
@@ -18,6 +19,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -127,6 +129,169 @@ public class TaskSchemasExtensionTestAssigneeAlertAcceptanceTest extends Constel
 		final List<String> expectedRecipents = new ArrayList<>(alice.getPersonalEmails());
 		expectedRecipents.add(alice.getEmail());
 		assertThat(actualRecipents).isEqualTo(new HashSet<>(expectedRecipents));
+	}
+
+	@Test
+	public void givenTaskAssignedToBobWhenBobDelegateTaskToAliceThenAliceReceivesEmailInsteadOfBob()
+			throws RecordServicesException {
+		User alice = users.aliceIn(zeCollection);
+		User bob = users.bobIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+		Task newTask = tasksSchemas.newTask().setTitle("title").setAssigner(admin.getId()).setAssignedOn(LocalDate.now()).setAssignee(bob.getId());
+
+		bob.set(TaskUser.DELEGATION_TASK_USER, alice);
+		recordServices.add(bob);
+		recordServices.add(newTask);
+		recordServices.flush();
+
+		EmailToSend emailToSend = getEmailToSendByTemplateId(TASK_ASSIGNED_TO_YOU);
+		assertThat(emailToSend).isNotNull();
+		final Set<String> actualRecipients = new HashSet<>();
+		for (EmailAddress emailAddress : emailToSend.getTo()) {
+			actualRecipients.add(emailAddress.getEmail());
+		}
+
+		assertThat(newTask.getAssignee()).isEqualTo(alice.getId());
+		assertThat(actualRecipients).isEqualTo(new HashSet<>(asList(alice.getEmail())));
+	}
+
+	@Test
+	public void givenTaskAssignedToBobWhenBobDelegateTaskToAliceAndAliceToChuckThenChuckReceivesEmailInsteadOfBob()
+			throws RecordServicesException {
+		User alice = users.aliceIn(zeCollection);
+		User bob = users.bobIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+		User chuck = users.chuckNorrisIn(zeCollection);
+		Task newTask = tasksSchemas.newTask().setTitle("title").setAssigner(admin.getId()).setAssignedOn(LocalDate.now()).setAssignee(bob.getId());
+
+		bob.set(TaskUser.DELEGATION_TASK_USER, alice);
+		alice.set(TaskUser.DELEGATION_TASK_USER, chuck);
+		recordServices.add(bob);
+		recordServices.add(alice);
+		recordServices.add(newTask);
+		recordServices.flush();
+
+		EmailToSend emailToSend = getEmailToSendByTemplateId(TASK_ASSIGNED_TO_YOU);
+		assertThat(emailToSend).isNotNull();
+		final Set<String> actualRecipients = new HashSet<>();
+		for (EmailAddress emailAddress : emailToSend.getTo()) {
+			actualRecipients.add(emailAddress.getEmail());
+		}
+
+		assertThat(newTask.getAssignee()).isEqualTo(chuck.getId());
+		assertThat(actualRecipients).isEqualTo(new HashSet<>(asList(chuck.getEmail())));
+	}
+
+	@Test
+	public void givenTaskWithBobInAssigneeCandidatesWhenBobDelegateTaskToAliceThenAliceReceivesEmailInsteadOfBob()
+			throws RecordServicesException {
+		User alice = users.aliceIn(zeCollection);
+		User bob = users.bobIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+		User charles = users.charlesIn(zeCollection);
+		User dakota = users.dakotaIn(zeCollection);
+		Task newTask = tasksSchemas.newTask().setTitle("title").setAssigner(admin.getId()).setAssignedOn(LocalDate.now()).setAssigneeUsersCandidates(asList(bob, charles, dakota));
+
+		bob.set(TaskUser.DELEGATION_TASK_USER, alice);
+		recordServices.add(bob);
+		recordServices.add(newTask);
+		recordServices.flush();
+
+		EmailToSend emailToSend = getEmailToSendByTemplateId(TASK_ASSIGNED_TO_YOU);
+		assertThat(emailToSend).isNotNull();
+		final Set<String> actualRecipients = new HashSet<>();
+		for (EmailAddress emailAddress : emailToSend.getTo()) {
+			actualRecipients.add(emailAddress.getEmail());
+		}
+
+		assertThat(newTask.getAssigneeUsersCandidates()).containsAll(asList(alice.getId(), charles.getId(), dakota.getId()));
+		assertThat(actualRecipients).isEqualTo(new HashSet<>(asList(alice.getEmail(), dakota.getEmail(), charles.getEmail())));
+	}
+
+	@Test
+	public void givenTaskWithBobInAssigneeCandidatesWhenBobDelegateTaskToAliceAndAliceDelegateToChuckThenChuckReceivesEmailInsteadOfBob()
+			throws RecordServicesException {
+		User alice = users.aliceIn(zeCollection);
+		User bob = users.bobIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+		User charles = users.charlesIn(zeCollection);
+		User dakota = users.dakotaIn(zeCollection);
+		User chuck = users.chuckNorrisIn(zeCollection);
+		Task newTask = tasksSchemas.newTask().setTitle("title").setAssigner(admin.getId()).setAssignedOn(LocalDate.now()).setAssigneeUsersCandidates(asList(bob, charles, dakota));
+
+		bob.set(TaskUser.DELEGATION_TASK_USER, alice);
+		alice.set(TaskUser.DELEGATION_TASK_USER, chuck);
+		recordServices.add(bob);
+		recordServices.add(alice);
+		recordServices.add(newTask);
+		recordServices.flush();
+
+		EmailToSend emailToSend = getEmailToSendByTemplateId(TASK_ASSIGNED_TO_YOU);
+		assertThat(emailToSend).isNotNull();
+		final Set<String> actualRecipients = new HashSet<>();
+		for (EmailAddress emailAddress : emailToSend.getTo()) {
+			actualRecipients.add(emailAddress.getEmail());
+		}
+
+		assertThat(newTask.getAssigneeUsersCandidates()).containsAll(asList(chuck.getId(), charles.getId(), dakota.getId()));
+		assertThat(actualRecipients).isEqualTo(new HashSet<>(asList(chuck.getEmail(), dakota.getEmail(), charles.getEmail())));
+	}
+
+
+	@Test
+	public void givenTaskWhenAssignToBobAndBobDelegateTaskToAliceThenAliceReceivesEmailInsteadOfBob()
+			throws RecordServicesException {
+		User alice = users.aliceIn(zeCollection);
+		User bob = users.bobIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+		Task newTask = tasksSchemas.newTask().setTitle("title");
+		bob.set(TaskUser.DELEGATION_TASK_USER, alice);
+		recordServices.add(bob);
+		recordServices.add(newTask);
+
+		newTask.setAssigner(admin.getId()).setAssignedOn(LocalDate.now()).setAssignee(bob.getId());
+		recordServices.add(newTask);
+		recordServices.flush();
+
+		EmailToSend emailToSend = getEmailToSendByTemplateId(TASK_ASSIGNED_TO_YOU);
+		assertThat(emailToSend).isNotNull();
+
+		final Set<String> actualRecipients = new HashSet<>();
+		for (EmailAddress emailAddress : emailToSend.getTo()) {
+			actualRecipients.add(emailAddress.getEmail());
+		}
+
+		assertThat(newTask.getAssignee()).isEqualTo(alice.getId());
+		assertThat(actualRecipients).isEqualTo(new HashSet<>(asList(alice.getEmail())));
+	}
+
+	@Test
+	public void givenTaskWhenAddBobInAssigneeCandidateAndBobDelegateTaskToAliceThenAliceReceivesEmailInsteadOfBob()
+			throws RecordServicesException {
+		User alice = users.aliceIn(zeCollection);
+		User bob = users.bobIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+		User charles = users.charlesIn(zeCollection);
+		User dakota = users.dakotaIn(zeCollection);
+		Task newTask = tasksSchemas.newTask().setTitle("title");
+
+		bob.set(TaskUser.DELEGATION_TASK_USER, alice);
+		recordServices.add(bob);
+		recordServices.add(newTask);
+
+		newTask.setAssigner(admin.getId()).setAssignedOn(LocalDate.now()).setAssigneeUsersCandidates(asList(bob, charles, dakota));
+		recordServices.add(newTask);
+		recordServices.flush();
+
+		EmailToSend emailToSend = getEmailToSendByTemplateId(TASK_ASSIGNED_TO_YOU);
+		assertThat(emailToSend).isNotNull();
+		final Set<String> actualRecipients = new HashSet<>();
+		for (EmailAddress emailAddress : emailToSend.getTo()) {
+			actualRecipients.add(emailAddress.getEmail());
+		}
+
+		assertThat(newTask.getAssigneeUsersCandidates()).containsAll(asList(alice.getId(), charles.getId(), dakota.getId()));
+		assertThat(actualRecipients).isEqualTo(new HashSet<>(asList(alice.getEmail(), dakota.getEmail(), charles.getEmail())));
 	}
 
 	private List<String> getGroupUsersEmails(Group group) {

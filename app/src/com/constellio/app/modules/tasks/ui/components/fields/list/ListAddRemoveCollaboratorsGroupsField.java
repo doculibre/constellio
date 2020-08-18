@@ -7,6 +7,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorsGroupItem;
+import com.constellio.app.ui.framework.components.fields.lookup.GroupTextInputDataProvider;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
 import com.vaadin.data.util.ObjectProperty;
@@ -29,14 +30,18 @@ public class ListAddRemoveCollaboratorsGroupsField extends ListAddRemoveField<Ta
 
 	private RecordVO taskVO;
 
+	private GroupTextInputDataProvider groupTextInputDataProvider;
+
 	private List<TaskCollaboratorsGroupItem> taskCollaboratorGroupItem;
 
-	private boolean currentUserIsCollaborator = false;
+	private boolean currentUserCanModifyDelete = false;
 
 	private boolean writeButtonVisible = true;
 
-	public ListAddRemoveCollaboratorsGroupsField(RecordVO taskVO) {
+	public ListAddRemoveCollaboratorsGroupsField(RecordVO taskVO,
+												 GroupTextInputDataProvider groupTextInputDataProvider) {
 		this.taskVO = taskVO;
+		this.groupTextInputDataProvider = groupTextInputDataProvider;
 		init();
 	}
 
@@ -54,7 +59,7 @@ public class ListAddRemoveCollaboratorsGroupsField extends ListAddRemoveField<Ta
 
 	@Override
 	protected TaskAssignationListCollaboratorsGoupsField newAddEditField() {
-		return new TaskAssignationListCollaboratorsGoupsField(writeButtonVisible);
+		return new TaskAssignationListCollaboratorsGoupsField(writeButtonVisible, groupTextInputDataProvider);
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -137,18 +142,17 @@ public class ListAddRemoveCollaboratorsGroupsField extends ListAddRemoveField<Ta
 		this.writeButtonVisible = writeButtonIsVisible;
 	}
 
-	public void setCurrentUserIsCollaborator(boolean currentUserIsCollaborator) {
-		this.currentUserIsCollaborator = currentUserIsCollaborator;
+	public void setCurrentUserCanModifyDelete(boolean currentUserCanModifyDelete) {
+		this.currentUserCanModifyDelete = currentUserCanModifyDelete;
 	}
 
 	private class CollaboratorValuesContainer extends ValuesContainer {
 
 		public CollaboratorValuesContainer(List<TaskCollaboratorsGroupItem> values) {
-			super(values);
+			super(values, null);
 			addContainerProperty(AUTHORIZATIONS_PROPERTY_ID, getCaptionComponentClass(), null);
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		public Property<?> getContainerProperty(final Object itemId, Object propertyId) {
 			if (itemId != null) {
@@ -173,7 +177,7 @@ public class ListAddRemoveCollaboratorsGroupsField extends ListAddRemoveField<Ta
 
 	@Override
 	protected boolean isEditButtonVisible(TaskCollaboratorsGroupItem item) {
-		if (currentUserIsCollaborator) {
+		if (!currentUserCanModifyDelete) {
 			return false;
 		} else {
 			return super.isEditButtonVisible(item);
@@ -182,7 +186,7 @@ public class ListAddRemoveCollaboratorsGroupsField extends ListAddRemoveField<Ta
 
 	@Override
 	protected boolean isDeleteButtonVisible(TaskCollaboratorsGroupItem item) {
-		if (currentUserIsCollaborator) {
+		if (!currentUserCanModifyDelete) {
 			return false;
 		} else {
 			return super.isDeleteButtonVisible(item);

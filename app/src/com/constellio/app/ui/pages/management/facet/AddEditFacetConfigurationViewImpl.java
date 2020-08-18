@@ -104,7 +104,7 @@ public class AddEditFacetConfigurationViewImpl extends BaseViewImpl implements A
 		});
 
 		form = new FacetConfigurationFormImpl(presenter.getRecordVO(),
-				new FacetFieldFactory(dataFieldCombo, facetType, presenter)) {
+				new FacetFieldFactory(dataFieldCombo, facetType, presenter), getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {

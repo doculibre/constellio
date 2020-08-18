@@ -2,6 +2,7 @@ package com.constellio.app.modules.restapi.folder;
 
 import com.constellio.app.modules.restapi.ace.AceService;
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
+import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
 import com.constellio.app.modules.restapi.folder.adaptor.FolderAdaptor;
 import com.constellio.app.modules.restapi.folder.dao.FolderDao;
@@ -43,8 +44,16 @@ public class FolderService extends ResourceService {
 			validateETag(id, folder.getETag(), folderRecord.getVersion());
 		}
 
-		User user = getUser(serviceKey, folderRecord.getCollection());
+		Record parentRecord = null;
+		if (folder.getParentFolderId() != null) {
+			parentRecord = getRecord(folder.getParentFolderId(), true);
+		}
+
+		User user = getUserByServiceKey(serviceKey, folderRecord.getCollection());
 		validateUserAccess(user, folderRecord, method);
+		if (parentRecord != null) {
+			validateUserAccess(user, parentRecord, method);
+		}
 
 		MetadataSchema folderSchema;
 		if (partial && folder.getType() == null) {
@@ -72,11 +81,28 @@ public class FolderService extends ResourceService {
 							Set<String> filters) throws Exception {
 		validateParameters(host, parentFolderId, serviceKey, method, date, expiration, null, null, null, signature);
 
-		String id = parentFolderId != null ? parentFolderId : folderDto.getAdministrativeUnit().getId();
-		Record record = getRecord(id, true);
+		Record record;
+		if (parentFolderId != null) {
+			record = getRecord(parentFolderId, true);
+		} else if (folderDto.getAdministrativeUnit() != null) {
+			record = getRecord(folderDto.getAdministrativeUnit().getId(), true);
+		} else {
+			record = getRecord(folderDto.getCategory().getId(), true);
+		}
 
 		String collection = record.getCollection();
-		User user = getUser(serviceKey, collection);
+		User user = getUserByServiceKey(serviceKey, collection);
+
+		if (parentFolderId == null && folderDto.getAdministrativeUnit() == null) {
+			folderDao.addDefaultMetadatas(folderDto, user, collection);
+
+			if (folderDto.getAdministrativeUnit() == null) {
+				throw new RequiredParameterException("folder.administrativeUnit");
+			}
+
+			record = getRecord(folderDto.getAdministrativeUnit().getId(), true);
+		}
+
 		validateUserAccess(user, record, method);
 
 		MetadataSchema folderSchema = folderDao.getLinkedMetadataSchema(folderDto.getType(), collection);
@@ -99,7 +125,7 @@ public class FolderService extends ResourceService {
 
 		Record sourceFolder = getRecord(copySourceId, true);
 		String collection = sourceFolder.getCollection();
-		User user = getUser(serviceKey, collection);
+		User user = getUserByServiceKey(serviceKey, collection);
 		validateUserAccess(user, sourceFolder, method);
 
 		if (parentFolderId != null) {
@@ -121,6 +147,18 @@ public class FolderService extends ResourceService {
 			acesModified = true;
 		}
 		return getAdaptor().adapt(folderDto, copiedFolderRecord, folderSchema, acesModified, filters);
+	}
+
+	public void delete(String host, String id, String serviceKey, String method, String date, int expiration,
+					   Boolean physical, String signature) throws Exception {
+		validateParameters(host, id, serviceKey, method, date, expiration, null, physical, null, signature);
+
+		Record folder = getRecord(id, false);
+		User user = getUserByServiceKey(serviceKey, folder.getCollection());
+		validateUserAccess(user, folder, method);
+		validateUserDeleteAccessOnHierarchy(user, folder);
+
+		folderDao.deleteFolder(user, folder, Boolean.TRUE.equals(physical));
 	}
 
 	@Override

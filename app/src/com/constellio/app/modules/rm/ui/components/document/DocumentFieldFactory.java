@@ -44,10 +44,10 @@ public class DocumentFieldFactory extends RMRecordFieldFactory {
 				field = new DocumentTypeFieldLookupImpl(folderId, currentType);
 				break;
 			case CONTENT:
-				field = new DocumentContentFieldImpl(isViewOnly);
+				field = new DocumentContentFieldImpl(isViewOnly, recordVO != null ? recordVO.getId() : null);
 				break;
 			case FOLDER:
-				field = new DocumentFolderFieldImpl();
+				field = new DocumentFolderFieldImpl(!metadataVO.getCode().startsWith("USR"));
 				break;
 			case MAIN_COPY_RULE_ID_ENTERED:
 				field = new DocumentCopyRuleFieldImpl(copyRules);

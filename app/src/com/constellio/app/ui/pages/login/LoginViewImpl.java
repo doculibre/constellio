@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.login;
 
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.components.fields.BasePasswordField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.viewers.document.DocumentViewer;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
@@ -28,7 +29,6 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.Notification;
-import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
@@ -52,7 +52,7 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 
 	private HorizontalLayout fieldsLayout;
 	private TextField usernameField;
-	private PasswordField passwordField;
+	private BasePasswordField passwordField;
 	private CheckBox rememberMeField;
 	private Button signInButton;
 
@@ -124,7 +124,7 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 			usernameField.focus();
 		}
 
-		passwordField = new PasswordField($("LoginView.password"));
+		passwordField = new BasePasswordField($("LoginView.password"));
 		passwordField.setIcon(FontAwesome.LOCK);
 		passwordField.setMaxLength(100);
 		passwordField.addStyleName(ValoTheme.TEXTFIELD_INLINE_ICON);

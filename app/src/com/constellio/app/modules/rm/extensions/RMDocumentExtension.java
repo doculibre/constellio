@@ -9,7 +9,6 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
-import com.constellio.data.io.ConversionManager;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -36,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
 public class RMDocumentExtension extends RecordExtension {
 	private final ModelLayerFactory modelLayerFactory;
@@ -156,11 +154,16 @@ public class RMDocumentExtension extends RecordExtension {
 
 	private boolean isFilePreviewSupportedFor(String filename) {
 		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(filename));
-		return asList(ConversionManager.getSupportedExtensions()).contains(extension);
+		return modelLayerFactory.getDataLayerFactory().getConversionManager().isSupportedExtension(extension)
+			   || extension.equalsIgnoreCase("pdf");
 	}
 
 	@Override
 	public void recordModified(RecordModificationEvent event) {
+		if (event.isSchemaType(Document.SCHEMA_TYPE)) {
+			adjustCheckoutAlertSent(event);
+		}
+
 	}
 
 	@Override
@@ -189,11 +192,10 @@ public class RMDocumentExtension extends RecordExtension {
 			boolean usedInTasks = false;
 			List<Record> tasks = new ArrayList<>();
 			if (!event.isThenPhysicallyDeleted()) {
-				tasks = searchServices.search(new LogicalSearchQuery(from(rm.userTask.schemaType())
-						.where(rm.userTask.linkedDocuments()).isContaining(asList(event.getRecord().getId()))
+				usedInTasks = searchServices.getResultsCount(new LogicalSearchQuery(from(rm.userTask.schemaType())
+						.where(rm.userTask.linkedDocuments()).isEqualTo(event.getRecord().getId())
 						.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()));
-				usedInTasks = !tasks.isEmpty();
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())) > 0;
 			}
 			if ((checkoutUserId != null && (user == null || !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)))
 				|| usedInTasks) {
@@ -230,4 +232,12 @@ public class RMDocumentExtension extends RecordExtension {
 		}
 	}
 
+	private void adjustCheckoutAlertSent(RecordModificationEvent event) {
+		if (event.hasModifiedMetadata(Document.CONTENT)) {
+			Document document = rmSchema.wrapDocument(event.getRecord());
+			if (document.getContent() != null && !document.getContent().isCheckedOut() && document.isCheckoutAlertSent()) {
+				document.setCheckoutAlertSent(false);
+			}
+		}
+	}
 }

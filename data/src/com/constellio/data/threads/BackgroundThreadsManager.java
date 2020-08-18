@@ -67,7 +67,8 @@ public class BackgroundThreadsManager implements StatefulService {
 			throw new BackgroundThreadsManagerRuntimeException_RepeatInfosNotConfigured();
 		}
 
-		long delayBeforeTheFirstCommandExecution = 0;
+		// FIXME added a longer delay as a temp fix for multitenancy test
+		long delayBeforeTheFirstCommandExecution = 30;
 		long executeEverySeconds = backgroundThreadConfiguration.getExecuteEvery().getStandardSeconds();
 		TimeUnit unit = TimeUnit.SECONDS;
 		Runnable command = getRunnableCommand(backgroundThreadConfiguration);

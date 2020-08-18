@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.enums.SearchSortType;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.users.UserServices;
@@ -46,10 +47,13 @@ public class DecommissioningBuilderPresenterTest extends ConstellioTest {
 
 	@Mock UserServices userServices;
 
+	@Mock User user;
+
 	@Before
 	public void setUp() {
 		when(view.getConstellioFactories()).thenReturn(factories.getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
+		view.setApplyMultipleFacets(false);
 
 		when(view.navigate()).thenReturn(navigator);
 		when(view.getCollection()).thenReturn(zeCollection);
@@ -66,7 +70,12 @@ public class DecommissioningBuilderPresenterTest extends ConstellioTest {
 		when(view.getUIContext()).thenReturn(new FakeUIContext());
 
 
-		presenter = spy(new DecommissioningBuilderPresenter(view));
+		presenter = spy(new DecommissioningBuilderPresenter(view) {
+			@Override
+			protected User getCurrentUser() {
+				return user;
+			}
+		});
 		//		doReturn(new ArrayList<>()).when(presenter).getFoldersAlreadyInNonProcessedDecommissioningLists();
 		//		doReturn(new ArrayList<>()).when(presenter).getDocumentsAlreadyInNonProcessedDecommissioningLists();
 	}
@@ -94,5 +103,4 @@ public class DecommissioningBuilderPresenterTest extends ConstellioTest {
 		presenter.addCriterionRequested();
 		verify(view, times(1)).addEmptyCriterion();
 	}
-
 }

@@ -12,9 +12,11 @@ import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
 import com.constellio.app.services.systemInformations.SystemInformationsService;
 import com.constellio.app.servlet.ConstellioMonitoringServlet;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocatorMode;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -35,18 +37,21 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
 
 import static com.constellio.app.services.migrations.VersionsComparator.isFirstVersionBeforeSecond;
 import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause.TOO_SHORT_SPACE;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.management.updates.UpdateNotRecommendedReason.BATCH_PROCESS_IN_PROGRESS;
 import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
-import static java.util.Arrays.asList;
 
 public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	private SystemInformationsService systemInformationsService = new SystemInformationsService();
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UpdateManagerPresenter.class);
+
+	private static final String SYSTEM_LOG_FILE_NAME = "system.log";
+	private static final String FILE_NAME_PARAMETER_KEY = "fileName";
 
 
 	public UpdateManagerPresenter(UpdateManagerView view) {
@@ -149,98 +154,118 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		}
 	}
 
+	public void restartAndRebuildCache() {
+		appLayerFactory.newApplicationService().markCacheForRebuild();
+		restart();
+	}
+
+	public void restartAndReindex(boolean repopulate) {
+		if (isFromTest()) {
+			restartFromTest(repopulate);
+		} else {
+			appLayerFactory.newApplicationService().markForReindexing();
+			appLayerFactory.newApplicationService().markCacheForRebuildIfRequired();
+
+			logReindexingEvent();
+			restart();
+		}
+	}
+
 	public void restart() {
+		logRestartingEvent();
+
 		try {
-			appLayerFactory.newApplicationService().restart();
+			if (hasUpdatePermission()) {
+				appLayerFactory.newApplicationService().restart();
+			} else {
+				appLayerFactory.newApplicationService().restartTenant();
+			}
+		} catch (AppManagementServiceException e) {
+			view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
+		}
+
+		view.navigate().to().serviceMonitoring();
+	}
+
+	private boolean isFromTest() {
+		if (FoldersLocator.usingAppWrapper()) {
+			File systemLogFile = getSystemLogFile();
+			if (systemLogFile != null && systemLogFile.exists()) {
+				if (!FileUtils.deleteQuietly(systemLogFile)) {
+					view.showErrorMessage($("UpdateManagerViewImpl.error.fileNotDeleted"));
+				}
+			}
+		}
+
+		FoldersLocator foldersLocator = new FoldersLocator();
+		return foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.PROJECT;
+	}
+
+	private void restartFromTest(boolean repopulate) {
+		//Application is started from a test, it cannot be restarted
+		LOGGER.info("Reindexing started");
+		ReindexingServices reindexingServices = modelLayerFactory.newReindexingServices();
+		reindexingServices.reindexCollections(new ReindexationParams(RECALCULATE_AND_REWRITE)
+				.setRepopulate(repopulate));
+		LOGGER.info("Reindexing finished");
+
+		logRestartingEvent();
+		logReindexingEvent();
+
+		ConstellioMonitoringServlet.systemRestarting = true;
+		view.navigate().to().serviceMonitoring();
+	}
+
+	private void logRestartingEvent() {
+		logRestartingOrReindexingEvent(EventType.RESTARTING, "ListEventsView.restarting");
+	}
+
+	private void logReindexingEvent() {
+		logRestartingOrReindexingEvent(EventType.REINDEXING, "ListEventsView.reindexing");
+	}
+
+	private void logRestartingOrReindexingEvent(String eventType, String locId) {
+		try {
 			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 			Record event = rm.newEvent()
-					.setType(EventType.RESTARTING)
+					.setType(eventType)
 					.setUsername(getCurrentUser().getUsername())
 					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
 					.setIp(getCurrentUser().getLastIPAddress())
 					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle($("ListEventsView.restarting"))
+					.setTitle($(locId))
 					.getWrappedRecord();
 			Transaction t = new Transaction();
 			t.add(event);
 			appLayerFactory.getModelLayerFactory().newRecordServices().execute(t);
-		} catch (AppManagementServiceException | RecordServicesException ase) {
-			view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
+		} catch (RecordServicesException e) {
+			view.showErrorMessage(e.getMessage());
 		}
-		ConstellioMonitoringServlet.systemRestarting = true;
-		view.navigate().to().serviceMonitoring();
 	}
 
-	public void restartAndReindex(boolean repopulate) {
-		FoldersLocator foldersLocator = new FoldersLocator();
-		if (foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
-			//Application is started from a test, it cannot be restarted
-			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-			LOGGER.info("Reindexing started");
-			ReindexingServices reindexingServices = modelLayerFactory.newReindexingServices();
-			reindexingServices.reindexCollections(new ReindexationParams(RECALCULATE_AND_REWRITE)
-					.setRepopulate(repopulate));
-			LOGGER.info("Reindexing finished");
-			Record eventRestarting = rm.newEvent()
-					.setType(EventType.RESTARTING)
-					.setUsername(getCurrentUser().getUsername())
-					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
-					.setIp(getCurrentUser().getLastIPAddress())
-					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle($("ListEventsView.restarting"))
-					.getWrappedRecord();
-			Record eventReindexing = rm.newEvent()
-					.setType(EventType.REINDEXING)
-					.setUsername(getCurrentUser().getUsername())
-					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
-					.setIp(getCurrentUser().getLastIPAddress())
-					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle($("ListEventsView.reindexing"))
-					.getWrappedRecord();
-			Transaction t = new Transaction();
-			t.addAll(asList(eventReindexing, eventRestarting));
-			try {
+	private File getSystemLogFile() {
+		File systemLogFile = null;
 
-				appLayerFactory.getModelLayerFactory().newRecordServices().execute(t);
-			} catch (Exception e) {
-				view.showErrorMessage(e.getMessage());
-			}
-		} else {
-			appLayerFactory.newApplicationService().markForReindexing();
-			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-			Record eventRestarting = rm.newEvent()
-					.setType(EventType.RESTARTING)
-					.setUsername(getCurrentUser().getUsername())
-					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
-					.setIp(getCurrentUser().getLastIPAddress())
-					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle($("RedémarrageListEventsView.restarting"))
-					.getWrappedRecord();
-			Record eventReindexing = rm.newEvent()
-					.setType(EventType.REINDEXING)
-					.setUsername(getCurrentUser().getUsername())
-					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
-					.setIp(getCurrentUser().getLastIPAddress())
-					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle($("ListEventsView.reindexing"))
-					.getWrappedRecord();
-			Transaction t = new Transaction();
-			t.addAll(asList(eventReindexing, eventRestarting));
-			try {
-				appLayerFactory.getModelLayerFactory().newRecordServices().execute(t);
-			} catch (Exception e) {
-				view.showErrorMessage(e.getMessage());
-			}
-
-			try {
-				appLayerFactory.newApplicationService().restart();
-			} catch (AppManagementServiceException ase) {
-				view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
+		File logsFolder = modelLayerFactory.getFoldersLocator().getLogsFolder();
+		if (logsFolder.exists()) {
+			File tempFile = new File(logsFolder, SYSTEM_LOG_FILE_NAME);
+			if (tempFile.exists()) {
+				systemLogFile = tempFile;
+			} else {
+				HashMap<String, Object> i18nParameters = buildSingleValueParameters(FILE_NAME_PARAMETER_KEY, SYSTEM_LOG_FILE_NAME);
+				view.showErrorMessage($("UpdateManagerViewImpl.error.fileNotFound", i18nParameters));
 			}
 		}
-		ConstellioMonitoringServlet.systemRestarting = true;
-		view.navigate().to().serviceMonitoring();
+
+		return systemLogFile;
 	}
+
+	private HashMap<String, Object> buildSingleValueParameters(String key, Object value) {
+		HashMap<String, Object> parameters = new HashMap<>();
+		parameters.put(key, value);
+		return parameters;
+	}
+
 
 	public void licenseUpdateRequested() {
 		view.showLicenseUploadPanel();
@@ -345,6 +370,13 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		return user.has(CorePermissions.MANAGE_SYSTEM_UPDATES).globally();
 	}
 
+	public boolean hasUpdatePermission() {
+		if (TenantUtils.isSupportingTenants()) {
+			return Toggle.ENABLE_CLOUD_SYSADMIN_FEATURES.isEnabled();
+		}
+		return true;
+	}
+
 	public boolean isRestartWithReindexButtonEnabled() {
 		if (appLayerFactory.getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().isSystemDistributed()) {
 			return !UpgradeAppRecoveryServiceImpl.HAS_UPLOADED_A_WAR_SINCE_REBOOTING || !FoldersLocator.usingAppWrapper();
@@ -353,8 +385,14 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		}
 	}
 
+	public boolean isRestartWithCacheRebuildEnabled() {
+		return true;
+	}
+
 	private boolean recoveryModeEnabled() {
-		return appLayerFactory.getModelLayerFactory().getSystemConfigs().isInUpdateProcess();
+		return !appLayerFactory.getModelLayerFactory().getDataLayerFactory().isDistributed()
+			   && !TenantUtils.isSupportingTenants()
+			   && appLayerFactory.getModelLayerFactory().getSystemConfigs().isInUpdateProcess();
 	}
 
 	public boolean isUpdateEnabled() {
@@ -363,10 +401,15 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public UpdateRecoveryImpossibleCause isUpdateWithRecoveryPossible() {
-		if (isDiskUsageProblematic(getDiskUsage("/opt")) || isDiskUsageProblematic(getDiskUsage("/var/solr"))) {
+		if (isDiskUsageProblematic(getDiskUsage("/opt")) ||
+			(isSolrDiskUsageValidationEnabled() && isDiskUsageProblematic(getDiskUsage("/var/solr")))) {
 			return TOO_SHORT_SPACE;
 		}
 		return appLayerFactory.newUpgradeAppRecoveryService().isUpdateWithRecoveryPossible();
+	}
+
+	private boolean isSolrDiskUsageValidationEnabled() {
+		return appLayerFactory.getModelLayerFactory().getSystemConfigs().isSystemStateSolrDiskUsageValidationEnabled();
 	}
 
 	public String getExceptionDuringLastUpdate() {

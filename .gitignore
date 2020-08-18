@@ -36,6 +36,7 @@ tmp/
 sdk/data/
 /bin
 /sdk/work
+/sdk/work-*
 /temp-test
 /sdk/snapshots
 /sdk/turboCache
@@ -48,6 +49,7 @@ tools/gradle/
 /sdk/generatedReports
 /constellio.log*
 /conf/constellio.properties
+*local-configs.properties
 /conf/license.xml
 /sdk/src/main/webapp/VAADIN
 /app/src/main/webapp/VAADIN
@@ -84,3 +86,4 @@ Supprimerait app/WebContent/WEB-INF/lib/
 Supprimerait sdk/ConfigurationRoot/
 /app/src/com/constellio/app/ui/application/widgetset/AppWidgetset.gwt.xml
 /version
+sdk/pluginsJars/

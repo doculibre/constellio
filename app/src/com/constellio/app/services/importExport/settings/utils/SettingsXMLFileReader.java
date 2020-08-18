@@ -10,6 +10,7 @@ import com.constellio.app.services.importExport.settings.model.ImportedMetadataS
 import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
 import com.constellio.app.services.importExport.settings.model.ImportedSequence;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedSystemVersion;
 import com.constellio.app.services.importExport.settings.model.ImportedTab;
 import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
 import com.constellio.app.services.importExport.settings.model.ImportedType;
@@ -63,12 +64,37 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		Element rootNode = document.getRootElement();
 
 		ImportedSettings importedSettings = new ImportedSettings()
+				.setImportedSystemVersion(readSystemVersion(rootNode.getChild(SYSTEM)))
 				.setImportedLabelTemplates(readLabelTemplates(rootNode.getChild(LABEL_TEMPLATES)))
 				.setConfigs(readConfigs(rootNode.getChild(CONFIGS)))
 				.setImportedSequences(readSequences(rootNode.getChild(SEQUENCES)))
 				.setCollectionsSettings(readCollectionSettings(rootNode.getChildren(COLLECTION_SETTINGS)));
 
 		return importedSettings;
+	}
+
+	private ImportedSystemVersion readSystemVersion(Element importedSystemVersionLabel) {
+
+		ImportedSystemVersion importedSystemVersion = new ImportedSystemVersion();
+		List<String> plugins = new ArrayList<>();
+		if (importedSystemVersionLabel != null) {
+			Element elementVersion = importedSystemVersionLabel.getChild(VERSION);
+			Element elementPlugins = importedSystemVersionLabel.getChild(PLUGINS);
+			Element elementUSR = importedSystemVersionLabel.getChild(ONLY_USR);
+
+			importedSystemVersion.setFullVersion(elementVersion.getAttributeValue(FULL));
+			importedSystemVersion.setMajorVersion(Integer.parseInt(elementVersion.getAttributeValue(MAJOR)));
+			importedSystemVersion.setMinorVersion(Integer.parseInt(elementVersion.getAttributeValue(MINOR)));
+			importedSystemVersion.setMinorRevisionVersion(Integer.parseInt(elementVersion.getAttributeValue(REVISION)));
+			importedSystemVersion.setOnlyUSR(Boolean.parseBoolean(elementUSR.getAttributeValue(VALUE)));
+
+			for (Element plugin : elementPlugins.getChildren()) {
+				plugins.add(plugin.getAttributeValue(PLUGIN_ID));
+			}
+			importedSystemVersion.setPlugins(plugins);
+		}
+
+		return importedSystemVersion;
 	}
 
 	private List<ImportedLabelTemplate> readLabelTemplates(Element importedLabelTemplatesElement) {
@@ -231,6 +257,10 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 		if (element.getAttribute(UNIQUE) != null) {
 			importedMetadata.setUnique(Boolean.parseBoolean(element.getAttributeValue(UNIQUE)));
+		}
+
+		if (element.getAttribute(SORTING_TYPE) != null) {
+			importedMetadata.setSortingType(element.getAttributeValue(SORTING_TYPE));
 		}
 
 		if (element.getAttribute(SORTABLE) != null) {

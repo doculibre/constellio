@@ -4,7 +4,7 @@ import com.constellio.app.modules.rm.reports.builders.excel.BaseExcelReportWrite
 import com.constellio.app.modules.rm.reports.model.search.SearchResultReportModel;
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.i18n.i18n;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import jxl.CellView;
 import jxl.Workbook;
 import jxl.WorkbookSettings;

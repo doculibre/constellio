@@ -1,16 +1,15 @@
 package com.constellio.model.services.records.cache;
 
+import com.constellio.data.dao.dto.records.IntegerRecordId;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
+import com.constellio.data.dao.dto.records.RecordDTOUtils;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
-import com.constellio.model.entities.CollectionInfo;
+import com.constellio.data.dao.dto.records.RecordId;
+import com.constellio.data.dao.dto.records.StringRecordId;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordUtils;
-import com.constellio.model.services.records.cache.CacheRecordDTOUtils.CacheRecordDTOBytesArray;
 import com.constellio.model.services.schemas.MetadataSchemaProvider;
-import com.constellio.model.services.schemas.SchemaUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,9 +23,9 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
-import static com.constellio.model.services.records.cache.CacheRecordDTOUtils.convertDTOToByteArrays;
 
 public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordDTO, Supplier<byte[]> {
+
 
 	MetadataSchemaProvider schemaProvider;
 	long version;
@@ -39,7 +38,6 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 	short typeId;
 	String typeCode;
 	byte[] data;
-	//private Map<String, Object> map;
 
 	private ByteArrayRecordDTO(MetadataSchemaProvider schemaProvider, long version, boolean summary,
 							   short tenantId, String collectionCode, byte collectionId, String typeCode,
@@ -56,7 +54,6 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 		this.schemaCode = schemacode;
 		this.schemaId = schemaId;
 		this.summary = summary;
-		//this.map = this.new ByteArrayRecordDTOMap();
 	}
 
 	public byte getCollectionId() {
@@ -71,72 +68,50 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 		return schemaId;
 	}
 
-	public static ByteArrayRecordDTO create(ModelLayerFactory modelLayerFactory, RecordDTO dto) {
-
-		if (dto.getLoadingMode() == RecordDTOMode.CUSTOM) {
-			throw new IllegalStateException("Cannot create ByteArrayRecordDTO from a customly loaded RecordDTO");
-		}
-
-		String collection = (String) dto.getFields().get("collection_s");
-		String schemaCode = (String) dto.getFields().get("schema_s");
-		short instanceId = modelLayerFactory.getInstanceId();
-		MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-				.getSchemaType(SchemaUtils.getSchemaTypeCode(schemaCode));
-
-		MetadataSchemaProvider schemaProvider = modelLayerFactory.getMetadataSchemasManager();
-
-		MetadataSchema schema = type.getSchema(schemaCode);
-		CollectionInfo collectionInfo = schema.getCollectionInfo();
-
-		//TODO Handle Holder
-		CacheRecordDTOBytesArray bytesArray = convertDTOToByteArrays(dto, schema);
-
-		int intId = RecordUtils.toIntKey(dto.getId());
-
-		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
-			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
-				SummaryCacheSingletons.dataStore.get(instanceId).saveStringKey(dto.getId(), bytesArray.bytesToPersist);
-			} else {
-				//SummaryCacheSingletons.dataStore.removeStringKey(dto.getId());
-			}
-			return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
-					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
-					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
-		} else {
-			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
-				SummaryCacheSingletons.dataStore.get(instanceId).saveIntKey(intId, bytesArray.bytesToPersist);
-			} else {
-				//SummaryCacheSingletons.dataStore.removeIntKey(intId);
-			}
-			return new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
-					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(),
-					type.getCode(), type.getId(), schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
-		}
-
-	}
-
-
 	public static class ByteArrayRecordDTOWithIntegerId extends ByteArrayRecordDTO {
 
 		int id;
 
+		int mainSortValue;
+
 		public ByteArrayRecordDTOWithIntegerId(
 				int id, MetadataSchemaProvider schemaProvider, long version, boolean summary,
 				short tenantId, String collectionCode, byte collectionId, String typeCode, short typeId,
-				String schemaCode, short schemaId, byte[] data) {
+				String schemaCode, short schemaId, byte[] data, int mainSortValue) {
 			super(schemaProvider, version, summary, tenantId, collectionCode, collectionId, typeCode, typeId,
 					schemaCode, schemaId, data);
+			this.mainSortValue = mainSortValue;
 			this.id = id;
 		}
 
 		@Override
+		public int getMainSortValue() {
+			return mainSortValue;
+		}
+
+		@Override
 		public String getId() {
-			return RecordUtils.toStringId(id);
+			return RecordDTOUtils.toStringId(id);
+		}
+
+		@Override
+		public RecordId getRecordId() {
+			return new IntegerRecordId(id);
+		}
+
+		@Override
+		public long heapMemoryConsumption() {
+			return 0;
+		}
+
+		@Override
+		public long offHeapMemoryConsumption() {
+			return data.length;
 		}
 
 		@Override
 		public byte[] get() {
-			return SummaryCacheSingletons.dataStore.get(tenantId).loadIntKey(id);
+			return SummaryCacheSingletons.dataStore.get(tenantId).loadIntKeyPersistedData(id);
 		}
 
 		@Override
@@ -152,16 +127,6 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 			sb.append(", data=" + Arrays.toString(data));
 			sb.append("'}'");
 
-			//		try {
-			//			for (Map.Entry<String, Object> entry : entrySet()) {
-			//				sb.append("\t" + entry.getKey() + "=" + entry.getValue());
-			//			}
-			//
-			//		} catch (Throwable t) {
-			//			t.printStackTrace();
-			//			sb.append("!!! Error loading metadatas " + t.getMessage());
-			//		}
-
 			return sb.toString();
 		}
 
@@ -173,19 +138,48 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 	public static class ByteArrayRecordDTOWithStringId extends ByteArrayRecordDTO {
 
 		String id;
+		int mainSortValue;
 
 		public ByteArrayRecordDTOWithStringId(
 				String id, MetadataSchemaProvider schemaProvider, long version, boolean summary,
 				short instanceId, String collectionCode, byte collectionId, String typeCode, short typeId,
-				String schemaCode, short schemaId, byte[] data) {
+				String schemaCode, short schemaId, byte[] data, int mainSortValue) {
 			super(schemaProvider, version, summary, instanceId, collectionCode, collectionId, typeCode, typeId,
 					schemaCode, schemaId, data);
+			this.mainSortValue = mainSortValue;
 			this.id = id;
+		}
+
+
+		@Override
+		public RecordId getRecordId() {
+			return new StringRecordId(id);
+		}
+
+		public ByteArrayRecordDTOWithStringId setMainSortValue(int mainSortValue) {
+			this.mainSortValue = mainSortValue;
+			return this;
 		}
 
 		@Override
 		public String getId() {
 			return id;
+		}
+
+
+		@Override
+		public int getMainSortValue() {
+			return mainSortValue;
+		}
+
+		@Override
+		public long heapMemoryConsumption() {
+			return LangUtils.sizeOf(id) + data.length;
+		}
+
+		@Override
+		public long offHeapMemoryConsumption() {
+			return 0;
 		}
 
 		@Override
@@ -232,22 +226,9 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 		throw new UnsupportedOperationException("createCopyOnlyKeeping is not supported on summary record cache");
 	}
 
-	//	public Object get(String field) {
-	//		return map.get(field);
-	//	}
-	//
-	//	public Set<String> keySet() {
-	//		return map.keySet();
-	//	}
-	//
-	//	private class ByteArrayRecordDTOMap implements Map<String, Object> {
-
-	/**
-	 * @return
-	 */
 	@Override
 	public int size() {
-		return CacheRecordDTOUtils.metadatasSize(data);
+		return CacheRecordDTOUtils.metadatasWithValueCount(data);
 	}
 
 	@Override
@@ -341,7 +322,6 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 			throw t;
 		}
 	}
-	//	}
 
 	public byte[] getData() {
 		return data;
@@ -359,16 +339,6 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 		sb.append(", schema=" + getSchemaCode());
 		sb.append(", data=" + Arrays.toString(data));
 		sb.append("'}'");
-
-		//		try {
-		//			for (Map.Entry<String, Object> entry : entrySet()) {
-		//				sb.append("\t" + entry.getKey() + "=" + entry.getValue());
-		//			}
-		//
-		//		} catch (Throwable t) {
-		//			t.printStackTrace();
-		//			sb.append("!!! Error loading metadatas " + t.getMessage());
-		//		}
 
 		return sb.toString();
 	}

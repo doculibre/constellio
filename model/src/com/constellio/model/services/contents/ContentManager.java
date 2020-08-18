@@ -14,9 +14,11 @@ import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.ContentDaoException;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 import com.constellio.data.dao.services.contents.ContentDaoRuntimeException;
+import com.constellio.data.dao.services.contents.DaoFile;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
@@ -73,6 +75,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.utils.MimeTypes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -94,12 +97,15 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
+import static com.constellio.data.conf.FoldersLocator.usingAppWrapper;
+import static com.constellio.data.dao.services.contents.ContentDao.MoveToVaultOption.ONLY_IF_INEXISTING;
 import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.utils.dev.Toggle.LOG_CONVERSION_FILENAME_AND_SIZE;
-import static com.constellio.model.conf.FoldersLocator.usingAppWrapper;
 import static com.constellio.model.entities.enums.ParsingBehavior.ASYNC_PARSING_FOR_ALL_CONTENTS;
 import static com.constellio.model.entities.enums.ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -145,6 +151,7 @@ public class ContentManager implements StatefulService {
 	private final ModelLayerFactory modelLayerFactory;
 	private final IcapService icapService;
 	private final ThumbnailGenerator thumbnailGenerator;
+	private final DataLayerSystemExtensions dataLayerSystemExtensions;
 
 	private boolean serviceThreadEnabled = true;
 
@@ -172,6 +179,7 @@ public class ContentManager implements StatefulService {
 		this.icapService = icapService;
 		this.thumbnailGenerator = new ThumbnailGenerator();
 		this.conversionManager = modelLayerFactory.getDataLayerFactory().getConversionManager();
+		this.dataLayerSystemExtensions = modelLayerFactory.getDataLayerFactory().getExtensions().getSystemWideExtensions();
 	}
 
 	@Override
@@ -192,7 +200,9 @@ public class ContentManager implements StatefulService {
 		Runnable handleRecordsMarkedForParsingRunnable = new Runnable() {
 			@Override
 			public void run() {
-				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null && modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null
+					&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()
+					&& !Toggle.PERFORMANCE_TESTING.isEnabled()) {
 					boolean converted = handleRecordsMarkedForParsing();
 
 					if (!converted && usingAppWrapper()) {
@@ -340,6 +350,7 @@ public class ContentManager implements StatefulService {
 					if (lastModification.isBefore(TimeProvider.getLocalDateTime().minus(configuration.getDelayBeforeDeletingUnreferencedContents()))) {
 						try {
 							contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview", fileId + ".jpegConversion", fileId + ".icapscan", fileId + ".thumbnail"));
+							contentDao.deleteFileNameContaining(fileId, ".annotation.");
 
 							vaultScanResults.incrementNumberOfDeletedContents();
 							vaultScanResults.appendMessage("INFO: Successfully deleted file " + file.getName() + "\n");
@@ -372,14 +383,12 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
-	private boolean deleteOrphanParsedContentOrPreview(List<String> subFiles, VaultScanResults vaultScanResults) {
+	private void deleteOrphanParsedContentOrPreview(List<String> subFiles, VaultScanResults vaultScanResults) {
 		ContentDao contentDao = getContentDao();
-		boolean containsParsedContentOrPreview = false;
-		boolean containsMainFile = false;
 		for (String fileId : subFiles) {
 			File file = contentDao.getFileOf(fileId);
 			if (file.exists() && (file.getName().endsWith("__parsed") || file.getName().endsWith(".preview") || file.getName().endsWith(".jpegConversion")
-								  || file.getName().endsWith(".icapscan"))) {
+								  || file.getName().endsWith(".icapscan") || file.getName().contains(".annotation."))) {
 				File mainFile = getMainFile(file);
 				if (!mainFile.exists()) {
 					try {
@@ -393,23 +402,32 @@ public class ContentManager implements StatefulService {
 				}
 			}
 		}
-		return containsParsedContentOrPreview && !containsMainFile;
 	}
 
 	private File getMainFile(File parsedContentOrPreviewFile) {
 		String parsedContentOrPreviewFileAbsolutePath = parsedContentOrPreviewFile.getAbsolutePath();
 		String mainFileAbsolutePath = StringUtils.removeEnd(parsedContentOrPreviewFileAbsolutePath, "__parsed");
+
 		if (parsedContentOrPreviewFileAbsolutePath.equals(mainFileAbsolutePath)) {
-			mainFileAbsolutePath = StringUtils.removeEnd(parsedContentOrPreviewFileAbsolutePath, ".preview");
+			if (parsedContentOrPreviewFile.getName().contains(".annotation.")) {
+				String absolutePath = parsedContentOrPreviewFile.getAbsolutePath();
+
+				int indexOfAnnotation = absolutePath.indexOf(".annotation.");
+				mainFileAbsolutePath = absolutePath.substring(0, indexOfAnnotation);
+			} else {
+				mainFileAbsolutePath = StringUtils.removeEnd(parsedContentOrPreviewFileAbsolutePath, ".preview");
+			}
 		}
+
+
 		return new File(mainFileAbsolutePath);
 	}
 
 	private boolean shouldFileBeScannedForDeletion(File file) {
 		boolean isMainFile = !(file.getName().endsWith("__parsed") || file.getName().endsWith(".preview")
 							   || file.getName().endsWith(".thumbnail") || file.getName().endsWith(".jpegConversion")
-							   || file.getName().endsWith(".icapscan"));
-		List<String> restrictedFiles = asList("tlogs", "tlogs_bck", "vaultRecovery");
+							   || file.getName().endsWith(".icapscan") || file.getName().contains(".annotation."));
+		List<String> restrictedFiles = asList("tlogs", "tlogs_bck", "vaultRecovery", "shared");
 		return isMainFile && !restrictedFiles.contains(file.getName());
 	}
 
@@ -460,6 +478,14 @@ public class ContentManager implements StatefulService {
 		return getContentDao().isDocumentExisting(hash + ".preview");
 	}
 
+	public boolean hasContentAnnotation(String hash, String id, String version) {
+		return getContentDao().isDocumentExisting(hash + ".annotation." + id + "." + version);
+	}
+
+	public boolean hasContentPDFJSAnnotation(String hash, String id, String version) {
+		return getContentDao().isDocumentExisting(hash + ".annotation.pdfjs." + id + "." + version);
+	}
+
 	public boolean hasContentThumbnail(String hash) {
 		return getContentDao().isDocumentExisting(hash + ".thumbnail");
 	}
@@ -481,6 +507,22 @@ public class ContentManager implements StatefulService {
 			return getContentDao().getContentInputStream(hash + ".preview", streamName);
 		} catch (ContentDaoException_NoSuchContent e) {
 			throw new ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoPreview(hash);
+		}
+	}
+
+	public InputStream getContentAnnotationInputStream(String hash, String id, String version, String streamName) {
+		try {
+			return getContentDao().getContentInputStream(hash + ".annotation." + id + "." + version, streamName);
+		} catch (ContentDaoException_NoSuchContent e) {
+			throw new ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoAnnotation(hash);
+		}
+	}
+
+	public InputStream getContentPDFJSAnnotationInputStream(String hash, String id, String version, String streamName) {
+		try {
+			return getContentDao().getContentInputStream(hash + ".annotation.pdfjs." + id + "." + version, streamName);
+		} catch (ContentDaoException_NoSuchContent e) {
+			throw new ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoAnnotation(hash);
 		}
 	}
 
@@ -523,7 +565,7 @@ public class ContentManager implements StatefulService {
 			throws ContentManagerRuntimeException_CannotSaveContent {
 
 		try {
-			getContentDao().moveFileToVault(streamFactory.getTempFile(), id);
+			getContentDao().moveFileToVault(id, streamFactory.getTempFile(), ONLY_IF_INEXISTING);
 		} catch (ContentDaoRuntimeException e) {
 			throw new ContentManagerRuntimeException_CannotSaveContent(e);
 		}
@@ -839,50 +881,52 @@ public class ContentManager implements StatefulService {
 
 	public boolean convertPendingContentForPreview() {
 		boolean converted = false;
-		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
-			if (!closing.get()) {
-				List<Record> records = searchServices.search(new LogicalSearchQuery()
-						.setCondition(fromAllSchemasIn(collection).where(Schemas.MARKED_FOR_PREVIEW_CONVERSION).isTrue())
-						.setNumberOfRows(20).sortDesc(Schemas.MODIFIED_ON).sortDesc(Schemas.CREATED_ON)
-						.setName("ContentManager:BackgroundThread:convertPendingContentForPreview()"));
+		if (!Toggle.PERFORMANCE_TESTING.isEnabled() && Toggle.CONTENT_CONVERSION.isEnabled()) {
+			for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
+				if (!closing.get()) {
+					List<Record> records = searchServices.search(new LogicalSearchQuery()
+							.setCondition(fromAllSchemasIn(collection).where(Schemas.MARKED_FOR_PREVIEW_CONVERSION).isTrue())
+							.setNumberOfRows(20).sortDesc(Schemas.MODIFIED_ON).sortDesc(Schemas.CREATED_ON)
+							.setName("ContentManager:BackgroundThread:convertPendingContentForPreview()"));
 
-				if (!records.isEmpty()) {
-					converted = true;
-					final File tempFolder = ioServices.newTemporaryFolder("previewConversion");
-					try {
-						Transaction transaction = new Transaction();
-						transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions()
-								.setOverwriteModificationDateAndUser(false));
-						for (Record record : records) {
-							if (!closing.get()) {
-								try {
-									tryConvertRecordContents(record, tempFolder);
-								} catch (NullPointerException e) {
-									//unsupported extension
-								} finally {
-									transaction.add(record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, null));
+					if (!records.isEmpty()) {
+						converted = true;
+						final File tempFolder = ioServices.newTemporaryFolder("previewConversion");
+						try {
+							Transaction transaction = new Transaction();
+							transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions()
+									.setOverwriteModificationDateAndUser(false));
+							for (Record record : records) {
+								if (!closing.get()) {
+									try {
+										tryConvertRecordContents(record, tempFolder);
+									} catch (Throwable t) {
+										t.printStackTrace();
+										//unsupported extension
+									} finally {
+										transaction.add(record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, null));
+									}
 								}
 							}
-						}
-						try {
-							transaction.setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(5));
-							transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
-							transaction.getRecordUpdateOptions().setUpdateCalculatedMetadatas(false);
-							recordServices.executeWithoutImpactHandling(transaction);
-						} catch (RecordServicesException.OptimisticLocking e) {
-							LOGGER.trace("Optimistic locking occured with record " + e.getId());
+							try {
+								transaction.setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(5));
+								transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+								transaction.getRecordUpdateOptions().setUpdateCalculatedMetadatas(false);
+								recordServices.executeWithoutImpactHandling(transaction);
+							} catch (RecordServicesException.OptimisticLocking e) {
+								LOGGER.trace("Optimistic locking occured with record " + e.getId());
 
-						} catch (RecordServicesException e) {
-							throw new RuntimeException(e);
-						}
+							} catch (RecordServicesException e) {
+								throw new RuntimeException(e);
+							}
 
-					} finally {
-						ioServices.deleteQuietly(tempFolder);
+						} finally {
+							ioServices.deleteQuietly(tempFolder);
+						}
 					}
 				}
 			}
 		}
-
 		return converted;
 	}
 
@@ -892,13 +936,23 @@ public class ContentManager implements StatefulService {
 		for (Metadata contentMetadata : schema.getMetadatas().onlyWithType(MetadataValueType.CONTENT)) {
 			if (!contentMetadata.isMultivalue()) {
 				Content content = record.get(contentMetadata);
-				if (content != null) {
+
+				if (content != null && !isExtentionIsDisabledForPreview(content)) {
 					isConversionSuccessful = isConversionSuccessful &&
 											 tryConvertContentForPreview(content, tempFolder);
 				}
 			}
 		}
+
 		return isConversionSuccessful;
+	}
+
+	private boolean isExtentionIsDisabledForPreview(Content content) {
+		String fileName = content.getCurrentVersion().getFilename();
+
+		String ext = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
+
+		return asList(this.dataLayerSystemExtensions.getExtentionDisabledForPreviewConvertion()).contains(ext);
 	}
 
 	private boolean tryConvertContentForPreview(Content content, File tempFolder) {
@@ -907,32 +961,37 @@ public class ContentManager implements StatefulService {
 		String mimeType = content.getCurrentVersion().getMimetype();
 		ContentDao contentDao = getContentDao();
 
-		if (!contentDao.isDocumentExisting(hash + ".preview")) {
-			try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
-				if (LOG_CONVERSION_FILENAME_AND_SIZE.isEnabled()) {
-					LOGGER.info("Converting file " + filename + " : " + content.getCurrentVersion().getLength() / (1024 * 1024));
-				}
-				File pdfPreviewFile = conversionManager.convertToPDF(inputStream, filename, tempFolder);
-				contentDao.moveFileToVault(pdfPreviewFile, hash + ".preview");
-			} catch (Throwable t) {
-				LOGGER.warn("Cannot generate preview for content '" + filename + "' with hash '" + hash + "'", t);
-				return false;
-			}
-		}
-
 		if (mimeType.startsWith("image/")) {
 			Dimension dimension = ImageUtils.getImageDimension(contentDao.getFileOf(hash));
-			if ((mimeType.equals(MimeTypes.MIME_IMAGE_TIFF) || dimension.getHeight() > 1080) &&
+
+			boolean tiffSupported = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().areTiffFilesConvertedForPreview();
+			if (((tiffSupported && mimeType.equals(MimeTypes.MIME_IMAGE_TIFF)) || dimension.getHeight() > 1080) &&
 				!contentDao.isDocumentExisting(hash + ".jpegConversion")) {
 				try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
 					File convertedJPEGFile =
 							conversionManager.convertToJPEG(inputStream, dimension, mimeType, filename, tempFolder);
-					contentDao.moveFileToVault(convertedJPEGFile, hash + ".jpegConversion");
+					contentDao.moveFileToVault(hash + ".jpegConversion", convertedJPEGFile, ONLY_IF_INEXISTING);
 					LOGGER.info("Generated a JPEG conversion for content '" + filename + "' with hash '" + hash + "'");
 				} catch (Throwable t) {
 					LOGGER.warn("Cannot generate JPEG conversion for content '" + filename + "' with hash '" + hash + "'", t);
 					return false;
 				}
+			}
+		} else if (!mimeType.startsWith("application/pdf") && !contentDao.isDocumentExisting(hash + ".preview")) {
+			try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
+				if (LOG_CONVERSION_FILENAME_AND_SIZE.isEnabled()) {
+					LOGGER.info("Converting file " + filename + " : " + content.getCurrentVersion().getLength() / (1024 * 1024));
+				}
+				File pdfPreviewFile = conversionManager.convertToPDF(inputStream, filename, tempFolder);
+				contentDao.moveFileToVault(hash + ".preview", pdfPreviewFile, ONLY_IF_INEXISTING);
+
+			} catch (ContentDaoException_NoSuchContent e) {
+				//Missing content are not logged from the conversion thread. Instead, they are checked by system diagnostic and other mechanisms
+				return false;
+
+			} catch (Throwable t) {
+				LOGGER.warn("Cannot generate preview for content '" + filename + "' with hash '" + hash + "'", t);
+				return false;
 			}
 		}
 
@@ -953,7 +1012,7 @@ public class ContentManager implements StatefulService {
 								   File tempFolder) throws Exception {
 		InputStream thumbnailSourceInputStream = null;
 		try {
-			if (mimeType.startsWith("image/")) {
+			if (mimeType.startsWith("image/") || mimeType.startsWith("application/pdf")) {
 				thumbnailSourceInputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION);
 			} else {
 				thumbnailSourceInputStream = contentDao.getContentInputStream(hash + ".preview", READ_CONTENT_FOR_PREVIEW_CONVERSION);
@@ -964,7 +1023,7 @@ public class ContentManager implements StatefulService {
 			String tempFilename = tempFolder + filename + "_thumbnail_" + ".png";
 			File thumbnailFile = new File(tempFilename);
 			ImageIO.write(thumbnailImage, "png", thumbnailFile);
-			contentDao.moveFileToVault(thumbnailFile, hash + ".thumbnail");
+			contentDao.moveFileToVault(hash + ".thumbnail", thumbnailFile, ONLY_IF_INEXISTING);
 		} finally {
 			ioServices.closeQuietly(thumbnailSourceInputStream);
 		}
@@ -1065,16 +1124,19 @@ public class ContentManager implements StatefulService {
 				}
 				List<String> hashToDelete = new ArrayList<>();
 				String hash = marker.getFields().get("contentMarkerHash_s").toString();
-				if (!isReferenced(hash)) {
+				boolean isNotReferenced = !isReferenced(hash);
+				if (isNotReferenced) {
 					hashToDelete.add(hash);
 					hashToDelete.add(hash + "__parsed");
 					hashToDelete.add(hash + ".preview");
 					hashToDelete.add(hash + ".thumbnail");
 					hashToDelete.add(hash + ".jpegConversion");
+					getContentDao().deleteFileNameContaining(hash, ".annotation.");
 				}
 				if (!hashToDelete.isEmpty()) {
 					getContentDao().delete(hashToDelete);
 				}
+
 
 			}
 			try {
@@ -1359,6 +1421,42 @@ public class ContentManager implements StatefulService {
 		}
 
 		return files;
+	}
+
+	public Stream<VaultContentEntry> stream() {
+		Stream<DaoFile> daoFileStream = modelLayerFactory.getContentManager().getContentDao().streamVaultContent((file) -> filterVaultContent(file));
+
+		return daoFileStream.map((daoFile -> {
+			String hash = daoFile.getName();
+			return new VaultContentEntry(daoFile) {
+				@Override
+				public Optional<ParsedContent> loadParsedContent() {
+					try {
+						return Optional.of(ContentManager.this.getParsedContent(hash));
+					} catch (ContentManagerException_ContentNotParsed contentManagerException_contentNotParsed) {
+						return Optional.empty();
+					}
+				}
+			};
+		}));
+	}
+
+	public boolean filterVaultContent(DaoFile file) {
+		if (file.isDirectory()) {
+			return false;
+		} else {
+			String filename = file.getName();
+			if (filename.endsWith("tlogs") || filename.endsWith("tlogs-backup") || filename.endsWith(".tlog") || filename.equals("tlogBaseFile.zip") || filename.equals("tlog-infos.txt")) {
+				return false;
+				// FIXME commented for merge
+				//} else if (path.endsWith("shared") || path.getParent().endsWith("shared")) {
+			} else if (filename.endsWith(".preview") || filename.endsWith(".thumbnails")
+					   || filename.endsWith("__parsed") || filename.endsWith(".jpegConversion")) {
+				return false;
+			} else {
+				return true;
+			}
+		}
 	}
 
 	protected static class VaultScanResults {

@@ -3,6 +3,7 @@ package com.constellio.app.services.importExport.settings;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
@@ -18,10 +19,12 @@ import com.constellio.app.services.importExport.settings.model.ImportedMetadataS
 import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
 import com.constellio.app.services.importExport.settings.model.ImportedSequence;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedSystemVersion;
 import com.constellio.app.services.importExport.settings.model.ImportedTab;
 import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
 import com.constellio.app.services.importExport.settings.model.ImportedType;
 import com.constellio.app.services.importExport.settings.model.ImportedValueList;
+import com.constellio.app.services.importExport.settings.utils.SystemVersionService;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
@@ -50,6 +53,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
@@ -81,6 +85,8 @@ public class SettingsImportServices {
 	static final String TAXO = "taxo";
 	static final String CONFIG = "config";
 	static final String VALUE = "value";
+	static final String VERSION = "version";
+	static final String PLUGINS = "plugins";
 	static final String INVALID_COLLECTION_CODE = "invalidCollectionCode";
 	static final String COLLECTION_CODE_NOT_FOUND = "collectionCodeNotFound";
 	static final String CODE = "code";
@@ -93,6 +99,7 @@ public class SettingsImportServices {
 	static final String CONFIGURATION_NOT_FOUND = "configurationNotFound";
 	static final String EMPTY_TYPE_CODE = "emptyTypeCode";
 	static final String EMPTY_TAB_CODE = "emptyTabCode";
+	static final String INCOMPATIBLE_VERSION = "incompatibleVersion";
 	static final String NULL_DEFAULT_SCHEMA = "nullDefaultSchema";
 	static final String INVALID_SCHEMA_CODE = "invalidSchemaCode";
 	static final String DUPLICATE_SCHEMA_CODE = "duplicateSchemaCode";
@@ -103,6 +110,7 @@ public class SettingsImportServices {
 	SystemConfigurationsManager systemConfigurationsManager;
 	MetadataSchemasManager schemasManager;
 	ValueListServices valueListServices;
+	SystemVersionService systemVersionService;
 
 	public SettingsImportServices(AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
@@ -114,7 +122,7 @@ public class SettingsImportServices {
 		ValidationErrors validationErrors = new ValidationErrors();
 		systemConfigurationsManager = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager();
 		schemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
-
+		systemVersionService = new SystemVersionService(appLayerFactory);
 		validate(settings, validationErrors);
 
 		run(settings);
@@ -374,6 +382,10 @@ public class SettingsImportServices {
 		if (importedMetadata.getAdvanceSearchable() != null) {
 			displayConfig = displayConfig.withVisibleInAdvancedSearchStatus(importedMetadata.getAdvanceSearchable());
 		}
+		if (StringUtils.isNotBlank(importedMetadata.getSortingType())) {
+			displayConfig = displayConfig.withSortingType((MetadataSortingType)
+					EnumWithSmallCodeUtils.toEnumWithSmallCode(MetadataSortingType.class, importedMetadata.getSortingType()));
+		}
 		transactionBuilder.addReplacing(displayConfig);
 	}
 
@@ -611,7 +623,7 @@ public class SettingsImportServices {
 			metadataBuilder.setUnmodifiable(importedMetadata.getUnmodifiable());
 		}
 
-		if(importedMetadata.getRequiredReadRoles() != null && importedMetadata.getRequiredReadRoles().size() > 0) {
+		if (importedMetadata.getRequiredReadRoles() != null && importedMetadata.getRequiredReadRoles().size() > 0) {
 			final MetadataAccessRestrictionBuilder originalMetadataAccessRestrictionBuilder = metadataBuilder.defineAccessRestrictions();
 			final MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder;
 			MetadataAccessRestriction metadataAccessRestriction = new MetadataAccessRestriction(importedMetadata.getRequiredReadRoles(), originalMetadataAccessRestrictionBuilder.getRequiredWriteRoles(),
@@ -909,6 +921,10 @@ public class SettingsImportServices {
 	private void validate(ImportedSettings settings, ValidationErrors validationErrors)
 			throws ValidationException {
 
+		if (settings.getImportedSystemVersion() == null || !settings.getImportedSystemVersion().isOnlyUSR()) {
+			validateImportedSystemVersion(validationErrors, settings.getImportedSystemVersion());
+		}
+
 		validateGlobalConfigs(settings, validationErrors);
 
 		validateSequences(settings, validationErrors);
@@ -1143,5 +1159,15 @@ public class SettingsImportServices {
 		parameters.put(CONFIG, key);
 		parameters.put(VALUE, value == null ? "null" : value);
 		return parameters;
+	}
+
+	private void validateImportedSystemVersion(ValidationErrors validationErrors,
+											   ImportedSystemVersion importedSystemVersion) {
+		if (!systemVersionService.compareCurrentSystemVersionToImportSystemVersion(importedSystemVersion)) {
+			Map<String, Object> parameters = new HashMap();
+			parameters.put(VERSION, importedSystemVersion.getFullVersion());
+			parameters.put(PLUGINS, String.join(", ", importedSystemVersion.getPlugins()));
+			validationErrors.add(SettingsImportServices.class, INCOMPATIBLE_VERSION, parameters);
+		}
 	}
 }

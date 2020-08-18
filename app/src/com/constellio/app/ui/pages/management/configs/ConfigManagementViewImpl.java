@@ -18,6 +18,7 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.IntegerRangeValidator;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractComponent;
@@ -163,7 +164,16 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 		I18NHorizontalLayout layout = new I18NHorizontalLayout();
 		String descriptionKey = "SystemConfigurationGroup." + groupCode + "." + configVO.getCode() + ".description";
 		String configDescription = $(descriptionKey);
-		BaseMouseOverIcon baseMouseOverIcon = new BaseMouseOverIcon(new ThemeResource("images/icons/information2.png"), configDescription);
+		String guideKey = "SystemConfigurationGroup." + groupCode + "." + configVO.getCode() + ".guide";
+		String configGuideUrl = $(guideKey);
+		BaseMouseOverIcon baseMouseOverIcon = new BaseMouseOverIcon(new ThemeResource("images/icons/information2.png"), configDescription) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				if (StringUtils.isNotBlank(configGuideUrl) && !configGuideUrl.equals(guideKey)) {
+					Page.getCurrent().open(configGuideUrl, "_blank", false);
+				}
+			}
+		};
 		if (StringUtils.isBlank(configDescription) || configDescription.equals(descriptionKey)) {
 			baseMouseOverIcon.setVisible(false);
 		}
@@ -240,8 +250,8 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 		};
 	}
 
-	@Override
+	/*@Override
 	protected String getGuideUrl() {
 		return "http://documentation.constellio.com/pages/viewpage.action?pageId=2326848";
-	}
+	}*/
 }

@@ -19,7 +19,6 @@ import com.vaadin.ui.CheckBox;
 import org.apache.commons.io.FileUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -59,21 +58,30 @@ public class ContentVersionVOTable extends BaseTable {
 
 	private HashSet<ContentVersionVO> selectedContentVersions;
 
-	public ContentVersionVOTable(String tableId, AppLayerFactory appLayerFactory, boolean isShowingSystemFileName) {
-		this(tableId, new ArrayList<ContentVersionVO>(), appLayerFactory, isShowingSystemFileName);
-	}
+	private String recordId;
+
+	private String metadataCode;
+
+	private boolean canEditAnnotationOnOldVersion;
+	private String currentVersion;
+
 
 	public ContentVersionVOTable(String tableId, List<ContentVersionVO> contentVersions,
-								 AppLayerFactory appLayerFactory, boolean isShowingSystemFileName) {
+								 AppLayerFactory appLayerFactory, boolean isShowingSystemFileName,
+								 String recordId, String metadataCode,
+								 boolean canEditAnnotationOnOldVersion, String currentVersion) {
 		super(tableId);
 		this.appLayerFactory = appLayerFactory;
 		this.isShowingSystemFileName = isShowingSystemFileName;
 		this.selectedContentVersions = new HashSet<>();
+		this.recordId = recordId;
+		this.metadataCode = metadataCode;
+		this.canEditAnnotationOnOldVersion = canEditAnnotationOnOldVersion;
+		this.currentVersion = currentVersion;
 
-		if (isSelectionColumn()) {
-			addContainerProperty(CHECK_BOX, CheckBox.class, null);
-		}
+		addContainerProperty(CHECK_BOX, CheckBox.class, null);
 		addContainerProperty(FILE_NAME, DownloadContentVersionLink.class, null);
+
 		addContainerProperty(VERSION, String.class, null);
 		addContainerProperty(LENGTH, String.class, null);
 		addContainerProperty(LAST_MODIFICATION_DATE_TIME, String.class, null);
@@ -129,14 +137,6 @@ public class ContentVersionVOTable extends BaseTable {
 		return false;
 	}
 
-	protected boolean isSelectionColumn() {
-		return false;
-	}
-
-	protected boolean isSelectionPossible(ContentVersionVO contentVersionVO) {
-		return isDeletePossible(contentVersionVO);
-	}
-
 	protected boolean isDeletePossible(ContentVersionVO contentVersionVO) {
 		return false;
 	}
@@ -148,6 +148,7 @@ public class ContentVersionVOTable extends BaseTable {
 	public List<ContentVersionVO> getContentVersions() {
 		return contentVersionVOs;
 	}
+
 
 	@SuppressWarnings("unchecked")
 	public void setContentVersions(List<ContentVersionVO> contentVersions) {
@@ -177,12 +178,7 @@ public class ContentVersionVOTable extends BaseTable {
 
 			final Object itemId = addItem();
 			Item item = getItem(itemId);
-			final CheckBox checkBox = new CheckBox() {
-				@Override
-				public boolean isVisible() {
-					return isSelectionPossible(contentVersion);
-				}
-			};
+			final CheckBox checkBox = new CheckBox();
 			checkBox.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
@@ -196,11 +192,10 @@ public class ContentVersionVOTable extends BaseTable {
 			});
 			checkBox.setValue(selectedContentVersions.contains(contentVersion));
 
-			if (isSelectionColumn()) {
-				item.getItemProperty(CHECK_BOX).setValue(checkBox);
-			}
+			item.getItemProperty(CHECK_BOX).setValue(checkBox);
 
-			item.getItemProperty(FILE_NAME).setValue(new DownloadContentVersionLink(contentVersion, fileName));
+			boolean canEditVersions = ((contentVersion.getVersion().equals(currentVersion) || canEditAnnotationOnOldVersion));
+			item.getItemProperty(FILE_NAME).setValue(new DownloadContentVersionLink(contentVersion, fileName, recordId, metadataCode, !canEditVersions));
 			item.getItemProperty(VERSION).setValue(version);
 			item.getItemProperty(LENGTH).setValue(lengthCaption);
 			item.getItemProperty(LAST_MODIFICATION_DATE_TIME).setValue(lastModificationDateTimeCaption);

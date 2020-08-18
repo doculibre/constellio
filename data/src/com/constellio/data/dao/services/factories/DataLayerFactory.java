@@ -6,6 +6,7 @@ import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.EventBusSendingServiceType;
 import com.constellio.data.conf.IdGeneratorType;
+import com.constellio.data.conf.SecondTransactionLogType;
 import com.constellio.data.conf.SolrServerType;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
@@ -21,6 +22,7 @@ import com.constellio.data.dao.managers.config.ZooKeeperConfigManager;
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.BigVaultRecordDao;
+import com.constellio.data.dao.services.bigVault.BigVaultSearchDao;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultLogger;
@@ -30,9 +32,9 @@ import com.constellio.data.dao.services.cache.event.ConstellioEventMapCacheManag
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
 import com.constellio.data.dao.services.cache.map.ConstellioMapCacheManager;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCacheManager;
+import com.constellio.data.dao.services.contents.AzureBlobStorageContentDao;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
-import com.constellio.data.dao.services.contents.HadoopContentDao;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
@@ -42,7 +44,9 @@ import com.constellio.data.dao.services.leaderElection.ObservableLeaderElectionM
 import com.constellio.data.dao.services.leaderElection.StandaloneLeaderElectionManager;
 import com.constellio.data.dao.services.leaderElection.ZookeeperLeaderElectionManager;
 import com.constellio.data.dao.services.records.RecordDao;
-import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
+import com.constellio.data.dao.services.recovery.TransactionLogRecovery;
+import com.constellio.data.dao.services.recovery.TransactionLogXmlRecoveryManager;
+import com.constellio.data.dao.services.replicationFactor.TransactionLogReplicationFactorManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.dao.services.sequence.SolrSequencesManager;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
@@ -50,8 +54,12 @@ import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.dao.services.solr.SolrServers;
 import com.constellio.data.dao.services.solr.serverFactories.CloudSolrServerFactory;
 import com.constellio.data.dao.services.solr.serverFactories.HttpSolrServerFactory;
+import com.constellio.data.dao.services.sql.SqlConnector;
+import com.constellio.data.dao.services.sql.SqlRecordDaoFactory;
+import com.constellio.data.dao.services.sql.SqlServerConnector;
 import com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
+import com.constellio.data.dao.services.transactionLog.SqlServerTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.XMLSecondTransactionLogManager;
 import com.constellio.data.events.EventBus;
 import com.constellio.data.events.EventBusManager;
@@ -72,6 +80,7 @@ import org.apache.ignite.Ignite;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -88,11 +97,14 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private static final String SECONDARY_SEQUENCE_TABLE_CONFIG_PATH = "/secondarySequence.properties";
 	static final String RECORDS_COLLECTION = "records";
 	static final String EVENTS_COLLECTION = "events";
+	static final String SEARCH_COLLECTION = "search";
 	static final String CONTENTS_COLLECTION = "contents";
 	static final String NOTIFICATIONS_COLLECTION = "notifications";
 
 	private final IOServicesFactory ioServicesFactory;
 	private final SolrServers solrServers;
+	private final SqlConnector sqlConnector;
+	private SqlRecordDaoFactory sqlRecordDaoFactory;
 	private ConstellioCacheManager localCacheManager;
 	private ConstellioCacheManager distributedCacheManager;
 	private final ConfigManager configManager;
@@ -106,7 +118,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private final ConstellioJobManager constellioJobManager;
 	private final DataLayerLogger dataLayerLogger;
 	private final DataLayerExtensions dataLayerExtensions;
-	final TransactionLogRecoveryManager transactionLogRecoveryManager;
+	final TransactionLogRecovery transactionLogXmlRecoveryManager;
+	private TransactionLogReplicationFactorManager transactionLogReplicationFactorManager;
 	private String constellioVersion;
 	private final ConversionManager conversionManager;
 	private final EventBusManager eventBusManager;
@@ -130,8 +143,9 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		// TODO Possibility to configure the logger
 		this.bigVaultLogger = BigVaultLogger.disabled();
 		this.ioServicesFactory = ioServicesFactory;
-		this.solrServers = new SolrServers(newSolrServerFactory(), bigVaultLogger, dataLayerExtensions);
+		this.solrServers = new SolrServers(newSolrServerFactory(), bigVaultLogger, dataLayerExtensions, dataLayerConfiguration);
 		this.dataLayerLogger = new DataLayerLogger();
+		this.sqlConnector = new SqlServerConnector();
 
 		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration, this));
 
@@ -159,7 +173,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		this.eventBusManager = add(new EventBusManager(eventBusSendingService, dataLayerExtensions.getSystemWideExtensions()));
 
-		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
+		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration, instanceName));
 
 
 		if (dataLayerConfiguration.getCacheType() == CacheType.MEMORY) {
@@ -206,7 +220,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			this.idGenerator = new UUIDV1Generator();
 
 		} else if (dataLayerConfiguration.getIdGeneratorType() == IdGeneratorType.SEQUENTIAL) {
-			this.idGenerator = add(new ZeroPaddedSequentialUniqueIdGenerator(configManager, RECORDS_SEQUENCE_TABLE_CONFIG_PATH));
+			this.idGenerator = add(new ZeroPaddedSequentialUniqueIdGenerator(configManager,
+					RECORDS_SEQUENCE_TABLE_CONFIG_PATH, dataLayerConfiguration.getSequentialIdReservedBatchSize()));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported UniqueIdGenerator");
@@ -223,26 +238,49 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			throw new ImpossibleRuntimeException("Unsupported UniqueIdGenerator");
 		}
 
+		if (dataLayerConfiguration.getMicrosoftSqlServerUrl() != null &&
+			dataLayerConfiguration.getSecondTransactionLogMode() == SecondTransactionLogType.SQL_SERVER) {
+			try {
+				this.sqlConnector.setConnection(dataLayerConfiguration);
+				this.sqlRecordDaoFactory = new SqlRecordDaoFactory(this.sqlConnector);
+			} catch (SQLException sqlException) {
+				throw new RuntimeException(sqlException);
+			}
+		}
+
 		updateContentDao();
 
-		transactionLogRecoveryManager = new TransactionLogRecoveryManager(this);
+		transactionLogXmlRecoveryManager = new TransactionLogXmlRecoveryManager(this);
 
 		if (dataLayerConfiguration.isSecondTransactionLogEnabled()) {
-			if ("kafka".equals(dataLayerConfiguration.getSecondTransactionLogMode())) {
+			if (dataLayerConfiguration.getSecondTransactionLogMode() == SecondTransactionLogType.KAFKA) {
 				secondTransactionLogManager = add(new KafkaTransactionLogManager(dataLayerConfiguration,
 						dataLayerExtensions.getSystemWideExtensions(), newRecordDao(), dataLayerLogger));
+			} else if (dataLayerConfiguration.getSecondTransactionLogMode() == SecondTransactionLogType.SQL_SERVER) {
+
+				secondTransactionLogManager = add(new SqlServerTransactionLogManager(dataLayerConfiguration,
+						ioServicesFactory.newIOServices(), newRecordDao(), sqlRecordDaoFactory, contentDao, backgroundThreadsManager, dataLayerLogger,
+						dataLayerExtensions.getSystemWideExtensions(), transactionLogXmlRecoveryManager, this.leaderElectionManager));
 			} else {
 				secondTransactionLogManager = add(new XMLSecondTransactionLogManager(dataLayerConfiguration,
 						ioServicesFactory.newIOServices(), newRecordDao(), contentDao, backgroundThreadsManager, dataLayerLogger,
-						dataLayerExtensions.getSystemWideExtensions(), transactionLogRecoveryManager));
+						dataLayerExtensions.getSystemWideExtensions(), transactionLogXmlRecoveryManager));
 			}
 		} else {
 			secondTransactionLogManager = null;
 		}
 
+		if (dataLayerConfiguration.getRecordsDaoSolrServerType() == SolrServerType.CLOUD) {
+			transactionLogReplicationFactorManager =
+					new TransactionLogReplicationFactorManager(this, getExtensions().getSystemWideExtensions());
+			add(transactionLogReplicationFactorManager);
+		} else {
+			transactionLogReplicationFactorManager = null;
+		}
+
 		IOServices ioServices = ioServicesFactory.newIOServices();
 		conversionManager = add(new ConversionManager(ioServices, dataLayerConfiguration.getConversionProcesses(),
-				dataLayerConfiguration.getOnlineConversionUrl(), this.getExtensions().getSystemWideExtensions()));
+				dataLayerConfiguration.getOnlineConversionUrl(), this.getExtensions().getSystemWideExtensions(), dataLayerConfiguration));
 		lastCreatedInstance = this;
 
 		dataLayerBackgroundThreadsManager = new DataLayerBackgroundThreadsManager(this);
@@ -274,6 +312,10 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		return new BigVaultRecordDao(getEventsVaultServer(), newTypesFactory(), null, dataLayerLogger);
 	}
 
+	public RecordDao newSearchDao() {
+		return new BigVaultSearchDao(getSearchVaultServer(), newTypesFactory(), null, dataLayerLogger);
+	}
+
 	public RecordDao newNotificationsDao() {
 		return new BigVaultRecordDao(getNotificationsVaultServer(), newTypesFactory(), null, dataLayerLogger);
 	}
@@ -294,12 +336,22 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		return contentDao;
 	}
 
+	public SqlRecordDaoFactory getSqlRecordDao() {
+		return sqlRecordDaoFactory;
+	}
+
 	public BigVaultServer getRecordsVaultServer() {
-		return solrServers.getSolrServer(RECORDS_COLLECTION);
+		String recordsCollection = dataLayerConfiguration.getRecordsDaoCollection();
+		return solrServers.getSolrServer(recordsCollection != null ? recordsCollection : RECORDS_COLLECTION);
 	}
 
 	public BigVaultServer getEventsVaultServer() {
-		return solrServers.getSolrServer(EVENTS_COLLECTION);
+		String eventsCollection = dataLayerConfiguration.getEventsDaoCollection();
+		return solrServers.getSolrServer(eventsCollection != null ? eventsCollection : EVENTS_COLLECTION);
+	}
+
+	public BigVaultServer getSearchVaultServer() {
+		return solrServers.getSolrServer(SEARCH_COLLECTION);
 	}
 
 	public BigVaultServer getContentsVaultServer() {
@@ -307,7 +359,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	}
 
 	public BigVaultServer getNotificationsVaultServer() {
-		return solrServers.getSolrServer(NOTIFICATIONS_COLLECTION);
+		String notificationsCollection = dataLayerConfiguration.getNotificationsDaoCollection();
+		return solrServers.getSolrServer(notificationsCollection != null ? notificationsCollection : NOTIFICATIONS_COLLECTION);
 	}
 
 	public DataStoreTypesFactory newTypesFactory() {
@@ -326,6 +379,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		return dataLayerLogger;
 	}
 
+
 	public IOServicesFactory getIOServicesFactory() {
 		return ioServicesFactory;
 	}
@@ -340,12 +394,22 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	@Override
 	public void close() {
 		super.close();
+		try {
+			sqlConnector.closeConnection();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		solrServers.close();
 	}
 
 	@Override
 	public void close(boolean closeBottomLayers) {
 		super.close(closeBottomLayers);
+		try {
+			sqlConnector.closeConnection();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		solrServers.close();
 	}
 
@@ -420,8 +484,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		}
 	}
 
-	public TransactionLogRecoveryManager getTransactionLogRecoveryManager() {
-		return this.transactionLogRecoveryManager;
+	public TransactionLogRecovery getTransactionLogXmlRecoveryManager() {
+		return this.transactionLogXmlRecoveryManager;
 	}
 
 	public SequencesManager getSequencesManager() {
@@ -430,12 +494,9 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 	public void updateContentDao() {
 		if (ContentDaoType.FILESYSTEM == dataLayerConfiguration.getContentDaoType()) {
-			contentDao = add(new FileSystemContentDao(this));
-		} else if (ContentDaoType.HADOOP == dataLayerConfiguration.getContentDaoType()) {
-			String hadoopUrl = dataLayerConfiguration.getContentDaoHadoopUrl();
-			String hadoopUser = dataLayerConfiguration.getContentDaoHadoopUser();
-			contentDao = new HadoopContentDao(hadoopUrl, hadoopUser);
-
+			contentDao = add(new FileSystemContentDao(this, dataLayerConfiguration.getSubvaults()));
+		} else if (ContentDaoType.AZURE == dataLayerConfiguration.getContentDaoType()) {
+			contentDao = add(new AzureBlobStorageContentDao(this));
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ContentDaoType");
 		}
@@ -460,4 +521,9 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	public boolean isDistributed() {
 		return !(leaderElectionManager.getNestedLeaderElectionManager() instanceof StandaloneLeaderElectionManager);
 	}
+
+	public TransactionLogReplicationFactorManager getTransactionLogReplicationFactorManager() {
+		return transactionLogReplicationFactorManager;
+	}
+
 }

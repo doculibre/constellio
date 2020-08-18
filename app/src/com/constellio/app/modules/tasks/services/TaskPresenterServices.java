@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.services;
 
+import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
@@ -22,6 +23,7 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
@@ -40,9 +42,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS_GROUPS;
 
 public class TaskPresenterServices {
 	private static Logger LOGGER = LoggerFactory.getLogger(TaskPresenterServices.class);
@@ -241,7 +240,6 @@ public class TaskPresenterServices {
 	public void deleteTask(Record record, User currentUser) {
 
 		recordServices.logicallyDelete(record, currentUser);
-		loggingServices.logDeleteRecordWithJustification(record, currentUser, "");
 		//recordServices.physicallyDelete(record, currentUser);
 	}
 
@@ -302,16 +300,16 @@ public class TaskPresenterServices {
 		}
 		Task task = tasksSchemas.getTask(record.getId());
 		return task.getAssignee() == null && (task.getAssigneeUsersCandidates() == null || task.getAssigneeUsersCandidates()
-				.isEmpty()) && (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates().isEmpty());
+				.isEmpty()) && (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates().isEmpty())
+			   || (task.getAssignee() == null && task.getAssigneeUsersCandidates().contains(user.getId()) || !Collections.disjoint(task.getAssigneeGroupsCandidates(), user.getUserGroups()));
 	}
 
-	public boolean currentUserIsCollaborator(RecordVO recordVO, String currentUserId) {
-		Record currentUserRecord = tasksSchemas.getAppLayerFactory().getModelLayerFactory().newRecordServices().getDocumentById(currentUserId);
-		if (((List) recordVO.get(TASK_COLLABORATORS)).contains(currentUserId)) {
-			return true;
-		} else {
-			return !Collections.disjoint(tasksSchemas.wrapUser(currentUserRecord).getUserGroups(), recordVO.get(TASK_COLLABORATORS_GROUPS));
+	public boolean currentUserHasWriteAuthorisationWithoutBeingCollaborator(RecordVO recordVO, String currentUserId) {
+		boolean isModel = false;
+		if (recordVO.get(RMTask.IS_MODEL) != null) {
+			isModel = recordVO.get(RMTask.IS_MODEL);
 		}
+		return currentUserId.equals(recordVO.get(Task.ASSIGNEE)) || currentUserId.equals(recordVO.get(Task.ASSIGNER)) || isModel;
 	}
 
 	public void modifyCollaborators(List<TaskCollaboratorItem> taskCollaboratorItems,
@@ -335,11 +333,15 @@ public class TaskPresenterServices {
 		taskVO.setTaskCollaboratorsGroups(taskCollaboratorsGroups);
 		taskVO.settaskCollaboratorsGroupsWriteAuthorizations(taskCollaboratorsGroupsWriteAuthorizations);
 
-		Record record = schemaPresenterUtils.toRecord(taskVO);
-		Task task = tasksSchemas.wrapTask(record);
 		try {
-			recordServices.update(task);
-		} catch (RecordServicesException e) {
+			Record record = schemaPresenterUtils.toRecord(taskVO);
+			Task task = tasksSchemas.wrapTask(record);
+			try {
+				recordServices.update(task);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		} catch (OptimisticLockException e) {
 			throw new RuntimeException(e);
 		}
 	}

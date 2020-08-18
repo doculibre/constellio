@@ -1,6 +1,7 @@
 package com.constellio.app.api.search;
 
 import com.constellio.app.api.HttpServletRequestAuthenticator;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -30,6 +31,7 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 	public static final String THESAURUS_VALUE = "thesaurusValue";
 	public static final String SKOS_CONCEPTS = "skosConcepts";
 	public static final String SEARCH_EVENTS = "searchEvents";
+	public static final String CORE = "core";
 	public static final String FEATURED_LINKS = "featuredLinks";
 	public static final String FACET_LABELS = "facet_labels";
 	public static final String AUTOCOMPLETE = "autocomplete";
@@ -37,7 +39,11 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 
 	@Override
 	protected final void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		doGet(authenticate(req), req, resp);
+		try {
+			doGet(authenticate(req), req, resp);
+		} catch (isNotAuthenticatedException e) {
+			resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "invalid authentification information");
+		}
 	}
 
 	protected abstract void doGet(UserCredential user, HttpServletRequest req, HttpServletResponse resp)
@@ -52,6 +58,7 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 		ModifiableSolrParams solrParams = new ModifiableSolrParams(SolrRequestParsers.parseQueryString(queryString));
 
 		solrParams.remove(SEARCH_EVENTS);
+		solrParams.remove(CORE);
 		solrParams.remove(THESAURUS_VALUE);
 		solrParams.remove(HttpServletRequestAuthenticator.USER_SERVICE_KEY);
 		solrParams.remove(HttpServletRequestAuthenticator.USER_TOKEN);
@@ -96,7 +103,7 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory());
 		UserCredential user = authenticator.authenticate(request);
 		if (user == null) {
-			throw new RuntimeException("Invalid serviceKey/token");
+			throw new isNotAuthenticatedException();
 		}
 
 		return user;
@@ -106,9 +113,13 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 		return getConstellioFactories().getModelLayerFactory();
 	}
 
-	protected QueryResponse getQueryResponse(ModifiableSolrParams solrParams, UserCredential user) {
+	protected AppLayerFactory appLayerFactory() {
+		return getConstellioFactories().getAppLayerFactory();
+	}
+
+	protected QueryResponse getQueryResponse(String core, ModifiableSolrParams solrParams, UserCredential user) {
 		FreeTextSearchServices freeTextSearchServices = modelLayerFactory().newFreeTextSearchServices();
-		return freeTextSearchServices.search(new FreeTextQuery(solrParams).filteredByUser(user));
+		return freeTextSearchServices.search(core, new FreeTextQuery(solrParams).filteredByUser(user));
 	}
 
 	protected QueryResponse getEventQueryResponse(ModifiableSolrParams solrParams) {
@@ -159,11 +170,13 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 		try (OutputStreamWriter out = new OutputStreamWriter(outputStream)) {
 			if (("json").equals(solrParams.get("wt"))) {
 				response.setCharacterEncoding("UTF-8");
+				response.setHeader("Access-Control-Allow-Origin", "*");
 				response.setContentType("application/json; charset=UTF-8");
 				JSONResponseWriter jsonWriter = new JSONResponseWriter();
 				jsonWriter.write(out, new LocalSolrQueryRequest(null, solrParams), sResponse);
 			} else {
 				response.setCharacterEncoding("UTF-8");
+				response.setHeader("Access-Control-Allow-Origin", "*");
 				response.setContentType("application/xml; charset=UTF-8");
 				xmlWriter.write(out, new LocalSolrQueryRequest(null, solrParams), sResponse);
 			}

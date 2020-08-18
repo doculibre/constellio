@@ -5,7 +5,7 @@ import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.tasks.model.calculators.TaskTokensCalculator;
+import com.constellio.app.modules.tasks.model.calculators.TaskTokensCalculator2;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -25,6 +25,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Test;
 
 import java.io.File;
@@ -38,6 +39,7 @@ import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
+@SlowTest
 public class RMMigrationTo7_6_6_AcceptanceTest extends ConstellioTest {
 
 	@Test
@@ -77,7 +79,7 @@ public class RMMigrationTo7_6_6_AcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		assertThat(calculatorOf(types.getSchema(Folder.DEFAULT_SCHEMA).get(TOKENS))).isEqualTo(TokensCalculator4.class);
 		assertThat(calculatorOf(types.getSchema(Document.DEFAULT_SCHEMA).get(TOKENS))).isEqualTo(TokensCalculator4.class);
-		assertThat(calculatorOf(types.getSchema(Task.DEFAULT_SCHEMA).get(TOKENS))).isEqualTo(TaskTokensCalculator.class);
+		assertThat(calculatorOf(types.getSchema(Task.DEFAULT_SCHEMA).get(TOKENS))).isEqualTo(TaskTokensCalculator2.class);
 		assertThat(calculatorOf(types.getSchema(ContainerRecord.DEFAULT_SCHEMA).get(TOKENS))).isEqualTo(TokensCalculator2.class);
 		assertThat(calculatorOf(types.getSchema(Facet.DEFAULT_SCHEMA).get(TOKENS))).isEqualTo(TokensCalculator2.class);
 		assertThat(calculatorOf(types.getSchema(User.DEFAULT_SCHEMA).get(TOKENS))).isEqualTo(TokensCalculator2.class);
@@ -96,6 +98,8 @@ public class RMMigrationTo7_6_6_AcceptanceTest extends ConstellioTest {
 		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 
 		Record unit10 = record("unitId_10");
+
+		getModelLayerFactory().getSecurityModelCache().invalidate(zeCollection);
 
 		List<String> usersWithReadAccess = new ArrayList<>();
 		User gandalfUser = rm.getModelLayerFactory().newUserServices().getUserInCollection("gandalf", zeCollection);

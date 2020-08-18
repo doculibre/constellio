@@ -58,6 +58,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -66,6 +67,7 @@ import java.util.Set;
 
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static com.constellio.model.entities.records.wrappers.Group.wrapNullable;
+import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_ON;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -302,6 +304,22 @@ public class UserServices {
 				schemaTypes(collection), rolesManager.getCollectionRoles(collection, modelLayerFactory));
 	}
 
+
+	public UserCredential getUserByAzureUsername(String azureUsername) {
+
+		UserCredential credential = userCredentialsManager.getAzureUserCredential(azureUsername);
+		if (credential == null) {
+			throw new UserServicesRuntimeException_NoSuchUser(azureUsername);
+		}
+		return credential;
+	}
+
+	public void updateAzureUsername(UserCredential userCredential, String azureUser) {
+		userCredential.setAzureUsername(azureUser);
+		userCredentialsManager.addUpdate(userCredential);
+	}
+
+
 	public GlobalGroup getGroup(String groupCode) {
 		GlobalGroup group = globalGroupsManager.getGlobalGroupWithCode(groupCode);
 		if (group == null) {
@@ -451,8 +469,8 @@ public class UserServices {
 	private void removeChildren(String group, List<String> collections) {
 		for (String collection : collections) {
 			for (Group child : getChildrenOfGroupInCollection(group, collection)) {
-				removeFromBigVault(child.getCode(), collections);
-				removeChildren(child.getCode(), collections);
+				removeFromBigVault(child.getCode(), Arrays.asList(collection));
+				removeChildren(child.getCode(), Arrays.asList(collection));
 			}
 		}
 	}
@@ -635,6 +653,8 @@ public class UserServices {
 		String parentId = getGroupParentId(group, collection);
 		groupInCollection.set(Group.PARENT, parentId);
 		groupInCollection.set(Group.IS_GLOBAL, true);
+		groupInCollection.set(LOGICALLY_DELETED_STATUS, group.getLogicallyDeletedStatus());
+		groupInCollection.set(LOGICALLY_DELETED_ON, group.get(LOGICALLY_DELETED_ON));
 		groupInCollection.setTitle(group.getName());
 		if (groupInCollection.isDirty()) {
 			transaction.add(groupInCollection.getWrappedRecord());
@@ -881,12 +901,14 @@ public class UserServices {
 	public List<Group> getChildrenOfGroupInCollection(String groupParentCode, String collection) {
 		List<Group> groups = new ArrayList<>();
 		String parentId = getGroupIdInCollection(groupParentCode, collection);
-		LogicalSearchCondition condition = from(groupSchema(collection))
-				.where(groupParentMetadata(collection))
-				.is(parentId).andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull();
-		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(condition);
-		for (Record record : searchServices.search(query)) {
-			groups.add(wrapNullable(record, schemaTypes(collection)));
+		if (parentId != null) {
+			LogicalSearchCondition condition = from(groupSchema(collection))
+					.where(groupParentMetadata(collection))
+					.is(parentId).andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull();
+			LogicalSearchQuery query = new LogicalSearchQuery().setCondition(condition);
+			for (Record record : searchServices.search(query)) {
+				groups.add(wrapNullable(record, schemaTypes(collection)));
+			}
 		}
 		return groups;
 	}
@@ -912,7 +934,10 @@ public class UserServices {
 		List<User> usersInCollection = new ArrayList<>();
 		for (UserCredential userCredential : getAllUserCredentials()) {
 			if (userCredential.getCollections().contains(collection)) {
-				usersInCollection.add(getUserInCollection(userCredential.getUsername(), collection));
+				User user = getUserInCollection(userCredential.getUsername(), collection);
+				if (user != null) {
+					usersInCollection.add(getUserInCollection(userCredential.getUsername(), collection));
+				}
 			}
 		}
 		return usersInCollection;
@@ -1035,16 +1060,30 @@ public class UserServices {
 			deletedUsers.add(schemas.wrapUser(record));
 		}
 		for (User user : deletedUsers) {
-			LOGGER.info("safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
-			try {
-				physicallyRemoveUser(user, collection);
-			} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
-				LOGGER.warn("Exception on safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
-				nonDeletedUsers.add(user);
+			if (!ADMIN.equals(user.getUsername())) {
+				LOGGER.info("safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
+				try {
+					physicallyRemoveUser(user, collection);
+				} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
+					LOGGER.warn("Exception on safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
+					nonDeletedUsers.add(user);
+				}
 			}
 		}
 
 		return nonDeletedUsers;
+	}
+
+	public void physicallyRemoveUserCredentialAndUsers(UserCredential userCredential) {
+		List<User> users = getUserForEachCollection(userCredential);
+		for (User user : users) {
+			String collection = user.getCollection();
+			physicallyRemoveUser(user, collection);
+		}
+
+		LOGGER.info("physicallyRemoveUserCredential : " + userCredential.getUsername());
+		recordServices.logicallyDelete(userCredential.getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(userCredential.getWrappedRecord(), User.GOD);
 	}
 
 	public void physicallyRemoveUser(User user, String collection) {
@@ -1214,4 +1253,5 @@ public class UserServices {
 
 		return groups;
 	}
+
 }

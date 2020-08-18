@@ -21,6 +21,7 @@ import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.PropertyFileUtils;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.data.utils.hashing.HashingServiceException;
 import org.apache.commons.io.FileUtils;
@@ -361,7 +362,6 @@ public class FileSystemConfigManager implements StatefulService, EventBusListene
 	@Override
 	public synchronized XMLConfiguration getXML(String path) {
 		extensions.getSystemWideExtensions().onReadConfig(path);
-		LOGGER.debug("get XML  => " + path);
 		XMLConfiguration cachedConfiguration = (XMLConfiguration) getFromCache(path);
 		if (cachedConfiguration == null) {
 			try {
@@ -377,6 +377,7 @@ public class FileSystemConfigManager implements StatefulService, EventBusListene
 
 	private XMLConfiguration readXML(String path)
 			throws NoSuchConfiguration {
+
 		String fileContent = readFile(path);
 		String hash;
 		try {
@@ -410,9 +411,14 @@ public class FileSystemConfigManager implements StatefulService, EventBusListene
 
 	private String readFile(String path)
 			throws NoSuchConfiguration {
+
 		validateFileExistance(path);
 		String content = "";
 		try {
+			if (TenantUtils.getTenantId() == null ||
+				!configFolder.getAbsolutePath().contains(TenantUtils.getTenantId())) {
+				//LOGGER.error("read file  => " + new File(configFolder, path).getAbsolutePath() + " for " + TenantUtils.getTenantId(), new RuntimeException(""));
+			}
 			content = ioServices.readFileToString(new File(configFolder, path));
 		} catch (IOException e) {
 			throw new ConfigManagerRuntimeException.CannotCompleteOperation("read file content", e);

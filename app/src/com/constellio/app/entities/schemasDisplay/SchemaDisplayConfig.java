@@ -102,12 +102,43 @@ public class SchemaDisplayConfig implements Serializable {
 		return withDisplayMetadataCodes(displayMetadataCodes);
 	}
 
-	public SchemaDisplayConfig withNewDisplayMetadataQueued(String metadataCode) {
+	public SchemaDisplayConfig withNewDisplayMetadataQueued(String... metadataCodes) {
 		List<String> displayMetadataCodes = new ArrayList<>();
 		displayMetadataCodes.addAll(this.displayMetadataCodes);
-		displayMetadataCodes.add(metadataCode);
+		for (String metadataCode : metadataCodes) {
+			displayMetadataCodes.add(metadataCode);
+		}
 		return withDisplayMetadataCodes(displayMetadataCodes);
 	}
+
+	public SchemaDisplayConfig withNewFormMetadataQueued(String... metadataCodes) {
+		List<String> formMetadataCodes = new ArrayList<>();
+		formMetadataCodes.addAll(this.formMetadataCodes);
+		for (String metadataCode : metadataCodes) {
+			formMetadataCodes.add(metadataCode);
+		}
+		return withFormMetadataCodes(formMetadataCodes);
+	}
+
+	public SchemaDisplayConfig withNewSearchMetadataQueued(String... metadataCodes) {
+		List<String> searchResultsMetadataCodes = new ArrayList<>();
+		searchResultsMetadataCodes.addAll(this.searchResultsMetadataCodes);
+		for (String metadataCode : metadataCodes) {
+			searchResultsMetadataCodes.add(metadataCode);
+		}
+		return withSearchResultsMetadataCodes(searchResultsMetadataCodes);
+	}
+
+
+	public SchemaDisplayConfig withNewTableMetadataQueued(String... metadataCodes) {
+		List<String> tableMetadataCodes = new ArrayList<>();
+		tableMetadataCodes.addAll(this.tableMetadataCodes);
+		for (String metadataCode : metadataCodes) {
+			tableMetadataCodes.add(metadataCode);
+		}
+		return withTableMetadataCodes(tableMetadataCodes);
+	}
+
 
 	public SchemaDisplayConfig withNewFormMetadata(String metadataCode) {
 		List<String> formMetadatas = new ArrayList<>();
@@ -126,6 +157,13 @@ public class SchemaDisplayConfig implements Serializable {
 		formMetadatas.addAll(this.formMetadataCodes);
 		formMetadatas.addAll(asList(metadataCodes));
 		return withFormMetadataCodes(formMetadatas).withDisplayMetadataCodes(displayMetadatas);
+	}
+
+	public SchemaDisplayConfig withNewDisplayMetadatas(String... metadataCodes) {
+		List<String> displayMetadatas = new ArrayList<>();
+		displayMetadatas.addAll(this.displayMetadataCodes);
+		displayMetadatas.addAll(asList(metadataCodes));
+		return withDisplayMetadataCodes(displayMetadatas);
 	}
 
 	public SchemaDisplayConfig withNewFormMetadatas(String... metadataCodes) {

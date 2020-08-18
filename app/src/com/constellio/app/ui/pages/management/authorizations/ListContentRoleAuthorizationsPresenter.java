@@ -7,9 +7,9 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
@@ -90,6 +90,12 @@ public class ListContentRoleAuthorizationsPresenter extends ListAuthorizationsPr
 	@Override
 	public boolean seeRolesField() {
 		return true;
+	}
+
+
+	@Override
+	public boolean seeSharedBy() {
+		return false;
 	}
 
 	@Override

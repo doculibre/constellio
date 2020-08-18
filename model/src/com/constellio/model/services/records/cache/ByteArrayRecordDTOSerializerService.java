@@ -7,6 +7,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
 import com.constellio.model.services.schemas.MetadataSchemaProvider;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.data.utils.TenantUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -30,6 +31,7 @@ public class ByteArrayRecordDTOSerializerService {
 		boolean summary = recordDTO.getLoadingMode() == RecordDTOMode.SUMMARY;
 		short schemaId = recordDTO.getSchemaId();
 		short typeId = recordDTO.getTypeId();
+		int sortValueId = recordDTO.getMainSortValue();
 
 		byte[] memoryBytes = recordDTO.data;
 		byte[] persistedBytes = recordDTO.get();
@@ -42,6 +44,7 @@ public class ByteArrayRecordDTOSerializerService {
 				Byte.BYTES + //summary
 				Short.BYTES + // schemaId
 				Short.BYTES + //typeId
+				Integer.BYTES + //titleSortValue
 				Integer.BYTES + //memoryBytesLength
 				Integer.BYTES + //persistedBytesLength
 				memoryBytes.length + persistedBytes.length);
@@ -53,6 +56,7 @@ public class ByteArrayRecordDTOSerializerService {
 			outputStream.writeByte(summary ? 1 : 0);
 			outputStream.writeShort(schemaId);
 			outputStream.writeShort(typeId);
+			outputStream.writeInt(sortValueId);
 			outputStream.writeInt(memoryBytes.length);
 			outputStream.write(memoryBytes);
 			outputStream.writeInt(persistedBytes.length);
@@ -74,6 +78,7 @@ public class ByteArrayRecordDTOSerializerService {
 			boolean summary = inputStream.readByte() == 1;
 			short schemaId = inputStream.readShort();
 			short typeId = inputStream.readShort();
+			int mainSortValue = inputStream.readInt();
 			int memoryBytesLength = inputStream.readInt();
 			byte[] memoryBytes = new byte[memoryBytesLength];
 			inputStream.read(memoryBytes);
@@ -83,7 +88,8 @@ public class ByteArrayRecordDTOSerializerService {
 			inputStream.read(persistedBytes);
 
 			MetadataSchemaProvider schemaProvider = modelLayerFactory.getMetadataSchemasManager();
-			short tenantId = modelLayerFactory.getInstanceId();
+			short tenantId = TenantUtils.isSupportingTenants() ?
+							 TenantUtils.getByteTenantId() : modelLayerFactory.getInstanceId();
 
 			String collectionCode = modelLayerFactory.getCollectionsListManager().getCollectionCode(collectionId);
 			MetadataSchemaType schemaType = ((MetadataSchemasManager) schemaProvider).getSchemaTypes(collectionId).getSchemaType(typeId);
@@ -91,7 +97,7 @@ public class ByteArrayRecordDTOSerializerService {
 			String schemaCode = schemaType.getSchema(schemaId).getCode();
 
 			return new ByteArrayRecordDTOWithIntegerId(id, schemaProvider, version, summary, tenantId, collectionCode,
-					collectionId, typeCode, typeId, schemaCode, schemaId, memoryBytes) {
+					collectionId, typeCode, typeId, schemaCode, schemaId, memoryBytes, mainSortValue) {
 				@Override
 				public byte[] get() {
 					return persistedBytes;

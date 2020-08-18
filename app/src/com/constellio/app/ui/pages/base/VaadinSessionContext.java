@@ -1,5 +1,9 @@
 package com.constellio.app.ui.pages.base;
 
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.UserVO;
+import com.vaadin.server.VaadinSession;
+
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,10 +12,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.UserVO;
-import com.vaadin.server.VaadinSession;
 
 public class VaadinSessionContext extends BaseSessionContext {
 
@@ -22,10 +22,8 @@ public class VaadinSessionContext extends BaseSessionContext {
 	public static final String SELECTED_RECORD_IDS_ATTRIBUTE = VaadinSessionContext.class.getName() + ".selectedRecordIds";
 	public static final String SELECTED_RECORD_SCHEMA_TYPE_CODES_ATTRIBUTE = VaadinSessionContext.class.getName() + ".selectedRecordSchemaTypeCodes";
 	public static final String VISITED_ATTRIBUTE = VaadinSessionContext.class.getName() + ".visited";
-
-	public VaadinSessionContext() {
-	}
-
+	private Locale lastKnownLocale;
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T getAttribute(String key) {
@@ -61,11 +59,18 @@ public class VaadinSessionContext extends BaseSessionContext {
 
 	@Override
 	public Locale getCurrentLocale() {
-		return VaadinSession.getCurrent().getLocale();
+		Locale locale;
+		if (VaadinSession.getCurrent().hasLock()) {
+			lastKnownLocale = locale = VaadinSession.getCurrent().getLocale();
+		} else {
+			locale = lastKnownLocale;
+		}
+		return locale;
 	}
 
 	@Override
 	public void setCurrentLocale(Locale locale) {
+		this.lastKnownLocale = locale;
 		VaadinSession.getCurrent().setLocale(locale);
 	}
 

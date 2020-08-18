@@ -111,7 +111,7 @@ public class BaseSchemasRecordsServices implements Serializable {
 					if (type.getDefaultSchema().hasMetadataWithCode("type")) {
 						Metadata metadata = type.getDefaultSchema().getMetadata("type");
 						if (metadata.getType() == MetadataValueType.REFERENCE && recordSchemaType
-								.equals(metadata.getReferencedSchemaType())) {
+								.equals(metadata.getReferencedSchemaTypeCode())) {
 							linkedSchemaType = new SchemaUtils().getSchemaTypeCode(metadata.getSchemaCode());
 						}
 					}
@@ -171,6 +171,10 @@ public class BaseSchemasRecordsServices implements Serializable {
 
 	public Record get(MetadataSchemaType schemaType, String id) {
 		return modelLayerFactory.newRecordServices().getById(schemaType, id);
+	}
+
+	public Record getSummary(MetadataSchemaType schemaType, String id) {
+		return modelLayerFactory.newRecordServices().getRecordSummaryById(schemaType.getCollection(), id);
 	}
 
 	public Record getByLegacyId(MetadataSchemaType schemaType, String id) {
@@ -234,6 +238,7 @@ public class BaseSchemasRecordsServices implements Serializable {
 	protected <T> Stream<T> streamFromCache(LogicalSearchCondition condition, Function<Record, T> wrapperFunction) {
 		return modelLayerFactory.newSearchServices().stream(new LogicalSearchQuery(condition)).map(wrapperFunction);
 	}
+
 
 	protected <T> Iterator<T> iterateFromCache(MetadataSchemaType schemaType, Function<Record, T> wrapperFunction) {
 		List<Record> records = modelLayerFactory.newRecordServices().getRecordsCaches()

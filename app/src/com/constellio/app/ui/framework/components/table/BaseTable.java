@@ -12,15 +12,16 @@ import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
-import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEvent;
-import com.constellio.app.ui.framework.components.table.events.RefreshRenderedCellsEventParams;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
+import com.constellio.app.ui.framework.containers.PreLoader;
+import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.data.Container;
+import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.util.ObjectProperty;
@@ -36,6 +37,7 @@ import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Table;
@@ -57,6 +59,7 @@ import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+import static com.constellio.app.ui.pages.trash.TrashRecordsTable.TRASH_BUTTONS;
 
 public class BaseTable extends Table implements SelectionComponent {
 
@@ -90,16 +93,12 @@ public class BaseTable extends Table implements SelectionComponent {
 
 	private List<PageChangeListener> pageChangeListeners = new ArrayList<>();
 
-	private List<RefreshRenderedCellsEvent> refreshRenderedCellsEventListenerList = new ArrayList<>();
-
-	private List<Object> selectedItem;
-	private boolean areAllItemSelected;
-
 	private List<ItemsPerPageChangeListener> itemsPerPageChangeListeners = new ArrayList<>();
 
 	private ContextMenu contextMenu;
 
 	private int customPageLength = DEFAULT_PAGE_LENGTH;
+	private PreLoader preloader;
 
 	public BaseTable(String tableId) {
 		super();
@@ -117,6 +116,15 @@ public class BaseTable extends Table implements SelectionComponent {
 		super(caption, dataSource);
 		this.tableId = tableId;
 		init();
+	}
+
+	@Override
+	public boolean isSelectable() {
+		return false;
+	}
+
+	public boolean isUnknownEnd() {
+		return false;
 	}
 
 	private void init() {
@@ -215,23 +223,27 @@ public class BaseTable extends Table implements SelectionComponent {
 				}
 				//				int adjustedFirstIndex = pagingCurrentPageFirstItemIndex - ((currentPage - 1) * getPageLength());
 				super.setCurrentPageFirstItemIndex(pagingCurrentPageFirstItemIndex);
-			}
+			} 
 		}
 	}
 
-	public void addRefreshRenderedCellsEventListener(RefreshRenderedCellsEvent refreshRenderedCellsEvent) {
-		refreshRenderedCellsEventListenerList.add(refreshRenderedCellsEvent);
+	private void scrollToTop() {
+		JavaScript.getCurrent().execute("document.getElementById('" + getId() + "').scrollIntoView();");
 	}
 
-	public void fireAddRefreshRenderedCellsEvent(List<Object> selectedId, boolean areAllItemSelected) {
-		if (refreshRenderedCellsEventListenerList == null) {
-			return;
-		}
-
-		for (RefreshRenderedCellsEvent currentRefreshRenderedCellsEvent : refreshRenderedCellsEventListenerList) {
-			currentRefreshRenderedCellsEvent.refreshRenderedCellsEvent(new RefreshRenderedCellsEventParams(selectedId, areAllItemSelected));
-		}
-	}
+	//	public void addRefreshRenderedCellsEventListener(RefreshRenderedCellsEvent refreshRenderedCellsEvent) {
+	//		refreshRenderedCellsEventListenerList.add(refreshRenderedCellsEvent);
+	//	}
+	//
+	//	public void fireAddRefreshRenderedCellsEvent(List<Object> selectedId, boolean areAllItemSelected) {
+	//		if (refreshRenderedCellsEventListenerList == null) {
+	//			return;
+	//		}
+	//
+	//		for (RefreshRenderedCellsEvent currentRefreshRenderedCellsEvent : refreshRenderedCellsEventListenerList) {
+	//			currentRefreshRenderedCellsEvent.refreshRenderedCellsEvent(new RefreshRenderedCellsEventParams(selectedId, areAllItemSelected));
+	//		}
+	//	}
 
 	public void setCurrentPage(int currentPage) {
 		if (isPaged()) {
@@ -240,13 +252,20 @@ public class BaseTable extends Table implements SelectionComponent {
 		}
 	}
 
+	@Override
+	public void refreshRenderedCells() {
+		super.refreshRenderedCells();
+	}
+
 	public int getItemsPerPage() {
 		return pagedTableContainer.getItemsPerPage();
 	}
 
 	public void setItemsPerPage(int itemsPerPage) {
-		pagedTableContainer.setItemsPerPage(itemsPerPage);
-		adjustPageLengthBasedOnItemsPerPage();
+		if (isPaged()) {
+			pagedTableContainer.setItemsPerPage(itemsPerPage);
+			adjustPageLengthBasedOnItemsPerPage();
+		}
 	}
 
 	@Override
@@ -277,11 +296,26 @@ public class BaseTable extends Table implements SelectionComponent {
 		return false;
 	}
 
+	public boolean isButtonsColumn() {
+		return false;
+	}
+
 	protected ColumnGenerator newSelectColumnGenerator() {
 		return new ColumnGenerator() {
 			@Override
 			public Object generateCell(Table source, Object itemId, Object columnId) {
 				Property<?> containerProperty;
+				Item item = getItem(itemId);
+
+				if (item instanceof RecordVOItem) {
+					RecordVOItem recordVOItem = (RecordVOItem) item;
+					if (recordVOItem.getSearchResult() != null && recordVOItem.getSearchResult().isDeleted()) {
+						CheckBox checkBox = newSelectionCheckBox(itemId);
+						checkBox.setEnabled(false);
+						return checkBox;
+					}
+				}
+
 				CellKey cellKey = getCellKey(itemId, SELECT_PROPERTY_ID);
 				if (cellKey != null) {
 					containerProperty = cellProperties.get(cellKey);
@@ -317,7 +351,7 @@ public class BaseTable extends Table implements SelectionComponent {
 				} else {
 					containerProperty = new ObjectProperty<>(new Label(index + ""));
 				}
-				return containerProperty;
+				return containerProperty.getValue();
 			}
 		};
 	}
@@ -412,15 +446,31 @@ public class BaseTable extends Table implements SelectionComponent {
 
 	@Override
 	public void setVisibleColumns(Object... visibleColumns) {
-		if ((isSelectColumn() || isIndexColumn()) && columnGeneratorsAdded) {
+		if ((isSelectColumn() || isIndexColumn() || isMenuBarColumn() || isButtonsColumn()) && columnGeneratorsAdded) {
 			List<Object> visibleColumnsList = new ArrayList<>(Arrays.asList(visibleColumns));
-			if (isIndexColumn() && (!visibleColumnsList.contains(INDEX_PROPERTY_ID) || visibleColumnsList.get(0) != INDEX_PROPERTY_ID)) {
+			if (isIndexColumn() && visibleColumnsList.contains(INDEX_PROPERTY_ID)) {
+				int columnIndex = isRightToLeft() ? columnIndex = visibleColumnsList.size() - 1 : 0;
 				visibleColumnsList.remove(INDEX_PROPERTY_ID);
-				visibleColumnsList.add(0, INDEX_PROPERTY_ID);
+				visibleColumnsList.add(columnIndex, INDEX_PROPERTY_ID);
 			}
-			if (isSelectColumn() && (!visibleColumnsList.contains(SELECT_PROPERTY_ID) || visibleColumnsList.get(0) != SELECT_PROPERTY_ID)) {
+			if (isSelectColumn() && visibleColumnsList.contains(SELECT_PROPERTY_ID)) {
+				int columnIndex = isRightToLeft() ? columnIndex = visibleColumnsList.size() - 1 : 0;
 				visibleColumnsList.remove(SELECT_PROPERTY_ID);
-				visibleColumnsList.add(0, SELECT_PROPERTY_ID);
+				visibleColumnsList.add(columnIndex, SELECT_PROPERTY_ID);
+			}
+			if (isMenuBarColumn() && isRightToLeft() && visibleColumnsList.contains(MENUBAR_PROPERTY_ID)) {
+				visibleColumnsList.remove(MENUBAR_PROPERTY_ID);
+				visibleColumnsList.add(0, MENUBAR_PROPERTY_ID);
+			}
+			if (isButtonsColumn() && visibleColumnsList.contains(TRASH_BUTTONS)) {
+				int columnIndex = visibleColumnsList.size() - 1;
+				visibleColumnsList.remove(TRASH_BUTTONS);
+				visibleColumnsList.add(columnIndex, TRASH_BUTTONS);
+			}
+			if (isMenuBarColumn() && visibleColumnsList.contains(MENUBAR_PROPERTY_ID)) {
+				int columnIndex = visibleColumnsList.size() - 1;
+				visibleColumnsList.remove(MENUBAR_PROPERTY_ID);
+				visibleColumnsList.add(columnIndex, MENUBAR_PROPERTY_ID);
 			}
 			super.setVisibleColumns(visibleColumnsList.toArray(new Object[0]));
 		} else {
@@ -509,19 +559,26 @@ public class BaseTable extends Table implements SelectionComponent {
 	public SelectDeselectAllButton newSelectDeselectAllToggleButton(String selectAllCaption,
 																	String deselectAllCaption) {
 		final SelectDeselectAllButton toggleButton =
-				new MaxLengthSelectDeselectAllButton(selectAllCaption, deselectAllCaption, !selectionManager.isAllItemsSelected());
+				new DefaultMaxLengthSelectDeselectAllButton(selectAllCaption, deselectAllCaption, !selectionManager.isAllItemsSelected());
+		return toggleButton;
+	}
+
+	public SelectDeselectAllButton newDeselectAllButton(String deselectAllCaption, boolean initialyVisible) {
+		SelectDeselectAllButton toggleButton =
+				new DeselectAllButton(deselectAllCaption);
+
 		addSelectionChangeListener(new SelectionChangeListener() {
 			@Override
 			public void selectionChanged(SelectionChangeEvent event) {
-				if (event.getComponent() != toggleButton) {
-					if (event.isAllItemsSelected()) {
-						toggleButton.setSelectAllMode(true);
-					} else if (event.isAllItemsDeselected()) {
-						toggleButton.setSelectAllMode(false);
-					}
+				if (event.isAllItemsDeselected()) {
+					toggleButton.setVisible(false);
+				} else {
+					toggleButton.setVisible(true);
 				}
 			}
 		});
+		toggleButton.setVisible(initialyVisible);
+
 		return toggleButton;
 	}
 
@@ -534,11 +591,11 @@ public class BaseTable extends Table implements SelectionComponent {
 	}
 
 	private void clearCheckBoxSelectionChangeListeners() {
-		for (SelectionChangeListener listener : new ArrayList<>(selectionChangeListeners)) {
-			if (listener instanceof SelectionCheckBox.CheckBoxSelectionChangeListener) {
-				removeSelectionChangeListener(listener);
-			}
-		}
+		//		for (SelectionChangeListener listener : new ArrayList<>(selectionChangeListeners)) {
+		//			if (listener instanceof SelectionCheckBox) {
+		//				removeSelectionChangeListener(listener);
+		//			}
+		//		}
 	}
 
 	@Override
@@ -564,25 +621,6 @@ public class BaseTable extends Table implements SelectionComponent {
 	@Override
 	public void resetPageBuffer() {
 		super.resetPageBuffer();
-	}
-
-	@Override
-	public void refreshRenderedCells() {
-		// Optimisation pour pas que chacun des composantes de sélection (checkbox)
-		// est à appeler les écouteur d'événement de la sélection et de valeur changé. C'est fait une fois après le
-		// rendu des cullules du tableau.
-		if (selectedItem == null) {
-			selectedItem = new ArrayList<>();
-		} else {
-			selectedItem.clear();
-		}
-
-		areAllItemSelected = true;
-		super.refreshRenderedCells();
-
-		if (!selectedItem.isEmpty()) {
-			fireAddRefreshRenderedCellsEvent(selectedItem, areAllItemSelected);
-		}
 	}
 
 	@Override
@@ -647,6 +685,7 @@ public class BaseTable extends Table implements SelectionComponent {
 			for (PageChangeListener listener : pageChangeListeners) {
 				listener.pageChanged(event);
 			}
+			scrollToTop();
 		}
 	}
 
@@ -735,6 +774,12 @@ public class BaseTable extends Table implements SelectionComponent {
 		pagedTableContainer.setCurrentPage(page);
 		adjustPageLengthBasedOnItemsPerPage();
 		firePageChangedEvent();
+	}
+
+	@Override
+	public void sort(Object[] propertyId, boolean[] ascending) throws UnsupportedOperationException {
+		super.sort(propertyId, ascending);
+		deselectAll();
 	}
 
 	private static class PagedBaseTableContainer extends ContainerAdapter implements ItemSetChangeNotifier {
@@ -839,19 +884,40 @@ public class BaseTable extends Table implements SelectionComponent {
 		}
 	}
 
-	private class SelectionCheckBox extends CheckBox {
+	private class DefaultMaxLengthSelectDeselectAllButton extends MaxLengthSelectDeselectAllButton implements SelectionChangeListener {
+
+		public DefaultMaxLengthSelectDeselectAllButton(String selectAllCaption, String deselectAllCaption,
+													   boolean selectAllMode) {
+			super(selectAllCaption, deselectAllCaption, selectAllMode);
+			addSelectionChangeListener(this);
+		}
+
+		@Override
+		public void detach() {
+			super.detach();
+			removeSelectionChangeListener(this);
+		}
+
+		@Override
+		public void selectionChanged(SelectionChangeEvent event) {
+			if (!(event.getComponent() instanceof DefaultMaxLengthSelectDeselectAllButton)) {
+				if (event.isAllItemsSelected()) {
+					setSelectAllMode(false);
+				} else {
+					setSelectAllMode(true);
+				}
+			}
+		}
+
+	}
+
+	private class SelectionCheckBox extends CheckBox implements SelectionChangeListener {
 
 		private Object itemId;
 
 		private SelectionCheckBox(final Object itemId) {
 			this.itemId = itemId;
 			boolean selected = selectionManager.isSelected(itemId);
-
-			if (selected) {
-				selectedItem.add(itemId);
-			} else {
-				areAllItemSelected = false;
-			}
 			setValue(selected);
 			addValueChangeListener(new ValueChangeListener() {
 				@Override
@@ -865,9 +931,20 @@ public class BaseTable extends Table implements SelectionComponent {
 						selectionChangeEvent.setDeselectedItemId(itemId);
 					}
 					fireSelectionChangeEvent(selectionChangeEvent);
+
+					if (selectionManager.isAllItemsSelected()) {
+						SelectionChangeEvent selectAllEvent = new SelectionChangeEvent();
+						selectAllEvent.setComponent(SelectionCheckBox.this);
+						selectAllEvent.setAllItemsSelected(true);
+						fireSelectionChangeEvent(selectAllEvent);
+					} else if (selectionManager.isAllItemsDeselected()) {
+						SelectionChangeEvent deselectAllEvent = new SelectionChangeEvent();
+						deselectAllEvent.setComponent(SelectionCheckBox.this);
+						deselectAllEvent.setAllItemsDeselected(true);
+						fireSelectionChangeEvent(deselectAllEvent);
+					}
 				}
 			});
-			addSelectionChangeListener(new CheckBoxSelectionChangeListener());
 		}
 
 		@Override
@@ -880,16 +957,27 @@ public class BaseTable extends Table implements SelectionComponent {
 			super.setInternalValue(newValue);
 		}
 
-		private class CheckBoxSelectionChangeListener implements SelectionChangeListener {
-			@Override
-			public void selectionChanged(SelectionChangeEvent event) {
-				if (event.getComponent() != SelectionCheckBox.this) {
-					if (event.isAllItemsSelected() || (event.getSelectedItemIds() != null && event.getSelectedItemIds().contains(itemId))) {
-						setInternalValue(true);
-					} else if (event.isAllItemsDeselected() || (event.getDeselectedItemIds() != null && event.getDeselectedItemIds().contains(itemId))) {
-						setInternalValue(false);
-					}
+		@Override
+		public void attach() {
+			super.attach();
+			addSelectionChangeListener(this);
+		}
+
+		@Override
+		public void detach() {
+			removeSelectionChangeListener(this);
+			super.detach();
+		}
+
+		@Override
+		public void selectionChanged(SelectionChangeEvent event) {
+			if (event.getComponent() != SelectionCheckBox.this) {
+				if (event.isAllItemsSelected() || (event.getSelectedItemIds() != null && event.getSelectedItemIds().contains(itemId))) {
+					setInternalValue(true);
+				} else if (event.isAllItemsDeselected() || (event.getDeselectedItemIds() != null && event.getDeselectedItemIds().contains(itemId))) {
+					setInternalValue(false);
 				}
+				markAsDirty();
 			}
 		}
 
@@ -1021,7 +1109,8 @@ public class BaseTable extends Table implements SelectionComponent {
 					@Override
 					public void valueChange(Property.ValueChangeEvent event) {
 						boolean valid;
-						String newValue = currentPageField.getValue();
+						// https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4510618
+						String newValue = StringUtils.replace(currentPageField.getValue(), "\u00a0", "");
 						if (StringUtils.isNotBlank(newValue)) {
 							try {
 								int newIntValue = Integer.parseInt(newValue);
@@ -1039,7 +1128,7 @@ public class BaseTable extends Table implements SelectionComponent {
 						}
 					}
 				});
-				currentPageField.setEnabled(numberOfPages > 1);
+				currentPageField.setEnabled(numberOfPages > 1 && !isUnknownEnd());
 
 				separator = new Label($("SearchResultTable.of"));
 				totalPagesLabel = new Label(String.valueOf(numberOfPages));
@@ -1088,18 +1177,36 @@ public class BaseTable extends Table implements SelectionComponent {
 					lastPageButton.setCaption(rtlLastCaption);
 				}
 
-				pageManagementLayout = new I18NHorizontalLayout(
-						firstPageButton, previousPageButton, currentPageLabel, currentPageField, separator, totalPagesLabel, nextPageButton, lastPageButton);
+				pageManagementLayout = new I18NHorizontalLayout();
+				pageManagementLayout.addComponent(firstPageButton);
+				pageManagementLayout.addComponent(previousPageButton);
+				pageManagementLayout.addComponent(currentPageLabel);
+				pageManagementLayout.addComponent(currentPageField);
+				currentPageField.setEnabled(!isUnknownEnd());
+				if (!isUnknownEnd()) {
+					pageManagementLayout.addComponent(separator);
+					pageManagementLayout.setComponentAlignment(separator, Alignment.MIDDLE_LEFT);
+
+					pageManagementLayout.addComponent(totalPagesLabel);
+					pageManagementLayout.setComponentAlignment(totalPagesLabel, Alignment.MIDDLE_LEFT);
+				}
+
+				pageManagementLayout.addComponent(nextPageButton);
+
+				if (!isUnknownEnd()) {
+					pageManagementLayout.addComponent(lastPageButton);
+					pageManagementLayout.setComponentAlignment(lastPageButton, Alignment.MIDDLE_LEFT);
+				}
+
 				pageManagementLayout.addStyleName("page-management-layout");
 				pageManagementLayout.setSpacing(true);
 				pageManagementLayout.setComponentAlignment(firstPageButton, Alignment.MIDDLE_LEFT);
 				pageManagementLayout.setComponentAlignment(previousPageButton, Alignment.MIDDLE_LEFT);
 				pageManagementLayout.setComponentAlignment(currentPageLabel, Alignment.MIDDLE_LEFT);
 				pageManagementLayout.setComponentAlignment(currentPageField, Alignment.MIDDLE_LEFT);
-				pageManagementLayout.setComponentAlignment(separator, Alignment.MIDDLE_LEFT);
-				pageManagementLayout.setComponentAlignment(totalPagesLabel, Alignment.MIDDLE_LEFT);
+
 				pageManagementLayout.setComponentAlignment(nextPageButton, Alignment.MIDDLE_LEFT);
-				pageManagementLayout.setComponentAlignment(lastPageButton, Alignment.MIDDLE_LEFT);
+
 
 				addComponents(pageSizeLayout, pageManagementLayout);
 				setComponentAlignment(pageManagementLayout, Alignment.BOTTOM_CENTER);
@@ -1132,7 +1239,7 @@ public class BaseTable extends Table implements SelectionComponent {
 			nextPageButton.setEnabled(currentPageFieldValue < numberOfPages);
 			lastPageButton.setEnabled(currentPageFieldValue < numberOfPages);
 			currentPageField.setValue(String.valueOf(currentPageFieldValue));
-			currentPageField.setEnabled(numberOfPages > 1);
+			currentPageField.setEnabled(numberOfPages > 1 && !isUnknownEnd());
 			totalPagesLabel.setValue(String.valueOf(numberOfPages));
 		}
 
@@ -1169,6 +1276,39 @@ public class BaseTable extends Table implements SelectionComponent {
 			computeResponsive();
 		}
 
+	}
+
+	public void setPreLoader(PreLoader preloader) {
+		this.preloader = preloader;
+	}
+
+	public class DeselectAllButton extends SelectDeselectAllButton {
+		private DeselectAllButton(String deselectAllCaption) {
+			super("", deselectAllCaption, false);
+		}
+
+		@Override
+		protected void onSelectAll(ClickEvent event) {
+			onDeselectAll(event);
+		}
+
+		@Override
+		protected void onDeselectAll(ClickEvent event) {
+			SelectionChangeEvent selectionChangeEvent = new SelectionChangeEvent();
+			selectionChangeEvent.setComponent(this);
+			selectionChangeEvent.setAllItemsDeselected(true);
+			fireSelectionChangeEvent(selectionChangeEvent);
+		}
+
+		@Override
+		protected void buttonClickCallBack(boolean selectAllMode) {
+		}
+
+		@SuppressWarnings({"rawtypes", "unchecked"})
+		@Override
+		protected void buttonClick(ClickEvent event) {
+			onDeselectAll(event);
+		}
 	}
 
 	public class MaxLengthSelectDeselectAllButton extends SelectDeselectAllButton {
@@ -1227,6 +1367,11 @@ public class BaseTable extends Table implements SelectionComponent {
 			return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.MAX_SELECTABLE_SEARCH_RESULTS);
 		}
 
+		private boolean isAlwaysSelectIntervals() {
+			ModelLayerFactory modelLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getModelLayerFactory();
+			return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.ALWAYS_SELECT_INTERVALS);
+		}
+
 		@SuppressWarnings({"rawtypes", "unchecked"})
 		@Override
 		protected void buttonClick(ClickEvent event) {
@@ -1237,7 +1382,7 @@ public class BaseTable extends Table implements SelectionComponent {
 				realSize = size();
 			}
 			int maxSelectableResults = getMaxSelectableResults();
-			if (realSize <= maxSelectableResults) {
+			if (realSize <= maxSelectableResults && (!BaseTable.this.isPaged() || !isAlwaysSelectIntervals())) {
 				super.buttonClick(event);
 			} else {
 				if (rangeStart == -1) {
@@ -1245,8 +1390,8 @@ public class BaseTable extends Table implements SelectionComponent {
 				}
 				if (rangeEnd == -1 || rangeEnd > (rangeStart + (maxSelectableResults - 1))) {
 					rangeEnd = rangeStart + (maxSelectableResults - 1);
-					if (rangeEnd > size() - 1) {
-						rangeEnd = size() - 1;
+					if (rangeEnd > size()) {
+						rangeEnd = size();
 					}
 				}
 
@@ -1267,8 +1412,8 @@ public class BaseTable extends Table implements SelectionComponent {
 						try {
 							Integer newRangeStart = (Integer) rangeStartField.getConvertedValue();
 							Integer newRangeEnd = newRangeStart + (maxSelectableResults - 1);
-							if (newRangeEnd > size() - 1) {
-								newRangeEnd = size() - 1;
+							if (newRangeEnd > size()) {
+								newRangeEnd = size();
 							}
 							rangeEndField.setValue("" + newRangeEnd);
 						} catch (ConversionException e) {
@@ -1330,6 +1475,10 @@ public class BaseTable extends Table implements SelectionComponent {
 							SelectionChangeEvent deselectAllEvent = new SelectionChangeEvent();
 							deselectAllEvent.setAllItemsDeselected(true);
 							fireSelectionChangeEvent(deselectAllEvent);
+							if (preloader != null) {
+								int startIndex = pagedTableContainer.getStartIndex();
+								preloader.load(startIndex + realRangeStart, realRangeEnd - realRangeStart + 1);
+							}
 
 							List<Object> selectedItemIds = getItemIds(realRangeStart, realRangeEnd - realRangeStart + 1);
 							SelectionChangeEvent newSelectionEvent = new SelectionChangeEvent();

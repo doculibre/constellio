@@ -19,18 +19,18 @@ public class FakeEncryptionServicesUtils extends EncryptionServices {
 	}
 
 	@Override
-	public String encrypt(String toEncrypt) {
+	public Object encryptWithAppKey(Object toEncrypt) {
 		return "$" + toEncrypt;
 	}
 
 	@Override
-	public String decrypt(String encryptedText) {
-		return encryptedText.substring(1);
+	public Object decryptWithAppKey(Object encryptedText) {
+		return ((String) encryptedText).substring(1);
 	}
 
 	public static EncryptionServices create() {
 		EncryptionServices encryptionServices = Mockito.mock(EncryptionServices.class);
-		when(encryptionServices.decrypt(anyString())).thenAnswer(new Answer<String>() {
+		when(encryptionServices.decryptWithAppKey(anyString())).thenAnswer(new Answer<String>() {
 			@Override
 			public String answer(InvocationOnMock invocation)
 					throws Throwable {
@@ -39,7 +39,7 @@ public class FakeEncryptionServicesUtils extends EncryptionServices {
 			}
 		});
 
-		when(encryptionServices.encrypt(anyString())).thenAnswer(new Answer<String>() {
+		when(encryptionServices.encryptWithAppKey(anyString())).thenAnswer(new Answer<String>() {
 			@Override
 			public String answer(InvocationOnMock invocation)
 					throws Throwable {

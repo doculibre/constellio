@@ -4,6 +4,7 @@ import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionCo
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
+import com.vaadin.data.util.ItemSorter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -14,12 +15,18 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 	private String schemaTypeCode;
 	private String schemaCode;
 	protected boolean ignoreLinkability;
+	private boolean sortByCaption;
 	private boolean itemInformation;
 	protected List<ValueChangeListener> lookupFieldListenerList;
 	protected RecordTextInputDataProvider recordTextInputDataProvider;
+	protected List<String> idsToIgnore;
 
 	public ListAddRemoveRecordLookupField(String schemaTypeCode) {
-		this(schemaTypeCode, null);
+		this(schemaTypeCode, null, null, false);
+	}
+
+	public ListAddRemoveRecordLookupField(String schemaTypeCode, boolean sortByCaption) {
+		this(schemaTypeCode, null, null, sortByCaption);
 	}
 
 	public ListAddRemoveRecordLookupField(String schemaTypeCode, String schemaCode) {
@@ -28,13 +35,25 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 
 	public ListAddRemoveRecordLookupField(String schemaTypeCode, String schemaCode,
 										  RecordTextInputDataProvider recordTextInputDataProvider) {
+		this(schemaTypeCode, schemaCode, recordTextInputDataProvider, false);
+	}
+
+	public ListAddRemoveRecordLookupField(String schemaTypeCode, String schemaCode,
+										  RecordTextInputDataProvider recordTextInputDataProvider,
+										  boolean sortByCaption) {
 		super();
+		this.idsToIgnore = new ArrayList<>();
 		this.schemaTypeCode = schemaTypeCode;
 		this.schemaCode = schemaCode;
 		this.recordTextInputDataProvider = recordTextInputDataProvider;
 		setItemConverter(new RecordIdToCaptionConverter());
 		ignoreLinkability = false;
+		this.sortByCaption = sortByCaption;
 		lookupFieldListenerList = new ArrayList<>();
+	}
+
+	public List<String> getIdsToIgnore() {
+		return idsToIgnore;
 	}
 
 	@Override
@@ -71,19 +90,7 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 
 	@Override
 	protected LookupRecordField newAddEditField() {
-		final LookupRecordField field = recordTextInputDataProvider == null ?
-										new LookupRecordField(schemaTypeCode, schemaCode)
-																			: new LookupRecordField(schemaTypeCode, schemaCode, false, recordTextInputDataProvider) {
-			@Override
-			protected String getReadOnlyMessage() {
-				String readOnlyMessage = ListAddRemoveRecordLookupField.this.getReadOnlyMessage();
-				if (!StringUtils.isBlank(readOnlyMessage)) {
-					return readOnlyMessage;
-				} else {
-					return super.getReadOnlyMessage();
-				}
-			}
-		};
+		final LookupRecordField field = buildBaseLookupField();
 
 		for (ValueChangeListener listener : lookupFieldListenerList) {
 			field.addValueChangeListener(listener);
@@ -103,6 +110,22 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 		return field;
 	}
 
+	protected LookupRecordField buildBaseLookupField() {
+		return recordTextInputDataProvider == null ?
+			   new LookupRecordField(schemaTypeCode, schemaCode, idsToIgnore)
+												   : new LookupRecordField(schemaTypeCode, schemaCode, false, recordTextInputDataProvider) {
+			@Override
+			protected String getReadOnlyMessage() {
+				String readOnlyMessage = ListAddRemoveRecordLookupField.this.getReadOnlyMessage();
+				if (!StringUtils.isBlank(readOnlyMessage)) {
+					return readOnlyMessage;
+				} else {
+					return super.getReadOnlyMessage();
+				}
+			}
+		};
+	}
+
 	protected String getReadOnlyMessage() {
 		return null;
 	}
@@ -116,5 +139,13 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 			return ((LookupRecordField) addEditField).getValue();
 		}
 		return null;
+	}
+
+	@Override
+	protected ItemSorter getItemSorter() {
+		if (sortByCaption) {
+			return buildDefaultItemSorter();
+		}
+		return super.getItemSorter();
 	}
 }

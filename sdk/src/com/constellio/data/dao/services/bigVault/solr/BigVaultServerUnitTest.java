@@ -1,5 +1,6 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.BadRequest;
@@ -23,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,24 +32,27 @@ import static com.constellio.data.dao.dto.records.RecordsFlushing.LATER;
 import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
 import static com.constellio.data.dao.dto.records.RecordsFlushing.WITHIN_MILLISECONDS;
 import static com.constellio.data.dao.dto.records.RecordsFlushing.WITHIN_SECONDS;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class BigVaultServerUnitTest extends ConstellioTest {
 	@Mock DataLayerSystemExtensions extensions;
+	@Mock DataLayerConfiguration configurations;
 	@Mock AtomicFileSystem solrFileSystem;
 	@Mock SolrParams solrParams;
 	@Mock SolrClient server;
 	@Mock SolrServerFactory solrServerFactory;
 	@Mock SolrInputDocument doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8, doc9, doc10, doc11;
 	@Mock List<String> deletedDocs1, deletedDocs2, deletedDocs3, deleteQueriesStrings;
-	@Mock List<SolrInputDocument> addedDocs, modifiedDocs;
+	List<SolrInputDocument> addedDocs = new ArrayList<>();
+	List<SolrInputDocument> modifiedDocs = new ArrayList<>();
 	@Mock List<SolrParams> deleteQueries;
 
 	BigVaultServer bigVaultServer;
@@ -62,7 +67,7 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 		String serverName = "Test";
 		when(solrServerFactory.getConfigFileSystem(serverName)).thenReturn(solrFileSystem);
 		when(solrServerFactory.newSolrServer(serverName)).thenReturn(server);
-		bigVaultServer = spy(new BigVaultServer(serverName, BigVaultLogger.disabled(), solrServerFactory, extensions));
+		bigVaultServer = spy(new BigVaultServer(serverName, BigVaultLogger.disabled(), solrServerFactory, extensions, configurations));
 		when(emptyQueryResults.size()).thenReturn(0);
 		when(twoElementsQueryResults.size()).thenReturn(2);
 	}
@@ -123,7 +128,7 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 		when(theQueryResults.size()).thenReturn(1);
 		when(theQueryResults.get(0)).thenReturn(theUniqueResult);
 
-		assertEquals(theUniqueResult, bigVaultServer.querySingleResult(solrParams));
+		assertThat((Object) bigVaultServer.querySingleResult(solrParams)).isEqualTo(theUniqueResult);
 	}
 
 	@Test
@@ -132,7 +137,7 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 		when(server.query(solrParams)).thenReturn(theQueryResponse);
 		when(theQueryResponse.getResults()).thenReturn(theQueryResults);
 
-		assertEquals(theQueryResults, bigVaultServer.queryResults(solrParams));
+		assertThat((Object) bigVaultServer.queryResults(solrParams)).isEqualTo(theQueryResults);
 
 		verify(server).query(solrParams);
 	}
@@ -236,5 +241,73 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 		bigVaultServer.tryAddAll(transaction, 3);
 
 	}
+
+	@Test
+	public void whenSolrServerThenRetryUpTo10Times()
+			throws Exception {
+
+		BigVaultServerTransaction transaction = new BigVaultServerTransaction(LATER(), addedDocs, modifiedDocs, deletedDocs1,
+				deleteQueriesStrings);
+
+
+		Exception e = new RemoteSolrException("host", 42, "no", null);
+		doThrow(e).when(bigVaultServer)
+				.addAndCommit(transaction);
+
+		try {
+			bigVaultServer.tryAddAll(transaction, 3);
+		} catch (Exception ex) {
+			assertThat(ex).isInstanceOf(BigVaultRuntimeException.class);
+		}
+
+		verify(bigVaultServer).retryAddAll(transaction, 3, e);
+		verify(bigVaultServer).retryAddAll(transaction, 4, e);
+		verify(bigVaultServer).retryAddAll(transaction, 5, e);
+		verify(bigVaultServer).retryAddAll(transaction, 6, e);
+		verify(bigVaultServer).retryAddAll(transaction, 7, e);
+		verify(bigVaultServer).retryAddAll(transaction, 8, e);
+		verify(bigVaultServer).retryAddAll(transaction, 9, e);
+		verify(bigVaultServer).retryAddAll(transaction, 10, e);
+		verify(bigVaultServer, never()).retryAddAll(transaction, 11, e);
+
+
+	}
+
+
+	//@Test
+	public void whenSolrServerThenRetryUpTo60Times()
+			throws Exception {
+
+		BigVaultServerTransaction transaction = new BigVaultServerTransaction(LATER(), addedDocs, modifiedDocs, deletedDocs1,
+				deleteQueriesStrings);
+
+		bigVaultServer.setResilienceModeToHigh();
+		Exception e = new RemoteSolrException("host", 42, "no", null);
+		doThrow(e).when(bigVaultServer)
+				.addAndCommit(transaction);
+
+		try {
+			bigVaultServer.tryAddAll(transaction, 3);
+		} catch (Exception ex) {
+			assertThat(ex).isInstanceOf(BigVaultRuntimeException.class);
+		}
+
+		verify(bigVaultServer).retryAddAll(transaction, 3, e);
+		verify(bigVaultServer).retryAddAll(transaction, 4, e);
+		verify(bigVaultServer).retryAddAll(transaction, 5, e);
+		verify(bigVaultServer).retryAddAll(transaction, 6, e);
+		verify(bigVaultServer).retryAddAll(transaction, 7, e);
+		verify(bigVaultServer).retryAddAll(transaction, 8, e);
+		verify(bigVaultServer).retryAddAll(transaction, 9, e);
+		verify(bigVaultServer).retryAddAll(transaction, 10, e);
+		verify(bigVaultServer).retryAddAll(transaction, 11, e);
+		verify(bigVaultServer).retryAddAll(transaction, 12, e);
+		verify(bigVaultServer).retryAddAll(transaction, 13, e);
+		verify(bigVaultServer).retryAddAll(transaction, 14, e);
+		verify(bigVaultServer, never()).retryAddAll(transaction, 15, e);
+
+
+	}
+
 
 }

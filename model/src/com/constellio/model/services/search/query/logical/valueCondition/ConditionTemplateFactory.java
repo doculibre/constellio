@@ -92,7 +92,8 @@ public class ConditionTemplateFactory {
 			if (cleanedText.endsWith(" ")) {
 				condition = whereAny(metadatas).isEqualTo(cleanedText.trim());
 			} else {
-				condition = whereAny(metadatas).isStartingWithText(cleanedText.trim());
+				condition = whereAny(metadatas).isStartingWithText(cleanedText.trim())
+						.orWhereAny(metadatas).isEqualTo(cleanedText.trim());
 			}
 		} else {
 			List<LogicalSearchCondition> conditions = new ArrayList<>();

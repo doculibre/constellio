@@ -11,10 +11,6 @@ public class ReindexingRecordsProvider {
 
 	int mainThreadQueryRows;
 
-	int thresholdForReturningLastIgnoredDocumentById = 1000;
-
-	ReindexingRecordPriorityInfo info = new ReindexingRecordPriorityInfo();
-
 	ModelLayerFactory modelLayerFactory;
 
 
@@ -23,18 +19,11 @@ public class ReindexingRecordsProvider {
 		this.mainThreadQueryRows = mainThreadQueryRows;
 	}
 
-	ReindexingSchemaTypeRecordsProvider newSchemaTypeProvider(MetadataSchemaType type, int dependencyLevel) {
+	ReindexingSchemaTypeRecordsProvider newSchemaTypeProvider(MetadataSchemaType type, int dependencyLevel,
+															  int thresholdForReturningLastIgnoredDocumentById) {
 		return new ReindexingSchemaTypeRecordsProvider(modelLayerFactory, mainThreadQueryRows, type, dependencyLevel,
-				thresholdForReturningLastIgnoredDocumentById, info);
+				thresholdForReturningLastIgnoredDocumentById);
 	}
 
-	public int getThresholdForReturningLastIgnoredDocumentById() {
-		return thresholdForReturningLastIgnoredDocumentById;
-	}
 
-	public ReindexingRecordsProvider setThresholdForReturningLastIgnoredDocumentById(
-			int thresholdForReturningLastIgnoredDocumentById) {
-		this.thresholdForReturningLastIgnoredDocumentById = thresholdForReturningLastIgnoredDocumentById;
-		return this;
-	}
 }

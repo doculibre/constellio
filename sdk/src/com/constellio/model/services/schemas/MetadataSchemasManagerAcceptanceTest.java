@@ -1,6 +1,7 @@
 package com.constellio.model.services.schemas;
 
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.systemSetup.SystemLocalConfigsManager;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.Delayed;
@@ -32,6 +33,7 @@ import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.contents.ContentFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_InvalidMetadataCode;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -57,7 +59,6 @@ import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.model.utils.Parametrized;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.DaysBetweenSingleLocalDateAndAnotherSchemaRequiredDateCalculator;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
@@ -121,10 +122,13 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabledInCustomSchema;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultilingual;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsNotAvailableInSummary;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsProvidingSecurity;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsTaxonomyRelationship;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUndeletable;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichMaxLengthIs7;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichMeasurementUnitIsCm;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
@@ -132,7 +136,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.verify;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@SlowTest
+// Confirm @SlowTest
 public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 	TaxonomiesManager taxonomiesManager;
@@ -175,6 +179,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		collectionsListManager = getModelLayerFactory().getCollectionsListManager();
 		batchProcessesManager = getModelLayerFactory().getBatchProcessesManager();
 	}
+
 
 	@Test
 	public void whenCreatingSchemaAndThenReadingSchemaSettingOnDiskThenIdAreWritten() {
@@ -414,8 +419,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		otherManager.registerListener(otherSchemasManagerSecondCollection1Listener);
 		otherManager.registerListener(otherSchemasManagerCollection2Listener);
 
-		MetadataSchemaTypesBuilder collection1Builder = MetadataSchemaTypesBuilder
-				.modify(schemasManager.getSchemaTypes("collection1"), new DefaultClassProvider());
+		MetadataSchemaTypesBuilder collection1Builder = (new MetadataSchemaTypesBuilder(schemasManager.getSchemaTypes("collection1").getCollectionInfo()))
+				.modify(schemasManager.getSchemaTypes("collection1"), getModelLayerFactory(), new DefaultClassProvider());
 		collection1Builder.createNewSchemaType("a");
 		schemasManager.saveUpdateSchemaTypes(collection1Builder);
 
@@ -943,6 +948,42 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenSavingStringMetadataThenMaxLengthConserved() throws Exception {
+		defineSchemasManager().using(
+				defaultSchema.withAStringMetadata(whichMaxLengthIs7)
+		);
+
+		assertThat(zeSchema.stringMetadata().getMaxLength()).isEqualTo(7);
+	}
+
+	@Test
+	public void whenSavingLargeTextMetadataThenMaxLengthConserved() throws Exception {
+		defineSchemasManager().using(
+				defaultSchema.withALargeTextMetadata(whichMaxLengthIs7)
+		);
+
+		assertThat(zeSchema.largeTextMetadata().getMaxLength()).isEqualTo(7);
+	}
+
+	@Test
+	public void whenSavingIntegerMetadataThenMeasurementUnitConserved() throws Exception {
+		defineSchemasManager().using(
+				defaultSchema.withAnIntegerMetadata(whichMeasurementUnitIsCm)
+		);
+
+		assertThat(zeSchema.integerMetadata().getMeasurementUnit()).isEqualTo("cm");
+	}
+
+	@Test
+	public void whenSavingNumberMetadataThenMeasurementUnitConserved() throws Exception {
+		defineSchemasManager().using(
+				defaultSchema.withANumberMetadata(whichMeasurementUnitIsCm)
+		);
+
+		assertThat(zeSchema.numberMetadata().getMeasurementUnit()).isEqualTo("cm");
+	}
+
+	@Test
 	public void whenSavingReferenceProvidingSecurityMetadataThenFlagConserved()
 			throws Exception {
 		defineSchemasManager().using(
@@ -1319,7 +1360,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypesBuilder typesBuilder = modifySchemaTypesAddingTwoNewTypes();
 
 		MetadataSchemaTypes types = saveAndLoadSavedSchemaTypes(typesBuilder);
-		MetadataSchemaTypes builtTypes = typesBuilder.build(getDataLayerFactory().newTypesFactory(), getModelLayerFactory());
+		MetadataSchemaTypes builtTypes = typesBuilder.build(getDataLayerFactory().newTypesFactory());
 		assertThat(types.getSchema(UserDocument.DEFAULT_SCHEMA).getMetadata(UserDocument.USER))
 				.isEqualTo(builtTypes.getSchema(UserDocument.DEFAULT_SCHEMA).getMetadata(UserDocument.USER));
 
@@ -1426,14 +1467,14 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		MetadataSchemaTypes types = createTwoSchemas();
 
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
+		MetadataSchemaTypesBuilder typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, getModelLayerFactory(), classProvider);
 		typesBuilder.getMetadata("folder_employee_rule").setEnabled(false);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
 		assertThat(types.getMetadata("folder_default_rule").isEnabled()).isTrue();
 		assertThat(types.getMetadata("folder_employee_rule").isEnabled()).isFalse();
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
+		typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, getModelLayerFactory(), classProvider);
 		typesBuilder.getMetadata("folder_employee_rule").setEnabled(null);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
@@ -1446,14 +1487,14 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		MetadataSchemaTypes types = createTwoSchemas();
 
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
+		MetadataSchemaTypesBuilder typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, getModelLayerFactory(), classProvider);
 		typesBuilder.getMetadata("folder_employee_rule").setDefaultRequirement(true);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
 		assertThat(types.getMetadata("folder_default_rule").isDefaultRequirement()).isFalse();
 		assertThat(types.getMetadata("folder_employee_rule").isDefaultRequirement()).isTrue();
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
+		typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, getModelLayerFactory(), classProvider);
 		typesBuilder.getMetadata("folder_employee_rule").setDefaultRequirement(null);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
@@ -1466,21 +1507,21 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		MetadataSchemaTypes types = createTwoSchemas();
 
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
+		MetadataSchemaTypesBuilder typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, getModelLayerFactory(), classProvider);
 		typesBuilder.getMetadata("folder_employee_rule").addLabel(Language.French, "a custom rule");
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
 		assertThat(types.getMetadata("folder_default_rule").getLabel(Language.French)).isEqualTo("Rule");
 		assertThat(types.getMetadata("folder_employee_rule").getLabel(Language.French)).isEqualTo("a custom rule");
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
+		typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, getModelLayerFactory(), classProvider);
 		typesBuilder.getMetadata("folder_default_rule").addLabel(Language.French, "Ze Rule");
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
 		assertThat(types.getMetadata("folder_default_rule").getLabel(Language.French)).isEqualTo("Ze Rule");
 		assertThat(types.getMetadata("folder_employee_rule").getLabel(Language.French)).isEqualTo("a custom rule");
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
+		typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, getModelLayerFactory(), classProvider);
 		typesBuilder.getMetadata("folder_employee_rule").addLabel(Language.French, null);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
@@ -1498,7 +1539,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	public void whenModifyUndeletableOnInheritingMetadataThenUnmodifiableAttributeException()
 			throws Exception {
 		MetadataSchemaTypes types = createTwoSchemas();
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
+		MetadataSchemaTypesBuilder typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, getModelLayerFactory(), classProvider);
 
 		typesBuilder.getMetadata("folder_employee_rule").setUndeletable(false);
 		typesBuilder.getSchema("folder_employee").getMetadata("rule").setUndeletable(false);
@@ -1508,7 +1549,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	public void whenModifyReferencesOnInheritingMetadataThenUnmodifiableAttributeException()
 			throws Exception {
 		MetadataSchemaTypes types = createTwoSchemas();
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
+		MetadataSchemaTypesBuilder typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, getModelLayerFactory(), classProvider);
 
 		typesBuilder.getMetadata("folder_employee_rule").defineReferences();
 	}
@@ -1518,7 +1559,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		MetadataSchemaTypes types = createTwoSchemas();
 
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
+		MetadataSchemaTypesBuilder typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, getModelLayerFactory(), classProvider);
 		typesBuilder.getMetadata("folder_default_rule").defineValidators().add(TestRecordMetadataValidator1.class)
 				.add(TestRecordMetadataValidator2.class);
 		typesBuilder.getMetadata("folder_employee_rule").defineValidators().add(TestMetadataValidator3.class);
@@ -1529,7 +1570,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(getElementsClasses(types.getMetadata("folder_employee_rule").getValidators())).containsOnly(
 				TestRecordMetadataValidator1.class, TestRecordMetadataValidator2.class, TestMetadataValidator3.class);
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
+		typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, getModelLayerFactory(), new DefaultClassProvider());
 		typesBuilder.getMetadata("folder_default_rule").defineValidators().remove(TestRecordMetadataValidator2.class);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
@@ -1538,7 +1579,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(getElementsClasses(types.getMetadata("folder_employee_rule").getValidators())).containsOnly(
 				TestRecordMetadataValidator1.class, TestMetadataValidator3.class);
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
+		typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, getModelLayerFactory(), classProvider);
 		typesBuilder.getMetadata("folder_default_rule").defineValidators().add(TestRecordMetadataValidator2.class);
 		typesBuilder.getMetadata("folder_employee_rule").defineValidators().remove(TestMetadataValidator3.class);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
@@ -1554,7 +1595,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		MetadataSchemaTypes types = createTwoSchemas();
 
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
+		MetadataSchemaTypesBuilder typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, getModelLayerFactory(), classProvider);
 		typesBuilder.getSchema("folder_default").defineValidators().add(TestRecordValidator1.class)
 				.add(TestRecordValidator2.class);
 		typesBuilder.getSchema("folder_employee").defineValidators().add(TestRecordValidator3.class);
@@ -1565,7 +1606,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(getElementsClasses(types.getSchema("folder_employee").getValidators())).containsOnly(
 				TestRecordValidator1.class, TestRecordValidator2.class, TestRecordValidator3.class);
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
+		typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, getModelLayerFactory(), classProvider);
 		typesBuilder.getSchema("folder_default").defineValidators().remove(TestRecordValidator2.class);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
@@ -1574,7 +1615,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(getElementsClasses(types.getSchema("folder_employee").getValidators())).containsOnly(
 				TestRecordValidator1.class, TestRecordValidator3.class);
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
+		typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, getModelLayerFactory(), classProvider);
 		typesBuilder.getSchema("folder_default").defineValidators().add(TestRecordValidator2.class);
 		typesBuilder.getSchema("folder_employee").defineValidators().remove(TestRecordValidator3.class);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
@@ -1593,7 +1634,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(types.getSchemaType("folder").hasSecurity()).isTrue();
 		assertThat(types.getSchemaType("rule").hasSecurity()).isFalse();
 
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
+		MetadataSchemaTypesBuilder typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, getModelLayerFactory(), new DefaultClassProvider());
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
 		assertThat(types.getSchemaType("folder").hasSecurity()).isTrue();
@@ -1764,12 +1805,12 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 				MetadataSchemaBuilder zeSchemaType = types.getSchemaType(ZE_SCHEMA_TYPE_CODE).getDefaultSchema();
 				MetadataSchemaBuilder anotherSchema = types.getSchemaType(ANOTHER_SCHEMA_TYPE_CODE).getDefaultSchema();
 				zeSchemaType.get(TITLE.getCode()).addLabel(Language.French, "ze title label").setSortable(true)
-						.setEssentialInSummary(true).setEssential(true).setDefaultRequirement(true).setDefaultValue("toto")
+						.setEssentialInSummary(true).setAvailableInSummary(true).setEssential(true).setDefaultRequirement(true).setDefaultValue("toto")
 						.setEnabled(true).setSchemaAutocomplete(true).setSearchable(true).setSystemReserved(true)
 						.setUniqueValue(true).setUnmodifiable(true);
 
 				anotherSchema.get(TITLE.getCode()).addLabel(Language.French, "another title label").setSortable(false)
-						.setEssentialInSummary(false).setEssential(false).setDefaultRequirement(false).setDefaultValue("tata")
+						.setEssentialInSummary(false).setAvailableInSummary(false).setEssential(false).setDefaultRequirement(false).setDefaultValue("tata")
 						.setEnabled(false).setSchemaAutocomplete(false).setSearchable(false).setSystemReserved(false)
 						.setUniqueValue(false).setUnmodifiable(false);
 			}
@@ -1778,6 +1819,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		Metadata zeSchemaLabel = schemas.getTypes().getDefaultSchema(ZE_SCHEMA_TYPE_CODE).get(TITLE.getCode());
 		assertThat(zeSchemaLabel.getLabel(Language.French)).isEqualTo("ze title label");
 		assertThat(zeSchemaLabel.isSortable()).isTrue();
+		assertThat(zeSchemaLabel.isAvailableInSummary()).isTrue();
 		assertThat(zeSchemaLabel.isEssentialInSummary()).isTrue();
 		assertThat(zeSchemaLabel.isEssential()).isTrue();
 		assertThat(zeSchemaLabel.isDefaultRequirement()).isTrue();
@@ -1792,6 +1834,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		Metadata anotherSchemaLabel = schemas.getTypes().getDefaultSchema(ANOTHER_SCHEMA_TYPE_CODE).get(TITLE.getCode());
 		assertThat(anotherSchemaLabel.getLabel(Language.French)).isEqualTo("another title label");
 		assertThat(anotherSchemaLabel.isSortable()).isFalse();
+		assertThat(anotherSchemaLabel.isAvailableInSummary()).isFalse();
 		assertThat(anotherSchemaLabel.isEssentialInSummary()).isFalse();
 		assertThat(anotherSchemaLabel.isEssential()).isFalse();
 		assertThat(anotherSchemaLabel.isDefaultRequirement()).isFalse();
@@ -1885,6 +1928,155 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(anotherSchema.type().getDataStore()).isEqualTo("events");
 	}
 
+	@Test
+	public void givenNonEssentialStatusModifiedWhenModifyingSchemaThenIsNotMarkedForCacheRebuild() throws Exception {
+
+		SystemLocalConfigsManager localConfigsManager = getAppLayerFactory().getSystemLocalConfigsManager();
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsNotAvailableInSummary)
+				.with((c) -> c.getSchemaType("zeSchemaType").setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE)));
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+		assertThat(getModelLayerFactory().getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(zeSchema.stringMetadata())).isTrue();
+
+		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getMetadata(zeSchema.stringMetadata().getCode()).setSortable(true);
+			}
+		});
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+		assertThat(getModelLayerFactory().getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(zeSchema.stringMetadata())).isTrue();
+	}
+
+	@Test
+	public void givenStringMetadataOfSchemaTypeWithoutRecordsWhenModifyingAvailableInSummaryStatusThenCacheReconfiguredAndNotMarkedForRebuild()
+			throws Exception {
+
+
+		SystemLocalConfigsManager localConfigsManager = getAppLayerFactory().getSystemLocalConfigsManager();
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsNotAvailableInSummary)
+				.with((c) -> c.getSchemaType("zeSchemaType").setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE)));
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+
+		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getMetadata(zeSchema.stringMetadata().getCode()).setAvailableInSummary(true);
+			}
+		});
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+		assertThat(getModelLayerFactory().getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(zeSchema.stringMetadata())).isFalse();
+	}
+
+	@Test
+	public void givenStringMetadataOfSchemaTypeWithRecordsWhenModifyingAvailableInSummaryStatusThenSchemaMarkedForCacheRebuild()
+			throws Exception {
+
+		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsNotAvailableInSummary)
+				.with((c) -> c.getSchemaType("zeSchemaType").setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE)));
+		SystemLocalConfigsManager localConfigsManager = getAppLayerFactory().getSystemLocalConfigsManager();
+		assertThat(zeSchema.stringMetadata().isStoredInSummaryCache()).isFalse();
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+		assertThat(getModelLayerFactory().getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(zeSchema.stringMetadata())).isTrue();
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		recordServices.add(recordServices.newRecordWithSchema(zeSchema.instance()));
+
+		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getMetadata(zeSchema.stringMetadata().getCode()).setAvailableInSummary(true);
+			}
+		});
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isTrue();
+		assertThat(getModelLayerFactory().getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(zeSchema.stringMetadata())).isTrue();
+	}
+
+
+	@Test
+	public void givenStringMetadataOfSchemaTypeWithoutRecordsWhenModifyingEssentialInSummaryThenCacheReconfiguredAndNotMarkedForRebuild()
+			throws Exception {
+
+
+		SystemLocalConfigsManager localConfigsManager = getAppLayerFactory().getSystemLocalConfigsManager();
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsNotAvailableInSummary)
+				.with((c) -> c.getSchemaType("zeSchemaType").setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE)));
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+
+		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getMetadata(zeSchema.stringMetadata().getCode()).setEssentialInSummary(true);
+			}
+		});
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+		assertThat(getModelLayerFactory().getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(zeSchema.stringMetadata())).isFalse();
+	}
+
+	@Test
+	public void givenStringMetadataOfSchemaTypeWithRecordsWhenModifyingEssentialInSummaryStatusThenSchemaMarkedForCacheRebuild()
+			throws Exception {
+
+		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsNotAvailableInSummary)
+				.with((c) -> c.getSchemaType("zeSchemaType").setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE)));
+		SystemLocalConfigsManager localConfigsManager = getAppLayerFactory().getSystemLocalConfigsManager();
+		assertThat(zeSchema.stringMetadata().isStoredInSummaryCache()).isFalse();
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isFalse();
+		assertThat(getModelLayerFactory().getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(zeSchema.stringMetadata())).isTrue();
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		recordServices.add(recordServices.newRecordWithSchema(zeSchema.instance()));
+
+		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getMetadata(zeSchema.stringMetadata().getCode()).setEssentialInSummary(true);
+			}
+		});
+		assertThat(localConfigsManager.isCacheRebuildRequired()).isTrue();
+		assertThat(getModelLayerFactory().getRecordsCaches().getLocalCacheConfigs()
+				.excludedDuringLastCacheRebuild(zeSchema.stringMetadata())).isTrue();
+	}
+
+	@Test
+	public void givenCustomSchemasWithCustomMetadatasWhenMoveToDefaultSchemaThenEnabledInSchemas() {
+		defineSchemasManager().using(defaultSchema);
+
+		schemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
+			MetadataSchemaTypeBuilder type = types.getSchemaType(zeSchema.typeCode());
+			type.createCustomSchema("schema1").create("customMetadata").setType(STRING).setMultivalue(true);
+			type.createCustomSchema("schema2");
+			type.createCustomSchema("schema3");
+		});
+
+		MetadataSchemaType schemaType = schemasManager.getSchemaTypes(zeCollection).getSchemaType(zeSchema.typeCode());
+		assertThat(schemaType.getDefaultSchema().hasMetadataWithCode("customMetadata")).isFalse();
+		assertThat(schemaType.getCustomSchema("schema1").hasMetadataWithCode("customMetadata")).isTrue();
+		assertThat(schemaType.getCustomSchema("schema2").hasMetadataWithCode("customMetadata")).isFalse();
+		assertThat(schemaType.getCustomSchema("schema3").hasMetadataWithCode("customMetadata")).isFalse();
+		short id = schemaType.getCustomSchema("schema1").getMetadata("customMetadata").getId();
+
+		schemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types ->
+				types.getMetadata("zeSchemaType_schema1_customMetadata").moveToDefaultSchemas());
+
+		schemaType = schemasManager.getSchemaTypes(zeCollection).getSchemaType(zeSchema.typeCode());
+		assertThat(schemaType.getDefaultSchema().getMetadata("customMetadata").isEnabled()).isFalse();
+		assertThat(schemaType.getCustomSchema("schema1").getMetadata("customMetadata").isEnabled()).isTrue();
+		assertThat(schemaType.getCustomSchema("schema2").getMetadata("customMetadata").isEnabled()).isFalse();
+		assertThat(schemaType.getCustomSchema("schema3").getMetadata("customMetadata").isEnabled()).isFalse();
+		assertThat(schemaType.getDefaultSchema().getMetadata("customMetadata").getId()).isEqualTo(id);
+	}
+
+
 	private MetadataSchemaTypes createTwoSchemas()
 			throws Exception {
 		MetadataSchemaTypesBuilder typesBuilder = modifySchemaTypesAddingTwoNewTypes();
@@ -1900,7 +2092,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 	private MetadataSchemaTypes modifyDefaultMetadata(MetadataSchemaTypes types)
 			throws MetadataSchemasManagerException {
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
+		MetadataSchemaTypesBuilder typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, getModelLayerFactory(), new DefaultClassProvider());
 		MetadataBuilder rule = typesBuilder.getMetadata("folder_default_rule");
 		rule.setEnabled(false).addLabel(Language.French, "Ze Rule").setDefaultRequirement(true);
 		// rule.defineReferences().add(types.getDefaultSchema("rule"));
@@ -1911,7 +2103,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	private MetadataSchemaTypesBuilder modifySchemaTypesAddingTwoNewTypes()
 			throws Exception {
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes("zeCollection");
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
+		MetadataSchemaTypesBuilder typesBuilder = (new MetadataSchemaTypesBuilder(types.getCollectionInfo())).modify(types, getModelLayerFactory(), new DefaultClassProvider());
 		MetadataSchemaTypeBuilder folderType = addFolderSchemaTypeBuilderWithoutRuleMetadatas(typesBuilder);
 		MetadataSchemaTypeBuilder ruleType = addRuleSchemaTypeBuilder(typesBuilder);
 

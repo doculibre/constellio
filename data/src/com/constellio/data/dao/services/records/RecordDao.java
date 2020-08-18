@@ -4,13 +4,16 @@ import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
+import com.constellio.data.dao.dto.records.TransactionSearchDTO;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
+import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.SolrParams;
 
 import java.util.List;
+import java.util.Map;
 
 public interface RecordDao {
 
@@ -55,6 +58,8 @@ public interface RecordDao {
 	TransactionResponseDTO execute(TransactionDTO transaction)
 			throws RecordDaoException.OptimisticLocking;
 
+	TransactionResponseDTO executeSimple(TransactionSearchDTO transaction);
+
 	//List<String> getReferencedRecordsInHierarchy(String recordId);
 
 	void flush();
@@ -66,4 +71,6 @@ public interface RecordDao {
 	BigVaultServer getBigVaultServer();
 
 	void expungeDeletes();
+
+	TupleStream tupleStream(Map<String, String> props);
 }

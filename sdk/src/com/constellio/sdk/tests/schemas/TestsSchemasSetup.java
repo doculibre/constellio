@@ -172,6 +172,24 @@ public class TestsSchemasSetup extends SchemasSetup {
 	};
 
 
+	public static MetadataBuilderConfigurator whichIsAvailableInSummary = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setAvailableInSummary(true);
+		}
+
+	};
+
+	public static MetadataBuilderConfigurator whichIsNotAvailableInSummary = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setAvailableInSummary(false);
+		}
+
+	};
+
 	public static MetadataBuilderConfigurator whichIsEncrypted = new MetadataBuilderConfigurator() {
 
 		@Override
@@ -252,6 +270,15 @@ public class TestsSchemasSetup extends SchemasSetup {
 		@Override
 		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
 			builder.setUniqueValue(true);
+		}
+
+	};
+
+	public static MetadataBuilderConfigurator whichIsIndexed = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setCacheIndex(true);
 		}
 
 	};
@@ -342,6 +369,22 @@ public class TestsSchemasSetup extends SchemasSetup {
 		@Override
 		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
 			builder.setTaxonomyRelationship(true);
+		}
+
+	};
+	public static MetadataBuilderConfigurator whichMaxLengthIs7 = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setMaxLength(7);
+		}
+
+	};
+	public static MetadataBuilderConfigurator whichMeasurementUnitIsCm = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setMeasurementUnit("cm");
 		}
 
 	};

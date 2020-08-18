@@ -1,7 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.RecordsManagementViewGroup;
+import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -10,15 +10,17 @@ import com.constellio.app.ui.pages.base.BaseView;
 
 public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup {
 
-	RecordVO getRecord();
+	RecordVO getSummaryRecord();
 
-	void setRecord(RecordVO recordVO);
+	void setSummaryRecord(RecordVO recordVO);
 
 	void setEvents(RecordVODataProvider dataProvider);
 
 	void setFolderContent(RecordVODataProvider dataProvider);
 
 	void setTasks(RecordVODataProvider dataProvider);
+
+	void selectSharesTab();
 
 	void selectMetadataTab();
 
@@ -46,8 +48,6 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void refreshFolderContentTab();
 
-	void openDocumentContentVersiontWindow(DocumentVO documentVO, ContentVersionVO contentVersionVO);
-
 	void closeDocumentContentVersionWindow();
 
 	//	void openAgentURL(String agentURL);
@@ -70,4 +70,18 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	RecordVO getReturnRecordVO();
 
+	void removeAuthorization(AuthorizationVO authorizationVO);
+
+	Integer getSelectedFolderContentIndex();
+
+	RecordVO getSelectedFolderContentRecordVO();
+
+	RecordVODataProvider getFolderContentDataProvider();
+
+	DisplayFolderView getNestedDisplayFolderView();
+
+	void closeViewerPanel();
+
+	void setDragRowsEnabled(boolean enabled);
+	
 }

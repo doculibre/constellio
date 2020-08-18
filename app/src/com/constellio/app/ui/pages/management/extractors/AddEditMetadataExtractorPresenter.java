@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 
@@ -174,7 +175,11 @@ public class AddEditMetadataExtractorPresenter extends BasePresenter<AddEditMeta
 			SessionContext sessionContext = view.getSessionContext();
 			MetadataSchemaTypes types = types();
 			MetadataSchema schema = types.getSchema(schemaCode);
-			for (Metadata metadata : schema.getMetadatas().onlyWithType(TEXT, STRING).onlyManuals().onlyNotSystemReserved()
+			for (Metadata metadata : schema.getMetadatas()
+					.onlyWithType(TEXT, STRING, REFERENCE)
+					.onlyManuals()
+					.excludingNonValueListReferences()
+					.onlyNotSystemReserved()
 					.onlyEnabled()) {
 				metadataOptions.add(metadataToVOBuilder.build(metadata, sessionContext));
 			}

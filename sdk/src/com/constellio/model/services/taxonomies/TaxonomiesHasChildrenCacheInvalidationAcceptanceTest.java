@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -19,6 +20,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
 import org.assertj.core.api.ListAssert;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,9 +67,27 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 				{"testingInvalidationsOnLocalCache"}, {"testingInvalidationsOnRemoteCache"}});
 	}
 
+	private static boolean NO_TAXONOMIES_CACHE_INVALIDATION_VALUE, TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER_VALUE;
+
+	@Before
+	public void disableToggle() {
+
+	}
+
+	@After
+	public void setToggle() {
+		Toggle.NO_TAXONOMIES_CACHE_INVALIDATION.set(NO_TAXONOMIES_CACHE_INVALIDATION_VALUE);
+		Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.set(TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER_VALUE);
+	}
+
 	@Before
 	public void setUp()
 			throws Exception {
+		NO_TAXONOMIES_CACHE_INVALIDATION_VALUE = Toggle.NO_TAXONOMIES_CACHE_INVALIDATION.isEnabled();
+		Toggle.NO_TAXONOMIES_CACHE_INVALIDATION.disable();
+
+		TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER_VALUE = Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.isEnabled();
+		Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.disable();
 
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users));
 

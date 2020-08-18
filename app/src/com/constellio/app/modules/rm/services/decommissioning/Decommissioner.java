@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -13,9 +14,12 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
+import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.io.services.facades.FileService;
@@ -47,7 +51,9 @@ import com.constellio.model.services.records.RecordServicesWrapperRuntimeExcepti
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.jodconverter.office.OfficeException;
@@ -77,8 +83,8 @@ public abstract class Decommissioner {
 	protected DecommissioningList decommissioningList;
 	private ContentConversionManager conversionManager;
 	private Transaction transaction;
-	private List<Record> recordsToDelete;
-	private List<Record> recordsToDeletePhysically;
+	protected List<Record> recordsToDelete;
+	protected List<Record> recordsToDeletePhysically;
 	private LocalDate processingDate;
 	private User user;
 	private ValidationErrors validationErrors;
@@ -155,7 +161,7 @@ public abstract class Decommissioner {
 	public void denyApproval(DecommissioningList decommissioningList, User denier, String comment)
 			throws RecordServicesException.OptimisticLocking {
 		prepare(decommissioningList, user, processingDate);
-		String approvalRequester = decommissioningList.getApprovalRequest();
+		String approvalRequester = decommissioningList.getApprovalRequester();
 		removeApprovalRequest();
 		execute(false);
 		alertDenyApproval(decommissioningList, approvalRequester, denier, comment);
@@ -247,7 +253,7 @@ public abstract class Decommissioner {
 	}
 
 	private void removeApprovalRequest() {
-		add(decommissioningList.setApprovalRequestDate(null).setApprovalRequest((User) null));
+		add(decommissioningList.setApprovalRequestDate(null).setApprovalRequester((User) null));
 	}
 
 	protected void removeManualArchivisticStatus(Folder folder) {
@@ -290,13 +296,13 @@ public abstract class Decommissioner {
 	}
 
 	private void saveCertificates(DecommissioningList decommissioningList) {
-		if (!decommissioningList.getDecommissioningListType().isDestroyal()) {
+		if (!(decommissioningList.getDecommissioningListType().isDestroyal() || decommissioningService.isSortable(decommissioningList))) {
 			return;
 		}
 		FileService fileService = modelLayerFactory.getIOServicesFactory()
 				.newFileService();
 		DecomCertificateService service = new DecomCertificateService(rm, searchServices, contentManager, fileService,
-				user, decommissioningList, appLayerFactory);
+				user, decommissioningList, appLayerFactory, decommissioningService);
 		service.computeContents();
 		Content documentsContent = service.getDocumentsContent();
 		Content foldersContent = service.getFoldersContent();
@@ -358,6 +364,28 @@ public abstract class Decommissioner {
 		document.setActualDestructionDateEntered(processingDate);
 	}
 
+	protected boolean isRecordLogicallyOrPhysicallyDeleted(Record record) {
+		boolean logicallyOrPhysicallyDeleted = recordsToDelete.contains(record) || recordsToDeletePhysically.contains(record);
+		if (!logicallyOrPhysicallyDeleted) {
+			// RecordImpl#equals validates many fields, so let's check with only the id
+			for (Record recordToDelete : recordsToDelete) {
+				if (recordToDelete.getId().equals(record.getId())) {
+					logicallyOrPhysicallyDeleted = true;
+					break;
+				}
+			}
+			if (!logicallyOrPhysicallyDeleted) {
+				for (Record recordToDeletePhysically : recordsToDeletePhysically) {
+					if (recordToDeletePhysically.getId().equals(record.getId())) {
+						logicallyOrPhysicallyDeleted = true;
+						break;
+					}
+				}
+			}
+		}
+		return logicallyOrPhysicallyDeleted;
+	}
+
 	protected void removeFolderFromContainer(Folder folder) {
 		String containerId = folder.getContainer();
 		if (containerId == null) {
@@ -371,49 +399,75 @@ public abstract class Decommissioner {
 		}
 	}
 
-	protected void cleanupDocumentsIn(Folder folder, boolean purgeMinorVersions, boolean createPDFa) {
-		if (!purgeMinorVersions && !createPDFa) {
+	protected void cleanupDocumentsIn(Folder folder, boolean purgeMinorVersions, boolean createPDFa,
+									  List<DocumentType> deletedDocumentTypes) {
+		if (!purgeMinorVersions && !createPDFa && (deletedDocumentTypes == null || deletedDocumentTypes.isEmpty())) {
 			return;
 		}
-		cleanupDocuments(getAllDocumentsInFolder(folder), purgeMinorVersions, createPDFa, null);
+		cleanupDocuments(getAllDocumentsInFolder(folder), purgeMinorVersions, createPDFa, null, deletedDocumentTypes);
 	}
 
 	protected void cleanupDocuments(
-			List<Document> documents, boolean purgeMinorVersions, boolean createPDFa, DocumentUpdater updater) {
+			List<Document> documents, boolean purgeMinorVersions, boolean createPDFa, DocumentUpdater updater,
+			List<DocumentType> deletedDocumentTypes) {
+		List<Document> destroyedDocuments = new ArrayList<>();
 		for (Document document : documents) {
-			Content content = document.getContent();
-			if (content != null) {
-				if (purgeMinorVersions) {
-					content = purgeMinorVersions(content);
-				}
-				if (createPDFa && content != null) {
-					try {
-						content = createPDFa(content);
-						loggingServices.logPdfAGeneration(document, user);
-					} catch (NullPointerException e) {
-						e.printStackTrace();
-					} catch (RuntimeException e) {
-						List<Throwable> allCauses = getAllCauses(e);
-						for (Throwable cause : allCauses) {
-							if (cause != null && cause instanceof OfficeException) {
-								HashMap<String, Object> errorParameters = new HashMap<>();
-								errorParameters.put("documentId", document.getId());
-								errorParameters.put("documentTitle", document.getTitle());
-								errorParameters.put("hash", content.getId());
-								validationErrors.add(Decommissioner.class, COULD_NOT_GENERATE_PDFA_ERROR, errorParameters);
-								break;
+			if (transaction.getRecord(document.getId()) != null) {
+				document = rm.wrapDocument(transaction.getRecord(document.getId()));
+			}
+			boolean deleteDocument;
+			String documentTypeId = document.getType();
+			if (deletedDocumentTypes != null && !deletedDocumentTypes.isEmpty() && StringUtils.isNotBlank(documentTypeId)) {
+				DocumentType documentType = rm.getDocumentType(documentTypeId);
+				deleteDocument = deletedDocumentTypes.contains(documentType);
+			} else {
+				deleteDocument = false;
+			}
+			if (deleteDocument) {
+				destroyedDocuments.add(document);
+			} else {
+				Content content = document.getContent();
+				if (content != null) {
+					if (deleteDocument) {
+						content = null;
+					} else {
+						if (purgeMinorVersions) {
+							content = purgeMinorVersions(content);
+						}
+						if (createPDFa && content != null) {
+							try {
+								String fileExtension = FilenameUtils.getExtension(content.getCurrentVersion().getFilename());
+								if (!("pdf".equalsIgnoreCase(fileExtension))) {
+									content = createPDFa(content);
+									loggingServices.logPdfAGeneration(document, user);
+								}
+							} catch (NullPointerException e) {
+								e.printStackTrace();
+							} catch (RuntimeException e) {
+								List<Throwable> allCauses = getAllCauses(e);
+								for (Throwable cause : allCauses) {
+									if (cause != null && cause instanceof OfficeException) {
+										HashMap<String, Object> errorParameters = new HashMap<>();
+										errorParameters.put("documentId", document.getId());
+										errorParameters.put("documentTitle", document.getTitle());
+										errorParameters.put("hash", content.getId());
+										validationErrors.add(Decommissioner.class, COULD_NOT_GENERATE_PDFA_ERROR, errorParameters, ExceptionUtils.getStackTrace(e));
+										break;
+									}
+								}
+								LOGGER.error(String.format("Error creating PDFa from content: %s of document: %s",
+										content.getCurrentVersion().getHash(), document.getId()), e);
 							}
 						}
-						LOGGER.error(String.format("Error creating PDFa from content: %s of document: %s",
-								content.getCurrentVersion().getHash(), document.getId()), e);
 					}
 				}
+				if (updater != null) {
+					updater.update(document);
+				}
+				add(document.setContent(content));
 			}
-			if (updater != null) {
-				updater.update(document);
-			}
-			add(document.setContent(content));
 		}
+		destroyDocuments(destroyedDocuments, updater);
 	}
 
 	protected void destroyDocumentsIn(Folder folder) {
@@ -422,15 +476,18 @@ public abstract class Decommissioner {
 
 	protected void destroyDocuments(List<Document> documents, DocumentUpdater updater) {
 		for (Document document : documents) {
-			if (document.getContent() != null) {
-				destroyContent(document.getContent());
-			}
-			if (updater != null) {
-				updater.update(document);
-			}
-			add(document.setContent(null));
-			if (configs.deleteDocumentRecordsWithDestruction()) {
-				physicallyDelete(document);
+			// Might have already been deleted
+			if (!isRecordLogicallyOrPhysicallyDeleted(document.getWrappedRecord())) {
+				if (document.getContent() != null) {
+					destroyContent(document.getContent());
+				}
+				if (updater != null) {
+					updater.update(document);
+				}
+				add(document.setContent(null));
+				if (configs.deleteDocumentRecordsWithDestruction()) {
+					physicallyDelete(document);
+				}
 			}
 		}
 	}
@@ -478,7 +535,7 @@ public abstract class Decommissioner {
 		return rm.wrapDocuments(searchServices.search(query));
 	}
 
-	private List<Document> getAllDocumentsInFolder(Folder folder) {
+	protected List<Document> getAllDocumentsInFolder(Folder folder) {
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.documentSchemaType())
 				.where(rm.documentFolder()).isEqualTo(folder));
 		return rm.wrapDocuments(searchServices.search(query));
@@ -695,11 +752,11 @@ class TransferringDecommissioner extends Decommissioner {
 					public void update(Document document) {
 						markDocumentTransferred(document);
 					}
-				});
+				}, null);
 	}
 
 	private void processDocumentsIn(Folder folder) {
-		cleanupDocumentsIn(folder, configs.purgeMinorVersionsOnTransfer(), configs.createPDFaOnTransfer());
+		cleanupDocumentsIn(folder, configs.purgeMinorVersionsOnTransfer(), configs.createPDFaOnTransfer(), null);
 	}
 }
 
@@ -732,11 +789,11 @@ abstract class DeactivatingDecommissioner extends Decommissioner {
 		//			e.printStackTrace();
 		//		}
 		//add(folder);
+		destroyedFolders.add(folder.getId());
+		processDocumentsInDeleted(folder);
 		if (configs.deleteFolderRecordsWithDestruction()) {
 			physicallyDelete(folder);
 		}
-		destroyedFolders.add(folder.getId());
-		processDocumentsInDeleted(folder);
 	}
 
 	protected void processDeletedContainer(ContainerRecord container, DecomListContainerDetail detail) {
@@ -753,7 +810,7 @@ abstract class DeactivatingDecommissioner extends Decommissioner {
 	}
 
 	private void processDocumentsInDeposited(Folder folder) {
-		cleanupDocumentsIn(folder, shouldPurgeMinorVersions(), shouldCreatePDFa());
+		cleanupDocumentsIn(folder, shouldPurgeMinorVersions(), shouldCreatePDFa(), null);
 	}
 
 	private void processDocumentsInDeleted(Folder folder) {
@@ -798,7 +855,7 @@ class DepositingDecommissioner extends DeactivatingDecommissioner {
 			public void update(Document document) {
 				markDocumentDeposited(document);
 			}
-		});
+		}, null);
 	}
 }
 
@@ -869,6 +926,43 @@ class SortingDecommissioner extends DeactivatingDecommissioner {
 			}
 		} else {
 			processDepositedContainer(container, detail);
+		}
+	}
+
+	@Override
+	protected void processDepositedFolder(Folder folder, DecomListFolderDetail detail) {
+		super.processDepositedFolder(folder, detail);
+
+		final List<DocumentType> destroyedDocumentTypes = new ArrayList<>();
+		String folderRetentionRuleId = folder.getRetentionRule();
+		RetentionRule retentionRule = rm.getRetentionRule(folderRetentionRuleId);
+		List<RetentionRuleDocumentType> retentionRuleDocumentTypes = retentionRule.getDocumentTypesDetails();
+		for (RetentionRuleDocumentType retentionRuleDocumentType : retentionRuleDocumentTypes) {
+			if (retentionRuleDocumentType.getDisposalType() == DisposalType.DESTRUCTION) {
+				String destructionDocumentTypeId = retentionRuleDocumentType.getDocumentTypeId();
+				DocumentType destructionDocumentType = rm.getDocumentType(destructionDocumentTypeId);
+				destroyedDocumentTypes.add(destructionDocumentType);
+			}
+		}
+
+		cleanupDocumentsIn(folder, shouldPurgeMinorVersions(), shouldCreatePDFa(), destroyedDocumentTypes);
+
+		boolean destroyFolder;
+		if (folder.getMediaType() == FolderMediaType.ELECTRONIC) {
+			boolean allFolderDocumentsDeleted = true;
+			List<Document> folderDocuments = getAllDocumentsInFolder(folder);
+			for (Document folderDocument : folderDocuments) {
+				if (!isRecordLogicallyOrPhysicallyDeleted(folderDocument.getWrappedRecord())) {
+					allFolderDocumentsDeleted = false;
+					break;
+				}
+			}
+			destroyFolder = allFolderDocumentsDeleted;
+		} else {
+			destroyFolder = false;
+		}
+		if (destroyFolder) {
+			processDeletedFolder(folder, detail);
 		}
 	}
 

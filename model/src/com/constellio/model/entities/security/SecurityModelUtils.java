@@ -1,9 +1,11 @@
 package com.constellio.model.entities.security;
 
+import com.constellio.data.utils.Pair;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.schemas.Metadata;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
@@ -16,12 +18,16 @@ public class SecurityModelUtils {
 
 		List<SecurityModelAuthorization> returnedAuths = new ArrayList<>();
 
-		for (Metadata metadata : metadatasProvidingSecurity.getAvailableMetadatasWithAValue()) {
+		Iterator<Pair<Metadata, Object>> iterator = metadatasProvidingSecurity.iterateWithValues();
+
+		while (iterator.hasNext()) {
 			List<String> ids;
+			Pair<Metadata, Object> pair = iterator.next();
+			Metadata metadata = pair.getKey();
 			if (metadata.isMultivalue()) {
-				ids = metadatasProvidingSecurity.getValue(metadata);
+				ids = (List) pair.getValue();
 			} else {
-				ids = singletonList(metadatasProvidingSecurity.<String>getValue(metadata));
+				ids = singletonList((String) pair.getValue());
 			}
 
 			for (String aReferenceId : ids) {

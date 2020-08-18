@@ -5,7 +5,6 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServicesException;
 
@@ -13,21 +12,19 @@ import java.io.InputStream;
 import java.util.List;
 
 public interface BatchProcessingPresenter {
-	String getOriginType(String schemaType);
+	String getOriginSchema(String schemaType, String selectedType);
 
 	RecordVO newRecordVO(String schema, String schemaType, SessionContext sessionContext);
 
-	InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject,
+									  List<String> metadatasToEmpty)
 			throws RecordServicesException;
 
-	boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject,
+									  List<String> metadatasToEmpty)
 			throws RecordServicesException;
-
-	BatchProcessingMode getBatchProcessingMode();
 
 	AppLayerCollectionExtensions getBatchProcessingExtension();
-
-	String getSchema(String schemaType, String type);
 
 	String getTypeSchemaType(String schemaType);
 
@@ -50,4 +47,6 @@ public interface BatchProcessingPresenter {
 	ValidationErrors validateBatchProcessing();
 
 	boolean validateUserHaveBatchProcessPermissionOnAllRecords(String schemaType);
+
+	boolean validateUserHaveBatchProcessPermissionForRecordCount(String schemaType);
 }

@@ -1,7 +1,9 @@
 package com.constellio.model.services.records.reindexing;
 
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.utils.KeyIntMap;
 import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
+import com.constellio.model.services.records.reindexing.SystemReindexingConsumptionInfos.SystemReindexingConsumptionHeapInfo;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
@@ -9,14 +11,19 @@ import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import static com.constellio.data.utils.LangUtils.sizeOf;
 import static java.lang.Class.forName;
 import static org.apache.commons.lang3.EnumUtils.getEnum;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
@@ -26,9 +33,10 @@ public class FileSystemReindexingAggregatedValuesTempStorage implements Reindexi
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemReindexingAggregatedValuesTempStorage.class);
 
-	private Map<String, KeyIntMap<String>> referenceCounts = new HashMap<>();
+	private Map<Integer, KeyIntMap<String>> referenceCounts = new HashMap<>();
 
 	private File baseFolder;
+	Set<Integer> intIdsWithFile = new HashSet<>();
 
 	public FileSystemReindexingAggregatedValuesTempStorage(File baseFolder) {
 		this.baseFolder = baseFolder;
@@ -38,6 +46,7 @@ public class FileSystemReindexingAggregatedValuesTempStorage implements Reindexi
 	public void addOrReplace(String recordIdAggregatingValues, String recordId, String inputMetadataLocalCode,
 							 List<Object> values) {
 
+		intIdsWithFile.add(RecordId.toIntId(recordIdAggregatingValues));
 		File file = new File(baseFolder, recordIdAggregatingValues);
 
 		try {
@@ -200,11 +209,17 @@ public class FileSystemReindexingAggregatedValuesTempStorage implements Reindexi
 
 		Map<String, Map<String, List<Object>>> entriesOfAggregatingRecord = new HashMap<>();
 
-		File file = new File(baseFolder, recordIdAggregatingValues);
-		if (file.exists()) {
 
-			try {
-				for (String line : FileUtils.readLines(file, "UTF-8")) {
+		if (intIdsWithFile.contains(RecordId.toIntId(recordIdAggregatingValues))) {
+
+			File file = new File(baseFolder, recordIdAggregatingValues);
+			if (!file.exists()) {
+				return Collections.emptyMap();
+			}
+			try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file));) {
+
+				String line;
+				while ((line = bufferedReader.readLine()) != null) {
 
 					String recordId = StringUtils.substringBefore(line, ":");
 					String restOfLine = StringUtils.substringAfter(line, ":");
@@ -231,15 +246,29 @@ public class FileSystemReindexingAggregatedValuesTempStorage implements Reindexi
 
 	@Override
 	public void incrementReferenceCount(String recordIdAggregatingValues, String aggregatedMetadataLocalCode) {
-		if (!referenceCounts.containsKey(recordIdAggregatingValues)) {
-			referenceCounts.put(recordIdAggregatingValues, new KeyIntMap<String>());
+		int recordIntIdAggregatingValues = RecordId.toIntId(recordIdAggregatingValues);
+		if (!referenceCounts.containsKey(recordIntIdAggregatingValues)) {
+			referenceCounts.put(recordIntIdAggregatingValues, new KeyIntMap<String>());
 		}
-		referenceCounts.get(recordIdAggregatingValues).increment(aggregatedMetadataLocalCode);
+		referenceCounts.get(recordIntIdAggregatingValues).increment(aggregatedMetadataLocalCode);
 	}
 
 	@Override
 	public int getReferenceCount(String recordIdAggregatingValues, String aggregatedMetadataLocalCode) {
-		KeyIntMap<String> keyIntMap = referenceCounts.get(recordIdAggregatingValues);
+		KeyIntMap<String> keyIntMap = referenceCounts.get(RecordId.toIntId(recordIdAggregatingValues));
 		return keyIntMap != null ? keyIntMap.get(aggregatedMetadataLocalCode) : 0;
 	}
+
+	@Override
+	public void populateCacheConsumptionInfos(SystemReindexingConsumptionInfos infos) {
+
+
+		infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo(
+				"FileSystemReindexingAggregatedValuesTempStorage.referenceCounts", sizeOf(referenceCounts), true));
+
+		infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo(
+				"FileSystemReindexingAggregatedValuesTempStorage.idsWithFileConsumption", sizeOf(intIdsWithFile), true));
+
+	}
+
 }

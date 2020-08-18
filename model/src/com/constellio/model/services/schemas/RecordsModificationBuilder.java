@@ -29,7 +29,7 @@ public class RecordsModificationBuilder {
 
 		Map<String, List<Record>> recordsSplittedByTypes = newRecordUtils().splitRecordsBySchemaTypes(
 				transaction.getSavedRecordWithModification());
-		for (String schemaTypeCode : metadataSchemaTypes.getSchemaTypesSortedByDependency()) {
+		for (String schemaTypeCode : metadataSchemaTypes.getSchemaTypesCodesSortedByDependency()) {
 			if (recordsSplittedByTypes.containsKey(schemaTypeCode)) {
 				MetadataSchemaType schemaType = metadataSchemaTypes.getSchemaType(schemaTypeCode);
 				List<Record> records = recordsSplittedByTypes.get(schemaTypeCode);

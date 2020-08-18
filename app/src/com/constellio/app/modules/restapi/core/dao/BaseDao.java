@@ -1,6 +1,8 @@
 package com.constellio.app.modules.restapi.core.dao;
 
 import com.constellio.app.modules.restapi.RestApiConfigs;
+import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException;
+import com.constellio.app.modules.restapi.core.util.HashingUtils;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
@@ -11,21 +13,26 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 
 import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.List;
+
+import static com.constellio.app.modules.restapi.core.util.Algorithms.HMAC_SHA_256;
 
 public abstract class BaseDao {
 
@@ -37,8 +44,10 @@ public abstract class BaseDao {
 	protected RestApiConfigs restApiConfigs;
 
 	protected RecordServices recordServices;
+	protected RecordDeleteServices recordDeleteServices;
 	protected SearchServices searchServices;
 	protected UserServices userServices;
+	protected AuthorizationsServices authorizationServices;
 	protected SchemasRecordsServices schemas;
 
 	@PostConstruct
@@ -51,8 +60,10 @@ public abstract class BaseDao {
 		restApiConfigs = new RestApiConfigs(modelLayerFactory);
 
 		recordServices = modelLayerFactory.newRecordServices();
+		recordDeleteServices = new RecordDeleteServices(modelLayerFactory);
 		searchServices = modelLayerFactory.newSearchServices();
 		userServices = modelLayerFactory.newUserServices();
+		authorizationServices = modelLayerFactory.newAuthorizationsServices();
 		schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
 
@@ -177,14 +188,41 @@ public abstract class BaseDao {
 		return getUrl().split("/")[2].split(":")[0];
 	}
 
-	public Record getUserByUsername(String username, String collection) {
+	public String getServerHostWithPort() {
+		return getUrl().split("/")[2];
+	}
+
+	public User getUserByUsername(String username, String collection) {
+		return userServices.getUserInCollection(username, collection);
+	}
+
+	public Record getUserRecordByUsername(String username, String collection) {
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		return recordServices.getRecordsCaches().getCache(collection).getByMetadata(schemas.user.username(), username);
 	}
 
-	public Record getGroupByCode(String groupCode, String collection) {
+	public Record getGroupRecordByCode(String groupCode, String collection) {
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		return recordServices.getRecordsCaches().getCache(collection).getByMetadata(schemas.group.code(), groupCode);
 	}
 
+	public MetadataSchemaType getMetadataSchemaType(String collection, String schemaTypeCode) {
+		try {
+			return metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaTypeCode);
+		} catch (MetadataSchemasRuntimeException.NoSuchSchemaType e) {
+			throw new RecordNotFoundException(schemaTypeCode);
+		}
+	}
+
+	public String sign(String key, String data) throws Exception {
+		return sign(key, data, HMAC_SHA_256);
+	}
+
+	public String sign(String key, String data, String algorithm) throws Exception {
+		if (algorithm.equals(HMAC_SHA_256)) {
+			return HashingUtils.hmacSha256Base64UrlEncoded(key, data);
+		} else {
+			throw new UnsupportedOperationException(String.format("Unsupported algorithm : %s", algorithm));
+		}
+	}
 }

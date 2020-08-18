@@ -1,13 +1,15 @@
 package com.constellio.model.services.factories;
 
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.factories.LayerFactory;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Factory;
-import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
+import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.services.background.ModelLayerBackgroundThreadsManager;
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
@@ -15,19 +17,26 @@ import com.constellio.model.services.batch.state.StoredBatchProcessProgressionSe
 import com.constellio.model.services.caches.ModelLayerCachesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.configs.UserConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.emails.EmailQueueManager;
 import com.constellio.model.services.emails.EmailTemplatesManager;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.logs.LogServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.migrations.RecordMigrationsManager;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.LanguageDetectionManager;
+import com.constellio.model.services.pdf.pdtron.AnnotationLockManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordUsageCounterHookRetriever;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.UserCredentialServiceKeyCacheHookRetriever;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.UserCredentialTokenCacheHookRetriever;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -90,6 +99,8 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	RolesManager getRolesManager();
 
+	AnnotationLockManager getAnnotationLockManager();
+
 	AuthorizationsServices newAuthorizationsServices();
 
 	//After rename get...
@@ -111,7 +122,11 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	ConstellioEIMConfigs getSystemConfigs();
 
+	UserConfigurationsManager getUserConfigurationsManager();
+
 	LoggingServices newLoggingServices();
+
+	LogServices newLogServices();
 
 	IOServicesFactory getIOServicesFactory();
 
@@ -151,6 +166,8 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	EncryptionServices newEncryptionServices();
 
+	void resetEncryptionServices();
+
 	SearchBoostManager getSearchBoostManager();
 
 	void setAuthenticationService(AuthenticationService authenticationService);
@@ -171,6 +188,28 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	ModelLayerCachesManager getCachesManager();
 
-	void postInitialization();
+	void postInitialization(ModelPostInitializationParams params);
 
+	void onCollectionInitialized(String collection);
+
+	TaxonomyRecordsHookRetriever getTaxonomyRecordsHookRetriever(String collection);
+
+	RecordUsageCounterHookRetriever getRecordUsageCounterHookRetriever(String collection);
+
+	void markForReindexing();
+
+	void markLocalCachesAsRequiringRebuild();
+
+	default ConfigProvider newConfigProvider() {
+		return new ConfigProvider() {
+			@Override
+			public <T> T get(SystemConfiguration config) {
+				return getSystemConfigurationsManager().getValue(config);
+			}
+		};
+	}
+
+	UserCredentialTokenCacheHookRetriever getUserCredentialTokenCacheHookRetriever();
+
+	UserCredentialServiceKeyCacheHookRetriever getUserCredentialServiceKeyCacheHookRetriever();
 }

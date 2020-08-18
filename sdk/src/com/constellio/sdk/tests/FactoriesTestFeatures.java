@@ -3,9 +3,11 @@ package com.constellio.sdk.tests;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.services.factories.SingletonConstellioFactoriesInstanceProvider;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.conf.ConfigManagerType;
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
@@ -22,13 +24,17 @@ import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.extensions.TransactionLogExtension;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.io.IOServicesFactory;
+import com.constellio.data.services.tenant.TenantProperties;
+import com.constellio.data.services.tenant.TenantService;
 import com.constellio.data.utils.Factory;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.FakeEncryptionServices;
+import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -40,13 +46,17 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.Key;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
 import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
+import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_TENANT_ID;
+import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.EMPTY_TENANT_ID;
 import static com.constellio.sdk.tests.SaveStateFeature.loadStateFrom;
 import static java.util.Arrays.asList;
 import static org.mockito.Mockito.spy;
@@ -62,6 +72,8 @@ public class FactoriesTestFeatures {
 	private boolean dummyPasswords;
 
 	private File initialState;
+	private String privateKeySalt;
+	private String privateKeyPassword;
 	private final FileSystemTestFeatures fileSystemTestFeatures;
 	//private ConstellioFactories factoriesInstance;
 	private List<Class<?>> spiedClasses = new ArrayList<>();
@@ -73,8 +85,10 @@ public class FactoriesTestFeatures {
 	private List<ModelLayerConfigurationAlteration> modelLayerConfigurationAlterations = new ArrayList<>();
 	private List<AppLayerConfigurationAlteration> appLayerConfigurationAlterations = new ArrayList<>();
 	private Map<String, String> configs = new HashMap<>();
-	private List<String> instanceNames = new ArrayList<>();
+	private Map<String, List<String>> instanceNames = new HashMap<>();
 	private String systemLanguage;
+
+	private TenantService tenantService;
 
 	public FactoriesTestFeatures(FileSystemTestFeatures fileSystemTestFeatures, Map<String, String> sdkProperties,
 								 boolean checkRollback) {
@@ -82,18 +96,29 @@ public class FactoriesTestFeatures {
 		this.checkRollback = checkRollback;
 		//		this.sdkProperties = sdkProperties;
 		ConstellioFactories.instanceProvider = new SDKConstellioFactoriesInstanceProvider();
+
+		tenantService = TenantService.getInstance();
 	}
 
-	public List<Runnable> afterTest() {
+	public List<Runnable> afterTest(boolean restarting) {
 
 		List<Runnable> runtimes = new ArrayList<>();
 
 
-		if (ConstellioFactories.instanceProvider.isInitialized()) {
-			runtimes.addAll(clear());
+		if (isInitialized()) {
+			if (!restarting) {
+				runtimes.addAll(clear());
+			}
 		}
 
-		ConstellioFactories.clear();
+		ConstellioFactories.instanceProvider.clearAll();
+
+		try {
+			tenantService.clearTenants(false);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		TenantUtils.setTenant(null);
 
 		return runtimes;
 
@@ -103,7 +128,7 @@ public class FactoriesTestFeatures {
 		List<Runnable> runnables = new ArrayList<>();
 		SDKConstellioFactoriesInstanceProvider instanceProvider = (SDKConstellioFactoriesInstanceProvider) ConstellioFactories.instanceProvider;
 
-		for (ConstellioFactories factoriesInstance : instanceProvider.instances.values()) {
+		for (ConstellioFactories factoriesInstance : instanceProvider.getAllInstances()) {
 
 			final File licenseFile = factoriesInstance.getFoldersLocator().getLicenseFile();
 			runnables.add(new Runnable() {
@@ -153,8 +178,7 @@ public class FactoriesTestFeatures {
 
 	private void deleteFromCaches() {
 		try {
-			ConstellioCacheManager settingsCacheManager = getConstellioFactories().getDataLayerFactory()
-					.getLocalCacheManager();
+			ConstellioCacheManager settingsCacheManager = getConstellioFactories().getDataLayerFactory().getLocalCacheManager();
 			if (settingsCacheManager != null) {
 				for (String cacheName : settingsCacheManager.getCacheNames()) {
 					ConstellioCache cache = settingsCacheManager.getCache(cacheName);
@@ -234,12 +258,40 @@ public class FactoriesTestFeatures {
 		}
 	}
 
+
+	public void restart() {
+		SDKConstellioFactoriesInstanceProvider instanceProvider = (SDKConstellioFactoriesInstanceProvider) ConstellioFactories.instanceProvider;
+		instanceProvider.clearAll();
+		getConstellioFactories();
+	}
+
 	public synchronized ConstellioFactories getConstellioFactories() {
 		return getConstellioFactories(DEFAULT_NAME);
 	}
 
 	public synchronized ConstellioFactories getConstellioFactories(final String name) {
-		TestConstellioFactoriesDecorator decorator = decorators.get(name);
+		String tenantId = null;
+		if (tenantService.isSupportingTenants()) {
+			try {
+				tenantId = TenantUtils.getTenantId();
+			} catch (Exception e) {
+				tenantId = DEFAULT_TENANT_ID;
+				TenantUtils.setTenant(tenantId);
+			}
+		} else {
+			tenantId = EMPTY_TENANT_ID;
+		}
+
+		return getConstellioFactories(name, tenantId);
+	}
+
+	public synchronized ConstellioFactories getConstellioFactories(final byte tenantId) {
+		return getConstellioFactories(DEFAULT_NAME, "" + tenantId);
+	}
+
+	private synchronized ConstellioFactories getConstellioFactories(final String name, final String tenantId) {
+		String compositeName = tenantId + "-" + name;
+		TestConstellioFactoriesDecorator decorator = decorators.get(compositeName);
 		if (decorator == null) {
 
 			StringBuilder setupPropertiesContent = new StringBuilder();
@@ -359,13 +411,31 @@ public class FactoriesTestFeatures {
 				modelLayerConfigurationAlterations.add(new ModelLayerConfigurationAlteration() {
 					@Override
 					public void alter(InMemoryModelLayerConfiguration configuration) {
-						Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
-							@Override
-							public EncryptionServices get() {
-								return new FakeEncryptionServices();
-							}
-						};
-						configuration.setEncryptionServicesFactory(encryptionServicesFactory);
+						if (privateKeySalt != null && privateKeyPassword != null) {
+
+							Key key = EncryptionKeyFactory.newApplicationKey(privateKeyPassword, privateKeySalt);
+							Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
+								@Override
+								public EncryptionServices get() {
+									try {
+										return new EncryptionServices(false).withKey(key);
+									} catch (Exception e) {
+										throw new RuntimeException(e);
+									}
+								}
+							};
+							configuration.setEncryptionServicesFactory(encryptionServicesFactory);
+
+						} else {
+
+							Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
+								@Override
+								public EncryptionServices get() {
+									return new FakeEncryptionServices();
+								}
+							};
+							configuration.setEncryptionServicesFactory(encryptionServicesFactory);
+						}
 					}
 				});
 			}
@@ -407,7 +477,7 @@ public class FactoriesTestFeatures {
 
 				}
 			}
-			decorators.put(name, decorator);
+			decorators.put(compositeName, decorator);
 		}
 
 		File propertyFile = new SDKFoldersLocator().getSDKProperties();
@@ -438,22 +508,22 @@ public class FactoriesTestFeatures {
 			@Override
 			public ConstellioFactories get() {
 
-				short instanceId = 0;
-				if (name != null) {
-					if (!instanceNames.contains(name)) {
-						instanceNames.add(name);
-					}
-					instanceId = (short) instanceNames.indexOf(name);
+				String compositeName = "" + tenantId + "-" + "" + name;
+				if (instanceNames.containsKey(tenantId)) {
+					instanceNames.get(tenantId).add(compositeName);
+				} else {
+					instanceNames.put(tenantId, Lists.newArrayList(compositeName));
 				}
+				short instanceId = (short) instanceNames.get(tenantId).indexOf(compositeName);
 
-				ConstellioFactories instance = ConstellioFactories.buildFor(finalPropertyFile, finalDecorator, name, instanceId);
+				ConstellioFactories instance = ConstellioFactories.buildFor(finalPropertyFile, finalDecorator, compositeName, instanceId);
 				LeaderElectionManager electionService = instance.getDataLayerFactory().getLeaderElectionService().getNestedLeaderElectionManager();
 				if (electionService instanceof StandaloneLeaderElectionManager) {
-					((StandaloneLeaderElectionManager) electionService).setLeader(DEFAULT_NAME.equals(name));
+					((StandaloneLeaderElectionManager) electionService).setLeader(instanceId == 0);
 				}
 				return instance;
 			}
-		}, name);
+		}, name, tenantId, false);
 
 		return constellioFactories;
 
@@ -504,6 +574,12 @@ public class FactoriesTestFeatures {
 
 	}
 
+	public FactoriesTestFeatures givenPrivateKey(String privateKeySalt, String privateKeyPassword) {
+		this.privateKeySalt = privateKeySalt;
+		this.privateKeyPassword = privateKeyPassword;
+		return this;
+	}
+
 	public FactoriesTestFeatures givenSystemInState(File state) {
 		this.initialState = state;
 		return this;
@@ -524,7 +600,11 @@ public class FactoriesTestFeatures {
 	}
 
 	public boolean isInitialized() {
-		return ConstellioFactories.instanceProvider.isInitialized();
+		if (ConstellioFactories.instanceProvider instanceof SDKConstellioFactoriesInstanceProvider) {
+			return !((SDKConstellioFactoriesInstanceProvider) ConstellioFactories.instanceProvider).getAllInstances().isEmpty();
+		} else {
+			return ((SingletonConstellioFactoriesInstanceProvider) ConstellioFactories.instanceProvider).isInitialized(TenantUtils.getTenantId());
+		}
 	}
 
 	public void givenBackgroundThreadsEnabled() {
@@ -550,4 +630,31 @@ public class FactoriesTestFeatures {
 		return checkRollback;
 	}
 
+	void addTenants() {
+		try {
+			tenantService.addTenant(buildTenant1(), false);
+			tenantService.addTenant(buildTenant2(), false);
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to add tenants", e);
+		}
+	}
+
+	List<TenantProperties> getTenants() {
+		return tenantService.getTenants();
+	}
+
+	private TenantProperties buildTenant1() {
+		return new TenantProperties("Tenant 1", "T01", 1, Collections.singletonList("localhost:7070"));
+	}
+
+	void clearTenants() {
+		try {
+			tenantService.clearTenants(false);
+		} catch (Exception ignored) {
+		}
+	}
+
+	private TenantProperties buildTenant2() {
+		return new TenantProperties("Tenant 2", "T02", 2, Collections.singletonList("127.0.0.1:7070"));
+	}
 }

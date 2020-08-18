@@ -15,7 +15,7 @@ import com.vaadin.ui.Component;
 
 import java.util.List;
 
-public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyContainer> implements RecordVOContainer {
+public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyContainer> implements RecordVOContainer, LastQTime {
 
 	private RecordDisplayFactory displayFactory;
 	String query;
@@ -90,5 +90,5 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 	public List<MetadataSchemaVO> getSchemas() {
 		return adapted.getSchemas();
 	}
-	
+
 }

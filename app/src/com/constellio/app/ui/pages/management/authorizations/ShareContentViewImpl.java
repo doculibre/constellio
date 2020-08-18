@@ -59,19 +59,19 @@ public class ShareContentViewImpl extends BaseViewImpl implements ShareContentVi
 		buildAccessField();
 		buildRolesField();
 		buildDateFields();
-		return new BaseForm<AuthorizationVO>(
-				AuthorizationVO.forContent(record.getId()), this, users, groups, accessRoles, userRoles, startDate, endDate) {
-			@Override
-			protected void saveButtonClick(AuthorizationVO authorization)
-					throws ValidationException {
-				presenter.authorizationCreationRequested(authorization);
-			}
+			return new BaseForm<AuthorizationVO>(
+					AuthorizationVO.forContent(record.getId()), this, users, groups, accessRoles, userRoles, startDate, endDate) {
+				@Override
+				protected void saveButtonClick(AuthorizationVO authorization)
+						throws ValidationException {
+					presenter.authorizationCreationRequested(authorization);
+				}
 
-			@Override
-			protected void cancelButtonClick(AuthorizationVO authorization) {
-				returnFromPage();
-			}
-		};
+				@Override
+				protected void cancelButtonClick(AuthorizationVO authorization) {
+					returnFromPage();
+				}
+			};
 	}
 
 	@Override
@@ -82,7 +82,7 @@ public class ShareContentViewImpl extends BaseViewImpl implements ShareContentVi
 	private void buildUsersAndGroupsField() {
 		users = new ListAddRemoveRecordLookupField(User.SCHEMA_TYPE);
 		users.setCaption($("AuthorizationsView.users"));
-		users.setId("users");
+		users.getIdsToIgnore().add(presenter.getCurrentUserId());
 
 		groups = new ListAddRemoveRecordLookupField(Group.SCHEMA_TYPE);
 		groups.setCaption($("AuthorizationsView.groups"));
@@ -113,13 +113,17 @@ public class ShareContentViewImpl extends BaseViewImpl implements ShareContentVi
 	}
 
 	private void buildDateFields() {
+		boolean fieldsRequired = presenter.isDateFieldValuesRequired();
+
 		startDate = new JodaDateField();
 		startDate.setCaption($("AuthorizationsView.startDate"));
 		startDate.setId("startDate");
+		startDate.setRequired(fieldsRequired);
 
 		endDate = new JodaDateField();
 		endDate.setCaption($("AuthorizationsView.endDate"));
 		endDate.setId("endDate");
+		endDate.setRequired(fieldsRequired);
 	}
 
 }

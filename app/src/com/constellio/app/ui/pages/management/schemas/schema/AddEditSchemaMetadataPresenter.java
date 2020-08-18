@@ -138,7 +138,7 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 
 	private boolean isDDVOrTaxonomy(Metadata metadata) {
 		if (metadata.getType() == MetadataValueType.REFERENCE) {
-			String referencedSchemaType = metadata.getReferencedSchemaType();
+			String referencedSchemaType = metadata.getReferencedSchemaTypeCode();
 			return referencedSchemaType.startsWith("taxo")
 				   || (metadata.getLocalCode().startsWith("USR") && referencedSchemaType.startsWith("ddv"));
 
@@ -186,7 +186,14 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 
 	public void deleteButtonClicked(MetadataVO entity) {
 		try {
+			MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+			MetadataSchema schema = schemasManager.getSchemaTypes(collection).getSchema(getSchemaCode());
+			Metadata metadata = schema.getMetadata(entity.getCode());
+			User user = getCurrentUser();
+
+			appCollectionExtentions.metadataDeletedFromView(metadata, user);
 			metadataDeletionService().deleteMetadata(entity.getCode());
+
 			String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_METADATA, parameters);
 			view.navigate().to().listSchemaMetadata(params);
 

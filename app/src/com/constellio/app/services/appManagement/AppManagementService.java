@@ -13,21 +13,26 @@ import com.constellio.app.services.extensions.plugins.PluginServices;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.migrations.VersionValidator;
 import com.constellio.app.services.migrations.VersionsComparator;
 import com.constellio.app.services.recovery.ConstellioVersionInfo;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
+import com.constellio.app.services.systemSetup.SystemLocalConfigsManager;
+import com.constellio.app.servlet.ConstellioMonitoringServlet;
+import com.constellio.app.utils.ScriptsUtils;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocatorMode;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.PropertyFileUtils;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -57,12 +62,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
 import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.INVALID;
@@ -85,6 +90,7 @@ public class AppManagementService {
 	private final PluginServices pluginServices;
 	private final ConstellioPluginManager pluginManager;
 	private final SystemGlobalConfigsManager systemGlobalConfigsManager;
+	private final SystemLocalConfigsManager systemLocalConfigsManager;
 	private final FileService fileService;
 	private final ZipService zipService;
 	private final IOServices ioServices;
@@ -95,6 +101,7 @@ public class AppManagementService {
 	public AppManagementService(AppLayerFactory appLayerFactory, FoldersLocator foldersLocator) {
 
 		this.systemGlobalConfigsManager = appLayerFactory.getSystemGlobalConfigsManager();
+		this.systemLocalConfigsManager = appLayerFactory.getSystemLocalConfigsManager();
 		this.pluginManager = appLayerFactory.getPluginManager();
 		this.fileService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService();
 		this.zipService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newZipService();
@@ -114,6 +121,15 @@ public class AppManagementService {
 		} catch (IOException e) {
 			throw new AppManagementServiceException.CannotWriteInCommandFile(commandFile, e);
 		}
+
+		ConstellioMonitoringServlet.systemRestarting = true;
+	}
+
+	public void restartTenant() {
+		ConstellioFactories.clear();
+		ConstellioFactories.getInstance();
+
+		ConstellioMonitoringServlet.tenantRestarting.set(true);
 	}
 
 	public void dump()
@@ -171,6 +187,7 @@ public class AppManagementService {
 			LOGGER.info(currentStep);
 
 			File oldPluginsFolder = foldersLocator.getPluginsJarsFolder();
+			copyCurrentLibsIfPatchWar(foldersLocator.getConstellioWebappFolder(), tempFolder);
 			copyCurrentPlugins(oldPluginsFolder, tempFolder);
 			movePluginsToNewLib(oldPluginsFolder, tempFolder);
 			updatePluginsWithThoseInWar(tempFolder);
@@ -216,12 +233,49 @@ public class AppManagementService {
 
 	}
 
-	private void updatePluginsWithThoseInWar(File nextWebapp) {
-		updatePlugins(nextWebapp);
-		installPlugins(nextWebapp);
+	private void copyCurrentLibsIfPatchWar(File constellioWebappFolder, File tempFolder) {
+		File newAppLibs = new File(new File(tempFolder, "WEB-INF"), "lib");
+		File currentAppLibs = new File(new File(constellioWebappFolder, "WEB-INF"), "lib");
+
+		if (newAppLibs.listFiles() != null && currentAppLibs.listFiles() != null && newAppLibs.listFiles().length < 10) {
+			for (File currentJarFile : currentAppLibs.listFiles()) {
+				if (!currentJarFile.getName().startsWith("core-")
+					&& !currentJarFile.getName().startsWith("plugin")) {
+					try {
+						FileUtils.copyFile(currentJarFile, new File(newAppLibs, currentJarFile.getName()));
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			}
+		}
+
 	}
 
-	private void installPlugins(File nextWebapp) {
+	private void updatePluginsWithThoseInWar(File nextWebapp) {
+
+		if (TenantUtils.isSupportingTenants()) {
+
+			String currentTenant = TenantUtils.getTenantId();
+			LOGGER.warn("Was tenant '" + currentTenant + "'");
+			try {
+
+				ScriptsUtils.forEachAvailableAndFailedTenants((tenantId, applicationLayerFactory) -> {
+					ConstellioPluginManager pluginManager = applicationLayerFactory.getPluginManager();
+					updatePluginsOfCurrentTenant(nextWebapp, pluginManager, pluginServices, currentTenant);
+					installPluginsForCurrentTenant(nextWebapp, pluginManager);
+				});
+			} finally {
+				TenantUtils.setTenant(currentTenant);
+			}
+			LOGGER.warn("Now tenant '" + TenantUtils.getTenantId() + "'");
+		} else {
+			updatePluginsOfCurrentTenant(nextWebapp, pluginManager, pluginServices, "main");
+			installPluginsForCurrentTenant(nextWebapp, pluginManager);
+		}
+	}
+
+	private static void installPluginsForCurrentTenant(File nextWebapp, ConstellioPluginManager pluginManager) {
 		File pluginsFolder = new File(nextWebapp, "plugins-to-install");
 		if (pluginsFolder.exists() && pluginsFolder.listFiles() != null) {
 			for (File pluginFile : pluginsFolder.listFiles()) {
@@ -233,24 +287,25 @@ public class AppManagementService {
 		}
 	}
 
-	private void updatePlugins(File nextWebapp) {
+	private static void updatePluginsOfCurrentTenant(File nextWebapp, ConstellioPluginManager pluginManager,
+													 PluginServices pluginServices, String tenantId) {
 		File pluginsFolder = new File(nextWebapp, "plugins-to-update");
 		if (pluginsFolder.exists() && pluginsFolder.listFiles() != null) {
-			Set<String> alreadyInstalledPlugins = new HashSet<>();
+			Set<String> alreadyInstalledPluginsForTenant = pluginManager.getPlugins(ENABLED, READY_TO_INSTALL, INVALID)
+					.stream().map(ConstellioPluginInfo::getCode).collect(Collectors.toSet());
+			List<String> alreadyInstalledPluginsForAnyTenant = pluginManager.getPluginsFromAnyTenants(ENABLED, READY_TO_INSTALL, INVALID);
 
-			for (ConstellioPluginInfo info : pluginManager.getPlugins(ENABLED, READY_TO_INSTALL, INVALID)) {
-				alreadyInstalledPlugins.add(info.getCode());
-			}
 
 			for (File pluginFile : pluginsFolder.listFiles()) {
 				if (pluginFile.getName().toLowerCase().endsWith(".jar")) {
 					try {
 						ConstellioPluginInfo info = pluginServices.extractPluginInfo(pluginFile);
 
-						if (alreadyInstalledPlugins.contains(info.getCode())) {
-							LOGGER.info(pluginsFolder.getName() + "/" + pluginFile.getName() + ".jar : installed");
+
+						if (alreadyInstalledPluginsForTenant.contains(info.getCode())) {
+							LOGGER.info(pluginsFolder.getName() + "/" + pluginFile.getName() + ".jar : installed for tenant " + tenantId);
 							pluginManager.prepareInstallablePluginInNextWebapp(pluginFile, nextWebapp);
-						} else {
+						} else if (!alreadyInstalledPluginsForAnyTenant.contains(info.getCode())) {
 							LOGGER.info(pluginsFolder.getName() + "/" + pluginFile.getName() + ".jar : deleted");
 							pluginFile.delete();
 						}
@@ -271,7 +326,7 @@ public class AppManagementService {
 		PluginManagementUtils utils = new PluginManagementUtils(oldPluginsFolder, newLibsFolder, pluginsToMoveFile);
 
 		try {
-			utils.movePlugins(pluginManager.getPluginsOfEveryStatus());
+			utils.movePlugins(pluginManager.getPluginsOfEveryStatusFromAnyTenants());
 		} catch (IOException e) {
 			throw new CannotSaveOldPlugins(e);
 		}
@@ -525,15 +580,12 @@ public class AppManagementService {
 	String sendPost(String url, String infoSent)
 			throws IOException {
 		StringBuilder response = new StringBuilder();
-
-		BufferedReader in = new BufferedReader(new InputStreamReader(getInputForPost(url, infoSent)));
-		String inputLine;
-
-		while ((inputLine = in.readLine()) != null) {
-			response.append(inputLine);
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(getInputForPost(url, infoSent)))) {
+			String inputLine;
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
 		}
-		in.close();
-
 		return response.toString();
 	}
 
@@ -546,10 +598,12 @@ public class AppManagementService {
 		con.setDoOutput(true);
 		con.setConnectTimeout(10000);
 
-		DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-		wr.writeBytes(infoSent);
-		wr.flush();
-		wr.close();
+		if (infoSent != null) {
+			try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
+				wr.writeBytes(infoSent);
+				wr.flush();
+			}
+		}
 
 		return con.getInputStream();
 	}
@@ -559,15 +613,12 @@ public class AppManagementService {
 		String URL_CHANGELOG = getChangelogURLFromServer();
 
 		String changelog = "";
-		try {
-			InputStream stream = getInputForPost(URL_CHANGELOG, getLicenseInfo().getSignature());
-
+		try (InputStream stream = getInputForPost(URL_CHANGELOG, getLicenseInfo().getSignature())) {
 			if (stream == null) {
 				throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_CHANGELOG);
 			}
 
-			BufferedReader in = new BufferedReader(new InputStreamReader(stream));
-			try {
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(stream))) {
 				String inputLine;
 				while ((inputLine = in.readLine()) != null) {
 					changelog += inputLine;
@@ -576,8 +627,6 @@ public class AppManagementService {
 				if (this.isProxyPage(changelog)) {
 					throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_CHANGELOG);
 				}
-			} finally {
-				IOUtils.closeQuietly(in);
 			}
 
 		} catch (IOException | RuntimeException io) {
@@ -620,12 +669,13 @@ public class AppManagementService {
 			if (input == null) {
 				throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_WAR);
 			}
-			CountingInputStream countingInputStream = new CountingInputStream(input);
 
 			progressInfo.setProgressMessage("Creating WAR file");
-			OutputStream warFileOutput = getWarFileDestination().create("war upload");
 
-			try {
+			try (
+					CountingInputStream countingInputStream = new CountingInputStream(input);
+					OutputStream warFileOutput = getWarFileDestination().create("war upload");
+			) {
 				progressInfo.setProgressMessage("Copying downloaded WAR");
 
 				byte[] buffer = new byte[8 * 1024];
@@ -636,9 +686,6 @@ public class AppManagementService {
 					String progressMessage = FileUtils.byteCountToDisplaySize(totalBytesRead);
 					progressInfo.setProgressMessage(progressMessage);
 				}
-			} finally {
-				IOUtils.closeQuietly(countingInputStream);
-				IOUtils.closeQuietly(warFileOutput);
 			}
 			progressInfo.setCurrentState(1);
 
@@ -647,14 +694,15 @@ public class AppManagementService {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public File getLastAlertFromServer() throws CannotConnectToServer {
 		String URL_LAST_ALERT = getLastAlertURLFromServer();
 
 		InputStream lastAlertFileInput = null;
 		OutputStream lastAlertFileOutput = null;
-
 		try {
-			lastAlertFileInput = getInputForPost(URL_LAST_ALERT, getLicenseInfo().getSignature());
+			String infoSent = getLicenseInfo() != null ? getLicenseInfo().getSignature() : null;
+			lastAlertFileInput = getInputForPost(URL_LAST_ALERT, infoSent);
 
 			if (lastAlertFileInput == null) {
 				throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_LAST_ALERT);
@@ -677,7 +725,17 @@ public class AppManagementService {
 	}
 
 	public void markForReindexing() {
-		systemGlobalConfigsManager.setMarkedForReindexing(true);
+		systemLocalConfigsManager.setMarkedForReindexing(true);
+	}
+
+	public void markCacheForRebuildIfRequired() {
+		if (systemLocalConfigsManager.isCacheRebuildRequired()) {
+			systemLocalConfigsManager.setMarkedForCacheRebuild(true);
+		}
+	}
+
+	public void markCacheForRebuild() {
+		systemLocalConfigsManager.setMarkedForCacheRebuild(true);
 	}
 
 	public boolean isLicensedForAutomaticUpdate() {

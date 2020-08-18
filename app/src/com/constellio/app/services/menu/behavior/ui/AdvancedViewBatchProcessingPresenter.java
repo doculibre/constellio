@@ -30,7 +30,6 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
-import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -41,11 +40,13 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
@@ -95,8 +96,8 @@ public class AdvancedViewBatchProcessingPresenter implements BatchProcessingPres
 	}
 
 	@Override
-	public String getOriginType(String schemaType) {
-		return batchProcessingPresenterService.getOriginType(buildBatchProcessLogicalSearchQuery());
+	public String getOriginSchema(String schemaType, String selectedType) {
+		return batchProcessingPresenterService.getOriginSchema(schemaType, selectedType, buildBatchProcessLogicalSearchQuery());
 	}
 
 	@Override
@@ -105,18 +106,20 @@ public class AdvancedViewBatchProcessingPresenter implements BatchProcessingPres
 	}
 
 	@Override
-	public InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	public InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService
-				.simulate(selectedType, buildBatchProcessLogicalSearchQuery().setNumberOfRows(100), viewObject, user);
+				.simulate(selectedType, buildBatchProcessLogicalSearchQuery().setNumberOfRows(100), viewObject, metadatasToEmpty, user);
 		return batchProcessingPresenterService.formatBatchProcessingResults(results);
 	}
 
 	@Override
-	public boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	public boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject,
+											 List<String> metadatasToEmpty)
 			throws RecordServicesException {
 		batchProcessingPresenterService
-				.execute(selectedType, buildBatchProcessLogicalSearchQuery(), viewObject, user);
+				.execute(selectedType, buildBatchProcessLogicalSearchQuery(), viewObject, metadatasToEmpty, user);
 		if (searchID != null) {
 			view.navigate().to().advancedSearchReplay(searchID);
 		} else {
@@ -126,18 +129,8 @@ public class AdvancedViewBatchProcessingPresenter implements BatchProcessingPres
 	}
 
 	@Override
-	public BatchProcessingMode getBatchProcessingMode() {
-		return batchProcessingPresenterService.getBatchProcessingMode();
-	}
-
-	@Override
 	public AppLayerCollectionExtensions getBatchProcessingExtension() {
 		return batchProcessingPresenterService.getBatchProcessingExtension();
-	}
-
-	@Override
-	public String getSchema(String schemaType, String type) {
-		return batchProcessingPresenterService.getSchema(schemaType, type);
 	}
 
 	@Override
@@ -205,7 +198,7 @@ public class AdvancedViewBatchProcessingPresenter implements BatchProcessingPres
 		List<MetadataVO> result = new ArrayList<>();
 		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 		for (Metadata metadata : types().getSchemaType(schemaTypeCode).getAllMetadatas().sortAscTitle(language)) {
-			if (isBatchEditable(metadata)) {
+			if (isBatchEditable(metadata) && !metadata.isEssential()) {
 				result.add(builder.build(metadata, view.getSessionContext()));
 			}
 		}
@@ -230,6 +223,10 @@ public class AdvancedViewBatchProcessingPresenter implements BatchProcessingPres
 
 	@Override
 	public boolean validateUserHaveBatchProcessPermissionOnAllRecords(String schemaType) {
+		if (!user.has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).globally()) {
+			return false;
+		}
+
 		LogicalSearchQuery logicalSearchQuery = buildBatchProcessLogicalSearchQuery();
 		long numFound = searchServices.query(logicalSearchQuery).getNumFound();
 		logicalSearchQuery = logicalSearchQuery.filteredWithUser(user, CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS);
@@ -237,6 +234,19 @@ public class AdvancedViewBatchProcessingPresenter implements BatchProcessingPres
 		long numFoundWithFilter = speQueryResponse.getNumFound();
 
 		return numFoundWithFilter == numFound;
+	}
+
+	@Override
+	public boolean validateUserHaveBatchProcessPermissionForRecordCount(String schemaType) {
+		if (!user.has(CorePermissions.MODIFY_UNLIMITED_RECORDS_USING_BATCH_PROCESS).globally()) {
+			ConstellioEIMConfigs systemConfigs = modelLayerFactory.getSystemConfigs();
+			int batchProcessingLimit = systemConfigs.getBatchProcessingLimit();
+			if (batchProcessingLimit != -1 && getNumberOfRecords(schemaType) > batchProcessingLimit) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	public BaseView getView() {
@@ -249,6 +259,9 @@ public class AdvancedViewBatchProcessingPresenter implements BatchProcessingPres
 			query = extension.addAdditionalSearchQueryFilters(
 					new AdvancedSearchPresenterExtension.AddAdditionalSearchQueryFiltersParams(query, schemaTypeCode));
 		}
+
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.allExceptContentAndLargeText());
+
 		return query;
 	}
 

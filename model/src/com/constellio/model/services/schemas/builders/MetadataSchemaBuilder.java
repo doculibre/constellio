@@ -25,6 +25,7 @@ import com.constellio.model.entities.schemas.preparationSteps.ValidateCyclicRefe
 import com.constellio.model.entities.schemas.preparationSteps.ValidateMetadatasRecordPreparationStep;
 import com.constellio.model.entities.schemas.preparationSteps.ValidateUsingSchemaValidatorsRecordPreparationStep;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
+import com.constellio.model.extensions.behaviors.SchemaExtension.SchemaInCreationBeforeSaveEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaComparators;
@@ -34,6 +35,7 @@ import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +47,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
@@ -182,7 +185,8 @@ public class MetadataSchemaBuilder {
 		return labels;
 	}
 
-	static MetadataSchemaBuilder createDefaultSchema(MetadataSchemaTypeBuilder schemaTypeBuilder,
+	static MetadataSchemaBuilder createDefaultSchema(ModelLayerFactory modelLayerFactory,
+													 MetadataSchemaTypeBuilder schemaTypeBuilder,
 													 MetadataSchemaTypesBuilder schemaTypesBuilder,
 													 boolean initialize) {
 		MetadataSchemaBuilder builder = new MetadataSchemaBuilder();
@@ -197,6 +201,12 @@ public class MetadataSchemaBuilder {
 		builder.schemaValidators = new ClassListBuilder<>(builder.classProvider, RecordValidator.class);
 		if (initialize) {
 			new CommonMetadataBuilder().addCommonMetadataToNewSchema(builder, schemaTypesBuilder);
+
+			modelLayerFactory.getExtensions().forCollection(schemaTypeBuilder.getCollection())
+					.schemaExtensions.getExtensions().forEach(extension -> {
+				extension.schemaInCreationBeforeSave(
+						new SchemaInCreationBeforeSaveEvent(builder, schemaTypesBuilder.getLanguages()));
+			});
 		}
 		return builder;
 	}
@@ -346,6 +356,18 @@ public class MetadataSchemaBuilder {
 		return this.create(code).setUndeletable(true);
 	}
 
+
+	public MetadataBuilder createIfInexisting(String code, Consumer<MetadataBuilder> metadataConsumer) {
+		if (!hasMetadata(code)) {
+			MetadataBuilder metadataBuilder = create(code);
+			metadataConsumer.accept(metadataBuilder);
+			return metadataBuilder;
+		} else {
+			return get(code);
+		}
+
+	}
+
 	public MetadataBuilder create(String metadataLocaleCode) {
 
 		String metadataLocalCode = new SchemaUtils().toLocalMetadataCode(metadataLocaleCode);
@@ -390,11 +412,24 @@ public class MetadataSchemaBuilder {
 			id = typeBuilder.nextSchemaId();
 		}
 
+		Set<String> typesWithSummaryCache = getTypesWithSummaryCache(typesBuilder);
+
 		MetadataSchema metadataSchema = new MetadataSchema(id, this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(),
 				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators),
-				schemaTypeBuilder.getDataStore(), this.isActive());
+				schemaTypeBuilder.getDataStore(), this.isActive(), modelLayerFactory.getSystemConfigs(), typesWithSummaryCache);
 		return metadataSchema;
+	}
+
+	@NotNull
+	private Set<String> getTypesWithSummaryCache(MetadataSchemaTypesBuilder typesBuilder) {
+		Set<String> typesWithSummaryCache = new HashSet<>();
+		for (MetadataSchemaTypeBuilder aTypeBuilder : typesBuilder.getTypes()) {
+			if (aTypeBuilder.getRecordCacheType() != null && aTypeBuilder.getRecordCacheType().isSummaryCache()) {
+				typesWithSummaryCache.add(aTypeBuilder.getCode());
+			}
+		}
+		return typesWithSummaryCache;
 	}
 
 	public String getTypeCode() {
@@ -613,7 +648,7 @@ public class MetadataSchemaBuilder {
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
 		MetadataSchema metadataSchema = new MetadataSchema(this.getId(), this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(), inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators)
-				, schemaTypeBuilder.getDataStore(), this.isActive());
+				, schemaTypeBuilder.getDataStore(), this.isActive(), modelLayerFactory.getSystemConfigs(), getTypesWithSummaryCache(typesBuilder));
 		return metadataSchema;
 	}
 

@@ -19,7 +19,7 @@ public class BulkRecordTransactionHandlerOptions {
 	}
 
 	public BulkRecordTransactionHandlerOptions() {
-		recordsPerBatch = 1000;
+		recordsPerBatch = 500;
 		numberOfThreads = Runtime.getRuntime().availableProcessors();
 		queueSize = numberOfThreads;//Math.min(numberOfThreads - 1, 1);
 		showProgressionInConsole = true;

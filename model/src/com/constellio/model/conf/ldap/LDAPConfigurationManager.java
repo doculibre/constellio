@@ -127,7 +127,7 @@ public class LDAPConfigurationManager implements StatefulService {
 					if (password != null) {
 						String encryptedPassword = password;
 						if (StringUtils.isNotBlank(password)) {
-							encryptedPassword = modelLayerFactory.newEncryptionServices().encrypt(password);
+							encryptedPassword = (String) modelLayerFactory.newEncryptionServices().encryptWithAppKey(password);
 						}
 						properties.put("ldap.syncConfiguration.user.password", encryptedPassword);
 					}
@@ -365,7 +365,7 @@ public class LDAPConfigurationManager implements StatefulService {
 					encryptionServices = modelLayerFactory.newEncryptionServices();
 
 				}
-				password = encryptionServices.decrypt(password);
+				password = (String) encryptionServices.decryptWithAppKey(password);
 			}
 			return new LDAPUserSyncConfiguration(user, password, userFilter, groupFilter, durationBetweenExecution,
 					scheduleTimeList,

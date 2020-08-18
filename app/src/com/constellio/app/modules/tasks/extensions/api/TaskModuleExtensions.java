@@ -2,10 +2,11 @@ package com.constellio.app.modules.tasks.extensions.api;
 
 import com.constellio.app.extensions.ModuleExtensions;
 import com.constellio.app.modules.tasks.extensions.TaskEmailExtension;
-import com.constellio.app.modules.tasks.extensions.TaskFormExtention;
+import com.constellio.app.modules.tasks.extensions.TaskFormExtension;
 import com.constellio.app.modules.tasks.extensions.api.TaskExtension.TaskExtensionActionPossibleParams;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormParams;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormRetValue;
+import com.constellio.app.modules.tasks.extensions.param.HasReferenceWithModifiedRecordParam;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
@@ -17,8 +18,9 @@ import java.util.List;
 public class TaskModuleExtensions implements ModuleExtensions {
 
 	public VaultBehaviorsList<TaskEmailExtension> taskEmailExtensions = new VaultBehaviorsList<>();
-	public VaultBehaviorsList<TaskFormExtention> taskFormExtentions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<TaskFormExtension> taskFormExtentions = new VaultBehaviorsList<>();
 	public VaultBehaviorsList<TaskExtension> taskExtensions = new VaultBehaviorsList<>();
+
 	AppLayerFactory appLayerFactory;
 
 	public TaskModuleExtensions(AppLayerFactory appLayerFactory) {
@@ -28,8 +30,8 @@ public class TaskModuleExtensions implements ModuleExtensions {
 	public TaskFormRetValue taskFormExtentions(TaskFormParams taskFormParams) {
 		TaskFormRetValue taskFormRetValue = new TaskFormRetValue();
 
-		for (TaskFormExtention taskFormExtention : taskFormExtentions) {
-			TaskFormRetValue currentTaskFormRetValue = taskFormExtention.taskBeingSave(taskFormParams);
+		for (TaskFormExtension taskFormExtension : taskFormExtentions) {
+			TaskFormRetValue currentTaskFormRetValue = taskFormExtension.taskBeingSave(taskFormParams);
 			if (currentTaskFormRetValue != null) {
 				taskFormRetValue.addAll(currentTaskFormRetValue);
 			}
@@ -44,6 +46,11 @@ public class TaskModuleExtensions implements ModuleExtensions {
 			parameters.addAll(taskEmailExtension.newParameters(task));
 		}
 		return parameters;
+	}
+
+	public boolean hasReferenceWithModifiedRecord(HasReferenceWithModifiedRecordParam param) {
+		return taskFormExtentions.getBooleanValue(true,
+				(behavior) -> behavior.hasReferenceWithModifiedRecord(param));
 	}
 
 	public boolean isEditActionPossibleOnTask(final Task task, final User user) {

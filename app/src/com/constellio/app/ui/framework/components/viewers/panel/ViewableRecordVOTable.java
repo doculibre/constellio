@@ -53,6 +53,9 @@ public class ViewableRecordVOTable extends RecordVOTable {
 	private void init() {
 		setId(UUID.randomUUID().toString());
 		addStyleName("viewable-record-table");
+		if (isDragColumn()) {
+			addStyleName("viewable-record-table-drag");
+		}
 		addStyleName(ValoTheme.TABLE_BORDERLESS);
 		addStyleName(ValoTheme.TABLE_NO_HEADER);
 		addStyleName(ValoTheme.TABLE_NO_HORIZONTAL_LINES);
@@ -100,7 +103,7 @@ public class ViewableRecordVOTable extends RecordVOTable {
 			manageColumns(getTableId());
 			//			refreshRenderedCells();
 			refreshRowCache();
-			adjustHeight();
+			//adjustHeight();
 		}
 	}
 
@@ -152,6 +155,10 @@ public class ViewableRecordVOTable extends RecordVOTable {
 	@Override
 	public boolean isSelectColumn() {
 		return true;
+	}
+
+	public boolean isDragColumn() {
+		return false;
 	}
 
 	@Override

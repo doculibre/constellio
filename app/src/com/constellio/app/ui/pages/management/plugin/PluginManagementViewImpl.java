@@ -72,7 +72,10 @@ public class PluginManagementViewImpl extends BaseViewImpl implements PluginMana
 
 		fileUpload = new BaseUploadField();
 		fileUpload.setMultiValue(true);
-		layout.addComponent(fileUpload);
+		if (presenter.hasUpdatePermission()) {
+			layout.addComponent(fileUpload);
+		}
+
 		Button uploadButton = new BaseButton($("PluginManagementView.upload")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -94,7 +97,10 @@ public class PluginManagementViewImpl extends BaseViewImpl implements PluginMana
 			}
 
 		};
-		layout.addComponents(restartPanel, uploadButton);
+
+		if (presenter.hasUpdatePermission()) {
+			layout.addComponents(restartPanel, uploadButton);
+		}
 
 		Table table = createPluginsTable();
 

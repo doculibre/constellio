@@ -4,8 +4,6 @@ public interface OffHeapBytesSupplier {
 
 	byte getByte(int index);
 
-	short getShort(int index);
-
 	int getInt(int index);
 
 	byte[] toArray();

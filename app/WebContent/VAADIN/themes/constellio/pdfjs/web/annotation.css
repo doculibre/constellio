@@ -1,0 +1,312 @@
+@font-face {
+  font-family: 'Jannet';
+  src: url('fonts/jannet-webfont.woff2') format('woff2'),
+	   url('fonts/jannet-webfont.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.annotation {
+	position: absolute;
+	z-index: 2;
+	box-sizing: border-box;
+    outline: 1px solid transparent;
+	margin: 1px;
+}
+
+.annotation-movable, .annotation-resizable, .annotation-baked:hover, .annotation-baked:focus {
+	outline-color: #197de1;
+	outline-width: 1px;
+	outline-style: solid;
+}
+
+.annotation-resizable::after {
+	content: "\0025E2";
+	font-size: 10px;
+	height: 10px;
+	position: absolute;
+	bottom: 2px;
+	right: 2px;
+	color: #197de1;
+}
+
+.image-annotation, .text-annotation, .signature-text-annotation, .signature-pad-annotation {
+    background-size: 100% 100%; /* background-size: 100% auto; */
+    background-position: center top;
+    background-repeat: no-repeat;
+}
+
+.text-annotation {
+	/*display: table;*/
+	text-align: center;
+	vertical-align: middle;
+}	
+
+.text-annotation span, .signature-text-annotation span {
+	display: table-cell;
+	vertical-align: middle;
+}
+
+.redact-annotation {
+	background-color: rgb(0, 0, 0);
+}
+
+.sign-here-annotation {
+	background-color: #FFFF00;
+	display: table;
+	text-align: center;
+}
+
+.sign-here-annotation span {
+	display: table-cell;
+	vertical-align: middle;
+}
+
+.signature-text-annotation {
+	font-family: Jannet;
+	font-weight: bold;
+	font-size: 16pt;
+	/*padding-bottom: 10px;*/
+}
+
+/*
+.text-annotation-copy-canvas, .signature-text-annotation-copy-canvas {
+	border: 1px solid transparent;
+	margin: 1px;
+}
+*/
+
+.signature-text-annotation-copy-canvas span {
+	position: relative;
+	vertical-align: top;
+	padding-bottom: 10px;
+}
+
+/* Chrome CSS Hack */
+@media screen and (-webkit-min-device-pixel-ratio:0) { 
+    .signature-text-annotation-copy-canvas span { 
+		top: -70px; 
+	} 
+}
+
+/* IE CSS Hack */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+    .signature-text-annotation-copy-canvas span { 
+		top: 0px;
+	} 
+ }
+
+/* Firefox CSS Hack */
+ @-moz-document url-prefix() {
+    .signature-text-annotation-copy-canvas span { 
+		top: -30px;
+	} 
+}
+
+/* Safari 7.1+ CSS Hack */
+_::-webkit-full-page-media, _:future, :root .safari_only {
+    .signature-text-annotation-copy-canvas span { 
+		top: 0px;
+	}   
+}
+
+.annotation-delete-link {
+	z-index: 4;
+	cursor: pointer;
+	position: absolute;
+	top: 0px;
+	right: 2px;
+	font-size: 10px;
+	font-family: Verdana;
+	color: #197de1;
+}
+
+.annotation-defining, 
+.annotation-resizing,
+.annotation-moving {
+	z-index: 4;
+}
+
+.annotation-defining {
+	cursor: crosshair;
+}
+
+.annotation-resizing {
+	cursor: se-resize;
+}	
+
+.annotation-moving,
+.annotation-moving .annotation {
+	cursor: all-scroll;
+}	
+
+.annotation-defining, .annotation-moving, .annotation-resizing {	
+    -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+       -khtml-user-select: none; /* Konqueror HTML */
+         -moz-user-select: none; /* Old versions of Firefox */
+          -ms-user-select: none; /* Internet Explorer/Edge */
+              user-select: none; /* Non-prefixed version, currently
+                                    supported by Chrome, Opera and Firefox */
+}
+
+.annotation-editor-window * {
+	padding: initial;
+	outline: initial;
+	margin: initial;
+}
+
+.annotation-editor-window, 
+.signature-picker-window, 
+.certify-dialog-window {
+	position: fixed; /* Stay in place */
+	z-index: 30000; /* Sit on top */
+	left: 0px;
+	top: 0px;
+	width: 100%; /* Full width */
+	height: 100%; /* Full height */
+	overflow: auto; /* Enable scroll if needed */
+	background-color: rgb(0,0,0); /* Fallback color */
+	background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+	vertical-align: middle;
+	text-align: center;
+}
+
+.annotation-editor-window-content, 
+.certify-dialog-window-content {
+	background-color: #fefefe;
+	margin: 15% auto; /* 15% from the top and centered */
+	padding: 20px;
+	border: 1px solid #888;	
+	width: 80%; /* Could be more or less, depending on screen size */
+	width: -moz-fit-content;
+	width: -webkit-fit-content;
+	width: -o-fit-content;
+	/* width: -ms-fit-content;*/
+	color: #474747;
+}	
+
+.annotation-editor-window button, 
+.certify-dialog-window button {	
+    border: 0;
+    cursor: pointer;
+    margin: 0;
+    display: inline-flex;
+    outline: 0;
+    padding: 0;
+    position: relative;
+    align-items: center;
+    user-select: none;
+    border-radius: 0;
+    vertical-align: middle;
+    -moz-appearance: none;
+    justify-content: center;
+    text-decoration: none;
+    -webkit-appearance: none;
+	-webkit-tap-highlight-color: transparent;
+	
+    padding: 6px 16px;
+    font-size: 0.875rem;
+    min-width: 64px;
+    box-sizing: border-box;
+    transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,border 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    font-weight: 500;
+    line-height: 1.75;
+    border-radius: 4px;
+    letter-spacing: 0.02857em;
+    text-transform: uppercase;
+	
+    color: rgba(0, 0, 0, 0.87);
+    box-shadow: 0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12);
+	background-color: #e0e0e0;
+	
+	margin: 5px; 
+}
+
+.annotation-editor-window button:hover, 
+.annotation-editor-window button:focus, 
+.certify-dialog-action-buttons button:hover,
+.certify-dialog-action-buttons button:focus {
+    box-shadow: 0px 2px 4px -1px rgba(0,0,0,0.2), 0px 4px 5px 0px rgba(0,0,0,0.14), 0px 1px 10px 0px rgba(0,0,0,0.12);
+    background-color: #d5d5d5;
+}
+
+.annotation-editor-window button.primary, 
+.certify-dialog-window button.primary {
+	color: #fff;
+    background-color: #197de1;
+}
+
+.annotation-editor-window button.primary:hover, 
+.annotation-editor-window button.primary:focus, 
+.certify-dialog-window button.primary:hover, 
+.certify-dialog-window button.primary:focus {
+	background-color: rgb(17, 82, 147);
+}
+
+.annotation-editor-window-close-button {
+	color: #aaa;
+	float: right;
+	font-size: 20px;
+	font-weight: bold;
+	position: relative;
+	top: -10px;
+	right: -10px;
+}
+
+.annotation-editor-window-close-button:hover,
+.annotation-editor-window-close-button:focus {
+	color: black;
+	text-decoration: none;
+	cursor: pointer;
+}  
+
+.annotation-editor-window-apply-button {
+	margin: 20px 10px 10px 10px;
+}
+
+.text-annotation-editor-input {
+	width: 100%;
+	text-align: center;
+	border-color: #197de1;
+	border-width: 1px;
+	border-style: solid;
+	background-color: transparent;
+}
+
+.signature-text-annotation-editor-input {
+	font-family: Jannet;
+	font-weight: bold;
+	font-size: 16pt;
+}
+
+.signature-pad-annotation-editor-container canvas {
+	border-color: #197de1;
+	border-width: 1px;
+	border-style: solid;
+	cursor: crosshair;
+}
+
+
+.certify-dialog-title {
+	font-weight: bold;
+	padding-bottom: 10px;
+}
+
+.certify-dialog-progress {
+	font-weight: bold;
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+.certify-dialog-loading {
+	background: url(images/loading-icon.gif)  no-repeat scroll right center; 
+	padding-right: 30px;
+}
+
+.certify-dialog-error {
+	font-weight: bold;
+	color: #ff0000;
+}
+

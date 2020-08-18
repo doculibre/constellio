@@ -1,11 +1,13 @@
 package com.constellio.model.services.records.cache.offHeapCollections;
 
-import com.constellio.model.services.records.RecordId;
+import com.constellio.data.dao.dto.records.RecordId;
+import com.constellio.data.dao.dto.records.StringRecordId;
 import com.constellio.model.services.records.RecordUtils;
-import com.constellio.model.services.records.StringRecordId;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.constellio.model.services.records.RecordUtils.sizeOf;
 
 public class SortedStringIdsList implements SortedIdsList {
 
@@ -19,6 +21,16 @@ public class SortedStringIdsList implements SortedIdsList {
 
 	public SortedStringIdsList() {
 		this.intIdsList = new SortedIntIdsList();
+	}
+
+	@Override
+	public synchronized void add(RecordId id) {
+		if (id.isInteger()) {
+			add(id.intValue());
+
+		} else {
+			add(id.stringValue());
+		}
 	}
 
 	@Override
@@ -69,6 +81,18 @@ public class SortedStringIdsList implements SortedIdsList {
 		}
 	}
 
+
+	@Override
+	public synchronized void remove(RecordId id) {
+
+		if (id.isInteger()) {
+			intIdsList.remove(id.intValue());
+		} else {
+			stringIds.remove(id.stringValue());
+
+		}
+	}
+
 	@Override
 	public synchronized List<String> getValues() {
 		return getValuesWithoutSynchronizing();
@@ -104,5 +128,20 @@ public class SortedStringIdsList implements SortedIdsList {
 	public void clear() {
 		intIdsList.clear();
 		stringIds.clear();
+	}
+
+	@Override
+	public boolean isSupportingLegacyId() {
+		return true;
+	}
+
+	@Override
+	public long valuesHeapLength() {
+		return this.intIdsList.valuesHeapLength();
+	}
+
+	@Override
+	public long valuesOffHeapLength() {
+		return 12 + sizeOf(stringIds) + intIdsList.valuesHeapLength();
 	}
 }

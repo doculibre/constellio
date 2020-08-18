@@ -1,10 +1,11 @@
 package com.constellio.app.start;
 
 import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.zip.ZipServiceException;
+import com.constellio.data.services.tenant.Log4JRuntimeExceptionHandler;
 import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.services.appManagement.InstallationService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -21,14 +22,21 @@ import static com.constellio.app.services.appManagement.AppManagementService.RES
 public final class MainConstellio {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MainConstellio.class);
 
+	static {
+		Thread.setDefaultUncaughtExceptionHandler(new Log4JRuntimeExceptionHandler());
+	}
+
 	private MainConstellio() {
 
 	}
 
 	public static void main(String[] args)
 			throws IOException, InterruptedException, ZipServiceException {
+
 		changeTemporaryDirectory();
 		File constellioInstallationDir = new FoldersLocator().getWrapperInstallationFolder();
+		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+		System.setProperty("log4j.configurationFile", new FoldersLocator().getWebClasses().getAbsolutePath() + "log4j2.xml");
 
 		FileService fileService = new FileService(null);
 
@@ -46,7 +54,7 @@ public final class MainConstellio {
 			PluginManagementUtils utils = new PluginManagementUtils(folderLocator);
 			Set<String> pluginsToMove = utils.getPluginsToMove();
 			if (pluginsToMove.isEmpty()) {
-				Map<String, String> configs = PropertyFileUtils.loadKeyValues(folderLocator.getConstellioProperties());
+				Map<String, String> configs = PropertyFileUtils.loadKeyValues(folderLocator.getConstellioProperties(false));
 				boolean initOnStartup = true;
 				if ("false".equals(configs.get("init.startup"))) {
 					initOnStartup = false;
@@ -63,7 +71,7 @@ public final class MainConstellio {
 
 	private static void changeTemporaryDirectory() {
 		FoldersLocator foldersLocator = new FoldersLocator();
-		File tempFile = foldersLocator.getDefaultTempFolder();
+		File tempFile = foldersLocator.getDefaultTempFolder(false);
 		try {
 			FileUtils.deleteDirectory(tempFile);
 		} catch (IOException e) {
@@ -138,7 +146,7 @@ public final class MainConstellio {
 	}
 
 	private static Map<String, String> readProperties() {
-		return PropertyFileUtils.loadKeyValues(new FoldersLocator().getConstellioProperties());
+		return PropertyFileUtils.loadKeyValues(new FoldersLocator().getConstellioProperties(false));
 	}
 
 }

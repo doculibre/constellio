@@ -89,7 +89,7 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		errorLabel.addStyleName("error-label");
 		errorLabel.setVisible(false);
 
-		uploadField = new ContentVersionUploadField(false, false, isEditView) {
+		uploadField = new ContentVersionUploadField(false, false, isEditView, null, null) {
 			@Override
 			protected boolean isMajorVersionField(ContentVersionVO contentVersionVO) {
 				return false;
@@ -284,11 +284,20 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 			setHeight("200px");
 			updatedTitle = $("UpdateContentVersionWindow.checkInTitle");
 		} else {
-			setHeight("300px");
+			setHeight("350px");
 			updatedTitle = $("UpdateContentVersionWindow.newVersionTitle");
 		}
 		setCaption(updatedTitle);
 		UI.getCurrent().addWindow(this);
+	}
+
+	public void saveWithSameVersion() {
+		presenter.contentVersionSaved(null, null);
+	}
+
+	@Override
+	public void showMessage(String message) {
+
 	}
 
 	@Override

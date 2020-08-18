@@ -7,20 +7,52 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 
 public class TaxonomiesSearchOptions {
 
-	ReturnedMetadatasFilter returnedMetadatasFilter = ReturnedMetadatasFilter.idVersionSchemaTitlePath();
 	private int rows = 100;
 	private int startRow = 0;
+
+	/**
+	 * If logically deleted records are returned.
+	 */
 	private StatusFilter includeStatus = StatusFilter.ACTIVES;
 
-	//Only supported in the "visible" services
+	/**
+	 * Show all taxonomy concepts. If navigating using the principal taxonomy, an access on the concept or something classified is required
+	 */
 	private boolean alwaysReturnTaxonomyConceptsWithReadAccess = false;
+
 	private String requiredAccess = Role.READ;
+
+	/**
+	 * New service :
+	 * HasChildrenFlagCalculated
+	 * <p>
+	 * Old service :
+	 * Used to precise
+	 */
 	private HasChildrenFlagCalculated hasChildrenFlagCalculated = HasChildrenFlagCalculated.ALWAYS;
+
+	/**
+	 * If concepts that are not linkable and who does not contain any linkable concept should be returned
+	 */
 	private boolean showInvisibleRecordsInLinkingMode = true;
-	private boolean showAllIfHasAccessToManageSecurity = true;
-	private FastContinueInfos fastContinueInfos;
-	private TaxonomiesSearchFilter filter = new TaxonomiesSearchFilter();
+
+	/**
+	 * Should linkable flag be calculated
+	 */
+	@Deprecated
 	private boolean linkableFlagCalculated = true;
+
+	/**
+	 * Only with old services
+	 */
+	private FastContinueInfos fastContinueInfos;
+
+	/**
+	 * Only with old services, summary metadatas are used with newer implementation
+	 */
+	ReturnedMetadatasFilter returnedMetadatasFilter = ReturnedMetadatasFilter.idVersionSchemaTitlePath();
+
+	private TaxonomiesSearchFilter filter = new TaxonomiesSearchFilter();
 
 	public TaxonomiesSearchOptions() {
 		super();
@@ -173,15 +205,6 @@ public class TaxonomiesSearchOptions {
 
 	public TaxonomiesSearchOptions setFilter(TaxonomiesSearchFilter filter) {
 		this.filter = filter;
-		return this;
-	}
-
-	public boolean isShowAllIfHasAccessToManageSecurity() {
-		return showAllIfHasAccessToManageSecurity;
-	}
-
-	public TaxonomiesSearchOptions setShowAllIfHasAccessToManageSecurity(boolean showAllIfHasAccessToManageSecurity) {
-		this.showAllIfHasAccessToManageSecurity = showAllIfHasAccessToManageSecurity;
 		return this;
 	}
 

@@ -19,6 +19,7 @@ import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
@@ -39,6 +40,7 @@ import java.util.Map;
 
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 
 public class MigrationServices {
 
@@ -90,6 +92,11 @@ public class MigrationServices {
 		requiredDependentModules = modulesManager.getRequiredDependentModulesToInstall(collection);
 		List<InstallableModule> modules = new ArrayList<>(enabledModules);
 
+		LOGGER.warn("Enabled modules to install for tenant '" + TenantUtils.getTenantId() + "' : " +
+					enabledModules.stream().map((m) -> m.getId()).collect(toList()));
+
+		LOGGER.warn("Required dependent modules to install for tenant '" + TenantUtils.getTenantId() + "' : " +
+					requiredDependentModules.stream().map((m) -> m.getId()).collect(toList()));
 		for (InstallableModule installableModule : requiredDependentModules) {
 
 			if (!modulesManager.isInstalled(installableModule)) {
@@ -102,6 +109,8 @@ public class MigrationServices {
 			modules.add(installableModule);
 		}
 
+		LOGGER.warn("Modules to install for tenant '" + TenantUtils.getTenantId() + "' : " +
+					modules.stream().map((m) -> m.getId()).collect(toList()));
 		for (InstallableModule module : modules) {
 			boolean useComboMigration = newCollection && module instanceof ModuleWithComboMigration;
 			if (useComboMigration) {
@@ -246,7 +255,7 @@ public class MigrationServices {
 				migrate(migration);
 			}
 		} catch (Throwable e) {
-			if (!dataLayerFactory.getTransactionLogRecoveryManager().isInRollbackMode()) {
+			if (!dataLayerFactory.getTransactionLogXmlRecoveryManager().isInRollbackMode()) {
 				constellioPluginManager
 						.handleModuleNotMigratedCorrectly(migration.getModuleId(), collection, e);
 

@@ -1,6 +1,8 @@
 package com.constellio.data.dao.managers;
 
-public interface StatefulService {
+import java.io.Closeable;
+
+public interface StatefulService extends Closeable {
 
 	void initialize();
 

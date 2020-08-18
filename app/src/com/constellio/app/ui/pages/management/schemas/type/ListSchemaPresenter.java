@@ -27,6 +27,8 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.ui.UI;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -115,6 +117,23 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 	}
 
 	public void deleteButtonClicked(String schemaCode) {
+		ConfirmDialog confirmDialog = ConfirmDialog.getFactory().create(
+				$("ListSchemaViewImpl.menu.delete"),
+				$("ListSchemaViewImpl.menu.confirmDelete", schemaCode),
+				$("delete"),
+				$("cancel"),
+				null);
+		confirmDialog.show(UI.getCurrent(), new ConfirmDialog.Listener() {
+			@Override
+			public void onClose(ConfirmDialog dialog) {
+				if (dialog.isConfirmed()) {
+					deleteSchema(schemaCode);
+				}
+			}
+		}, true);
+	}
+
+	private void deleteSchema(String schemaCode) {
 		if (isDeletePossible(schemaCode) == null) {
 			AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
 			if (collectionExtensions.lockedRecords.contains($("ListSchemaTypeView.schemaCode"), schemaCode.split("_")[1])) {
@@ -148,6 +167,7 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 			}
 		}
 	}
+
 
 	private User getCurrentUser(ModelLayerFactory modelLayerFactory) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();

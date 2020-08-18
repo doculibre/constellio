@@ -21,6 +21,8 @@ import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
+import com.constellio.app.services.factories.AppLayerFactoryRuntineException.AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldNotRetry;
+import com.constellio.app.services.factories.AppLayerFactoryRuntineException.AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry;
 import com.constellio.app.services.metadata.AppSchemasServices;
 import com.constellio.app.services.migrations.ConstellioEIM;
 import com.constellio.app.services.migrations.MigrationServices;
@@ -30,12 +32,15 @@ import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
+import com.constellio.app.services.systemSetup.SystemLocalConfigsManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.containers.ContainerButtonListener;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.EnterViewListener;
 import com.constellio.app.ui.pages.base.InitUIListener;
 import com.constellio.app.ui.pages.base.PresenterService;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocatorMode;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
@@ -45,9 +50,9 @@ import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.dev.Toggle;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
+import com.constellio.data.utils.systemLogger.SystemLogger;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -55,6 +60,7 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.factories.ModelPostInitializationParams;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexationParams;
@@ -95,6 +101,8 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 	private List<InitUIListener> initUIListeners;
 
 	private SystemGlobalConfigsManager systemGlobalConfigsManager;
+
+	private SystemLocalConfigsManager systemLocalConfigsManager;
 
 	private List<ContainerButtonListener> containerButtonListeners;
 	private SchemasDisplayManager metadataSchemasDisplayManager;
@@ -155,7 +163,9 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		Delayed<MigrationServices> migrationServicesDelayed = new Delayed<>();
 		this.modulesManager = add(new ConstellioModulesManagerImpl(this, pluginManager, migrationServicesDelayed));
 
+
 		this.systemGlobalConfigsManager = add(new SystemGlobalConfigsManager(modelLayerFactory.getDataLayerFactory()));
+		this.systemLocalConfigsManager = add(new SystemLocalConfigsManager(new FoldersLocator().getLocalConfigsFile(), systemGlobalConfigsManager));
 		this.collectionsManager = add(
 				new CollectionsManager(this, modulesManager, migrationServicesDelayed, systemGlobalConfigsManager));
 		migrationServicesDelayed.set(newMigrationServices());
@@ -247,14 +257,20 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 				.getSystemConfigurationsManager();
 		configManager.initialize();
 		ConstellioEIMConfigs constellioConfigs = new ConstellioEIMConfigs(configManager);
-		boolean recoveryModeActive = constellioConfigs.isInUpdateProcess();
-		if (Toggle.FORCE_ROLLBACK.isEnabled() || recoveryModeActive) {
+
+		if (isSupportingRollbacks(constellioConfigs)) {
 			LOGGER.info("Launching in rollback mode");
 			startupWithPossibleRecovery(upgradeAppRecoveryService);
 		} else {
-			LOGGER.info("Launching in normal mode");
-			normalStartup(false);
+			if (TenantUtils.isSupportingTenants()) {
+				LOGGER.info("Launching in tenant mode");
+				normalStartupInMultiTenantSystem();
+			} else {
+				LOGGER.info("Launching in normal mode");
+				normalStartup(false);
+			}
 		}
+
 		if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {
 			dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
 			dataLayerFactory.getConstellioJobManager().onSystemStarted();
@@ -265,6 +281,44 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		initializationFinished = true;
 
 		getModelLayerFactory().getRecordsCaches().register(new SavedSearchRecordsCachesHook(10_000));
+
+		SystemLogger.info("Application started");
+	}
+
+	private void normalStartupInMultiTenantSystem() {
+		try {
+			normalStartup(false);
+
+		} catch (AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry e) {
+			LOGGER.info("AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry catched in normalStartupInMultiTenantSystem, will be retrown");
+			//			try {
+			//				close();
+			//
+			//			} catch (Throwable t2) {
+			//				LOGGER.error("Fatal error during the tenant's shutdown, but it's initialization will be retried", t2);
+			//			}
+
+			//Will be catched higher,
+			throw e;
+
+		} catch (Throwable t) {
+			LOGGER.error("Fatal error during startup, tenant is shutdowned", t);
+
+			try {
+				close();
+
+			} catch (Throwable t2) {
+				LOGGER.error("Fatal error during the tenant's shutdown, no further actions will be done", t2);
+			}
+			throw new AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldNotRetry(t);
+
+		}
+	}
+
+	private boolean isSupportingRollbacks(ConstellioEIMConfigs constellioConfigs) {
+		return !dataLayerFactory.isDistributed()
+			   && !TenantUtils.isSupportingTenants()
+			   && (Toggle.FORCE_ROLLBACK.isEnabled() || constellioConfigs.isInUpdateProcess());
 	}
 
 	private void startupWithPossibleRecovery(UpgradeAppRecoveryServiceImpl recoveryService) {
@@ -281,8 +335,10 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 					LOGGER.info("rollbacked successfully");
 					//this.appLayerFactory.getModelLayerFactory().getDataLayerFactory().close(false);
 					try {
-						newApplicationService().restart();
-						LOGGER.info("Restart command launched");
+						if (!TenantUtils.isSupportingTenants()) {
+							newApplicationService().restart();
+							LOGGER.info("Restart command launched");
+						}
 					} catch (AppManagementServiceException e) {
 						throw new RuntimeException(e);
 					}
@@ -318,17 +374,25 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 				throw new RuntimeException(optimisticLockingConfiguration);
 			}
 
-
+			ConstellioEIM.start(this);
 			collectionsManager.initializeCollectionsAndGetInvalidModules();
 			getModulesManager().enableComplementaryModules();
 		} catch (ConstellioModulesManagerException_ModuleInstallationFailed e) {
 			if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER && !recoveryMode) {
-				LOGGER.warn("System is restarting because of failure to install/update module '" + e.getFailedModule()
-							+ "' in collection '" + e.getFailedCollection() + "'", e);
-				try {
-					restart();
-				} catch (AppManagementServiceException e2) {
-					throw new RuntimeException(e2);
+				if (TenantUtils.isSupportingTenants()) {
+					//The faulty plugin was disabled, retrying without it
+					LOGGER.info("Retrying to initialize the tenant '" + TenantUtils.getTenantId()
+								+ "' without the module '" + e.getFailedModule() + "'", e);
+					throw new AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry(e);
+
+				} else {
+					LOGGER.warn("System is restarting because of failure to install/update module '" + e.getFailedModule()
+								+ "' in collection '" + e.getFailedCollection() + "'", e);
+					try {
+						restart();
+					} catch (AppManagementServiceException e2) {
+						throw new RuntimeException(e2);
+					}
 				}
 			} else {
 				throw new RuntimeException(e);
@@ -356,18 +420,28 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 	}
 
 	public void postInitialization() {
-		modelLayerFactory.postInitialization();
+		modelLayerFactory.postInitialization(new ModelPostInitializationParams()
+				.setRebuildCacheFromSolr(systemLocalConfigsManager.isMarkedForCacheRebuild())
+				.setCacheLoadingFinishedCallback(() -> {
+					if (systemLocalConfigsManager.isMarkedForCacheRebuild()) {
+						systemLocalConfigsManager.setMarkedForCacheRebuild(false);
+						systemLocalConfigsManager.markLocalCacheAsRebuilt();
+					}
+				}));
+
 		pluginManager.configure();
 
 		if (modelLayerFactory.newReindexingServices().isLockFileExisting()) {
 			//Last reindexing was interrupted...
 			systemGlobalConfigsManager.setLastReindexingFailed(true);
-			dataLayerFactory.getSecondTransactionLogManager().moveLastBackupAsCurrentLog();
+			if (dataLayerFactory.getSecondTransactionLogManager() != null) {
+				dataLayerFactory.getSecondTransactionLogManager().moveLastBackupAsCurrentLog();
+			}
 			modelLayerFactory.newReindexingServices().removeLockFile();
 		}
 
-		if (systemGlobalConfigsManager.isMarkedForReindexing()) {
-			systemGlobalConfigsManager.setMarkedForReindexing(false);
+		if (systemLocalConfigsManager.isMarkedForReindexing()) {
+			systemLocalConfigsManager.setMarkedForReindexing(false);
 
 			try {
 				modelLayerFactory.newReindexingServices().createLockFile();
@@ -384,12 +458,14 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 				dataLayerFactory.getSecondTransactionLogManager().moveLastBackupAsCurrentLog();
 			}
 		}
-		systemGlobalConfigsManager.setRestartRequired(false);
+		systemLocalConfigsManager.setRestartRequired(false);
 	}
 
 	public void restart()
 			throws AppManagementServiceException {
-		newApplicationService().restart();
+		if (!TenantUtils.isSupportingTenants()) {
+			newApplicationService().restart();
+		}
 	}
 
 	@Override
@@ -446,6 +522,10 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		return this.systemGlobalConfigsManager;
 	}
 
+	public SystemLocalConfigsManager getSystemLocalConfigsManager() {
+		return systemLocalConfigsManager;
+	}
+
 	public CollectionsManager getCollectionsManager() {
 		return collectionsManager;
 	}
@@ -474,4 +554,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		return correctorExcluderManager;
 	}
 
+	public AppLayerBackgroundThreadsManager getAppLayerBackgroundThreadsManager() {
+		return appLayerBackgroundThreadsManager;
+	}
 }

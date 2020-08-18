@@ -10,6 +10,7 @@ import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
+import com.constellio.data.dao.dto.records.TransactionSearchDTO;
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
@@ -27,6 +28,7 @@ import com.constellio.data.utils.LangUtils;
 import com.google.common.base.Joiner;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.FieldStatsInfo;
@@ -83,9 +85,9 @@ public class BigVaultRecordDao implements RecordDao {
 	private static final String ID_FIELD = "id";
 	private static final String VERSION_FIELD = "_version_";
 	public static final String DATE_SEARCH_FIELD = ".search_ss";
-	private final BigVaultServer bigVaultServer;
-	private final DataStoreTypesFactory dataStoreTypesFactory;
-	private final DataLayerLogger dataLayerLogger;
+	protected final BigVaultServer bigVaultServer;
+	protected final DataStoreTypesFactory dataStoreTypesFactory;
+	protected final DataLayerLogger dataLayerLogger;
 	private SecondTransactionLogManager secondTransactionLogManager;
 
 	private static long january1_1900 = new LocalDate(1900, 1, 1).toDate().getTime();
@@ -143,7 +145,7 @@ public class BigVaultRecordDao implements RecordDao {
 				if (secondTransactionLogManager != null) {
 					secondTransactionLogManager.cancel(transaction.getTransactionId());
 				}
-				throw new RecordDaoException.OptimisticLocking(e.getId(), e.getVersion(), e);
+				throw new RecordDaoException.OptimisticLocking(e.getId(), e.getVersion(), e.getRecordsWithNewVersion(), e);
 			} catch (BigVaultException e) {
 				if (secondTransactionLogManager != null) {
 					secondTransactionLogManager.cancel(transaction.getTransactionId());
@@ -152,6 +154,11 @@ public class BigVaultRecordDao implements RecordDao {
 			}
 		}
 		return new TransactionResponseDTO(0, new HashMap<String, Long>());
+	}
+
+	@Override
+	public TransactionResponseDTO executeSimple(TransactionSearchDTO transactionSearchDTO) {
+		return null;
 	}
 
 	private void prepareDocumentsForSolrTransaction(TransactionDTO transaction, List<SolrInputDocument> newDocuments,
@@ -508,6 +515,16 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	public QueryResponseDTO query(String queryName, SolrParams params) {
+
+		String[] fqs = params.getParams("fq");
+		if (fqs != null) {
+			for (String fq : fqs) {
+				if ("collection_s:inexistentCollection42".equals(fq)) {
+					return QueryResponseDTO.EMPTY;
+				}
+			}
+		}
+
 		QueryResponse response = nativeQuery(queryName, params);
 		boolean partialFields = params.get(CommonParams.FL) != null;
 
@@ -546,8 +563,13 @@ public class BigVaultRecordDao implements RecordDao {
 
 		long numfound = response.getResults() == null ? 0 : response.getResults().getNumFound();
 
+
 		return new QueryResponseDTO(documents, response.getQTime(), numfound, fieldFacetValues, fieldFacetPivotValues,
-				fieldsStatistics, facetQueries, highlights, correctlySpelt, spellcheckerSuggestions, resultWithMoreLikeThis);
+				fieldsStatistics, facetQueries, highlights, response.getDebugMap(), correctlySpelt, spellcheckerSuggestions, resultWithMoreLikeThis);
+	}
+
+	private Map<String, String> extractTimingInfos(QueryResponse response) {
+		return null;
 	}
 
 	private Map<String, Map<String, Object>> getFieldsStats(QueryResponse response) {
@@ -799,7 +821,7 @@ public class BigVaultRecordDao implements RecordDao {
 
 	protected RecordDTO toEntity(SolrDocument solrDocument, RecordDTOMode mode) {
 		String id = (String) solrDocument.get(ID_FIELD);
-		long version = (Long) solrDocument.get(VERSION_FIELD);
+		Long version = (Long) solrDocument.get(VERSION_FIELD);
 
 		Map<String, Object> fieldValues = new HashMap<String, Object>();
 
@@ -810,8 +832,9 @@ public class BigVaultRecordDao implements RecordDao {
 					fieldValues.put(fieldName, value);
 				}
 			}
+
 		}
-		return new SolrRecordDTO(id, version, fieldValues, mode);
+		return new SolrRecordDTO(id, version == null ? -1 : version, fieldValues, mode);
 	}
 
 	private boolean containsTwoUnderscoresAndIsNotVersionField(String field) {
@@ -824,6 +847,29 @@ public class BigVaultRecordDao implements RecordDao {
 		}
 		int secondUnderScoreIndex = field.indexOf("_", firstUnderScoreIndex + 1);
 		return secondUnderScoreIndex != -1;
+	}
+
+	Object convertSolrMultivalueStringToBigvaultValue(Object fieldValue) {
+		Object returnedValue = fieldValue;
+		if ((fieldValue instanceof List)) {
+			boolean containsEmpty = false;
+			for (Object item : (List) fieldValue) {
+				containsEmpty |= ((item instanceof String) && StringUtils.isEmpty((String) item));
+			}
+			if (containsEmpty) {
+				List<Object> returnedValues = new ArrayList<>();
+
+				for (Object item : (List) fieldValue) {
+					if ((item instanceof String) && !StringUtils.isEmpty((String) item)) {
+						returnedValues.add(item);
+					}
+				}
+
+				returnedValue = returnedValues;
+			}
+		}
+
+		return convertMultivalueBooleanSolrValuesToBooleans(returnedValue);
 	}
 
 	@SuppressWarnings({"rawtypes", "unchecked"})
@@ -885,7 +931,7 @@ public class BigVaultRecordDao implements RecordDao {
 			convertedValue = hasNonNullValues ? localDates : null;
 
 		} else if (isMultiValueStringOrText(fieldName) && fieldValue instanceof List) {
-			convertedValue = convertMultivalueBooleanSolrValuesToBooleans(fieldValue);
+			convertedValue = convertSolrMultivalueStringToBigvaultValue(fieldValue);
 
 		} else {
 			convertedValue = fieldValue;
@@ -910,11 +956,11 @@ public class BigVaultRecordDao implements RecordDao {
 		boolean hasNonNullValues = false;
 		for (int i = 0; i < strings.size(); i++) {
 			String aString = strings.get(i);
-			if ("__TRUE__".equals(aString) || "true".equals(aString)) {
+			if ("__TRUE__".equals(aString)) {
 				booleans.add(Boolean.TRUE);
 				hasBooleanValues = true;
 				hasNonNullValues = true;
-			} else if ("__FALSE__".equals(aString) || "false".equals(aString)) {
+			} else if ("__FALSE__".equals(aString)) {
 				booleans.add(Boolean.FALSE);
 				hasBooleanValues = true;
 				hasNonNullValues = true;
@@ -1016,6 +1062,12 @@ public class BigVaultRecordDao implements RecordDao {
 	@Override
 	public void expungeDeletes() {
 		bigVaultServer.expungeDeletes();
+	}
+
+	@Override
+	public TupleStream tupleStream(Map<String, String> props) {
+		return bigVaultServer.tupleStream(props);
+
 	}
 
 	@Override

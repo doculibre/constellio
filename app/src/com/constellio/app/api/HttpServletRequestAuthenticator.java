@@ -17,6 +17,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.Charset;
 import java.security.Principal;
 
+import static com.constellio.data.conf.FoldersLocator.usingAppWrapper;
+
 public class HttpServletRequestAuthenticator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(HttpServletRequestAuthenticator.class);
@@ -35,24 +37,35 @@ public class HttpServletRequestAuthenticator {
 		this.userServices = modelLayerFactory.newUserServices();
 	}
 
-	public UserCredential authenticate(HttpServletRequest request) {
-
+	public String getUserServiceKey(HttpServletRequest request) {
 		String userServiceKey = request.getHeader(USER_SERVICE_KEY);
-		String userToken = request.getHeader(USER_TOKEN);
-
 		if (userServiceKey == null) {
 			userServiceKey = request.getParameter(USER_SERVICE_KEY);
 		}
-		if (userToken == null) {
-			userToken = request.getParameter(USER_TOKEN);
-		}
-
 		if (userServiceKey != null) {
 			userServiceKey = userServiceKey.trim();
 		}
+		return userServiceKey;
+	}
 
+	public String getUserToken(HttpServletRequest request) {
+		String userToken = request.getHeader(USER_TOKEN);
+		if (userToken == null) {
+			userToken = request.getParameter(USER_TOKEN);
+		}
 		if (userToken != null) {
 			userToken = userToken.trim();
+		}
+		return userToken;
+	}
+
+	public UserCredential authenticate(HttpServletRequest request) {
+		String userServiceKey = getUserServiceKey(request);
+		String userToken = getUserToken(request);
+
+		//Save time when testing on a developer computer
+		if ("SDK".equals(userToken) && !usingAppWrapper()) {
+			return userServices.getUser(userServiceKey);
 		}
 
 		UserServices userServices = modelLayerFactory.newUserServices();
@@ -124,10 +137,10 @@ public class HttpServletRequestAuthenticator {
 		try {
 			byte[] tokenOrPassword = userToken.getBytes(Charset.forName("UTF-8"));
 
-			boolean authenticated = modelLayerFactory.newAuthenticationService().authenticate(username, new String(tokenOrPassword));
 			UserCredential userCredential = userServices.getUser(username);
+			boolean authenticated = userCredential.getTokenKeys().contains(new String(tokenOrPassword));
 			if (!authenticated) {
-				authenticated = userCredential.getTokenKeys().contains(new String(tokenOrPassword));
+				authenticated = modelLayerFactory.newAuthenticationService().authenticate(username, new String(tokenOrPassword));
 			}
 
 			if (authenticated) {

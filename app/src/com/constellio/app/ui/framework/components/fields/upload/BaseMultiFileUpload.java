@@ -14,6 +14,7 @@ import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptAll;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
+import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.StreamVariable;
@@ -21,7 +22,6 @@ import com.vaadin.server.StreamVariable.StreamingEndEvent;
 import com.vaadin.server.StreamVariable.StreamingErrorEvent;
 import com.vaadin.server.StreamVariable.StreamingProgressEvent;
 import com.vaadin.server.StreamVariable.StreamingStartEvent;
-import com.vaadin.server.WebBrowser;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
@@ -364,7 +364,10 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 			prepareNoDropZone();
 		}
 
-		UI.getCurrent().getNavigator().addViewChangeListener(this);
+		Navigator navigator = UI.getCurrent().getNavigator();
+		if (navigator != null) {
+			navigator.addViewChangeListener(this);
+		}
 		uiPollIntervalBefore = UI.getCurrent().getPollInterval();
 		UI.getCurrent().addPollListener(this);
 		UI.getCurrent().setPollInterval(getPollinInterval());
@@ -372,6 +375,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 
 	@Override
 	public void detach() {
+		closeUploadWindow();
 		UI.getCurrent().getNavigator().removeViewChangeListener(this);
 		UI.getCurrent().removePollListener(this);
 		UI.getCurrent().setPollInterval(uiPollIntervalBefore);
@@ -416,16 +420,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 	}
 
 	protected boolean supportsFileDrops() {
-		boolean supportsFileDrops;
-		WebBrowser browser = getUI().getPage().getWebBrowser();
-		if (ResponsiveUtils.isMobile()) {
-			supportsFileDrops = false;
-		} else if (browser.isChrome() || browser.isFirefox() || browser.isSafari()) {
-			supportsFileDrops = true;
-		} else {
-			supportsFileDrops = false;
-		}
-		return supportsFileDrops;
+		return ResponsiveUtils.isFileDropSupported();
 	}
 
 	abstract protected void handleFile(File file, String fileName,
@@ -535,6 +530,10 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 		});
 	}
 
+	protected void closeUploadWindow() {
+		UI.getCurrent().removeWindow(uploadWindow);
+	}
+
 	private void closeUploadWindowIfAllDone() {
 		closeUploadWindowIfAllDone(Collections.<String>emptyList());
 	}
@@ -544,8 +543,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 			@Override
 			public void run() {
 				if (!isUploadInProgress()) {
-					UI.getCurrent().removeWindow(uploadWindow);
-
+					closeUploadWindow();
 					if (!emptyFilesName.isEmpty()) {
 						StringBuilder errorMessage = new StringBuilder(
 								$("BaseMultiFileUpload.fileUploadCancel") + " :");

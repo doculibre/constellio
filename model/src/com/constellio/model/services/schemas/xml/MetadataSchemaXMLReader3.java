@@ -75,8 +75,8 @@ public class MetadataSchemaXMLReader3 {
 		Element rootElement = document.getRootElement();
 		int version = Integer.valueOf(rootElement.getAttributeValue("version")) - 1;
 		List<Language> languages = getLanguages(rootElement);
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder
-				.createWithVersion(collectionInfo, version, classProvider, languages);
+		MetadataSchemaTypesBuilder typesBuilder = (new MetadataSchemaTypesBuilder(collectionInfo))
+				.createWithVersion(collectionInfo, modelLayerFactory, version, classProvider, languages);
 		for (Element schemaTypeElement : rootElement.getChildren("type")) {
 			parseSchemaType(typesBuilder, schemaTypeElement, typesFactory, modelLayerFactory);
 		}
@@ -363,6 +363,13 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setEssentialInSummary(readBooleanWithDefaultValue(essentialInSummaryStringValue, false));
 		}
 
+		String availableInSummaryStringValue = metadataElement.getAttributeValue("availableInSummary");
+		if (inheriteGlobalMetadata && availableInSummaryStringValue == null) {
+			metadataBuilder.setAvailableInSummary(globalMetadataInCollectionSchema.isAvailableInSummary());
+		} else {
+			metadataBuilder.setAvailableInSummary(readBooleanWithDefaultValue(availableInSummaryStringValue, false));
+		}
+
 		String increasedDependencyLevelStringValue = metadataElement.getAttributeValue("increasedDependencyLevel");
 		if (inheriteGlobalMetadata && increasedDependencyLevelStringValue == null) {
 			metadataBuilder.setIncreasedDependencyLevel(globalMetadataInCollectionSchema.isIncreasedDependencyLevel());
@@ -445,6 +452,24 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setTaxonomyRelationship(globalMetadataInCollectionSchema.isTaxonomyRelationship());
 		} else {
 			metadataBuilder.setTaxonomyRelationship(readBooleanWithDefaultValue(taxonomyRelationshipStringValue, false));
+		}
+
+		String maxLengthStringValue = metadataElement.getAttributeValue("maxLength");
+		if (inheriteGlobalMetadata && maxLengthStringValue == null) {
+			metadataBuilder.setMaxLength(globalMetadataInCollectionSchema.getMaxLength());
+		} else {
+			if (maxLengthStringValue != null) {
+				metadataBuilder.setMaxLength(Integer.parseInt(maxLengthStringValue));
+			}
+		}
+
+		String measurementUnitStringValue = metadataElement.getAttributeValue("measurementUnit");
+		if (inheriteGlobalMetadata && measurementUnitStringValue == null) {
+			metadataBuilder.setMeasurementUnit(globalMetadataInCollectionSchema.getMeasurementUnit());
+		} else {
+			if (measurementUnitStringValue != null) {
+				metadataBuilder.setMeasurementUnit(measurementUnitStringValue);
+			}
 		}
 
 		String providingSecurityStringValue = metadataElement.getAttributeValue("providingSecurity");
@@ -737,6 +762,8 @@ public class MetadataSchemaXMLReader3 {
 					metadataBuilder.defineDataEntry()
 							.as(new AggregatedDataEntry(inputMetadatasByRefMetadata, aggregationType));
 				}
+			} else if ("manual".equals(dataEntry.getValue())) {
+				metadataBuilder.defineDataEntry().asManual();
 			}
 		} else if (!isInheriting(metadataElement)) {
 			if (collectionSchemaBuilder == null) {

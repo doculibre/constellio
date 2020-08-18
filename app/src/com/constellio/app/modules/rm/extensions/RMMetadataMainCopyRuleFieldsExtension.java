@@ -49,7 +49,12 @@ public class RMMetadataMainCopyRuleFieldsExtension extends PagesComponentsExtens
 
 		MetadataSchemasManager manager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchema schema = manager.getSchemaTypes(collection).getSchema(schemaCode);
-		String defaultRuleId = (String) schema.getMetadata(RETENTION_RULE_ENTERED).getDefaultValue();
+		String defaultRuleId = "";
+		if (schema.hasMetadataWithCode(RETENTION_RULE_ENTERED)) {
+			defaultRuleId = (String) schema.getMetadata(RETENTION_RULE_ENTERED).getDefaultValue();
+		} else {
+			return;
+		}
 
 		AddEditMetadataViewImpl view = (AddEditMetadataViewImpl) params.getMainComponent();
 		view.setFieldFactory(new MetadataMainCopyRuleFieldFactory(defaultRuleId, getCopyRetentionRule(defaultRuleId)));

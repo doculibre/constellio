@@ -5,6 +5,7 @@ import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManage
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -146,6 +147,7 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@SlowTest
 	public void whenBothServersAreSendingEventsThenAllReceivedAndExtensionsCalled()
 			throws Exception {
 
@@ -167,11 +169,13 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 		remoteThread.join();
 
 		while (remoteReceivedEventExtensionCalledCounter.get() < 10000
-			   || localReceivedEventExtensionCalledCounter.get() < 20000) {
+			   || localReceivedEventExtensionCalledCounter.get() < 30000) {
 			System.out.println(remoteReceivedEventExtensionCalledCounter.get());
 			System.out.println(localReceivedEventExtensionCalledCounter.get());
 			Thread.sleep(50);
 		}
+
+		Thread.sleep(1000);
 
 		assertThat(localEventBus1ReceivedEvents.size()).isEqualTo(30000);
 		assertThat(localEventBus2ReceivedEvents.size()).isEqualTo(30000);

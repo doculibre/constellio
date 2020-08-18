@@ -129,12 +129,14 @@ public class ContainerRecordReportPresenter {
 	private List<Folder> getFolders(String containerId) {
 		MetadataSchemaType folderSchemaType = rm.folder.schemaType();
 
-		Metadata folderMetadata = rm.folder.schemaType().getDefaultSchema()
-				.getMetadata(Folder.CONTAINER);
+		Metadata containerMetadata = folderSchemaType.getDefaultSchema().getMetadata(Folder.CONTAINER);
+		Metadata administrativeMetadata = folderSchemaType.getDefaultSchema().getMetadata(Folder.ADMINISTRATIVE_UNIT);
+		Metadata categoryMetadata = folderSchemaType.getDefaultSchema().getMetadata(Folder.CATEGORY);
+		Metadata titleMetadata = Schemas.TITLE;
 
 		LogicalSearchQuery foldersQuery = new LogicalSearchQuery(LogicalSearchQueryOperators.from(folderSchemaType)
-				.where(folderMetadata).isEqualTo(containerId).andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
-				.sortAsc(rm.folder.categoryCode()).sortAsc(Schemas.IDENTIFIER);
+				.where(containerMetadata).isEqualTo(containerId).andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
+				.sortAsc(rm.folder.categoryCode()).sortAsc(administrativeMetadata).sortAsc(categoryMetadata).sortAsc(titleMetadata);
 
 		List<Folder> folders = rm.wrapFolders(searchServices.search(foldersQuery));
 

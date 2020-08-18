@@ -8,8 +8,9 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.data.io.services.facades.FileService;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
@@ -69,7 +70,7 @@ public class RetentionRuleXMLExporter {
 			Element row = new Element("ROW");
 			rowset.addContent(row);
 
-			row.addContent(new Element("ID_ORGANISME").setText("60523"));
+			row.addContent(new Element("ID_ORGANISME").setText(getCollectionOragnizationNumber()));
 			row.addContent(new Element("NUMREGLE").setText(rule.getCode()));
 
 			//can have A, M or S values (Ajout, Modifier, Supprimer)
@@ -142,6 +143,11 @@ public class RetentionRuleXMLExporter {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private String getCollectionOragnizationNumber() {
+		Collection collection = rm.getCollection(this.collection);
+		return collection != null ? collection.getOrganizationNumber() : null;
 	}
 
 	private String getAdministrativesUnitsNames(RetentionRule rule) {

@@ -54,23 +54,6 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 		navigateToBackPage();
 	}
 
-	public void editButtonClicked(GlobalGroupVO entity) {
-		paramsMap.put("globalGroupCode", entity.getCode());
-		String parameters = getParameters();
-		view.navigate().to().editGlobalGroup(parameters);
-	}
-
-	public void deleteButtonClicked(GlobalGroupVO globalGroupVO) {
-		String username = view.getSessionContext().getCurrentUser().getUsername();
-		UserCredential userCredential = modelLayerFactory.getUserCredentialsManager().getUserCredential(username);
-		GlobalGroup globalGroup = userServices.getGroup(globalGroupVO.getCode());
-		userServices.logicallyRemoveGroupHierarchy(userCredential, globalGroup);
-
-		cleanInvalidBackPages();
-
-		navigateToBackPage();
-	}
-
 	public void cleanInvalidBackPages() {
 		if (paramsMap.containsKey("globalGroupCode")) {
 			paramsMap.remove("globalGroupCode");

@@ -1,5 +1,6 @@
 package com.constellio.model.entities.security.global;
 
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -40,7 +41,14 @@ public class UserCredential extends RecordWrapper {
 	public static final String AGENT_STATUS = "agentStatus";
 	public static final String HAS_AGREED_TO_PRIVACY_POLICY = "hasAgreedToPrivacyPolicy";
 	public static final String DO_NOT_RECEIVE_EMAILS = "doNotReceiveEmails";
+	public static final String ENABLE_FACETS_APPLY_BUTTON = "enableFacetsApplyButton";
 	public static final String HAS_READ_LAST_ALERT = "hasReadLastAlert";
+	public static final String ELECTRONIC_SIGNATURE = "electronicSignature";
+	public static final String ELECTRONIC_INITIALS = "electronicInitials";
+	public static final String AZURE_USERNAME = "azureUsername";
+
+	public static final String TEAMS_FAVORITES_DISPLAY_ORDER = "teamsFavoritesDisplayOrder";
+	public static final String TEAMS_HIDDEN_FAVORITES = "teamsHiddenFavorites";
 
 	public UserCredential(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -90,6 +98,16 @@ public class UserCredential extends RecordWrapper {
 		set(PERSONAL_EMAILS, personalEmails);
 		return this;
 	}
+
+	public String getAzureUsername() {
+		return get(AZURE_USERNAME);
+	}
+
+	public UserCredential setAzureUsername(String azureUsername) {
+		set(AZURE_USERNAME, azureUsername);
+		return this;
+	}
+
 
 	public String getServiceKey() {
 		return get(SERVICE_KEY);
@@ -314,5 +332,27 @@ public class UserCredential extends RecordWrapper {
 
 	public boolean isNotReceivingEmails() {
 		return Boolean.TRUE.equals(get(DO_NOT_RECEIVE_EMAILS));
+	}
+
+	public boolean isApplyFacetsEnabled() {
+		return Boolean.TRUE.equals(ENABLE_FACETS_APPLY_BUTTON);
+	}
+
+	public Content getElectronicSignature() {
+		return get(ELECTRONIC_SIGNATURE);
+	}
+
+	public UserCredential setElectronicSignature(Content content) {
+		set(ELECTRONIC_SIGNATURE, content);
+		return this;
+	}
+
+	public Content getElectronicInitials() {
+		return get(ELECTRONIC_INITIALS);
+	}
+
+	public UserCredential setElectronicInitials(Content content) {
+		set(ELECTRONIC_INITIALS, content);
+		return this;
 	}
 }

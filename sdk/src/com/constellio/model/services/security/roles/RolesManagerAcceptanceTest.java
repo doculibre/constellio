@@ -82,7 +82,9 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 		givenCollection("collection1");
 		givenCollection("collection2");
 
-		assertThatEventsReceivedOnZeInstance().isEmpty();
+		assertThatEventsReceivedOnZeInstance().containsOnly(
+				tuple("configUpdated", "/legacyConstellioIdsMapping.properties")
+		);
 		assertThatEventsSentFromZeInstance().isNotEmpty();
 
 		assertThat(manager.getAllRoles("collection1")).hasSize(1);

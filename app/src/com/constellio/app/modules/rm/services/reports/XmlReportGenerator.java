@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.services.reports;
 
+import com.constellio.app.api.extensions.params.AddFieldsInReportXMLParams;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -52,11 +53,9 @@ public class XmlReportGenerator extends AbstractXmlGenerator {
 
 				Element xmlSingularElementMetadata = new Element(XML_METADATA_TAGS);
 
-				//TODO create an extensions and call it here.
-
 				//Add the Extensions to the metadatas elements.
-				//                getFactory().getExtensions().forCollection(getCollection()).addFieldsInLabelXML(new AddFieldsInLabelXMLParams(
-				//                        recordElement, xmlSingularElement, XMLMetadatasOfSingularElement));
+				getFactory().getExtensions().forCollection(getCollection()).addFieldsInReportXML(new AddFieldsInReportXMLParams(
+						recordElement, xmlSingularElement, xmlSingularElementMetadata));
 
 				//Add additional informations
 				xmlSingularElementMetadata.addContent(getAdditionalInformations(recordElement));

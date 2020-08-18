@@ -13,6 +13,7 @@ import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
+import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.records.Record;
@@ -153,6 +154,31 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenSelectedFieldsFacetAndPushApplyButtonThenAppliedToSearchResults()
+			throws Exception {
+
+		assertThat(searchServices.getResultsCount(simpleSearchPresenter.getSearchQuery()))
+				.isEqualTo(allFolderDocumentsContainersCount);
+
+		final KeySetMap testKeySetMap = new KeySetMap();
+		testKeySetMap.add(retentionRuleFacetId, records.ruleId_1);
+
+		simpleSearchPresenter.facetValuesChanged(testKeySetMap);
+		assertThat(searchServices.getResultsCount(simpleSearchPresenter.getSearchQuery()))
+				.isEqualTo(allFolderDocumentsContainersCountWithRetentionRule1);
+
+		testKeySetMap.add(archivisticStatusFacetId, FolderStatus.ACTIVE.getCode());
+		simpleSearchPresenter.facetValuesChanged(testKeySetMap);
+		assertThat(searchServices.getResultsCount(simpleSearchPresenter.getSearchQuery()))
+				.isEqualTo(allActiveFolderDocumentsContainersCountWithRetentionRule1);
+
+		testKeySetMap.remove(archivisticStatusFacetId, FolderStatus.ACTIVE.getCode());
+		simpleSearchPresenter.facetValueDeselected(archivisticStatusFacetId, FolderStatus.ACTIVE.getCode());
+		assertThat(searchServices.getResultsCount(simpleSearchPresenter.getSearchQuery()))
+				.isEqualTo(allFolderDocumentsContainersCountWithRetentionRule1);
+	}
+
+	@Test
 	public void givenSelectedQueryFacetThenAppliedToSearchResults()
 			throws Exception {
 
@@ -168,6 +194,29 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 				.isEqualTo(foldersCount + documentsCount);
 
 		simpleSearchPresenter.facetValueDeselected(typeFacetId, "schema_s:folder*");
+		assertThat(searchServices.getResultsCount(simpleSearchPresenter.getSearchQuery()))
+				.isEqualTo(documentsCount);
+	}
+
+	@Test
+	public void givenSelectedQueryFacetsThenAppliedToSearchResults()
+			throws Exception {
+
+		assertThat(searchServices.getResultsCount(simpleSearchPresenter.getSearchQuery()))
+				.isEqualTo(foldersCount + documentsCount + containersCount);
+
+		final KeySetMap testKeySetMap = new KeySetMap();
+		testKeySetMap.add(typeFacetId, "schema_s:folder*");
+		testKeySetMap.add(typeFacetId, "schema_s:document*");
+
+		simpleSearchPresenter.facetValuesChanged(testKeySetMap);
+
+		assertThat(searchServices.getResultsCount(simpleSearchPresenter.getSearchQuery()))
+				.isEqualTo(foldersCount + documentsCount);
+
+		testKeySetMap.remove(typeFacetId, "schema_s:folder*");
+
+		simpleSearchPresenter.facetValuesChanged(testKeySetMap);
 		assertThat(searchServices.getResultsCount(simpleSearchPresenter.getSearchQuery()))
 				.isEqualTo(documentsCount);
 	}

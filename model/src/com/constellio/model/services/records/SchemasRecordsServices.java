@@ -102,6 +102,10 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return credentialSchema().getMetadata(UserCredential.USERNAME);
 	}
 
+	public Metadata credentialAzureUsername() {
+		return credentialSchema().getMetadata(UserCredential.AZURE_USERNAME);
+	}
+
 	public Metadata credentialStatus() {
 		return credentialSchema().getMetadata(UserCredential.STATUS);
 	}
@@ -549,8 +553,27 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return wrapSolrAuthorizationDetails(get(id));
 	}
 
+	public Authorization getSolrAuthorizationDetails(User user, String recordId) {
+		return modelLayerFactory.newAuthorizationsServices().getAuthorization(user, recordId);
+	}
+
+	public List<Authorization> getMultipleSolrAuthorizationDetails(User user, List<String> recordIds) {
+		List<Authorization> auths = new ArrayList<>();
+		for (String recordId : recordIds) {
+			Authorization authorization = modelLayerFactory.newAuthorizationsServices().getAuthorization(user, recordId);
+			if (authorization != null) {
+				auths.add(authorization);
+			}
+		}
+		return auths;
+	}
+
 	public User getUser(String id) {
 		return wrapUser(get(id));
+	}
+
+	public UserCredential getUserCredential(String id) {
+		return wrapUserCredential(get(id));
 	}
 
 	public Group getGroup(String id) {

@@ -6,13 +6,20 @@ import java.util.Set;
 
 public interface RecordDTO extends RecordsOperationDTO, Serializable {
 
+	int MAIN_SORT_UNDEFINED = 0;
+	int MAIN_SORT_UNCHANGED = -1;
+
 	String getId();
+
+	RecordId getRecordId();
 
 	default short getTenantId() {
 		return 0;
 	}
 
 	long getVersion();
+
+	int getMainSortValue();
 
 	Map<String, Object> getFields();
 
@@ -33,5 +40,9 @@ public interface RecordDTO extends RecordsOperationDTO, Serializable {
 	default String getSchemaCode() {
 		return (String) getFields().get("schema_s");
 	}
+
+	long heapMemoryConsumption();
+
+	long offHeapMemoryConsumption();
 
 }

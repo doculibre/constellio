@@ -20,6 +20,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -27,14 +28,17 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.fromTypeIn;
+import static com.constellio.model.services.records.RecordHierarchyServices.fromTypeIn;
 
 public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyManagementSearchView> {
+	private static Logger LOGGER = LoggerFactory.getLogger(TaxonomyManagementSearchPresenter.class);
 
 	public static final String TAXONOMY_CODE = "taxonomyCode";
 	public static final String QUERY = "q";
@@ -156,7 +160,12 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 		if (validationErrors.isEmpty()) {
 			SchemaPresenterUtils utils = new SchemaPresenterUtils(recordVO.getSchema().getCode(), view.getConstellioFactories(),
 					view.getSessionContext());
-			utils.delete(utils.toRecord(recordVO), null, false);
+			try {
+				utils.delete(utils.toRecord(recordVO), null, false);
+			} catch (OptimisticLockException e) {
+				LOGGER.error(e.getMessage());
+				view.showErrorMessage(e.getMessage());
+			}
 			view.refreshTable();
 		} else {
 			displayErrorWindow(validationErrors);

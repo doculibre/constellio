@@ -1,5 +1,7 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
+import com.constellio.app.extensions.treenode.TreeNodeExtension;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
@@ -8,12 +10,16 @@ import com.constellio.app.ui.framework.components.converters.TaxonomyCodeToCapti
 import com.constellio.app.ui.framework.components.tree.LazyTree;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.trees.RecordTreeNodesDataProvider;
+import com.constellio.app.ui.framework.data.trees.VisibleRecordTreeNodesDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.StatusFilter;
@@ -31,7 +37,7 @@ import java.util.List;
 
 import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
+import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatchingInMetadatas;
 import static java.util.Arrays.asList;
 
 public class PathLookupField extends LookupField<String> {
@@ -165,11 +171,15 @@ public class PathLookupField extends LookupField<String> {
 		private SPEQueryResponse searchAutocompleteField(User user, String text, int startIndex, int count) {
 			List<String> taxonomyCodesForUser = getTaxonomyCodesForUser();
 
-			List<String> schemaTypesToSearch = SchemaUtils.getSchemaTypesInHierarchyOf(schemaType,
-					modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection()));
+			MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection());
+			List<String> schemaTypesToSearch = SchemaUtils.getSchemaTypesInHierarchyOf(schemaType, types);
+
+			MetadataList autocompleteMetadatas = types.getSchemaType(schemaType).getDefaultSchema()
+					.getMetadatas().onlySearchable().onlySchemaAutocomplete();
 
 			LogicalSearchCondition condition = from(schemaTypesToSearch, sessionContext.getCurrentCollection())
-					.where(autocompleteFieldMatching(text)).andWhere(Schemas.PATH).isNotNull();
+					.where(autocompleteFieldMatchingInMetadatas(text, autocompleteMetadatas))
+					.andWhere(Schemas.PATH).isNotNull();
 			if (!taxonomyCodesForUser.isEmpty()) {
 				List<LogicalSearchCondition> conditionList = new ArrayList<>();
 				for (String taxonomyCode : taxonomyCodesForUser) {
@@ -211,8 +221,7 @@ public class PathLookupField extends LookupField<String> {
 		String schemaType;
 
 		public PathLookupTreeDataProvider(String taxonomyCode, String collection, String schemaType) {
-			super(taxonomyCode, collection);
-			this.schemaType = schemaType;
+			super(getTreeDataProvider(taxonomyCode, collection));
 		}
 
 		@Override
@@ -230,6 +239,26 @@ public class PathLookupField extends LookupField<String> {
 		@Override
 		public boolean isSelectable(String selection) {
 			return true;
+		}
+
+		public static RecordTreeNodesDataProvider getTreeDataProvider(String taxnomieCode, String collection) {
+			AppLayerFactory appLayerFactory = getInstance().getAppLayerFactory();
+
+			RecordTreeNodesDataProvider recordTreeNodesDataProvider = null;
+
+			for (TreeNodeExtension treeNodeAppExtension : appLayerFactory.getExtensions()
+					.forCollection(collection).treeNodeAppExtension) {
+				recordTreeNodesDataProvider = treeNodeAppExtension.getTreeNodeFor(taxnomieCode, appLayerFactory);
+				if (recordTreeNodesDataProvider != null) {
+					break;
+				}
+			}
+
+			if (recordTreeNodesDataProvider == null) {
+				recordTreeNodesDataProvider = new VisibleRecordTreeNodesDataProvider(taxnomieCode);
+			}
+
+			return recordTreeNodesDataProvider;
 		}
 	}
 

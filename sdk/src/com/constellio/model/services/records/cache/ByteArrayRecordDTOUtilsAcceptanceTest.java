@@ -4,10 +4,16 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
+import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -15,37 +21,69 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
+import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithStringId;
+import com.constellio.model.services.records.cache.CacheRecordDTOUtils.CacheRecordDTOBytesArray;
+import com.constellio.model.services.records.cache.CacheRecordDTOUtils.CompactedInt;
+import com.constellio.model.services.records.cache.CacheRecordDTOUtils.CompactedShort;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
+import com.constellio.model.services.schemas.MetadataSchemaProvider;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 
+import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static com.constellio.model.services.records.cache.CacheRecordDTOUtils.convertDTOToByteArrays;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsZeSchemaType;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
+import static org.mockito.Mockito.mock;
 
+//@RunWith(Parameterized.class)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 	TestsSchemasSetup setup = new TestsSchemasSetup(zeCollection);
 	TestsSchemasSetup.ZeSchemaMetadatas zeSchema = setup.new ZeSchemaMetadatas();
 	TestsSchemasSetup.AnotherSchemaMetadatas anotherSchema = setup.new AnotherSchemaMetadatas();
+
+	String mode;
+	static String persited = "persisted";
+	static String memory = "memory";
+
 
 	User john;
 
@@ -53,6 +91,26 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	RecordServices recordServices;
 	ReindexingServices reindexingServices;
 	ContentManager contentManager;
+	Random random = new Random();
+
+	//	@Parameterized.Parameters(name = "{0}")
+	//	public static Collection<Object[]> testCases() {
+	//		return Arrays.asList(new Object[][]{{memory}, {persited}});
+	//	}
+
+	//	public ByteArrayRecordDTOUtilsAcceptanceTest(String mode) {
+	//		this.mode = mode;
+	//	}
+	//
+	//	@Before
+	//	public void setUp() throws Exception {
+	//		CacheRecordDTOUtils.SAVE_INT_DATE_METADATAS_IN_MEMORY = mode.equals(memory);
+	//	}
+	//
+	//	@After
+	//	public void tearDown() throws Exception {
+	//		CacheRecordDTOUtils.SAVE_INT_DATE_METADATAS_IN_MEMORY = true;
+	//	}
 
 	private void init() {
 		UserServices userServices = getModelLayerFactory().newUserServices();
@@ -188,7 +246,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.integerMetadata(), null)
 				.set(zeSchema.numberMetadata(), null)
 				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record3.getId())
-				.set(Schemas.TITLE, "Maison Champignon ")
+				.set(Schemas.TITLE, "أريد أن أشرب الحليب")
 				.set(zeSchemaType.getMetadata("structMetadata"), null)
 				.set(zeSchema.enumMetadata(), FolderStatus.INACTIVE_DESTROYED)
 				.set(zeSchema.largeTextMetadata(), null)
@@ -251,14 +309,14 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6, record7, record8));
 
-		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
-		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
-		ByteArrayRecordDTO dto3 = ByteArrayRecordDTO.create(getModelLayerFactory(), record3.getRecordDTO());
-		ByteArrayRecordDTO dto4 = ByteArrayRecordDTO.create(getModelLayerFactory(), record4.getRecordDTO());
-		ByteArrayRecordDTO dto5 = ByteArrayRecordDTO.create(getModelLayerFactory(), record5.getRecordDTO());
-		ByteArrayRecordDTO dto6 = ByteArrayRecordDTO.create(getModelLayerFactory(), record6.getRecordDTO());
-		ByteArrayRecordDTO dto7 = ByteArrayRecordDTO.create(getModelLayerFactory(), record7.getRecordDTO());
-		ByteArrayRecordDTO dto8 = ByteArrayRecordDTO.create(getModelLayerFactory(), record8.getRecordDTO());
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = create(getModelLayerFactory(), record2.getRecordDTO());
+		ByteArrayRecordDTO dto3 = create(getModelLayerFactory(), record3.getRecordDTO());
+		ByteArrayRecordDTO dto4 = create(getModelLayerFactory(), record4.getRecordDTO());
+		ByteArrayRecordDTO dto5 = create(getModelLayerFactory(), record5.getRecordDTO());
+		ByteArrayRecordDTO dto6 = create(getModelLayerFactory(), record6.getRecordDTO());
+		ByteArrayRecordDTO dto7 = create(getModelLayerFactory(), record7.getRecordDTO());
+		ByteArrayRecordDTO dto8 = create(getModelLayerFactory(), record8.getRecordDTO());
 
 		assertThat(dto1.get(Schemas.TITLE.getDataStoreCode())).isEqualTo("Le village des Schtroumpfs");
 		assertThat(dto1.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(true);
@@ -303,7 +361,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto3.get(zeSchema.contentMetadata().getDataStoreCode())).isEqualTo(null);
 		assertThat(dto3.get(zeSchemaType.getMetadata("structMetadata").getDataStoreCode())).isEqualTo(null);
 
-		assertThat(dto4.get(Schemas.TITLE.getDataStoreCode())).isEqualTo("Maison Champignon ");
+		assertThat(dto4.get(Schemas.TITLE.getDataStoreCode())).isEqualTo("أريد أن أشرب الحليب");
 		assertThat(dto4.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(true);
 		assertThat(dto4.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(null);
 		assertThat(dto4.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(null);
@@ -551,14 +609,14 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6, record7, record8));
 
-		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
-		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
-		ByteArrayRecordDTO dto3 = ByteArrayRecordDTO.create(getModelLayerFactory(), record3.getRecordDTO());
-		ByteArrayRecordDTO dto4 = ByteArrayRecordDTO.create(getModelLayerFactory(), record4.getRecordDTO());
-		ByteArrayRecordDTO dto5 = ByteArrayRecordDTO.create(getModelLayerFactory(), record5.getRecordDTO());
-		ByteArrayRecordDTO dto6 = ByteArrayRecordDTO.create(getModelLayerFactory(), record6.getRecordDTO());
-		ByteArrayRecordDTO dto7 = ByteArrayRecordDTO.create(getModelLayerFactory(), record7.getRecordDTO());
-		ByteArrayRecordDTO dto8 = ByteArrayRecordDTO.create(getModelLayerFactory(), record8.getRecordDTO());
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = create(getModelLayerFactory(), record2.getRecordDTO());
+		ByteArrayRecordDTO dto3 = create(getModelLayerFactory(), record3.getRecordDTO());
+		ByteArrayRecordDTO dto4 = create(getModelLayerFactory(), record4.getRecordDTO());
+		ByteArrayRecordDTO dto5 = create(getModelLayerFactory(), record5.getRecordDTO());
+		ByteArrayRecordDTO dto6 = create(getModelLayerFactory(), record6.getRecordDTO());
+		ByteArrayRecordDTO dto7 = create(getModelLayerFactory(), record7.getRecordDTO());
+		ByteArrayRecordDTO dto8 = create(getModelLayerFactory(), record8.getRecordDTO());
 
 		assertThat(dto1.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(asList());
 		assertThat(dto1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(asList(0, 13, -40));
@@ -773,7 +831,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.integerMetadata(), null)
 				.set(zeSchema.numberMetadata(), null)
 				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record3.getId())
-				.set(Schemas.TITLE, "Maison Champignon ")
+				.set(Schemas.TITLE, "أريد أن أشرب الحليب")
 				.set(zeSchema.enumMetadata(), FolderStatus.INACTIVE_DESTROYED)
 				.set(zeSchema.largeTextMetadata(), null)
 				.set(zeSchema.contentMetadata(), content)
@@ -835,14 +893,14 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6, record7, record8));
 
-		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
-		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
-		ByteArrayRecordDTO dto3 = ByteArrayRecordDTO.create(getModelLayerFactory(), record3.getRecordDTO());
-		ByteArrayRecordDTO dto4 = ByteArrayRecordDTO.create(getModelLayerFactory(), record4.getRecordDTO());
-		ByteArrayRecordDTO dto5 = ByteArrayRecordDTO.create(getModelLayerFactory(), record5.getRecordDTO());
-		ByteArrayRecordDTO dto6 = ByteArrayRecordDTO.create(getModelLayerFactory(), record6.getRecordDTO());
-		ByteArrayRecordDTO dto7 = ByteArrayRecordDTO.create(getModelLayerFactory(), record7.getRecordDTO());
-		ByteArrayRecordDTO dto8 = ByteArrayRecordDTO.create(getModelLayerFactory(), record8.getRecordDTO());
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = create(getModelLayerFactory(), record2.getRecordDTO());
+		ByteArrayRecordDTO dto3 = create(getModelLayerFactory(), record3.getRecordDTO());
+		ByteArrayRecordDTO dto4 = create(getModelLayerFactory(), record4.getRecordDTO());
+		ByteArrayRecordDTO dto5 = create(getModelLayerFactory(), record5.getRecordDTO());
+		ByteArrayRecordDTO dto6 = create(getModelLayerFactory(), record6.getRecordDTO());
+		ByteArrayRecordDTO dto7 = create(getModelLayerFactory(), record7.getRecordDTO());
+		ByteArrayRecordDTO dto8 = create(getModelLayerFactory(), record8.getRecordDTO());
 
 		assertThat(dto1.keySet()).contains(Schemas.TITLE.getDataStoreCode(),
 				zeSchema.contentMetadata().getDataStoreCode(),
@@ -1012,7 +1070,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.referenceMetadata(), asList(null, record1.getId()))
 				.set(zeSchema.dateMetadata(), asList(date, date.plusDays(3), date.plusDays(-100)))
 				.set(zeSchema.dateTimeMetadata(), asList(null, dateTime.plusHours(5), dateTime.minusYears(33)))
-				.set(zeSchema.multivaluedLargeTextMetadata(), asList("", "Luigi", null, "Waluigi", "Wario"))
+				.set(zeSchema.multivaluedLargeTextMetadata(), asList("", "Luigi", null, "أريد أن أشرب الحليب", "Waluigi", "Wario"))
 				.set(zeSchema.contentMetadata(), asList(noContent, content))
 				.set(zeSchema.booleanMetadata(), asList(true, false, true));
 
@@ -1094,14 +1152,14 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6, record7, record8));
 
-		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
-		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
-		ByteArrayRecordDTO dto3 = ByteArrayRecordDTO.create(getModelLayerFactory(), record3.getRecordDTO());
-		ByteArrayRecordDTO dto4 = ByteArrayRecordDTO.create(getModelLayerFactory(), record4.getRecordDTO());
-		ByteArrayRecordDTO dto5 = ByteArrayRecordDTO.create(getModelLayerFactory(), record5.getRecordDTO());
-		ByteArrayRecordDTO dto6 = ByteArrayRecordDTO.create(getModelLayerFactory(), record6.getRecordDTO());
-		ByteArrayRecordDTO dto7 = ByteArrayRecordDTO.create(getModelLayerFactory(), record7.getRecordDTO());
-		ByteArrayRecordDTO dto8 = ByteArrayRecordDTO.create(getModelLayerFactory(), record8.getRecordDTO());
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = create(getModelLayerFactory(), record2.getRecordDTO());
+		ByteArrayRecordDTO dto3 = create(getModelLayerFactory(), record3.getRecordDTO());
+		ByteArrayRecordDTO dto4 = create(getModelLayerFactory(), record4.getRecordDTO());
+		ByteArrayRecordDTO dto5 = create(getModelLayerFactory(), record5.getRecordDTO());
+		ByteArrayRecordDTO dto6 = create(getModelLayerFactory(), record6.getRecordDTO());
+		ByteArrayRecordDTO dto7 = create(getModelLayerFactory(), record7.getRecordDTO());
+		ByteArrayRecordDTO dto8 = create(getModelLayerFactory(), record8.getRecordDTO());
 
 		assertThat(dto1.values()).contains(asList(0, 13, -40),
 				record1.getRecordDTO().getFields().get(zeSchema.contentMetadata().getDataStoreCode()),
@@ -1118,7 +1176,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				asList(null, dateTime.plusHours(5), dateTime.minusYears(33)),
 				asList(null, record1.getId()),
 				asList(comment2ToString, comment1ToString),
-				asList("Luigi", null, "Waluigi", "Wario"),
+				asList("Luigi", null, "أريد أن أشرب الحليب", "Waluigi", "Wario"),
 				asList(CopyType.PRINCIPAL.getCode(), CopyType.PRINCIPAL.getCode(), CopyType.SECONDARY.getCode()));
 
 		assertThat(dto3.values()).contains(asList(false, null, true),
@@ -1169,6 +1227,514 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				asList(CopyType.SECONDARY.getCode()));
 	}
 
+
+	@Test
+	public void whenStoringSingleStringMetadataInAByteArrayRecordDTOThenVerifyingTheStoredValue() throws Exception {
+		defineSchemasManager().using(setup.withAStringMetadata(whichIsEssentialInSummary));
+		init();
+
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(zeSchema.stringMetadata(), "الشمس حاره");
+		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(zeSchema.stringMetadata(), " Macho Man Randy Savage ");
+
+		recordServices.execute(new Transaction(record1, record2));
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = create(getModelLayerFactory(), record2.getRecordDTO());
+
+		assertThat(dto1.values()).contains("الشمس حاره");
+		assertThat(dto2.values()).contains(" Macho Man Randy Savage ");
+	}
+
+	@Test
+	public void whenStoringLargeMultivalueStringMetadataInAByteArrayRecordDTOThenVerifyingTheStoredValue()
+			throws Exception {
+		defineSchemasManager().using(setup.withALargeTextMetadata(whichIsEssentialInSummary, whichIsMultivalue).withAStringMetadata(whichIsEssentialInSummary, whichIsMultivalue));
+		init();
+
+		String val1 = "123wo" + StringUtils.repeat("lolo", 1000) + "42";
+		String val2 = "Na" + StringUtils.repeat("na", 2000) + "nan Batman!";
+		String val3 = "un " + StringUtils.repeat("très ", 10000) + " long texte";
+		String val4 = "un encore plus " + StringUtils.repeat("très ", 10000) + " long texte";
+
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(zeSchema.stringMetadata(), asList(val1, val2, "الشمس حاره"))
+				.set(zeSchema.largeTextMetadata(), Arrays.asList(val4, val3));
+		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(zeSchema.stringMetadata(), asList(val2, "الشمس حاره", val1))
+				.set(zeSchema.largeTextMetadata(), asList(val3, val4, "الشمس حاره"));
+
+		recordServices.execute(new Transaction(record1, record2));
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = create(getModelLayerFactory(), record2.getRecordDTO());
+
+		assertThat(dto1.get(zeSchema.stringMetadata().getDataStoreCode())).isEqualTo(asList(val1, val2, "الشمس حاره"));
+		assertThat(dto1.get(zeSchema.largeTextMetadata().getDataStoreCode())).isEqualTo(asList(val4, val3));
+		assertThat(dto2.get(zeSchema.stringMetadata().getDataStoreCode())).isEqualTo(asList(val2, "الشمس حاره", val1));
+		assertThat(dto2.get(zeSchema.largeTextMetadata().getDataStoreCode())).isEqualTo(asList(val3, val4, "الشمس حاره"));
+	}
+
+
+	@Test
+	public void whenStoringMultipleBooleanMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 2_500;
+		int sizeOfMultivalues = 200;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).setType(BOOLEAN)
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> random.nextBoolean()).collect(toList());
+			} else {
+				value = random.nextBoolean();
+			}
+			values.add(value);
+			record1.set(zeSchema.metadata("meta" + i), value);
+		}
+
+
+		recordServices.execute(new Transaction(record1));
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+
+	@Test
+	public void whenStoringMultipleIntMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 2_500;
+		int sizeOfMultivalues = 50;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).setType(INTEGER)
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> random.nextInt()).collect(toList());
+			} else {
+				value = random.nextInt();
+			}
+			values.add(value);
+			record1.set(zeSchema.metadata("meta" + i), value);
+		}
+
+
+		recordServices.execute(new Transaction(record1));
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+
+	@Test
+	public void whenStoringMultipleEnumMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 2_500;
+		int sizeOfMultivalues = 50;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).defineAsEnum(CopyType.class)
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> random.nextBoolean() ? CopyType.PRINCIPAL : CopyType.SECONDARY).collect(toList());
+				record1.set(zeSchema.metadata("meta" + i), value);
+				values.add(((List<CopyType>) value).stream().map(CopyType::getCode).collect(toList()));
+			} else {
+				value = random.nextBoolean() ? CopyType.PRINCIPAL : CopyType.SECONDARY;
+				record1.set(zeSchema.metadata("meta" + i), value);
+				values.add(((CopyType) value).getCode());
+			}
+		}
+
+
+		recordServices.execute(new Transaction(record1));
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+
+	@Test
+	public void whenStoringMultipleNumberMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 2_500;
+		int sizeOfMultivalues = 25;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).setType(NUMBER)
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> random.nextDouble()).collect(toList());
+			} else {
+				value = random.nextDouble();
+			}
+			values.add(value);
+			record1.set(zeSchema.metadata("meta" + i), value);
+		}
+
+
+		recordServices.execute(new Transaction(record1));
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+
+	@Test
+	public void whenStoringMultipleDateMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 2_500;
+		int sizeOfMultivalues = 50;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).setType(MetadataValueType.DATE)
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> new LocalDate().minusDays(random.nextInt(1000))).collect(toList());
+			} else {
+				value = new LocalDate().minusDays(random.nextInt(1000));
+			}
+			values.add(value);
+			record1.set(zeSchema.metadata("meta" + i), value);
+		}
+
+
+		recordServices.execute(new Transaction(record1));
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+
+	@Test
+	public void whenStoringMultipleDateTimeMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 2_500;
+		int sizeOfMultivalues = 25;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).setType(MetadataValueType.DATE_TIME)
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> new LocalDateTime().minusSeconds(random.nextInt(1000))).collect(toList());
+			} else {
+				value = new LocalDateTime().minusSeconds(random.nextInt(1000));
+			}
+			values.add(value);
+			record1.set(zeSchema.metadata("meta" + i), value);
+		}
+
+
+		recordServices.execute(new Transaction(record1));
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+
+	@Test
+	public void whenStoringMultipleStringMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 2_500;
+		int sizeOfMultivalues = 5;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).setType(STRING)
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> new LocalDateTime().minusSeconds(random.nextInt(1000)).toString()).collect(toList());
+			} else {
+				value = new LocalDateTime().minusSeconds(random.nextInt(1000)).toString();
+			}
+			values.add(value);
+			record1.set(zeSchema.metadata("meta" + i), value);
+		}
+
+
+		recordServices.execute(new Transaction(record1));
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+
+	@Test
+	public void whenStoringMultipleTextMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 2_500;
+		int sizeOfMultivalues = 5;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).setType(TEXT)
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> new LocalDateTime().minusSeconds(random.nextInt(1000)).toString()).collect(toList());
+			} else {
+				value = new LocalDateTime().minusSeconds(random.nextInt(1000)).toString();
+			}
+			values.add(value);
+			record1.set(zeSchema.metadata("meta" + i), value);
+		}
+
+
+		recordServices.execute(new Transaction(record1));
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+	@Test
+	public void whenStoringMultipleStringIdReferenceMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 2_500;
+		int sizeOfMultivalues = 10;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).setType(MetadataValueType.REFERENCE)
+						.defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"))
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		List<String> ids = new ArrayList<>();
+		Transaction tx = new Transaction();
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r1")).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r2")).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r3")).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r4")).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r5")).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r6")).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r7")).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r8")).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r9")).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance(), "r10")).getId());
+
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> ids.get(random.nextInt(ids.size()))).collect(toList());
+			} else {
+				value = ids.get(random.nextInt(ids.size()));
+			}
+			values.add(value);
+			record1.set(zeSchema.metadata("meta" + i), value);
+		}
+
+
+		tx.add(record1);
+
+
+		recordServices.execute(tx);
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
+
+	@Test
+	public void whenStoringMultipleIntIdReferenceMetadatasThenAllWrittenAndReadWithoutProblems()
+			throws Exception {
+
+		int createdMetadatas = 2_500;
+		int sizeOfMultivalues = 50;
+
+		defineSchemasManager().using(setup.with((schemaTypes) -> {
+			for (int i = 0; i < createdMetadatas; i++) {
+				schemaTypes.getSchema("zeSchemaType_default").create("meta" + i).setType(MetadataValueType.REFERENCE)
+						.defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"))
+						.setEssentialInSummary(true).setMultivalue(i % 2 == 0);
+			}
+		}));
+
+		init();
+
+		List<Object> values = new ArrayList<>();
+
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance());
+
+		List<String> ids = new ArrayList<>();
+		Transaction tx = new Transaction();
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+		ids.add(tx.add(recordServices.newRecordWithSchema(anotherSchema.instance())).getId());
+
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			Object value;
+			if (i % 2 == 0) {
+				value = range(0, sizeOfMultivalues).mapToObj((j) -> ids.get(random.nextInt(ids.size()))).collect(toList());
+			} else {
+				value = ids.get(random.nextInt(ids.size()));
+			}
+			values.add(value);
+			record1.set(zeSchema.metadata("meta" + i), value);
+		}
+
+
+		tx.add(record1);
+
+
+		recordServices.execute(tx);
+
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+
+		for (int i = 0; i < createdMetadatas; i++) {
+			assertThat(dto1.get(zeSchema.metadata("meta" + i).getDataStoreCode())).describedAs("comparing meta" + i).isEqualTo(values.get(i));
+		}
+
+	}
+
 	@Test
 	public void whenStoringMetadatasInAByteArrayRecordDTOThenVerifyingTheEntries() throws Exception {
 		defineSchemasManager().using(setup
@@ -1187,7 +1753,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		setup.modify((MetadataSchemaTypesAlteration) types -> {
 			types.getSchema(anotherSchema.code())
 					.create("stringMetadata").setMultivalue(true).setEssentialInSummary(true)
-					.setType(MetadataValueType.STRING);
+					.setType(STRING);
 
 			types.getSchema(anotherSchema.code())
 					.create("booleanMetadata").setMultivalue(true).setEssentialInSummary(true)
@@ -1251,12 +1817,12 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6));
 
-		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
-		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
-		ByteArrayRecordDTO dto3 = ByteArrayRecordDTO.create(getModelLayerFactory(), record3.getRecordDTO());
-		ByteArrayRecordDTO dto4 = ByteArrayRecordDTO.create(getModelLayerFactory(), record4.getRecordDTO());
-		ByteArrayRecordDTO dto5 = ByteArrayRecordDTO.create(getModelLayerFactory(), record5.getRecordDTO());
-		ByteArrayRecordDTO dto6 = ByteArrayRecordDTO.create(getModelLayerFactory(), record6.getRecordDTO());
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = create(getModelLayerFactory(), record2.getRecordDTO());
+		ByteArrayRecordDTO dto3 = create(getModelLayerFactory(), record3.getRecordDTO());
+		ByteArrayRecordDTO dto4 = create(getModelLayerFactory(), record4.getRecordDTO());
+		ByteArrayRecordDTO dto5 = create(getModelLayerFactory(), record5.getRecordDTO());
+		ByteArrayRecordDTO dto6 = create(getModelLayerFactory(), record6.getRecordDTO());
 
 		assertThat(toMap(dto1.entrySet())).contains(entry(zeSchema.booleanMetadata().getDataStoreCode(), true),
 				entry(zeSchema.contentMetadata().getDataStoreCode(), record1.getRecordDTO().getFields().get(zeSchema.contentMetadata().getDataStoreCode())),
@@ -1409,7 +1975,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.integerMetadata(), null)
 				.set(zeSchema.numberMetadata(), null)
 				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record3.getId())
-				.set(Schemas.TITLE, "Maison Champignon ")
+				.set(Schemas.TITLE, "أريد أن أشرب الحليب")
 				.set(zeSchema.enumMetadata(), FolderStatus.INACTIVE_DESTROYED)
 				.set(zeSchema.largeTextMetadata(), null)
 				.set(zeSchema.contentMetadata(), content)
@@ -1471,14 +2037,14 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6, record7, record8));
 
-		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
-		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
-		ByteArrayRecordDTO dto3 = ByteArrayRecordDTO.create(getModelLayerFactory(), record3.getRecordDTO());
-		ByteArrayRecordDTO dto4 = ByteArrayRecordDTO.create(getModelLayerFactory(), record4.getRecordDTO());
-		ByteArrayRecordDTO dto5 = ByteArrayRecordDTO.create(getModelLayerFactory(), record5.getRecordDTO());
-		ByteArrayRecordDTO dto6 = ByteArrayRecordDTO.create(getModelLayerFactory(), record6.getRecordDTO());
-		ByteArrayRecordDTO dto7 = ByteArrayRecordDTO.create(getModelLayerFactory(), record7.getRecordDTO());
-		ByteArrayRecordDTO dto8 = ByteArrayRecordDTO.create(getModelLayerFactory(), record8.getRecordDTO());
+		ByteArrayRecordDTO dto1 = create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = create(getModelLayerFactory(), record2.getRecordDTO());
+		ByteArrayRecordDTO dto3 = create(getModelLayerFactory(), record3.getRecordDTO());
+		ByteArrayRecordDTO dto4 = create(getModelLayerFactory(), record4.getRecordDTO());
+		ByteArrayRecordDTO dto5 = create(getModelLayerFactory(), record5.getRecordDTO());
+		ByteArrayRecordDTO dto6 = create(getModelLayerFactory(), record6.getRecordDTO());
+		ByteArrayRecordDTO dto7 = create(getModelLayerFactory(), record7.getRecordDTO());
+		ByteArrayRecordDTO dto8 = create(getModelLayerFactory(), record8.getRecordDTO());
 
 		assertThat(dto1.containsKey(zeSchema.booleanMetadata().getDataStoreCode())).isTrue();
 		assertThat(dto1.containsKey(Schemas.TITLE.getDataStoreCode())).isTrue();
@@ -1609,8 +2175,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 			recordServices.execute(new Transaction(recordInt1, recordInt2));
 
-			ByteArrayRecordDTO dtoInt1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt1.getRecordDTO());
-			ByteArrayRecordDTO dtoInt2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt2.getRecordDTO());
+			ByteArrayRecordDTO dtoInt1 = create(getModelLayerFactory(), recordInt1.getRecordDTO());
+			ByteArrayRecordDTO dtoInt2 = create(getModelLayerFactory(), recordInt2.getRecordDTO());
 
 			assertThat(dtoInt1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(i);
 			assertThat(dtoInt2.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(i);
@@ -1624,8 +2190,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(recordInt1, recordInt2));
 
-		ByteArrayRecordDTO dtoInt1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt1.getRecordDTO());
-		ByteArrayRecordDTO dtoInt2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt2.getRecordDTO());
+		ByteArrayRecordDTO dtoInt1 = create(getModelLayerFactory(), recordInt1.getRecordDTO());
+		ByteArrayRecordDTO dtoInt2 = create(getModelLayerFactory(), recordInt2.getRecordDTO());
 
 		assertThat(dtoInt1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(Integer.MAX_VALUE);
 		assertThat(dtoInt2.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(Integer.MAX_VALUE);
@@ -1665,8 +2231,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 			recordServices.execute(new Transaction(recordInt1, recordInt2));
 
-			ByteArrayRecordDTO dtoInt1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt1.getRecordDTO());
-			ByteArrayRecordDTO dtoInt2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt2.getRecordDTO());
+			ByteArrayRecordDTO dtoInt1 = create(getModelLayerFactory(), recordInt1.getRecordDTO());
+			ByteArrayRecordDTO dtoInt2 = create(getModelLayerFactory(), recordInt2.getRecordDTO());
 
 			assertThat(dtoInt1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(asList(i, i + 5000, i + 10000));
 			assertThat(dtoInt2.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(asList(i, i + 5000, i + 10000));
@@ -1680,8 +2246,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(recordInt1, recordInt2));
 
-		ByteArrayRecordDTO dtoInt1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt1.getRecordDTO());
-		ByteArrayRecordDTO dtoInt2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt2.getRecordDTO());
+		ByteArrayRecordDTO dtoInt1 = create(getModelLayerFactory(), recordInt1.getRecordDTO());
+		ByteArrayRecordDTO dtoInt2 = create(getModelLayerFactory(), recordInt2.getRecordDTO());
 
 		assertThat(dtoInt1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(asList(Integer.MAX_VALUE - 2, Integer.MAX_VALUE - 1, Integer.MAX_VALUE));
 		assertThat(dtoInt2.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(asList(Integer.MAX_VALUE - 2, Integer.MAX_VALUE - 1, Integer.MAX_VALUE));
@@ -1720,8 +2286,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 			recordServices.execute(new Transaction(recordDouble1, recordDouble2));
 
-			ByteArrayRecordDTO dtoDouble1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble1.getRecordDTO());
-			ByteArrayRecordDTO dtoDouble2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble2.getRecordDTO());
+			ByteArrayRecordDTO dtoDouble1 = create(getModelLayerFactory(), recordDouble1.getRecordDTO());
+			ByteArrayRecordDTO dtoDouble2 = create(getModelLayerFactory(), recordDouble2.getRecordDTO());
 
 			assertThat(dtoDouble1.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(i);
 			assertThat(dtoDouble2.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(i);
@@ -1735,8 +2301,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(recordDouble1, recordDouble2));
 
-		ByteArrayRecordDTO dtoDouble1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble1.getRecordDTO());
-		ByteArrayRecordDTO dtoDouble2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble2.getRecordDTO());
+		ByteArrayRecordDTO dtoDouble1 = create(getModelLayerFactory(), recordDouble1.getRecordDTO());
+		ByteArrayRecordDTO dtoDouble2 = create(getModelLayerFactory(), recordDouble2.getRecordDTO());
 
 		assertThat(dtoDouble1.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(Double.MAX_VALUE);
 		assertThat(dtoDouble2.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(Double.MAX_VALUE);
@@ -1776,8 +2342,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 			recordServices.execute(new Transaction(recordDouble1, recordDouble2));
 
-			ByteArrayRecordDTO dtoDouble1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble1.getRecordDTO());
-			ByteArrayRecordDTO dtoDouble2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble2.getRecordDTO());
+			ByteArrayRecordDTO dtoDouble1 = create(getModelLayerFactory(), recordDouble1.getRecordDTO());
+			ByteArrayRecordDTO dtoDouble2 = create(getModelLayerFactory(), recordDouble2.getRecordDTO());
 
 			assertThat(dtoDouble1.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(asList(i, i + 11231, i + 221333));
 			assertThat(dtoDouble2.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(asList(i, i + 11231, i + 221333));
@@ -1791,8 +2357,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(new Transaction(recordDouble1, recordDouble2));
 
-		ByteArrayRecordDTO dtoDouble1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble1.getRecordDTO());
-		ByteArrayRecordDTO dtoDouble2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble2.getRecordDTO());
+		ByteArrayRecordDTO dtoDouble1 = create(getModelLayerFactory(), recordDouble1.getRecordDTO());
+		ByteArrayRecordDTO dtoDouble2 = create(getModelLayerFactory(), recordDouble2.getRecordDTO());
 
 		assertThat(dtoDouble1.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(asList(Double.MAX_VALUE - 2, Double.MAX_VALUE - 1, Double.MAX_VALUE));
 		assertThat(dtoDouble2.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(asList(Double.MAX_VALUE - 2, Double.MAX_VALUE - 1, Double.MAX_VALUE));
@@ -1825,8 +2391,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 			recordServices.execute(new Transaction(recordDate1, recordDate2));
 
-			ByteArrayRecordDTO dtoDouble1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDate1.getRecordDTO());
-			ByteArrayRecordDTO dtoDouble2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDate2.getRecordDTO());
+			ByteArrayRecordDTO dtoDouble1 = create(getModelLayerFactory(), recordDate1.getRecordDTO());
+			ByteArrayRecordDTO dtoDouble2 = create(getModelLayerFactory(), recordDate2.getRecordDTO());
 
 			assertThat(dtoDouble1.get(zeSchema.dateMetadata().getDataStoreCode())).isEqualTo(date);
 			assertThat(dtoDouble2.get(anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode())).isEqualTo(date);
@@ -1862,8 +2428,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 			recordServices.execute(new Transaction(recordDate1, recordDate2));
 
-			ByteArrayRecordDTO dtoDate1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDate1.getRecordDTO());
-			ByteArrayRecordDTO dtoDate2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDate2.getRecordDTO());
+			ByteArrayRecordDTO dtoDate1 = create(getModelLayerFactory(), recordDate1.getRecordDTO());
+			ByteArrayRecordDTO dtoDate2 = create(getModelLayerFactory(), recordDate2.getRecordDTO());
 
 			assertThat(dtoDate1.get(zeSchema.dateMetadata().getDataStoreCode())).isEqualTo(asList(date.plusDays(1), date.plusDays(2), date.plusDays(3)));
 			assertThat(dtoDate2.get(anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode())).isEqualTo(asList(date.plusDays(1), date.plusDays(2), date.plusDays(3)));
@@ -1899,8 +2465,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 			recordServices.execute(new Transaction(recordDateTime1, recordDateTime2));
 
-			ByteArrayRecordDTO dtoDateTime1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDateTime1.getRecordDTO());
-			ByteArrayRecordDTO dtoDateTime2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDateTime2.getRecordDTO());
+			ByteArrayRecordDTO dtoDateTime1 = create(getModelLayerFactory(), recordDateTime1.getRecordDTO());
+			ByteArrayRecordDTO dtoDateTime2 = create(getModelLayerFactory(), recordDateTime2.getRecordDTO());
 
 			assertThat(dtoDateTime1.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(dateTime);
 			assertThat(dtoDateTime2.get(anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode())).isEqualTo(dateTime);
@@ -1937,14 +2503,53 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 			recordServices.execute(new Transaction(recordDateTime1, recordDateTime2));
 
-			ByteArrayRecordDTO dtoDateTime1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDateTime1.getRecordDTO());
-			ByteArrayRecordDTO dtoDateTime2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDateTime2.getRecordDTO());
+			ByteArrayRecordDTO dtoDateTime1 = create(getModelLayerFactory(), recordDateTime1.getRecordDTO());
+			ByteArrayRecordDTO dtoDateTime2 = create(getModelLayerFactory(), recordDateTime2.getRecordDTO());
 
 			assertThat(dtoDateTime1.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(asList(dateTime, dateTime.plusDays(1), dateTime.plusDays(2)));
 			assertThat(dtoDateTime2.get(anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode())).isEqualTo(asList(dateTime, dateTime.plusDays(1), dateTime.plusDays(2)));
 
 			dateTime = dateTime.plusYears(10);
 		}
+	}
+
+	@Test
+	public void whenStoringDataUsingCompactShortThenOK()
+			throws Exception {
+		Toggle.DEBUG_DTOS.disable();
+		Metadata metadata = mock(Metadata.class);
+		for (short v = Short.MIN_VALUE; v < Short.MAX_VALUE; v++) {
+			DTOUtilsByteArrayDataOutputStream stream = new DTOUtilsByteArrayDataOutputStream(false, null);
+			stream.writeLong(metadata, 0L);
+			stream.writeCompactedShortFromByteArray_1_2_4(metadata, v);
+			stream.writeLong(metadata, 12L);
+			byte[] bytes = stream.toByteArray();
+			CompactedShort value = CacheRecordDTOUtils.parseCompactedShortFromByteArray_1_2_4(bytes, 8);
+			assertThat(value.value).isEqualTo(v);
+			assertThat(value.length).isEqualTo(bytes.length - 16);
+		}
+
+
+	}
+
+	@Test
+	public void whenStoringDataUsingCompactIntThenOK()
+			throws Exception {
+
+		Toggle.DEBUG_DTOS.disable();
+		Metadata metadata = mock(Metadata.class);
+		for (int v = -1; v < 5_000_000; v++) {
+			DTOUtilsByteArrayDataOutputStream stream = new DTOUtilsByteArrayDataOutputStream(false, null);
+			stream.writeLong(metadata, 0L);
+			stream.writeCompactedIntFromByteArray_2_4_8(metadata, v);
+			stream.writeLong(metadata, 12L);
+			byte[] bytes = stream.toByteArray();
+			CompactedInt value = CacheRecordDTOUtils.parseCompactedIntFromByteArray_2_4_8(bytes, 8);
+			assertThat(value.value).isEqualTo(v);
+			assertThat(value.length).describedAs("" + v).isEqualTo(bytes.length - 16);
+		}
+
+
 	}
 
 	private Map<String, Object> toMap(Set<Entry<String, Object>> dtoEntrySet) {
@@ -1955,5 +2560,55 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		}
 
 		return mapFromSet;
+	}
+
+	public static ByteArrayRecordDTO create(ModelLayerFactory modelLayerFactory, RecordDTO dto) {
+
+		if (dto.getLoadingMode() == RecordDTOMode.CUSTOM) {
+			throw new IllegalStateException("Cannot create ByteArrayRecordDTO from a customly loaded RecordDTO");
+		}
+
+		String collection = (String) dto.getFields().get("collection_s");
+		String schemaCode = (String) dto.getFields().get("schema_s");
+		short instanceId = modelLayerFactory.getInstanceId();
+		MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
+				.getSchemaType(SchemaUtils.getSchemaTypeCode(schemaCode));
+
+		MetadataSchemaProvider schemaProvider = modelLayerFactory.getMetadataSchemasManager();
+
+		MetadataSchema schema = type.getSchema(schemaCode);
+		CollectionInfo collectionInfo = schema.getCollectionInfo();
+
+		//TODO Handle Holder
+		CacheRecordDTOBytesArray bytesArray = convertDTOToByteArrays(dto, schema);
+
+		int intId = RecordUtils.toIntKey(dto.getId());
+
+		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
+			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
+				SummaryCacheSingletons.dataStore.get(instanceId).saveStringKey(dto.getId(), bytesArray.bytesToPersist);
+			} else {
+				//SummaryCacheSingletons.dataStore.removeStringKey(dto.getId());
+			}
+			return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
+					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
+					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory, RecordDTO.MAIN_SORT_UNDEFINED);
+		} else {
+			ByteArrayRecordDTO recordDTO = new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
+					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(),
+					type.getCode(), type.getId(), schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory, -1);
+			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
+				ByteArrayRecordDTOWithIntegerId byteArrayRecordDTO = new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
+						instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(),
+						type.getCode(), type.getId(), schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory, -1);
+				SummaryCacheSingletons.dataStore.get(instanceId).saveIntKeyPersistedAndMemoryData(intId, bytesArray.bytesToPersist, byteArrayRecordDTO);
+			} else {
+				//SummaryCacheSingletons.dataStore.removeIntKey(intId);
+			}
+			return new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
+					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(),
+					type.getCode(), type.getId(), schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory, RecordDTO.MAIN_SORT_UNDEFINED);
+		}
+
 	}
 }

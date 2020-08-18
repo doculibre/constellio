@@ -24,7 +24,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +44,7 @@ import static org.mockito.Mockito.when;
 /**
  * Created by Constellio on 2017-03-16.
  */
-@SlowTest
+// Confirm @SlowTest
 public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	SearchServices searchServices;

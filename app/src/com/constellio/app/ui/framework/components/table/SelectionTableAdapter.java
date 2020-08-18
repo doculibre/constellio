@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public abstract class SelectionTableAdapter extends VerticalLayout {
 
@@ -90,9 +91,16 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 				@Override
 				public Collection<?> getContainerPropertyIds() {
 					List<Object> propertyIds = new ArrayList<>(super.getContainerPropertyIds());
-					propertyIds.add(0, SELECT_PROPERTY_ID);
-					if (indexProperty) {
-						propertyIds.add(1, INDEX_PROPERTY_ID);
+					if (isRightToLeft()) {
+						if (indexProperty) {
+							propertyIds.add(INDEX_PROPERTY_ID);
+						}
+						propertyIds.add(SELECT_PROPERTY_ID);
+					} else {
+						propertyIds.add(0, SELECT_PROPERTY_ID);
+						if (indexProperty) {
+							propertyIds.add(1, INDEX_PROPERTY_ID);
+						}
 					}
 					return propertyIds;
 				}
@@ -169,9 +177,16 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 
 			if (!oldVisibleColumns.contains(SELECT_PROPERTY_ID)) {
 				List<Object> newVisibleColumns = new ArrayList<>(oldVisibleColumns);
-				newVisibleColumns.add(0, SELECT_PROPERTY_ID);
-				if (indexProperty && !newVisibleColumns.contains(INDEX_PROPERTY_ID)) {
-					newVisibleColumns.add(1, INDEX_PROPERTY_ID);
+				if (isRightToLeft()) {
+					if (indexProperty && !newVisibleColumns.contains(INDEX_PROPERTY_ID)) {
+						newVisibleColumns.add(INDEX_PROPERTY_ID);
+					}
+					newVisibleColumns.add(SELECT_PROPERTY_ID);
+				} else {
+					newVisibleColumns.add(0, SELECT_PROPERTY_ID);
+					if (indexProperty && !newVisibleColumns.contains(INDEX_PROPERTY_ID)) {
+						newVisibleColumns.add(1, INDEX_PROPERTY_ID);
+					}
 				}
 				table.setVisibleColumns(newVisibleColumns.toArray(new Object[0]));
 			}

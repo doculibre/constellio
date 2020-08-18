@@ -8,8 +8,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 public class IsNullCriterion extends LogicalSearchValueCondition {
 
 	public IsNullCriterion() {
@@ -53,13 +51,15 @@ public class IsNullCriterion extends LogicalSearchValueCondition {
 	@Override
 	public boolean testConditionOnField(Metadata metadata, TestedQueryRecord record) {
 
-		Object recordValue = CriteriaUtils.convertMetadataValue(metadata, record);
+		return !record.getRecord().getRecordDTO().getFields().containsKey(metadata.getDataStoreCode());
 
-		if (recordValue instanceof List) {
-			return ((List) recordValue).isEmpty();
-		} else {
-			return recordValue == null;
-		}
+		//		Object recordValue = CriteriaUtils.convertMetadataValue(metadata, record);
+		//
+		//		if (recordValue instanceof List) {
+		//			return ((List) recordValue).isEmpty();
+		//		} else {
+		//			return recordValue == null;
+		//		}
 
 	}
 

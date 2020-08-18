@@ -1261,6 +1261,8 @@ var PDFViewerApplication = {
   eventBus: null,
   pageRotation: 0,
   isInitialViewSet: false,
+  pdfAnnotationsManager: null,
+  signatureDataStore: null,
   viewerPrefs: {
     sidebarViewOnLoad: SidebarView.NONE,
     pdfBugEnabled: false,
@@ -1349,6 +1351,8 @@ var PDFViewerApplication = {
       self.viewerPrefs['disablePageLabels'] = value;
     }), Preferences.get('enablePrintAutoRotate').then(function resolved(value) {
       self.viewerPrefs['enablePrintAutoRotate'] = value;
+    }), Preferences.get('disableSignature').then(function resolved(value) {
+      self.viewerPrefs['disableSignature'] = value;
     })]).catch(function (reason) {});
   },
   _initializeViewerComponents: function () {
@@ -1366,6 +1370,7 @@ var PDFViewerApplication = {
       self.downloadManager = downloadManager;
       var container = appConfig.mainContainer;
       var viewer = appConfig.viewerContainer;
+      
       self.pdfViewer = new PDFViewer({
         container: container,
         viewer: viewer,
@@ -1376,7 +1381,8 @@ var PDFViewerApplication = {
         renderer: self.viewerPrefs['renderer'],
         enhanceTextSelection: self.viewerPrefs['enhanceTextSelection'],
         renderInteractiveForms: self.viewerPrefs['renderInteractiveForms'],
-        enablePrintAutoRotate: self.viewerPrefs['enablePrintAutoRotate']
+        enablePrintAutoRotate: self.viewerPrefs['enablePrintAutoRotate'],
+        disableSignature: self.viewerPrefs['disableSignature']
       });
       pdfRenderingQueue.setViewer(self.pdfViewer);
       pdfLinkService.setViewer(self.pdfViewer);
@@ -1983,6 +1989,10 @@ var PDFViewerApplication = {
     eventBus.on('presentationmode', webViewerPresentationMode);
     eventBus.on('openfile', webViewerOpenFile);
     eventBus.on('print', webViewerPrint);
+    eventBus.on('certify', webViewerCertify);
+    eventBus.on('sign', webViewerSign);
+    eventBus.on('signatureZone', webViewerSignatureZone);
+    eventBus.on('textZone', webViewerTextZone);
     eventBus.on('download', webViewerDownload);
     eventBus.on('firstpage', webViewerFirstPage);
     eventBus.on('lastpage', webViewerLastPage);
@@ -2082,6 +2092,50 @@ function webViewerInitialized() {
     fileInput.value = null;
   }
   var PDFJS = pdfjsLib.PDFJS;
+  if ('locale' in params) {
+	  PDFJS.locale = params.locale;
+	  mozL10n.setLanguage(PDFJS.locale);
+  }
+  if ('disablesignature' in params) {
+    appConfig.disableSignature = params.disablesignature === 'true';
+    if (appConfig.disableSignature) {
+        appConfig.toolbar.sign.classList.add('hidden');
+        appConfig.secondaryToolbar.signButton.classList.add('hidden');
+        
+        appConfig.toolbar.certify.classList.add('hidden');
+        appConfig.secondaryToolbar.certifyButton.classList.add('hidden');
+        
+        appConfig.toolbar.signatureZone.classList.add('hidden');
+        appConfig.secondaryToolbar.signatureZoneButton.classList.add('hidden');
+        
+        appConfig.toolbar.textZone.classList.add('hidden');
+        appConfig.secondaryToolbar.textZoneButton.classList.add('hidden');
+      }
+  }
+  if ('annotationsconfig' in params) {
+    var annotationsConfigUrl = decodeURIComponent(params.annotationsconfig);
+    if (annotationsConfigUrl) {
+      var createAnnotationsManager = function(customAnnotationsConfig) {
+          var signatureDataStore = new SignatureDataStore(customAnnotationsConfig);
+          PDFViewerApplication.signatureDataStore = signatureDataStore;
+          var signatureOptionsContainer = document.getElementById('signatureOptions'); 
+          PDFViewerApplication.pdfAnnotationsManager = new PDFAnnotationsManager(customAnnotationsConfig, signatureDataStore, signatureOptionsContainer, null);
+      };
+      $.ajax(annotationsConfigUrl)
+      .done(function(data, textStatus, jqXHR) {
+        var customAnnotationsConfig = JSON.parse(data);
+        createAnnotationsManager(customAnnotationsConfig);
+      })
+      .fail(function(jqXHR, textStatus, errorThrown) {
+        console.error("Error while trying to get pdf annotations config");
+        console.error(errorThrown);
+        createAnnotationsManager();
+      });  
+    } else {
+      createAnnotationsManager();
+    }
+  }
+  
   if (PDFViewerApplication.viewerPrefs['pdfBugEnabled']) {
     var hash = document.location.hash.substring(1);
     var hashParams = parseQueryString(hash);
@@ -2114,6 +2168,22 @@ function webViewerInitialized() {
     }
     if ('ignorecurrentpositiononzoom' in hashParams) {
       PDFJS.ignoreCurrentPositionOnZoom = hashParams['ignorecurrentpositiononzoom'] === 'true';
+    }
+    if ('disablesignature' in hashParams) {
+      appConfig.disableSignature = hashParams['disablesignature'] === 'true';
+      if (appConfig.disableSignature) {
+          appConfig.toolbar.sign.classList.add('hidden');
+          appConfig.secondaryToolbar.signButton.classList.add('hidden');
+          
+          appConfig.toolbar.certify.classList.add('hidden');
+          appConfig.secondaryToolbar.certifyButton.classList.add('hidden');
+        
+          appConfig.toolbar.signatureZone.classList.add('hidden');
+          appConfig.secondaryToolbar.signatureZoneButton.classList.add('hidden');
+          
+          appConfig.toolbar.textZone.classList.add('hidden');
+          appConfig.secondaryToolbar.textZoneButton.classList.add('hidden');
+        }
     }
     if ('locale' in hashParams) {
       PDFJS.locale = hashParams['locale'];
@@ -2332,6 +2402,28 @@ function webViewerOpenFile() {
 }
 function webViewerPrint() {
   window.print();
+}
+function webViewerCertify() {
+  var pdfAnnotationsManager = PDFViewerApplication.pdfAnnotationsManager;
+  pdfAnnotationsManager.certifyPDFSignatures();
+}
+function webViewerSign() {
+  var pdfAnnotationsManager = PDFViewerApplication.pdfAnnotationsManager;
+  var signatureOptionsElement = document.getElementById("signatureOptions");
+  if (signatureOptionsElement.classList.contains("hidden")) {
+    signatureOptionsElement.classList.remove("hidden");
+    pdfAnnotationsManager.openSignaturePicker();
+  } else {
+    signatureOptionsElement.classList.add("hidden");
+  }
+}
+function webViewerSignatureZone() {
+  var pdfAnnotationsManager = PDFViewerApplication.pdfAnnotationsManager;
+  pdfAnnotationsManager.defineSignHereAnnotation();
+}
+function webViewerTextZone() {
+  var pdfAnnotationsManager = PDFViewerApplication.pdfAnnotationsManager;
+  pdfAnnotationsManager.defineTextAnnotation();
 }
 function webViewerDownload() {
   PDFViewerApplication.download();
@@ -3082,7 +3174,7 @@ function getDefaultPreferences() {
       "sidebarViewOnLoad": 0,
       "enableHandToolOnLoad": false,
       "enableWebGL": false,
-      "pdfBugEnabled": false,
+      "pdfBugEnabled": false, 
       "disableRange": false,
       "disableStream": false,
       "disableAutoFetch": false,
@@ -3094,7 +3186,8 @@ function getDefaultPreferences() {
       "renderer": "canvas",
       "renderInteractiveForms": false,
       "enablePrintAutoRotate": false,
-      "disablePageLabels": false
+      "disablePageLabels": false,
+      "disableSignature": false
     });
   }
   return defaultPreferences;
@@ -4981,6 +5074,19 @@ var PDFPageView = function PDFPageViewClosure() {
       } else {
         div.appendChild(canvasWrapper);
       }
+
+      if (!this.disableSignature) {
+        var customAnnotationLayerDiv = document.createElement('div');
+        customAnnotationLayerDiv.className = 'customAnnotationLayer';
+        customAnnotationLayerDiv.style.width = canvasWrapper.style.width;
+        customAnnotationLayerDiv.style.height = canvasWrapper.style.height;
+        if (this.annotationLayer && this.annotationLayer.div) {
+          div.insertBefore(customAnnotationLayerDiv, this.annotationLayer.div);
+        } else {
+          div.appendChild(customAnnotationLayerDiv);
+        }
+      }
+
       var textLayerDiv = null;
       var textLayer = null;
       if (this.textLayerFactory) {
@@ -4996,6 +5102,7 @@ var PDFPageView = function PDFPageViewClosure() {
         textLayer = this.textLayerFactory.createTextLayerBuilder(textLayerDiv, this.id - 1, this.viewport, this.enhanceTextSelection);
       }
       this.textLayer = textLayer;
+
       var renderContinueCallback = null;
       if (this.renderingQueue) {
         renderContinueCallback = function renderContinueCallback(cont) {
@@ -5059,6 +5166,10 @@ var PDFPageView = function PDFPageViewClosure() {
           this.annotationLayer = this.annotationLayerFactory.createAnnotationLayerBuilder(div, pdfPage, this.renderInteractiveForms);
         }
         this.annotationLayer.render(this.viewport, 'display');
+      }
+      if (PDFViewerApplication.pdfAnnotationsManager) {
+        var pdfAnnotationsManager = PDFViewerApplication.pdfAnnotationsManager;
+        pdfAnnotationsManager.refreshDropZone(this.id);        
       }
       div.setAttribute('data-loaded', true);
       if (this.onBeforeDraw) {
@@ -6338,6 +6449,7 @@ var PDFViewer = function pdfViewer() {
     this.enhanceTextSelection = options.enhanceTextSelection || false;
     this.renderInteractiveForms = options.renderInteractiveForms || false;
     this.enablePrintAutoRotate = options.enablePrintAutoRotate || false;
+    this.disableSignature = options.disableSignature || false;
     this.renderer = options.renderer || RendererType.CANVAS;
     this.defaultRenderingQueue = !options.renderingQueue;
     if (this.defaultRenderingQueue) {
@@ -6989,6 +7101,22 @@ var SecondaryToolbar = function SecondaryToolbarClosure() {
       eventName: 'print',
       close: true
     }, {
+      element: options.certifyButton,
+      eventName: 'certify',
+      close: true
+    }, {
+      element: options.signButton,
+      eventName: 'sign',
+      close: true
+    }, {
+      element: options.signatureZoneButton,
+      eventName: 'signatureZone',
+      close: true
+    }, {
+      element: options.textZoneButton,
+      eventName: 'textZone',
+      close: true
+    }, {
       element: options.downloadButton,
       eventName: 'download',
       close: true
@@ -7506,6 +7634,18 @@ var Toolbar = function ToolbarClosure() {
       items.print.addEventListener('click', function (e) {
         eventBus.dispatch('print');
       });
+      items.certify.addEventListener('click', function (e) {
+        eventBus.dispatch('certify');
+      });
+      items.sign.addEventListener('click', function (e) {
+        eventBus.dispatch('sign');
+      });
+      items.signatureZone.addEventListener('click', function (e) {
+        eventBus.dispatch('signatureZone');
+      });
+      items.textZone.addEventListener('click', function (e) {
+        eventBus.dispatch('textZone');
+      });
       items.download.addEventListener('click', function (e) {
         eventBus.dispatch('download');
       });
@@ -7725,6 +7865,10 @@ function getViewerConfiguration() {
       viewFind: document.getElementById('viewFind'),
       openFile: document.getElementById('openFile'),
       print: document.getElementById('print'),
+      certify: document.getElementById('certify'),
+      sign: document.getElementById('sign'),
+      signatureZone: document.getElementById('signatureZone'),
+      textZone: document.getElementById('textZone'),
       presentationModeButton: document.getElementById('presentationMode'),
       download: document.getElementById('download'),
       viewBookmark: document.getElementById('viewBookmark')
@@ -7736,6 +7880,10 @@ function getViewerConfiguration() {
       presentationModeButton: document.getElementById('secondaryPresentationMode'),
       openFileButton: document.getElementById('secondaryOpenFile'),
       printButton: document.getElementById('secondaryPrint'),
+      certifyButton: document.getElementById('secondaryCertify'),
+      signButton: document.getElementById('secondarySign'),
+      signatureZoneButton: document.getElementById('secondarySignatureZone'),
+      textZoneButton: document.getElementById('secondaryTextZone'),
       downloadButton: document.getElementById('secondaryDownload'),
       viewBookmarkButton: document.getElementById('secondaryViewBookmark'),
       firstPageButton: document.getElementById('firstPage'),

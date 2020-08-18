@@ -24,7 +24,6 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
@@ -46,9 +45,6 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-/**
- * Created by Constelio on 2016-11-04.
- */
 public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 
 	Users users = new Users();
@@ -225,23 +221,6 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 		newMetadatas.removeAll(baseMetadatas);
 		assertThat(newMetadatas.size()).isEqualTo(1);
 		assertThat(newMetadatas.get(0).getCode()).isEqualTo("folder_default_" + Folder.BORROWED);
-	}
-
-	@Test
-	public void givenBatchProcessRequestedWithAccentThenProcessWithoutException() throws Exception {
-		when(advancedSearchView.getSchemaType()).thenReturn(Folder.SCHEMA_TYPE);
-		when(advancedSearchView.getSearchExpression()).thenReturn("Abèille");
-		presenter = new AdvancedSearchPresenter(advancedSearchView);
-		presenter.allSearchResultsButtonClicked();
-		presenter.forRequestParameters(null);
-		presenter.buildSearchCondition();
-		presenter.batchEditRequested("folder_default_description", "new description for givenBatchProcessRequestedWithAccentThenProcessWithoutException", Folder.SCHEMA_TYPE);
-		waitForBatchProcess();
-		assertThat(rmRecords.getFolder_A01().getDescription()).isEqualTo("new description for givenBatchProcessRequestedWithAccentThenProcessWithoutException");
-		assertThat(rmRecords.getFolder_A02().getDescription()).isNull();
-		assertThat(searchServices.getResultsCount(
-				LogicalSearchQueryOperators.fromAllSchemasIn(zeCollection).where(Schemas.DESCRIPTION_TEXT).isEqualTo("new description for givenBatchProcessRequestedWithAccentThenProcessWithoutException"))
-		).isEqualTo(1);
 	}
 
 	private void connectWithAlice() {

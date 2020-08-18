@@ -6,19 +6,24 @@ import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisp
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataModifiableParams;
 import com.constellio.app.api.extensions.DocumentViewButtonExtension;
 import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
+import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention;
+import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention.ExtraTabInfo;
 import com.constellio.app.api.extensions.FieldBindingExtention;
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
 import com.constellio.app.api.extensions.LabelTemplateExtension;
 import com.constellio.app.api.extensions.ListSchemaExtention;
 import com.constellio.app.api.extensions.MetadataDisplayCustomValueExtention;
 import com.constellio.app.api.extensions.MetadataFieldExtension;
+import com.constellio.app.api.extensions.MetadataFieldFactoryExtension;
 import com.constellio.app.api.extensions.PageExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
+import com.constellio.app.api.extensions.RecordAuthorisationPageExtension;
 import com.constellio.app.api.extensions.RecordDisplayFactoryExtension;
 import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.api.extensions.RecordSecurityExtension;
 import com.constellio.app.api.extensions.RecordTextInputDataProviderExtension;
+import com.constellio.app.api.extensions.ReportTemplateExtension;
 import com.constellio.app.api.extensions.SIPExtension;
 import com.constellio.app.api.extensions.SchemaTypesPageExtension;
 import com.constellio.app.api.extensions.SearchCriterionExtension;
@@ -29,6 +34,7 @@ import com.constellio.app.api.extensions.TaxonomyPageExtension;
 import com.constellio.app.api.extensions.XmlGeneratorExtension;
 import com.constellio.app.api.extensions.params.AddComponentToSearchResultParams;
 import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
+import com.constellio.app.api.extensions.params.AddFieldsInReportXMLParams;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.params.CanConsultTaxonomyParams;
 import com.constellio.app.api.extensions.params.CanManageTaxonomyParams;
@@ -38,17 +44,22 @@ import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitEx
 import com.constellio.app.api.extensions.params.DocumentViewButtonExtensionParam;
 import com.constellio.app.api.extensions.params.ExportCollectionInfosSIPIsTaxonomySupportedParams;
 import com.constellio.app.api.extensions.params.ExtraMetadataToGenerateOnReferenceParams;
+import com.constellio.app.api.extensions.params.ExtraTabForSimpleSearchResultParams;
 import com.constellio.app.api.extensions.params.FieldBindingExtentionParam;
 import com.constellio.app.api.extensions.params.FilterCapsuleParam;
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
 import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
 import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
+import com.constellio.app.api.extensions.params.IsMetadataExportedParams;
+import com.constellio.app.api.extensions.params.IsRecordExportableParams;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandParams;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
 import com.constellio.app.api.extensions.params.MetadataDisplayCustomValueExtentionParams;
 import com.constellio.app.api.extensions.params.MetadataFieldExtensionParams;
+import com.constellio.app.api.extensions.params.MetadataFieldFactoryBuildExtensionParams;
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
+import com.constellio.app.api.extensions.params.RecordAuthorisationPageExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryPostBuildExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
@@ -66,6 +77,8 @@ import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.api.extensions.taxonomies.ValidateTaxonomyDeletableParams;
+import com.constellio.app.extensions.api.SchemaMetadataExtension;
+import com.constellio.app.extensions.api.SchemaMetadataExtension.SchemaMetadataExtensionParams;
 import com.constellio.app.extensions.api.SchemaRecordExtention;
 import com.constellio.app.extensions.api.SchemaRecordExtention.SchemaRecordExtensionActionPossibleParams;
 import com.constellio.app.extensions.api.UserDocumentExtension;
@@ -78,7 +91,6 @@ import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstell
 import com.constellio.app.extensions.api.cmis.params.BuildConstellioRecordFromCmisObjectParams;
 import com.constellio.app.extensions.api.cmis.params.CheckInParams;
 import com.constellio.app.extensions.api.cmis.params.CheckOutParams;
-import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
 import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
 import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
 import com.constellio.app.extensions.menu.MenuItemActionsExtension;
@@ -97,6 +109,8 @@ import com.constellio.app.extensions.sequence.CollectionSequenceExtension;
 import com.constellio.app.extensions.treenode.TreeNodeExtension;
 import com.constellio.app.extensions.ui.TabSheetInDisplayAndFormExtention;
 import com.constellio.app.extensions.ui.TabSheetInDisplayAndFormExtention.TabSheetInDisplayAndFormExtentionParams;
+import com.constellio.app.extensions.ui.ViewableRecordVOTablePanelExtension;
+import com.constellio.app.extensions.ui.ViewableRecordVOTablePanelExtension.ViewableRecordVOTablePanelExtensionParams;
 import com.constellio.app.modules.rm.extensions.params.RMSchemaTypesPageExtensionExclusionByPropertyParams;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -104,7 +118,7 @@ import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
-import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
+import com.constellio.app.ui.framework.components.fields.ExtraTabAdditionalRecordField;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -182,6 +196,8 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<MetadataFieldFactoryExtension> metadataFieldFactoryExtensions = new VaultBehaviorsList<>();
+
 	public VaultBehaviorsList<RecordDisplayFactoryExtension> recordDisplayFactoryExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<CollectionSequenceExtension> collectionSequenceExtensions = new VaultBehaviorsList<>();
@@ -191,6 +207,8 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<RecordExportExtension> recordExportExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<LabelTemplateExtension> labelTemplateExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<ReportTemplateExtension> reportTemplateExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<DocumentViewButtonExtension> documentViewButtonExtension = new VaultBehaviorsList<>();
 
@@ -222,6 +240,13 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<TabSheetInDisplayAndFormExtention> tabSheetCaptionToHide = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<SchemaMetadataExtension> schemaMetadataExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<ExtraTabForSimpleSearchResultExtention> extraTabsForSimpleSearchResultExtentions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<ViewableRecordVOTablePanelExtension> viewableRecordVOTablePanelExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<RecordAuthorisationPageExtension> recordAuthorisationPageExtensions = new VaultBehaviorsList<>();
 
 	//Key : schema type code
 	//Values : record's code
@@ -236,6 +261,15 @@ public class AppLayerCollectionExtensions {
 	}
 
 	//----------------- Callers ---------------
+
+	public boolean isRecordAuthorisationPageAccessible(User user, Record record) {
+		return ExtensionUtils.getBooleanValue(recordAuthorisationPageExtensions, false, new BooleanCaller<RecordAuthorisationPageExtension>() {
+			@Override
+			public ExtensionBooleanResult call(RecordAuthorisationPageExtension behavior) {
+				return behavior.isAuthorisationPageAvalibleForUser(new RecordAuthorisationPageExtensionParams(record, user));
+			}
+		});
+	}
 
 	public List<AvailableSequence> getAvailableSequencesForRecord(Record record) {
 
@@ -252,6 +286,7 @@ public class AppLayerCollectionExtensions {
 		return availableSequences;
 	}
 
+
 	public void onWriteRecord(OnWriteRecordParams params) {
 		for (RecordExportExtension recordExportExtension : recordExportExtensions) {
 			recordExportExtension.onWriteRecord(params);
@@ -263,6 +298,16 @@ public class AppLayerCollectionExtensions {
 		for (XmlGeneratorExtension xmlGeneratorExtension1 : xmlGeneratorExtensions) {
 			xmlGeneratorExtension1.getExtraMetadataToGenerateOnReference(extraMetadataToGenerateOnReferenceParams);
 		}
+	}
+
+	public List<ExtraTabInfo> getExtraTabForSimpleSearchResult(ExtraTabForSimpleSearchResultParams params) {
+		List<ExtraTabInfo> extraTabInfoList = new ArrayList<>();
+
+		for (ExtraTabForSimpleSearchResultExtention extraTabForSimpleSearchResultExtention : extraTabsForSimpleSearchResultExtentions) {
+			extraTabInfoList.addAll(extraTabForSimpleSearchResultExtention.getExtraTabs(params));
+		}
+
+		return extraTabInfoList;
 	}
 
 	public Map<String, Object> convertStructureToMap(ConvertStructureToMapParams params) {
@@ -296,6 +341,16 @@ public class AppLayerCollectionExtensions {
 			String icon = recordAppExtension.getIconPathForRecordVO(params);
 			if (icon != null) {
 				return icon;
+			}
+		}
+		return null;
+	}
+
+	public Resource getThumbnailResourceForRecordVO(GetIconPathParams params) {
+		for (RecordAppExtension recordAppExtension : recordAppExtensions) {
+			Resource thumbnailResource = recordAppExtension.getThumbnailResourceForRecordVO(params);
+			if (thumbnailResource != null) {
+				return thumbnailResource;
 			}
 		}
 		return null;
@@ -377,12 +432,6 @@ public class AppLayerCollectionExtensions {
 	public void onCheckOut(CheckOutParams params) {
 		for (CmisExtension extension : cmisExtensions) {
 			extension.onCheckOut(params);
-		}
-	}
-
-	public void onDeleteTree(DeleteTreeParams params) {
-		for (CmisExtension extension : cmisExtensions) {
-			extension.onDeleteTree(params);
 		}
 	}
 
@@ -756,6 +805,12 @@ public class AppLayerCollectionExtensions {
 		return dynamicFieldMetadatas;
 	}
 
+	public void addFieldsInReportXML(AddFieldsInReportXMLParams params) {
+		for (ReportTemplateExtension extension : reportTemplateExtensions) {
+			extension.addFieldsInReportXML(params);
+		}
+	}
+
 	public void addFieldsInLabelXML(AddFieldsInLabelXMLParams params) {
 		for (LabelTemplateExtension extension : labelTemplateExtensions) {
 			extension.addFieldsInLabelXML(params);
@@ -809,7 +864,8 @@ public class AppLayerCollectionExtensions {
 				return component;
 			}
 		}
-		return new MetadataFieldFactory().build(metadataFieldExtensionParams.getMetadataVO());
+		RecordVO recordVO = metadataFieldExtensionParams.getRecordVO();
+		return new MetadataFieldFactory().build(metadataFieldExtensionParams.getMetadataVO(), recordVO != null ? recordVO.getId() : null);
 	}
 
 	public Object getMetadataDisplayCustomValueExtention(
@@ -828,7 +884,7 @@ public class AppLayerCollectionExtensions {
 	public Field<?> getFieldForMetadata() {
 		for (MetadataFieldExtension extension : workflowExecutionFieldExtensions) {
 			Field<?> component = extension.getMetadataField(null);
-				return component;
+			return component;
 		}
 		return null;
 	}
@@ -863,8 +919,10 @@ public class AppLayerCollectionExtensions {
 				unwantedTaxonomies.addAll(unwantedTaxonomiesFromExtension);
 			}
 		}
-        return new ArrayList<>(unwantedTaxonomies);
-    }public LogicalSearchCondition adjustSearchPageCondition(SearchPageConditionParam param) {
+		return new ArrayList<>(unwantedTaxonomies);
+	}
+
+	public LogicalSearchCondition adjustSearchPageCondition(SearchPageConditionParam param) {
 		LogicalSearchCondition condition = param.getCondition();
 		for (SearchPageExtension extension : searchPageExtensions) {
 			condition = extension.adjustSearchPageCondition(
@@ -904,13 +962,13 @@ public class AppLayerCollectionExtensions {
 		return false;
 	}
 
-	public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
-		List<AdditionnalRecordField> additionnalFields = new ArrayList<>();
+	public List<ExtraTabAdditionalRecordField> getExtraTabAdditionalRecordFields(RecordFieldsExtensionParams params) {
+		List<ExtraTabAdditionalRecordField> extraTabAdditionalRecordField = new ArrayList<>();
 		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
-			additionnalFields.addAll(extension.getAdditionnalFields(params));
+			extraTabAdditionalRecordField.addAll(extension.getExtraTabAdditionalRecordFields(params));
 		}
-		return additionnalFields;
-    }
+		return extraTabAdditionalRecordField;
+	}
 
 	public void fieldBindingExtentions(FieldBindingExtentionParam fieldBindingExtentionParam) {
 		for (FieldBindingExtention fieldBindingExtention : fieldBindingExtentions) {
@@ -926,10 +984,41 @@ public class AppLayerCollectionExtensions {
 			}
 		});
 	}
+
+	public boolean isSchemaTypeExportable(final MetadataSchemaType schemaType, final String collection) {
+		return recordExportExtensions.getBooleanValue(true, new BooleanCaller<RecordExportExtension>() {
+			@Override
+			public ExtensionBooleanResult call(RecordExportExtension extension) {
+				return extension.isExportable(new IsRecordExportableParams(schemaType));
+			}
+		});
+	}
+
+
+	public boolean isMetadataExportForced(final Metadata metadata) {
+		return recordExportExtensions.getBooleanValue(true, new BooleanCaller<RecordExportExtension>() {
+			@Override
+			public ExtensionBooleanResult call(RecordExportExtension extension) {
+				return extension.isMetadataExportForced(new IsMetadataExportedParams(metadata));
+			}
+		});
+	}
+
 	public void postRecordFieldFactoryBuild(RecordFieldFactoryPostBuildExtensionParams params) {
 		for (RecordFieldFactoryExtension extension : recordFieldFactoryExtensions) {
 			extension.postBuild(params);
 		}
+	}
+
+	public Field<?> metadataFieldFactoryBuild(MetadataFieldFactoryBuildExtensionParams params) {
+		for (MetadataFieldFactoryExtension extension : metadataFieldFactoryExtensions) {
+			Field<?> field = extension.build(params);
+			if (field != null) {
+				return field;
+			}
+		}
+
+		return null;
 	}
 
 	public void orderListOfElements(Record[] recordElements) {
@@ -965,6 +1054,20 @@ public class AppLayerCollectionExtensions {
 						new SchemaRecordExtensionActionPossibleParams(record, user)));
 	}
 
+	public void metadataSavedFromView(Metadata metadata, User user) {
+		SchemaMetadataExtensionParams params = new SchemaMetadataExtensionParams(metadata, user);
+		for (SchemaMetadataExtension extension : schemaMetadataExtensions) {
+			extension.metadataSavedFromView(params);
+		}
+	}
+
+	public void metadataDeletedFromView(Metadata metadata, User user) {
+		SchemaMetadataExtensionParams params = new SchemaMetadataExtensionParams(metadata, user);
+		for (SchemaMetadataExtension extension : schemaMetadataExtensions) {
+			extension.metadataDeletedFromView(params);
+		}
+	}
+
 	public boolean isClassifyActionPossibleOnUserDocument(final UserDocument userDocument, User user) {
 		return userDocumentExtensions.getBooleanValue(true, (behavior) -> behavior.isFileActionPossible(new UserDocumentExtensionActionPossibleParams(userDocument, user)));
 	}
@@ -981,5 +1084,40 @@ public class AppLayerCollectionExtensions {
 		}
 
 		return actionTabToIgnore;
+	}
+
+	public Boolean isDisplayInWindowOnSelection(ViewableRecordVOTablePanelExtensionParams params) {
+		Boolean displayInWindowOnSelection = null;
+		for (ViewableRecordVOTablePanelExtension extension : viewableRecordVOTablePanelExtensions) {
+			displayInWindowOnSelection = extension.isDisplayInWindowOnSelection(params);
+		}
+		return displayInWindowOnSelection;
+	}
+
+	public Boolean isViewerSelectionPossible(ViewableRecordVOTablePanelExtensionParams params) {
+		Boolean viewerSelectionPossible = null;
+		for (ViewableRecordVOTablePanelExtension extension : viewableRecordVOTablePanelExtensions) {
+			viewerSelectionPossible = extension.isViewerSelectionPossible(params);
+		}
+		return viewerSelectionPossible;
+	}
+
+	public boolean navigateFromViewerToRecordVO(
+			ViewableRecordVOTablePanelExtensionParams params) {
+		boolean navigationHandledByExtension = false;
+		for (ViewableRecordVOTablePanelExtension extension : viewableRecordVOTablePanelExtensions) {
+			navigationHandledByExtension = extension.navigateFromViewerToRecordVO(params);
+			if (navigationHandledByExtension) {
+				break;
+			}
+		}
+		return navigationHandledByExtension;
+	}
+
+
+	public boolean isSequencesActionPossibleOnSchemaRecord(Record record, User user) {
+		return schemaRecordExtentions.getBooleanValue(true,
+				(behavior) -> behavior.isSequencesActionPossible(
+						new SchemaRecordExtensionActionPossibleParams(record, user)));
 	}
 }

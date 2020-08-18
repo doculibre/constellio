@@ -1,15 +1,20 @@
 package com.constellio.sdk.tests;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.dev.Toggle.AvailableToggle;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.sdk.tests.annotations.PreserveState;
+import com.constellio.sdk.tests.setups.SchemaShortcuts;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.junit.After;
@@ -40,7 +45,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 
 	@Override
 	public void afterTest(boolean failed) {
-		testSession.close(false, failed);
+		testSession.close(false, failed, false);
 	}
 
 	private static ConstellioTest currentInstance;
@@ -50,6 +55,15 @@ public class ConstellioTest extends AbstractConstellioTest {
 	@Before
 	public void beforeConstellioTest() {
 		System.out.println("Allocated memory before test : " + OffHeapMemoryAllocator.getAllocatedMemory() + " bytes");
+		System.out.println("Allocated memory before test - OffHeapByteArrayList_ID : " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.OffHeapByteArrayList_ID));
+		System.out.println("Allocated memory before test - OffHeapByteList_ID: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.OffHeapByteList_ID));
+		System.out.println("Allocated memory before test - OffHeapIntList_ID: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.OffHeapIntList_ID));
+		System.out.println("Allocated memory before test - OffHeapLongList_ID: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.OffHeapLongList_ID));
+		System.out.println("Allocated memory before test - OffHeapShortList_ID: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.OffHeapShortList_ID));
+		System.out.println("Allocated memory before test - SortedIntIdsList_ID: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.SortedIntIdsList_ID));
+		System.out.println("Allocated memory before test - SDK: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.SDK));
+		System.out.println("Allocated memory before test - OffHeapByteArrayListArea_ID: " + OffHeapMemoryAllocator.getAllocatedMemory(OffHeapMemoryAllocator.OffHeapByteArrayListArea_ID));
+
 		MockitoAnnotations.initMocks(this);
 		cacheIntegrityCheckedAfterTest = true;
 
@@ -60,22 +74,34 @@ public class ConstellioTest extends AbstractConstellioTest {
 		///Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.enable();
 		Toggle.USE_FILESYSTEM_DB_FOR_LARGE_METADATAS_CACHE.disable();
 		if (SystemUtils.IS_OS_WINDOWS) {
-			Toggle.USE_MMAP_WITHMAP_DB.disable();
+			Toggle.USE_MMAP_WITHMAP_DB_FOR_RUNTIME.disable();
+			Toggle.USE_MMAP_WITHMAP_DB_FOR_LOADING.disable();
 		}
 		Toggle.ROLES_WITH_NEW_7_2_PERMISSIONS.enable();
-
+		Toggle.STRUCTURE_CACHE_BASED_ON_EXISTING_IDS.disable();
 		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 		if (!isKeepingPreviousState() && testSession.getFactoriesTestFeatures() != null && IS_FIRST_EXECUTED_TEST) {
 
 			//			testSession.getFactoriesTestFeatures().clear();
+			SDKConstellioFactoriesInstanceProvider.firstTest = true;
 			try {
-				SDKConstellioFactoriesInstanceProvider.firstTest = true;
 				testSession.getFactoriesTestFeatures().getConstellioFactories();
-			} catch (Exception e) {
-
+			} catch (Exception ignored) {
 			}
 
-			testSession.close(true, false);
+			testSession.getFactoriesTestFeatures().addTenants();
+			testSession.getFactoriesTestFeatures().getTenants().forEach(tenant -> {
+				try {
+					TenantUtils.setTenant(String.valueOf(tenant.getId()));
+					testSession.getFactoriesTestFeatures().getConstellioFactories().getDataLayerFactory().getSolrServers();
+				} catch (Exception ignored) {
+				} finally {
+					TenantUtils.setTenant(null);
+				}
+			});
+			testSession.getFactoriesTestFeatures().clearTenants();
+
+			testSession.close(true, false, false);
 			ReindexingServices.markReindexingHasFinished();
 
 			System.out.print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
@@ -103,19 +129,42 @@ public class ConstellioTest extends AbstractConstellioTest {
 		currentInstance = this;
 	}
 
+	protected void execute(Transaction tx) throws RecordServicesException {
+		getModelLayerFactory().newRecordServices().execute(tx);
+	}
+
+	protected Record newRecord(SchemaShortcuts schemaShortcuts) {
+		return getModelLayerFactory().newRecordServices().newRecordWithSchema(schemaShortcuts.instance());
+	}
+
+
+	protected Record newRecord(SchemaShortcuts schemaShortcuts, String id) {
+		return getModelLayerFactory().newRecordServices().newRecordWithSchema(schemaShortcuts.instance(), id);
+	}
+
+
+	protected Record newRecord(MetadataSchema schema) {
+		return getModelLayerFactory().newRecordServices().newRecordWithSchema(schema);
+	}
+
+
+	protected Record newRecord(MetadataSchema schema, String id) {
+		return getModelLayerFactory().newRecordServices().newRecordWithSchema(schema, id);
+	}
+
 	public static ConstellioTest getInstance() {
 		return currentInstance;
 	}
 
 	public void resetTestSession() {
-		testSession.close(true, false);
+		testSession.close(true, false, false);
 
 		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 	}
 
 	protected void clearTestSession() {
 		if (!isPreservingState()) {
-			testSession.close(false, false);
+			testSession.close(false, false, false);
 			testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 		}
 	}
@@ -191,8 +240,9 @@ public class ConstellioTest extends AbstractConstellioTest {
 	@After
 	public void checkCacheAfterTest() throws Exception {
 
-		if (!failureDetectionTestWatcher.isFailed() && isUnitTestStatic() && ConstellioFactories.isInitialized()
-			&& cacheIntegrityCheckedAfterTest && Toggle.SDK_CACHE_INTEGRITY_VALIDATION.isEnabled()) {
+		if (!failureDetectionTestWatcher.isFailed() && isUnitTestStatic() &&
+			Toggle.SDK_CACHE_INTEGRITY_VALIDATION.isEnabled() && ConstellioFactories.isInitialized() &&
+			cacheIntegrityCheckedAfterTest) {
 
 			ConstellioFactories.getInstance().getDataLayerFactory()
 					.getDataLayerLogger().setPrintAllQueriesLongerThanMS(10000);
@@ -210,7 +260,11 @@ public class ConstellioTest extends AbstractConstellioTest {
 				setFailMessage("Cache problems : \n" + StringUtils.join(messages, "\n"));
 			}
 		}
+	}
 
+	public void restartLayers() {
+		getCurrentTestSession().closeForRestarting();
+		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 	}
 
 	private ValidationErrors checkCacheAndReturnErrors(boolean waitForBatchProcesses, boolean runTwice) {

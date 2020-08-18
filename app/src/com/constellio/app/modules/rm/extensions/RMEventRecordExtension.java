@@ -58,7 +58,7 @@ public class RMEventRecordExtension extends RecordExtension {
 					DecommissioningList decommissioningList = rm.getDecommissioningList(wrappedEvent.getRecordId());
 
 					AdministrativeUnit administrativeUnit = rmSchema.getAdministrativeUnit(decommissioningList.getAdministrativeUnit());
-					wrappedEvent.setEventPrincipalPath(administrativeUnit.getPaths().get(0) + wrappedEvent.getPaths().get(0));
+					wrappedEvent.setEventPrincipalPath(administrativeUnit.getPaths().get(0) + "/" + event.getRecord());
 				} catch (Exception e) {
 					// When event are created before the DecommissioningList.
 					LOGGER.warn("recordInCreationBeforeSave, When event are created before the DecommissioningList, Should not happen in production only in unit testing.");

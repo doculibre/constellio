@@ -1,5 +1,7 @@
 package com.constellio.app.ui.pages.search;
 
+import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention.ExtraTabInfo;
+import com.constellio.app.api.extensions.params.ExtraTabForSimpleSearchResultParams;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
@@ -33,10 +35,13 @@ import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.enums.TableMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -50,6 +55,10 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.event.dd.DragAndDropEvent;
+import com.vaadin.event.dd.DropHandler;
+import com.vaadin.event.dd.acceptcriteria.AcceptAll;
+import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.lazyloadwrapper.LazyLoadWrapper;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
@@ -71,6 +80,10 @@ import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
+import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
+import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.TextField;
@@ -93,7 +106,7 @@ import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
-public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView, BrowserWindowResizeListener {
+public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView, DropHandler, BrowserWindowResizeListener {
 
 	public static final String FACET_BOX_STYLE = "facet-box";
 	public static final String FACET_TITLE_STYLE = "facet-title";
@@ -118,14 +131,18 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private VerticalLayout capsuleArea;
 
 	private SearchResultTable resultsTable;
+	private DropHandler dropHandler;
 	private SelectDeselectAllButton selectDeselectAllButton;
 	private Button addToSelectionButton;
 	private HashMap<Integer, Boolean> hashMapAllSelection = new HashMap<>();
 	private List<SaveSearchListener> saveSearchListenerList = new ArrayList<>();
 	private Map<String, String> extraParameters = null;
 	private boolean lazyLoadedSearchResults;
+	private boolean applyButtonEnabled;
 	private List<SelectionChangeListener> selectionChangeListenerStorage = new ArrayList<>();
 	private boolean facetsOpened;
+	private TabSheet resultTabSheet;
+	private boolean hideFacette;
 
 	@Override
 	public void attach() {
@@ -157,6 +174,16 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		presenter.resetFacetSelection();
 		presenter.forRequestParameters(event.getParameters());
+	}
+
+	@Override
+	public void drop(DragAndDropEvent event) {
+		dropHandler.drop(event);
+	}
+
+	@Override
+	public AcceptCriterion getAcceptCriterion() {
+		return AcceptAll.get();
 	}
 
 	@Override
@@ -277,7 +304,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	@Override
 	public void setSearchExpression(String expression) {
-		ConstellioUI.getCurrent().getHeader().setSearchExpression(expression);
+		getHeader().setSearchExpression(expression);
+	}
+
+	protected ConstellioHeader getHeader() {
+		return ConstellioUI.getCurrent().getHeader();
 	}
 
 	public void refreshSearchResultsAndFacets(boolean temporarySave) {
@@ -333,13 +364,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			((SearchResultDetailedTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		}*/
 
+
 		boolean detailedView = isDetailedView();
-		resultsArea.removeAllComponents();
-		if (lazyLoadedSearchResults) {
-			resultsArea.addComponent(new LazyLoadWrapper(resultsTable));
-		} else {
-			resultsArea.addComponent(resultsTable);
-		}
+		createResultArea();
+
 		if (detailedView) {
 			((ViewableRecordVOSearchResultTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		}
@@ -349,9 +377,64 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return dataProvider;
 	}
 
+	protected boolean getExtraTab() {
+		return false;
+	}
+
+	private void createResultArea() {
+		List<ExtraTabInfo> extraTabInfoList = null;
+
+		if (getExtraTab()) {
+			extraTabInfoList = getConstellioFactories().getAppLayerFactory().getExtensions()
+					.forCollection(getCollection()).getExtraTabForSimpleSearchResult(new ExtraTabForSimpleSearchResultParams(presenter.getUserSearchExpression()));
+		}
+		resultsArea.removeAllComponents();
+		if (extraTabInfoList == null || extraTabInfoList.isEmpty()) {
+			if (lazyLoadedSearchResults) {
+				resultsArea.addComponent(new LazyLoadWrapper(resultsTable));
+			} else {
+				resultsArea.addComponent(resultsTable);
+			}
+		} else {
+			resultTabSheet = new TabSheet();
+			Tab constellioTab;
+
+			if (lazyLoadedSearchResults) {
+				constellioTab = resultTabSheet.addTab(new LazyLoadWrapper(resultsTable), $("SearchView.constellioResultTab"));
+			} else {
+				constellioTab = resultTabSheet.addTab(resultsTable, $("SearchView.constellioResultTab"));
+			}
+
+			for (ExtraTabInfo currentExtraTab : extraTabInfoList) {
+				resultTabSheet.addTab(currentExtraTab.getTabComponent(), currentExtraTab.getTabCaption());
+			}
+
+			resultTabSheet.addSelectedTabChangeListener(new SelectedTabChangeListener() {
+				@Override
+				public void selectedTabChange(SelectedTabChangeEvent event) {
+					Component currentTab = event.getTabSheet().getSelectedTab();
+					hideFacette = currentTab != constellioTab.getComponent();
+					facetsSliderPanel.setVisible(!hideFacette);
+
+					if (currentTab instanceof BaseViewImpl) {
+						((BaseViewImpl) currentTab).enter(null);
+					}
+
+				}
+			});
+
+			resultsArea.addComponent(resultTabSheet);
+		}
+	}
+
 	@Override
 	public void setLazyLoadedSearchResults(boolean lazyLoadedSearchResults) {
 		this.lazyLoadedSearchResults = lazyLoadedSearchResults;
+	}
+
+	@Override
+	public void setApplyMultipleFacets(boolean applyButtonEnabled) {
+		this.applyButtonEnabled = applyButtonEnabled;
 	}
 
 	private boolean isDetailedView() {
@@ -370,7 +453,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			facetsSliderPanel.setHeightUndefined();
 		}
 		presenter.setPageNumber(1);
-		facetsSliderPanel.setVisible(dataProvider.size() > 0 || !facetSelections.isEmpty());
+		facetsSliderPanel.setVisible(!hideFacette && (dataProvider.size() > 0 || !facetSelections.isEmpty()));
 	}
 
 	@Override
@@ -414,7 +497,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		//		resultsArea.setWidth("100%");
 		resultsArea.setSpacing(true);
 
-		facetsArea = new FacetsPanel() {
+		facetsArea = new FacetsPanel(applyButtonEnabled) {
 			@Override
 			protected void sortCriterionSelected(String sortCriterion, SortOrder sortOrder) {
 				presenter.sortCriterionSelected(sortCriterion, sortOrder);
@@ -428,6 +511,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			@Override
 			protected void facetValueSelected(String facetId, String value) {
 				presenter.facetValueSelected(facetId, value);
+			}
+
+			@Override
+			protected void facetValuesChanged(KeySetMap<String, String> facets) {
+				presenter.facetValuesChanged(facets);
 			}
 
 			@Override
@@ -468,7 +556,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 		});
 		facetsSliderPanel.setHeight("800px");
-		facetsSliderPanel.setVisible(true);
+		facetsSliderPanel.setVisible(!hideFacette);
+		facetsSliderPanel.setImmediate(true);
 
 		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsSliderPanel);
 		body.addStyleName("search-result-and-facets-container");
@@ -531,19 +620,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser(), extraParameters);
 
-		final boolean indexVisible = presenter.isShowNumberingColumn(dataProvider);
-		ViewableRecordVOSearchResultTable.TableMode tableMode;
+		TableMode tableMode;
 		if (this.resultsTable != null) {
 			tableMode = ((ViewableRecordVOSearchResultTable) this.resultsTable).getTableMode();
 		} else {
 			tableMode = null;
 		}
-		ViewableRecordVOSearchResultTable viewerPanel = new ViewableRecordVOSearchResultTable(container, tableMode, presenter, getRecordListMenuBar()) {
-			@Override
-			public boolean isIndexVisible() {
-				return indexVisible;
-			}
-
+		ViewableRecordVOSearchResultTable viewerPanel = new ViewableRecordVOSearchResultTable(container, tableMode, presenter, getRecordListMenuBar(), this) {
 			@Override
 			protected boolean isPagedInListMode() {
 				return true;
@@ -579,9 +662,17 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				Integer index = (Integer) itemId;
 				String query = presenter.getSearchQuery().getFreeTextQuery();
 				SearchResultVO searchResultVO = container.getSearchResultVO(index);
+
+				if (searchResultVO.isDeleted()) {
+					SearchResultVO newDeletedsearchResultVO = new SearchResultVO(index, true);
+					SearchResultDisplay searchResultDisplay1 = displayFactory.build(newDeletedsearchResultVO, query, null, null, null);
+					return searchResultDisplay1;
+				}
+
 				ClickListener elevationClickListener = getElevationClickListener(searchResultVO, index);
 				ClickListener exclusionClickListener = getExclusionClickListener(searchResultVO, index);
 				SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, query, null, elevationClickListener, exclusionClickListener);
+
 				return searchResultDisplay;
 			}
 
@@ -603,17 +694,22 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				};
 			}
 		};
+		viewerPanel.setSearchTerm(presenter.getUserSearchExpression());
 		viewerPanel.addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
 				Object itemId = event.getItemId();
 				Integer index = (Integer) itemId;
 				SearchResultVO searchResultVO = container.getSearchResultVO(index);
+				if (searchResultVO.isDeleted()) {
+					return;
+				}
+
 				presenter.searchResultClicked(searchResultVO.getRecordVO(), index);
 			}
 		});
 
-		viewerPanel.setQuickActionButton(getQuickActionMenuButtons());
+		viewerPanel.setQuickActionButtons(getQuickActionMenuButtons());
 		selectionChangeListenerStorage.forEach(viewerPanel::addSelectionChangeListener);
 
 
@@ -646,6 +742,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				//					}
 			}
 		});
+
+		dropHandler = viewerPanel;
 
 		return viewerPanel;
 	}
@@ -1137,4 +1235,18 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	public List<String> menuItemToExcludeInSelectionMenu() {
 		return Collections.emptyList();
 	}
+
+	@Override
+	public BaseView getNestedView() {
+		BaseView nestedView;
+		if (resultsTable instanceof ViewableRecordVOTablePanel) {
+			ViewableRecordVOTablePanel viewerPanel = (ViewableRecordVOTablePanel) resultsTable;
+			Component panelContent = viewerPanel.getPanelContent();
+			nestedView = panelContent instanceof BaseView ? (BaseView) panelContent : null;
+		} else {
+			nestedView = null;
+		}
+		return nestedView;
+	}
+	
 }

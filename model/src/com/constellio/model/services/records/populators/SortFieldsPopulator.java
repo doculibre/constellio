@@ -18,8 +18,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import static com.constellio.model.entities.schemas.Schemas.getSortMetadata;
-
 public class SortFieldsPopulator extends SeparatedFieldsPopulator implements FieldsPopulator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SortFieldsPopulator.class);
@@ -36,7 +34,7 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 	@Override
 	protected boolean isPopulatedForAllLocales(Metadata metadata) {
 		if (metadata.getType() == MetadataValueType.REFERENCE && metadata.isSortable() && !metadata.isMultivalue()) {
-			MetadataSchemaType targettedSchemaType = types.getSchemaType(metadata.getReferencedSchemaType());
+			MetadataSchemaType targettedSchemaType = types.getSchemaType(metadata.getReferencedSchemaTypeCode());
 			return targettedSchemaType.getDefaultSchema().hasMultilingualMetadatas();
 		} else {
 			return metadata.isMultiLingual() || metadata.isSameLocalCode(Schemas.CAPTION);
@@ -61,7 +59,7 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 					if (captionForRecord == null) {
 						LOGGER.warn("Record '" + referencedRecord.getSchemaIdTitle() + "' has no caption");
 					} else {
-						Metadata sortMetadata = getSortMetadata(metadata);
+						Metadata sortMetadata = metadata.getSortMetadata();
 						if (!locale.equals(types.getCollectionInfo().getMainSystemLocale())) {
 							sortMetadata = sortMetadata.getSecondaryLanguageField(locale.getLanguage());
 						}
@@ -75,7 +73,7 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 				e.printStackTrace();
 			}
 		} else {
-			Metadata sortMetadata = getSortMetadata(metadata);
+			Metadata sortMetadata = metadata.getSortMetadata();
 			if (!locale.equals(types.getCollectionInfo().getMainSystemLocale())) {
 				sortMetadata = sortMetadata.getSecondaryLanguageField(locale.getLanguage());
 			}
@@ -87,9 +85,9 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 	}
 
 	private void populateNormalizedValue(Metadata metadata, Metadata sortMetadata,
-								  Object value, Map<String, Object> fields) {
+										 Object value, Map<String, Object> fields) {
 		StringSortFieldNormalizer normalizer = metadata.getSortFieldNormalizer();
-		if (normalizer != null) {
+		if (normalizer != null && metadata.isSortable()) {
 			Object normalizedValue;
 			if (value == null) {
 				normalizedValue = normalizer.normalizeNull();

@@ -2,7 +2,7 @@ package com.constellio.sdk;
 
 import com.constellio.data.utils.ConsoleLogger;
 import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import org.junit.internal.AssumptionViolatedException;
 
 import java.io.File;
@@ -235,6 +235,11 @@ public class SDKPasswords {
 	}
 
 	// SSL
+	public static String sslPort() {
+		loadCorrectIfRequired();
+		return sdkPasswords.get("ssl.port");
+	}
+
 	public static String sslKeystorePassword() {
 		loadCorrectIfRequired();
 		return sdkPasswords.get("sslKeystore.password");
@@ -276,6 +281,21 @@ public class SDKPasswords {
 
 	//
 	// Utils
+
+	// Azure Account credentials
+	public static String testAzureAccountName() {
+		return getValue("testAzure.accountName");
+	}
+
+	public static String testAzureAccountPassword() {
+		return getValue("testAzure.accountPassword");
+	}
+
+	public static String testAzureConnectionString() {
+		return getValue("testAzure.connectionString");
+	}
+	//
+
 	private synchronized static void loadCorrectIfRequired() {
 		if (sdkPasswords == null) {
 			File sdkPasswordsFile = new File(new FoldersLocator().getPluginsSDKProject(), "sdkpasswords.properties");

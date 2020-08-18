@@ -4,12 +4,15 @@ import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRepla
 import org.joda.time.Duration;
 
 import java.io.File;
+import java.util.List;
 
 public interface DataLayerConfiguration {
 
 	void validate();
 
 	SolrServerType getRecordsDaoSolrServerType();
+
+	boolean isCopyingRecordsInSearchCollection();
 
 	String getRecordsDaoHttpSolrServerUrl();
 
@@ -41,6 +44,8 @@ public interface DataLayerConfiguration {
 
 	CacheType getCacheType();
 
+	List<String> getSubvaults();
+
 	String getCacheUrl();
 
 	String getSettingsZookeeperAddress();
@@ -54,6 +59,8 @@ public interface DataLayerConfiguration {
 	boolean isSecondTransactionLogEnabled();
 
 	boolean isWriteZZRecords();
+
+	boolean useSolrTupleStreamsIfSupported();
 
 	HashingEncoding getHashingEncoding();
 
@@ -83,7 +90,7 @@ public interface DataLayerConfiguration {
 
 	String getKafkaServers();
 
-	String getSecondTransactionLogMode();
+	SecondTransactionLogType getSecondTransactionLogMode();
 
 	String getKafkaTopic();
 
@@ -102,5 +109,51 @@ public interface DataLayerConfiguration {
 	Duration getSolrEventBusSendingServiceTypeEventLifespan();
 
 	Duration getSolrEventBusSendingServiceTypePollAndRetrieveFrequency();
+
+	boolean areTiffFilesConvertedForPreview();
+
+	int getSequentialIdReservedBatchSize();
+
+	String getMicrosoftSqlServerUrl();
+
+	String getMicrosoftSqlServerDatabase();
+
+	String getMicrosoftSqlServeruser();
+
+	String getMicrosoftSqlServerpassword();
+
+	boolean getMicrosoftSqlServerencrypt();
+
+	boolean getMicrosoftSqlServertrustServerCertificate();
+
+	int getMicrosoftSqlServerloginTimeout();
+
+	boolean isAsyncSQLSecondTransactionLogInsertion();
+
+	boolean isReplaySQLSecondTransactionLogDuringOfficeHours();
+
+	int getSolrMinimalReplicationFactor();
+
+	String getRecordsDaoCollection();
+
+	String getEventsDaoCollection();
+
+	String getNotificationsDaoCollection();
+
+	String getAzureBlobStorageConnectionString();
+
+	String getAzureBlobStorageConnectionAccountName();
+
+	String getAzureBlobStorageConnectionAccountKey();
+
+	String getAzureBlobStorageContainerName();
+
+	void setAzureBlobStorageConnectionAccountName(String accountName);
+
+	void setAzureBlobStorageConnectionAccountKey(String accountKey);
+
+	void setAzureBlobStorageContainerName(String containerName);
+
+	void setAzureBlobStorageConnectionString(String containerName);
 
 }

@@ -53,7 +53,7 @@ public class RecordServicesRuntimeException extends RuntimeException {
 		public BrokenReference(String recordIdWithReference, String referencedId, Metadata metadata,
 							   Exception e) {
 			super("Record '" + recordIdWithReference + "' is referencing an inexistent record '" + referencedId
-				  + "' of schema type '" + metadata.getReferencedSchemaType() + "' in metadata '" + metadata.getLocalCode()
+				  + "' of schema type '" + metadata.getReferencedSchemaTypeCode() + "' in metadata '" + metadata.getLocalCode()
 				  + "'", e);
 		}
 	}

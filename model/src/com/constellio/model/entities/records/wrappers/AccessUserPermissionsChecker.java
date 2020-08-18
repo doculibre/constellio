@@ -1,11 +1,16 @@
 package com.constellio.model.entities.records.wrappers;
 
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.SecurityModelAuthorization;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 
+import java.util.function.Predicate;
+
+import static com.constellio.model.entities.records.Record.GetMetadataOption.DIRECT_GET_FROM_DTO;
 import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
 import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.containsAnyUserGroupTokens;
 import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.containsNoNegativeUserGroupTokens;
@@ -124,7 +129,7 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 		return
 				containsNoNegativeUserGroupTokens(user, record, READ)
 				&& (containsAnyUserGroupTokens(user, record, READ)
-					|| record.getList(Schemas.TOKENS).contains(PUBLIC_TOKEN)
+					|| (Toggle.PUBLIC_TOKENS.isEnabled() && record.getList(Schemas.TOKENS, DIRECT_GET_FROM_DTO).contains(PUBLIC_TOKEN))
 					|| UserAuthorizationsUtils.containsAUserToken(user, record)
 					|| hasMatchingAuthorizationIncludingSpecifics(user, record, UserAuthorizationsUtils.READ_ACCESS)
 					|| user.hasGlobalTypeAccess(record.getTypeCode(), Role.READ));
@@ -148,6 +153,11 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 	@Override
 	public boolean onSomething() {
 		throw new UnsupportedOperationException("onSomething() is not yet supported for this checker");
+	}
+
+	@Override
+	public boolean onAnyRecord(Predicate<SecurityModelAuthorization> predicate, boolean includingGlobal) {
+		throw new UnsupportedOperationException("onAnyRecord(Predicate<Record>, boolean) is not yet supported for this checker");
 	}
 
 }

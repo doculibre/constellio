@@ -81,7 +81,7 @@ public class ListAddRemoveCommentField extends ListAddRemoveField<Comment, Comme
 			String userId = comment.getUserId();
 			property = new ObjectProperty<>(new ReferenceDisplay(userId));
 		} else if (DATE_PROPERTY.equals(propertyId)) {
-			LocalDateTime commentDateTime = comment.getDateTime();
+			LocalDateTime commentDateTime = comment.getCreationDateTime();
 			String commentDateTimeStr = dateTimeConverter.convertToPresentation(commentDateTime, String.class, getLocale());
 			property = new ObjectProperty<>(new Label(commentDateTimeStr));
 		} else {

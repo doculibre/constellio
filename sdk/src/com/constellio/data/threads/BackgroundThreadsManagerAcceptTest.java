@@ -2,6 +2,7 @@ package com.constellio.data.threads;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.Duration;
 import org.junit.After;
@@ -42,7 +43,7 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 		}
 	}
 
-	//@SlowTest
+	@SlowTest
 	@Test
 	public void givenSystemIsNotYetStartedThenWaitUntilStartedBeforeExecuting()
 			throws Exception {
@@ -62,7 +63,7 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 
 	}
 
-	//@SlowTest
+	@SlowTest
 	@Test
 	public void whenConfiguringAThreadToExecuteAnActionOf2SecondsEvery3SecondsThenWait1SecondsBetweenRuns()
 			throws Exception {
@@ -86,6 +87,7 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 
 	}
 
+	@SlowTest
 	@Test
 	public void whenConfiguringAThreadToExecuteTwoActionOf2SecondsEvery3SecondsThenWait2SecondsBetweenRuns()
 			throws Exception {
@@ -118,7 +120,7 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 		assertThat(threadAction2counter1).isEqualTo(threadAction2Counter2);
 	}
 
-	//@SlowTest
+	@SlowTest
 	@Test
 	public void givenBackgroundThreadConfiguredToContinueOnExceptionThenContinueUntilAnErrorOccur()
 			throws InterruptedException {
@@ -136,7 +138,7 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 
 	}
 
-	//@SlowTest
+	@SlowTest
 	@Test
 	public void givenBackgroundThreadConfiguredToStopOnExceptionThenStopAtTheFirstRuntimeException()
 			throws InterruptedException {

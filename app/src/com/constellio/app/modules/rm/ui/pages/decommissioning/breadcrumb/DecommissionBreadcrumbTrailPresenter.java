@@ -5,7 +5,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.DocumentBreadCrumbItem;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderBreadCrumbItem;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrailPresenter;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewGroup;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -25,8 +25,10 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 
 	private String recordId;
-	
+
 	private String collection;
+
+	private boolean forceBaseItemEnabled;
 
 	private DecommissionBreadcrumbTrail breadcrumbTrail;
 
@@ -39,12 +41,15 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 	private String searchId;
 	private SearchType searchType;
 
-	public DecommissionBreadcrumbTrailPresenter(String titre, SearchType searchType, String searchId, String recordId, DecommissionBreadcrumbTrail breadcrumbTrail) {
+	public DecommissionBreadcrumbTrailPresenter(String titre, SearchType searchType, String searchId, String recordId,
+												DecommissionBreadcrumbTrail breadcrumbTrail,
+												boolean forceBaseItemEnabled) {
 		this.recordId = recordId;
 		this.titre = titre;
 		this.breadcrumbTrail = breadcrumbTrail;
 		this.searchId = searchId;
 		this.searchType = searchType;
+		this.forceBaseItemEnabled = forceBaseItemEnabled;
 		initTransientObjects();
 		addBreadcrumbItems();
 	}
@@ -94,8 +99,8 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 			});
 		}
 
-		breadcrumbItems.addAll(FolderDocumentBreadcrumbTrailPresenter.
-				getGetFolderDocumentBreadCrumbItems(recordId, folderPresenterUtils, rmSchemasRecordsServices));
+		breadcrumbItems.addAll(FolderDocumentContainerBreadcrumbTrailPresenter.
+				getGetFolderDocumentBreadCrumbItems(recordId, folderPresenterUtils, rmSchemasRecordsServices, forceBaseItemEnabled));
 
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
 			breadcrumbTrail.addItem(breadcrumbItem);

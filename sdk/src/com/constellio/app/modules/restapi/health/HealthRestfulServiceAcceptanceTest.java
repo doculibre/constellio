@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class HealthRestfulServiceAcceptanceTest extends ConstellioTest {
 
 	private final static String ALLOWED_HEADERS =
-			"X-Requested-With,Content-Type,Accept,Origin,Constellio-Flushing-Mode,Host,If-Match,ETag";
+			"X-Requested-With,Content-Type,Accept,Origin,Constellio-Flushing-Mode,Host,If-Match,ETag,Authorization";
 	private final static String EXPOSED_HEADERS = "ETag";
 
 	@Test
@@ -99,10 +99,19 @@ public class HealthRestfulServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void testHeadHealthy() {
+	public void testHeadHealth() {
 		prepareSystemWithoutHyperTurbo(withZeCollection().withConstellioRMModule().withConstellioRestApiModule());
 
 		Response response = newWebTarget("v1/health").request().head();
+		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
+		assertThat(response.getHeaderString("Access-Control-Expose-Headers")).isNull();
+	}
+
+	@Test
+	public void testGetHealth() {
+		prepareSystemWithoutHyperTurbo(withZeCollection().withConstellioRMModule().withConstellioRestApiModule());
+
+		Response response = newWebTarget("v1/health").request().get();
 		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
 		assertThat(response.getHeaderString("Access-Control-Expose-Headers")).isNull();
 	}

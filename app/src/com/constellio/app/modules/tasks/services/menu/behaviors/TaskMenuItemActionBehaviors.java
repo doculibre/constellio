@@ -2,7 +2,6 @@ package com.constellio.app.modules.tasks.services.menu.behaviors;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtension;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
@@ -22,6 +21,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.components.fields.lookup.GroupTextInputDataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.util.MessageUtils;
@@ -40,6 +40,8 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.List;
 
+import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
+import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
 import static com.vaadin.ui.themes.ValoTheme.BUTTON_PRIMARY;
@@ -157,7 +159,7 @@ public class TaskMenuItemActionBehaviors {
 				new RMSelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
 					@Override
 					public String getSelectedSchemaType() {
-						return Folder.SCHEMA_TYPE;
+						return Task.SCHEMA_TYPE;
 					}
 
 					@Override
@@ -220,9 +222,9 @@ public class TaskMenuItemActionBehaviors {
 	private ListAddRemoveCollaboratorsGroupsField buildCollaboratorGroupsField(MenuItemActionBehaviorParams params,
 																			   Task task) {
 		boolean userHasWriteAuthorization = params.getUser().hasWriteAccess().on(task);
-		ListAddRemoveCollaboratorsGroupsField collaboratorsGroupField = new ListAddRemoveCollaboratorsGroupsField(params.getRecordVO());
+		ListAddRemoveCollaboratorsGroupsField collaboratorsGroupField = new ListAddRemoveCollaboratorsGroupsField(params.getRecordVO(), new GroupTextInputDataProvider(getInstance(), getCurrentSessionContext()));
 		collaboratorsGroupField.writeButtonIsVisible(userHasWriteAuthorization);
-		collaboratorsGroupField.setCurrentUserIsCollaborator(taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()));
+		collaboratorsGroupField.setCurrentUserCanModifyDelete(taskPresenterServices.currentUserHasWriteAuthorisationWithoutBeingCollaborator(params.getRecordVO(), params.getUser().getId()));
 		return collaboratorsGroupField;
 	}
 
@@ -230,7 +232,7 @@ public class TaskMenuItemActionBehaviors {
 		boolean userHasWriteAuthorization = params.getUser().hasWriteAccess().on(task);
 		ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(params.getRecordVO());
 		collaboratorsField.writeButtonIsVisible(userHasWriteAuthorization);
-		collaboratorsField.setCurrentUserIsCollaborator(taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()));
+		collaboratorsField.setCurrentUserCanModifyDelete(taskPresenterServices.currentUserHasWriteAuthorisationWithoutBeingCollaborator(params.getRecordVO(), params.getUser().getId()));
 		return collaboratorsField;
 	}
 

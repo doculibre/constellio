@@ -15,19 +15,25 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.GetByIdCounter;
+import com.constellio.sdk.tests.QueryCounter;
 import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
 
 import static com.constellio.model.entities.enums.TitleMetadataPopulatePriority.PROPERTIES_FILENAME_STYLES;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.joda.time.LocalDate.now;
@@ -38,6 +44,7 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	Users users = new Users();
 	RecordServices recordServices;
+	AuthorizationsServices authorizationsServices;
 
 	User dakota;
 
@@ -58,35 +65,84 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 
+		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
+
 		dakota = users.dakotaLIndienIn(zeCollection);
 	}
 
 	@Test
-	public void whenCreatingADocumentWithoutDescriptionThenOK()
+	public void whenCreatingADocumentWithoutDescriptionThenOKAndNoQueries()
 			throws Exception {
+
+		getModelLayerFactory().getRecordsCaches().disableVolatileCache();
+
+		GetByIdCounter getByIdCounter = new GetByIdCounter(getDataLayerFactory(), DocumentAcceptanceTest.class);
+		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), DocumentAcceptanceTest.class);
 
 		Document document = rm.newDocument().setTitle("My document").setDescription("test").setFolder(records.folder_A03);
 		recordServices.add(document);
+		getByIdCounter.assertCalledIds().isEmpty();
+		assertThat(queryCounter.newQueryCalls()).isZero();
+
+
 		document.setDescription(null).setTitle("Z");
 		recordServices.update(document);
+		getByIdCounter.assertCalledIds().isEmpty();
+		assertThat(queryCounter.newQueryCalls()).isZero();
 
 	}
 
 	@Test
-	public void givenFolderIsMovedThenDocumentPathIsUpdated()
+	public void givenFolderIsMovedThenDocumentPathAndHookCounterAreModified()
 			throws Exception {
+
+		TaxonomyRecordsHookRetriever retriever = getModelLayerFactory().getTaxonomyRecordsHookRetriever(zeCollection);
+		assertThat(retriever.hasUserAccessToSomethingInPrincipalConcept(
+				users.robinIn(zeCollection), records.getUnit10().getWrappedRecord(), false, false)).isFalse();
+		assertThat(retriever.hasUserAccessToSomethingInPrincipalConcept(
+				users.robinIn(zeCollection), records.getUnit10a().getWrappedRecord(), false, false)).isFalse();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X().getWrappedRecordId(), false, false)).isFalse();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X110().getWrappedRecordId(), false, false)).isFalse();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X120().getWrappedRecordId(), false, false)).isFalse();
 
 		Document document = rm.newDocumentWithId("zeDocument").setTitle("My document").setDescription("test")
 				.setFolder(records.folder_A03);
 		recordServices.add(document);
+
+		authorizationsServices.add(authorizationForUsers(users.robinIn(zeCollection))
+				.on(document).givingReadAccess(), users.adminIn(zeCollection));
+
+		assertThat(retriever.hasUserAccessToSomethingInPrincipalConcept(
+				users.robinIn(zeCollection), records.getUnit10().getWrappedRecord(), false, false)).isTrue();
+		assertThat(retriever.hasUserAccessToSomethingInPrincipalConcept(
+				users.robinIn(zeCollection), records.getUnit10a().getWrappedRecord(), false, false)).isTrue();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X().getWrappedRecordId(), false, false)).isTrue();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X110().getWrappedRecordId(), false, false)).isTrue();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X120().getWrappedRecordId(), false, false)).isFalse();
 
 		assertThat(document.getList(Schemas.PATH)).containsOnly(
 				"/admUnits/unitId_10/unitId_10a/A03/zeDocument",
 				"/plan/categoryId_X/categoryId_X100/categoryId_X110/A03/zeDocument");
 
 		recordServices.update(records.getFolder_A03().setCategoryEntered(records.categoryId_X120));
-
 		recordServices.refresh(document);
+		assertThat(retriever.hasUserAccessToSomethingInPrincipalConcept(
+				users.robinIn(zeCollection), records.getUnit10().getWrappedRecord(), false, false)).isTrue();
+		assertThat(retriever.hasUserAccessToSomethingInPrincipalConcept(
+				users.robinIn(zeCollection), records.getUnit10a().getWrappedRecord(), false, false)).isTrue();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X().getWrappedRecordId(), false, false)).isTrue();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X110().getWrappedRecordId(), false, false)).isFalse();
+		assertThat(retriever.hasUserAccessToSomethingInSecondaryConcept(
+				users.robinIn(zeCollection), records.getCategory_X120().getWrappedRecordId(), false, false)).isTrue();
+
 		assertThat(document.getList(Schemas.PATH)).containsOnly(
 				"/admUnits/unitId_10/unitId_10a/A03/zeDocument",
 				"/plan/categoryId_X/categoryId_X100/categoryId_X120/A03/zeDocument");
@@ -210,6 +266,100 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenCreatingADocumentThatRequireNoConversionWithPDFTronThenNoConvertion() throws Exception {
+
+		SystemConfigurationsManager systemConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager();
+
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.PDFTRON_LICENSE, "licence");
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, false);
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+
+		ContentVersionDataSummary version1 = contentManager.upload(getTestResourceFile("test.docx"));
+
+		Document wordDocument = newDocumentWithContent(contentManager.createMajor(dakota, "test.docx", version1));
+		recordServices.add(wordDocument);
+
+		assertThat(wordDocument.isMarkedForPreviewConversion()).isFalse();
+		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isFalse();
+		contentManager.convertPendingContentForPreview();
+		recordServices.flush();
+		recordServices.refresh(wordDocument);
+		assertThat(wordDocument.isMarkedForPreviewConversion()).isFalse();
+		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isFalse();
+	}
+
+	@Test
+	public void whenADocumentIsCreatedWithThumbnailAndPdfTronIsActivatedThenFilePreviewIsCreated() throws Exception {
+		SystemConfigurationsManager systemConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager();
+
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.PDFTRON_LICENSE, "licence");
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, true);
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+
+		ContentVersionDataSummary version1 = contentManager.upload(getTestResourceFile("test.docx"));
+
+		Document wordDocument = newDocumentWithContent(contentManager.createMajor(dakota, "test.docx", version1));
+		recordServices.add(wordDocument);
+
+		assertThat(wordDocument.isMarkedForPreviewConversion()).isTrue();
+		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isFalse();
+		contentManager.convertPendingContentForPreview();
+		recordServices.flush();
+		recordServices.refresh(wordDocument);
+		assertThat(wordDocument.isMarkedForPreviewConversion()).isFalse();
+		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isTrue();
+	}
+
+	@Test
+	public void whenADocumentIsMarkWithPreviewConversionButPdfTronIsActivatedBeforeConvertPendingPreviewIsCalledThenNoPreviewConvertion()
+			throws Exception {
+
+
+		SystemConfigurationsManager systemConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager();
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+
+		ContentVersionDataSummary version1 = contentManager.upload(getTestResourceFile("test.docx"));
+
+		Document wordDocument = newDocumentWithContent(contentManager.createMajor(dakota, "test.docx", version1));
+		wordDocument.setMarkedForPreviewConversion(true);
+		recordServices.add(wordDocument);
+
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.PDFTRON_LICENSE, "licence");
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, false);
+
+		contentManager.convertPendingContentForPreview();
+		recordServices.flush();
+		recordServices.refresh(wordDocument);
+
+
+		assertThat(wordDocument.isMarkedForPreviewConversion()).isFalse();
+		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isFalse();
+	}
+
+	@Test
+	public void whenCreatingADocumentThatRequireNoConversionWithPDFTronAndIsMarkForConversionThenNoConversion()
+			throws Exception {
+
+		SystemConfigurationsManager systemConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager();
+
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.PDFTRON_LICENSE, "licence");
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, false);
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+
+		ContentVersionDataSummary version1 = contentManager.upload(getTestResourceFile("test.docx"));
+
+		Document wordDocument = newDocumentWithContent(contentManager.createMajor(dakota, "test.docx", version1));
+		wordDocument.setMarkedForPreviewConversion(true);
+		recordServices.add(wordDocument);
+
+		assertThat(wordDocument.isMarkedForPreviewConversion()).isFalse();
+	}
+
+	@Test
 	public void whenCreatingADocumentWithAMicrosofContentThenConverted()
 			throws Exception {
 
@@ -302,7 +452,7 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 		assertThat(docWithDocx.isMarkedForPreviewConversion()).isTrue();
 		assertThat(docWithXlsx.isMarkedForPreviewConversion()).isTrue();
 		assertThat(docWithPptx.isMarkedForPreviewConversion()).isTrue();
-		assertThat(docWithPdf.isMarkedForPreviewConversion()).isFalse();
+		assertThat(docWithPdf.isMarkedForPreviewConversion()).isTrue();
 		assertThat(docWithDot.isMarkedForPreviewConversion()).isTrue();
 		assertThat(docWithOdt.isMarkedForPreviewConversion()).isTrue();
 		assertThat(docWithMp4.isMarkedForPreviewConversion()).isFalse();

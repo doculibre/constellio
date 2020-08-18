@@ -1095,7 +1095,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 		defaultSchema.createUndeletable(DecommissioningList.APPROVAL_REQUEST_DATE).setType(DATE);
 
-		defaultSchema.createUndeletable(DecommissioningList.APPROVAL_REQUEST).setType(REFERENCE)
+		defaultSchema.createUndeletable(DecommissioningList.APPROVAL_REQUESTER).setType(REFERENCE)
 				.defineReferencesTo(userSchemaType);
 
 		defaultSchema.createUndeletable(DecommissioningList.APPROVAL_DATE).setType(DATE);

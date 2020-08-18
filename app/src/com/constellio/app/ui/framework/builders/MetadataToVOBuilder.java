@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.builders;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -23,6 +24,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
@@ -81,7 +83,9 @@ public class MetadataToVOBuilder implements Serializable {
 		String[] taxonomyCodes;
 		MetadataInputType metadataInputType;
 		MetadataDisplayType metadataDisplayType;
+		MetadataSortingType metadataSortingType;
 		String metadataGroup;
+		Map<Locale, String> metadataHelpMessages = new HashMap<>();
 
 		if (collection != null) {
 			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
@@ -94,16 +98,20 @@ public class MetadataToVOBuilder implements Serializable {
 				TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 				UserServices userServices = modelLayerFactory.newUserServices();
 
-				if (userVO != null) {
-					User user = userServices.getUserInCollection(userVO.getUsername(), collection);
-					List<Taxonomy> taxonomies = taxonomiesManager
-							.getAvailableTaxonomiesForSelectionOfType(schemaTypeCode, user, metadataSchemasManager);
-					taxonomyCodes = new String[taxonomies.size()];
-					for (int i = 0; i < taxonomies.size(); i++) {
-						Taxonomy taxonomy = taxonomies.get(i);
-						taxonomyCodes[i] = taxonomy.getCode();
+				try {
+					if (userVO != null) {
+						User user = userServices.getUserInCollection(userVO.getUsername(), collection);
+						List<Taxonomy> taxonomies = taxonomiesManager
+								.getAvailableTaxonomiesForSelectionOfType(schemaTypeCode, user, metadataSchemasManager);
+						taxonomyCodes = new String[taxonomies.size()];
+						for (int i = 0; i < taxonomies.size(); i++) {
+							Taxonomy taxonomy = taxonomies.get(i);
+							taxonomyCodes[i] = taxonomy.getCode();
+						}
+					} else {
+						taxonomyCodes = new String[0];
 					}
-				} else {
+				} catch (UserServicesRuntimeException_UserIsNotInCollection e) {
 					taxonomyCodes = new String[0];
 				}
 			} else {
@@ -116,9 +124,15 @@ public class MetadataToVOBuilder implements Serializable {
 
 			metadataInputType = metadataDisplayConfig.getInputType();
 			metadataDisplayType = metadataDisplayConfig.getDisplayType();
+			metadataSortingType = metadataDisplayConfig.getSortingType();
 
 			Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
 			metadataGroup = metadataDisplayConfig.getMetadataGroupCode();
+
+			for (Language keyset : metadata.getLabels().keySet()) {
+				metadataHelpMessages.put(keyset.getLocale(), metadataDisplayConfig.getHelpMessage(keyset));
+			}
+
 			String typeCode = metadata.getSchemaTypeCode();
 			Map<String, Map<Language, String>> groups = schemasDisplayManager.getType(collection, typeCode)
 					.getMetadataGroup();
@@ -140,6 +154,7 @@ public class MetadataToVOBuilder implements Serializable {
 			taxonomyCodes = new String[0];
 			metadataInputType = null;
 			metadataDisplayType = null;
+			metadataSortingType = null;
 			metadataGroup = null;
 		}
 
@@ -170,11 +185,13 @@ public class MetadataToVOBuilder implements Serializable {
 
 		return newMetadataVO(metadata.getId(), metadataCode, metadataLocalCode, datastoreCode, type, collection,
 				schemaVO, required, multivalue, readOnly, unmodifiable,
-				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
+				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, metadataSortingType, allowedReferences,
 				enabled,
 				structureFactory, metadataGroup, metadata.getDefaultValue(), metadata.getInputMask(),
 				metadata.getCustomAttributes(), isMultiLingual, locale, metadata.getCustomParameter(),
-				schemaVO != null ? schemaVO.getCollectionInfoVO() : null, sortable);
+				schemaVO != null ? schemaVO.getCollectionInfoVO() : null, sortable, metadata.isStoredInSummaryCache(),
+				metadata.getMaxLength(), metadata.getMeasurementUnit(),
+				metadataHelpMessages);
 	}
 
 	protected MetadataVO newMetadataVO(
@@ -195,6 +212,7 @@ public class MetadataToVOBuilder implements Serializable {
 			String schemaTypeCode,
 			MetadataInputType metadataInputType,
 			MetadataDisplayType metadataDisplayType,
+			MetadataSortingType metadataSortingType,
 			AllowedReferences allowedReferences,
 			boolean enabled,
 			StructureFactory structureFactory,
@@ -203,11 +221,13 @@ public class MetadataToVOBuilder implements Serializable {
 			String inputMask, Set<String> customAttributes,
 			boolean isMultiLingual, Locale locale,
 			Map<String, Object> customParameters,
-			CollectionInfoVO collectionInfoVO, boolean sortable) {
+			CollectionInfoVO collectionInfoVO, boolean sortable,
+			boolean summaryMetadata, Integer maxLength, String measurementUnit,
+			Map<Locale, String> metadataHelpMessages) {
 		return new MetadataVO(id, metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
-				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
+				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, metadataSortingType, allowedReferences,
 				enabled,
-				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable, false);
+				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable, false, summaryMetadata, maxLength, measurementUnit, metadataHelpMessages);
 	}
 
 }

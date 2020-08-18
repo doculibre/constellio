@@ -23,6 +23,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
@@ -35,10 +36,14 @@ import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public abstract class FacetsPanel extends VerticalLayout {
 
-	public FacetsPanel() {
+	private final KeySetMap<String, String> facetValuesSelectedMap = new KeySetMap<>();
+	private final boolean applyButtonEnabled;
+
+	public FacetsPanel(boolean applyButtonEnabled) {
 		addStyleName("search-result-facets");
 		setWidth("250px");
 		setSpacing(true);
+		this.applyButtonEnabled = applyButtonEnabled;
 	}
 
 	public void refresh(List<FacetVO> facets, KeySetMap<String, String> facetSelections,
@@ -104,15 +109,27 @@ public abstract class FacetsPanel extends VerticalLayout {
 	}
 
 	private Component buildFacetComponent(final FacetVO facet, Set<String> selectedFacetValues) {
+		Button apply = new Button($("apply"));
 		CheckBox deselect = new CheckBox();
 		deselect.setValue(!selectedFacetValues.isEmpty());
 		deselect.setEnabled(!selectedFacetValues.isEmpty());
-		deselect.addValueChangeListener(new ValueChangeListener() {
-			@Override
-			public void valueChange(ValueChangeEvent event) {
-				facetDeselected(facet.getId());
-			}
-		});
+		if (applyButtonEnabled) {
+			deselect.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					facetValuesSelectedMap.remove(facet.getId());
+					facetValuesChanged(facetValuesSelectedMap);
+				}
+
+			});
+		} else {
+			deselect.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					facetDeselected(facet.getId());
+				}
+			});
+		}
 
 		Label title = new Label(facet.getLabel());
 		title.addStyleName(ValoTheme.LABEL_BOLD);
@@ -129,13 +146,28 @@ public abstract class FacetsPanel extends VerticalLayout {
 		captionBar.setWidth("100%");
 		captionBar.addStyleName("facet-title");
 
+		I18NHorizontalLayout buttonBar = new I18NHorizontalLayout();
+
 		VerticalLayout layout = new VerticalLayout(captionBar);
 		layout.setWidth("95%");
 
 		final Table table = new BaseTable("facet-" + facet.getId());
 		table.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		table.addContainerProperty("value", Component.class, null);
+		if (isRightToLeft()) {
+			table.setColumnAlignment("value", Align.RIGHT);
+		}
 		table.setWidth("100%");
+
+		apply.addStyleName(ValoTheme.BUTTON_SMALL);
+		apply.addStyleName("facet-apply");
+		apply.setVisible(false);
+		apply.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				facetValuesChanged(facetValuesSelectedMap);
+			}
+		});
 
 		List<FacetValueVO> values = facet.getValues();
 		for (final FacetValueVO facetValue : values) {
@@ -144,16 +176,30 @@ public abstract class FacetsPanel extends VerticalLayout {
 			if (selectedFacetValues.contains(facetValue.getValue())) {
 				checkBox.setValue(true);
 			}
-			checkBox.addValueChangeListener(new ValueChangeListener() {
-				@Override
-				public void valueChange(ValueChangeEvent event) {
-					if (checkBox.getValue()) {
-						facetValueSelected(facetValue.getFacetId(), facetValue.getValue());
-					} else {
-						facetValueDeselected(facetValue.getFacetId(), facetValue.getValue());
+			if (applyButtonEnabled) {
+				checkBox.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(ValueChangeEvent event) {
+						if (checkBox.getValue()) {
+							facetValuesSelectedMap.add(facetValue.getFacetId(), facetValue.getValue());
+						} else {
+							facetValuesSelectedMap.remove(facetValue.getFacetId(), facetValue.getValue());
+						}
+						apply.setVisible(true);
 					}
-				}
-			});
+				});
+			} else {
+				checkBox.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(ValueChangeEvent event) {
+						if (checkBox.getValue()) {
+							facetValueSelected(facetValue.getFacetId(), facetValue.getValue());
+						} else {
+							facetValueDeselected(facetValue.getFacetId(), facetValue.getValue());
+						}
+					}
+				});
+			}
 
 			String caption = facetValue.getLabel();
 			if (isRightToLeft()) {
@@ -187,6 +233,13 @@ public abstract class FacetsPanel extends VerticalLayout {
 		});
 
 		layout.addComponent(table);
+		if (applyButtonEnabled) {
+			buttonBar.addComponent(apply);
+			buttonBar.setComponentAlignment(apply, Alignment.BOTTOM_LEFT);
+			buttonBar.setWidth("100%");
+			buttonBar.addStyleName("facet-buttonBar");
+			layout.addComponent(buttonBar);
+		}
 		layout.setVisible(!facet.getValues().isEmpty());
 		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
 			layout.addStyleName("facet-box-viewer");
@@ -201,6 +254,8 @@ public abstract class FacetsPanel extends VerticalLayout {
 	protected abstract void facetDeselected(String id);
 
 	protected abstract void facetValueSelected(String facetId, String value);
+
+	protected abstract void facetValuesChanged(KeySetMap<String, String> facets);
 
 	protected abstract void facetValueDeselected(String facetId, String value);
 

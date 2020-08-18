@@ -1,6 +1,7 @@
 package com.constellio.app.modules.restapi.document.dto;
 
 import com.constellio.app.modules.restapi.resource.dto.AceDto;
+import com.constellio.app.modules.restapi.resource.dto.AttributeDto;
 import com.constellio.app.modules.restapi.resource.dto.ExtendedAttributeDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -33,6 +34,8 @@ public class DocumentDto {
 	private List<AceDto> directAces;
 	@Valid @JsonProperty(access = READ_ONLY)
 	private List<AceDto> inheritedAces;
+	@Valid
+	private List<AttributeDto> attributes;
 	@Valid
 	private List<ExtendedAttributeDto> extendedAttributes;
 	@JsonIgnore @Getter(onMethod = @__(@JsonIgnore))

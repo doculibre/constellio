@@ -3,7 +3,9 @@ package com.constellio.app.modules.restapi;
 import com.constellio.app.entities.modules.InstallableSystemModuleExcludedFromSSO;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.navigation.NavigationConfig;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.restapi.core.config.RestApiResourceConfig;
+import com.constellio.app.modules.restapi.extensions.RestApiModuleExtensions;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.google.common.base.Strings;
@@ -15,7 +17,6 @@ import org.glassfish.jersey.servlet.ServletContainer;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 public class ConstellioRestApiModule extends InstallableSystemModuleExcludedFromSSO {
@@ -56,16 +57,6 @@ public class ConstellioRestApiModule extends InstallableSystemModuleExcludedFrom
 	}
 
 	@Override
-	public Map<String, List<String>> getPermissions() {
-		return Collections.emptyMap();
-	}
-
-	@Override
-	public List<String> getRolesForCreator() {
-		return Collections.emptyList();
-	}
-
-	@Override
 	public List<MigrationScript> getMigrationScripts() {
 		return Collections.emptyList();
 	}
@@ -76,6 +67,7 @@ public class ConstellioRestApiModule extends InstallableSystemModuleExcludedFrom
 
 	@Override
 	public void start(String collection, AppLayerFactory appLayerFactory) {
+		setupAppLayerExtensions(collection, appLayerFactory);
 	}
 
 	@Override
@@ -101,7 +93,7 @@ public class ConstellioRestApiModule extends InstallableSystemModuleExcludedFrom
 		FilterHolder filterHolder = new FilterHolder(new CrossOriginFilter());
 		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS");
 		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM,
-				"X-Requested-With,Content-Type,Accept,Origin,Constellio-Flushing-Mode,Host,If-Match,ETag");
+				"X-Requested-With,Content-Type,Accept,Origin,Constellio-Flushing-Mode,Host,If-Match,ETag,Authorization");
 		filterHolder.setInitParameter(CrossOriginFilter.EXPOSED_HEADERS_PARAM, "ETag");
 		filterHolder.setInitParameter(CrossOriginFilter.CHAIN_PREFLIGHT_PARAM, "false");
 
@@ -125,5 +117,10 @@ public class ConstellioRestApiModule extends InstallableSystemModuleExcludedFrom
 
 	@Override
 	public void stop(AppLayerFactory appLayerFactory) {
+	}
+
+	private void setupAppLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
+		extensions.registerModuleExtensionsPoint(ID, new RestApiModuleExtensions());
 	}
 }

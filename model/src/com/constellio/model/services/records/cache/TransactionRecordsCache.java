@@ -5,6 +5,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 
 import java.util.Collection;
 import java.util.List;
@@ -15,9 +18,16 @@ public class TransactionRecordsCache implements RecordsCache {
 
 	private Transaction transaction;
 
-	public TransactionRecordsCache(RecordsCache recordsCache, Transaction transaction) {
+	private boolean cachedLegacyIdIndex;
+
+	private RecordServices recordServices;
+
+	public TransactionRecordsCache(RecordsCache recordsCache, ModelLayerFactory modelLayerFactory,
+								   Transaction transaction) {
 		this.recordsCache = recordsCache;
+		this.recordServices = modelLayerFactory.newRecordServices();
 		this.transaction = transaction;
+		this.cachedLegacyIdIndex = modelLayerFactory.getSystemConfigs().isLegacyIdentifierIndexedInMemory();
 	}
 
 	@Override
@@ -43,7 +53,11 @@ public class TransactionRecordsCache implements RecordsCache {
 			}
 		}
 
-		return recordsCache.getByMetadata(metadata, value);
+		if (!cachedLegacyIdIndex && metadata.isSameLocalCode(Schemas.LEGACY_ID)) {
+			return recordServices.getRecordByMetadata(metadata, value);
+		} else {
+			return recordsCache.getByMetadata(metadata, value);
+		}
 	}
 
 	@Override
@@ -56,7 +70,13 @@ public class TransactionRecordsCache implements RecordsCache {
 			}
 		}
 
-		return recordsCache.getSummaryByMetadata(metadata, value);
+		if (!cachedLegacyIdIndex && metadata.isSameLocalCode(Schemas.LEGACY_ID)) {
+			return recordServices.getRecordSummaryByMetadata(metadata, value);
+		} else {
+			return recordsCache.getSummaryByMetadata(metadata, value);
+		}
+
+
 	}
 
 

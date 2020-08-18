@@ -1,14 +1,11 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
 import com.constellio.app.modules.rm.ui.pages.extrabehavior.SecurityWithNoUrlParamSupport;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
-import com.constellio.app.ui.pages.management.sequence.SequenceServices;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.User;
@@ -29,7 +26,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 @SuppressWarnings("serial")
 public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<DisplaySchemaRecordView> implements SecurityWithNoUrlParamSupport {
 
-	private transient SequenceServices sequenceServices;
 	private transient RecordServices recordServices;
 	private transient ModelLayerCollectionExtensions extensions;
 
@@ -64,9 +60,6 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 
 
 	private void initTransientObjects() {
-		ConstellioFactories constellioFactories = view.getConstellioFactories();
-		SessionContext sessionContext = view.getSessionContext();
-		sequenceServices = new SequenceServices(constellioFactories, sessionContext);
 		recordServices = modelLayerFactory.newRecordServices();
 		extensions = modelLayerFactory.getExtensions().forCollection(collection);
 	}
@@ -116,22 +109,6 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 		view.navigate().to().editSchemaRecord(schemaCode, recordVO.getId());
 	}
 
-	void deleteButtonClicked() {
-		deleteButtonClicked(recordVO);
-	}
-
-	private void deleteButtonClicked(RecordVO recordVO) {
-		if (tryDelete(recordVO)) {
-			String parentMetadataCode = HierarchicalValueListItem.PARENT;
-			if (isHierarchical() && recordVO.get(parentMetadataCode) != null) {
-				String parentRecordId = recordVO.get(parentMetadataCode);
-				view.navigate().to().displaySchemaRecord(parentRecordId);
-			} else {
-				view.navigate().to().listSchemaRecords(schemaCode);
-			}
-		}
-	}
-
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		Record restrictedRecord = recordServices().getDocumentById(params);
@@ -140,10 +117,6 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 		} else {
 			return user.hasReadAccess().on(restrictedRecord);
 		}
-	}
-
-	public boolean isSequenceTable() {
-		return !sequenceServices.getAvailableSequences(recordVO.getId()).isEmpty();
 	}
 
 	private boolean tryDelete(RecordVO recordVO) {
@@ -163,7 +136,6 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 		return success;
 	}
 
-	@SuppressWarnings("deprecation")
 	private boolean isEditButtonVisible(RecordVO recordVO) {
 		Record record = recordVO.getRecord();
 		User user = getCurrentUser();
@@ -178,10 +150,6 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 
 	public boolean isEditButtonVisible() {
 		return isEditButtonVisible(recordVO);
-	}
-
-	public boolean isDeleteButtonVisible() {
-		return isDeleteButtonVisible(recordVO);
 	}
 
 	public void addSubRecordButtonClicked() {

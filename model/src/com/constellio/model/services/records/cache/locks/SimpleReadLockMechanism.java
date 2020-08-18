@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class SimpleReadLockMechanism {
 
+	private boolean enabled = true;
 
 	private AtomicInteger canRead1 = new AtomicInteger();
 	private AtomicInteger canRead2 = new AtomicInteger();
@@ -77,6 +78,7 @@ public class SimpleReadLockMechanism {
 	}
 
 	private void obtainReadingPermit() {
+		ensureEnabled();
 		boolean obtained = false;
 
 		while (!obtained) {
@@ -102,6 +104,11 @@ public class SimpleReadLockMechanism {
 
 
 		}
+
+		if (!enabled) {
+			releaseSystemWideReadingPermit();
+			throw new SimpleReadLockMechanism_ResourceDisabledRuntimeException();
+		}
 	}
 
 	private void finishedReading() {
@@ -109,6 +116,7 @@ public class SimpleReadLockMechanism {
 	}
 
 	private void obtainWritingPermit() {
+		ensureEnabled();
 		canRead1.incrementAndGet();
 		canRead2.incrementAndGet();
 
@@ -120,12 +128,33 @@ public class SimpleReadLockMechanism {
 			}
 		}
 
+		if (!enabled) {
+			releaseSystemWideWritingPermit();
+			throw new SimpleReadLockMechanism_ResourceDisabledRuntimeException();
+		}
 	}
 
 	private void finishedWriting() {
 		canRead2.decrementAndGet();
 		canRead1.decrementAndGet();
 
+	}
+
+	public SimpleReadLockMechanism setEnabled(boolean enabled) {
+		this.enabled = enabled;
+		return this;
+	}
+
+	private void ensureEnabled() {
+		if (!enabled) {
+			throw new SimpleReadLockMechanism_ResourceDisabledRuntimeException();
+		}
+	}
+
+	private static class SimpleReadLockMechanism_ResourceDisabledRuntimeException extends RuntimeException {
+		public SimpleReadLockMechanism_ResourceDisabledRuntimeException() {
+			super("Cache is disabled, attempt to lock for read or write failed");
+		}
 	}
 
 }

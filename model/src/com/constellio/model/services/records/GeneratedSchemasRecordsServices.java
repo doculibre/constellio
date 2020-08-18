@@ -9,6 +9,7 @@ import com.constellio.model.entities.records.wrappers.CapsuleLanguage;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.ExternalAccessUrl;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Report;
@@ -532,6 +533,74 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 		public Metadata username() {
 			return metadata("username");
+		}
+	}
+
+	public ExternalAccessUrl wrapExternalAccessUrl(Record record) {
+		return record == null ? null : new ExternalAccessUrl(record, getTypes());
+	}
+
+	public List<ExternalAccessUrl> wrapExternalAccessUrls(List<Record> records) {
+		List<ExternalAccessUrl> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new ExternalAccessUrl(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<ExternalAccessUrl> searchExternalAccessUrls(LogicalSearchQuery query) {
+		return wrapExternalAccessUrls(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<ExternalAccessUrl> searchExternalAccessUrls(LogicalSearchCondition condition) {
+		MetadataSchemaType type = externalAccessUrl.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapExternalAccessUrls(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public ExternalAccessUrl getExternalAccessUrl(String id) {
+		return wrapExternalAccessUrl(get(externalAccessUrl.schemaType(), id));
+	}
+
+	public List<ExternalAccessUrl> getExternalAccessUrls(List<String> ids) {
+		return wrapExternalAccessUrls(get(externalAccessUrl.schemaType(), ids));
+	}
+
+	public ExternalAccessUrl getExternalAccessUrlWithLegacyId(String legacyId) {
+		return wrapExternalAccessUrl(getByLegacyId(externalAccessUrl.schemaType(), legacyId));
+	}
+
+	public ExternalAccessUrl newExternalAccessUrl() {
+		return wrapExternalAccessUrl(create(externalAccessUrl.schema()));
+	}
+
+	public ExternalAccessUrl newExternalAccessUrlWithId(String id) {
+		return wrapExternalAccessUrl(create(externalAccessUrl.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_externalAccessUrl_default externalAccessUrl
+			= new SchemaTypeShortcuts_externalAccessUrl_default("externalAccessUrl_default");
+
+	public class SchemaTypeShortcuts_externalAccessUrl_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_externalAccessUrl_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata accessRecord() {
+			return metadata("accessRecord");
+		}
+
+		public Metadata expirationDate() {
+			return metadata("expirationDate");
+		}
+
+		public Metadata status() {
+			return metadata("status");
+		}
+
+		public Metadata token() {
+			return metadata("token");
 		}
 	}
 

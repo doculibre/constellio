@@ -295,7 +295,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		List<RecordBatchProcess> batchProcesses = new ArrayList<>();
 		for (String collection : modelLayerFactory.getCollectionsListManager().getCollectionsExcludingSystem()) {
 			MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-			for (String typeCode : types.getSchemaTypesSortedByDependency()) {
+			for (String typeCode : types.getSchemaTypesCodesSortedByDependency()) {
 				MetadataSchemaType type = types.getSchemaType(typeCode);
 				List<Metadata> metadatasToReindex = findMetadatasToReindex(type, config);
 				if (!metadatasToReindex.isEmpty()) {
@@ -444,10 +444,10 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 			PropertiesConfiguration propertiesConfig = configManager.getProperties(CONFIG_FILE_PATH);
 			if (propertiesConfig != null) {
 				properties = propertiesConfig.getProperties();
-				cache2.put("properties", (Serializable) properties, InsertionReason.WAS_OBTAINED);
 			} else {
-				cache2.put("properties", new HashMap<>(), InsertionReason.WAS_OBTAINED);
+				properties = new HashMap<>();
 			}
+			cache2.put("properties", (Serializable) properties, InsertionReason.WAS_OBTAINED);
 		}
 
 		return properties;

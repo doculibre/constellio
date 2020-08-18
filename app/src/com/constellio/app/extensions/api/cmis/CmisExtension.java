@@ -5,7 +5,6 @@ import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstell
 import com.constellio.app.extensions.api.cmis.params.BuildConstellioRecordFromCmisObjectParams;
 import com.constellio.app.extensions.api.cmis.params.CheckInParams;
 import com.constellio.app.extensions.api.cmis.params.CheckOutParams;
-import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
 import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
 import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -51,11 +50,6 @@ public class CmisExtension {
 	//	public void onUpdateCMISDocument(UpdateDocumentParams params) {
 	//
 	//	}
-
-	public void onDeleteTree(DeleteTreeParams params) {
-
-	}
-
 	//
 	//	public void onDeleteContent(DeleteContentParams params) {
 	//

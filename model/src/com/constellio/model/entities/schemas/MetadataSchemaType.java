@@ -3,6 +3,8 @@ package com.constellio.model.entities.schemas;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchema;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -31,6 +33,7 @@ public class MetadataSchemaType implements Serializable {
 	public static final String DEFAULT = "default";
 
 	private final short id;
+	private final int uniqueTenantId;
 
 	private final String code;
 
@@ -69,6 +72,10 @@ public class MetadataSchemaType implements Serializable {
 
 	private boolean hasEagerTransientMetadata;
 
+	private MetadataSchemaTypes schemaTypes;
+
+	private Metadata mainSortMetadata;
+
 	public MetadataSchemaType(short id, String code, String smallCode, CollectionInfo collectionInfo,
 							  Map<Language, String> labels,
 							  List<MetadataSchema> customSchemas,
@@ -78,6 +85,7 @@ public class MetadataSchemaType implements Serializable {
 							  boolean readOnlyLocked, String dataStore) {
 		super();
 		this.id = id;
+		this.uniqueTenantId = (collectionInfo.getCollectionIndex() * 1_000_000) + id;
 		this.code = code;
 		this.smallCode = smallCode;
 		this.labels = Collections.unmodifiableMap(labels);
@@ -98,7 +106,29 @@ public class MetadataSchemaType implements Serializable {
 		this.schemasById = computeSchemasById(defaultSchema, customSchemas);
 		this.recordCacheType = recordCacheType;
 		this.allMetadatas = computeAllMetadatas(defaultSchema, customSchemas);
+
 		hasEagerTransientMetadata = allMetadatas.stream().anyMatch((m) -> m.getTransiency() == TRANSIENT_EAGER);
+
+		for (MetadataSchema customSchema : customSchemas) {
+			customSchema.setBuiltSchemaType(this);
+		}
+		defaultSchema.setBuiltSchemaType(this);
+
+		if (Event.SCHEMA_TYPE.equals(code) || SearchEvent.SCHEMA_TYPE.equals(code)) {
+			mainSortMetadata = null;
+		} else if (!code.startsWith("ddv") && defaultSchema.hasMetadataWithCode("code") && defaultSchema.get("code").isDefaultRequirement()) {
+			mainSortMetadata = defaultSchema.getMetadata("code");
+
+		} else if (defaultSchema.hasMetadataWithCode("title")) {
+			mainSortMetadata = defaultSchema.getMetadata("title");
+
+		} else {
+			mainSortMetadata = null;
+		}
+	}
+
+	void setBuiltSchemaTypes(MetadataSchemaTypes schemaTypes) {
+		this.schemaTypes = schemaTypes;
 	}
 
 	private static MetadataList computeAllMetadatas(MetadataSchema defaultSchema, List<MetadataSchema> customSchemas) {
@@ -209,6 +239,10 @@ public class MetadataSchemaType implements Serializable {
 
 	public short getId() {
 		return id;
+	}
+
+	public int getUniqueTenantId() {
+		return uniqueTenantId;
 	}
 
 	public String getCode() {
@@ -344,7 +378,7 @@ public class MetadataSchemaType implements Serializable {
 
 
 		for (Metadata parentReferenceMetadata : defaultSchema.getParentReferences()) {
-			if (parentReferenceMetadata.getReferencedSchemaType().equals(metadataSchemaType)) {
+			if (parentReferenceMetadata.getReferencedSchemaTypeCode().equals(metadataSchemaType)) {
 				refs.add(parentReferenceMetadata);
 			}
 		}
@@ -468,12 +502,12 @@ public class MetadataSchemaType implements Serializable {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return HashCodeBuilder.reflectionHashCode(this, "schemaTypes");
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
+		return EqualsBuilder.reflectionEquals(this, obj, "schemaTypes");
 	}
 
 	@Override
@@ -564,5 +598,61 @@ public class MetadataSchemaType implements Serializable {
 		}
 
 		return multilingual;
+	}
+
+	public MetadataSchemaTypes getSchemaTypes() {
+		return schemaTypes;
+	}
+
+	public boolean hasMetadataWithCode(String name) {
+		if (defaultSchema.hasMetadataWithCode(name)) {
+			return true;
+		}
+		for (MetadataSchema schema : customSchemas) {
+			if (schema.hasMetadataWithCode(name)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public Metadata getMetadataWithCodeOrNull(String name) {
+		Metadata metadata = defaultSchema.getMetadataWithCodeOrNull(name);
+
+		if (metadata != null) {
+			return metadata;
+		}
+		for (MetadataSchema schema : customSchemas) {
+			metadata = schema.getMetadataWithCodeOrNull(name);
+
+			if (metadata != null) {
+				return metadata;
+			}
+		}
+		return metadata;
+	}
+
+	public Metadata getMetadataById(short id) {
+
+		Metadata metadata = defaultSchema.getMetadataById(id);
+
+		if (metadata != null) {
+			return metadata;
+
+		} else {
+			for (MetadataSchema customSchema : getCustomSchemas()) {
+				Metadata customMetadata = customSchema.getMetadataById(id);
+				if (customMetadata != null) {
+					return customMetadata;
+				}
+			}
+		}
+
+
+		return null;
+	}
+
+	public Metadata getMainSortMetadata() {
+		return mainSortMetadata;
 	}
 }

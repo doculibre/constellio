@@ -15,6 +15,7 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.validators.metadatas.IllegalCharactersValidator;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
@@ -145,12 +146,13 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 		when(metadataBuilder.setUniqueValue(anyBoolean())).thenReturn(metadataBuilder);
 		when(metadataBuilder.setDefaultRequirement(anyBoolean())).thenReturn(metadataBuilder);
 		when(metadataBuilder.setMultiLingual(anyBoolean())).thenReturn(metadataBuilder);
-		when(metadataSchemaBuilder.create(anyString())).thenReturn(metadataBuilder);
+		when(metadataSchemaBuilder.create(anyString())).thenReturn(metadataBuilder).thenReturn(metadataBuilder);
 		when(metadataBuilder.setType((MetadataValueType) anyObject())).thenReturn(metadataBuilder);
 		when(metadataBuilder.setSearchable(anyBoolean())).thenReturn(metadataBuilder);
 		when(metadataBuilder.setUndeletable(anyBoolean())).thenReturn(metadataBuilder);
 		when(metadataBuilder.setSchemaAutocomplete(anyBoolean())).thenReturn(metadataBuilder);
 		when(metadataBuilder.setMultivalue(anyBoolean())).thenReturn(metadataBuilder);
+		when(metadataBuilder.addValidator(IllegalCharactersValidator.class)).thenReturn(metadataBuilder);
 
 		List languageList = new ArrayList();
 		languageList.add(Language.French);

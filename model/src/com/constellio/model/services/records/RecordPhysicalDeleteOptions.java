@@ -1,11 +1,39 @@
 package com.constellio.model.services.records;
 
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+
+import java.util.function.Consumer;
+
 public class RecordPhysicalDeleteOptions {
 
 	private boolean setMostReferencesToNull;
 	private boolean skipValidations;
+	private RecordsFlushing recordsFlushing = RecordsFlushing.NOW();
+	private Consumer<RecordUpdateOptions> transactionOptionsConsumer;
+
 
 	PhysicalDeleteTaxonomyRecordsBehavior behaviorForRecordsAttachedToTaxonomy = PhysicalDeleteTaxonomyRecordsBehavior.KEEP_RECORDS;
+
+	public Consumer<RecordUpdateOptions> getTransactionOptionsConsumer() {
+		return transactionOptionsConsumer;
+	}
+
+	public RecordPhysicalDeleteOptions setTransactionOptionsConsumer(
+			Consumer<RecordUpdateOptions> transactionOptionsConsumer) {
+		this.transactionOptionsConsumer = transactionOptionsConsumer;
+		return this;
+	}
+
+	public RecordsFlushing getRecordsFlushing() {
+		return recordsFlushing;
+	}
+
+	public RecordPhysicalDeleteOptions setRecordsFlushing(
+			RecordsFlushing recordsFlushing) {
+		this.recordsFlushing = recordsFlushing;
+		return this;
+	}
 
 	public PhysicalDeleteTaxonomyRecordsBehavior getBehaviorForRecordsAttachedToTaxonomy() {
 		return behaviorForRecordsAttachedToTaxonomy;

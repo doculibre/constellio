@@ -5,20 +5,25 @@ import com.constellio.app.api.extensions.NavigateToFromAPageImportExtension;
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.extensions.ModuleExtensions;
+import com.constellio.app.modules.rm.extensions.ExternalLinkServicesExtension;
 import com.constellio.app.modules.rm.extensions.api.CartExtensions.CartExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.ContainerRecordExtension.ContainerRecordExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.FolderExtension.FolderExtensionActionPossibleParams;
+import com.constellio.app.modules.rm.extensions.api.RMExternalLinkVOExtension.RMExternalLinkVOExtensionParams;
+import com.constellio.app.modules.rm.extensions.api.StorageSpaceExtension.StorageSpaceExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.tasks.extensions.TaskAddEditTaskPresenterExtension;
 import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtension;
 import com.constellio.app.modules.tasks.extensions.TaskPreCompletionExtention;
 import com.constellio.app.modules.tasks.extensions.param.PromptUserParam;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils;
@@ -28,22 +33,30 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class RMModuleExtensions implements ModuleExtensions {
 
 	private RMReportBuilderFactories rmReportBuilderFactories;
 	private VaultBehaviorsList<DecommissioningBuilderPresenterExtension> decommissioningBuilderPresenterExtensions;
 	private DecommissioningListFolderTableExtension decommissioningListFolderTableExtension;
 	private VaultBehaviorsList<DecommissioningListPresenterExtension> decommissioningListPresenterExtensions;
+	private VaultBehaviorsList<ExternalLinkServicesExtension> externalLinkServicesExtensions;
 	private VaultBehaviorsList<TaskManagementPresenterExtension> taskManagementPresenterExtensions;
 	private VaultBehaviorsList<TaskAddEditTaskPresenterExtension> taskAddEditTaskPresenterExtension;
 	private VaultBehaviorsList<DocumentExtension> documentExtensions;
 	private VaultBehaviorsList<FolderExtension> folderExtensions;
 	private VaultBehaviorsList<ContainerRecordExtension> containerRecordExtensions;
+	private VaultBehaviorsList<StorageSpaceExtension> storageSpaceExtensions;
 	private VaultBehaviorsList<AdvancedSearchPresenterExtension> advancedSearchPresenterExtensions;
 	private VaultBehaviorsList<DocumentFolderBreadCrumbExtention> documentBreadcrumExtentions;
 	private VaultBehaviorsList<NavigateToFromAPageImportExtension> navigateToFromAPageExtensions;
 	private VaultBehaviorsList<TaskPreCompletionExtention> taskPreCompletionExetention;
 	private VaultBehaviorsList<CartExtensions> cartExtensions;
+	private VaultBehaviorsList<FilteredActionsExtension> filteredActionsExtension;
+	private VaultBehaviorsList<RMExternalLinkVOExtension> externalLinkVOExtensions;
+	private AgentExtension agentExtensions;
 
 	private ModelLayerExtensions modelLayerExtensions;
 
@@ -51,17 +64,42 @@ public class RMModuleExtensions implements ModuleExtensions {
 		rmReportBuilderFactories = new RMReportBuilderFactories(appLayerFactory);
 		decommissioningBuilderPresenterExtensions = new VaultBehaviorsList<>();
 		decommissioningListPresenterExtensions = new VaultBehaviorsList<>();
+		externalLinkServicesExtensions = new VaultBehaviorsList<>();
 		taskManagementPresenterExtensions = new VaultBehaviorsList<>();
 		taskAddEditTaskPresenterExtension = new VaultBehaviorsList<>();
 		documentExtensions = new VaultBehaviorsList<>();
 		folderExtensions = new VaultBehaviorsList<>();
 		advancedSearchPresenterExtensions = new VaultBehaviorsList<>();
-		this.documentBreadcrumExtentions = new VaultBehaviorsList<>();
-		this.navigateToFromAPageExtensions = new VaultBehaviorsList<>();
-		this.taskPreCompletionExetention = new VaultBehaviorsList<>();
-		this.cartExtensions = new VaultBehaviorsList<>();
-		this.modelLayerExtensions = appLayerFactory.getModelLayerFactory().getExtensions();
-		this.containerRecordExtensions = new VaultBehaviorsList<>();
+		documentBreadcrumExtentions = new VaultBehaviorsList<>();
+		navigateToFromAPageExtensions = new VaultBehaviorsList<>();
+		taskPreCompletionExetention = new VaultBehaviorsList<>();
+		cartExtensions = new VaultBehaviorsList<>();
+		modelLayerExtensions = appLayerFactory.getModelLayerFactory().getExtensions();
+		containerRecordExtensions = new VaultBehaviorsList<>();
+		storageSpaceExtensions = new VaultBehaviorsList<>();
+		filteredActionsExtension = new VaultBehaviorsList<>();
+		agentExtensions = new AgentExtension();
+		externalLinkVOExtensions = new VaultBehaviorsList<>();
+	}
+
+	public List<String> getFilteredActionsForContainers() {
+		List<String> filteredActions = new ArrayList<>();
+
+		for (FilteredActionsExtension actionExtensions : filteredActionsExtension) {
+			filteredActions.addAll(actionExtensions.getFilteredActionsForContainers());
+		}
+
+		return filteredActions;
+	}
+
+	public List<String> getFilteredActionsForFolders() {
+		List<String> filteredActions = new ArrayList<>();
+
+		for (FilteredActionsExtension actionExtensions : filteredActionsExtension) {
+			filteredActions.addAll(actionExtensions.getFilteredActionsForFolders());
+		}
+
+		return filteredActions;
 	}
 
 	public RMReportBuilderFactories getReportBuilderFactories() {
@@ -85,12 +123,20 @@ public class RMModuleExtensions implements ModuleExtensions {
 		this.decommissioningListFolderTableExtension = decommissioningListFolderTableExtension;
 	}
 
+	public VaultBehaviorsList<FilteredActionsExtension> getFilteredActionsExtension() {
+		return filteredActionsExtension;
+	}
+
 	public VaultBehaviorsList<NavigateToFromAPageImportExtension> getNavigateToFromAPageExtensions() {
 		return this.navigateToFromAPageExtensions;
 	}
 
 	public VaultBehaviorsList<DecommissioningListPresenterExtension> getDecommissioningListPresenterExtensions() {
 		return decommissioningListPresenterExtensions;
+	}
+
+	public VaultBehaviorsList<ExternalLinkServicesExtension> getExternalLinkServicesExtensions() {
+		return externalLinkServicesExtensions;
 	}
 
 	public VaultBehaviorsList<TaskManagementPresenterExtension> getTaskManagementPresenterExtensions() {
@@ -119,6 +165,14 @@ public class RMModuleExtensions implements ModuleExtensions {
 
 	public VaultBehaviorsList<DocumentFolderBreadCrumbExtention> getDocumentBreadcrumExtentions() {
 		return documentBreadcrumExtentions;
+	}
+
+	public VaultBehaviorsList<RMExternalLinkVOExtension> getExternalLinkVOExtensions() {
+		return externalLinkVOExtensions;
+	}
+
+	public AgentExtension getAgentExtensions() {
+		return agentExtensions;
 	}
 
 	public boolean isCopyActionPossibleOnFolder(final Folder folder, final User user) {
@@ -225,18 +279,27 @@ public class RMModuleExtensions implements ModuleExtensions {
 				(behavior) -> behavior.isConsolidatedPdfActionPossible(new CartExtensionActionPossibleParams(cart, user)));
 	}
 
+	public boolean isRecordBorrowActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isRecordBorrowActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
 	public boolean isAddDocumentActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isAddDocumentActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		if (!folderExtensions.iterator().hasNext()) {
+			return user.hasWriteAccess().on(folder);
+		} else {
+			return folderExtensions.getBooleanValue(true,
+					(behavior) -> behavior.isAddDocumentActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+		}
 	}
 
 	public boolean isMoveActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isMoveActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
 	public boolean isAddSubFolderActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isAddSubFolderActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
@@ -246,24 +309,24 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isEditActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isEditActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
 	public boolean isDeleteActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
+		return user.hasDeleteAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isDeleteActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
-	public boolean isAddAuthorizationActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isAddAuthorizationActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+	public boolean isViewOrAddAuthorizationActionPossibleOnFolder(final Folder folder, final User user) {
+		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isViewOrAddAuthorizationActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
 	// TODO adapt to use lambda
 
 	public boolean isShareActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
+		return user.hasReadAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isShareActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
@@ -273,7 +336,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isDecommissioningActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<FolderExtension>() {
+		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<FolderExtension>() {
 			@Override
 			public ExtensionBooleanResult call(FolderExtension behavior) {
 				return behavior.isDecommissioningActionPossible(
@@ -283,18 +346,18 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isCreateDecommissioningListActionPossibleOnFolder(Folder folder, User user) {
-		return folderExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isCreateDecommissioningListActionPossible(
 						new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
 	public boolean isBorrowingActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isBorrowingActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
 	public boolean isReturnActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isReturnActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
@@ -319,13 +382,13 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isAddAuthorizationActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isAddAuthorizationActionPossible(new DocumentExtensionActionPossibleParams(document, user)));
 	}
 
-	public boolean isManageAuthorizationActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isManageAuthorizationActionPossible(new DocumentExtensionActionPossibleParams(document, user)));
+	public boolean isViewOrAddAuthorizationActionPossibleOnDocument(final Document document, final User user) {
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isViewOrAddAuthorizationActionPossible(new DocumentExtensionActionPossibleParams(document, user)));
 	}
 
 	public boolean isGenerateReportActionPossibleOnDocument(final Document document, final User user) {
@@ -340,8 +403,14 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isEditActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isEditActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
+	}
+
+	public boolean isRenameActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isRenameActionPossible(
 						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
 	}
 
@@ -352,8 +421,14 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isCopyActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true,
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isCopyActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
+	}
+
+	public boolean isRenameContentActionPossibleOnDocument(final Document document, final User user) {
+		return user.hasWriteAccess().on(document) && document.hasContent() && documentExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isRenameContentActionPossible(
 						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
 	}
 
@@ -372,7 +447,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	// TODO adapt methods below to use a lambda
 
 	public boolean isCreatePDFAActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isCreatePDFAActionPossible(
@@ -400,7 +475,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isUploadActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new BooleanCaller<DocumentExtension>() {
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true, new BooleanCaller<DocumentExtension>() {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isUploadActionPossible(new DocumentExtensionActionPossibleParams(document, user));
@@ -409,7 +484,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isFinalizeActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isFinalizeActionPossible(
@@ -419,7 +494,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isMoveActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isMoveActionPossible(
@@ -429,7 +504,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isUnPublishActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isUnPublishActionPossible(
@@ -449,7 +524,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isPublishActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isPublishActionPossible(
@@ -460,7 +535,6 @@ public class RMModuleExtensions implements ModuleExtensions {
 
 	public boolean isGetPublicLinkActionPossibleOnDocument(final Document document, final User user) {
 		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
-
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isGetPublicLinkActionPossible(
@@ -470,7 +544,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isDeleteActionPossbileOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+		return user.hasDeleteAccess().on(document) && documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isDeleteActionPossible(
@@ -480,7 +554,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isShareActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isShareActionPossible(
@@ -533,6 +607,42 @@ public class RMModuleExtensions implements ModuleExtensions {
 	public boolean isConsultLinkActionPossibleOnContainerRecord(ContainerRecord containerRecord, User user) {
 		return containerRecordExtensions.getBooleanValue(true,
 				(behavior -> behavior.isConsultLinkActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user))));
+	}
+
+	public boolean isAddRemoveToSelectionActionPossibleOnContainerRecord(final ContainerRecord containerRecord,
+																		 final User user) {
+		return containerRecordExtensions.getBooleanValue(true,
+				behavior -> behavior.isAddSelectionActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user)));
+	}
+
+	public boolean isGenerateReportActionPossibleOnContainer(final ContainerRecord containerRecord, final User user) {
+		return containerRecordExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isGenerateReportActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user)));
+	}
+
+	public boolean isGenerateReportActionPossibleOnStorageSpace(final StorageSpace storageSpace, final User user) {
+		return storageSpaceExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isGenerateReportActionPossible(new StorageSpaceExtensionActionPossibleParams(storageSpace, user)));
+	}
+
+	public boolean isConsultActionPossibleOnStorageSpace(final StorageSpace storageSpace, final User user) {
+		return storageSpaceExtensions.getBooleanValue(true, (behavior ->
+				behavior.isConsultActionPossible(new StorageSpaceExtensionActionPossibleParams(storageSpace, user))));
+	}
+
+	public boolean isEditActionPossibleOnStorageSpace(final StorageSpace storageSpace, final User user) {
+		return storageSpaceExtensions.getBooleanValue(true,
+				(behavior -> behavior.isEditActionPossible(new StorageSpaceExtensionActionPossibleParams(storageSpace, user))));
+	}
+
+	public boolean isDeleteActionPossibleOnStorageSpace(final StorageSpace storageSpace, final User user) {
+		return storageSpaceExtensions.getBooleanValue(true,
+				(behavior -> behavior.isDeleteActionPossible(new StorageSpaceExtensionActionPossibleParams(storageSpace, user))));
+	}
+
+	public boolean isConsultLinkActionPossibleOnStorageSpace(StorageSpace storageSpace, User user) {
+		return storageSpaceExtensions.getBooleanValue(true,
+				(behavior -> behavior.isConsultLinkActionPossible(new StorageSpaceExtensionActionPossibleParams(storageSpace, user))));
 	}
 
 	public BaseBreadcrumbTrail getBreadCrumbtrail(DocumentFolderBreadCrumbParams documentBreadcrumParams) {
@@ -613,5 +723,16 @@ public class RMModuleExtensions implements ModuleExtensions {
 		}
 
 		return false;
+	}
+
+	public RecordVO buildExternalLinkVO(RMExternalLinkVOExtensionParams params) {
+		RecordVO result = null;
+		for (RMExternalLinkVOExtension extension : externalLinkVOExtensions) {
+			result = extension.buildExternalLinkVO(params);
+			if (result != null) {
+				break;
+			}
+		}
+		return result;
 	}
 }

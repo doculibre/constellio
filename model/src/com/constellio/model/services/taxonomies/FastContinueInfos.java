@@ -1,9 +1,10 @@
 package com.constellio.model.services.taxonomies;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FastContinueInfos {
+public class FastContinueInfos implements Serializable {
 
 	boolean finishedConceptsIteration;
 

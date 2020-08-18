@@ -76,14 +76,12 @@ public class CoreViews {
 		navigator.navigateTo("/" + fragment);
 	}
 
-	public void home(String taxonomyCode, String expandedRecordId, String taxonomyMetadata) {
+	public void home(String taxonomyCode, String expandedRecordId) {
 		clearBreadcrumbTrail();
 		Map<String, String> params = new HashMap<>();
 		params.put("tab", CoreNavigationConfiguration.TAXONOMIES);
 		params.put("taxonomyCode", taxonomyCode);
-		if (taxonomyMetadata != null) {
-			params.put("taxonomyMetadata", taxonomyMetadata);
-		}
+
 		if (expandedRecordId != null) {
 			params.put("expandedRecordId", expandedRecordId);
 		}
@@ -339,6 +337,18 @@ public class CoreViews {
 
 	public void shareContent(String entityId) {
 		navigator.navigateTo(NavigatorConfigurationService.SHARE_CONTENT + "/" + entityId);
+	}
+
+	public void modifyShare(String entityId) {
+		navigator.navigateTo(NavigatorConfigurationService.MODIFY_SHARE + "/" + entityId);
+	}
+
+	public void publishDocument(String entityId) {
+		navigator.navigateTo(NavigatorConfigurationService.PUBLISH_DOCUMENT + "/" + entityId);
+	}
+
+	public void unshareContent(String entityId) {
+		navigator.navigateTo(NavigatorConfigurationService.UNSHARE_CONTENT + "/" + entityId);
 	}
 
 	public void editElevation() {
@@ -742,5 +752,6 @@ public class CoreViews {
 		uiContext.clearAttribute(BaseBreadcrumbTrail.SEARCH_ID);
 		uiContext.clearAttribute(BaseBreadcrumbTrail.ADVANCED_SEARCH);
 		uiContext.clearAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE);
+		uiContext.clearAttribute(BaseBreadcrumbTrail.RECENT_ITEMS);
 	}
 }

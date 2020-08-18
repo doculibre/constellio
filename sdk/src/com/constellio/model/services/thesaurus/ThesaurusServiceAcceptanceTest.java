@@ -1,7 +1,7 @@
 package com.constellio.model.services.thesaurus;
 
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.services.logging.SearchEventServices;

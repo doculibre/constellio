@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -13,6 +14,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
@@ -23,6 +25,7 @@ import org.mockito.Mock;
 
 import java.util.List;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -39,6 +42,7 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 	@Mock CartView cartView;
 	CartPresenter cartPresenter;
 
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -53,9 +57,15 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 		when(cartView.getSessionContext()).thenReturn(sessionContext);
 		when(cartView.getConstellioFactories()).thenReturn(getConstellioFactories());
 
-		cartPresenter = new CartPresenter(cartView);
-
+		cartPresenter = new CartPresenter(null, cartView);
 	}
+
+
+	protected List<Folder> getCartFolders(String cartId) {
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.folder.schemaType()).where(rm.folder.favorites()).isEqualTo(cartId));
+		return rm.searchFolders(logicalSearchQuery);
+	}
+
 
 	@Test
 	public void givenCartWithFolderOfDifferentAdministrativeThenGetCommonAdministrativeUnitReturnNull()
@@ -70,7 +80,7 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
-		assertThat(cartPresenter.getCommonAdministrativeUnit(cartPresenter.getCartFolders())).isNull();
+		assertThat(cartPresenter.getCommonAdministrativeUnit(this.getCartFolders(cart.getId()))).isNull();
 
 	}
 
@@ -87,7 +97,7 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
-		assertThat(cartPresenter.getCommonAdministrativeUnit(cartPresenter.getCartFolders())).isEqualTo(records.unitId_10a);
+		assertThat(cartPresenter.getCommonAdministrativeUnit(this.getCartFolders(cart.getId()))).isEqualTo(records.unitId_10a);
 
 	}
 
@@ -104,7 +114,7 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
-		assertThat(cartPresenter.getCommonDecommissioningListTypes(cartPresenter.getCartFolders())).isEmpty();
+		assertThat(cartPresenter.getCommonDecommissioningListTypes(this.getCartFolders(cart.getId()))).isEmpty();
 	}
 
 	@Test
@@ -120,7 +130,7 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
-		assertThat(cartPresenter.getCommonDecommissioningListTypes(cartPresenter.getCartFolders())).containsOnly(
+		assertThat(cartPresenter.getCommonDecommissioningListTypes(this.getCartFolders(cart.getId()))).containsOnly(
 				DecommissioningListType.FOLDERS_TO_TRANSFER,
 				DecommissioningListType.FOLDERS_TO_DEPOSIT
 		);
@@ -140,7 +150,7 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
-		assertThat(cartPresenter.getCommonDecommissioningListTypes(cartPresenter.getCartFolders())).isEmpty();
+		assertThat(cartPresenter.getCommonDecommissioningListTypes(this.getCartFolders(cart.getId()))).isEmpty();
 
 	}
 
@@ -156,7 +166,7 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
-		assertThat(cartPresenter.getCommonDecommissioningListTypes(cartPresenter.getCartFolders())).containsOnly(
+		assertThat(cartPresenter.getCommonDecommissioningListTypes(this.getCartFolders(cart.getId()))).containsOnly(
 				DecommissioningListType.FOLDERS_TO_CLOSE
 		);
 	}
@@ -174,7 +184,7 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
-		assertThat(cartPresenter.getCommonDecommissioningListTypes(cartPresenter.getCartFolders())).containsOnly(
+		assertThat(cartPresenter.getCommonDecommissioningListTypes(this.getCartFolders(cart.getId()))).containsOnly(
 				DecommissioningListType.FOLDERS_TO_TRANSFER,
 				DecommissioningListType.FOLDERS_TO_DEPOSIT
 		);
@@ -194,7 +204,7 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
-		assertThat(cartPresenter.getCommonDecommissioningListTypes(cartPresenter.getCartFolders())).containsOnly(
+		assertThat(cartPresenter.getCommonDecommissioningListTypes(this.getCartFolders(cart.getId()))).containsOnly(
 				DecommissioningListType.FOLDERS_TO_DESTROY
 		);
 
@@ -213,7 +223,7 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
-		assertThat(cartPresenter.getCommonDecommissioningListTypes(cartPresenter.getCartFolders())).isEmpty();
+		assertThat(cartPresenter.getCommonDecommissioningListTypes(this.getCartFolders(cart.getId()))).isEmpty();
 
 	}
 

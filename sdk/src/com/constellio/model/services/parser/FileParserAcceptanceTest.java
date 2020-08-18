@@ -14,19 +14,22 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 
-//@SlowTest
+//// Confirm @SlowTest
 public class FileParserAcceptanceTest extends ConstellioTest {
 
 	StreamFactory<InputStream> inputStreamFactory;
 
 	private FileParser fileParser;
+	private static List<String> BASE_PROPERTIES;
 
 	@Test
 	public void givenStreamOfDOCMimetypeWhenParsingThenValidParsedContentReturned()
@@ -113,7 +116,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThat(parsedContent.getParsedContent()).contains("This is the content of").contains("a html file");
 		assertThat(parsedContent.getLanguage()).isEqualTo(Language.English.getCode());
 		assertThat(parsedContent.getMimeType()).startsWith("text/html;");
-		assertThat(parsedContent.getProperties()).isEmpty();
+		assertThat(parsedContent.getProperties().keySet()).doesNotContainAnyElementsOf(BASE_PROPERTIES);
 	}
 
 	@Test
@@ -179,7 +182,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThat(parsedContent.getLanguage()).isEqualTo(Language.English.getCode());
 		assertThat(parsedContent.getMimeType()).isEqualTo("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 		assertThat(parsedContent.getLength()).isEqualTo(8022L);
-		assertThat(parsedContent.getProperties()).isEmpty();
+		assertThat(parsedContent.getProperties().keySet()).doesNotContainAnyElementsOf(BASE_PROPERTIES);
 	}
 
 	@Test
@@ -193,7 +196,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThat(parsedContent.getParsedContent()).contains("This is the content of").contains("the xml file");
 		assertThat(parsedContent.getLanguage()).isEqualTo(Language.English.getCode());
 		assertThat(parsedContent.getMimeType()).startsWith("text/html;");
-		assertThat(parsedContent.getProperties()).isEmpty();
+		assertThat(parsedContent.getProperties().keySet()).doesNotContainAnyElementsOf(BASE_PROPERTIES);
 	}
 
 	@Test
@@ -315,7 +318,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 
 		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
-		assertThat(parsedContent.getProperties()).containsOnly(
+		assertThat(parsedContent.getProperties()).contains(
 				entry("Category", "category2"),
 				entry("Comments", "comments2"),
 				entry("Subject", "subject2"),
@@ -328,7 +331,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 
 		assertThat(parsedContent.getMimeType())
 				.isEqualTo("application/msword");
-		assertThat(parsedContent.getStyles()).containsOnly(
+		assertThat(parsedContent.getStyles()).contains(
 				entry("titreofficiel", asList("The ring contract")),
 				entry("nomdelacompagnie", asList("Frodon", "Bilbon")),
 				entry("adressedelacompagnie", asList("Hobbiton, Shire")),
@@ -346,7 +349,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 
 		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
-		assertThat(parsedContent.getProperties()).containsOnly(
+		assertThat(parsedContent.getProperties()).contains(
 				entry("Category", "category2"),
 				entry("Comments", "comments2"),
 				entry("Subject", "subject2"),
@@ -359,7 +362,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 
 		assertThat(parsedContent.getMimeType())
 				.isEqualTo("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-		assertThat(parsedContent.getStyles()).containsOnly(
+		assertThat(parsedContent.getStyles()).contains(
 				entry("titreofficiel", asList("The ring contract")),
 				entry("nomdelacompagnie", asList("Frodon", "Bilbon")),
 				entry("adressedelacompagnie", asList("Hobbiton, Shire")),
@@ -368,6 +371,24 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		);
 
 	}
+
+
+	@Test
+	public void givenWord2007DocumentWithCustomPropertiesThenCustomPropertiesExtracted()
+			throws Exception {
+		inputStreamFactory = getTestResourceInputStreamFactory("DocumentWithCustomProperties.docx");
+		long length = getLengthOf("DocumentWithCustomProperties.docx");
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
+
+		assertThat(parsedContent.getProperties()).contains(
+				entry("custom:customTextProperty", "test custom property"),
+				entry("custom:customNumberProperty", "13"),
+				entry("custom:customDateProperty", "2038-01-19T10:00:00Z"),
+				entry("custom:customBooleanProperty", "true"),
+				entry("custom:customLinkProperty", "Frodon.")
+		);
+	}
+
 
 	@Test
 	public void whenParsingLargeFileNotExceedingFileSizeLimitThenParsed()
@@ -460,10 +481,27 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 
 	@Before
 	public void setup() {
+		BASE_PROPERTIES = setupBaseProperties();
 		fileParser = getModelLayerFactory().newFileParser();
 	}
 
 	private long getLengthOf(String resourceName) {
 		return getTestResourceFile(resourceName).length();
+	}
+
+	private List<String> setupBaseProperties() {
+		ArrayList<String> baseProperties = new ArrayList<>();
+		baseProperties.add("Keywords");
+		baseProperties.add("Title");
+		baseProperties.add("Comments");
+		baseProperties.add("Author");
+		baseProperties.add("Subject");
+		baseProperties.add("Category");
+		baseProperties.add("Manager");
+		baseProperties.add("BCC");
+		baseProperties.add("CC");
+		baseProperties.add("From");
+		baseProperties.add("To");
+		return baseProperties;
 	}
 }

@@ -19,11 +19,19 @@ public abstract class DocumentExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
+	public ExtensionBooleanResult isRenameActionPossible(DocumentExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
 	public ExtensionBooleanResult isDownloadActionPossible(DocumentExtensionActionPossibleParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
 	public ExtensionBooleanResult isCopyActionPossible(DocumentExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+	public ExtensionBooleanResult isRenameContentActionPossible(DocumentExtensionActionPossibleParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
@@ -36,7 +44,7 @@ public abstract class DocumentExtension {
 	}
 
 	public ExtensionBooleanResult isCreatePDFAActionPossible(DocumentExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isAddSelectionActionPossible(DocumentExtensionActionPossibleParams params) {
@@ -52,11 +60,11 @@ public abstract class DocumentExtension {
 	}
 
 	public ExtensionBooleanResult isFinalizeActionPossible(DocumentExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isMoveActionPossible(DocumentExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isPrintLabelActionPossible(DocumentExtensionActionPossibleParams params) {
@@ -64,7 +72,7 @@ public abstract class DocumentExtension {
 	}
 
 	public ExtensionBooleanResult isPublishActionPossible(DocumentExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+		return hasWriteAccess(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
 	}
 
 	public ExtensionBooleanResult isGetPublicLinkActionPossible(DocumentExtensionActionPossibleParams params) {
@@ -83,13 +91,20 @@ public abstract class DocumentExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
+
+	protected boolean hasWriteAccess(DocumentExtensionActionPossibleParams params) {
+		Document document = params.getDocument();
+		User user = params.getUser();
+		return user.hasWriteAccess().on(document);
+	}
+
 	public ExtensionBooleanResult isAddAuthorizationActionPossible(
 			DocumentExtensionActionPossibleParams documentExtensionActionPossibleParams) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
 
-	public ExtensionBooleanResult isManageAuthorizationActionPossible(
+	public ExtensionBooleanResult isViewOrAddAuthorizationActionPossible(
 			DocumentExtensionActionPossibleParams documentExtensionActionPossibleParams) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}

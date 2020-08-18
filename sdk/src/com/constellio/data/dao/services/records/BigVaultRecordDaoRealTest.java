@@ -233,6 +233,72 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenStoringEmptyStringsThenStoredAsNulls()
+			throws Exception {
+		Map<String, Object> fields = new HashMap<String, Object>();
+		fields.put("field_s", "");
+		fields.put("field_ss", Arrays.asList(""));
+		fields.put("fields_ss", Arrays.asList("1", "", "2", "3"));
+
+		RecordDTO record = saveRecordWithFieldsAndLoadItFromStore(fields);
+
+		assertThat(record.getFields().get("field_s")).isNull();
+		assertThat(record.getFields().get("field_ss")).isNull();
+		assertThat(record.getFields().get("fields_ss")).isEqualTo(Arrays.asList("1", "2", "3"));
+
+	}
+
+
+	@Test
+	public void givenStoredStringsWhenModifyingWithEmptyValuesThenStoredAsNulls()
+			throws Exception {
+		Map<String, Object> fields = new HashMap<String, Object>();
+		fields.put("field_s", "1");
+		fields.put("field_ss", Arrays.asList("1"));
+		fields.put("fields_ss", Arrays.asList("1", "1", "2", "3"));
+
+		Map<String, Object> modifiedFields = new HashMap<String, Object>();
+		modifiedFields.put("field_s", "");
+		modifiedFields.put("field_ss", Arrays.asList(""));
+		modifiedFields.put("fields_ss", Arrays.asList("1", "", "2", "3"));
+
+		RecordDTO record = saveRecordWithFieldsAndLoadItFromStore(fields);
+
+		RecordDeltaDTO recordDeltaDTO = new RecordDeltaDTO(record, modifiedFields);
+		update(recordDeltaDTO);
+
+		record = recordDao.get(record.getId());
+		assertThat(record.getFields().get("field_s")).isNull();
+		assertThat(record.getFields().get("field_ss")).isNull();
+		assertThat(record.getFields().get("fields_ss")).isEqualTo(Arrays.asList("1", "2", "3"));
+	}
+
+	@Test
+	public void givenStoredStringsWhenModifyingWithNullThenStoredAsNulls()
+			throws Exception {
+		Map<String, Object> fields = new HashMap<String, Object>();
+		fields.put("field_s", "1");
+		fields.put("field_ss", Arrays.asList("1"));
+		fields.put("fields_ss", Arrays.asList("1", "1", "2", "3"));
+
+		Map<String, Object> modifiedFields = new HashMap<String, Object>();
+		modifiedFields.put("field_s", "");
+		modifiedFields.put("field_ss", new ArrayList<>());
+		modifiedFields.put("fields_ss", Arrays.asList("1", null, "2", "3"));
+
+		RecordDTO record = saveRecordWithFieldsAndLoadItFromStore(fields);
+
+		RecordDeltaDTO recordDeltaDTO = new RecordDeltaDTO(record, modifiedFields);
+		update(recordDeltaDTO);
+
+		record = recordDao.get(record.getId());
+		assertThat(record.getFields().get("field_s")).isNull();
+		assertThat(record.getFields().get("field_ss")).isNull();
+		assertThat(record.getFields().get("fields_ss")).isEqualTo(Arrays.asList("1", null, "2", "3"));
+
+	}
+
+	@Test
 	public void whenStoringStringsThenCanRetrieveThem2()
 			throws Exception {
 		Map<String, Object> fields = new HashMap<String, Object>();
@@ -511,7 +577,6 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 	public void whenLoadingARecordWith__NULL__InTextFieldsThenConsideredAsNull()
 			throws Exception {
 		givenDisabledAfterTestValidations();
-
 		SolrInputDocument solrInputDocument = new SolrInputDocument();
 		solrInputDocument.setField("id", "zeId");
 		solrInputDocument.setField("field1_t", "__NULL__");
@@ -966,6 +1031,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 
 	private void givenExceptionWhenExecutingTransactionThenNoModificationsApplied()
 			throws Exception {
+		givenDisabledAfterTestValidations();
 		List<SolrParams> deleteByQueries = asList((SolrParams) new ModifiableSolrParams().set("q", "savedField_s:666"));
 
 		RecordDTO firstAlreadySavedRecord = givenSavedRecordWithInitialValueInSavedMetadataFieldName();
@@ -1039,6 +1105,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 	public void givenDeleteByQueryCalledThenDeleteOnlyTargettedRecords()
 			throws Exception {
 
+		givenDisabledAfterTestValidations();
 		Map<String, Object> fieldWith42 = new HashMap();
 		fieldWith42.put("afield_s", 42);
 		Map<String, Object> fieldWith42AndChuckNorris = new HashMap();
@@ -1230,4 +1297,6 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 	private MapBuilder<String, Object> buildParamMapWith(String collection, String schema) {
 		return MapBuilder.with("collection_s", (Object) collection).andWith("schema_s", schema);
 	}
+
+
 }

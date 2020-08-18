@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
@@ -17,9 +10,16 @@ import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.PendingAlert;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Folder extends RMObject {
 	public static final String SCHEMA_TYPE = "folder";
@@ -44,9 +44,7 @@ public class Folder extends RMObject {
 	public static final String CLOSING_DATE = "closingDate";
 	public static final String ENTERED_CLOSING_DATE = "enteredClosingDate";
 	public static final String DESCRIPTION = "description";
-	public static final String FILING_SPACE_ENTERED = "filingSpaceEntered";
-	public static final String FILING_SPACE = "filingSpace";
-	public static final String FILING_SPACE_CODE = "filingSpaceCode";
+
 	public static final String KEYWORDS = "keywords";
 	public static final String MEDIUM_TYPES = "mediumTypes";
 	public static final String OPENING_DATE = "openingDate";
@@ -54,14 +52,18 @@ public class Folder extends RMObject {
 	public static final String ACTUAL_TRANSFER_DATE = "actualTransferDate";
 	public static final String ACTUAL_DEPOSIT_DATE = "actualDepositDate";
 	public static final String ACTUAL_DESTRUCTION_DATE = "actualDestructionDate";
-	public static final String COPY_RULES_EXPECTED_TRANSFER_DATES = "copyRulesExpectedTransferDates";
 	public static final String EXPECTED_TRANSFER_DATE = "expectedTransferDate";
-	public static final String COPY_RULES_EXPECTED_DEPOSIT_DATES = "copyRulesExpectedDepositDates";
 	public static final String EXPECTED_DEPOSIT_DATE = "expectedDepositDate";
-	public static final String COPY_RULES_EXPECTED_DESTRUCTION_DATES = "copyRulesExpectedDestructionDates";
 	public static final String EXPECTED_DESTRUCTION_DATE = "expectedDestructionDate";
 	public static final String RETENTION_RULE = "retentionRule";
 	public static final String RETENTION_RULE_ENTERED = "retentionRuleEntered";
+
+	public static final String FILING_SPACE_ENTERED = "filingSpaceEntered";
+	public static final String FILING_SPACE = "filingSpace";
+	public static final String FILING_SPACE_CODE = "filingSpaceCode";
+	public static final String COPY_RULES_EXPECTED_TRANSFER_DATES = "copyRulesExpectedTransferDates";
+	public static final String COPY_RULES_EXPECTED_DEPOSIT_DATES = "copyRulesExpectedDepositDates";
+	public static final String COPY_RULES_EXPECTED_DESTRUCTION_DATES = "copyRulesExpectedDestructionDates";
 
 	public static final String ACTIVE_RETENTION_TYPE = "activeRetentionType";
 	public static final String ACTIVE_RETENTION_CODE = "activeRetentionPeriodCode";
@@ -92,6 +94,7 @@ public class Folder extends RMObject {
 	public static final String DATE_TYPES = "dateTypes";
 	public static final String ALLOWED_DOCUMENT_TYPES = "allowedDocumentTypes";
 	public static final String ALLOWED_FOLDER_TYPES = "allowedFolderTypes";
+	public static final String EXTERNAL_LINKS = "externalLinks";
 
 	public static final String MANUAL_EXPECTED_TRANSFER_DATE = "manualExpectedTransferDate";
 	public static final String MANUAL_EXPECTED_DEPOSIT_DATE = "manualExpectedDepositDate";
@@ -122,6 +125,8 @@ public class Folder extends RMObject {
 	public static final String HAS_CONTENT = "hasContent";
 	public static final String IS_MODEL = "isModel";
 
+	public static final String ABBREVIATION = "abbreviation";
+
 	public Folder(Record record,
 				  MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -142,7 +147,7 @@ public class Folder extends RMObject {
 	}
 
 	public boolean isModel() {
-		return get(IS_MODEL);
+		return getBooleanWithDefaultValue(IS_MODEL, false);
 	}
 
 	public Folder setModel(boolean isModel) {
@@ -226,6 +231,41 @@ public class Folder extends RMObject {
 			}
 		}
 		setAllowedDocumentTypes(folderTypes);
+	}
+
+	public List<String> getExternalLinks() {
+		return getList(EXTERNAL_LINKS);
+	}
+
+	public Folder setExternalLinks(List<String> links) {
+		set(EXTERNAL_LINKS, links);
+		return this;
+	}
+
+	public void removeExternalLink(String link) {
+		removeExternalLinks(Arrays.asList(link));
+	}
+
+	public void removeExternalLinks(List<String> linksToRemove) {
+		List<String> links = new ArrayList<>();
+		links.addAll(getExternalLinks());
+		links.removeAll(linksToRemove);
+		setExternalLinks(links);
+	}
+
+	public void addExternalLink(String link) {
+		addExternalLinks(Arrays.asList(link));
+	}
+
+	public void addExternalLinks(List<String> linksToAdd) {
+		List<String> links = new ArrayList<>();
+		links.addAll(getExternalLinks());
+		for (String folderType : linksToAdd) {
+			if (!links.contains(folderType)) {
+				links.add(folderType);
+			}
+		}
+		setExternalLinks(links);
 	}
 
 	public Folder setParentFolder(String folder) {
@@ -952,6 +992,14 @@ public class Folder extends RMObject {
 
 	public boolean hasContent() {
 		return getBooleanWithDefaultValue(HAS_CONTENT, false);
+	}
+
+	public boolean isSummary() {
+		return getWrappedRecord().getLoadedFieldsMode() != RecordDTOMode.FULLY_LOADED;
+	}
+
+	public String getAbbreviation() {
+		return get(ABBREVIATION);
 	}
 }
 

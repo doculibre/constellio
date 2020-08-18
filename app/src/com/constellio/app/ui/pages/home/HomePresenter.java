@@ -16,18 +16,19 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
-import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.TreeNode;
+import com.constellio.app.ui.framework.data.trees.DefaultLazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.trees.LegacyTreeNodesDataProviderAdapter;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -46,10 +47,12 @@ public class HomePresenter extends BasePresenter<HomeView> {
 	private String currentTab;
 
 	private List<PageItem> tabItems;
+	private List<String> refreshablePageItem;
 
 	public HomePresenter(HomeView view) {
 		super(view);
 		tabItems = navigationConfig().getFragments(HomeView.TABS);
+		refreshablePageItem = navigationConfig().getRefreshable(HomeView.TABS);
 	}
 
 	public HomePresenter forParams(String params) {
@@ -57,7 +60,6 @@ public class HomePresenter extends BasePresenter<HomeView> {
 			Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
 			String tabParam = paramsMap.get("tab");
 			String taxonomyCodeParam = paramsMap.get("taxonomyCode");
-			String taxonomyMetadataParam = paramsMap.get("taxonomyMetadata");
 			String expandedRecordIdParam = paramsMap.get("expandedRecordId");
 
 			if (tabParam == null) {
@@ -73,10 +75,10 @@ public class HomePresenter extends BasePresenter<HomeView> {
 				for (PageItem tabItem : tabItems) {
 					if ((tabItem instanceof RecordTree) && currentTab.equals(tabItem.getCode())) {
 						RecordTree recordTree = (RecordTree) tabItem;
-						List<RecordLazyTreeDataProvider> dataProviders = recordTree
+						List<LazyTreeDataProvider<String>> dataProviders = recordTree
 								.getDataProviders(appLayerFactory, sessionContext);
 						for (int i = 0; i < dataProviders.size(); i++) {
-							RecordLazyTreeDataProvider dataProvider = dataProviders.get(i);
+							LazyTreeDataProvider<String> dataProvider = dataProviders.get(i);
 							String dataProviderTaxonomyCode = dataProvider.getTaxonomyCode();
 							if (taxonomyCodeParam.equals(dataProviderTaxonomyCode)) {
 								recordTree.setDefaultDataProvider(i);
@@ -85,47 +87,43 @@ public class HomePresenter extends BasePresenter<HomeView> {
 									Record expandedRecord = getRecord(expandedRecordIdParam);
 
 									List<String> expandedRecordIds = new ArrayList<>();
+
 									expandedRecordIds.add(0, expandedRecordIdParam);
 
 									Record lastAddedParent = null;
 									String currentParentId = expandedRecord.getParentId();
+									List<Record> recordHierarchie = new ArrayList<>();
+									recordHierarchie.add(expandedRecord);
 									while (currentParentId != null) {
 										lastAddedParent = getRecord(currentParentId);
+										recordHierarchie.add(0, lastAddedParent);
 										expandedRecordIds.add(0, currentParentId);
 										currentParentId = lastAddedParent.getParentId();
 									}
 
-									String taxonomyRecordId;
-									if (taxonomyMetadataParam != null) {
-										Record recordWithTaxonomyMetadata;
-										if (lastAddedParent != null) {
-											recordWithTaxonomyMetadata = lastAddedParent;
-										} else {
-											recordWithTaxonomyMetadata = expandedRecord;
-										}
-										MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-										MetadataSchema expandedRecordSchema = schemasManager
-												.getSchemaOf(recordWithTaxonomyMetadata);
-										Metadata taxonomyMetadata = expandedRecordSchema.get(taxonomyMetadataParam);
-										taxonomyRecordId = expandedRecord.get(taxonomyMetadata);
-									} else {
-										taxonomyRecordId = expandedRecordIdParam;
-									}
-									if (!expandedRecordIds.contains(taxonomyRecordId)) {
-										expandedRecordIds.add(0, taxonomyRecordId);
-									}
+									TreeNode currentNode = TreeNode.namelessNode(recordHierarchie.get(0).getId(), LegacyTreeNodesDataProviderAdapter.PROVIDER_ID, recordHierarchie.get(0).getTypeCode());
 
-									Record taxonomyRecord = getRecord(taxonomyRecordId);
-									String currentTaxonomyRecordParentId = taxonomyRecord.getParentId();
-									while (currentTaxonomyRecordParentId != null) {
-										Record taxonomyRecordParent = getRecord(currentTaxonomyRecordParentId);
-										expandedRecordIds.add(0, currentTaxonomyRecordParentId);
-										currentTaxonomyRecordParentId = taxonomyRecordParent.getParentId();
+									String lastUniqueId = DefaultLazyTreeDataProvider.nodeUniqueId(null, currentNode);
+
+									expandedRecordIds.remove(recordHierarchie.get(0).getId());
+									expandedRecordIds.add(lastUniqueId);
+
+									for (int y = 1; y < recordHierarchie.size(); y++) {
+										Record record = recordHierarchie.get(y);
+										String type = record.getTypeCode();
+										String id = record.getId();
+
+										currentNode = TreeNode.namelessNode(id, LegacyTreeNodesDataProviderAdapter.PROVIDER_ID, type);
+
+										lastUniqueId = DefaultLazyTreeDataProvider.nodeUniqueId(lastUniqueId, currentNode);
+
+										expandedRecordIds.remove(recordHierarchie.get(y).getId());
+										expandedRecordIds.add(lastUniqueId);
 									}
 
 									recordTree.setExpandedRecordIds(expandedRecordIds);
+									recordTree.setExpendedRecordIdsLinkedToTaxonomieCode(taxonomyCodeParam);
 								}
-
 								break loop1;
 							}
 						}
@@ -136,6 +134,10 @@ public class HomePresenter extends BasePresenter<HomeView> {
 			view.updateUI();
 		}
 		return this;
+	}
+
+	public boolean isRefreshable(String code) {
+		return refreshablePageItem.contains(code);
 	}
 
 	public List<PageItem> getTabs() {
@@ -240,5 +242,13 @@ public class HomePresenter extends BasePresenter<HomeView> {
 	private Record getRecord(String id) {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		return recordServices.getDocumentById(id);
+	}
+
+	public void recordChanged(String recordId) {
+		Record nodeDocument = modelLayerFactory.newRecordServices().getDocumentById(recordId);
+		if (nodeDocument != null) {
+			String newCaption = nodeDocument.getTitle();
+			view.updateCaption(recordId, newCaption);
+		}
 	}
 }

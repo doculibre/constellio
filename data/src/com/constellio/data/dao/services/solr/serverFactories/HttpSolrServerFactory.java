@@ -9,11 +9,14 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException;
+import org.apache.solr.client.solrj.io.stream.SolrStream;
+import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.client.solrj.request.CoreAdminRequest;
 import org.apache.solr.client.solrj.response.CoreAdminResponse;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.CoreAdminParams.CoreAdminAction;
+import org.apache.solr.common.params.MapSolrParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
@@ -25,6 +28,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 public class HttpSolrServerFactory extends AbstractSolrServerFactory {
@@ -51,6 +55,11 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 		SolrClient solrClient = getSolrClient(core);
 		solrClients.add(solrClient);
 		return solrClient;
+	}
+
+	@Override
+	public TupleStream newTupleStream(String core, Map<String, String> props) {
+		return new SolrStream(url + "/" + core, new MapSolrParams(props));
 	}
 
 	@Override

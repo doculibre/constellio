@@ -32,6 +32,7 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	public static final String SYSTEM_OPERATION = "systemOperation";
 	public static final String REINDEX_AND_RESTART_BUTTON = "reindexAndRestartButton";
 	public static final String RECORDS_REQUEST_LINK_BUTTON = "recordRequestLinkButton";
+	public static final String SIGNED_DOCUMENTS = "signedDocumentsLinkButton";
 
 	private boolean agentEventsVisible;
 
@@ -88,6 +89,10 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 		borrowedDocumentsLink.addStyleName(BORROWED_DOCUMENTS_LINK_BUTTON);
 		layout.addComponent(borrowedDocumentsLink);
 
+		Button signedDocs = newSignedDocumentLink();
+		signedDocs.addStyleName(SIGNED_DOCUMENTS);
+		layout.addComponent(signedDocs);
+
 		Button filingSpaceEventsLink = newByFilingSpaceEventsLink();
 		filingSpaceEventsLink.addStyleName(FILING_SPACE_EVENTS_LINK_BUTTON);
 		layout.addComponent(filingSpaceEventsLink);
@@ -108,13 +113,13 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 		decommissioningEventsLink.addStyleName(DECOMMISSIONING_EVENTS_LINK_BUTTON);
 		layout.addComponent(decommissioningEventsLink);
 
-		//		Button importExportEventsLink = newImportExportLink();
-		//		importExportEventsLink.addStyleName(CURRENTLY_BORROWED_DOCUMENTS_LINK_BUTTON);
-		//		layout.addComponent(importExportEventsLink);
-
 		Button reindexAndRestartEventLink = newReIndexAndRestartLink();
 		reindexAndRestartEventLink.addStyleName(REINDEX_AND_RESTART_BUTTON);
 		layout.addComponents(reindexAndRestartEventLink);
+
+		Button batchProcessEventLink = newBatchProcessLink();
+		batchProcessEventLink.addStyleName(AGENT_EVENTS_LINK_BUTTON);
+		layout.addComponents(batchProcessEventLink);
 
 		if (agentEventsVisible) {
 			Button agentEventsLink = newAgentEventsLink();
@@ -147,6 +152,10 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	private Button newImportExportLink() {
 		return createLink($("ListEventsView.importExport"), EventCategory.IMPORT_EXPORT,
 				"importExportEvent");
+	}
+
+	private Button newSignedDocumentLink() {
+		return createLink($("ListEventsView.signedDoc"), EventCategory.SIGNED_DOCUMENTS, "document_certificate");
 	}
 
 	private Button newCurrentlyBorrowedFoldersLink() {
@@ -232,6 +241,10 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 
 	private Button newDocumentRequestLink() {
 		return createLink($("ListEventsView.requestTask"), EventCategory.REQUEST_TASKS, "borrowing-audit");
+	}
+
+	private Button newBatchProcessLink() {
+		return createLink($("ListEventsView.batchProcessEvents"), EventCategory.BATCH_PROCESS_EVENTS, "traitementenlot");
 	}
 
 	private Button createLink(String caption, final EventCategory eventCategory, String iconName) {

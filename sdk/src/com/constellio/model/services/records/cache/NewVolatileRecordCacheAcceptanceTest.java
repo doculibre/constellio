@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.dev.Toggle;
@@ -540,8 +541,8 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 		}
 
 		@Override
-		public Record getById(String id) {
-			return cache.get(id);
+		public Record getById(RecordId id) {
+			return cache.get(id.stringValue());
 		}
 
 		@Override

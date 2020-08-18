@@ -135,7 +135,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		if (metadataCodes == null) {
 			metadataCodes = EventTypeUtils.getDisplayedMetadataCodes(defaultSchema(), getEventType());
 			schemaVO = new MetadataSchemaToVOBuilder()
-					.build(defaultSchema(), VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
+					.build(rmSchemasRecordsServices().eventSchema(), VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
 		}
 		RecordVODataProvider eventsDataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory,
 				view.getSessionContext()) {
@@ -327,7 +327,11 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 					return rmSchemasEventsServices().newFindEventByDateRangeQuery(currentUser, eventType, startDate, endDate);
 				}
 			default:
-				return rmSchemasEventsServices().newFindEventByDateRangeQuery(currentUser, eventType, startDate, endDate);
+				if (EventType.ATTEMPTED_OPEN_SESSION.equals(eventType)) {
+					return rmSchemasEventsServices().newFindFailedLoginsByDateRangeQuery(currentUser, startDate, endDate);
+				} else {
+					return rmSchemasEventsServices().newFindEventByDateRangeQuery(currentUser, eventType, startDate, endDate);
+				}
 		}
 	}
 
@@ -489,10 +493,10 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 				Metadata borrowedMetadata = folderSchema.getMetadata(Folder.BORROWED);
 				LocalDateTime borrowDateValue = record.get(borrowDateMetadata);
 
-				LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(schemas().folder.schema())
+				LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(schemas().folder.schemaType())
 						.where(borrowedMetadata).isTrue()
-						.andWhere(borrowDateMetadata).isEqualTo(
-								borrowDateValue).andWhere(recordIdMetadata).isEqualTo(recordId);
+						.andWhere(borrowDateMetadata).isEqualTo(borrowDateValue)
+						.andWhere(recordIdMetadata).isEqualTo(recordId);
 
 				SearchServices searchServices = modelLayerFactory.newSearchServices();
 				Record eventRecord = searchServices.searchSingleResult(logicalSearchCondition);

@@ -6,8 +6,12 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,24 +20,35 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Spliterators;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
+import static java.lang.String.format;
 
 public class LangUtils {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(LangUtils.class);
+
+	public static final int OBJECT_REF_BYTES = 4;
 
 	public static <T, V extends T, D extends T> T valueOrDefault(V value, D defaultValue) {
 		return value != null ? value : defaultValue;
@@ -397,6 +412,140 @@ public class LangUtils {
 
 	}
 
+
+	static int[] defaultListCapacities = new int[]{
+			10, 15, 22, 33, 49, 73, 109, 163, 244, 366, 549, 823, 1234, 1851, 2776, 4164, 6246, 9369, 14053, 21079,
+			31618, 47427, 71140, 106710, 160065, 240097, 360145, 540217, 810325, 1215487, 1823230, 2734845,
+			4102267, 6153400, 9230100, 13845150, 20767725, 31151587, 46727380, 70091070, 105136605};
+
+	public static long estimatedSizeOfListStructureBasedOnSize(List object) {
+
+		int size = object.size();
+		if (object instanceof ArrayList) {
+			int capacity = Integer.MAX_VALUE;
+			for (int i = 0; i < defaultListCapacities.length; i++) {
+				if (defaultListCapacities[i] > size) {
+					capacity = defaultListCapacities[i];
+					break;
+				}
+			}
+			return 16 + OBJECT_REF_BYTES * capacity;
+		} else if (object instanceof LinkedList) {
+			return 16 + OBJECT_REF_BYTES + OBJECT_REF_BYTES + Integer.BYTES + (24 * size);
+
+
+		}
+
+		return 0;
+	}
+
+
+	public static long estimatedSizeOfSetStructureBasedOnSize(Set aSet) {
+		if (aSet instanceof HashSet) {
+			int size = aSet.size();
+			int capacity = estimateSetCapacityBasedOnSizeAndDefaultLoadFactor(size);
+
+			return 32 * size + OBJECT_REF_BYTES * capacity;
+
+		} else if (aSet instanceof TreeSet) {
+			return 40 * aSet.size();
+
+		} else {
+			return 40 * aSet.size();
+		}
+
+	}
+
+	public static void main(String[] args) throws Exception {
+
+		ArrayList<Short> test = new ArrayList<>();
+
+		Field field = test.getClass().getDeclaredField("elementData");
+		field.setAccessible(true);
+
+		StringBuilder sb = new StringBuilder();
+
+		int lastCapacity = 0;
+		for (int i = 0; i < 100_000_000; i++) {
+			test.add((short) 42);
+			Object[] elements = (Object[]) field.get(test);
+			int capacity = elements.length;
+
+
+			if (lastCapacity != capacity) {
+				System.out.println(i + ":" + lastCapacity + "=>" + capacity);
+				sb.append(capacity + ",");
+				lastCapacity = capacity;
+			}
+
+		}
+		System.out.println(sb.toString());
+
+
+	}
+
+	static List<Integer> defaultSetCapacities = new ArrayList<>();
+
+	static {
+		int capacity = 16;
+		while (capacity < 1_000_000_000) {
+			defaultSetCapacities.add(capacity);
+			capacity += capacity * 0.75;
+		}
+	}
+
+	static int estimateSetCapacityBasedOnSizeAndDefaultLoadFactor(int size) {
+		for (int defaultCapacity : defaultSetCapacities) {
+			if (size < defaultCapacity) {
+				return defaultCapacity;
+			}
+		}
+
+		return Integer.MAX_VALUE;
+	}
+
+	public static long estimatedizeOfMapStructureBasedOnSize(Map aMap) {
+		if (aMap instanceof HashMap) {
+
+			int capacity = estimateSetCapacityBasedOnSizeAndDefaultLoadFactor(aMap.size());
+			//			try {
+			//				HashMap m = (HashMap) aMap;
+			//				Field tableField = HashMap.class.getDeclaredField("table");
+			//				tableField.setAccessible(true);
+			//				Object[] table = (Object[]) tableField.get(m);
+			//				capacity = table == null ? 0 : table.length;
+			//			} catch (Throwable t) {
+			//				t.printStackTrace();
+			//			}
+
+			return 32 * aMap.size() + 4 * capacity;
+
+
+		} else if (aMap instanceof TreeMap) {
+			return 40 * aMap.size();
+
+		} else {
+			//Unsupported, averaging to 40
+			return 40 * aMap.size();
+		}
+
+	}
+
+	public static <T> List<T> toSortedList(Set<T> values) {
+		List<T> sortedValues = new ArrayList<>(values);
+		sortedValues.sort(null);
+		return sortedValues;
+	}
+
+	public static void closeQuietly(Closeable closeable) {
+		try {
+			closeable.close();
+		} catch (Throwable t) {
+			LOGGER.warn("Error while closing, continuing...", t);
+		}
+	}
+
+
 	public static class StringReplacer {
 
 		List<StringReplacement> stringReplacements = new ArrayList<>();
@@ -686,6 +835,25 @@ public class LangUtils {
 		return negative ? result : -result;
 	}
 
+	public static String humanReadableTime(long ms) {
+		if (ms < 1000) {
+			return ms + "ms";
+
+		} else if (ms < 60_000) {
+			double secs = ((double) ms) / 1000;
+			return format("%.1f", secs) + "s";
+
+		} else if (ms < 3600_000) {
+			double mins = ((double) ms) / 60_000;
+			return format("%.1f", mins) + "m";
+
+		} else {
+			double hours = ((double) ms) / 3600_000;
+			return format("%.1f", hours) + "h";
+		}
+
+	}
+
 	//Thanks aioobe, found on https://stackoverflow.com/questions/3758606/how-to-convert-byte-size-into-human-readable-format-in-java
 	public static String humanReadableByteCount(long bytes, boolean si) {
 		int unit = si ? 1000 : 1024;
@@ -695,5 +863,204 @@ public class LangUtils {
 		int exp = (int) (Math.log(bytes) / Math.log(unit));
 		String pre = (si ? "kMGTPE" : "KMGTPE").charAt(exp - 1) + (si ? "" : "i");
 		return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
+	}
+
+	public static <V extends Comparable> V findFirstMatchInSortedLists(List<V> list1, List<V> list2) {
+
+		int index1 = 0;
+		int index2 = 0;
+		while (index1 < list1.size() && index2 < list2.size()) {
+			int result = list1.get(index1).compareTo(list2.get(index2));
+			if (result < 0) {
+				index1++;
+			} else if (result > 0) {
+				index2++;
+			} else {
+				return list1.get(index1);
+			}
+		}
+
+		return null;
+	}
+
+	public static <V extends Comparable> List<V> findMatchesInSortedLists(List<V> list1, List<V> list2) {
+
+		int index1 = 0;
+		int index2 = 0;
+
+		List<V> matches = new ArrayList<>();
+
+		while (index1 < list1.size() && index2 < list2.size()) {
+			int result = list1.get(index1).compareTo(list2.get(index2));
+			if (result < 0) {
+				index1++;
+			} else if (result > 0) {
+				index2++;
+			} else {
+				matches.add(list1.get(index1));
+				index1++;
+				index2++;
+			}
+		}
+
+		return matches;
+	}
+
+	public static <T> List<T> asSortedList(T... values) {
+		List<T> sortedList = new ArrayList<T>(Arrays.asList(values));
+		sortedList.sort(null);
+		return sortedList;
+	}
+
+	public static <V extends Comparable> void findMatchesInSortedLists(List<V> list1, List<V> list2,
+																	   Consumer<V> matchesConsumer,
+																	   Consumer<V> nonMatchedList1Consumer,
+																	   Consumer<V> nonMatchedList2Consumer) {
+
+		int index1 = 0;
+		int index2 = 0;
+
+		while (index1 < list1.size() && index2 < list2.size()) {
+			V v1 = list1.get(index1);
+			V v2 = list2.get(index2);
+			int result = v1.compareTo(v2);
+			if (result < 0) {
+				if (nonMatchedList1Consumer != null) {
+					nonMatchedList1Consumer.accept(v1);
+				}
+				index1++;
+			} else if (result > 0) {
+				if (nonMatchedList2Consumer != null) {
+					nonMatchedList2Consumer.accept(v2);
+				}
+				index2++;
+			} else {
+				if (matchesConsumer != null) {
+					matchesConsumer.accept(v1);
+				}
+				index1++;
+				index2++;
+			}
+		}
+	}
+
+	/**
+	 * This method is far, very far from being complete!
+	 * Since the most important part of the data are strings
+	 *
+	 * @param object
+	 * @return
+	 */
+	public static long sizeOf(Object object) {
+
+		if (object == null) {
+			return 0;
+
+		} else if (object instanceof Integer) {
+			return 8;
+
+		} else if (object instanceof Float) {
+			return 8;
+
+		} else if (object instanceof Double) {
+			return 8;
+
+		} else if (object instanceof String) {
+			return 16 + 2 * ((String) object).length();
+
+		} else if (object instanceof List) {
+			long size = estimatedSizeOfListStructureBasedOnSize((List) object);
+			for (Object element : ((List) object)) {
+				size += sizeOf(element);
+			}
+			return size;
+
+
+		} else if (object instanceof Set) {
+			long size = estimatedSizeOfSetStructureBasedOnSize((Set) object);
+			for (Object element : ((Set) object)) {
+				size += sizeOf(element);
+			}
+			return size;
+
+
+		} else if (object instanceof Map) {
+			long size = estimatedizeOfMapStructureBasedOnSize((Map) object);
+			for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) object).entrySet()) {
+				size += sizeOf(entry.getKey());
+				size += sizeOf(entry.getValue());
+			}
+			return size;
+
+
+		}
+
+		return 0;
+	}
+
+
+	public static IntStream forEachInRandomOrder(int nbValues) {
+		List<Integer> integers = getIntValuesInRandomOrder(nbValues);
+
+		return integers.stream().mapToInt((i) -> i);
+	}
+
+	public static List<Integer> getIntValuesInRandomOrder(int nbValues) {
+		List<Integer> integers = new ArrayList<>();
+
+		for (int i = 0; i < nbValues; i++) {
+			integers.add(i);
+		}
+
+		Collections.shuffle(integers);
+		return integers;
+	}
+
+	public static <T> Supplier<List<T>> newBatchSupplier(Iterable<T> iterable, int batchSize) {
+		return newBatchSupplier(iterable.iterator(), batchSize);
+	}
+
+	public static <T> Supplier<List<T>> newBatchSupplier(Iterator<T> iterator, int batchSize) {
+		Iterator<List<T>> groupedIterator = new BatchBuilderIterator(iterator, batchSize);
+		return () -> {
+
+			synchronized (groupedIterator) {
+				if (groupedIterator.hasNext()) {
+					return groupedIterator.next();
+				} else {
+					return null;
+				}
+			}
+
+		};
+	}
+
+
+	public static <T> void executeInParallelUntilSupplierReturnsNull(int threads, Supplier<T> supplier,
+																	 Consumer<T> consumer) {
+		AtomicReference<RuntimeException> firstException = new AtomicReference<>();
+		ThreadList threadList = ThreadList.running(threads, () -> {
+
+			T batch;
+			while ((batch = supplier.get()) != null && firstException.get() == null) {
+
+				try {
+					consumer.accept(batch);
+				} catch (RuntimeException e) {
+					firstException.set(e);
+				}
+
+			}
+
+		});
+		try {
+			threadList.startAll().joinAll();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		if (firstException.get() != null) {
+			throw firstException.get();
+
+		}
 	}
 }

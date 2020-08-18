@@ -5,8 +5,9 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.converters.TempFileUploadToContentVersionVOConverter;
-import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.fields.EditablePasswordField;
+import com.constellio.app.ui.framework.components.fields.ExtraTabAdditionalRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -25,7 +26,6 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Embedded;
 import com.vaadin.ui.Field;
-import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
@@ -69,11 +69,11 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	@PropertyId("jobTitle")
 	private TextField jobTitleField;
 	@PropertyId("password")
-	private PasswordField passwordField;
+	private EditablePasswordField passwordField;
 	@PropertyId("confirmPassword")
-	private PasswordField confirmPasswordField;
+	private EditablePasswordField confirmPasswordField;
 	@PropertyId("oldPassword")
-	private PasswordField oldPasswordField;
+	private EditablePasswordField oldPasswordField;
 	@PropertyId("loginLanguageCode")
 	private ComboBox loginLanguageCodeField;
 
@@ -235,9 +235,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		addressField.addStyleName("phone");
 		addressField.setEnabled(presenter.canModify());
 
-		passwordField = new PasswordField();
+		passwordField = new EditablePasswordField();
 		passwordField.setCaption($("ModifyProfileView.password"));
-		passwordField.setNullRepresentation("");
 		passwordField.setId("password");
 		passwordField.addStyleName("password");
 		passwordField.addValueChangeListener(new ValueChangeListener() {
@@ -256,9 +255,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		passwordField.setEnabled(presenter.canModifyPassword());
 		passwordField.setReadOnly(!presenter.isPasswordChangeEnabled());
 
-		confirmPasswordField = new PasswordField();
+		confirmPasswordField = new EditablePasswordField();
 		confirmPasswordField.setCaption($("ModifyProfileView.confirmPassword"));
-		confirmPasswordField.setNullRepresentation("");
 		confirmPasswordField.setId("confirmPassword");
 		confirmPasswordField.addStyleName("confirmPassword");
 		Validator passwordFieldsValidator = new Validator() {
@@ -275,9 +273,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		confirmPasswordField.setEnabled(presenter.canModifyPassword());
 		confirmPasswordField.setReadOnly(!presenter.isPasswordChangeEnabled());
 
-		oldPasswordField = new PasswordField();
+		oldPasswordField = new EditablePasswordField();
 		oldPasswordField.setCaption($("ModifyProfileView.oldPassword"));
-		oldPasswordField.setNullRepresentation("");
 		oldPasswordField.setId("oldPassword");
 		oldPasswordField.addStyleName("oldPassword");
 		oldPasswordField.setEnabled(presenter.canModifyPassword());
@@ -295,17 +292,20 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 
 		List<Field> allFields = new ArrayList<Field>(asList(imageField, usernameField, firstNameField, lastNameField, emailField, personalEmailsField,
 				phoneField, faxField, jobTitleField, addressField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField));
-		final List<AdditionnalRecordField> configFields = getAdditionnalFields();
-		allFields.addAll(configFields);
+
+		final List<ExtraTabAdditionalRecordField> extraTabFields = getExtraTabAdditionalRecordFields();
+		allFields.addAll(extraTabFields);
+
 		form = new BaseForm<ProfileVO>(profileVO, this, allFields.toArray(new Field[0])) {
 			@Override
 			protected void saveButtonClick(ProfileVO profileVO)
 					throws ValidationException {
 				HashMap<String, Object> additionnalMetadataValues = new HashMap<>();
-				for(AdditionnalRecordField field: configFields) {
+				for (ExtraTabAdditionalRecordField field : extraTabFields) {
 					field.commit();
 					additionnalMetadataValues.put(field.getMetadataLocalCode(), field.getCommittableValue());
 				}
+
 				presenter.saveButtonClicked(profileVO, additionnalMetadataValues);
 			}
 
@@ -316,8 +316,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 
 			@Override
 			protected String getTabCaption(Field<?> field, Object propertyId) {
-				if(field instanceof AdditionnalRecordField) {
-					return $("ModifyProfileView.configsTab");
+				if (field instanceof ExtraTabAdditionalRecordField) {
+					return ((ExtraTabAdditionalRecordField<?>) field).getTab();
 				} else {
 					return $("ModifyProfileView.profileTab");
 				}
@@ -348,8 +348,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		ConstellioUI.getCurrent().updateContent();
 	}
 
-	public List<AdditionnalRecordField> getAdditionnalFields() {
+	public List<ExtraTabAdditionalRecordField> getExtraTabAdditionalRecordFields() {
 		RecordFieldsExtensionParams params = new RecordFieldsExtensionParams(this, presenter.getUserRecord().getWrappedRecord());
-		return getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).getAdditionnalFields(params);
+		return getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).getExtraTabAdditionalRecordFields(params);
 	}
 }

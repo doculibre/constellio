@@ -45,12 +45,12 @@ public class OverridingMetadataFieldFactory<T extends FieldOverridePresenter> ex
 	}
 
 	@Override
-	protected Field<?> newSingleValueField(MetadataVO metadata) {
+	protected Field<?> newSingleValueField(MetadataVO metadata, String recordId) {
 		switch (presenter.getOverride(metadata.getCode())) {
 			case DROPDOWN:
 				return buildDropdown(metadata);
 		}
-		return super.newSingleValueField(metadata);
+		return super.newSingleValueField(metadata, recordId);
 	}
 
 	private Field<?> buildDropdown(MetadataVO metadata) {

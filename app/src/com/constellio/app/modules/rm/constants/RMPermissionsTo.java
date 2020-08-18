@@ -1,9 +1,13 @@
 package com.constellio.app.modules.rm.constants;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Permissions;
 
+import java.util.Arrays;
 import java.util.List;
+
+import static com.constellio.model.entities.CorePermissions.COLLECTION_MANAGEMENT;
 
 public class RMPermissionsTo {
 	public static Permissions PERMISSIONS = new Permissions(ConstellioRMModule.ID);
@@ -20,10 +24,12 @@ public class RMPermissionsTo {
 	public static final String MANAGE_FOLDER_AUTHORIZATIONS = permission(FOLDER_GROUP, "manageFolderAuthorizations");
 	public static final String VIEW_FOLDER_AUTHORIZATIONS = permission(FOLDER_GROUP, "viewFolderAuthorizations");
 
+	public static final String MANAGE_SHARE = CorePermissions.PERMISSIONS.add(COLLECTION_MANAGEMENT, "manageShare");
 	public static final String SHARE_FOLDER = permission(FOLDER_GROUP, "shareFolders");
 	public static final String SHARE_A_SEMIACTIVE_FOLDER = permission(FOLDER_GROUP, "shareSemiActiveFolders");
 	public static final String SHARE_A_INACTIVE_FOLDER = permission(FOLDER_GROUP, "shareInactiveFolders");
 	public static final String SHARE_A_IMPORTED_FOLDER = permission(FOLDER_GROUP, "shareImportedFolders");
+
 
 	public static final String CREATE_SUB_FOLDERS = permission(FOLDER_GROUP, "createSubFolders");
 	public static final String CREATE_SUB_FOLDERS_IN_SEMIACTIVE_FOLDERS = permission(FOLDER_GROUP,
@@ -92,6 +98,8 @@ public class RMPermissionsTo {
 
 	public static final String VIEW_SYSTEM_FILENAME = permission(DOCUMENT_GROUP, "viewSystemFilename");
 
+	public static final String GENERATE_EXTERNAL_SIGNATURE_URL = permission(DOCUMENT_GROUP, "generateExternalSignatureUrl");
+
 	// Decommissioning
 	private static final String DECOMMISSIONING = "decommissioning";
 
@@ -105,8 +113,10 @@ public class RMPermissionsTo {
 	public static final String DISPLAY_CONTAINERS = permission(DECOMMISSIONING, "displayContainers");
 
 	public static final String BORROW_CONTAINER = permission(DECOMMISSIONING, "borrowContainer");
+	public static final String BORROWING_CONTAINER_DIRECTLY = permission(DECOMMISSIONING, "borrowingContainerDirectly");
 	public static final String BORROWING_REQUEST_ON_CONTAINER = permission(DECOMMISSIONING, "borrowingRequestOnContainer");
 	public static final String MANAGE_REQUEST_ON_CONTAINER = permission(DECOMMISSIONING, "manageRequestOnContainer");
+	public static final String RETURN_OTHER_USERS_CONTAINERS = permission(DECOMMISSIONING, "returnOtherUsersContainers");
 
 	public static final String CREATE_TRANSFER_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "createActiveFolderToSemiActiveDecommissioningList");
 	public static final String EDIT_TRANSFER_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "editActiveFolderToSemiActiveDecommissioningList");
@@ -136,6 +146,8 @@ public class RMPermissionsTo {
 	public static final String CONSULT_RETENTIONRULE = permission(RM_MANAGEMENT, "consultRetentionRule");
 	public static final String MANAGE_RETENTIONRULE = permission(RM_MANAGEMENT, "manageRetentionRule");
 
+	public static final String MANAGE_BORROWINGS = permission(RM_MANAGEMENT, "manageBorrowings");
 
+	public static final List<String> RM_COLLECTION_ON_SOMETHING = Arrays.asList(MANAGE_CLASSIFICATION_PLAN, CONSULT_CLASSIFICATION_PLAN, CONSULT_RETENTIONRULE, MANAGE_RETENTIONRULE);
 	public static final List<String> RM_COLLECTION_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(RM_MANAGEMENT);
 }

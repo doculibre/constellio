@@ -2,7 +2,7 @@ package com.constellio.data.dao.managers.config.curator;
 
 import com.constellio.data.conf.PropertiesDataLayerConfiguration;
 import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.CloudTest;
 import org.apache.curator.framework.CuratorFramework;

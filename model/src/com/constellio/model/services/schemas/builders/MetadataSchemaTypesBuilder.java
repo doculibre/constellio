@@ -56,39 +56,54 @@ public class MetadataSchemaTypesBuilder {
 	private ClassProvider classProvider;
 	private List<Language> languages = new ArrayList<>();
 	private SchemasIdSequence schemasTypeIdSequence;
+	private ModelLayerFactory modelLayerFactory;
 
-	private MetadataSchemaTypesBuilder(CollectionInfo collectionInfo, int version, ClassProvider classProvider,
+	private MetadataSchemaTypesBuilder(CollectionInfo collectionInfo, ModelLayerFactory modelLayerFactory, int version,
+									   ClassProvider classProvider,
 									   List<Language> languages) {
 		super();
 		this.collectionInfo = collectionInfo;
 		this.version = version;
 		this.classProvider = classProvider;
 		this.languages = Collections.unmodifiableList(languages);
+		this.modelLayerFactory = modelLayerFactory;
 	}
 
-	public static MetadataSchemaTypesBuilder modify(MetadataSchemaTypes types, ClassProvider classProvider) {
-		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaTypesBuilder(types.getCollectionInfo(), types.getVersion(),
+	public MetadataSchemaTypesBuilder(CollectionInfo collectionInfo) {
+		this.collectionInfo = collectionInfo;
+	}
+
+	public MetadataSchemaTypesBuilder(CollectionInfo collectionInfo, ModelLayerFactory modelLayerFactory) {
+		this.collectionInfo = collectionInfo;
+		this.modelLayerFactory = modelLayerFactory;
+	}
+
+	public static MetadataSchemaTypesBuilder modify(MetadataSchemaTypes types, ModelLayerFactory modelLayerFactory,
+													ClassProvider classProvider) {
+		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaTypesBuilder(types.getCollectionInfo(), modelLayerFactory, types.getVersion(),
 				classProvider, types.getLanguages());
 		for (MetadataSchemaType type : types.getSchemaTypes()) {
-			typesBuilder.schemaTypes.add(MetadataSchemaTypeBuilder.modifySchemaType(type, classProvider));
+			MetadataSchemaTypeBuilder metadataSchemaTypeBuilder = new MetadataSchemaTypeBuilder();
+			typesBuilder.schemaTypes.add(metadataSchemaTypeBuilder.modifySchemaType(type, modelLayerFactory, classProvider));
 		}
 		return typesBuilder;
 	}
 
-	public static MetadataSchemaTypesBuilder createWithVersion(CollectionInfo collectionInfo, int version,
+	public static MetadataSchemaTypesBuilder createWithVersion(CollectionInfo collectionInfo,
+															   ModelLayerFactory modelLayerFactory, int version,
 															   ClassProvider classProvider,
 															   List<Language> languages) {
-		return new MetadataSchemaTypesBuilder(collectionInfo, version, classProvider, languages);
+		return new MetadataSchemaTypesBuilder(collectionInfo, modelLayerFactory, version, classProvider, languages);
 	}
 
-	public MetadataSchemaTypes build(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
+	public MetadataSchemaTypes build(DataStoreTypesFactory typesFactory) {
 
 		validateAutomaticMetadatas();
 		List<String> dependencies = validateNoCyclicDependenciesBetweenSchemas();
 
 		List<MetadataSchemaType> buildedSchemaTypes = new ArrayList<>();
 		for (MetadataSchemaTypeBuilder schemaType : schemaTypes) {
-			buildedSchemaTypes.add(schemaType.build(typesFactory, this, modelLayerFactory));
+			buildedSchemaTypes.add(schemaType.build(typesFactory, this, this.modelLayerFactory));
 		}
 
 		List<String> referenceDefaultValues = new ArrayList<>();
@@ -130,12 +145,12 @@ public class MetadataSchemaTypesBuilder {
 	}
 
 	public MetadataSchemaTypeBuilder createNewSchemaType(String code, boolean initialize) {
-		MetadataSchemaTypeBuilder typeBuilder;
+		MetadataSchemaTypeBuilder typeBuilder = new MetadataSchemaTypeBuilder();
 		if (hasSchemaType(code)) {
 			throw new MetadataSchemaTypesBuilderRuntimeException.SchemaTypeExistent(code);
 		}
 
-		typeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType(collectionInfo, code, this, initialize);
+		typeBuilder = typeBuilder.createNewSchemaType(collectionInfo, code, this, getModelLayerFactory(), initialize);
 
 		schemaTypes.add(typeBuilder);
 		return typeBuilder;
@@ -401,17 +416,11 @@ public class MetadataSchemaTypesBuilder {
 		for (MetadataBuilder metadataBuilder : getAllCalculatedMetadatas()) {
 			CalculatedDataEntry calculatedDataEntry = (CalculatedDataEntry) metadataBuilder.getDataEntry();
 			if (!(calculatedDataEntry.getCalculator() instanceof InitializedMetadataValueCalculator)) {
-				validateCalculatedMultivalue(metadataBuilder, calculatedDataEntry);
-				MetadataValueType valueTypeMetadataCalculated = calculatedDataEntry.getCalculator().getReturnType();
 				List<? extends Dependency> dependencies = calculatedDataEntry.getCalculator().getDependencies();
 				boolean needToBeInitialized = calculatedDataEntry.getCalculator() instanceof InitializedMetadataValueCalculator;
 				if (!needToBeInitialized && (dependencies == null || dependencies.size() == 0)) {
 					//					throw new MetadataSchemaTypesBuilderRuntimeException.NoDependenciesInCalculator(calculatedDataEntry
 					//							.getCalculator().getClass().getName());
-				}
-				if (metadataBuilder.getType() != valueTypeMetadataCalculated) {
-					throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateDifferentValueTypeInValueMetadata(
-							metadataBuilder.getCode(), metadataBuilder.getType(), valueTypeMetadataCalculated);
 				}
 
 				metadataBuilder.markAsDependencyOfAutomaticMetadata();
@@ -422,17 +431,6 @@ public class MetadataSchemaTypesBuilder {
 							calculatedDataEntry.getCalculator().getClass(), metadataBuilder.getCode(), e.getMetadataCode(), e);
 				}
 			}
-		}
-	}
-
-	private void validateCalculatedMultivalue(MetadataBuilder metadataBuilder,
-											  CalculatedDataEntry calculatedDataEntry) {
-		if (metadataBuilder.isMultivalue() && !calculatedDataEntry.getCalculator().isMultiValue()) {
-			throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateASingleValueInAMultiValueMetadata(
-					metadataBuilder.getCode(), calculatedDataEntry.getCalculator().getClass().getName());
-		} else if (!metadataBuilder.isMultivalue() && calculatedDataEntry.getCalculator().isMultiValue()) {
-			throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateAMultiValueInASingleValueMetadata(
-					metadataBuilder.getCode(), calculatedDataEntry.getCalculator().getClass().getName());
 		}
 	}
 
@@ -590,5 +588,9 @@ public class MetadataSchemaTypesBuilder {
 		}
 
 		return newSchemaTypes;
+	}
+
+	public ModelLayerFactory getModelLayerFactory() {
+		return this.modelLayerFactory;
 	}
 }

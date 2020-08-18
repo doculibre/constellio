@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.OrderDecommissioningListPresenter;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.Navigator;
 
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import static com.constellio.app.ui.params.ParamUtils.addParams;
 public class RMViews extends CoreViews {
 	public static final String FAV_GROUP_ID_KEY = "favGroupId";
 	public static final String ID_KEY = "id";
+
 	public RMViews(Navigator navigator) {
 		super(navigator);
 	}
@@ -44,8 +46,12 @@ public class RMViews extends CoreViews {
 		navigateTo(homePageUrl, RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id, isToOpenInNewTab);
 	}
 
+	public void shareManagement() {
+		navigator.navigateTo(RMNavigationConfiguration.SHARE_MANAGEMENT);
+	}
+
 	public void displayFolderFromDecommission(String id, String homePageUrl, boolean isToOpenInNewTab,
-			String decommissioningSearchId, String decommissioningType) {
+											  String decommissioningSearchId, String decommissioningType) {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
 		params.put("decommissioningSearchId", decommissioningSearchId);
@@ -106,7 +112,7 @@ public class RMViews extends CoreViews {
 	}
 
 	public void duplicateFolderFromDecommission(String id, boolean structure, String decommissioningSearchId,
-			String decommissioningType) {
+												String decommissioningType) {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
 		params.put("duplicate", Boolean.TRUE.toString());
@@ -118,6 +124,14 @@ public class RMViews extends CoreViews {
 		params.put("decommissioningType", decommissioningType);
 
 		navigator.navigateTo(addParams(RMNavigationConfiguration.DUPLICATE_FOLDER, params));
+	}
+
+	public void recentFolders() {
+		clearBreadcrumbTrail();
+		Map<String, String> params = new HashMap<>();
+		params.put("tab", RMNavigationConfiguration.LAST_VIEWED_FOLDERS);
+		String fragment = ParamUtils.addParams(NavigatorConfigurationService.HOME, params);
+		navigator.navigateTo("/" + fragment);
 	}
 
 
@@ -146,7 +160,7 @@ public class RMViews extends CoreViews {
 	}
 
 	public void displayDocumentFromDecommission(String id, String homePageUrl, boolean isToOpenInNewTab,
-			String decommissioningSearchId, String decommissioningType) {
+												String decommissioningSearchId, String decommissioningType) {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
 		params.put("decommissioningSearchId", decommissioningSearchId);
@@ -205,7 +219,8 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
 	}
 
-	public void addDocumentWithContentFromDecommission(String id, String decommissioningSearchId, String decommissioningType) {
+	public void addDocumentWithContentFromDecommission(String id, String decommissioningSearchId,
+													   String decommissioningType) {
 		Map<String, String> params = new HashMap<>();
 		params.put("idCopy", id);
 		params.put("decommissioningSearchId", decommissioningSearchId);
@@ -243,6 +258,14 @@ public class RMViews extends CoreViews {
 		params.put("decommissioningType", decommissioningType);
 
 		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_DOCUMENT, params));
+	}
+
+	public void recentDocuments() {
+		clearBreadcrumbTrail();
+		Map<String, String> params = new HashMap<>();
+		params.put("tab", RMNavigationConfiguration.LAST_VIEWED_DOCUMENTS);
+		String fragment = ParamUtils.addParams(NavigatorConfigurationService.HOME, params);
+		navigator.navigateTo("/" + fragment);
 	}
 
 	// RETENTION RULES
@@ -362,9 +385,9 @@ public class RMViews extends CoreViews {
 	}
 
 	public void editContainerFromContainerByAdminsitrativeUnit(String containerId, String tabName,
-			String fromAdministrativeUnit) {
+															   String fromAdministrativeUnit) {
 		navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER + "/" + "edit" + "/" + containerId + "/" + tabName + "/"
-				+ fromAdministrativeUnit);
+							 + fromAdministrativeUnit);
 	}
 
 	public void containersByAdministrativeUnits() {
@@ -384,17 +407,21 @@ public class RMViews extends CoreViews {
 				.navigateTo(RMNavigationConfiguration.DISPLAY_ADMIN_UNIT_WITH_CONTAINERS + "/" + tabName + "/" + entityId);
 	}
 
+	public void displayAdminUnit(String id) {
+		taxonomyManagement(RMTaxonomies.ADMINISTRATIVE_UNITS, id);
+	}
+
 	public void displayFilingSpaceWithContainers(String tabName, String adminUnitId, String filingSpaceId) {
 		navigator.navigateTo(
 				RMNavigationConfiguration.DISPLAY_FILING_SPACE_WITH_CONTAINERS + "/" + tabName + "/" + adminUnitId + "/"
-						+ filingSpaceId);
+				+ filingSpaceId);
 	}
 
 	public void displayContainerFromContainerByAdministrativeUnit(String containerId, String tabName,
-			String fromAdministrativeUnit) {
+																  String fromAdministrativeUnit) {
 		navigator
 				.navigateTo(RMNavigationConfiguration.DISPLAY_CONTAINER + "/" + containerId + "/" + tabName + "/"
-						+ fromAdministrativeUnit);
+							+ fromAdministrativeUnit);
 	}
 
 	public void displayContainer(String containerId) {
@@ -449,4 +476,25 @@ public class RMViews extends CoreViews {
 		taxonomyManagement(RMTaxonomies.CLASSIFICATION_PLAN, id);
 	}
 
+	// BORROWINGS
+
+	public void listBorrowings() {
+		navigator.navigateTo(RMNavigationConfiguration.LIST_BORROWINGS);
+	}
+
+	// TRIGGER
+
+	public void recordTriggerManager(Map<String, String> params) {
+		navigator.navigateTo(addParams(RMNavigationConfiguration.RECORD_TRIGGER_MANAGER, params));
+	}
+
+	public void addEditTriggerToRecord(Map<String, String> params) {
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_EDIT_TRIGGER_TO_RECORD, params));
+	}
+
+	// EXTERNAL LINKS
+
+	public void listExternalLinks(String folderId) {
+		navigator.navigateTo(RMNavigationConfiguration.LIST_EXTERNAL_LINKS + "/" + folderId);
+	}
 }

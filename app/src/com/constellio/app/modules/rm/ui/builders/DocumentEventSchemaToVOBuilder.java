@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.builders;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.ui.entities.CollectionInfoVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -35,12 +36,15 @@ public class DocumentEventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 											   String schemaTypeCode,
 											   MetadataInputType metadataInputType,
 											   MetadataDisplayType metadataDisplayType,
+											   MetadataSortingType metadataSortingType,
 											   AllowedReferences allowedReferences, boolean enabled,
 											   StructureFactory structureFactory, String metadataGroup,
 											   Object defaultValue, String inputMask,
 											   Set<String> customAttributes, boolean isMultiLingual, Locale locale,
 											   Map<String, Object> customParameters,
-											   CollectionInfoVO collectionInfoVO, boolean sortable) {
+											   CollectionInfoVO collectionInfoVO, boolean sortable,
+											   boolean summaryMetadata, Integer maxLength, String measurementUnit,
+											   Map<Locale, String> helpMessages) {
 				MetadataVO metadataVO;
 				String modifiedOnCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(Schemas.MODIFIED_ON.getCode());
 				String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
@@ -54,17 +58,17 @@ public class DocumentEventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 							.newMetadataVO(id, metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 									readOnly,
 									unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
-									metadataDisplayType, allowedReferences,
+									metadataDisplayType, metadataSortingType, allowedReferences,
 									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes,
-									isMultiLingual, locale, customParameters, collectionInfoVO, sortable);
+									isMultiLingual, locale, customParameters, collectionInfoVO, sortable, summaryMetadata, maxLength, measurementUnit, helpMessages);
 				} else {
 					metadataVO = super
 							.newMetadataVO(id, metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 									readOnly,
 									unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
-									metadataDisplayType, allowedReferences,
+									metadataDisplayType, metadataSortingType, allowedReferences,
 									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes,
-									isMultiLingual, locale, customParameters, collectionInfoVO, sortable);
+									isMultiLingual, locale, customParameters, collectionInfoVO, sortable, summaryMetadata, maxLength, measurementUnit, helpMessages);
 				}
 				return metadataVO;
 			}

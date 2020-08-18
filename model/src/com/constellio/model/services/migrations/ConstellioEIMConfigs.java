@@ -6,18 +6,20 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
 import com.constellio.model.entities.enums.AutocompleteSplitCriteria;
-import com.constellio.model.entities.enums.BatchProcessingMode;
+import com.constellio.model.entities.enums.BackgroundRecordsReindexingMode;
 import com.constellio.model.entities.enums.EmailTextFormat;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.enums.MemoryConsumptionLevel;
 import com.constellio.model.entities.enums.MetadataPopulatePriority;
 import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.enums.SearchSortType;
+import com.constellio.model.entities.enums.TableMode;
 import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.EnableThumbnailsScript;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.workflows.model.enums.CalendarCountry;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -49,6 +51,10 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
 	public static final SystemConfiguration CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS;
 	public static final SystemConfiguration FILE_EXTENSIONS_EXCLUDED_FROM_PARSING;
+	public static final SystemConfiguration BACKGROUND_RECORDS_REINDEXING_MODE;
+	public static final SystemConfiguration PDFTRON_LICENSE;
+	public static final SystemConfiguration SIGNING_KEYSTORE;
+	public static final SystemConfiguration SIGNING_KEYSTORE_PASSWORD;
 
 	public static final SystemConfiguration METADATA_POPULATE_PRIORITY, TITLE_METADATA_POPULATE_PRIORITY;
 	public static final SystemConfiguration LOGO;
@@ -57,7 +63,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration CONSTELLIO_URL;
 	public static final SystemConfiguration CLEAN_DURING_INSTALL;
 	public static final SystemConfiguration IN_UPDATE_PROCESS;
-	public static final SystemConfiguration BATCH_PROCESSING_MODE;
+	public static final SystemConfiguration BATCH_PROCESSING_LIMIT;
 
 	public static final SystemConfiguration CMIS_NEVER_RETURN_ACL;
 
@@ -66,6 +72,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration TRASH_PURGE_DELAI;
 
 	public static final SystemConfiguration MAX_SELECTABLE_SEARCH_RESULTS;
+	public static final SystemConfiguration ALWAYS_SELECT_INTERVALS;
 	public static final SystemConfiguration WRITE_ZZRECORDS_IN_TLOG;
 
 	public static final SystemConfiguration SEARCH_SORT_TYPE;
@@ -91,7 +98,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration UPDATE_SERVER_CONNECTION_ENABLED;
 
 	public static final SystemConfiguration ADD_COMMENTS_WHEN_READ_AUTHORIZATION;
-	;
+
+	public static final SystemConfiguration SEARCH_RESULTS_HIGHLIGHTING_ENABLED;
 
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
 																 "  { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat' ] },\r\n" +
@@ -156,13 +164,23 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration SHOW_RESULTS_NUMBERING_IN_LIST_VIEW;
 
-	public static final SystemConfiguration SHOW_PATH_TO_RESULT;
-
 	public static final SystemConfiguration ENABLE_LEARN_TO_RANK_FEATURE;
 
 	public static final SystemConfiguration NO_LINKS_IN_SEARCH_RESULTS;
 	public static final SystemConfiguration LAZY_LOADED_SEARCH_RESULTS;
 
+	public static final SystemConfiguration LEGACY_IDENTIFIER_INDEXED_IN_MEMORY;
+
+	public static final SystemConfiguration DISPLAY_ONLY_SUMMARY_METADATAS_IN_TABLES;
+
+	public static final SystemConfiguration ALWAYS_SEARCH_USING_EDISMAX;
+	public static final SystemConfiguration SEARCH_USING_TERMS_IN_BQ;
+
+	public static final SystemConfiguration ASK_FOR_CONFIRMATION_BEFORE_EDIT_OR_DELETE;
+	public static final SystemConfiguration ENABLE_ILLEGAL_CHARACTERS_VALIDATION;
+	public static final SystemConfiguration CALENDAR_COUNTRY;
+
+	public static final SystemConfiguration DEFAULT_TABLE_MODE;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -171,6 +189,7 @@ public class ConstellioEIMConfigs {
 		add(INCLUDE_CONTENTS_IN_SAVESTATE = others.createBooleanFalseByDefault("includeContentsInSavestate"));
 		add(USER_TITLE_PATTERN = others.createString("userTitlePattern").scriptedBy(UserTitlePatternConfigScript.class)
 				.withDefaultValue("${firstName} ${lastName}"));
+
 
 		// Associer ou non des rôles utilisateur aux autorisations
 		add(USER_ROLES_IN_AUTHORIZATIONS = others.createBooleanFalseByDefault("userRolesInAuthorizations"));
@@ -184,7 +203,7 @@ public class ConstellioEIMConfigs {
 		add(TITLE_METADATA_POPULATE_PRIORITY = others
 				.createEnum("titleMetadataPopulatePriority", TitleMetadataPopulatePriority.class)
 				.withDefaultValue(TitleMetadataPopulatePriority.STYLES_FILENAME_PROPERTIES));
-		add(CONSTELLIO_URL = others.createString("constellioUrl", "http://localhost:8080/constellio/"));
+		add(CONSTELLIO_URL = others.createString("constellioUrl", "http://localhost:7070/constellio/"));
 		add(INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS = others.createBooleanTrueByDefault("includeFromFieldWhenGeneratingEmails"));
 
 		add(DATE_FORMAT = others.createString("dateFormat").withDefaultValue("yyyy-MM-dd"));
@@ -196,14 +215,24 @@ public class ConstellioEIMConfigs {
 		add(CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS = advanced.createInteger("contentMaxLengthForParsingInMegaoctets")
 				.withDefaultValue(30));
 		add(FILE_EXTENSIONS_EXCLUDED_FROM_PARSING = advanced.createString("fileExtensionsExcludedFromParsing").withReIndexationRequired());
+		add(BACKGROUND_RECORDS_REINDEXING_MODE = advanced.createEnum("backgroundRecordsReindexingMode", BackgroundRecordsReindexingMode.class)
+				.withDefaultValue(BackgroundRecordsReindexingMode.SLOW).whichIsHidden());
+		add(PDFTRON_LICENSE = advanced.createString("pdftronLicense"));
+
+		add(SIGNING_KEYSTORE = advanced.createBinary("signingKeystore"));
+		add(SIGNING_KEYSTORE_PASSWORD = advanced.createString("signingPassword").whichHasHiddenValue());
 
 		add(CLEAN_DURING_INSTALL = advanced.createBooleanFalseByDefault("cleanDuringInstall"));
+
+		add(LEGACY_IDENTIFIER_INDEXED_IN_MEMORY = advanced.createBooleanFalseByDefault("legacyIdentifierIndexedInMemory")
+				.whichRequiresReboot());
+
+		add(ASK_FOR_CONFIRMATION_BEFORE_EDIT_OR_DELETE = others.createBooleanTrueByDefault("askForConfirmationBeforeEditOrDelete"));
 
 		SystemConfigurationGroup hiddenSystemConfigs = new SystemConfigurationGroup(null, "system");
 		add(IN_UPDATE_PROCESS = hiddenSystemConfigs.createBooleanFalseByDefault("inUpdateProcess").whichIsHidden());
 		add(LOGIN_NOTIFICATION_ALERT = hiddenSystemConfigs.createBinary("loginNotificationAlert").whichIsHidden());
-		add(BATCH_PROCESSING_MODE = others.createEnum("batchProcessingMode", BatchProcessingMode.class)
-				.withDefaultValue(BatchProcessingMode.ALL_METADATA_OF_SCHEMA));
+		add(BATCH_PROCESSING_LIMIT = others.createInteger("batchProcessingLimit").withDefaultValue(-1));
 		add(TRASH_PURGE_DELAI = others.createInteger("trashPurgeDelaiInDays").withDefaultValue(30));
 		add(DEFAULT_START_TAB = others.createString("defaultStartTab").withDefaultValue("taxonomies"));
 		add(DEFAULT_TAXONOMY = others.createString("defaultTaxonomy"));
@@ -220,14 +249,14 @@ public class ConstellioEIMConfigs {
 		add(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS = search.createBooleanFalseByDefault("replaceSpacesInSimpleSearchForAnds"));
 		add(IS_RUNNING_WITH_SOLR_6 = search.createBooleanFalseByDefault("isRunningWithSolr6").whichIsHidden());
 		add(SHOW_RESULTS_NUMBERING_IN_LIST_VIEW = search.createBooleanFalseByDefault("showResultsNumberingInListView"));
-		add(SHOW_PATH_TO_RESULT = search.createBooleanFalseByDefault("showPathToResult"));
 
 		add(AUTOCOMPLETE_SPLIT_CRITERIA = search.createEnum("autocompleteSplitCriteria", AutocompleteSplitCriteria.class)
 				.withDefaultValue(AutocompleteSplitCriteria.SPACE).withReIndexationRequired());
 
 		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(1000));
+		add(ALWAYS_SELECT_INTERVALS = advanced.createBooleanFalseByDefault("alwaysSelectIntervals"));
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
-				.scriptedBy(WriteZZRecordsScript.class));
+				.scriptedBy(WriteZZRecordsScript.class).whichIsHidden());
 		add(CMIS_NEVER_RETURN_ACL = advanced.createBooleanTrueByDefault("cmisNeverReturnACL"));
 
 		add(REMOVE_EXTENSION_FROM_RECORD_TITLE = advanced.createBooleanFalseByDefault("removeExtensionFromDocument"));
@@ -312,11 +341,15 @@ public class ConstellioEIMConfigs {
 		add(ENABLE_THUMBNAIL_GENERATION = others.createBooleanTrueByDefault("enableThumbnailGeneration")
 				.scriptedBy(EnableThumbnailsScript.class));
 		add(ADD_COMMENTS_WHEN_READ_AUTHORIZATION = others.createBooleanTrueByDefault("addCommentsWhenReadAuthorization"));
+		add(CALENDAR_COUNTRY = others.createEnum("calendarCountry", CalendarCountry.class).whichIsHidden().withDefaultValue(CalendarCountry.CAQC));
 
 		add(UPDATE_SERVER_CONNECTION_ENABLED = advanced.createBooleanTrueByDefault("updateServerConnectionEnabled").whichIsHidden());
 
 		add(NO_LINKS_IN_SEARCH_RESULTS = search.createBooleanFalseByDefault("noLinksInSearchResults"));
 		add(LAZY_LOADED_SEARCH_RESULTS = search.createBooleanTrueByDefault("lazyLoadedSearchResults"));
+		add(SEARCH_RESULTS_HIGHLIGHTING_ENABLED = search.createBooleanTrueByDefault("searchResultsHighlightingEnabled").whichIsHidden());
+
+		add(ENABLE_ILLEGAL_CHARACTERS_VALIDATION = others.createBooleanFalseByDefault("enabledIllegalCharactersValidation"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 
@@ -325,6 +358,13 @@ public class ConstellioEIMConfigs {
 		add(ENABLE_SYSTEM_STATE_MEMORY_ALLOCATION = systemState.createBooleanTrueByDefault("enableSystemStateMemoryAllocation"));
 		add(ENABLE_SYSTEM_STATE_OPT_DISK_USAGE = systemState.createBooleanTrueByDefault("enableSystemStateOptDiskUsage"));
 		add(ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE = systemState.createBooleanTrueByDefault("enableSystemStateSolrDiskUsage"));
+
+		add(DISPLAY_ONLY_SUMMARY_METADATAS_IN_TABLES = search.createBooleanFalseByDefault("displayOnlySummaryMetadatasInTables"));
+
+		add(ALWAYS_SEARCH_USING_EDISMAX = search.createBooleanFalseByDefault("alwaysSearchUsingEDismax").whichIsHidden());
+		add(SEARCH_USING_TERMS_IN_BQ = search.createBooleanTrueByDefault("searchUsingBQ").whichIsHidden());
+
+		add(DEFAULT_TABLE_MODE = others.createEnum("defaultTableMode", TableMode.class).withDefaultValue(TableMode.LIST));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -394,8 +434,8 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(TRASH_PURGE_DELAI);
 	}
 
-	public BatchProcessingMode getBatchProcessingMode() {
-		return manager.getValue(BATCH_PROCESSING_MODE);
+	public Integer getBatchProcessingLimit() {
+		return manager.getValue(BATCH_PROCESSING_LIMIT);
 	}
 
 	public SearchSortType getSearchSortType() {
@@ -410,8 +450,12 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(REMOVE_EXTENSION_FROM_RECORD_TITLE);
 	}
 
-	public boolean isShowPathToResult() {
-		return manager.getValue(SHOW_PATH_TO_RESULT);
+	public boolean isSearchUsingTermsInBQ() {
+		return manager.getValue(SEARCH_USING_TERMS_IN_BQ);
+	}
+
+	public boolean isAlwaysSearchUsingEDismax() {
+		return manager.getValue(ALWAYS_SEARCH_USING_EDISMAX);
 	}
 
 	public boolean isShowResultsNumberingInListView() {
@@ -564,7 +608,7 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(ENABLE_STATISTIC_REPORT);
 	}
 
-	public boolean isAddingSecondarySortWhenSortingByScore() {
+	public boolean isAddingSecondarySortWhenSortingByScoreOrTitle() {
 		return manager.getValue(ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE);
 	}
 
@@ -609,6 +653,10 @@ public class ConstellioEIMConfigs {
 		return extensionSet;
 	}
 
+	public BackgroundRecordsReindexingMode getBackgroundRecordsReindexingMode() {
+		return manager.getValue(BACKGROUND_RECORDS_REINDEXING_MODE);
+	}
+
 	public boolean isSystemStateLicenseValidationEnabled() {
 		return manager.getValue(ENABLE_SYSTEM_STATE_LICENSE);
 	}
@@ -643,5 +691,33 @@ public class ConstellioEIMConfigs {
 
 	public boolean isAddCommentsWhenReadAuthorization() {
 		return manager.getValue(ADD_COMMENTS_WHEN_READ_AUTHORIZATION);
+	}
+
+	public boolean isOnlySummaryMetadatasDisplayedInTables() {
+		return manager.getValue(DISPLAY_ONLY_SUMMARY_METADATAS_IN_TABLES);
+	}
+
+	public boolean isSearchResultsHighlightingEnabled() {
+		return manager.getValue(SEARCH_RESULTS_HIGHLIGHTING_ENABLED);
+	}
+
+	public boolean isLegacyIdentifierIndexedInMemory() {
+		return manager.getValue(LEGACY_IDENTIFIER_INDEXED_IN_MEMORY);
+	}
+
+	public boolean isAskForConfirmationBeforeDeleteOrEdit() {
+		return manager.getValue(ASK_FOR_CONFIRMATION_BEFORE_EDIT_OR_DELETE);
+	}
+
+	public boolean isIllegalCharactersValidationEnabled() {
+		return manager.getValue(ENABLE_ILLEGAL_CHARACTERS_VALIDATION);
+	}
+
+	public CalendarCountry getCalendarCountry() {
+		return manager.getValue(CALENDAR_COUNTRY);
+	}
+
+	public TableMode getDefaultTableMode() {
+		return manager.getValue(DEFAULT_TABLE_MODE);
 	}
 }

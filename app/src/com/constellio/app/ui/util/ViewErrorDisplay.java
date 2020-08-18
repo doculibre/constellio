@@ -4,7 +4,9 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.Language;
 import com.vaadin.data.Validator;
+import com.vaadin.data.Validator.EmptyValueException;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -15,28 +17,36 @@ public class ViewErrorDisplay {
 
 	public static boolean validateFieldsContent(Map<Language, BaseTextField> baseTextFieldMap,
 												BaseViewImpl listValueDomainView) {
-		StringBuilder missingRequiredFields = new StringBuilder();
+		return validateFieldsContent(baseTextFieldMap.values(), listValueDomainView);
+	}
+
+	public static boolean validateFieldsContent(Collection<BaseTextField> baseTextFields,
+												BaseViewImpl listValueDomainView) {
+		StringBuilder errorFields = new StringBuilder();
 		BaseTextField firstFieldWithError = null;
-		for (Language language : baseTextFieldMap.keySet()) {
-			BaseTextField baseTextField = baseTextFieldMap.get(language);
+		for (BaseTextField baseTextField : baseTextFields) {
 			try {
 				baseTextField.validate();
-			} catch (Validator.EmptyValueException emptyValueException) {
-				baseTextField.setRequiredError($(REQUIRED_FIELD));
-				if (missingRequiredFields.length() != 0) {
-					missingRequiredFields.append("<br/>");
+			} catch (Validator.InvalidValueException invalidValueException) {
+				if (errorFields.length() != 0) {
+					errorFields.append("<br/>");
 				}
-				missingRequiredFields.append($("requiredFieldWithName", "\"" + baseTextField.getCaption() + "\""));
+				if (invalidValueException instanceof EmptyValueException) {
+					baseTextField.setRequiredError($(REQUIRED_FIELD));
+					errorFields.append($("requiredFieldWithName", baseTextField.getCaption()));
+				} else {
+					errorFields.append(invalidValueException.getMessage());
+				}
+
 				if (firstFieldWithError == null) {
 					firstFieldWithError = baseTextField;
 				}
-
 			}
 		}
 
 		if (firstFieldWithError != null) {
 			firstFieldWithError.focus();
-			listValueDomainView.showErrorMessage(missingRequiredFields.toString());
+			listValueDomainView.showErrorMessage(errorFields.toString());
 			return false;
 		}
 

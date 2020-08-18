@@ -117,7 +117,7 @@ public class DecommissioningListXLSDetailedReportPresenter extends BaseExcelRepo
 
 		for (Comment comment : decommissioningList.getComments()) {
 			User user = rmSchemasRecordsServices.getUser(comment.getUserId());
-			model.addComment(Arrays.asList(user.getTitle(), comment.getDateTime(), comment.getMessage()));
+			model.addComment(Arrays.asList(user.getTitle(), comment.getCreationDateTime(), comment.getMessage()));
 		}
 	}
 

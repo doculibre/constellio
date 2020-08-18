@@ -2,8 +2,9 @@ package com.constellio.app.ui.i18n;
 
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.services.tenant.TenantLocal;
 import com.constellio.data.utils.dev.Toggle;
-import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.frameworks.validation.ValidationError;
@@ -34,13 +35,11 @@ public class i18n {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(i18n.class);
 
-	// TODO Use a languageCode->Locale Map instead?
-	private static Locale locale;
+	private static final TenantLocal<Locale> locale = new TenantLocal<Locale>();
 
-	private static List<Utf8ResourceBundles> defaultBundles = null;
+	private static final TenantLocal<List<Utf8ResourceBundles>> defaultBundles = new TenantLocal<>();
 
-	private static List<Utf8ResourceBundles> registeredBundles = new ArrayList<>();
-
+	private static final TenantLocal<List<Utf8ResourceBundles>> registeredBundles = new TenantLocal<>();
 
 	public static Locale getLocale() {
 		try {
@@ -52,11 +51,11 @@ public class i18n {
 		} catch (Throwable e) {
 			LOGGER.warn("error when trying to get session locale", e);
 		}
-		return locale;
+		return locale.get();
 	}
 
 	public static void setLocale(Locale locale) {
-		i18n.locale = locale;
+		i18n.locale.set(locale);
 		try {
 			ConstellioUI constellioUI = ConstellioUI.getCurrent();
 			SessionContext context = constellioUI == null ? null : constellioUI.getSessionContext();
@@ -201,12 +200,19 @@ public class i18n {
 			}
 		}
 
-		return message;
+		return message.replace(" ''", " '''").replace("''", "'");
 
 	}
 
 	public static String $(EnumWithSmallCode enumWithSmallCode) {
 		return $(enumWithSmallCode.getClass().getSimpleName() + "." + enumWithSmallCode.getCode());
+	}
+
+	private static List<Utf8ResourceBundles> getRegisteredBundleAndInitIfNull() throws NullPointerException {
+		if (registeredBundles.get() == null) {
+			registeredBundles.set(new ArrayList<Utf8ResourceBundles>());
+		}
+		return registeredBundles.get();
 	}
 
 	private static String callJexlScript(String expression, Map<String, Object> args)
@@ -359,14 +365,14 @@ public class i18n {
 		List<Utf8ResourceBundles> bundles = new ArrayList<>();
 		for (Utf8ResourceBundles bundle : getDefaultBundle()) {
 			bundles.add(bundle);
-			bundles.addAll(registeredBundles);
+			bundles.addAll(getRegisteredBundleAndInitIfNull());
 		}
 		return bundles;
 	}
 
 	public static List<Utf8ResourceBundles> getDefaultBundle() {
 		List<Utf8ResourceBundles> bundles = new ArrayList<>();
-		if (defaultBundles == null) {
+		if (defaultBundles.get() == null) {
 			FoldersLocator foldersLocator = new FoldersLocator();
 			File i18nFolder = new File(foldersLocator.getI18nFolder().getAbsolutePath());
 
@@ -378,7 +384,7 @@ public class i18n {
 					bundles.add(defaultBundle);
 				}
 			}
-			defaultBundles = bundles;
+			defaultBundles.set(bundles);
 			//            File arr[] = file.listFiles();
 			//            for (File name : arr) {
 			//                if (name.isDirectory()) {
@@ -405,7 +411,7 @@ public class i18n {
 		}
 
 
-		return defaultBundles;
+		return defaultBundles.get();
 	}
 
 	public static void registerBundle(File bundleFolder, String bundleName) {
@@ -413,17 +419,17 @@ public class i18n {
 		if (!bundleProperties.exists()) {
 			throw new RuntimeException("No such file '" + bundleProperties.getAbsolutePath() + "'");
 		}
-		registeredBundles.add(Utf8ResourceBundles.forPropertiesFile(bundleFolder, bundleName));
+		getRegisteredBundleAndInitIfNull().add(Utf8ResourceBundles.forPropertiesFile(bundleFolder, bundleName));
 	}
 
 	public static void registerBundle(Utf8ResourceBundles bundle) {
 		if (bundle != null) {
-			registeredBundles.add(bundle);
+			getRegisteredBundleAndInitIfNull().add(bundle);
 		}
 	}
 
 	public static void clearBundles() {
-		registeredBundles.clear();
+		getRegisteredBundleAndInitIfNull().clear();
 	}
 
 	public static Language getLanguage() {
@@ -439,8 +445,16 @@ public class i18n {
 	}
 
 	public static boolean isRightToLeft() {
-		Language language = getLanguage();
-		return Language.Arabic.equals(language);// || Language.French.equals(language);
+		/***
+		 * Catching exception to prevent error when accessing Constellio's web portal with a browser's default language who's not supported
+		 * The non supported language is change to the main language for the system later in the stack so the error is only noticeable on UI init
+		 ***/
+		try {
+			Language language = getLanguage();
+			return Language.Arabic.equals(language);// || Language.French.equals(language);
+		} catch (RuntimeException re) {
+			return false;
+		}
 	}
 
 }

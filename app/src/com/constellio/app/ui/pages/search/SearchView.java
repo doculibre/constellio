@@ -36,4 +36,8 @@ public interface SearchView extends BaseView {
 
 	void setLazyLoadedSearchResults(boolean lazyLoadSearchResults);
 
+	void setApplyMultipleFacets(boolean applyButtonEnabled);
+
+	BaseView getNestedView();
+
 }

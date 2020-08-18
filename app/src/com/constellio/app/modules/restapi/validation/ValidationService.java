@@ -3,7 +3,7 @@ package com.constellio.app.modules.restapi.validation;
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
 import com.constellio.app.modules.restapi.core.exception.InvalidDateCombinationException;
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
-import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
+import com.constellio.app.modules.restapi.core.exception.OptimisticLockRuntimeException;
 import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
 import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
@@ -12,9 +12,9 @@ import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.restapi.core.util.StringUtils;
 import com.constellio.app.modules.restapi.resource.dto.AceDto;
-import com.constellio.app.modules.restapi.signature.SignatureService;
 import com.constellio.app.modules.restapi.validation.dao.ValidationDao;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
+import com.constellio.app.modules.restapi.validation.exception.ExpiredTokenException;
 import com.constellio.app.modules.restapi.validation.exception.InvalidSignatureException;
 import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
@@ -28,6 +28,7 @@ import org.joda.time.LocalDateTime;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.app.modules.restapi.core.util.HttpMethods.DELETE;
@@ -38,8 +39,6 @@ import static com.constellio.app.modules.restapi.core.util.HttpMethods.PUT;
 
 public class ValidationService extends BaseService {
 
-	@Inject
-	private SignatureService signatureService;
 	@Inject
 	private ValidationDao validationDao;
 
@@ -98,6 +97,12 @@ public class ValidationService extends BaseService {
 		}
 	}
 
+	public void validateUserDeleteAccessOnHierarchy(User user, Record record) {
+		if (!validationDao.userHasDeleteAccessOnHierarchy(user, record)) {
+			throw new UnauthorizedAccessException();
+		}
+	}
+
 	public void validateAuthentication(String token, String serviceKey) {
 		if (!validationDao.isUserAuthenticated(token, serviceKey)) {
 			throw new UnauthenticatedUserException();
@@ -112,9 +117,9 @@ public class ValidationService extends BaseService {
 			for (String principal : ace.getPrincipals()) {
 				boolean added = principals.add(principal);
 				if (added) {
-					Record record = validationDao.getUserByUsername(principal, collection);
+					Record record = validationDao.getUserRecordByUsername(principal, collection);
 					if (record == null) {
-						record = validationDao.getGroupByCode(principal, collection);
+						record = validationDao.getGroupRecordByCode(principal, collection);
 					}
 					if (record == null) {
 						throw new RecordNotFoundException(principal);
@@ -141,13 +146,30 @@ public class ValidationService extends BaseService {
 
 	public void validateETag(String recordId, String eTag, long recordVersion) {
 		if (!eTag.equals(String.valueOf(recordVersion))) {
-			throw new OptimisticLockException(recordId, eTag, recordVersion);
+			throw new OptimisticLockRuntimeException(recordId, eTag, recordVersion);
 		}
 	}
 
 	public void validateHost(String host) {
 		if (!validationDao.getAllowedHosts().contains(host)) {
 			throw new UnallowedHostException(host);
+		}
+	}
+
+	public void validateToken(String token, String serviceKey) {
+		Map<String, LocalDateTime> tokens = validationDao.getUserAccessTokens(serviceKey);
+		if (!tokens.containsKey(token)) {
+			throw new UnauthenticatedUserException();
+		}
+
+		if (tokens.get(token).isBefore(TimeProvider.getLocalDateTime())) {
+			throw new ExpiredTokenException();
+		}
+	}
+
+	public void validateCollection(String collection) {
+		if (validationDao.getRecordById(collection) == null) {
+			throw new RecordNotFoundException(collection);
 		}
 	}
 
@@ -162,7 +184,7 @@ public class ValidationService extends BaseService {
 		}
 
 		for (String token : tokens) {
-			String currentSignature = signatureService.sign(token, data);
+			String currentSignature = validationDao.sign(token, data);
 
 			if (currentSignature.equals(signature)) {
 				return false;

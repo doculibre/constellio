@@ -9,6 +9,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.vaadin.ui.Label;
+import org.apache.commons.lang3.StringUtils;
 
 public class UserDisplay extends I18NHorizontalLayout {
 	
@@ -41,8 +42,19 @@ public class UserDisplay extends I18NHorizontalLayout {
 		UserImage userImage = new UserImage(username);
 		userImage.addStyleName("user-display-icon");
 		userImage.setCaption(null);
-		
-		Label nameLabel = new Label(firstName + " " + lastName);
+
+		StringBuilder nameText = new StringBuilder();
+		if (StringUtils.isNotBlank(firstName)) {
+			nameText.append(firstName);
+			if (StringUtils.isNotBlank(lastName)) {
+				nameText.append(" " + lastName);
+			}
+		} else if (StringUtils.isNotBlank(lastName)) {
+			nameText.append(lastName);
+		} else {
+			nameText.append(username);
+		}
+		Label nameLabel = new Label(nameText.toString());
 		nameLabel.addStyleName("user-display-name");
 		addComponents(userImage, nameLabel);
 	}

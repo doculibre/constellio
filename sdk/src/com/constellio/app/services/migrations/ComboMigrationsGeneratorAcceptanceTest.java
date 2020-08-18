@@ -21,7 +21,7 @@ import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLay
 import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.utils.HashMapBuilder;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -975,7 +975,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 							CopiedDataEntry dataEntry = (CopiedDataEntry) metadata.getDataEntry();
 
 							Metadata referenceMetadata = schema.getMetadata(dataEntry.getReferenceMetadata());
-							Metadata copiedMetadata = types.getSchemaType(referenceMetadata.getReferencedSchemaType()).
+							Metadata copiedMetadata = types.getSchemaType(referenceMetadata.getReferencedSchemaTypeCode()).
 									getDefaultSchema().getMetadata(dataEntry.getCopiedMetadata());
 
 							main.addStatement("$L.get($S).defineDataEntry().asCopied($L.get($S), typesBuilder.getMetadata($S))",

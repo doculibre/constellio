@@ -14,6 +14,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @deprecated No longer a module, use ReportsPlugin instead.
+ */
+@Deprecated
 public class ReportModule implements InstallableModule {
 	public static final String ID = "ReportModule";
 	public static final String TITLE = "Module de rapport";

@@ -2,10 +2,17 @@ package com.constellio.model.services.records.cache.offHeapCollections;
 
 import com.constellio.data.utils.LazyIterator;
 import org.eclipse.collections.impl.list.mutable.primitive.LongArrayList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.stream.Stream;
 
+import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.OffHeapLongList_ID;
+import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.allocateMemory;
+
 public class OffHeapLongList {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(OffHeapLongList.class);
 
 	private static int batchSize = 1000;
 
@@ -20,7 +27,7 @@ public class OffHeapLongList {
 	private static long readAddressOfIndex(LongArrayList adressesOfBatches, int index) {
 		int batch = index / batchSize;
 		while (adressesOfBatches.size() < batch + 1) {
-			long address = OffHeapMemoryAllocator.allocateMemory(batchSize * Long.BYTES);
+			long address = allocateMemory(batchSize * Long.BYTES, OffHeapLongList_ID);
 
 			for (int i = 0; i < batchSize; i++) {
 				OffHeapMemoryAllocator.putLong(address + i * Long.BYTES, 0);
@@ -34,10 +41,20 @@ public class OffHeapLongList {
 		return adressesOfBatches.get(batch) + indexInBatch * Long.BYTES;
 	}
 
-	public void set(int index, long value) {
+	public int getHeapConsumption() {
+		return 12 + (12 + Long.BYTES * adressesOfBatches.size()) + Integer.BYTES;
+	}
 
+	public int getOffHeapConsumption() {
+		return adressesOfBatches.size() * batchSize * Long.BYTES;
+	}
+
+	public void set(int index, long value) {
+		if (index < 0) {
+			throw new IllegalArgumentException("index must be >=0");
+		}
 		long address = getAdressOfIndex(index);
-		OffHeapMemoryAllocator.getUnsafe().putLong(address, value);
+		OffHeapMemoryAllocator.putLong(address, value);
 		lastIndex = Math.max(index, lastIndex);
 	}
 
@@ -49,20 +66,26 @@ public class OffHeapLongList {
 	 * @param value
 	 */
 	public void insertValueShiftingAllFollowingValues(int index, long value) {
+		LOGGER.warn("insertValueShiftingAllFollowingValues : this should not happen and could consume a lot of memory");
 		LongArrayList newAddressesOfBatches = new LongArrayList();
 
 		for (int i = 0; i <= lastIndex; i++) {
 			long v = get(i);
 			long newAddress = readAddressOfIndex(newAddressesOfBatches, i < index ? i : (i + 1));
-			OffHeapMemoryAllocator.getUnsafe().putLong(newAddress, v);
+			OffHeapMemoryAllocator.putLong(newAddress, v);
 		}
 
+		clear();
 		adressesOfBatches = newAddressesOfBatches;
 		set(index, value);
 		lastIndex++;
+		LOGGER.warn("insertValueShiftingAllFollowingValues : finished");
 	}
 
 	public long get(int index) {
+		if (index < 0) {
+			throw new IllegalArgumentException("index must be >=0");
+		}
 		long address = getAdressOfIndex(index);
 		return OffHeapMemoryAllocator.getLong(address);
 	}
@@ -77,7 +100,7 @@ public class OffHeapLongList {
 
 	public void clear() {
 		for (int i = 0; i < this.adressesOfBatches.size(); i++) {
-			OffHeapMemoryAllocator.freeMemory(adressesOfBatches.get(i), batchSize * Long.BYTES);
+			OffHeapMemoryAllocator.freeMemory(adressesOfBatches.get(i), batchSize * Long.BYTES, OffHeapLongList_ID);
 		}
 		this.adressesOfBatches.clear();
 	}

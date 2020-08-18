@@ -1,11 +1,14 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveMetadataVOLookupField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -15,18 +18,24 @@ import com.vaadin.data.Property;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
+import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
@@ -41,6 +50,7 @@ public class BatchProcessingButton extends WindowButton {
 	LookupRecordField typeField;
 	String currentSchema;
 	BatchProcessingForm form;
+	ListAddRemoveMetadataVOLookupField metadatasToEmptyField;
 	VerticalLayout vLayout;
 
 	public BatchProcessingButton(BatchProcessingPresenter presenter, BatchProcessingView view) {
@@ -59,7 +69,7 @@ public class BatchProcessingButton extends WindowButton {
 		} else if (presenter.isSearchResultsSelectionForm()) {
 			windowContent = buildSearchResultsSelectionForm();
 		} else {
-			windowContent = buildBatchProcessingFormOrShowError();
+			windowContent = buildBatchProcessingComponentOrShowError();
 		}
 		return windowContent;
 	}
@@ -87,7 +97,7 @@ public class BatchProcessingButton extends WindowButton {
 					view.showErrorMessage($(validationErrors.getValidationErrors().get(0)));
 					getWindow().close();
 				}
-				getWindow().setContent(buildBatchProcessingFormOrShowError());
+				getWindow().setContent(buildBatchProcessingComponentOrShowError());
 				getWindow().setHeight(BatchProcessingButton.this.getConfiguration().getHeight());
 				getWindow().setPosition(getWindow().getPositionX(), 30);
 			}
@@ -102,7 +112,7 @@ public class BatchProcessingButton extends WindowButton {
 					view.showErrorMessage($(validationErrors.getValidationErrors().get(0)));
 					getWindow().close();
 				}
-				getWindow().setContent(buildBatchProcessingFormOrShowError());
+				getWindow().setContent(buildBatchProcessingComponentOrShowError());
 				getWindow().setHeight(BatchProcessingButton.this.getConfiguration().getHeight());
 				getWindow().setPosition(getWindow().getPositionX(), 30);
 			}
@@ -119,11 +129,31 @@ public class BatchProcessingButton extends WindowButton {
 		return panel;
 	}
 
-	private Component buildBatchProcessingFormOrShowError() {
+	private Component buildBatchProcessingComponentOrShowError() {
 		if (!presenter.validateUserHaveBatchProcessPermissionOnAllRecords(view.getSchemaType())) {
 			return new Label($("BatchProcess.batchProcessPermissionMissing"));
 		}
 
+		if (!presenter.validateUserHaveBatchProcessPermissionForRecordCount(view.getSchemaType())) {
+			return new Label($("BatchProcess.batchProcessUnlimitedPermissionMissing", presenter.getNumberOfRecords(view.getSchemaType())));
+		}
+
+		TabSheet tabSheet = new TabSheet();
+		tabSheet.addTab(buildBatchProcessingModifyMetadataForm(), $("BatchProcess.tab.updateMetadata"));
+		tabSheet.addTab(buildBatchProcessingEmptyMetadataForm(), $("BatchProcess.tab.emptyMetadata"));
+
+		Component buttonLayout = buildBatchProcessingActions();
+
+		VerticalLayout mainLayout = new VerticalLayout();
+		mainLayout.setSpacing(true);
+		mainLayout.addComponent(tabSheet);
+		mainLayout.addComponent(buttonLayout);
+		mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_CENTER);
+
+		return mainLayout;
+	}
+
+	private Component buildBatchProcessingModifyMetadataForm() {
 		Panel panel = new Panel();
 		vLayout = new VerticalLayout();
 		vLayout.setSpacing(true);
@@ -132,10 +162,6 @@ public class BatchProcessingButton extends WindowButton {
 		typeField = new LookupRecordField(typeSchemaType);
 		// FIXME All schemas don't have a type field
 		typeField.setCaption($("BatchProcessingButton.type"));
-		String originType = presenter.getOriginType(view.getSchemaType());
-		if (originType != null) {
-			typeField.setValue(originType);
-		}
 		typeField.addValueChangeListener(new Property.ValueChangeListener() {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
@@ -159,68 +185,22 @@ public class BatchProcessingButton extends WindowButton {
 
 	private BatchProcessingForm newForm() {
 		String selectedType = (String) typeField.getValue();
-		RecordFieldFactory fieldFactory = newFieldFactory(selectedType);
-		String originSchema = presenter.getSchema(view.getSchemaType(), selectedType);
+		String originSchema = presenter.getOriginSchema(view.getSchemaType(), selectedType);
+		RecordFieldFactory fieldFactory = newFieldFactory();
 		return new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSchemaType(), view.getSessionContext()),
-				fieldFactory);
+				fieldFactory, ConstellioFactories.getInstance());
 	}
 
-	private RecordFieldFactory newFieldFactory(String selectedType) {
-		RecordFieldFactory fieldFactory = presenter.newRecordFieldFactory(view.getSchemaType(), selectedType);
+	private RecordFieldFactory newFieldFactory() {
+		RecordFieldFactory fieldFactory = presenter.newRecordFieldFactory(view.getSchemaType(), null);
 		return new RecordFieldFactoryWithNoTypeNoContent(fieldFactory);
 	}
 
 	public class BatchProcessingForm extends RecordForm {
-		Button simulateButton, processButton;
+		public BatchProcessingForm(RecordVO record, RecordFieldFactory recordFieldFactory,
+								   ConstellioFactories constellioFactories) {
+			super(record, recordFieldFactory, constellioFactories);
 
-		public BatchProcessingForm(RecordVO record, RecordFieldFactory recordFieldFactory) {
-			super(record, recordFieldFactory);
-			simulateButton = new Button($("simulate"));
-			simulateButton.addClickListener(new ClickListener() {
-				@Override
-				public void buttonClick(ClickEvent event) {
-					form.commit();
-					BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
-
-					try {
-						InputStream inputStream = presenter.simulateButtonClicked((String) typeField.getValue(), view.getSchemaType(), viewObject);
-
-						downloadBatchProcessingResults(inputStream);
-					} catch (RecordServicesException.ValidationException e) {
-						view.showErrorMessage($(e.getErrors()));
-					} catch (Throwable e) {
-						LOGGER.error("Unexpected error while executing batch process", e);
-						batchProcessingView.showErrorMessage($(e.getMessage()));
-					}
-				}
-			});
-			processButton = new Button($("BatchProcessingButton.process", presenter.getNumberOfRecords(view.getSchemaType())));
-			processButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-			processButton.addClickListener(new ClickListener() {
-				@Override
-				public void buttonClick(ClickEvent event) {
-					form.commit();
-					BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
-
-					try {
-						boolean success = presenter.processBatchButtonClicked((String) typeField.getValue(), view.getSchemaType(), viewObject);
-
-						getWindow().close();
-
-						if (success) {
-							batchProcessingView.showMessage($("BatchProcessing.endedNormally"));
-						}
-					} catch (RecordServicesException.ValidationException e) {
-						view.showErrorMessage($(e.getErrors()));
-					} catch (Throwable e) {
-						LOGGER.error("Unexpected error while executing batch process", e);
-						batchProcessingView.showErrorMessage($(e.getMessage()));
-					}
-				}
-
-			});
-			buttonsLayout.addComponent(processButton);
-			buttonsLayout.addComponentAsFirst(simulateButton);
 			buttonsLayout.removeComponent(cancelButton);
 			buttonsLayout.removeComponent(saveButton);
 		}
@@ -234,17 +214,6 @@ public class BatchProcessingButton extends WindowButton {
 		protected void cancelButtonClick(RecordVO viewObject) {
 			getWindow().close();
 		}
-
-		private void downloadBatchProcessingResults(final InputStream stream) {
-			Resource resource = new DownloadStreamResource(new StreamResource.StreamSource() {
-				@Override
-				public InputStream getStream() {
-					return stream;
-				}
-			}, "results.xls");
-			Page.getCurrent().open(resource, null, false);
-		}
-
 	}
 
 	private class RecordFieldFactoryWithNoTypeNoContent extends RecordFieldFactory {
@@ -256,7 +225,8 @@ public class BatchProcessingButton extends WindowButton {
 
 		@Override
 		public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
-			if (metadataVO == null || metadataVO.getType().equals(CONTENT) || metadataVO.getLocalCode().equals("type")) {
+			if (metadataVO == null || metadataVO.getType().equals(CONTENT)
+				|| metadataVO.getLocalCode().equals("type")) {
 				return null;
 			}
 			if (fieldFactory != null) {
@@ -264,6 +234,89 @@ public class BatchProcessingButton extends WindowButton {
 			}
 			return super.build(recordVO, metadataVO, locale);
 		}
+	}
+
+	private Component buildBatchProcessingEmptyMetadataForm() {
+		List<MetadataVO> metadatas = presenter.getMetadataAllowedInBatchEdit(view.getSchemaType());
+		metadatasToEmptyField = new ListAddRemoveMetadataVOLookupField(metadatas);
+		metadatasToEmptyField.setCaption($("BatchProcess.selectMetadatasToEmpty"));
+		return metadatasToEmptyField;
+	}
+
+	private List<String> getMetadataCodesToEmpty() {
+		List<MetadataVO> metadatasToEmpty = metadatasToEmptyField.getValue();
+		List<String> metadataCodesToEmpty = metadatasToEmpty.stream().map(MetadataVO::getLocalCode).collect(Collectors.toList());
+		return metadataCodesToEmpty;
+	}
+
+	private Component buildBatchProcessingActions() {
+		Button simulateButton = new Button($("simulate"));
+		simulateButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				form.commit();
+				BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
+
+				try {
+					InputStream inputStream = presenter.simulateButtonClicked((String) typeField.getValue(),
+							view.getSchemaType(), form.getViewObject(), getMetadataCodesToEmpty());
+
+					downloadBatchProcessingResults(inputStream);
+				} catch (RecordServicesException.ValidationException e) {
+					view.showErrorMessage($(e.getErrors()));
+				} catch (Throwable e) {
+					LOGGER.error("Unexpected error while executing batch process", e);
+					batchProcessingView.showErrorMessage($(e.getMessage()));
+				}
+			}
+		});
+
+		ConfirmDialogButton processButton = new ConfirmDialogButton(
+				$("BatchProcessingButton.process", presenter.getNumberOfRecords(view.getSchemaType()))) {
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("BatchProcessingButton.confirm", presenter.getNumberOfRecords(view.getSchemaType()));
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				form.commit();
+				BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
+
+				try {
+					boolean success = presenter.processBatchButtonClicked((String) typeField.getValue(),
+							view.getSchemaType(), form.getViewObject(), getMetadataCodesToEmpty());
+
+					getWindow().close();
+
+					if (success) {
+						batchProcessingView.showMessage($("BatchProcessing.endedNormally"));
+					}
+				} catch (RecordServicesException.ValidationException e) {
+					view.showErrorMessage($(e.getErrors()));
+				} catch (Throwable e) {
+					LOGGER.error("Unexpected error while executing batch process", e);
+					batchProcessingView.showErrorMessage($(e.getMessage()));
+				}
+			}
+		};
+		processButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+		HorizontalLayout actionsLayout = new HorizontalLayout();
+		actionsLayout.setSpacing(true);
+		actionsLayout.addComponent(processButton);
+		actionsLayout.addComponentAsFirst(simulateButton);
+		return actionsLayout;
+	}
+
+	private void downloadBatchProcessingResults(final InputStream stream) {
+		Resource resource = new DownloadStreamResource(new StreamResource.StreamSource() {
+			@Override
+			public InputStream getStream() {
+				return stream;
+			}
+		}, "results.xls");
+		Page.getCurrent().open(resource, null, false);
 	}
 }
 

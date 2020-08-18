@@ -31,14 +31,17 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordHierarchyServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
-import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,6 +51,7 @@ import java.util.Map;
 import static com.constellio.model.services.records.RecordUtils.parentPaths;
 
 public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagementView> {
+	private static Logger LOGGER = LoggerFactory.getLogger(TaxonomyManagementPresenter.class);
 
 	public static final String TAXONOMY_CODE = "taxonomyCode";
 	public static final String CONCEPT_ID = "conceptId";
@@ -136,10 +140,10 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 				LogicalSearchQuery query;
 				if (conceptId != null) {
 					Record record = recordServices().getDocumentById(conceptId);
-					ConceptNodesTaxonomySearchServices conceptNodesTaxonomySearchServices = new ConceptNodesTaxonomySearchServices(modelLayerFactory);
-					query = conceptNodesTaxonomySearchServices.childNodesQuery(record, new TaxonomiesSearchOptions(), types, false);
+					RecordHierarchyServices recordHierarchyServices = new RecordHierarchyServices(modelLayerFactory);
+					query = recordHierarchyServices.childNodesQuery(record, new TaxonomiesSearchOptions(), types, false);
 				} else {
-					query = new ConceptNodesTaxonomySearchServices(modelLayerFactory)
+					query = new RecordHierarchyServices(modelLayerFactory)
 							.getRootConceptsQuery(view.getSessionContext().getCurrentCollection(), taxonomy.getCode(),
 									new TaxonomiesSearchOptions());
 				}
@@ -194,6 +198,16 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		return taxonomiesManager.getEnabledTaxonomyWithCode(view.getCollection(), taxonomyCode);
 	}
 
+	public String getGuideKey() {
+		if (taxonomyCode.equals("admUnits")) {
+			return "guide.TaxonomyManagementImplAdminUnit";
+		} else if (taxonomyCode.equals("plan")) {
+			return "guide.TaxonomyManagementImplPlan";
+		}
+
+		return null;
+	}
+
 	public String getMultiLangualTitle() {
 		if (conceptId == null) {
 			return null;
@@ -221,7 +235,12 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		if (validationErrors.isEmpty()) {
 			SchemaPresenterUtils utils = new SchemaPresenterUtils(recordVO.getSchema().getCode(), view.getConstellioFactories(),
 					view.getSessionContext());
-			utils.delete(utils.toRecord(recordVO), null, true);
+			try {
+				utils.delete(utils.toRecord(recordVO), null, true);
+			} catch (OptimisticLockException e) {
+				LOGGER.error(e.getMessage());
+				view.showErrorMessage(e.getMessage());
+			}
 			if (recordVO.getId().equals(conceptId)) {
 				backButtonClicked();
 			} else {

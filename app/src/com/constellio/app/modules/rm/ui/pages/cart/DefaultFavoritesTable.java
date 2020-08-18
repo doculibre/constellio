@@ -5,15 +5,18 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
+import com.constellio.model.entities.structures.TableProperties;
 import com.vaadin.data.Container;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.ui.Table;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 import static java.util.Arrays.asList;
 
 public class DefaultFavoritesTable extends BaseTable {
@@ -157,12 +160,26 @@ public class DefaultFavoritesTable extends BaseTable {
 			@Override
 			protected List<String> getDefaultVisibleColumnIds(Table table) {
 				List<String> visibleColumnIds = new ArrayList<>();
-				List<String> userVisibleColumns = currentUser.getVisibleTableColumnsFor(table.getId());
+				TableProperties properties = userConfigManager.getTablePropertiesValue(currentUser, getTableId());
+				List<String> userVisibleColumns = properties.getVisibleColumnIds();
 				if (userVisibleColumns != null) {
 					visibleColumnIds.addAll(userVisibleColumns);
 				}
 				visibleColumnIds.addAll(asList(CartItem.TITLE, CartItem.MODIFIED_ON, CartItem.DISPLAY_BUTTON));
 				return visibleColumnIds;
+			}
+
+			@Override
+			public void manage(Table table, String tableId) {
+				super.manage(table, tableId);
+				Object[] visibleColumns = table.getVisibleColumns();
+				List<Object> visibleColumnsList = new ArrayList<>(Arrays.asList(visibleColumns));
+				if (visibleColumnsList.contains(CartItem.DISPLAY_BUTTON)) {
+					int columnIndex = isRightToLeft() ? 0 : visibleColumnsList.size() - 1;
+					visibleColumnsList.remove(CartItem.DISPLAY_BUTTON);
+					visibleColumnsList.add(columnIndex, CartItem.DISPLAY_BUTTON);
+				}
+				table.setVisibleColumns(visibleColumnsList.toArray());
 			}
 		};
 	}

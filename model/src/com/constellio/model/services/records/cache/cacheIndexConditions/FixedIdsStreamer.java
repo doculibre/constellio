@@ -1,8 +1,8 @@
 package com.constellio.model.services.records.cache.cacheIndexConditions;
 
-import com.constellio.model.services.records.RecordId;
-import com.constellio.model.services.records.cache.MetadataIndexCacheDataStore;
+import com.constellio.data.dao.dto.records.RecordId;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,18 +23,21 @@ public class FixedIdsStreamer implements SortedIdsStreamer {
 		return new FixedIdsStreamer(ids.stream().sorted().collect(Collectors.toList()));
 	}
 
+	public static FixedIdsStreamer EMPTY = new FixedIdsStreamer(new ArrayList<>());
+
+
 	@Override
-	public boolean hasResults(MetadataIndexCacheDataStore dataStore) {
+	public boolean hasResults() {
 		return !ids.isEmpty();
 	}
 
 	@Override
-	public int countResults(MetadataIndexCacheDataStore dataStore) {
+	public int countResults() {
 		return ids.size();
 	}
 
 	@Override
-	public Iterator<RecordId> iterator(MetadataIndexCacheDataStore dataStore) {
+	public Iterator<RecordId> iterator() {
 		return ids.iterator();
 	}
 }

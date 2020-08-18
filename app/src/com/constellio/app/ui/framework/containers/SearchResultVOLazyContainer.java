@@ -27,7 +27,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SearchResultVOLazyContainer extends LazyQueryContainer implements RecordVOContainer {
+public class SearchResultVOLazyContainer extends LazyQueryContainer implements RecordVOContainer, LastQTime {
 
 	private SearchResultVODataProvider dataProvider;
 

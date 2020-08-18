@@ -46,7 +46,7 @@ public class ListContentAccessAuthorizationsPresenter extends ListAuthorizations
 		if (taxonomy != null && taxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(user.getCollection()))) {
 			return user.has(CorePermissions.MANAGE_SECURITY).globally();
 		} else {
-			return user.hasWriteAndDeleteAccess().on(restrictedRecord);
+			return (user.hasReadAccess().on(restrictedRecord) && this.appCollectionExtentions.isRecordAuthorisationPageAccessible(user, restrictedRecord)) || user.hasWriteAndDeleteAccess().on(restrictedRecord);
 		}
 	}
 
@@ -116,5 +116,10 @@ public class ListContentAccessAuthorizationsPresenter extends ListAuthorizations
 	@Override
 	public boolean seeAccessField() {
 		return true;
+	}
+
+	@Override
+	public boolean seeSharedBy() {
+		return false;
 	}
 }

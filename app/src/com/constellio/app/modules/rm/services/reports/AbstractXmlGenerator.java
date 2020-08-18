@@ -1,8 +1,11 @@
 package com.constellio.app.modules.rm.services.reports;
 
 import com.constellio.app.api.extensions.params.ExtraMetadataToGenerateOnReferenceParams;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
+import com.constellio.app.modules.rm.model.enums.ReportsSortingMetadata;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.parameters.AbstractXmlGeneratorParameters;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -12,6 +15,7 @@ import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
@@ -30,6 +34,8 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
@@ -48,6 +54,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
 
 public abstract class AbstractXmlGenerator {
@@ -346,12 +353,28 @@ public abstract class AbstractXmlGenerator {
 			return Collections.emptyList();
 		}
 		RecordServices recordServices = factory.getModelLayerFactory().newRecordServices();
+		SearchServices searchServices = factory.getModelLayerFactory().newSearchServices();
 		MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
+		SchemasDisplayManager displayManager = factory.getMetadataSchemasDisplayManager();
 		MetadataSchema recordSchema = metadataSchemasManager.getSchemaOf(recordElement);
 		List<String> listOfIdsReferencedByMetadata = metadata.isMultivalue() ?
 													 recordElement.<String>getList(metadata) :
 													 Collections.singletonList(recordElement.<String>get(metadata));
-		List<Record> listOfRecordReferencedByMetadata = recordServices.getRecordsById(collection, listOfIdsReferencedByMetadata);
+		//		List<Record> listOfRecordReferencedByMetadata = recordServices.getRecordsById(collection, listOfIdsReferencedByMetadata);
+		RMConfigs rmConfigs = new RMConfigs(factory);
+		ReportsSortingMetadata sortingMetadata = rmConfigs.getSortingMetadataForLabelsAndMetadataReports();
+		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(collection).where(Schemas.IDENTIFIER).isIn(listOfIdsReferencedByMetadata));
+		if (displayManager.getMetadata(collection, metadata.getCode()).getSortingType() == MetadataSortingType.ALPHANUMERICAL_ORDER) {
+			switch (sortingMetadata) {
+				case TITLE:
+					query = query.sortAsc(Schemas.TITLE).sortAsc(Schemas.CODE);
+					break;
+				default:
+					query = query.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE);
+			}
+		}
+
+		SearchResponseIterator<Record> listOfRecordReferencedByMetadata = searchServices.recordsIterator(query);
 		List<Element> listOfMetadataTags = new ArrayList<>();
 		Metadata metadataInSchema = recordSchema.getMetadata(metadata.getLocalCode());
 		String inheritedMetadataCode = metadataInSchema.getCode();
@@ -359,7 +382,7 @@ public abstract class AbstractXmlGenerator {
 		if (metadataInSchema.inheritDefaultSchema()) {
 			inheritedMetadataCode = metadataInSchema.getInheritance().getCode();
 		}
-		if (listOfRecordReferencedByMetadata.isEmpty()) {
+		if (!listOfRecordReferencedByMetadata.hasNext()) {
 			String elementNamePrefix = REFERENCE_PREFIX + inheritedMetadataCode.replace("_default_", "_");
 			listOfMetadataTags = asList(
 					new Element(elementNamePrefix + "_code", namespace).setText(null)
@@ -372,7 +395,8 @@ public abstract class AbstractXmlGenerator {
 			StringBuilder titleParentBuilder = new StringBuilder();
 			StringBuilder codeParentBuilder = new StringBuilder();
 
-			for (Record recordReferenced : listOfRecordReferencedByMetadata) {
+			while (listOfRecordReferencedByMetadata.hasNext()) {
+				Record recordReferenced = listOfRecordReferencedByMetadata.next();
 				if (titleBuilder.length() > 0) {
 					titleBuilder.append(", ");
 				}

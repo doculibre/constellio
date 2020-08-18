@@ -5,10 +5,12 @@ import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.guide.GuideManager;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.ComponentState;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import org.apache.commons.io.FileUtils;
 
@@ -18,6 +20,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class MainLayoutPresenter implements Serializable {
 
@@ -81,6 +85,42 @@ public class MainLayoutPresenter implements Serializable {
 		}
 	}
 
+	protected String getGuideUrl() {
+		BaseView currentView = mainLayout.getHeader().getCurrentView();
+		return getGuideUrl(currentView);
+	}
+
+
+	protected String getGuideUrl(BaseView currentView) {
+		if (currentView == null) {
+			return null;
+		}
+
+		AppLayerFactory appLayerFactory = mainLayout.getHeader().getConstellioFactories().getAppLayerFactory();
+		GuideManager manager = new GuideManager(appLayerFactory.getModelLayerFactory().getDataLayerFactory());
+		String language = ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage();
+
+		String field = null;
+
+		if (currentView instanceof CustomGuideUrl) {
+			field = ((CustomGuideUrl) currentView).getGuideKey();
+		}
+
+		if (field == null) {
+			field = "guide." + currentView.getClass().getSimpleName();
+		}
+
+		String customUrl = manager.getPropertyValue(language, field);
+		if (customUrl == null || customUrl.isEmpty()) {
+			if (!$(field).equals(field)) {
+				return $(field);
+			}
+			return null;
+		}
+		return customUrl;
+	}
+
+
 	private String toPrintableVersion(String version) {
 		String[] versionSplitted = version.split("\\.");
 
@@ -94,5 +134,9 @@ public class MainLayoutPresenter implements Serializable {
 		User user = getUser();
 		AppLayerFactory appLayerFactory = mainLayout.getHeader().getConstellioFactories().getAppLayerFactory();
 		return item.getBadge(user, appLayerFactory);
+	}
+
+	public boolean hasGuideConfigurationPermission() {
+		return getUser().has(CorePermissions.MANAGE_SYSTEM_CONFIGURATION).globally();
 	}
 }

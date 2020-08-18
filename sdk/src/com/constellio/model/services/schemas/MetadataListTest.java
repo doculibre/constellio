@@ -72,11 +72,9 @@ public class MetadataListTest extends ConstellioTest {
 		assertThat(metadataList.nestedList.get(0)).isEqualTo(metadata1);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
-		assertThat(metadataList.datastoreCodeIndex.get("metadata1_s")).isEqualTo(metadata1);
 		assertThat(metadataList.nestedList.get(1)).isEqualTo(metadata2);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
-		assertThat(metadataList.datastoreCodeIndex.get("metadata2_s")).isEqualTo(metadata2);
 	}
 
 	@Test
@@ -125,7 +123,6 @@ public class MetadataListTest extends ConstellioTest {
 		assertThat(metadataList.nestedList.get(0)).isEqualTo(metadata1);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
-		assertThat(metadataList.datastoreCodeIndex.get("metadata1_s")).isEqualTo(metadata1);
 	}
 
 	@Test
@@ -139,11 +136,9 @@ public class MetadataListTest extends ConstellioTest {
 		assertThat(metadataList.nestedList.get(0)).isEqualTo(metadata1);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
-		assertThat(metadataList.datastoreCodeIndex.get("metadata1_s")).isEqualTo(metadata1);
 		assertThat(metadataList.nestedList.get(1)).isEqualTo(metadata2);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
-		assertThat(metadataList.datastoreCodeIndex.get("metadata2_s")).isEqualTo(metadata2);
 	}
 
 	@Test
@@ -161,16 +156,12 @@ public class MetadataListTest extends ConstellioTest {
 		assertThat(metadataList.nestedList.get(3)).isEqualTo(metadata2);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
-		assertThat(metadataList.datastoreCodeIndex.get("metadata1_s")).isEqualTo(metadata1);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
-		assertThat(metadataList.datastoreCodeIndex.get("metadata2_s")).isEqualTo(metadata2);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata3")).isEqualTo(metadata3);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata3")).isEqualTo(metadata3);
-		assertThat(metadataList.datastoreCodeIndex.get("metadata3_s")).isEqualTo(metadata3);
 		assertThat(metadataList.codeIndex.get("type1_default_USRmetadata4")).isEqualTo(USRmetadata4);
 		assertThat(metadataList.codeIndex.get("type1_default_USRmetadata4")).isEqualTo(USRmetadata4);
-		assertThat(metadataList.datastoreCodeIndex.get("USRmetadata4_s")).isEqualTo(USRmetadata4);
 	}
 
 	@Test
@@ -186,10 +177,8 @@ public class MetadataListTest extends ConstellioTest {
 		assertThat(metadataList.nestedList.get(1)).isEqualTo(metadata2);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
-		assertThat(metadataList.datastoreCodeIndex.get("metadata1_s")).isEqualTo(metadata1);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
-		assertThat(metadataList.datastoreCodeIndex.get("metadata2_s")).isEqualTo(metadata2);
 
 	}
 
@@ -223,7 +212,6 @@ public class MetadataListTest extends ConstellioTest {
 		assertThat(metadataList.nestedList).hasSize(3);
 		assertThat(metadataList.codeIndex.get("type1_default_USRmetadata4")).isEqualTo(USRmetadata4);
 		assertThat(metadataList.codeIndex.get("type1_default_USRmetadata4")).isEqualTo(USRmetadata4);
-		assertThat(metadataList.datastoreCodeIndex.get("USRmetadata4_s")).isEqualTo(USRmetadata4);
 	}
 
 	@Test
@@ -239,15 +227,12 @@ public class MetadataListTest extends ConstellioTest {
 		assertThat(metadataList.nestedList.get(1)).isEqualTo(metadata2);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
-		assertThat(metadataList.datastoreCodeIndex.get("metadata1_s")).isEqualTo(metadata1);
 
 		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
-		assertThat(metadataList.datastoreCodeIndex.get("metadata2_s")).isEqualTo(metadata2);
 
 		assertThat(metadataList.codeIndex.get("type1_default_metadata3")).isNull();
 		assertThat(metadataList.codeIndex.get("type1_default_metadata3")).isNull();
-		assertThat(metadataList.datastoreCodeIndex.get("metadata3_s")).isNull();
 	}
 
 	@Test
@@ -338,10 +323,10 @@ public class MetadataListTest extends ConstellioTest {
 	public void whenFilterReferencesToThenReturnTwo()
 			throws Exception {
 
-		when(metadata1.getReferencedSchemaType()).thenReturn("type2");
-		when(metadata2.getReferencedSchemaType()).thenReturn("type2");
-		when(metadata3.getReferencedSchemaType()).thenReturn("type1");
-		when(USRmetadata4.getReferencedSchemaType()).thenReturn("type1");
+		when(metadata1.getReferencedSchemaTypeCode()).thenReturn("type2");
+		when(metadata2.getReferencedSchemaTypeCode()).thenReturn("type2");
+		when(metadata3.getReferencedSchemaTypeCode()).thenReturn("type1");
+		when(USRmetadata4.getReferencedSchemaTypeCode()).thenReturn("type1");
 		when(metadata1.getType()).thenReturn(MetadataValueType.REFERENCE);
 		when(metadata2.getType()).thenReturn(MetadataValueType.REFERENCE);
 		when(metadata3.getType()).thenReturn(MetadataValueType.REFERENCE);

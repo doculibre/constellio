@@ -4,14 +4,14 @@ import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.conf.PropertiesAppLayerConfiguration;
 import com.constellio.app.services.appManagement.GetWarVersionUtils;
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
-import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.Holder;
 import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.data.utils.dev.Toggle;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
@@ -38,32 +38,35 @@ public class ConstellioFactories {
 	private AppLayerConfiguration appLayerConfiguration;
 
 	private FoldersLocator foldersLocator;
-
 	private IOServicesFactory ioServicesFactory;
-
 	private DataLayerFactory dataLayerFactory;
-
 	private ModelLayerFactory modelLayerFactory;
-
 	private AppLayerFactory appLayerFactory;
 
-	private ThreadLocal<AppLayerFactory> requestCachedFactories = new ThreadLocal<>();
-
 	private ConstellioFactories() {
-
 	}
 
 	public static ConstellioFactories getInstanceIfAlreadyStarted() {
-		return instanceProvider.getInstance(null);
+		return instanceProvider.getInstance(TenantUtils.getTenantId(), null, false);
 	}
 
 	public static boolean isInitialized() {
-		return instanceProvider.isInitialized();
+		return instanceProvider.isInitialized(TenantUtils.getTenantId());
 	}
 
 	public static ConstellioFactories getInstance() {
 		ConstellioFactoriesDecorator constellioFactoriesDecorator = new ConstellioFactoriesDecorator();
 		return getInstance(() -> new FoldersLocator().getConstellioProperties(), constellioFactoriesDecorator);
+	}
+
+	public static ConstellioFactories getInstance(boolean acceptingFailedFactories) {
+		ConstellioFactoriesDecorator constellioFactoriesDecorator = new ConstellioFactoriesDecorator();
+		return getInstance(TenantUtils.getTenantId(), () -> new FoldersLocator().getConstellioProperties(), constellioFactoriesDecorator, acceptingFailedFactories);
+	}
+
+	public static ConstellioFactories getInstance(String tenantId) {
+		ConstellioFactoriesDecorator constellioFactoriesDecorator = new ConstellioFactoriesDecorator();
+		return getInstance(tenantId, () -> new FoldersLocator().getConstellioProperties(), constellioFactoriesDecorator, false);
 	}
 
 	public static ConstellioFactories getInstance(ConstellioFactoriesDecorator constellioFactoriesDecorator) {
@@ -72,38 +75,36 @@ public class ConstellioFactories {
 
 	public static ConstellioFactories getInstance(final Supplier<File> propertyFileSupplier,
 												  final ConstellioFactoriesDecorator decorator) {
-		return instanceProvider.getInstance(new Factory<ConstellioFactories>() {
-			@Override
-			public ConstellioFactories get() {
-				ConstellioFactories instance = buildFor(propertyFileSupplier.get(), decorator, null, (short) 0);
-				return instance;
-			}
-		});
+		return getInstance(TenantUtils.getTenantId(), propertyFileSupplier, decorator, false);
+	}
+
+	private static ConstellioFactories getInstance(final String tenantId, final Supplier<File> propertyFileSupplier,
+												   final ConstellioFactoriesDecorator decorator,
+												   boolean acceptingFailedFactories) {
+		String instanceName = tenantId != null ? "tenant" + tenantId : null;
+		return instanceProvider.getInstance(tenantId,
+				() -> buildFor(propertyFileSupplier.get(), decorator, instanceName, (short) 0), acceptingFailedFactories);
 	}
 
 	public static void start() {
-		//getInstance().getAppLayerFactory().initialize();
-		//instance.appLayerFactory.initialize();
 	}
 
 	public static void clear() {
-		instanceProvider.clear();
-		//		if (instance != null) {
-		//			instance.appLayerFactory.close();
-		//			instance = null;
-		//		}
+		if (TenantUtils.isSupportingTenants()) {
+			String tenantId = TenantUtils.getTenantId();
+			instanceProvider.clear(tenantId);
+		} else {
+			instanceProvider.clear(TenantUtils.EMPTY_TENANT_ID);
+		}
 	}
-	//
-	//	public static void restart() {
-	//		File propertyFile = getInstance().propertyFile;
-	//		ConstellioFactoriesDecorator decorator = getInstance().decorator;
-	//		clear();
-	//		getInstance(propertyFile, decorator);
-	//	}
 
 	public static ConstellioFactories buildFor(File propertyFile, ConstellioFactoriesDecorator decorator,
 											   String instanceName, short instanceId) {
 		ConstellioFactories factories = new ConstellioFactories();
+
+		if (instanceName == null) {
+			instanceName = "default";
+		}
 
 		factories.propertyFile = propertyFile;
 		Map<String, String> configs = PropertyFileUtils.loadKeyValues(propertyFile);
@@ -124,13 +125,22 @@ public class ConstellioFactories {
 		dataLayerFactory = decorator.decorateDataLayerFactory(new DataLayerFactory(ioServicesFactory, dataLayerConfiguration,
 				decorator.getStatefullServiceDecorator(), instanceName, instanceId, warVersion));
 
+		Holder<AppLayerFactory> appLayerFactoryHolder = new Holder<>();
+		Runnable markForReindexingRunnable = () -> {
+			appLayerFactoryHolder.get().getSystemGlobalConfigsManager().setReindexingRequired(true);
+		};
+
+		Runnable markForCacheRebuildRunnable = () -> {
+			appLayerFactoryHolder.get().getSystemGlobalConfigsManager().markLocalCachesAsRequiringRebuild();
+		};
 		modelLayerFactory = decorator.decorateModelServicesFactory(new ModelLayerFactoryImpl(dataLayerFactory, foldersLocator,
 				modelLayerConfiguration, decorator.getStatefullServiceDecorator(), modulesManager, instanceName, instanceId,
-				new ModelLayerFactoryFactory()));
+				new ModelLayerFactoryFactory(), markForReindexingRunnable, markForCacheRebuildRunnable));
 
 		appLayerFactory = decorator.decorateAppServicesFactory(new AppLayerFactoryImpl(appLayerConfiguration, modelLayerFactory,
 				dataLayerFactory, decorator.getStatefullServiceDecorator(), instanceName, instanceId));
 
+		appLayerFactoryHolder.set(appLayerFactory);
 		modulesManager.set(appLayerFactory.getModulesManager());
 
 	}
@@ -156,26 +166,26 @@ public class ConstellioFactories {
 
 		long factoryId = factoryIdSeq.incrementAndGet();
 
-		AppLayerFactoryImpl appLayerFactory = (AppLayerFactoryImpl) getAppLayerFactory();
-		AppLayerFactoryWithRequestCacheImpl requestCachedAppLayerFactory = new AppLayerFactoryWithRequestCacheImpl(
-				appLayerFactory, "" + factoryId);
+		//		AppLayerFactoryImpl appLayerFactory = (AppLayerFactoryImpl) getAppLayerFactory();
+		//		AppLayerFactoryWithRequestCacheImpl requestCachedAppLayerFactory = new AppLayerFactoryWithRequestCacheImpl(
+		//				appLayerFactory, "" + factoryId);
 
-		requestCachedFactories.set(requestCachedAppLayerFactory);
-		if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
-			LOGGER.info("onRequestStarted() - " + requestCachedAppLayerFactory.toString());
-		}
+		//		requestCachedFactories.set(requestCachedAppLayerFactory);
+		//		if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
+		//			LOGGER.info("onRequestStarted() - " + requestCachedAppLayerFactory.toString());
+		//		}
 	}
 
 	public void onRequestEnded() {
 
-		AppLayerFactory appLayerFactory = requestCachedFactories.get();
-		if (appLayerFactory != null && appLayerFactory instanceof AppLayerFactoryWithRequestCacheImpl) {
-			((AppLayerFactoryWithRequestCacheImpl) appLayerFactory).disconnect();
-			if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
-				LOGGER.info("onRequestEnded() - " + appLayerFactory.toString());
-			}
-		}
-		requestCachedFactories.set(null);
+		//		AppLayerFactory appLayerFactory = requestCachedFactories.get();
+		//		if (appLayerFactory != null && appLayerFactory instanceof AppLayerFactoryWithRequestCacheImpl) {
+		//			((AppLayerFactoryWithRequestCacheImpl) appLayerFactory).disconnect();
+		//			if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
+		//				LOGGER.info("onRequestEnded() - " + appLayerFactory.toString());
+		//			}
+		//		}
+		//		requestCachedFactories.set(null);
 	}
 
 	public IOServicesFactory getIoServicesFactory() {
@@ -207,8 +217,7 @@ public class ConstellioFactories {
 	}
 
 	public AppLayerFactory getAppLayerFactory() {
-		AppLayerFactory requestCachedAppLayerFactory = requestCachedFactories.get();
-		return requestCachedAppLayerFactory == null ? appLayerFactory : requestCachedAppLayerFactory;
+		return appLayerFactory;
 	}
 
 	public AppLayerFactory getUncachedAppLayerFactory() {

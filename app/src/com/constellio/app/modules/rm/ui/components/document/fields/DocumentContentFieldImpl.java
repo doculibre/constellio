@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.components.document.fields;
 
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow;
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindowImpl;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
@@ -27,12 +28,9 @@ public class DocumentContentFieldImpl extends ContentVersionUploadField implemen
 
 	private List<ContentUploadedListener> contentUploadedListeners = new ArrayList<>();
 
-	public DocumentContentFieldImpl() {
-		this(false);
-	}
 
-	public DocumentContentFieldImpl(boolean isViewOnly) {
-		super(false, !isViewOnly, isViewOnly);
+	public DocumentContentFieldImpl(boolean isViewOnly, String recordId) {
+		super(false, !isViewOnly, isViewOnly, recordId, Document.CONTENT);
 
 
 		addValueChangeListener(new ValueChangeListener() {
@@ -113,10 +111,11 @@ public class DocumentContentFieldImpl extends ContentVersionUploadField implemen
 	protected Component newItemCaption(Object itemId) {
 		ContentVersionVO contentVersionVO = (ContentVersionVO) itemId;
 		boolean majorVersionFieldVisible = isMajorVersionFieldVisible();
-		return new ContentVersionUploadField.ContentVersionCaption(contentVersionVO, majorVersionFieldVisible) {
+		return new ContentVersionUploadField.ContentVersionCaption(contentVersionVO, majorVersionFieldVisible, getRecordId(), getMetadataCode(), isReadonly()) {
 			@Override
-			protected Component newCaptionComponent(ContentVersionVO contentVersionVO) {
-				return new DownloadContentVersionLink(contentVersionVO, contentVersionVO.toString(false));
+			protected Component newCaptionComponent(ContentVersionVO contentVersionVO, String recordId,
+													String metadataCode, boolean isReadonly) {
+				return new DownloadContentVersionLink(contentVersionVO, contentVersionVO.toString(false), recordId, metadataCode, isReadonly);
 			}
 		};
 	}

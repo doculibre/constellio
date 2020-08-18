@@ -329,7 +329,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			Map<String, Object> modifications = new HashMap<>();
 			modifications.put(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 			presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
-					records.getAdmin().getUsername(), "Edit records");
+					records.getAdmin(), "Edit records");
 			fail("error expected!");
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
@@ -370,7 +370,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			Map<String, Object> modifications = new HashMap<>();
 			modifications.put(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 			presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(),
-					records.getAdmin().getUsername(), "Edit records");
+					records.getAdmin(), "Edit records");
 			fail("error expected!");
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
@@ -412,7 +412,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			Map<String, Object> modifications = new HashMap<>();
 			modifications.put(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 			presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
-					records.getAdmin().getUsername(), "Edit records");
+					records.getAdmin(), "Edit records");
 			fail("error expected!");
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
@@ -452,7 +452,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			Map<String, Object> modifications = new HashMap<>();
 			modifications.put(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 			presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(),
-					records.getAdmin().getUsername(), "Edit records");
+					records.getAdmin(), "Edit records");
 			fail("error expected!");
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
@@ -487,7 +487,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.COPY_STATUS_ENTERED, CopyType.SECONDARY);
 		request.setModifiedMetadatas(modifications);
 		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
-				records.getAdmin().getUsername(), "Edit records");
+				records.getAdmin(), "Edit records");
 
 		waitForBatchProcess();
 
@@ -516,7 +516,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.COPY_STATUS_ENTERED, CopyType.SECONDARY);
 		request.setModifiedMetadatas(modifications);
 		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(),
-				records.getAdmin().getUsername(), "Edit records");
+				records.getAdmin(), "Edit records");
 
 		waitForBatchProcess();
 
@@ -712,7 +712,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.TITLE, "Mon dossier");
 		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
-				records.getAdmin().getUsername(), "Edit records");
+				records.getAdmin(), "Edit records");
 
 		waitForBatchProcess();
 		assertThat(records.getFolder_A03().getTitle()).isEqualTo("Mon dossier");
@@ -752,7 +752,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.TITLE, "Mon dossier");
 		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(),
-				records.getAdmin().getUsername(), "Edit records");
+				records.getAdmin(), "Edit records");
 
 		waitForBatchProcess();
 		assertThat(records.getFolder_A03().getTitle()).isEqualTo("Mon dossier");
@@ -982,7 +982,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.TYPE, records.folderTypeMeeting().getId());
 		request.setModifiedMetadatas(modifications);
 		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
-				records.getAdmin().getUsername(), "Edit records");
+				records.getAdmin(), "Edit records");
 
 		waitForBatchProcess();
 		assertThat(records.getFolder_A01().<String>get("subType")).isEqualTo("customSubType");
@@ -1000,13 +1000,14 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_employe_type", "meetingFolder (Réunion employé)", "employe (Dossier employé)"),
 				tuple("folder_meetingFolder_meetingDateTime", "2010-12-20-01-02-03", null),
-				tuple("folder_employe_hireDate", null, "2010-12-20")
+				tuple("folder_employe_hireDate", null, "2010-12-20"),
+				tuple("folder_employe_subType", "customSubType", null)
 		);
 
 		assertThat(results.getRecordModifications(records.folder_A02).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_employe_type", "meetingFolder (Réunion employé)", "employe (Dossier employé)"),
-				tuple("folder_employe_subType", "Meeting important", "Dossier d'employé général"),
+				tuple("folder_employe_subType", "Meeting important", null),
 				tuple("folder_meetingFolder_meetingDateTime", "2010-12-20-01-02-03", null),
 				tuple("folder_employe_hireDate", null, "2010-12-20")
 		);
@@ -1036,7 +1037,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.TYPE, records.folderTypeMeeting().getId());
 		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(),
-				records.getAdmin().getUsername(), "Edit records");
+				records.getAdmin(), "Edit records");
 
 		waitForBatchProcess();
 		assertThat(records.getFolder_A01().<String>get("subType")).isEqualTo("customSubType");
@@ -1081,33 +1082,33 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
+		assertThat(presenterService.getOriginSchema(Folder.SCHEMA_TYPE, null, new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
 						.isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03,
 								records.folder_A04, records.folder_A05, records.folder_A06))))).isNull();
 
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
+		assertThat(presenterService.getOriginSchema(Folder.SCHEMA_TYPE, null, new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A04, records.folder_A06)))))
 				.isNull();
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
+		assertThat(presenterService.getOriginSchema(Folder.SCHEMA_TYPE, null, new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A05, records.folder_A06)))))
 				.isNull();
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
+		assertThat(presenterService.getOriginSchema(Folder.SCHEMA_TYPE, null, new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
 						.isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03))))).isNull();
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
+		assertThat(presenterService.getOriginSchema(Folder.SCHEMA_TYPE, null, new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
 						.isIn(asList(records.folder_A01, records.folder_A02, records.folder_A05))))).isNull();
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
+		assertThat(presenterService.getOriginSchema(Folder.SCHEMA_TYPE, null, new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
 						.isIn(asList(records.folder_A05, records.folder_A01, records.folder_A02))))).isNull();
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery()
+		assertThat(presenterService.getOriginSchema(Folder.SCHEMA_TYPE, null, new LogicalSearchQuery()
 				.setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A04)))))
 				.isEqualTo(records.folderTypeOther().getId());
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery()
+		assertThat(presenterService.getOriginSchema(Folder.SCHEMA_TYPE, null, new LogicalSearchQuery()
 				.setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A03)))))
 				.isEqualTo(records.folderTypeMeeting().getId());
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
+		assertThat(presenterService.getOriginSchema(Folder.SCHEMA_TYPE, null, new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02)))))
 				.isEqualTo(records.folderTypeEmploye().getId());
 	}

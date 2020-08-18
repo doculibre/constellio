@@ -10,6 +10,7 @@ import com.constellio.app.services.importExport.settings.model.ImportedMetadataS
 import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
 import com.constellio.app.services.importExport.settings.model.ImportedSequence;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedSystemVersion;
 import com.constellio.app.services.importExport.settings.model.ImportedTab;
 import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
 import com.constellio.app.services.importExport.settings.model.ImportedType;
@@ -52,6 +53,8 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
 	public Document writeSettings(ImportedSettings importedSettings) {
 
+		addSystemVersion(importedSettings.getImportedSystemVersion());
+
 		addLabelTemplates(importedSettings.getImportedLabelTemplates());
 
 		addGlobalConfigs(importedSettings.getConfigs());
@@ -62,6 +65,39 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
 		return document;
 
+	}
+
+	private void addSystemVersion(ImportedSystemVersion importedSystemVersion) {
+		Element systemElem = new Element(SYSTEM);
+		settingsElement.addContent(systemElem);
+		addVersion(systemElem, importedSystemVersion);
+		addPlugins(systemElem, importedSystemVersion.getPlugins());
+		addOnlyUSRMode(systemElem, importedSystemVersion.isOnlyUSR());
+	}
+
+	private void addOnlyUSRMode(Element systemElem, boolean onlyUSR) {
+		Element usrElement = new Element(ONLY_USR);
+		usrElement.setAttribute(VALUE, String.valueOf(onlyUSR));
+		systemElem.addContent(usrElement);
+	}
+
+	private void addPlugins(Element systemElem, List<String> plugins) {
+		Element pluginsElement = new Element(PLUGINS);
+		systemElem.addContent(pluginsElement);
+		for (String id : plugins) {
+			Element pluginElement = new Element(PLUGIN);
+			pluginElement.setAttribute(PLUGIN_ID, id);
+			pluginsElement.addContent(pluginElement);
+		}
+	}
+
+	private void addVersion(Element systemElem, ImportedSystemVersion importedSystemVersion) {
+		Element versionElement = new Element(VERSION);
+		versionElement.setAttribute(FULL, importedSystemVersion.getFullVersion());
+		versionElement.setAttribute(MAJOR, String.valueOf(importedSystemVersion.getMajorVersion()));
+		versionElement.setAttribute(MINOR, String.valueOf(importedSystemVersion.getMinorVersion()));
+		versionElement.setAttribute(REVISION, String.valueOf(importedSystemVersion.getMinorRevisionVersion()));
+		systemElem.addContent(versionElement);
 	}
 
 	private void addLabelTemplates(List<ImportedLabelTemplate> importedLabelTemplates) {
@@ -299,6 +335,10 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
 		if (importedMetadata.getUnique() != null) {
 			metadataElem.setAttribute(UNIQUE, importedMetadata.getUnique() + "");
+		}
+
+		if (importedMetadata.getSortingType() != null) {
+			metadataElem.setAttribute(SORTING_TYPE, importedMetadata.getSortingType() + "");
 		}
 
 		if (importedMetadata.getUnmodifiable() != null) {

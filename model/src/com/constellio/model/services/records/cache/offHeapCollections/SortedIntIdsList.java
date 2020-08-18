@@ -1,13 +1,15 @@
 package com.constellio.model.services.records.cache.offHeapCollections;
 
-import com.constellio.model.services.records.IntegerRecordId;
-import com.constellio.model.services.records.RecordId;
+import com.constellio.data.dao.dto.records.IntegerRecordId;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.RecordUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.constellio.model.services.records.RecordUtils.toStringId;
+import static com.constellio.data.dao.dto.records.RecordDTOUtils.toStringId;
+import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.SortedIntIdsList_ID;
+import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.allocateMemory;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.copyAdding;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.putInt;
 
@@ -24,6 +26,17 @@ public class SortedIntIdsList implements SortedIdsList {
 	int size;
 
 	short capacity;
+
+
+	@Override
+	public synchronized void add(RecordId id) {
+		if (id.isInteger()) {
+			add(id.intValue());
+
+		} else {
+			throw new UnsupportedOperationException("List does not support legacy String ids");
+		}
+	}
 
 	@Override
 	public synchronized void add(String id) {
@@ -43,26 +56,26 @@ public class SortedIntIdsList implements SortedIdsList {
 				if (size == 0) {
 
 					size = (INITIAL_SIZE * Integer.BYTES);
-					address = OffHeapMemoryAllocator.allocateMemory(size);
+					address = allocateMemory(size, SortedIntIdsList_ID);
 					putInt(address, intId);
 					capacity = (short) (size - Integer.BYTES);
 
 				} else {
 					int newSize = Math.min(size * RESIZE_FACTOR, size + (Integer.BYTES * MAX_INCREMENTING_SIZE));
-					long newAddress = OffHeapMemoryAllocator.allocateMemory(newSize);
+					long newAddress = allocateMemory(newSize, SortedIntIdsList_ID);
 
 					try {
 						copyAdding(address, newAddress, size, placementIndex * Integer.BYTES, Integer.BYTES);
 						putInt(newAddress + placementIndex * Integer.BYTES, intId);
 
 					} catch (Throwable t) {
-						OffHeapMemoryAllocator.freeMemory(newAddress, newSize);
+						OffHeapMemoryAllocator.freeMemory(newAddress, newSize, SortedIntIdsList_ID);
 
 						throw t;
 					}
 
 
-					OffHeapMemoryAllocator.freeMemory(address, size);
+					OffHeapMemoryAllocator.freeMemory(address, size, SortedIntIdsList_ID);
 					capacity = (short) (newSize - size - Integer.BYTES);
 					address = newAddress;
 					size = newSize;
@@ -78,6 +91,13 @@ public class SortedIntIdsList implements SortedIdsList {
 
 	}
 
+
+	@Override
+	public synchronized void remove(RecordId id) {
+		if (id.isInteger()) {
+			remove(id.intValue());
+		}
+	}
 
 	@Override
 	public synchronized void remove(String id) {
@@ -105,12 +125,27 @@ public class SortedIntIdsList implements SortedIdsList {
 	public synchronized void clear() {
 
 		if (size > 0) {
-			OffHeapMemoryAllocator.freeMemory(address, size);
+			OffHeapMemoryAllocator.freeMemory(address, size, SortedIntIdsList_ID);
 		}
 
 		address = 0;
 		size = 0;
 		capacity = 0;
+	}
+
+	@Override
+	public boolean isSupportingLegacyId() {
+		return false;
+	}
+
+	@Override
+	public long valuesHeapLength() {
+		return 12 + Long.BYTES + Integer.BYTES + Short.BYTES;
+	}
+
+	@Override
+	public long valuesOffHeapLength() {
+		return this.size;
 	}
 
 	@Override

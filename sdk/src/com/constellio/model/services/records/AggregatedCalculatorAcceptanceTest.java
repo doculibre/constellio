@@ -80,7 +80,7 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 
 		assertThatRecord(records.getContainerBac13()).extracting(AGGREGATED_METADATA)
 				.isEqualTo(asList("Abeille - Dauphin - Dindon - new Title"));
-		assertThat(nbQueries).isEqualTo(4);
+		assertThat(nbQueries).isEqualTo(6);
 	}
 
 	@Test
@@ -115,9 +115,8 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 
 		int nbQueries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(Folder.SCHEMA_TYPE,
 				ContainerRecord.SCHEMA_TYPE);
-
 		assertThatRecord(records.getContainerBac13()).extracting(AGGREGATED_METADATA).isEqualTo(asList(1D));
-		assertThat(nbQueries).isEqualTo(5);
+		assertThat(nbQueries).isEqualTo(7);
 	}
 
 	@Test
@@ -157,7 +156,7 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 				ContainerRecord.SCHEMA_TYPE);
 
 		assertThatRecord(records.getContainerBac13()).extracting(AGGREGATED_METADATA).isEqualTo(asList(3D));
-		assertThat(nbQueries).isEqualTo(5);
+		assertThat(nbQueries).isEqualTo(7);
 	}
 
 	public Record fetchBac13FromSolr() {

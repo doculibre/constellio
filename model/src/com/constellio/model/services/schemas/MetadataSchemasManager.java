@@ -169,7 +169,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 					throw new ImpossibleRuntimeException("Invalid format version '" + formatVersion + "'");
 				}
 
-				MetadataSchemaTypes builtTypes = typesBuilder.build(typesFactory, modelLayerFactory);
+				MetadataSchemaTypes builtTypes = typesBuilder.build(typesFactory);
 
 				return builtTypes;
 			}
@@ -186,6 +186,10 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 
 	public MetadataSchemaType getSchemaTypeOf(Record record) {
 		return getSchemaTypes(record).getSchemaType(record.getTypeCode());
+	}
+
+	public MetadataSchemaType getSchemaTypeOf(RecordDTO recordDTO) {
+		return getSchemaOf(recordDTO).getSchemaType();
 	}
 
 	public List<MetadataSchemaType> getSchemaTypes(CollectionObject collectionObject, List<String> schemaTypeCodes) {
@@ -243,7 +247,8 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	}
 
 	public MetadataSchemaTypesBuilder modify(String collection) {
-		return MetadataSchemaTypesBuilder.modify(getSchemaTypes(collection), getClassProvider());
+		return (new MetadataSchemaTypesBuilder(getSchemaTypes(collection).getCollectionInfo()))
+				.modify(getSchemaTypes(collection), modelLayerFactory, getClassProvider());
 	}
 
 	private ClassProvider getClassProvider() {
@@ -322,7 +327,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 			throws OptimisticLocking {
 		List<String> typesRequiringCacheReload = schemaTypesBuilder.getTypesRequiringCacheReload();
 		List<String> newSchemaTypes = schemaTypesBuilder.getNewSchemaTypes();
-		MetadataSchemaTypes schemaTypes = schemaTypesBuilder.build(typesFactory, modelLayerFactory);
+		MetadataSchemaTypes schemaTypes = schemaTypesBuilder.build(typesFactory);
 
 		Document document = new MetadataSchemaXMLWriter3().write(schemaTypes);
 		List<SchemaTypesAlterationImpact> impacts = calculateImpactsOf(schemaTypesBuilder);
@@ -337,8 +342,29 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		}
 
 		RecordsCaches caches = modelLayerFactory.getRecordsCaches();
-		if (reloadCacheIfRequired) {
-			caches.getCache(schemaTypes.getCollection()).invalidateVolatileReloadPermanent(typesRequiringCacheReload);
+		List<String> typesWithoutRecords = new ArrayList<>();
+		for (String typeRequiringCacheReload : typesRequiringCacheReload) {
+			MetadataSchemaType schemaType = schemaTypes.getSchemaType(typeRequiringCacheReload);
+			if (!caches.stream(schemaType).findAny().isPresent()) {
+				typesWithoutRecords.add(typeRequiringCacheReload);
+				caches.markLocalCacheConfigsAsSynced(schemaType);
+			}
+		}
+
+		for (String newType : newSchemaTypes) {
+			MetadataSchemaType schemaType = schemaTypes.getSchemaType(newType);
+			if (schemaType.getCacheType().isSummaryCache()) {
+				caches.markLocalCacheConfigsAsSynced(schemaType);
+			}
+		}
+
+		if (reloadCacheIfRequired && !typesRequiringCacheReload.isEmpty()) {
+			if (typesRequiringCacheReload.size() != typesWithoutRecords.size()
+				|| modelLayerFactory.getDataLayerFactory().isDistributed()) {
+				modelLayerFactory.markLocalCachesAsRequiringRebuild();
+			}
+
+			//caches.getCache(schemaTypes.getCollection()).invalidateVolatileReloadPermanent(typesRequiringCacheReload);
 		}
 		newSchemaTypes.forEach((s) -> {
 			caches.markAsInitialized(schemaTypes.getSchemaType(s));

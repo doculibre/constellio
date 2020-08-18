@@ -4,9 +4,13 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.server.FontAwesome;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 
 import java.io.Serializable;
 
@@ -35,6 +39,8 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 	ComponentState getStateFor(User user, AppLayerFactory appLayerFactory);
 
 	void viewChanged(BaseView oldView, BaseView newView);
+
+	Button buildButton(MainLayout receivingLayout);
 
 	abstract class BaseNavigationItem implements NavigationItem {
 
@@ -113,6 +119,19 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 
 		public String urlNeedToEndWith() {
 			return null;
+		}
+
+		@Override
+		public Button buildButton(MainLayout receivingLayout) {
+			Button button = new Button();
+
+			button.addClickListener(new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					BaseNavigationItem.this.activate(receivingLayout.navigate());
+				}
+			});
+			return button;
 		}
 	}
 

@@ -55,4 +55,6 @@ public class RMMigrationTo9_0_AcceptanceTest extends ConstellioTest {
 		assertThat(metadataSchema.getMetadata(Folder.ACTUAL_DEPOSIT_DATE).getDataEntry().getType()).isEqualTo(CALCULATED);
 		assertThat(metadataSchema.getMetadata(Folder.ACTUAL_DESTRUCTION_DATE).getDataEntry().getType()).isEqualTo(CALCULATED);
 	}
+
+
 }

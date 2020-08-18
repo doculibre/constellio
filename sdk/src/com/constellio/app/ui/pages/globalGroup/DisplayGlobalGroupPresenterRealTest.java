@@ -111,43 +111,6 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenEditButtonClickedThenNavigateToEditGlobalGroupWithRightParams()
-			throws Exception {
-
-		presenter.editButtonClicked(heroesGlobalGroupVO);
-
-		verify(globalGroupView.navigate().to(), times(1))
-				.editGlobalGroup("url1/url2/url3/" + NavigatorConfigurationService.GROUP_DISPLAY + "/" + URLEncoder
-						.encode("globalGroupCode=heroes", "UTF-8"));
-	}
-
-	@Test
-	public void whenDisplayButtonClickedThenNavigateToEditGlobalGroupWithRightParams()
-			throws Exception {
-
-		presenter.editButtonClicked(heroesGlobalGroupVO);
-
-		verify(globalGroupView.navigate().to(), times(1))
-				.editGlobalGroup("url1/url2/url3/" + NavigatorConfigurationService.GROUP_DISPLAY + "/" + URLEncoder
-						.encode("globalGroupCode=heroes", "UTF-8"));
-	}
-
-	@Test
-	public void whenDeleteButtonClickedThenCleanBreadCrumbRemoveGroupAndNavigateToBackPage()
-			throws Exception {
-
-		presenter.setBreadCrumb("url1/groupDisplay/groupAddEdit");
-
-		when(userCredentialsManager.getUserCredential(dakota)).thenReturn(dakotaCredential);
-
-		presenter.deleteButtonClicked(heroesGlobalGroupVO);
-
-		verify(userServices).logicallyRemoveGroupHierarchy(dakotaCredential, heroes);
-		verify(presenter).cleanInvalidBackPages();
-		verify(globalGroupView.navigate().to(), times(1)).url("url1/");
-	}
-
-	@Test
 	public void whenAddUserCredentialButtonClickedThenOk()
 			throws Exception {
 

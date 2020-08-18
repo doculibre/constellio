@@ -5,6 +5,8 @@ import com.constellio.data.events.Event;
 import com.constellio.data.events.EventBusManagerExtension;
 import com.constellio.data.events.ReceivedEventParams;
 import com.constellio.data.events.SentEventParams;
+import com.constellio.data.extensions.ReplicationFactorManagerExtension.TransactionReplayed;
+import com.constellio.data.extensions.ReplicationFactorManagerExtension.TransactionsReplayedParams;
 import com.constellio.data.extensions.contentDao.ContentDaoExtension;
 import com.constellio.data.extensions.contentDao.ContentDaoInputStreamOpenedParams;
 import com.constellio.data.extensions.contentDao.ContentDaoUploadParams;
@@ -22,7 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.data.frameworks.extensions.ExtensionUtils.getBooleanValue;
 
@@ -37,6 +41,7 @@ public class DataLayerSystemExtensions {
 	public VaultBehaviorsList<ContentDaoExtension> contentDaoExtensions = new VaultBehaviorsList<>();
 	public VaultBehaviorsList<SupportedExtensionExtension> supportedExtensionExtensions = new VaultBehaviorsList<>();
 	public VaultBehaviorsList<EventBusManagerExtension> eventBusManagerExtensions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<ReplicationFactorManagerExtension> replicationFactorManagerExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<BigVaultServerExtension> getBigVaultServerExtension() {
 		return bigVaultServerExtension;
@@ -75,7 +80,8 @@ public class DataLayerSystemExtensions {
 		}
 	}
 
-	public void afterQuery(final SolrParams params, final String name, final long qtime, final int resultsSize) {
+	public void afterQuery(final SolrParams params, final String name, final long qtime, final int resultsSize,
+						   Map<String, Object> debugMap) {
 		for (BigVaultServerExtension extension : bigVaultServerExtension) {
 			try {
 				extension.afterQuery(params, qtime);
@@ -106,6 +112,10 @@ public class DataLayerSystemExtensions {
 						return getById;
 					}
 
+					@Override
+					public Map<String, Object> getDebugMap() {
+						return debugMap;
+					}
 				});
 				if (getById) {
 					String id = name.substring(name.indexOf(":") + 1);
@@ -179,6 +189,15 @@ public class DataLayerSystemExtensions {
 		return allExtension.toArray(new String[0]);
 	}
 
+	public String[] getExtentionDisabledForPreviewConvertion() {
+		List<String> allNotSupportedExtensionNoMatterWhat = new ArrayList<>();
+		for (SupportedExtensionExtension extensionExtension : supportedExtensionExtensions.getExtensions()) {
+			allNotSupportedExtensionNoMatterWhat.addAll(extensionExtension.getExtentionDisabledForPreviewConvertion());
+		}
+
+		return allNotSupportedExtensionNoMatterWhat.toArray(new String[0]);
+	}
+
 	public ExtensionConverter getConverterForSupportedExtension(String extension) {
 		for (SupportedExtensionExtension extensionExtension : supportedExtensionExtensions.getExtensions()) {
 			if (extensionExtension.getAdditionalSupportedExtension().contains(extension)) {
@@ -219,6 +238,12 @@ public class DataLayerSystemExtensions {
 	public void onEventReceived(final Event event, boolean remoteEvent) {
 		for (EventBusManagerExtension extension : eventBusManagerExtensions) {
 			extension.onEventReceived(new ReceivedEventParams(event, remoteEvent));
+		}
+	}
+
+	public void onTransactionsReplayed(final Collection<TransactionReplayed> replayedTransactions) {
+		for (ReplicationFactorManagerExtension extension : replicationFactorManagerExtensions) {
+			extension.onTransactionsReplayed(new TransactionsReplayedParams(replayedTransactions));
 		}
 	}
 

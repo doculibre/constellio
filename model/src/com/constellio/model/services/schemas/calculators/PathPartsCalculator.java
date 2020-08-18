@@ -1,13 +1,17 @@
 package com.constellio.model.services.schemas.calculators;
 
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -43,12 +47,9 @@ public class PathPartsCalculator extends AbstractMetadataValueCalculator<List<St
 		return Arrays.asList(pathDependency);
 	}
 
+
 	protected List<String> getPathsParts(String id, List<String> paths) {
 		Set<String> pathsParts = new HashSet<>();
-
-		if (id.equals("zeSubFolder")) {
-			System.out.println("!!");
-		}
 
 		for (String path : paths) {
 			String last = null;
@@ -80,4 +81,22 @@ public class PathPartsCalculator extends AbstractMetadataValueCalculator<List<St
 		return new ArrayList<>(pathsParts);
 	}
 
+	public static List<RecordId> readIdsInPathPartsOf(Record record) {
+		List<String> pathParts = record.get(Schemas.PATH_PARTS);
+
+		if (pathParts == null) {
+			return Collections.emptyList();
+		} else {
+			List<RecordId> recordIds = new ArrayList<>();
+			pathParts.forEach((pp) -> {
+				if (!pp.startsWith("_LAST_")) {
+					recordIds.add(RecordId.toId(pp));
+				}
+			});
+
+			return recordIds;
+		}
+
+
+	}
 }

@@ -20,6 +20,8 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.openedSessions");
 		} else if (eventType.equals(EventType.VIEW_FOLDER)) {
 			return $("ListEventsView.foldersView");
+		} else if (eventType.equals(EventType.ATTEMPTED_OPEN_SESSION)) {
+			return $("ListEventsView.failedLogins");
 		} else if (eventType.equals(EventType.CREATE_FOLDER)) {
 			return $("ListEventsView.foldersCreation");
 		} else if (eventType.equals(EventType.MODIFY_FOLDER)) {
@@ -60,6 +62,12 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.deletedGroupsEvent");
 		} else if (eventType.equals(EventType.GRANT_PERMISSION_FOLDER)) {
 			return $("ListEventsView.grantedPermissions.folder");
+		} else if (eventType.equals(EventType.CREATE_SHARE_FOLDER)) {
+			return $("ListEventsView.createShare.folder");
+		} else if (eventType.equals(EventType.MODIFY_SHARE_FOLDER)) {
+			return $("ListEventsView.modifyShare.folder");
+		} else if (eventType.equals(EventType.DELETE_SHARE_FOLDER)) {
+			return $("ListEventsView.deleteShare.folder");
 		} else if (eventType.equals(EventType.MODIFY_PERMISSION_FOLDER)) {
 			return $("ListEventsView.modifiedPermissions.folder");
 		} else if (eventType.equals(EventType.DELETE_PERMISSION_FOLDER)) {
@@ -70,6 +78,12 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.modifiedPermissions.document");
 		} else if (eventType.equals(EventType.DELETE_PERMISSION_DOCUMENT)) {
 			return $("ListEventsView.deletedPermissions.document");
+		} else if (eventType.equals(EventType.CREATE_SHARE_DOCUMENT)) {
+			return $("ListEventsView.createShare.document");
+		} else if (eventType.equals(EventType.MODIFY_SHARE_DOCUMENT)) {
+			return $("ListEventsView.modifyShare.document");
+		} else if (eventType.equals(EventType.DELETE_SHARE_DOCUMENT)) {
+			return $("ListEventsView.deleteShare.document");
 		} else if (eventType.equals(EventType.FOLDER_RELOCATION)) {
 			return $("ListEventsView.folderRelocation");
 		} else if (eventType.equals(EventType.FOLDER_DEPOSIT)) {
@@ -126,6 +140,10 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.finalizeDocument");
 		} else if (eventType.equals(EventType.SHARE_FOLDER)) {
 			return $("ListEventsView.shareFolder");
+		} else if (eventType.equals(EventType.BATCH_PROCESS_CREATED)) {
+			return $("ListEventsView.batchProcessEvents.created");
+		} else if (eventType.equals(EventType.SIGN_DOCUMENT)) {
+			return $("ListEventsView.signature");
 		} else {
 			throw new UnsupportedEventTypeRuntimeException(eventType);
 		}
@@ -171,6 +189,9 @@ public class EventTypeUtils implements Serializable {
 				metadataCodes.add(receiverMetadata.getCode());
 				Metadata descriptionMetadata = metadataSchema.getMetadata(Event.REASON);
 				metadataCodes.add(descriptionMetadata.getCode());
+			} else if (eventType.equals(EventType.SIGN_DOCUMENT)) {
+				metadataCodes.add(Event.USERNAME);
+				metadataCodes.add(Event.IP);
 			}
 		} else if (isUserEvent(eventType) ||
 				   isGroupEvent(eventType)) {
@@ -182,7 +203,23 @@ public class EventTypeUtils implements Serializable {
 		if (isRequestTaskEvent(eventType)) {
 			metadataCodes.add(Event.ACCEPTED);
 		}
+		if (isBatchProcessEvent(eventType)) {
+			metadataCodes.addAll(getEventBatchProcessMetadata(metadataSchema));
+		}
+		if (isAuthenticationEvent(eventType)) {
+			metadataCodes.add(Event.USERNAME);
+			metadataCodes.add(Event.IP);
+		}
 		return metadataCodes;
+	}
+
+	private static boolean isAuthenticationEvent(String eventType) {
+		return asList(EventType.ATTEMPTED_OPEN_SESSION).contains(eventType);
+	}
+
+	private static boolean isBatchProcessEvent(String eventType) {
+		return asList(EventType.BATCH_PROCESS_CREATED)
+				.contains(eventType);
 	}
 
 	private static boolean isRequestTaskEvent(String eventType) {
@@ -196,6 +233,21 @@ public class EventTypeUtils implements Serializable {
 				EventType.BORROW_REQUEST_FOLDER, EventType.RETURN_REQUEST_FOLDER, EventType.REACTIVATION_REQUEST_FOLDER, EventType.BORROW_EXTENSION_REQUEST_FOLDER,
 				EventType.BORROW_REQUEST_CONTAINER, EventType.RETURN_REQUEST_CONTAINER, EventType.REACTIVATION_REQUEST_CONTAINER, EventType.BORROW_EXTENSION_REQUEST_CONTAINER)
 				.contains(eventType);
+	}
+
+	private static List<String> getEventBatchProcessMetadata(MetadataSchema metadataSchema) {
+		List<String> metadataCodes = new ArrayList<>();
+
+		Metadata eventProcessIdMetadata = metadataSchema.getMetadata(Event.BATCH_PROCESS_ID);
+		metadataCodes.add(eventProcessIdMetadata.getCode());
+
+		Metadata eventTotalRecordMetadata = metadataSchema.getMetadata(Event.TOTAL_MODIFIED_RECORD);
+		metadataCodes.add(eventTotalRecordMetadata.getCode());
+
+		Metadata eventContentMetadata = metadataSchema.getMetadata(Event.CONTENT);
+		metadataCodes.add(eventContentMetadata.getCode());
+
+		return metadataCodes;
 	}
 
 	private static List<String> getEventUserMetadata(MetadataSchema metadataSchema) {
@@ -268,7 +320,10 @@ public class EventTypeUtils implements Serializable {
 	private static boolean isPermissionEvent(String eventType) {
 		if (eventType.contains(EventType.DELETE_PERMISSION) ||
 			eventType.contains(EventType.GRANT_PERMISSION) ||
-			eventType.contains(EventType.MODIFY_PERMISSION)) {
+			eventType.contains(EventType.MODIFY_PERMISSION) ||
+			eventType.contains(EventType.CREATE_SHARE) ||
+			eventType.contains(EventType.MODIFY_SHARE) ||
+			eventType.contains(EventType.DELETE_SHARE)) {
 			return true;
 		} else {
 			return false;

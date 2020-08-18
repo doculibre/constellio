@@ -53,6 +53,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
@@ -60,6 +61,7 @@ import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollectionSharedBy;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollectionWithId;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
 import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
@@ -334,6 +336,10 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		public ListAssert<String> assertThatAllFoldersAndDocuments() {
 			return assertThat(findAllFoldersAndDocuments(getUser()));
 		}
+
+		public ListAssert<String> assertThatRecordsAreShared() {
+			return assertThat(findAllFoldersAndDocumentsSharedByUser(getUser()));
+		}
 	}
 
 	protected RecordVerifier forRecord(String id) {
@@ -351,6 +357,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			return assertThat(services.getUsersWithRoleForRecord(role, get(recordId)))
 					.describedAs("users with role '" + role + "' on record '" + recordId + "'").extracting("username");
 		}
+
 
 		public ListAssert<Object> assertThatUsersWithPermission(String permission) {
 			return assertThat(services.getUsersWithPermissionOnRecord(permission, get(recordId)))
@@ -452,6 +459,25 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			Record record = get(recordId);
 			return assertThat(Boolean.TRUE.equals(record.get(Schemas.IS_DETACHED_AUTHORIZATIONS)))
 					.describedAs("detach authorization flag on record '" + recordId + "'");
+		}
+
+		public BooleanAssert usersWhoShared() {
+			Record record = get(recordId);
+
+			List<User> allUsers = getModelLayerFactory().newUserServices().getAllUsersInCollection(zeCollection);
+
+			boolean shared = false;
+			User userSharing = null;
+			for (User user : allUsers) {
+				boolean isShared = services.itemIsSharedByUser(record, user);
+				shared = shared | services.itemIsSharedByUser(record, user);
+				if (isShared) {
+					userSharing = user;
+					break;
+				}
+			}
+
+			return assertThat(shared).describedAs("User '" + userSharing.getUsername() + "' shared '" + recordId + "'");
 		}
 	}
 
@@ -631,6 +657,13 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		return authorizationInCollection(zeCollection).forUsers(usersArray);
 	}
 
+	protected AuthorizationAddRequest authorizationSharedForUser(String usernameSharer, String username) {
+
+		User user = userServices.getUserInCollection(usernameSharer, zeCollection);
+		User[] usersArray = new User[]{userServices.getUserInCollection(username, zeCollection)};
+		return authorizationInCollectionSharedBy(zeCollection, user).forUsers(usersArray);
+	}
+
 	protected AuthorizationAddRequest authorizationForUserInAnotherCollection(String username) {
 
 		User[] usersArray = new User[]{userServices.getUserInCollection(username, anotherCollection)};
@@ -693,6 +726,8 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		Set<String> removedOnRecords = new HashSet<>();
 
 		List<String> roles;
+
+		String sharedBy;
 
 		LocalDate start;
 
@@ -762,6 +797,11 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			return this;
 		}
 
+		public VerifiedAuthorization givingSharedBy(String user) {
+			this.sharedBy = user;
+			return this;
+		}
+
 		public String getRecordId() {
 			return recordId;
 		}
@@ -776,6 +816,10 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		public List<String> getRoles() {
 			return roles;
+		}
+
+		public String getSharedBy() {
+			return sharedBy;
 		}
 
 		public LocalDate getStart() {
@@ -1114,6 +1158,14 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		query.setCondition(from(documentSchema).returnAll());
 		query.filteredWithUser(user);
 		recordIds.addAll(searchServices.searchRecordIds(query));
+		return recordIds;
+	}
+
+	protected List<String> findAllFoldersAndDocumentsSharedByUser(User user) {
+		List<String> recordIds = new ArrayList<>();
+
+		List<Authorization> records = services.getAllUserSharedRecords(user);
+		recordIds.addAll(records.stream().map(record -> record.getTarget()).collect(Collectors.toList()));
 		return recordIds;
 	}
 

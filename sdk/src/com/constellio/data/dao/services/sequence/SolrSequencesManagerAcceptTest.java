@@ -166,7 +166,7 @@ public class SolrSequencesManagerAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	// Confirm @SlowTest
 	public void givenASystemHasFallenBetweenTheIncAndTheAddUUIDToRemoveStepThenUUIDRemovedWhenOneThousandAfterHim()
 			throws Exception {
 

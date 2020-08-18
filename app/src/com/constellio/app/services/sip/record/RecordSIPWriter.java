@@ -6,6 +6,8 @@ import com.constellio.app.services.sip.mets.MetsContentFileReference;
 import com.constellio.app.services.sip.mets.MetsEADMetadataReference;
 import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.app.services.sip.zip.SIPZipWriterTransaction;
+import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
+import com.constellio.data.dao.services.contents.DaoFile;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.Content;
@@ -23,6 +25,8 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.security.AuthorizationsServices;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +36,7 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Predicate;
 
 import static com.constellio.data.utils.AccentApostropheCleaner.cleanPonctuationExceptDot;
 import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
@@ -40,6 +45,8 @@ import static org.apache.commons.io.FilenameUtils.getExtension;
 
 
 public class RecordSIPWriter {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(RecordSIPWriter.class);
 
 	private static final String READ_VAULT_FILE_STREAM_NAME = RecordSIPWriter.class.getSimpleName() + "-ReadVaultFile";
 
@@ -76,10 +83,12 @@ public class RecordSIPWriter {
 
 	private KeySetMap<String, String> savedRecords = new KeySetMap<>();
 
+	private Predicate<Metadata> metadataIgnore;
+
 	public RecordSIPWriter(AppLayerFactory appLayerFactory,
 						   SIPZipWriter sipZipWriter,
 						   RecordPathProvider recordPathProvider,
-						   Locale locale) {
+						   Locale locale, Predicate<Metadata> metadataIgnore) {
 
 		this.appLayerFactory = appLayerFactory;
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
@@ -90,6 +99,14 @@ public class RecordSIPWriter {
 		this.sipZipWriter = sipZipWriter;
 		this.authorizationsServices = appLayerFactory.getModelLayerFactory().newAuthorizationsServices();
 		this.locale = locale;
+		this.metadataIgnore = metadataIgnore;
+	}
+
+	public RecordSIPWriter(AppLayerFactory appLayerFactory,
+						   SIPZipWriter sipZipWriter,
+						   RecordPathProvider recordPathProvider,
+						   Locale locale) {
+		this(appLayerFactory, sipZipWriter, recordPathProvider, locale, null);
 	}
 
 	public SIPZipWriter getSipZipWriter() {
@@ -174,7 +191,11 @@ public class RecordSIPWriter {
 			for (Metadata contentMetadata : recordInsertionContext.schema.getMetadatas().onlyWithType(CONTENT)) {
 				for (Content content : recordInsertionContext.record.<Content>getValues(contentMetadata)) {
 					for (ContentVersion contentVersion : content.getVersions()) {
-						insertContentVersion(recordInsertionContext, contentMetadata, contentVersion);
+						try {
+							insertContentVersion(recordInsertionContext, contentMetadata, contentVersion);
+						} catch (ContentDaoException_NoSuchContent ignored) {
+							LOGGER.warn("No such file in vault '" + contentVersion.getHash() + "'");
+						}
 					}
 				}
 			}
@@ -183,7 +204,7 @@ public class RecordSIPWriter {
 
 	private void buildRecordEADFile(SIPZipWriterTransaction transaction, RecordInsertionContext ctx)
 			throws IOException {
-		RecordEADBuilder recordEadBuilder = new RecordEADBuilder(appLayerFactory, locale, ctx.errors);
+		RecordEADBuilder recordEadBuilder = new RecordEADBuilder(appLayerFactory, locale, ctx.errors, metadataIgnore);
 		recordEadBuilder.setIncludeRelatedMaterials(includeRelatedMaterials);
 		recordEadBuilder.setIncludeArchiveDescriptionMetadatasFromODDs(includeArchiveDescriptionMetadatasFromODDs);
 		File tempXMLFile = ioServices.newTemporaryFile(TEMP_EAD_FILE_STREAM_NAME);
@@ -200,13 +221,14 @@ public class RecordSIPWriter {
 	}
 
 	private void insertContentVersion(RecordInsertionContext ctx, Metadata metadata,
-									  ContentVersion contentVersion) throws IOException {
+									  ContentVersion contentVersion)
+			throws IOException, ContentDaoException_NoSuchContent {
 
 
 		String fileId = ctx.fileId(metadata, contentVersion);
 		String zipFilePath = ctx.sipXMLPath(metadata, contentVersion);
 
-		File vaultFile = contentManager.getContentDao().getFileOf(contentVersion.getHash());
+		DaoFile vaultFile = contentManager.getContentDao().getFile(contentVersion.getHash());
 		MetsContentFileReference reference = ctx.transaction.addContentFileFromVaultFile(zipFilePath, vaultFile);
 		reference.setId(fileId);
 		reference.setDmdid(ctx.dmdId);

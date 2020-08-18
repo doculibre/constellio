@@ -5,12 +5,16 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.security.AuthorizationsServices;
 
 import java.util.List;
 
@@ -18,20 +22,24 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class FolderRecordActionsServices {
 
+	private AppLayerFactory appLayerFactory;
 	private RMSchemasRecordsServices rm;
 	private ModelLayerCollectionExtensions extensions;
 	private RMModuleExtensions rmModuleExtensions;
 	private String collection;
 	private RecordServices recordServices;
 	private BorrowingServices borrowingServices;
+	private AuthorizationsServices authorizationsServices;
 
 	public FolderRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
+		this.appLayerFactory = appLayerFactory;
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.collection = collection;
 		recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		borrowingServices = new BorrowingServices(collection, appLayerFactory.getModelLayerFactory());
 		extensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
+		authorizationsServices = appLayerFactory.getModelLayerFactory().newAuthorizationsServices();
 	}
 
 	public boolean isAddDocumentActionPossible(Record record, User user) {
@@ -143,6 +151,10 @@ public class FolderRecordActionsServices {
 		return hasUserReadAccess(record, user) && rmModuleExtensions.isConsultLinkActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
+	public boolean isEditRecordTriggerPossible(Record record, User user) {
+		return Toggle.ENABLE_OFFICE365_EXCLUSIVE.isEnabled() && hasUserWriteAccess(record, user);
+	}
+
 	public boolean isCopyActionPossible(Record record, User user) {
 		Folder folder = rm.wrapFolder(record);
 		if (!hasUserReadAccess(record, user) ||
@@ -171,19 +183,16 @@ public class FolderRecordActionsServices {
 			   rmModuleExtensions.isCreateDecommissioningListActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
-	// linkTo
-
-	public boolean isAddAuthorizationActionPossible(Record record, User user) {
-		return isEditActionPossible(record, user) &&
-			   user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(record) &&
-			   user.hasWriteAndDeleteAccess().on(record) &&
+	public boolean isViewOrAddAuthorizationActionPossible(Record record, User user) {
+		return ((user.has(RMPermissionsTo.VIEW_FOLDER_AUTHORIZATIONS).on(record) && user.hasReadAccess().on(record))
+				|| (isEditActionPossible(record, user) && user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(record) && user.hasWriteAndDeleteAccess().on(record))) &&
 			   !record.isLogicallyDeleted() &&
-			   rmModuleExtensions.isAddAuthorizationActionPossibleOnFolder(rm.wrapFolder(record), user);
+			   rmModuleExtensions.isViewOrAddAuthorizationActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
 	public boolean isShareActionPossible(Record record, User user) {
 		Folder folder = rm.wrapFolder(record);
-		if (!hasUserWriteAccess(record, user) || !user.has(RMPermissionsTo.SHARE_FOLDER).on(folder) ||
+		if (!hasUserReadAccess(record, user) || !user.has(RMPermissionsTo.SHARE_FOLDER).on(folder) ||
 			(folder.getPermissionStatus().isInactive() && !user.has(RMPermissionsTo.SHARE_A_INACTIVE_FOLDER).on(folder)) ||
 			(folder.getPermissionStatus().isSemiActive() && !user.has(RMPermissionsTo.SHARE_A_SEMIACTIVE_FOLDER).on(folder)) ||
 			(record.isLogicallyDeleted()) ||
@@ -191,6 +200,12 @@ public class FolderRecordActionsServices {
 			return false;
 		}
 		return rmModuleExtensions.isShareActionPossibleOnFolder(rm.wrapFolder(record), user);
+	}
+
+	public boolean isUnshareActionPossible(Record record, User user) {
+		return (authorizationsServices.itemIsSharedByUser(record, user) ||
+				(user.hasAny(RMPermissionsTo.MANAGE_SHARE, RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(record) && authorizationsServices.isRecordShared(record)))
+			   && !record.isLogicallyDeleted();
 	}
 
 	public boolean isAddToCartActionPossible(Record record, User user) {
@@ -212,6 +227,33 @@ public class FolderRecordActionsServices {
 			   rmModuleExtensions.isBorrowingActionPossibleOnFolder(folder, user);
 	}
 
+	public boolean isBorrowRequestActionPossible(Record record, User user) {
+		Folder folder = rm.wrapFolder(record);
+
+		ContainerRecord containerRecord = null;
+		if (folder.getContainer() != null) {
+			containerRecord = rm.getContainerRecord(folder.getContainer());
+		}
+
+		RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
+		return isFolderBorrowable(folder, containerRecord, user, collection)
+			   && rmModuleExtensions.isBorrowingActionPossibleOnFolder(folder, user);
+	}
+
+	private boolean isFolderBorrowable(Folder folder, ContainerRecord container, User currentUser, String collection) {
+		if (folder != null) {
+			try {
+				this.borrowingServices.validateCanBorrow(currentUser, folder, TimeProvider.getLocalDate());
+			} catch (Exception e) {
+				return false;
+			}
+		}
+
+		return folder != null && currentUser.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER)
+				.on(folder)
+			   && !(container != null && Boolean.TRUE.equals(container.getBorrowed()));
+	}
+
 	public boolean isReturnActionPossible(Record record, User user) {
 		Folder folder = rm.wrapFolder(record);
 		try {
@@ -220,6 +262,18 @@ public class FolderRecordActionsServices {
 			return false;
 		}
 		return rmModuleExtensions.isReturnActionPossibleOnFolder(rm.wrapFolder(record), user);
+	}
+
+	public boolean isReturnRequestActionPossible(Record record, User user) {
+		Folder folder = rm.wrapFolder(record);
+		return folder != null && Boolean.TRUE.equals(folder.getBorrowed())
+			   && user.getId().equals(folder.getBorrowUserEntered());
+	}
+
+	public boolean isSendReturnReminderActionPossible(Record record, User user) {
+		Folder folder = rm.wrapFolder(record);
+		return Boolean.TRUE.equals(folder.getBorrowed()) &&
+			   !user.getId().equals(folder.getBorrowUserEntered());
 	}
 
 	public boolean isPrintLabelActionPossible(Record record, User user) {
@@ -250,6 +304,10 @@ public class FolderRecordActionsServices {
 			   rmModuleExtensions.isGenerateReportActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
+	public boolean isListExternalLinksActionPossible(Record record, User user) {
+		return Toggle.ENABLE_OFFICE365_EXCLUSIVE.isEnabled() && hasUserWriteAccess(record, user);
+	}
+
 	/*
 			linkToFolderButton = new LinkButton($("DisplayFolderView.linkToFolder")) {
 				@Override
@@ -259,6 +317,10 @@ public class FolderRecordActionsServices {
 			};
 			linkToFolderButton.setVisible(false);
 	 */
+
+	public boolean isCreateTaskActionPossible(Record record, User user) {
+		return hasUserReadAccess(record, user);
+	}
 
 	private boolean hasUserWriteAccess(Record record, User user) {
 		return user.hasWriteAccess().on(record);
@@ -276,4 +338,7 @@ public class FolderRecordActionsServices {
 		return user.has(RMPermissionsTo.USE_MY_CART).globally();
 	}
 
+	public boolean isPutInContainerActionPossible(Record record, User user) {
+		return Toggle.PUT_IN_CONTAINER_ACTION.isEnabled() && hasUserWriteAccess(record, user);
+	}
 }

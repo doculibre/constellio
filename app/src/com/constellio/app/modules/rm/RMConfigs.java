@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWi
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
+import com.constellio.app.modules.rm.model.enums.ReportsSortingMetadata;
 import com.constellio.app.modules.rm.validator.EndYearValueCalculator;
 import com.constellio.app.modules.rm.wrappers.RMDecommissioningTypeRequiredScript;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -31,6 +32,9 @@ public class RMConfigs {
 	}
 
 	static List<SystemConfiguration> configurations = new ArrayList<>();
+
+	// Advanced
+	public static final SystemConfiguration ALLOW_TO_EDIT_OLD_DOCUMENT_VERSION_ANNOTATION;
 
 	// Retention calendar configs
 	public static final SystemConfiguration DOCUMENT_RETENTION_RULES,
@@ -59,7 +63,8 @@ public class RMConfigs {
 			CONTAINER_RECYCLING_ALLOWED,
 			MIXED_CONTAINERS_ALLOWED,
 			ACTIVES_IN_CONTAINER_ALLOWED,
-			BORROWING_DURATION_IN_DAYS,
+			FOLDER_BORROWING_DURATION_IN_DAYS,
+			DOCUMENT_BORROWING_DURATION_IN_DAYS,
 			DOCUMENTS_TYPES_CHOICE,
 			ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER,
 			ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
@@ -78,15 +83,19 @@ public class RMConfigs {
 			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM,
 			NEED_REASON_BEFORE_DELETING_FOLDERS,
 			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS,
+			SORTING_METADATA_FOR_LABELS_AND_METADATA_REPORTS,
 			DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE,
 			DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS,
 			NUMBER_OF_DAYS_BEFORE_PREDICTED_DECOMMISSIONING_DATE,
 			ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING,
 			CREATE_MISSING_AUTHORIZATIONS_FOR_TASK,
 			SUB_FOLDER_DECOMMISSIONING,
+			DOCUMENT_SUMMARY_CACHE_ENABLED,
 			IGNORE_VALIDATIONS_IN_BATCH_PROCESSING,
-			ENABLE_TYPE_RESTRICTION_IN_FOLDER;
-
+			ENABLE_TYPE_RESTRICTION_IN_FOLDER,
+			SHARE_CONTENT_REQUIRES_DATE_VALUES,
+			PUBLISH_DOCUMENT_REQUIRES_DATE_VALUES,
+			DESTRUCTION_DECOMMISSIONING_LIST_INCLUDES_SORT;
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
 
@@ -96,13 +105,16 @@ public class RMConfigs {
 
 	// Agent configs
 	public static final SystemConfiguration AGENT_ENABLED, AGENT_SWITCH_USER_POSSIBLE, AGENT_DOWNLOAD_ALL_USER_CONTENT,
-			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING, AGENT_DISABLED_UNTIL_FIRST_CONNECTION, AGENT_MOVE_IMPORTED_FILES_TO_TRASH, AGENT_CREATE_DROP_DIR_SHORTCUT;
+			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING, AGENT_DISABLED_UNTIL_FIRST_CONNECTION, AGENT_MOVE_IMPORTED_FILES_TO_TRASH, AGENT_CREATE_DROP_DIR_SHORTCUT, AGENT_DELETE_IMPORTED_FILES;
 
 	// other
 	public static final SystemConfiguration OPEN_HOLDER, MAJOR_VERSION_FOR_NEW_FILE;
 
 	static {
 		//SystemConfigurationGroup beta = new SystemConfigurationGroup(ID, "beta");
+
+		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
+		add(ALLOW_TO_EDIT_OLD_DOCUMENT_VERSION_ANNOTATION = advanced.createBooleanFalseByDefault("allowToEditOldVersionAnnotation"));
 
 		SystemConfigurationGroup decommissioning = new SystemConfigurationGroup(ID, decommissioningGroup);
 
@@ -254,12 +266,16 @@ public class RMConfigs {
 
 		add(AGENT_CREATE_DROP_DIR_SHORTCUT = agent.createBooleanTrueByDefault("agentCreateDropDirShortcut"));
 
+		add(AGENT_DELETE_IMPORTED_FILES = agent.createBooleanTrueByDefault("deleteImportedFiles"));
+
 		SystemConfigurationGroup others = new SystemConfigurationGroup(ID, "others");
 
 		add(ENABLE_TYPE_RESTRICTION_IN_FOLDER = others.createBooleanFalseByDefault("enableTypeRestrictionInFolder")
 				.scriptedBy(EnableOrDisableTypeRestrictionInFolderScript.class).whichIsHidden());
 
-		add(BORROWING_DURATION_IN_DAYS = others.createInteger("borrowingDurationDays").withDefaultValue(7));
+		add(FOLDER_BORROWING_DURATION_IN_DAYS = others.createInteger("borrowingDurationDays").withDefaultValue(7));
+
+		add(DOCUMENT_BORROWING_DURATION_IN_DAYS = others.createInteger("documentBorrowingDurationDays").withDefaultValue(-1));
 
 		add(OPEN_HOLDER = others.createBooleanFalseByDefault("openHolder"));
 
@@ -304,7 +320,7 @@ public class RMConfigs {
 						.withDefaultValue(CompleteDatesWhenAddingFolderWithManualStatusChoice.DISABLED));
 
 		add(ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING = decommissioning
-				.createBooleanFalseByDefault("allowFolderSortingOfDecommissioningList").whichIsHidden());
+				.createBooleanTrueByDefault("allowFolderSortingOfDecommissioningList"));
 
 		add(LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS = others.createBooleanFalseByDefault("logFolderDocumentAccessWithCMIS"));
 
@@ -314,9 +330,14 @@ public class RMConfigs {
 		add(ALLOW_TRANSFER_DATE_FIELD_WHEN_COPY_RULE_HAS_NO_SEMIACTIVE_STATE = decommissioning
 				.createBooleanFalseByDefault("allowTransferDateFieldWhenCopyRuleHasNoSemiActiveState"));
 
+		SystemConfigurationGroup reports = new SystemConfigurationGroup(null, "reports");
+		add(SORTING_METADATA_FOR_LABELS_AND_METADATA_REPORTS = reports.createEnum("sortingMetadataForLabelsAndMetadataReports", ReportsSortingMetadata.class).withDefaultValue(ReportsSortingMetadata.TITLE));
 
 		add(DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE = decommissioning
 				.createBooleanTrueByDefault("depositAndDestructionDatesBasedOnActualTransferDate").withReIndexationRequired());
+
+		add(DESTRUCTION_DECOMMISSIONING_LIST_INCLUDES_SORT = decommissioning
+				.createBooleanFalseByDefault("destructionDecommissioningListIncludesSort"));
 
 		add(NEED_REASON_BEFORE_DELETING_FOLDERS = others.createBooleanTrueByDefault("needReasonBeforeDeletingFolders"));
 
@@ -327,7 +348,15 @@ public class RMConfigs {
 
 		add(IGNORE_VALIDATIONS_IN_BATCH_PROCESSING = others.createBooleanFalseByDefault("ignoreValidationsInBatchProcessing")
 				.whichIsHidden());
+
+		add(DOCUMENT_SUMMARY_CACHE_ENABLED = others.createBooleanTrueByDefault("documentSummaryCacheEnabled")
+				.whichIsHidden().whichRequiresReboot().scriptedBy(RMDocumentSummaryCacheEnabledScript.class));
+
+		add(SHARE_CONTENT_REQUIRES_DATE_VALUES = others.createBooleanFalseByDefault("shareContentRequiresDateValues"));
+
+		add(PUBLISH_DOCUMENT_REQUIRES_DATE_VALUES = others.createBooleanFalseByDefault("publishDocumentRequiresDateValues"));
 	}
+
 
 	static void add(SystemConfiguration configuration) {
 		configurations.add(configuration);
@@ -507,8 +536,16 @@ public class RMConfigs {
 		return manager.getValue(AGENT_CREATE_DROP_DIR_SHORTCUT);
 	}
 
-	public int getBorrowingDurationDays() {
-		return manager.getValue(BORROWING_DURATION_IN_DAYS);
+	public boolean isAgentDeleteImportedFiles() {
+		return manager.getValue(AGENT_DELETE_IMPORTED_FILES);
+	}
+
+	public int getFolderBorrowingDurationDays() {
+		return manager.getValue(FOLDER_BORROWING_DURATION_IN_DAYS);
+	}
+
+	public int getDocumentBorrowingDurationDays() {
+		return manager.getValue(DOCUMENT_BORROWING_DURATION_IN_DAYS);
 	}
 
 	public boolean isOpenHolder() {
@@ -583,6 +620,10 @@ public class RMConfigs {
 		return manager.getValue(IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS);
 	}
 
+	public ReportsSortingMetadata getSortingMetadataForLabelsAndMetadataReports() {
+		return manager.getValue(SORTING_METADATA_FOR_LABELS_AND_METADATA_REPORTS);
+	}
+
 	public boolean isNeedingAReasonBeforeDeletingFolders() {
 		return manager.getValue(NEED_REASON_BEFORE_DELETING_FOLDERS);
 	}
@@ -610,4 +651,17 @@ public class RMConfigs {
 	public boolean isTypeRestrictionEnabledInFolder() {
 		return manager.getValue(ENABLE_TYPE_RESTRICTION_IN_FOLDER);
 	}
+
+	public boolean isDateFieldValuesRequiredInShareContent() {
+		return manager.getValue(SHARE_CONTENT_REQUIRES_DATE_VALUES);
+	}
+
+	public boolean isDateFieldValuesRequiredInPublishDocument() {
+		return manager.getValue(PUBLISH_DOCUMENT_REQUIRES_DATE_VALUES);
+	}
+
+	public boolean isDestructionDecommissioningListIncludesSort() {
+		return manager.getValue(DESTRUCTION_DECOMMISSIONING_LIST_INCLUDES_SORT);
+	}
+
 }

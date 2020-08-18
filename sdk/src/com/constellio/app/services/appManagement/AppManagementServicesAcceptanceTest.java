@@ -7,10 +7,9 @@ import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.InvalidJarsTest;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -40,7 +39,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 //TODO Maxime : Vérifier pourquoi ce test est extrêmement lent
-@SlowTest
+// Confirm @SlowTest
 public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 
 	@Mock ConstellioPluginManager pluginManager;

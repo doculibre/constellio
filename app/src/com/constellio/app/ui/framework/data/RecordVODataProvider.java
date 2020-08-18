@@ -10,12 +10,14 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.data.dao.services.Stats;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.cache.SerializableSearchCache;
 import com.constellio.model.services.search.cache.SerializedCacheSearchService;
@@ -40,14 +42,13 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	transient Map<Integer, Record> cache;
 	transient MetadataSchemaVO defaultSchema;
 	protected transient ModelLayerFactory modelLayerFactory;
-	SessionContext sessionContext;
-	private int batchSize = 20;
-
-	private boolean cachedSearch;
-
+	protected SessionContext sessionContext;
+	protected int batchSize = 20;
 	private Map<String, RecordToVOBuilder> voBuilders = new HashMap<>();
 
 	private List<MetadataSchemaVO> extraSchemas = new ArrayList<>();
+
+	private String statName;
 
 	@Deprecated
 	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder,
@@ -55,6 +56,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		this.defaultSchema = schema;
 		this.voBuilders.put(schema.getCode(), voBuilder);
 		this.sessionContext = ConstellioUI.getCurrentSessionContext();
+		this.statName = Stats.getCurrentName();
 		init(modelLayerFactory);
 	}
 
@@ -63,6 +65,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		this.defaultSchema = schema;
 		this.voBuilders.put(schema.getCode(), voBuilder);
 		this.sessionContext = sessionContextProvider.getSessionContext();
+		this.statName = Stats.getCurrentName();
 		init(sessionContextProvider.getConstellioFactories().getModelLayerFactory());
 	}
 
@@ -72,14 +75,17 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		this.defaultSchema = schema;
 		this.voBuilders.put(schema.getCode(), voBuilder);
 		this.sessionContext = sessionContext;
+		this.statName = Stats.getCurrentName();
 		init(modelLayerFactory);
 	}
 
-	public RecordVODataProvider(List<MetadataSchemaVO> schemas, Map<String, RecordToVOBuilder> voBuilders, ModelLayerFactory modelLayerFactory,
-			SessionContext sessionContext) {
+	public RecordVODataProvider(List<MetadataSchemaVO> schemas, Map<String, RecordToVOBuilder> voBuilders,
+								ModelLayerFactory modelLayerFactory,
+								SessionContext sessionContext) {
 		this.defaultSchema = schemas.get(0);
 		this.voBuilders = voBuilders;
 		this.sessionContext = sessionContext;
+		this.statName = Stats.getCurrentName();
 
 		for (int i = 0; i < schemas.size(); i++) {
 			MetadataSchemaVO schema = schemas.get(i);
@@ -103,10 +109,11 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		return sessionContext;
 	}
 
-	void init(ModelLayerFactory modelLayerFactory) {
+	protected void init(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
 
 		query = getQuery();
+
 		query.setLanguage(sessionContext.getCurrentLocale());
 		cache = new HashMap<>();
 	}
@@ -169,33 +176,43 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		return match;
 	}
 
+	public Map<String, List<String>> getHighlighting(int index) {
+		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
+		SPEQueryResponse response = searchServices.query(query);
+		return response.getHighlighting(getRecordVO(index).getId());
+	}
+
 	public RecordVO getRecordVO(int index) {
-		RecordVO recordVO;
-		Record record = cache.get(index);
-		if (record == null) {
-			List<Record> recordList = doSearch();
-			if (!recordList.isEmpty()) {
-				record = recordList.get(index);
-				cache.put(index, record);
-			} else {
-				record = null;
+		return Stats.compilerFor(statName).log(() -> {
+			RecordVO recordVO;
+			Record record = cache.get(index);
+			if (record == null) {
+				List<Record> recordList = doSearch();
+				if (!recordList.isEmpty()) {
+					record = recordList.get(index);
+					cache.put(index, record);
+				} else {
+					record = null;
+				}
 			}
-		}
-		if (record != null) {
-			String schemaCode = record.getSchemaCode();
-			RecordToVOBuilder voBuilder = getVOBuilder(record);
-			recordVO = voBuilder.build(record, VIEW_MODE.TABLE, getSchema(schemaCode), sessionContext);
-		} else {
-			recordVO = null;
-		}
-		return recordVO;
+			if (record != null) {
+				String schemaCode = record.getSchemaCode();
+				RecordToVOBuilder voBuilder = getVOBuilder(record);
+				recordVO = voBuilder.build(record, VIEW_MODE.TABLE, getSchema(schemaCode), sessionContext);
+			} else {
+				recordVO = null;
+			}
+			return recordVO;
+		});
 	}
 
 	public int size() {
-		if (size == null) {
-			size = doSearch().size();
-		}
-		return size;
+		return Stats.compilerFor(statName).log(() -> {
+			if (size == null) {
+				size = doSearch().size();
+			}
+			return size;
+		});
 	}
 
 	protected List<Record> doSearch() {
@@ -206,7 +223,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 			query.setNumberOfRows(LogicalSearchQuery.DEFAULT_NUMBER_OF_ROWS);
 			query.setLanguage(sessionContext.getCurrentLocale());
 			SearchServices searchServices = modelLayerFactory.newSearchServices();
-			recordList = searchServices.cachedSearch(query);
+			recordList = searchServices.search(query);
 		} else {
 			query.setLanguage(sessionContext.getCurrentLocale());
 			SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);
@@ -215,7 +232,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		return recordList;
 	}
 
-	public SearchResponseIterator<Record> getIterator(){
+	public SearchResponseIterator<Record> getIterator() {
 		query.setLanguage(sessionContext.getCurrentLocale());
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		SearchResponseIterator<Record> searchResponseIterator = searchServices.recordsIterator(query, batchSize);

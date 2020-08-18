@@ -19,7 +19,6 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.schemas.MetadataListFilter;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 import com.constellio.model.utils.DependencyUtils;
@@ -34,9 +33,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
@@ -154,7 +156,7 @@ public class RecordUtils {
 	 * @param object
 	 * @return
 	 */
-	private static long sizeOf(Object object) {
+	public static long sizeOf(Object object) {
 
 		if (object == null) {
 			return 0;
@@ -218,6 +220,15 @@ public class RecordUtils {
 		return idList;
 	}
 
+	public static Set<String> toRecordIdsSet(List<Record> records) {
+		Set<String> idList = new HashSet<>();
+
+		for (Record record : records) {
+			idList.add(record.getId());
+		}
+		return idList;
+	}
+
 	public Map<String, List<Record>> splitRecordsBySchemaTypes(List<Record> records) {
 		KeyListMap<String, Record> recordsSplittedByTypes = new KeyListMap<>();
 
@@ -249,7 +260,7 @@ public class RecordUtils {
 			keyListMap.add(schemaUtils.getSchemaTypeCode(record.getSchemaCode()), record);
 		}
 
-		List<String> typesSortedByDependency = schemaTypes.getSchemaTypesSortedByDependency();
+		List<String> typesSortedByDependency = schemaTypes.getSchemaTypesCodesSortedByDependency();
 		for (String schemaTypeCode : typesSortedByDependency) {
 			MetadataSchemaType type = schemaTypes.getSchemaType(schemaTypeCode);
 			List<Record> records = keyListMap.get(schemaTypeCode);
@@ -478,7 +489,7 @@ public class RecordUtils {
 	public static String getSchemaAccordingToTypeLinkedSchema(Record record, MetadataSchemaTypes schemaTypes,
 															  RecordProvider recordProvider, Metadata typeMetadata) {
 		MetadataSchema recordSchema = schemaTypes.getSchemaOf(record);
-		MetadataSchema referencedSchema = schemaTypes.getDefaultSchema(typeMetadata.getReferencedSchemaType());
+		MetadataSchema referencedSchema = schemaTypes.getDefaultSchema(typeMetadata.getReferencedSchemaTypeCode());
 		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		String typeId = record.get(typeMetadata);
 		String customSchema = null;
@@ -585,12 +596,9 @@ public class RecordUtils {
 		Set<String> idsWithPossibleRemovedChildren = new HashSet<>();
 		for (Record record : records) {
 
-			List<Metadata> metadatas = record.getModifiedMetadatas(types).only(new MetadataListFilter() {
-				@Override
-				public boolean isReturned(Metadata metadata) {
-					return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
-				}
-			});
+			List<Metadata> metadatas = record.getModifiedMetadataList(types).stream().filter((m) -> {
+				return m.isTaxonomyRelationship() || m.isChildOfRelationship();
+			}).collect(Collectors.toList());
 
 			for (Metadata metadata : metadatas) {
 				for (String newReference : record.<String>getValues(metadata)) {
@@ -664,25 +672,33 @@ public class RecordUtils {
 
 	private static List<String> getHierarchyIdsTo(String newReference, MetadataSchemaTypes types,
 												  RecordProvider recordProvider) {
+		List<String> collectedIds = new ArrayList<>();
+		return getHierarchyIdsTo(newReference, types, recordProvider, collectedIds);
+	}
+
+	private static List<String> getHierarchyIdsTo(String newReference, MetadataSchemaTypes types,
+												  RecordProvider recordProvider, List<String> collectedIds) {
 		List<String> ids = new ArrayList<>();
 
-		Record record = recordProvider.getRecord(newReference);
-		if (record.isSaved()) {
-			ids.add(record.getId());
-			List<Metadata> metadatas = types.getSchemaOf(record).getMetadatas().only(new MetadataListFilter() {
-				@Override
-				public boolean isReturned(Metadata metadata) {
-					return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
-				}
-			});
+		Record record = recordProvider.getRecordSummary(newReference);
 
-			for (Metadata metadata : metadatas) {
-				for (String aReference : record.<String>getValues(metadata)) {
-					ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider));
-				}
+		if (record.isSaved()) {
+			if (!collectedIds.contains(record.getId())) {
+				ids.add(record.getId());
+				collectedIds.add(record.getId());
 			}
 
+			for (Metadata metadata : types.getSchemaOf(record).getMetadatas()) {
+				if (metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship()) {
+					for (String aReference : record.<String>getValues(metadata)) {
+						if (!ids.contains(aReference)) {
+							ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider, collectedIds));
+						}
+					}
+				}
+			}
 		}
+
 		return ids;
 	}
 
@@ -777,47 +793,23 @@ public class RecordUtils {
 		throw new ImpossibleRuntimeException("Invalid key : " + key);
 	}
 
-	public static String toStringId(int intId) {
+	public static List<Record> compareRecords(List<Record> records, List<Metadata> comparedMetadatas) {
+		Record baseRecord = records.get(0);
 
-		//Since this transformation is done very often, we are using this faster approach instead of StringUtils.leftPad
+		Iterator currentTestedRecordIterator = records.iterator();
+		currentTestedRecordIterator.next();
 
-		if (intId < 10_000) {
-			if (intId < 0) {
-				throw new IllegalArgumentException("Negative ids are not supported");
-
-			} else if (intId < 10) {
-				return "0000000000" + intId;
-
-			} else if (intId < 100) {
-				return "000000000" + intId;
-
-			} else if (intId < 1000) {
-				return "00000000" + intId;
-
-			} else {
-				return "0000000" + intId;
-			}
-		} else {
-			if (intId < 100_000) {
-				return "000000" + intId;
-
-			} else if (intId < 1_000_000) {
-				return "00000" + intId;
-
-			} else if (intId < 10_000_000) {
-				return "0000" + intId;
-
-			} else if (intId < 100_000_000) {
-				return "000" + intId;
-
-			} else if (intId < 1_000_000_000) {
-				return "00" + intId;
-
-			} else {
-				return "0" + intId;
+		while (currentTestedRecordIterator.hasNext()) {
+			Record currentRecord = (Record) currentTestedRecordIterator.next();
+			for (Metadata metadata : comparedMetadatas) {
+				if (!metadata.isSystemReserved()) {
+					if (!Objects.equals(baseRecord.get(metadata), currentRecord.get(metadata))) {
+						return records;
+					}
+				}
 			}
 		}
 
+		return Collections.emptyList();
 	}
-
 }

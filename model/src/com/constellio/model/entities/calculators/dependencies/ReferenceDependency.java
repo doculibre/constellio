@@ -1,7 +1,6 @@
 package com.constellio.model.entities.calculators.dependencies;
 
 import com.constellio.model.entities.schemas.MetadataValueType;
-import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
@@ -104,6 +103,10 @@ public class ReferenceDependency<T> implements Dependency {
 		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.NUMBER, false, false);
 	}
 
+	public static ReferenceDependency<Integer> toAnInteger(String referenceMetadataCode, String dependentMetadataCode) {
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.INTEGER, false, false);
+	}
+
 	public static ReferenceDependency<LocalDate> toADate(String referenceMetadataCode, String dependentMetadataCode) {
 		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.DATE, false, false);
 	}
@@ -150,8 +153,20 @@ public class ReferenceDependency<T> implements Dependency {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
+		ReferenceDependency<?> that = (ReferenceDependency<?>) o;
+
+		if (!referenceMetadataCode.equals(that.referenceMetadataCode)) {
+			return false;
+		}
+		return dependentMetadataCode.equals(that.dependentMetadataCode);
 	}
 
 	@Override

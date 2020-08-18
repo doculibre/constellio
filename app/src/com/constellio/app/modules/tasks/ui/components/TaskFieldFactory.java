@@ -82,7 +82,7 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 	}
 
 	@Override
-	public Field<?> build(MetadataVO metadata, Locale locale) {
+	public Field<?> build(MetadataVO metadata, String recordId, Locale locale) {
 		Field<?> field;
 		MetadataInputType inputType = metadata.getMetadataInputType();
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
@@ -154,11 +154,11 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 				postBuild(field, metadata);
 				break;
 			case TASK_COLLABORATORS_GROUPS:
-				field = new ListAddRemoveCollaboratorsGroupsField(recordVO);
+				field = new ListAddRemoveCollaboratorsGroupsField(recordVO, new GroupTextInputDataProvider(getInstance(), getCurrentSessionContext()));
 				postBuild(field, metadata);
 				break;
 			case ASSIGNEE:
-				field = super.build(metadata, locale);
+				field = super.build(metadata, recordId, locale);
 				if(field instanceof LookupField) {
 					((LookupField<Serializable>) field).setReadOnlyMessageI18NKey("TaskAssignee.readOnlyMessage");
 				}
@@ -178,7 +178,7 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 			if (field != null) {
 				postBuild(field, metadata);
 			} else {
-				field = super.build(metadata, locale);
+				field = super.build(metadata, recordId, locale);
 			}
 
 		}

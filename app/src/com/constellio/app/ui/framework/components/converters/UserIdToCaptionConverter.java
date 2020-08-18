@@ -37,7 +37,7 @@ public class UserIdToCaptionConverter implements Converter<String, String> {
 		if (StringUtils.isNotBlank(value)) {
 			ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 			Record record = modelLayerFactory.newRecordServices().getDocumentById(value);
-			caption = SchemaCaptionUtils.getCaptionForRecord(record, locale);
+			caption = SchemaCaptionUtils.getCaptionForRecord(record, locale, true);
 
 			SchemasRecordsServices schemas = new SchemasRecordsServices(record.getCollection(), modelLayerFactory);
 			User user = schemas.wrapUser(record);

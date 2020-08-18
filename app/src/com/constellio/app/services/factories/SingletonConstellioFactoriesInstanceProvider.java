@@ -1,70 +1,117 @@
 package com.constellio.app.services.factories;
 
+import com.constellio.app.services.factories.AppLayerFactoryRuntineException.AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldNotRetry;
+import com.constellio.app.services.factories.AppLayerFactoryRuntineException.AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry;
+import com.constellio.app.services.factories.ConstellioFactoriesRuntimeException.ConstellioFactoriesRuntimeException_TenantOffline;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.TenantUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static com.constellio.data.utils.TenantUtils.EMPTY_TENANT_ID;
 
 public class SingletonConstellioFactoriesInstanceProvider implements ConstellioFactoriesInstanceProvider {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SingletonConstellioFactoriesInstanceProvider.class);
 
-	ConstellioFactories instance;
-	static ThreadLocal<ConstellioFactories> instancesThreadLocal = new ThreadLocal<>();
+	private Map<String, ConstellioFactories> instanceByTenantId;
+
+	private Map<String, Throwable> brokenFactoriesMap;
+
+	SingletonConstellioFactoriesInstanceProvider() {
+		instanceByTenantId = new ConcurrentHashMap<>();
+		brokenFactoriesMap = new ConcurrentHashMap<>();
+	}
+
 
 	@Override
-	public ConstellioFactories getInstance(Factory<ConstellioFactories> constellioFactoriesFactory) {
+	public ConstellioFactories getInstance(String tenantId, Factory<ConstellioFactories> constellioFactoriesFactory,
+										   boolean acceptingFailedFactories) {
+		String currentTenantId = getCurrentTenantId(tenantId);
 
-		if (instance == null) {
-			boolean createdByThisThread = false;
+		if (constellioFactoriesFactory == null) {
+			return instanceByTenantId.get(currentTenantId);
+		}
 
-			//Only one thread can create the factories, other threads are waiting for factories to be initialized
-			//Current thread call to getInstance will return between the first initialize will return the not yet fully
-			// initialized factory, we don't want to block the main thread or create a second factory
+		if (!acceptingFailedFactories) {
+			Throwable throwedException = brokenFactoriesMap.get(tenantId);
+			if (throwedException != null) {
+				throw new ConstellioFactoriesRuntimeException_TenantOffline(tenantId, throwedException);
+			}
+		}
 
+		return instanceByTenantId.computeIfAbsent(currentTenantId, key -> {
+			ConstellioFactories instanceBeingInitialized = constellioFactoriesFactory.get();
 
-			synchronized (this) {
-				ConstellioFactories factoriesInInitilization = instancesThreadLocal.get();
-				if (instance == null) {
-					if (factoriesInInitilization != null) {
-						LOGGER.info("Reentring getInstance, reurning uninotialized instance " + factoriesInInitilization + " from provider " + SingletonConstellioFactoriesInstanceProvider.this.toString());
-						return factoriesInInitilization;
-					} else {
-						ConstellioFactories instanceBeingInitialized = constellioFactoriesFactory.get();
-						instancesThreadLocal.set(instanceBeingInitialized);
-						LOGGER.info("Initializing instance " + instanceBeingInitialized + " from provider " + SingletonConstellioFactoriesInstanceProvider.this.toString());
-						instanceBeingInitialized.getAppLayerFactory().initialize();
+			CompletableFuture.runAsync(() -> {
+				TenantUtils.setTenant(tenantId);
+				try {
+					initializeInstance(key, instanceBeingInitialized);
 
-						instance = instanceBeingInitialized;
-						instancesThreadLocal.set(null);
-						createdByThisThread = true;
-					}
+				} catch (AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldRetry ignored) {
+					LOGGER.info("Factories of tenant '" + tenantId + "' failed to initialize. Removing it from the map and retrying a new creation");
+					clear(currentTenantId);
+
+					getInstance(currentTenantId, constellioFactoriesFactory, acceptingFailedFactories);
+					//The retry is not working well, since these factories have been returned
+					//getInstance(currentTenantId, constellioFactoriesFactory);
+					//Nothing, just re-entering the while loop for an other attempt
+
+				} catch (AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldNotRetry t) {
+					LOGGER.info("Factories of tenant '" + tenantId + "' failed to initialize. This tenant is now offline");
+					brokenFactoriesMap.put(tenantId, t.getCause());
+					clear(currentTenantId);
+
+				} catch (Throwable t) {
+					LOGGER.info("Factories of tenant '" + tenantId + "' failed to initialize. This tenant is now offline");
+					brokenFactoriesMap.put(tenantId, t);
+					clear(currentTenantId);
+
 				}
-			}
-			if (createdByThisThread) {
-				LOGGER.info("Post-intializing instance " + instance + " from provider " + SingletonConstellioFactoriesInstanceProvider.this.toString());
-				instance.getAppLayerFactory().postInitialization();
-			}
-			//instance.getAppLayerFactory().initialize();
-			//			((PluginManagerImpl) instance.getAppLayerFactory().getPluginManager()).getPluginConfiguration()
-			//					.setConfiguration(ConstellioPlugin.class, "singletonInitializeMode", "true");
-		}
+			});
 
-		return instance;
+			return instanceBeingInitialized;
+		});
+	}
+
+	private void initializeInstance(String tenantId, ConstellioFactories instanceBeingInitialized) {
+		LOGGER.info("Initializing instance " + instanceBeingInitialized + " for tenant id " + tenantId + " from provider " + SingletonConstellioFactoriesInstanceProvider.this.toString());
+		instanceBeingInitialized.getAppLayerFactory().initialize();
+
+		LOGGER.info("Post-intializing instance " + instanceBeingInitialized + " for tenant id " + tenantId + " from provider " + SingletonConstellioFactoriesInstanceProvider.this.toString());
+		instanceBeingInitialized.getAppLayerFactory().postInitialization();
 	}
 
 	@Override
-	public synchronized boolean isInitialized() {
-		return instance != null;
+	public boolean isInitialized(String tenantId) {
+		return instanceByTenantId.containsKey(getCurrentTenantId(tenantId));
 	}
 
 	@Override
-	public void clear() {
-		if (instance != null) {
-			instance.getAppLayerFactory().close();
-			LOGGER.info("SingletonConstellioFactoriesInstanceProvider:clear");
-			instance = null;
+	public void clear(String tenantId) {
+		String currentTenantId = getCurrentTenantId(tenantId);
+		if (instanceByTenantId.containsKey(currentTenantId)) {
+			instanceByTenantId.get(currentTenantId).getAppLayerFactory().close();
+			LOGGER.info("SingletonConstellioFactoriesInstanceProvider:clear for tenant id : " + currentTenantId);
+			instanceByTenantId.remove(currentTenantId);
 		}
+	}
+
+	@Override
+	public void clearAll() {
+		instanceByTenantId.values().forEach(instance -> instance.getAppLayerFactory().close());
+		instanceByTenantId.clear();
+	}
+
+	private String getCurrentTenantId(String tenantId) {
+		if (tenantId == null) {
+			return EMPTY_TENANT_ID;
+		}
+		return tenantId;
 	}
 
 }

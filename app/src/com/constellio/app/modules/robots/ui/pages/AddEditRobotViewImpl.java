@@ -126,7 +126,7 @@ public class AddEditRobotViewImpl extends BaseViewImpl implements AddEditRobotVi
 
 	public class RobotForm extends RecordForm {
 		public RobotForm(RecordVO record) {
-			super(record, new RobotMetadataFieldFactory(presenter));
+			super(record, new RobotMetadataFieldFactory(presenter), AddEditRobotViewImpl.this.getConstellioFactories());
 		}
 
 		@Override
@@ -170,24 +170,24 @@ public class AddEditRobotViewImpl extends BaseViewImpl implements AddEditRobotVi
 		}
 
 		@Override
-		protected Field<?> newSingleValueField(MetadataVO metadata) {
+		protected Field<?> newSingleValueField(MetadataVO metadata, String recordId) {
 			if (Robot.ACTION_PARAMETERS.equals(metadata.getLocalCode())) {
 				DynamicParametersField field = new DynamicParametersField(presenter);
 				postBuild(field, metadata);
 				return field;
 			}
-			return super.newSingleValueField(metadata);
+			return super.newSingleValueField(metadata, recordId);
 		}
 
 		@Override
-		protected Field<?> newMultipleValueField(MetadataVO metadata) {
+		protected Field<?> newMultipleValueField(MetadataVO metadata, String recordId) {
 			if (isCriteria(metadata)) {
 				AdvancedSearchCriteriaField field = new AdvancedSearchCriteriaField(presenter)
 						.setSchemaType(presenter.getSchemaFilter());
 				postBuild(field, metadata);
 				return field;
 			}
-			return super.newMultipleValueField(metadata);
+			return super.newMultipleValueField(metadata, recordId);
 		}
 
 		private boolean isCriteria(MetadataVO metadata) {

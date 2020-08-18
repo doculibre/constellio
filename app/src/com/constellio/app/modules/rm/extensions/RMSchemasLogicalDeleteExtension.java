@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
@@ -15,26 +16,29 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordHierarchyServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.modules.rm.model.CopyRetentionRuleFactory.variablePeriodCode;
-import static com.constellio.model.entities.schemas.Schemas.PATH_PARTS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
 import static java.util.Arrays.asList;
@@ -52,6 +56,7 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 	SearchServices searchServices;
 
 	RecordServices recordServices;
+	RecordHierarchyServices recordHierarchyServices;
 
 	public RMSchemasLogicalDeleteExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -60,6 +65,7 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 		this.taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.recordServices = modelLayerFactory.newRecordServices();
+		recordHierarchyServices = new RecordHierarchyServices(modelLayerFactory);
 	}
 
 	@Override
@@ -156,27 +162,28 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 	private ValidationErrors isFolderLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		//TODO check if user can delete borrowed documents
 		ValidationErrors validationErrors = new ValidationErrors();
-		LogicalSearchQuery borrowedDocumentsQuery = buildBorrowedDocumentsQuery(event);
-		long countForBorrowedDocuments = searchServices.getResultsCount(borrowedDocumentsQuery);
+		long countForBorrowedDocuments = getBorrowedDocumentsInHierarchy(event.getRecord()).size();
 
 		if (countForBorrowedDocuments != 0) {
 			User user = event.getUser();
 			if (user != null) {
-				long countForBorrowedDocumentsThatCurrentUserCanDelete = searchServices.getResultsCount(buildBorrowedDocumentsQuery(event).filteredWithUser(user, RMPermissionsTo.DELETE_BORROWED_DOCUMENT));
+				List<Record> borrowedDocumentsThatUserCanDelete = getBorrowedDocumentsThatUserCanDelete(user, event.getRecord());
+				long countForBorrowedDocumentsThatCurrentUserCanDelete = borrowedDocumentsThatUserCanDelete.size();
 				if (countForBorrowedDocumentsThatCurrentUserCanDelete != countForBorrowedDocuments) {
-					List<Record> checkedOutDocument = searchServices.search(borrowedDocumentsQuery);
+					LogicalSearchQuery query = buildBorrowedDocumentsQuery(event).filteredWithUser(user, RMPermissionsTo.DELETE_BORROWED_DOCUMENT);
+					List<Record> checkedOutDocument = searchServices.search(query);
 					validationErrors.add(RMSchemasLogicalDeleteExtension.class, "folderWithCheckoutDocuments", toRecordsParameter(checkedOutDocument));
 				}
 
 			} else {
-				List<Record> checkedOutDocument = searchServices.search(borrowedDocumentsQuery);
+				List<Record> checkedOutDocument = searchServices.search(buildBorrowedDocumentsQuery(event));
 				validationErrors.add(RMSchemasLogicalDeleteExtension.class, "folderWithCheckoutDocuments", toRecordsParameter(checkedOutDocument));
 			}
 		}
 
 		if (!event.isThenPhysicallyDeleted()) {
 			List<Record> tasks = searchServices.search(filteredQueryForErrorMessages(from(rm.userTask.schemaType())
-					.where(rm.userTask.linkedFolders()).isContaining(asList(event.getRecord().getId()))
+					.where(rm.userTask.linkedFolders()).isEqualTo(event.getRecord().getId())
 					.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
 					.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()));
 			if (!tasks.isEmpty()) {
@@ -187,18 +194,32 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 		return validationErrors;
 	}
 
+	private List<Record> getBorrowedDocumentsInHierarchy(Record record) {
+		return recordHierarchyServices.getAllRecordsInHierarchy(record, true).stream()
+				.filter(recordHierarchy -> recordHierarchy.isOfSchemaType(Document.SCHEMA_TYPE) &&
+										   rm.wrapDocument(recordHierarchy).getContentCheckedOutBy() != null)
+				.collect(Collectors.toList());
+	}
+
+	private List<Record> getBorrowedDocumentsThatUserCanDelete(User user, Record record) {
+		return getBorrowedDocumentsInHierarchy(record).stream()
+				.filter(recordHierarchy -> user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(recordHierarchy))
+				.collect(Collectors.toList());
+	}
+
 	private LogicalSearchQuery buildBorrowedDocumentsQuery(RecordLogicalDeletionValidationEvent event) {
+
 		return filteredQueryForErrorMessages(from(rm.document.schemaType())
 				.where(rm.document.contentCheckedOutBy()).isNotNull()
-				.andWhere(PATH_PARTS).isEqualTo(event.getRecord()));
+				.andWhere(rm.document.folder()).isEqualTo(event.getRecord()));
 	}
 
 	private ValidationErrors isContainerLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		ValidationErrors validationErrors = new ValidationErrors();
 		List<Record> tasks = searchServices.search(filteredQueryForErrorMessages(from(rm.userTask.schemaType())
-						.where(rm.userTask.linkedContainers()).isContaining(asList(event.getRecord().getId()))
-						.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+				.where(rm.userTask.linkedContainers()).isContaining(asList(event.getRecord().getId()))
+				.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
+				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 		));
 		if (!tasks.isEmpty()) {
 			validationErrors.add(RMSchemasLogicalDeleteExtension.class, "containerLinkedToTask", toRecordsParameter(tasks));
@@ -250,6 +271,15 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 
 	private LogicalSearchQuery filteredQueryForErrorMessages(LogicalSearchCondition logicalSearchCondition) {
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
-		return logicalSearchQuery.setNumberOfRows(10).setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.TITLE, Schemas.LOGICALLY_DELETED_STATUS));
+
+		logicalSearchQuery.setNumberOfRows(10).setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.TITLE, Schemas.LOGICALLY_DELETED_STATUS));
+		if (logicalSearchCondition.getFilters() instanceof SchemaFilters) {
+			MetadataSchemaType schemaType = ((SchemaFilters) logicalSearchCondition.getFilters()).getSchemaTypeFilter();
+			if (schemaType != null && schemaType.getCacheType().isSummaryCache()) {
+				logicalSearchQuery.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
+			}
+		}
+
+		return logicalSearchQuery;
 	}
 }

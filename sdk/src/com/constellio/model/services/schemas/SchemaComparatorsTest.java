@@ -34,7 +34,7 @@ public class SchemaComparatorsTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		when(types.getSchemaTypesSortedByDependency()).thenReturn(Arrays.asList("zeFirstSchemaType", "anotherSchemaType"));
+		when(types.getSchemaTypesCodesSortedByDependency()).thenReturn(Arrays.asList("zeFirstSchemaType", "anotherSchemaType"));
 
 	}
 
@@ -42,8 +42,8 @@ public class SchemaComparatorsTest extends ConstellioTest {
 	public void whenSortingRecordsBySchemaTypes()
 			throws Exception {
 
-		when(zeFirstSchemaTypeDefaultRecord.getSchemaCode()).thenReturn("zeFirstSchemaType_default_default");
-		when(zeFirstSchemaTypeCustomRecord.getSchemaCode()).thenReturn("zeFirstSchemaType_default_custom");
+		when(zeFirstSchemaTypeDefaultRecord.getSchemaCode()).thenReturn("zeFirstSchemaType_default");
+		when(zeFirstSchemaTypeCustomRecord.getSchemaCode()).thenReturn("zeFirstSchemaType_custom");
 		when(anotherSchemaTypeCustomRecord.getSchemaCode()).thenReturn("anotherSchemaType_custom");
 		when(anotherSchemaTypeDefaultRecord.getSchemaCode()).thenReturn("anotherSchemaType_default");
 

@@ -13,7 +13,6 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.wrappers.Capsule;
-import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Resource;
@@ -56,10 +55,9 @@ public class AddEditCapsuleViewImpl extends BaseViewImpl implements AddEditCapsu
 			this.recordVO = presenter.newRecordVO();
 		}
 
-		return new RecordForm(this.recordVO, new CapsuleRecordFieldFactory()) {
+		return new RecordForm(this.recordVO, new CapsuleRecordFieldFactory(), getConstellioFactories()) {
 			@Override
-			protected void saveButtonClick(RecordVO viewObject)
-					throws ValidationException {
+			protected void saveButtonClick(RecordVO viewObject) {
 				try {
 					presenter.saveButtonClicked(recordVO);
 				} catch (RecordServicesException e) {
@@ -80,14 +78,15 @@ public class AddEditCapsuleViewImpl extends BaseViewImpl implements AddEditCapsu
 		public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
 			Field<?> field;
 			if (MetadataVO.getCodeWithoutPrefix(metadataVO.getCode()).equals(Capsule.IMAGES)) {
-				field = new ContentVersionUploadField(true, true, false) {
+				field = new ContentVersionUploadField(true, true, false, recordVO.getId(), metadataVO.getLocalCode()) {
 					@Override
 					protected Component newItemCaption(Object itemId) {
 						ContentVersionVO contentVersionVO = (ContentVersionVO) itemId;
 						boolean majorVersionFieldVisible = false;
-						return new ContentVersionUploadField.ContentVersionCaption(contentVersionVO, majorVersionFieldVisible) {
+						return new ContentVersionUploadField.ContentVersionCaption(contentVersionVO, majorVersionFieldVisible, recordVO.getId(), metadataVO.getLocalCode(), false) {
 							@Override
-							protected Component newCaptionComponent(ContentVersionVO contentVersionVO) {
+							protected Component newCaptionComponent(ContentVersionVO contentVersionVO, String recordId,
+																	String metadataCode, boolean isReadOnly) {
 								String hash = presenter.getHash(contentVersionVO);
 								String filename = contentVersionVO.getFileName();
 								Resource resource = ConstellioResourceHandler.createResource(hash, filename);

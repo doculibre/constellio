@@ -98,10 +98,21 @@ public class EmailServices {
 	public void closeSession(Session session) {
 	}
 
+	public MimeMessage parseMimeMessage(InputStream inputStream) {
+		MimeMessage message;
+		try {
+			message = new MimeMessage(Session.getInstance(System.getProperties()), inputStream);
+		} catch (MessagingException e) {
+			message = null;
+		}
+		return message;
+	}
+
 	public MimeMessage createMimeMessage(String from, String subject, String body, List<MessageAttachment> attachments,
 										 ConstellioEIMConfigs configs)
 			throws MessagingException, IOException {
 		String charset = "UTF-8";
+		System.setProperty("mail.mime.splitlongparameters", "false");
 		MimeMessage message = new MimeMessage(Session.getInstance(System.getProperties()));
 		message.setSentDate(LocalDateTime.now().toDate());
 		if (StringUtils.isNotBlank(from) && configs.isIncludingFromFieldWhenGeneratingEmails()) {

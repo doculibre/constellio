@@ -25,6 +25,7 @@ import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.pages.base.VaadinSessionContext;
 import com.constellio.app.ui.pages.login.LoginViewImpl;
 import com.constellio.app.ui.pages.setup.ConstellioSetupViewImpl;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.wrappers.User;
@@ -41,12 +42,15 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
+import com.vaadin.server.Page.BrowserWindowResizeEvent;
+import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.RequestHandler;
 import com.vaadin.server.Responsive;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.TooltipConfiguration;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
@@ -66,7 +70,7 @@ import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 @SuppressWarnings("serial")
 @Theme("constellio")
-public class ConstellioUI extends UI implements SessionContextProvider, UIContext {
+public class ConstellioUI extends UI implements SessionContextProvider, UIContext, BrowserWindowResizeListener {
 
 	private static final ConstellioResourceHandler CONSTELLIO_RESSOURCE_HANDLER = new ConstellioResourceHandler();
 
@@ -146,12 +150,10 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 			initUIListener.beforeInitialize(this);
 		}
 
-		Responsive.makeResponsive(this);
 		addStyleName(ValoTheme.UI_WITH_MENU);
-
-		int tooltipDelay = 50;
-		getTooltipConfiguration().setOpenDelay(tooltipDelay);
-		getTooltipConfiguration().setQuickOpenDelay(tooltipDelay);
+		Responsive.makeResponsive(this);
+		updateTooltipConfiguration();
+		Page.getCurrent().addBrowserWindowResizeListener(this);
 
 		if (getErrorHandler() == null) {
 			setErrorHandler(new ConstellioErrorHandler());
@@ -241,6 +243,8 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	public void updateContent() {
 		if (isRightToLeft()) {
 			addStyleName("right-to-left");
+		} else {
+			removeStyleName("right-to-left");
 		}
 		if (isSetupRequired()) {
 			ConstellioSetupViewImpl setupView = new ConstellioSetupViewImpl(VaadinService.getCurrentRequest().getPathInfo());
@@ -482,6 +486,47 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		};
 		thread.start();
 		return thread;
+	}
+
+	private void updateTooltipConfiguration() {
+		TooltipConfiguration tooltipConfiguration = getTooltipConfiguration();
+		int currentOpenDelay = tooltipConfiguration.getOpenDelay(); // Default: 750
+		int currentQuickOpenDelay = tooltipConfiguration.getQuickOpenDelay(); // Default: 100
+		int currentQuickOpenTimeout = tooltipConfiguration.getQuickOpenTimeout(); // Default: 1000
+		int currentCloseTimeout = tooltipConfiguration.getCloseTimeout(); // Default: 300
+
+		int newCloseTimeout;
+		int newOpenDelay;
+		int newQuickOpenDelay;
+		int newQuickOpenTimeout;
+		if (ResponsiveUtils.isMobile()) {
+			newOpenDelay = 50;
+			newQuickOpenDelay = 50;
+			newQuickOpenTimeout = 50;
+			newCloseTimeout = 3000;
+		} else {
+			newOpenDelay = 50;
+			newQuickOpenDelay = 50;
+			newQuickOpenTimeout = 1000;
+			newCloseTimeout = 300;
+		}
+		if (currentOpenDelay != newOpenDelay) {
+			tooltipConfiguration.setOpenDelay(newOpenDelay);
+		}
+		if (currentQuickOpenDelay != newQuickOpenDelay) {
+			tooltipConfiguration.setQuickOpenDelay(newQuickOpenDelay);
+		}
+		if (currentQuickOpenTimeout != newQuickOpenTimeout) {
+			tooltipConfiguration.setQuickOpenTimeout(newQuickOpenTimeout);
+		}
+		if (currentCloseTimeout != newCloseTimeout) {
+			tooltipConfiguration.setCloseTimeout(newCloseTimeout);
+		}
+	}
+
+	@Override
+	public void browserWindowResized(BrowserWindowResizeEvent event) {
+		updateTooltipConfiguration();
 	}
 
 }

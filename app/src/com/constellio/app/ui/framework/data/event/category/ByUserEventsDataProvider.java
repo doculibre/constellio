@@ -61,44 +61,59 @@ public class ByUserEventsDataProvider extends DefaultEventsDataProvider implemen
 		} else if (index == 11) {
 			return EventType.BORROW_DOCUMENT;
 		} else if (index == 12) {
-			return EventType.CREATE_DOCUMENT;
+			return EventType.SIGN_DOCUMENT;
 		} else if (index == 13) {
 			return EventType.MODIFY_DOCUMENT;
 		} else if (index == 14) {
 			return EventType.DELETE_DOCUMENT;
 		} else if (index == 15) {
-			return EventType.CREATE_USER;
+			return EventType.CREATE_DOCUMENT;
 		} else if (index == 16) {
-			return EventType.DELETE_USER;
+			return EventType.CREATE_USER;
 		} else if (index == 17) {
-			return EventType.CREATE_GROUP;
+			return EventType.DELETE_USER;
 		} else if (index == 18) {
-			return EventType.DELETE_GROUP;
+			return EventType.CREATE_GROUP;
 		} else if (index == 19) {
-			return EventType.GRANT_PERMISSION_FOLDER;
+			return EventType.DELETE_GROUP;
 		} else if (index == 20) {
-			return EventType.MODIFY_PERMISSION_FOLDER;
+			return EventType.GRANT_PERMISSION_FOLDER;
 		} else if (index == 21) {
-			return EventType.DELETE_PERMISSION_FOLDER;
+			return EventType.MODIFY_PERMISSION_FOLDER;
 		} else if (index == 22) {
-			return EventType.GRANT_PERMISSION_DOCUMENT;
+			return EventType.DELETE_PERMISSION_FOLDER;
 		} else if (index == 23) {
-			return EventType.MODIFY_PERMISSION_DOCUMENT;
+			return EventType.GRANT_PERMISSION_DOCUMENT;
 		} else if (index == 24) {
-			return EventType.DELETE_PERMISSION_DOCUMENT;
+			return EventType.MODIFY_PERMISSION_DOCUMENT;
 		} else if (index == 25) {
-			return EventType.CREATE_TASK;
+			return EventType.DELETE_PERMISSION_DOCUMENT;
 		} else if (index == 26) {
+			return EventType.CREATE_TASK;
+		} else if (index == 27) {
 			return EventType.MODIFY_TASK;
-		} else {
+		} else if (index == 28) {
 			return EventType.DELETE_TASK;
+		} else if (index == 29) {
+			return EventType.CREATE_SHARE_FOLDER;
+		} else if (index == 30) {
+			return EventType.MODIFY_SHARE_FOLDER;
+		} else if (index == 31) {
+			return EventType.DELETE_SHARE_FOLDER;
+		} else if (index == 32) {
+			return EventType.CREATE_SHARE_DOCUMENT;
+		} else if (index == 33) {
+			return EventType.MODIFY_SHARE_DOCUMENT;
+		} else if (index == 34) {
+			return EventType.DELETE_SHARE_DOCUMENT;
+		} else {
+			return EventType.BATCH_PROCESS_CREATED;
 		}
-
 	}
 
 	@Override
 	public int specificSize() {
-		return 28;
+		return 36;
 	}
 
 	@Override

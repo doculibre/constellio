@@ -1,13 +1,17 @@
 package com.constellio.app.ui.framework.buttons;
 
+import com.constellio.data.dao.services.Stats;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.UI;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 @SuppressWarnings("serial")
 public abstract class ConfirmDialogButton extends IconButton {
+
+	private String statName;
 
 	public static enum DialogMode {
 		TEXT, INFO, WARNING, ERROR, STOP
@@ -24,7 +28,12 @@ public abstract class ConfirmDialogButton extends IconButton {
 	}
 
 	public ConfirmDialogButton(Resource iconResource, String caption, boolean iconOnly) {
-		super(iconResource, caption, iconOnly);
+		super(iconResource, caption, iconOnly, iconResource != null);
+		this.statName = Stats.getCurrentName();
+	}
+
+	public ConfirmDialogButton(Resource iconResource, String caption, boolean iconOnly, boolean borderless) {
+		super(iconResource, caption, iconOnly, borderless);
 	}
 
 	public DialogMode getDialogMode() {
@@ -45,11 +54,13 @@ public abstract class ConfirmDialogButton extends IconButton {
 				getConfirmDialogCancelCaption(),
 				new ConfirmDialog.Listener() {
 					public void onClose(ConfirmDialog dialog) {
-						if (dialog.isConfirmed()) {
-							confirmButtonClick(dialog);
-						} else {
-							dialogClosedWitoutConfirm(dialog);
-						}
+						Stats.compilerFor(statName).log(() -> {
+							if (dialog.isConfirmed()) {
+								confirmButtonClick(dialog);
+							} else {
+								dialogClosedWitoutConfirm(dialog);
+							}
+						});
 					}
 				});
 	}
@@ -83,7 +94,7 @@ public abstract class ConfirmDialogButton extends IconButton {
 
 		if (iconName != null) {
 			StringBuilder html = new StringBuilder();
-			html.append("<span style=\"height: 60px;\" class=\"confirm-dialog-" + iconName + "\">");
+			html.append("<span style=\"height: 100%;\" class=\"confirm-dialog-" + iconName + "\">");
 			html.append("<span class=\"confirm-dialog-message\">");
 			html.append(message);
 			html.append("</span>");
@@ -91,8 +102,9 @@ public abstract class ConfirmDialogButton extends IconButton {
 			message = html.toString();
 		}
 
+		ConfirmDialog confirmDialog;
 		if (notOkCaption != null) {
-			ConfirmDialog.show(
+			confirmDialog = ConfirmDialog.show(
 					UI.getCurrent(),
 					title,
 					message,
@@ -101,13 +113,16 @@ public abstract class ConfirmDialogButton extends IconButton {
 					notOkCaption,
 					closeListener);
 		} else {
-			ConfirmDialog.show(
+			confirmDialog = ConfirmDialog.show(
 					UI.getCurrent(),
 					title,
 					message,
 					okCaption,
 					cancelCaption,
 					closeListener);
+		}
+		if (isRightToLeft()) {
+			confirmDialog.addStyleName("right-to-left");
 		}
 	}
 
@@ -133,5 +148,9 @@ public abstract class ConfirmDialogButton extends IconButton {
 	protected abstract String getConfirmDialogMessage();
 
 	protected abstract void confirmButtonClick(ConfirmDialog dialog);
+
+	public void skipConfirmation() {
+		confirmButtonClick(null);
+	}
 
 }

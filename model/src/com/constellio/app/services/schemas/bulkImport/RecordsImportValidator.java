@@ -42,7 +42,6 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
-
 public class RecordsImportValidator {
 
 	public static final String LEGACY_ID_LOCAL_CODE = Schemas.LEGACY_ID.getLocalCode();
@@ -245,6 +244,8 @@ public class RecordsImportValidator {
 		} else if (User.SCHEMA_TYPE.equals(schemaType.getCode()) && params
 				.isAllowingReferencesToNonExistingUsers()) {
 			errors.addWarning(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
+		} else if (usedByMetadata.equals("document_default_linkedTo")) {
+			errors.addWarning(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
 		} else {
 			errors.add(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
 		}
@@ -268,7 +269,8 @@ public class RecordsImportValidator {
 				String uniqueValue = (String) importData.getFields().get(uniqueMetadata);
 
 				if (uniqueValue != null && !resolverCache.isNewUniqueValue(type.getCode(), uniqueMetadata, uniqueValue)) {
-					Metadata metadata = type.getSchema(importData.getSchema()).getMetadata(uniqueMetadata);
+					Metadata metadata = (StringUtils.isNotBlank(importData.getSchema()) ?
+										 type.getSchema(importData.getSchema()) : type.getDefaultSchema()).getMetadata(uniqueMetadata);
 					Map<String, Object> parameters = toMetadataParameters(metadata);
 					parameters.put("value", uniqueValue);
 					errors.add(RecordsImportServices.class, METADATA_NOT_UNIQUE, parameters);
@@ -438,7 +440,6 @@ public class RecordsImportValidator {
 			}
 
 		} else if (type == MetadataValueType.CONTENT) {
-
 			if (!ImportContent.class.isAssignableFrom(value.getClass())) {
 				errors.add(RecordsImportServices.class, INVALID_CONTENT_VALUE);
 			}

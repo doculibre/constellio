@@ -5,6 +5,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -62,11 +63,17 @@ public class MetadataSchema implements Serializable {
 
 	private boolean hasEagerTransientMetadata;
 
+
+	private List<Metadata> referencesToSummaryCachedType;
+
+	private MetadataSchemaType schemaType;
+
 	public MetadataSchema(short id, String localCode, String code, CollectionInfo collectionInfo,
 						  Map<Language, String> labels,
 						  List<Metadata> metadatas,
 						  Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
-						  MetadataSchemaCalculatedInfos calculatedInfos, String dataStore, boolean active) {
+						  MetadataSchemaCalculatedInfos calculatedInfos, String dataStore, boolean active,
+						  ConstellioEIMConfigs configs, Set<String> typesWithSummaryCache) {
 		super();
 		this.id = id;
 		this.localCode = localCode;
@@ -88,10 +95,22 @@ public class MetadataSchema implements Serializable {
 		this.dataStore = dataStore;
 		this.active = active;
 		this.collectionInfo = collectionInfo;
-		this.summaryMetadatas = new SchemaUtils().buildListOfSummaryMetadatas(metadatas);
+		this.summaryMetadatas = new SchemaUtils().buildListOfSummaryMetadatas(metadatas, configs);
 		this.cacheIndexMetadatas = new SchemaUtils().buildListOfCacheIndexMetadatas(metadatas);
+		this.referencesToSummaryCachedType = new SchemaUtils().buildListOfReferencesToSummaryCachedType(metadatas, typesWithSummaryCache);
 		this.hasEagerTransientMetadata = metadatas.stream().anyMatch((m) -> m.getTransiency() == MetadataTransiency.TRANSIENT_EAGER);
+		for (Metadata metadata : metadatas) {
+			metadata.setBuiltSchema(this);
+		}
 
+	}
+
+
+	public void setBuiltSchemaType(MetadataSchemaType schemaType) {
+		if (this.schemaType != null) {
+			throw new IllegalStateException("Schematype already");
+		}
+		this.schemaType = schemaType;
 	}
 
 	public List<Metadata> getSummaryMetadatas() {
@@ -155,6 +174,10 @@ public class MetadataSchema implements Serializable {
 		}
 	}
 
+	public List<Metadata> getReferencesToSummaryCachedType() {
+		return referencesToSummaryCachedType;
+	}
+
 	public Metadata get(String metadataCode) {
 		return getMetadata(metadataCode);
 	}
@@ -170,27 +193,7 @@ public class MetadataSchema implements Serializable {
 
 	public Metadata getMetadata(String metadataCode) {
 
-		if (metadataCode.endsWith("PId")) {
-			metadataCode = metadataCode.substring(0, metadataCode.length() - 3);
-		}
-
-		if (metadataCode.endsWith("Id")) {
-			metadataCode = metadataCode.substring(0, metadataCode.length() - 2);
-		}
-
-		metadataCode = StringUtils.substringBefore(metadataCode, ".");
-
-		String localCode = metadataCode;
-		if (localCode.contains("_")) {
-			String[] codes = SchemaUtils.underscoreSplitWithCache(metadataCode);
-			localCode = codes[codes.length - 1];
-		}
-
-		Metadata metadata = indexByLocalCode.get(localCode);
-
-		if (metadata == null) {
-			metadata = indexByCode.get(metadataCode);
-		}
+		Metadata metadata = getMetadataWithCodeOrNull(metadataCode);
 
 		if (metadata == null) {
 			throw new MetadataSchemasRuntimeException.NoSuchMetadata(metadataCode);
@@ -245,12 +248,12 @@ public class MetadataSchema implements Serializable {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this, "schemaValidators", "calculatedInfos");
+		return HashCodeBuilder.reflectionHashCode(this, "schemaValidators", "calculatedInfos", "schemaType");
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, "schemaValidators", "calculatedInfos");
+		return EqualsBuilder.reflectionEquals(this, obj, "schemaValidators", "calculatedInfos", "schemaType");
 	}
 
 	@Override
@@ -264,6 +267,10 @@ public class MetadataSchema implements Serializable {
 
 	public List<Metadata> getNonParentReferences() {
 		return metadatas.onlyNonParentReferences();
+	}
+
+	public List<Metadata> getOnlyNonHerited() {
+		return metadatas.onlyNonHerited();
 	}
 
 	public Map<String, Metadata> getIndexByLocalCode() {
@@ -302,4 +309,41 @@ public class MetadataSchema implements Serializable {
 		return active;
 	}
 
+	public MetadataSchemaType getSchemaType() {
+		return schemaType;
+	}
+
+	public String getNoInheritanceCode() {
+		return getSchemaType().getDefaultSchema().getCode();
+	}
+
+	public Metadata getMetadataWithCodeOrNull(String metadataCode) {
+		if (metadataCode.endsWith("PId")) {
+			metadataCode = metadataCode.substring(0, metadataCode.length() - 3);
+		}
+
+		if (metadataCode.endsWith("Id")) {
+			metadataCode = metadataCode.substring(0, metadataCode.length() - 2);
+		}
+
+		metadataCode = StringUtils.substringBefore(metadataCode, ".");
+
+		String localCode = metadataCode;
+		if (localCode.contains("_")) {
+			String[] codes = SchemaUtils.underscoreSplitWithCache(metadataCode);
+			localCode = codes[codes.length - 1];
+		}
+
+		Metadata metadata = indexByLocalCode.get(localCode);
+
+		if (metadata == null) {
+			metadata = indexByCode.get(metadataCode);
+		}
+
+		return metadata;
+	}
+
+	public boolean hasInheritance() {
+		return !localCode.equals("default");
+	}
 }

@@ -10,7 +10,18 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class OffHeapMemoryAllocator {
 
+	static AtomicLong totalFreedMemory = new AtomicLong();
 	static AtomicLong totalAllocatedMemory = new AtomicLong();
+	static AtomicLong[] memoryAllocationByUsingClass = new AtomicLong[]{
+			new AtomicLong(),
+			new AtomicLong(),
+			new AtomicLong(),
+			new AtomicLong(),
+			new AtomicLong(),
+			new AtomicLong(),
+			new AtomicLong(),
+			new AtomicLong()
+	};
 
 	/**
 	 * Not only unsafe, but also not thread safe
@@ -19,12 +30,23 @@ public class OffHeapMemoryAllocator {
 
 	static Map<Long, Long> allocatedMemory = new HashMap<>();
 
-	static synchronized long allocateMemory(int length) {
+	public static final int OffHeapByteArrayList_ID = 0;
+	public static final int OffHeapByteList_ID = 1;
+	public static final int OffHeapIntList_ID = 2;
+	public static final int OffHeapLongList_ID = 3;
+	public static final int OffHeapShortList_ID = 4;
+	public static final int SortedIntIdsList_ID = 5;
+	public static final int SDK = 6;
+	public static final int OffHeapByteArrayListArea_ID = 7;
+
+
+	static synchronized long allocateMemory(int length, int classId) {
 		totalAllocatedMemory.addAndGet(length);
+		memoryAllocationByUsingClass[classId].addAndGet(length);
 		Unsafe unsafe = getUnsafe();
 		long adr = unsafe.allocateMemory(length);
 
-		if (Toggle.OFF_HEAP_ADDRESS_VALIDATOR.isEnabled()) {
+		if (Toggle.OFF_HEAP_ADDRESS_VALIDATOR) {
 			synchronized (allocatedMemory) {
 				allocatedMemory.put(adr, adr + length);
 			}
@@ -34,11 +56,13 @@ public class OffHeapMemoryAllocator {
 
 	}
 
-	static synchronized void freeMemory(long address, long length) {
+	static synchronized void freeMemory(long address, long length, int classId) {
 		totalAllocatedMemory.addAndGet(-1 * length);
+		totalFreedMemory.addAndGet(length);
+		memoryAllocationByUsingClass[classId].addAndGet(-1 * length);
 		Unsafe unsafe = getUnsafe();
 		unsafe.freeMemory(address);
-		if (Toggle.OFF_HEAP_ADDRESS_VALIDATOR.isEnabled()) {
+		if (Toggle.OFF_HEAP_ADDRESS_VALIDATOR) {
 			synchronized (allocatedMemory) {
 				allocatedMemory.remove(address);
 			}
@@ -67,18 +91,22 @@ public class OffHeapMemoryAllocator {
 	}
 
 	static byte getByte(long address) {
+		validateMemoryUsage(address, Byte.BYTES);
 		return getUnsafe().getByte(address);
 	}
 
 	static short getShort(long address) {
+		validateMemoryUsage(address, Short.BYTES);
 		return getUnsafe().getShort(address);
 	}
 
 	static int getInt(long address) {
+		validateMemoryUsage(address, Integer.BYTES);
 		return getUnsafe().getInt(address);
 	}
 
 	static long getLong(long address) {
+		validateMemoryUsage(address, Long.BYTES);
 		return getUnsafe().getLong(address);
 	}
 
@@ -88,7 +116,7 @@ public class OffHeapMemoryAllocator {
 		if (addedBytesIndex < length && addedBytesLength > 0) {
 
 			for (long i = length + addedBytesLength - 1; i > addedBytesIndex + addedBytesLength - 1; i--) {
-				byte b = getUnsafe().getByte(address + i - addedBytesLength);
+				byte b = getByte(address + i - addedBytesLength);
 				putByte(address + i, b);
 			}
 
@@ -155,7 +183,7 @@ public class OffHeapMemoryAllocator {
 		//getUnsafe().copyMemory(fromAddress, toAddress, length);
 
 		for (long i = 0; i < length; i++) {
-			byte b = getUnsafe().getByte(fromAddress + i);
+			byte b = getByte(fromAddress + i);
 			putByte(toAddress + i, b);
 		}
 	}
@@ -174,12 +202,20 @@ public class OffHeapMemoryAllocator {
 		return unsafe;
 	}
 
+	public static long getFreedMemory() {
+		return totalFreedMemory.get();
+	}
+
 	public static long getAllocatedMemory() {
 		return totalAllocatedMemory.get();
 	}
 
+	public static long getAllocatedMemory(int classId) {
+		return memoryAllocationByUsingClass[classId].get();
+	}
+
 	private static void validateMemoryUsage(long address, int size) {
-		if (Toggle.OFF_HEAP_ADDRESS_VALIDATOR.isEnabled()) {
+		if (Toggle.OFF_HEAP_ADDRESS_VALIDATOR) {
 			synchronized (allocatedMemory) {
 				boolean found = false;
 

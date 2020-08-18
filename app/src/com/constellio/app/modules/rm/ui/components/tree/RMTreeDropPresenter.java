@@ -9,6 +9,8 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.data.TreeNode;
+import com.constellio.app.ui.framework.data.trees.DefaultLazyTreeDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -18,6 +20,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.io.Serializable;
@@ -49,8 +52,11 @@ public class RMTreeDropPresenter implements Serializable {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
 
-		Record sourceRecord = rm.get(sourceRecordId);
-		Record targetRecord = rm.get(targetRecordId);
+		TreeNode sourceTreeNode = DefaultLazyTreeDataProvider.toTreeNodeSupportingLegacyProviders(sourceRecordId);
+		TreeNode targetTreeNode = DefaultLazyTreeDataProvider.toTreeNodeSupportingLegacyProviders(targetRecordId);
+
+		Record sourceRecord = rm.get(sourceTreeNode.getId());
+		Record targetRecord = rm.get(targetTreeNode.getId());
 
 		SchemaUtils schemaUtils = new SchemaUtils();
 		String sourceSchemaTypeCode = schemaUtils.getSchemaTypeCode(sourceRecord.getSchemaCode());
@@ -142,7 +148,7 @@ public class RMTreeDropPresenter implements Serializable {
 			sourceDocument.setFolder(targetFolder);
 			try {
 				recordServices.update(sourceDocument, user);
-				newParentId = targetFolder.getId();
+				newParentId = StringUtils.substringBeforeLast(targetRecordId, "|");
 			} catch (RecordServicesException e) {
 				dropHandler.showErrorMessage(e.getMessage());
 				LOGGER.error("Error while dropping document on document", e);

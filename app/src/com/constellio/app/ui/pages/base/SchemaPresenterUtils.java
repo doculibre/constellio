@@ -27,6 +27,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.schemas.PutSchemaRecordsInTrashEvent;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
@@ -194,7 +195,6 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 				}
 			}
 
-			modelLayerFactory().newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
 			if (physically && !putFirstInTrash) {
 				recordServices().physicallyDeleteNoMatterTheStatus(record, user, new RecordPhysicalDeleteOptions());
 			}
@@ -212,7 +212,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	}
 
 	@SuppressWarnings("unchecked")
-	public final Record toRecord(RecordVO recordVO) {
+	public final Record toRecord(RecordVO recordVO) throws OptimisticLockException {
 		return toRecord(recordVO, false);
 	}
 
@@ -222,12 +222,15 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	}
 
 	@SuppressWarnings("unchecked")
-	public final Record toRecord(RecordVO recordVO, boolean newMinorEmpty) {
+	public final Record toRecord(RecordVO recordVO, boolean newMinorEmpty) throws OptimisticLockException {
 		Record record;
 		try {
 			record = recordServices().getDocumentById(recordVO.getId()).getCopyOfOriginalRecord();
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 			record = newRecord(recordVO.getId());
+		}
+		if (recordVO.getRecord() != null && recordVO.getRecord().getVersion() != record.getVersion()) {
+			throw new OptimisticLockException(recordVO.getId());
 		}
 		fillRecordUsingRecordVO(record, recordVO, newMinorEmpty);
 		return record;

@@ -33,16 +33,16 @@ public class FakeEncryptionServices extends EncryptionServices {
 	}
 
 	@Override
-	public String encrypt(String toEncrypt) {
+	public Object encryptWithAppKey(Object toEncrypt) {
 		return "crypted:" + toEncrypt;
 	}
 
 	@Override
-	public String decrypt(String encryptedBase64, String algorithm) {
+	public Object decryptWithAppKey(Object encryptedBase64) {
 		if (encryptedBase64 == null) {
 			return null;
 		} else {
-			return encryptedBase64.replace("crypted:", "");
+			return ((String) encryptedBase64).replace("crypted:", "");
 		}
 	}
 

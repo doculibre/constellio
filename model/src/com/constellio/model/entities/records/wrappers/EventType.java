@@ -38,6 +38,8 @@ public class EventType {
 
 	public static final String CLOSE_SESSION = "close_session";
 
+	public static final String ATTEMPTED_OPEN_SESSION = "attempted_open_session";
+
 	public static final String VIEW_FOLDER = "view_folder";
 
 	public static final String VIEW_DOCUMENT = "view_document";
@@ -122,6 +124,24 @@ public class EventType {
 
 	public static final String DELETE_PERMISSION = "delete_permission";
 
+	public static final String CREATE_SHARE = "create_share";
+
+	public static final String MODIFY_SHARE = "modify_share";
+
+	public static final String DELETE_SHARE = "delete_share";
+
+	public static final String CREATE_SHARE_FOLDER = "create_share_folder";
+
+	public static final String MODIFY_SHARE_FOLDER = "modify_share_folder";
+
+	public static final String DELETE_SHARE_FOLDER = "delete_share_folder";
+
+	public static final String CREATE_SHARE_DOCUMENT = "create_share_document";
+
+	public static final String MODIFY_SHARE_DOCUMENT = "modify_share_document";
+
+	public static final String DELETE_SHARE_DOCUMENT = "delete_share_document";
+
 	public static final String GRANT_PERMISSION_FOLDER = "grant_permission_folder";
 
 	public static final String MODIFY_PERMISSION_FOLDER = "modify_permission_folder";
@@ -135,6 +155,8 @@ public class EventType {
 	public static final String DELETE_PERMISSION_DOCUMENT = "delete_permission_document";
 
 	public static final String DELETE_VERSION_DOCUMENT = "delete_version_document";
+
+	public static final String SIGN_DOCUMENT = "sign_document";
 
 	//decommissiong
 	public static final String DECOMMISSIONING_LIST = "decommissioningList";
@@ -165,4 +187,7 @@ public class EventType {
 	public static final String REINDEXING = "reindexing";
 
 	public static final String RESTARTING = "restarting";
+
+	//batch process
+	public static final String BATCH_PROCESS_CREATED = "created_batch_process";
 }

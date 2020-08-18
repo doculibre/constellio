@@ -1,17 +1,21 @@
 package com.constellio.app.modules.tasks.extensions;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import com.constellio.app.modules.tasks.TaskConfigs;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.caches.IncompleteTasksUserCache;
 import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
 import com.constellio.app.modules.tasks.extensions.api.TaskModuleExtensions;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
@@ -43,6 +47,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,6 +69,7 @@ import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_ON;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_TO_YOU;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNEE_MODIFIED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_COMMENTS;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_COMPLETED;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DELETED;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DESCRIPTION;
@@ -320,7 +326,10 @@ public class TaskRecordExtension extends RecordExtension {
 	}
 
 	public void taskInCreation(Task task, RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event) {
-		sendEmailToAssignee(task);
+		delegateTask(task);
+		if (StringUtils.isBlank(task.getLegacyId())) {
+			sendEmailToAssignee(task);
+		}
 		TaskStatus currentStatus = (task.getStatus() == null) ? null : tasksSchema.getTaskStatus(task.getStatus());
 		updateEndDateAndStartDateIfNecessary(task, currentStatus);
 	}
@@ -433,6 +442,23 @@ public class TaskRecordExtension extends RecordExtension {
 			newParameters.addAll(taskModuleExtensions.taskEmailParameters(task));
 		}
 
+		StringBuilder htmlComments = new StringBuilder();
+		htmlComments.append(formatToParameter(i18n.$("SystemConfigurationGroup.tasks.comments") + "<br/>"));
+
+		for (Comment comment : task.getComments()) {
+			htmlComments.append(StringEscapeUtils.escapeHtml4(comment.getUsername() + " : " +
+															  comment.getCreationDateTime().toString()) + "<br/>");
+			htmlComments.append(StringEscapeUtils.escapeHtml4(comment.getMessage()).replace("\n", "<br/>") + "<br/>");
+			htmlComments.append("<br/>");
+		}
+
+		boolean showComments = modelLayerFactory.getSystemConfigurationsManager().getValue(TaskConfigs.SHOW_COMMENTS);
+
+		if (showComments) {
+			newParameters.add(TASK_COMMENTS + ":" + formatToParameter(htmlComments.toString()));
+		} else {
+			newParameters.add(TASK_COMMENTS + ":");
+		}
 		emailToSend.setParameters(newParameters);
 	}
 
@@ -459,10 +485,11 @@ public class TaskRecordExtension extends RecordExtension {
 		if (event.hasModifiedMetadata(Task.STATUS)) {
 			TaskStatus currentStatus = (task.getStatus() == null) ? null : tasksSchema.getTaskStatus(task.getStatus());
 			if (currentStatus != null && currentStatus.isFinished()) {
-				sendTaskCompletedEmail(task, event);////////////////////////////////
+				sendTaskCompletedEmail(task, event);
 			} else {
-				sendStatusModificationToFollowers(task, event);////////////////////////////////
+				sendStatusModificationToFollowers(task, event);
 			}
+			task.setReadByUser(true);
 		}
 		//FIXME Francis plusieurs courriels envoyés si plusieurs sous taches modifiees
 		if (event.hasModifiedMetadata(Task.PARENT_TASK)) {
@@ -488,10 +515,14 @@ public class TaskRecordExtension extends RecordExtension {
 	void taskInModification(Task task, RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
 		if (event.hasModifiedMetadata(Task.STATUS)) {
 			TaskStatus currentStatus = (task.getStatus() == null) ? null : tasksSchema.getTaskStatus(task.getStatus());
-
 			updateEndDateAndStartDateIfNecessary(task, currentStatus);
 		}
-
+		if (event.hasModifiedMetadata(Task.ASSIGNEE)) {
+			delegateTaskFromAssignee(task);
+		}
+		if (event.hasModifiedMetadata(Task.ASSIGNEE_USERS_CANDIDATES)) {
+			delegateTaskFromAssigneeUserCandidates(task);
+		}
 		boolean startDateModified = event.hasModifiedMetadata(Task.START_DATE);
 		boolean dueDateModified = event.hasModifiedMetadata(Task.DUE_DATE);
 		if (startDateModified || dueDateModified) {
@@ -794,5 +825,58 @@ public class TaskRecordExtension extends RecordExtension {
 				task.setTaskFollowers(Collections.unmodifiableList(newFollowersList));
 			}
 		}
+	}
+
+	private void delegateTask(Task task) {
+		delegateTaskFromAssignee(task);
+		delegateTaskFromAssigneeUserCandidates(task);
+	}
+
+	private void delegateTaskFromAssignee(Task task) {
+		String taskAssignee = task.getAssignee();
+		if (taskAssignee != null) {
+			User assignee = rm.getUser(taskAssignee);
+			task.setAssignee(getDelegatedAssignee(assignee, task, false).getId());
+		}
+	}
+
+	private void delegateTaskFromAssigneeUserCandidates(Task task) {
+		List<String> assigneeUsersCandidates = task.getAssigneeUsersCandidates();
+		if (assigneeUsersCandidates != null) {
+			Set<String> assigneeCandidates = new HashSet<>();
+			for (String assigneeCandidateUserId : assigneeUsersCandidates) {
+				User assigneeCandidate = rm.getUser(assigneeCandidateUserId);
+				assigneeCandidates.add(getDelegatedAssignee(assigneeCandidate, task, true).getId());
+			}
+			task.setAssigneeUsersCandidates(new ArrayList<>(assigneeCandidates));
+		}
+	}
+
+	private User getDelegatedAssignee(User taskAssignee, Task task, Boolean assigneeCandidateDelegation) {
+		String delegatedUserId = taskAssignee.get(TaskUser.DELEGATION_TASK_USER);
+		if (!StringUtils.isBlank(delegatedUserId)) {
+			User delegatedUser = rm.getUser(delegatedUserId);
+			addDelegationComment(task, taskAssignee, delegatedUser, assigneeCandidateDelegation);
+			User delegatedAssignee = getDelegatedAssignee(delegatedUser, task, assigneeCandidateDelegation);
+			return delegatedAssignee;
+		} else {
+			return taskAssignee;
+		}
+	}
+
+	private void addDelegationComment(Task task, User taskAssignee, User delegatedAssignee,
+									  Boolean assigneeCandidateDelegation) {
+		Comment delegationComment = new Comment();
+		delegationComment.setUser(taskAssignee);
+		delegationComment.setCreationDateTime(LocalDateTime.now());
+		if (assigneeCandidateDelegation) {
+			delegationComment.setMessage(i18n.$("TaskManagementView.taskDelegationAssigneeCandidatComment", taskAssignee.getUsername(), delegatedAssignee.getUsername()));
+		} else {
+			delegationComment.setMessage(i18n.$("TaskManagementView.taskDelegationAssigneeComment", taskAssignee.getUsername(), delegatedAssignee.getUsername()));
+		}
+
+		List<Comment> comments = new ArrayList<>(task.getComments());
+		comments.add(delegationComment);
+		task.setComments(comments);
 	}
 }

@@ -30,7 +30,7 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 			ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
 			String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 			if (agentURL != null) {
-				titleLink = new ConstellioAgentLink(agentURL, recordVO, contentVersionVO, recordVO.getTitle(), false, new BaseUpdatableContentVersionPresenter(getAppLayerFactory()));
+				titleLink = new ConstellioAgentLink(agentURL, recordVO, contentVersionVO, recordVO.getTitle(), false, new BaseUpdatableContentVersionPresenter(getAppLayerFactory()), Document.CONTENT);
 				addVisitedStyleNameIfNecessary(titleLink, recordVO.getId());
 				((ConstellioAgentLink) titleLink).addVisitedClickListener(recordVO.getId());
 			} else {

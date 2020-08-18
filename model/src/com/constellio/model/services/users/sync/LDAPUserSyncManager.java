@@ -14,11 +14,13 @@ import com.constellio.model.conf.ldap.services.LDAPServices.LDAPUsersAndGroups;
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
@@ -48,6 +50,7 @@ import java.util.Set;
 public class LDAPUserSyncManager implements StatefulService {
 	private final static Logger LOGGER = LoggerFactory.getLogger(LDAPUserSyncManager.class);
 	private final LDAPConfigurationManager ldapConfigurationManager;
+	RecordServices recordServices;
 	UserServices userServices;
 	SolrGlobalGroupsManager globalGroupsManager;
 	LDAPUserSyncConfiguration userSyncConfiguration;
@@ -59,6 +62,7 @@ public class LDAPUserSyncManager implements StatefulService {
 	private ConstellioJobManager constellioJobManager;
 
 	public LDAPUserSyncManager(ModelLayerFactory modelLayerFactory) {
+		this.recordServices = modelLayerFactory.newRecordServices();
 		this.userServices = modelLayerFactory.newUserServices();
 		this.dataLayerFactory = modelLayerFactory.getDataLayerFactory();
 		this.globalGroupsManager = modelLayerFactory.getGlobalGroupsManager();
@@ -175,14 +179,14 @@ public class LDAPUserSyncManager implements StatefulService {
 
 		//FIXME cas rare mais possible nom d utilisateur/de groupe non unique (se trouvant dans des urls differentes)
 		for (String url : getNonEmptyUrls(serverConfiguration)) {
-			LDAPUsersAndGroups importedUsersAndgroups = ldapServices
+			LDAPUsersAndGroups importedUsersAndGroups = ldapServices
 					.importUsersAndGroups(serverConfiguration, userSyncConfiguration, url);
 			if (ldapSynchProgressionInfo != null) {
-				ldapSynchProgressionInfo.totalGroupsAndUsers = importedUsersAndgroups.getUsers().size() +
-															   importedUsersAndgroups.getGroups().size();
+				ldapSynchProgressionInfo.totalGroupsAndUsers = importedUsersAndGroups.getUsers().size() +
+															   importedUsersAndGroups.getGroups().size();
 			}
-			Set<LDAPGroup> ldapGroups = importedUsersAndgroups.getGroups();
-			Set<LDAPUser> ldapUsers = importedUsersAndgroups.getUsers();
+			Set<LDAPGroup> ldapGroups = importedUsersAndGroups.getGroups();
+			Set<LDAPUser> ldapUsers = importedUsersAndGroups.getUsers();
 
 			UpdatedUsersAndGroups updatedUsersAndGroups = updateUsersAndGroups(ldapUsers, ldapGroups, selectedCollectionsCodes,
 					ldapSynchProgressionInfo);
@@ -238,8 +242,46 @@ public class LDAPUserSyncManager implements StatefulService {
 					try {
 						// Keep locally created groups of existing users
 						final List<String> newUserGlobalGroups = new ArrayList<>(userCredential.getGlobalGroups());
-						final UserCredential previousUserCredential = userServices
-								.getUserCredential(userCredential.getUsername());
+						UserCredential previousUserCredential = userServices.getUserCredential(userCredential.getUsername());
+						UserCredential userCredentialByDn = userServices.getUserCredentialByDN(ldapUser.getId());
+						if (previousUserCredential == null) {
+							previousUserCredential = userServices.getUserCredentialByDN(ldapUser.getId());
+						}
+						if (previousUserCredential != null && userCredentialByDn != null
+							&& !previousUserCredential.getId().equals(userCredentialByDn.getId())) {
+							LOGGER.info("Two users with same DN but different username. Id: " + ldapUser.getId() + ", Usernames : " + previousUserCredential.getUsername() + " and " + userCredentialByDn.getUsername());
+							try {
+								LOGGER.info(
+										"Attempting to delete username " + userCredentialByDn.getUsername());
+								userServices.physicallyRemoveUserCredentialAndUsers(userCredentialByDn);
+							} catch (Throwable t) {
+								try {
+									LOGGER.info(
+											"Could not delete username " + userCredentialByDn.getUsername() + ", attempting to delete " + previousUserCredential.getUsername() + " instead");
+									userServices.physicallyRemoveUserCredentialAndUsers(previousUserCredential);
+									previousUserCredential = userCredentialByDn;
+								} catch (Throwable t2) {
+									UserCredential invalidUserCredential;
+									if (previousUserCredential.getUsername().equalsIgnoreCase(ldapUser.getName())) {
+										invalidUserCredential = userCredentialByDn;
+									} else {
+										invalidUserCredential = previousUserCredential;
+										previousUserCredential = userCredentialByDn;
+									}
+
+									try {
+										LOGGER.info(
+												"Could not delete username " + invalidUserCredential.getUsername() + ", attempting to change DN for " + invalidUserCredential.getUsername() + " instead");
+										invalidUserCredential.setDn(ldapUser.getId() + "-duplicate");
+										RecordUpdateOptions recordUpdateOptions = new RecordUpdateOptions();
+										recordUpdateOptions.setUnicityValidationsEnabled(false);
+										recordServices.update(invalidUserCredential.getWrappedRecord(), recordUpdateOptions);
+									} catch (Throwable t3) {
+										LOGGER.error("Unable to change DN for username " + invalidUserCredential.getUsername(), t3);
+									}
+								}
+							}
+						}
 						if (previousUserCredential != null) {
 							userCredential.setServiceKey(previousUserCredential.getServiceKey());
 							userCredential.setAccessTokens(previousUserCredential.getAccessTokens());
@@ -349,9 +391,15 @@ public class LDAPUserSyncManager implements StatefulService {
 	private void removeUsersExceptAdmins(List<String> removedUsersIds) {
 		for (String userId : removedUsersIds) {
 			if (!userId.equals(LDAPAuthenticationService.ADMIN_USERNAME)) {
-				if (!userServices.isAdminInAnyCollection(userId)) {
-					UserCredential userCredential = userServices.getUser(userId);
-					userServices.removeUserCredentialAndUser(userCredential);
+				try {
+					userServices.getUser(userId);
+
+					if (!userServices.isAdminInAnyCollection(userId)) {
+						UserCredential userCredential = userServices.getUser(userId);
+						userServices.removeUserCredentialAndUser(userCredential);
+					}
+				} catch (UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser e) {
+					// User no longer exists
 				}
 			}
 		}

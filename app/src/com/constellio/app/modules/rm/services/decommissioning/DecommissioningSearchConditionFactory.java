@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.services.decommissioning;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -112,9 +113,14 @@ public class DecommissioningSearchConditionFactory {
 	}
 
 	public LogicalSearchCondition activeToDestroy(String adminUnitId) {
-		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
+		LogicalSearchCondition result = fromFolderWhereAdministrativeUnitIs(adminUnitId)
 				.andWhere(schemas.folder.expectedDestructionDate()).isLessOrEqualThan(getDecommissioningDate())
 				.andWhere(schemas.folder.archivisticStatus()).isEqualTo(ACTIVE);
+		boolean destructionDecommissioningListIncludesSort = rmConfigs.isDestructionDecommissioningListIncludesSort();
+		if (!destructionDecommissioningListIncludesSort) {
+			result = result.andWhere(schemas.folder.inactiveDisposalType()).isEqualTo(DisposalType.DESTRUCTION);
+		}
+		return result;
 	}
 
 	public LogicalSearchCondition activeToDeposit(String adminUnitId) {
@@ -124,9 +130,14 @@ public class DecommissioningSearchConditionFactory {
 	}
 
 	public LogicalSearchCondition semiActiveToDestroy(String adminUnitId) {
-		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
+		LogicalSearchCondition result = fromFolderWhereAdministrativeUnitIs(adminUnitId)
 				.andWhere(schemas.folder.expectedDestructionDate()).isLessOrEqualThan(getDecommissioningDate())
 				.andWhere(schemas.folder.archivisticStatus()).isEqualTo(SEMI_ACTIVE);
+		boolean destructionDecommissioningListIncludesSort = rmConfigs.isDestructionDecommissioningListIncludesSort();
+		if (!destructionDecommissioningListIncludesSort) {
+			result = result.andWhere(schemas.folder.inactiveDisposalType()).isEqualTo(DisposalType.DESTRUCTION);
+		}
+		return result;
 	}
 
 	public LogicalSearchCondition semiActiveToDeposit(String adminUnitId) {
@@ -149,6 +160,7 @@ public class DecommissioningSearchConditionFactory {
 				.andWhere(schemas.documentArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
+	// FIXME Remove sort from destruction lists if option is activated 
 	public LogicalSearchCondition documentActiveToDestroy(String adminUnitId) {
 		return fromDocumentWhereAdministrativeUnitIs(adminUnitId)
 				.andWhere(schemas.document.sameInactiveFateAsFolder()).isFalse()
@@ -163,6 +175,7 @@ public class DecommissioningSearchConditionFactory {
 				.andWhere(schemas.documentArchivisticStatus()).isEqualTo(SEMI_ACTIVE);
 	}
 
+	// FIXME Remove sort from destruction lists if option is activated 
 	public LogicalSearchCondition documentSemiActiveToDestroy(String adminUnitId) {
 		return fromDocumentWhereAdministrativeUnitIs(adminUnitId)
 				.andWhere(schemas.document.sameInactiveFateAsFolder()).isFalse()

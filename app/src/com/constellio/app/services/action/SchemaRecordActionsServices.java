@@ -5,6 +5,10 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.management.sequence.SequenceServices;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
@@ -22,7 +26,7 @@ public class SchemaRecordActionsServices {
 		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		this.modelLayerCollectionextensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
 		this.appLayerCollectionExtensions = appLayerFactory.getExtensions().forCollection(collection);
-		;
+
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 	}
 
@@ -34,5 +38,14 @@ public class SchemaRecordActionsServices {
 	public boolean isDeleteActionPossible(Record record, User user) {
 		return appLayerCollectionExtensions.isDeleteActionPossibleOnSchemaRecord(record, user)
 			   && modelLayerCollectionextensions.validateDeleteAuthorized(record, user).isEmpty() && recordServices.validateLogicallyDeletable(record, user).isEmpty();
+	}
+
+	public boolean isSequencesActionPossible(Record record, User user, BaseView view) {
+		SessionContext sessionContext = view.getSessionContext();
+		ConstellioFactories constellioFactories = view.getConstellioFactories();
+		SequenceServices sequenceServices = new SequenceServices(constellioFactories, sessionContext);
+
+		return appLayerCollectionExtensions.isSequencesActionPossibleOnSchemaRecord(record, user) &&
+			   !sequenceServices.getAvailableSequences(record.getId()).isEmpty();
 	}
 }

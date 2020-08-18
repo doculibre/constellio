@@ -1,6 +1,7 @@
 package com.constellio.model.services.schemas.calculators;
 
 import com.constellio.data.utils.AccentApostropheCleaner;
+import com.constellio.data.utils.Pair;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
@@ -16,6 +17,7 @@ import com.google.common.base.Strings;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -40,9 +42,11 @@ public class AutocompleteFieldCalculator extends AbstractMetadataValueCalculator
 	public static void splitInLowerCasedTermsRemovingAccents(Set<String> words,
 															 DynamicDependencyValues autocompleteMetadatasValues,
 															 AutocompleteSplitCriteria autocompleteSplitCriteria) {
-		for (Metadata metadata : autocompleteMetadatasValues.getAvailableMetadatasWithAValue().onlySchemaAutocomplete()) {
-			splitInLowerCasedTermsRemovingAccents(words, (Object) autocompleteMetadatasValues.getValue(metadata),
-					autocompleteSplitCriteria);
+
+		Iterator<Pair<Metadata, Object>> iterator = autocompleteMetadatasValues.iterateWithValues();
+
+		while (iterator.hasNext()) {
+			splitInLowerCasedTermsRemovingAccents(words, iterator.next().getValue(), autocompleteSplitCriteria);
 		}
 	}
 
@@ -50,7 +54,7 @@ public class AutocompleteFieldCalculator extends AbstractMetadataValueCalculator
 															 AutocompleteSplitCriteria autocompleteSplitCriteria) {
 		String regex = autocompleteSplitCriteria.getRegex();
 
-		if (value instanceof List) {
+		if (valueIsStringList(value)) {
 			for (String item : (List<String>) value) {
 				splitInLowerCasedTermsRemovingAccents(words, item, regex);
 			}
@@ -58,6 +62,11 @@ public class AutocompleteFieldCalculator extends AbstractMetadataValueCalculator
 			splitInLowerCasedTermsRemovingAccents(words, (String) value, regex);
 
 		}
+	}
+
+	private static boolean valueIsStringList(Object value) {
+		return (value instanceof List && !((List) value).isEmpty())
+			   && ((List) value).get(0) instanceof String;
 	}
 
 	private static void splitInLowerCasedTermsRemovingAccents(Set<String> words, String value, String regex) {

@@ -21,6 +21,7 @@ import com.constellio.app.ui.pages.base.BaseView.ViewEnterListener;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -81,6 +82,7 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 					view.navigate().to().home();
 				}
 			}
+
 
 			@Override
 			public boolean exception(Exception e) {
@@ -299,6 +301,10 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 		return config;
 	}
 
+	protected ConfigProvider configProvider() {
+		return presenterUtils.configProvider();
+	}
+
 	public RMReportBuilderFactories getRmReportBuilderFactories() {
 		final AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
 		final RMModuleExtensions rmModuleExtensions = extensions.forModule(ConstellioRMModule.ID);
@@ -313,5 +319,15 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 	public List<String> getConceptsWithPermissionsForCurrentUser(String... permissions) {
 		return presenterUtils.getConceptsWithPermissionsForCurrentUser(permissions);
 	}
+
+
+
+	/*public String getGuideUrl() {
+		GuideManager manager = new GuideManager(appLayerFactory.getModelLayerFactory().getDataLayerFactory());
+		String language = ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage();
+		String field = "guide." + getClass().getSimpleName();
+		return manager.getPropertyValue(language, field);
+		//return $("guide." + getClass().getSimpleName());
+	}*/
 
 }

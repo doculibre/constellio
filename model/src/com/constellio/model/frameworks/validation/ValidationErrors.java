@@ -29,7 +29,13 @@ public class ValidationErrors {
 
 	public ValidationError create(Class<?> validatorClass, String code, Map<String, Object> parameters) {
 
-		return new ValidationError(validatorClass, code, parameters);
+		return create(validatorClass, code, parameters, null);
+	}
+
+	public ValidationError create(Class<?> validatorClass, String code, Map<String, Object> parameters,
+								  String additionalStack) {
+
+		return new ValidationError(validatorClass, code, parameters, additionalStack);
 	}
 
 	public final void add(Class<?> validatorClass, String code) {
@@ -41,7 +47,11 @@ public class ValidationErrors {
 	}
 
 	public void add(Class<?> validatorClass, String code, Map<String, Object> parameters) {
-		validationErrors.add(create(validatorClass, code, parameters));
+		add(validatorClass, code, parameters, null);
+	}
+
+	public void add(Class<?> validatorClass, String code, Map<String, Object> parameters, String additionalStack) {
+		validationErrors.add(create(validatorClass, code, parameters, additionalStack));
 	}
 
 	public final void addWarning(Class<?> validatorClass, String code) {
@@ -53,11 +63,20 @@ public class ValidationErrors {
 	}
 
 	public void addWarning(Class<?> validatorClass, String code, Map<String, Object> parameters) {
-		validationWarnings.add(create(validatorClass, code, parameters));
+		addWarning(validatorClass, code, parameters, null);
+	}
+
+	public void addWarning(Class<?> validatorClass, String code, Map<String, Object> parameters,
+						   String additionalStack) {
+		validationWarnings.add(create(validatorClass, code, parameters, additionalStack));
 	}
 
 	public void addLog(Class<?> validatorClass, String code, Map<String, Object> parameters) {
-		validationLogs.add(create(validatorClass, code, parameters));
+		addLog(validatorClass, code, parameters, null);
+	}
+
+	public void addLog(Class<?> validatorClass, String code, Map<String, Object> parameters, String additionalStack) {
+		validationLogs.add(create(validatorClass, code, parameters, additionalStack));
 	}
 
 	public final String toMultilineErrorsSummaryString() {
@@ -164,7 +183,7 @@ public class ValidationErrors {
 		return getValidationErrors().isEmpty() && getValidationWarnings().isEmpty();
 	}
 
-	public final boolean isEmptyErrorWarningAmdLogs() {
+	public final boolean isEmptyErrorWarningAndLogs() {
 		return getValidationErrors().isEmpty() && getValidationWarnings().isEmpty() && getValidationLogs().isEmpty();
 	}
 

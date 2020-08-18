@@ -317,7 +317,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 				tuple("comments", ""),
 				tuple("completiondate", ""),
 				tuple("decommissioningtype_code", "C"),
-				tuple("decommissioningtype_title", "DEPOSIT"),
+				tuple("decommissioningtype_title", "Versement"),
 				tuple("deleted", ""),
 				tuple("denytokens", ""),
 				tuple("description", ""),

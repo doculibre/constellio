@@ -1,5 +1,6 @@
 package com.constellio.data.utils.dev;
 
+import com.constellio.data.services.tenant.TenantLocal;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 
 import java.lang.reflect.Field;
@@ -10,7 +11,16 @@ import java.util.Map;
 
 public class Toggle {
 
-	public static AvailableToggle SDK_CACHE_INTEGRITY_VALIDATION = newToggle(true);
+	public static boolean OFF_HEAP_ADDRESS_VALIDATOR = false;
+
+	public static AvailableToggle PUBLIC_TOKENS = newToggle(false);
+
+	public static AvailableToggle TEMP_FRANCIS = newToggle(true);
+
+
+	public static AvailableToggle EXPORT_SAVESTATES_USING_WITH_FAILSAFE = newToggle(true);
+
+	public static AvailableToggle SDK_CACHE_INTEGRITY_VALIDATION = newToggle(false);
 	public static AvailableToggle SDK_REQUEST_CACHE_VALIDATION = newToggle();
 
 	public static AvailableToggle ROLES_WITH_NEW_7_2_PERMISSIONS = newToggle();
@@ -23,6 +33,7 @@ public class Toggle {
 	public static AvailableToggle FORCE_ROLLBACK = newToggle();
 	public static AvailableToggle LOST_PRIVATE_KEY = newToggle();
 	public static AvailableToggle EXTERNAL_TOKENS_DISABLED = newToggle();
+	public static AvailableToggle MARKED_RECORDS_IN_SAVESTATES_DISABLED = newToggle();
 	public static AvailableToggle NO_WEBSERVICES_PASSWORDS_VALIDATIONS = newToggle();
 	public static AvailableToggle STORAGE_SPACE_CAPACITIY_VALIDATION = newToggle(true);
 	public static AvailableToggle ALERT_USERS_EMAIL = newToggle(true);
@@ -75,27 +86,65 @@ public class Toggle {
 
 	public static AvailableToggle VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR = newToggle(false);
 
+	//For test puroposes only
+	public static AvailableToggle USE_ONLY_SUMMARY_SOLR_RECORD_DTO = newToggle(false);
+
+	//Debug the dtos!
 	public static AvailableToggle VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION = newToggle(false);
+	public static AvailableToggle DEBUG_DTOS = newToggle(false);
 
 	public static AvailableToggle MIGRATING_LEGACY_SAVESTATE = newToggle(false);
 
 	public static AvailableToggle TRI_LEVEL_CACHE_LOCKING_Mecanism = newToggle(false);
 
-	public static AvailableToggle USE_MMAP_WITHMAP_DB = newToggle(true);
+	public static AvailableToggle USE_MMAP_WITHMAP_DB_FOR_LOADING = newToggle(false);
+	public static AvailableToggle USE_MMAP_WITHMAP_DB_FOR_RUNTIME = newToggle(false);
 
 	public static AvailableToggle USE_FILESYSTEM_DB_FOR_LARGE_METADATAS_CACHE = newToggle(true);
 
-	public static AvailableToggle DEBUG_DTOS = newToggle(false);
 
-	public static AvailableToggle OFF_HEAP_ADDRESS_VALIDATOR = newToggle(false);
-
-	public static AvailableToggle NO_TAXONOMIES_CACHE_INVALIDATION = newToggle(false);
+	public static AvailableToggle NO_TAXONOMIES_CACHE_INVALIDATION = newToggle(true);
 
 	public static AvailableToggle PERFORMANCE_TESTING = newToggle(false);
 
+	public static AvailableToggle CONTENT_CONVERSION = newToggle(true);
+
 	public static AvailableToggle OLD_DELETE_UNUSED_CONTENT_METHOD = newToggle(false);
 
-	public static AvailableToggle TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER = newToggle(false);
+	public static AvailableToggle TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER = newToggle(true);
+	public static AvailableToggle FORCE_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER = newToggle(false);
+
+	public static AvailableToggle DEBUG_TAXONOMY_RECORDS_HOOK = newToggle(false);
+
+	public static AvailableToggle DETACHABLE_RECORDS = newToggle(true);
+
+	public static AvailableToggle DEBUG_SOLR_TIMINGS = newToggle(false);
+
+	public static AvailableToggle STRUCTURE_CACHE_BASED_ON_EXISTING_IDS = newToggle(true);
+	public static AvailableToggle STRUCTURE_CACHE_BASED_ON_EXISTING_IDS_ON_DEV_STATION = newToggle(false);
+
+	public static AvailableToggle ENABLE_PDFTRON_TRIAL = newToggle(false);
+
+	public static AvailableToggle USE_MEMORY_STRING_ID_MAPPING = newToggle(false);
+	public static AvailableToggle DOCUMENT_RETENTION_RULES = newToggle(false);
+
+	public static AvailableToggle COUNT_CACHE_FILESYSTEM_METADATA_USAGE = newToggle(false);
+
+	public static AvailableToggle TIFF_VIEWER = newToggle(false);
+	public static AvailableToggle SDK_PANEL_LOG_CALLS = newToggle(false);
+
+	public static AvailableToggle IGNORE_CONFIGS_WHEN_SYNCHRONIZING_AZURE_RELATED_USERS_AND_GROUPS = newToggle(false);
+
+	public static AvailableToggle PUT_IN_CONTAINER_ACTION = newToggle(false);
+
+	public static AvailableToggle ENABLE_OFFICE365_EXCLUSIVE = newToggle(false);
+
+	public static AvailableToggle ENABLE_SIGNATURE = newToggle(false);
+
+	public static AvailableToggle SHOW_STACK_TRACE_UPON_ERRORS = newToggle(false);
+
+	public static AvailableToggle ENABLE_CLOUD_SYSADMIN_FEATURES = newToggle(false);
+
 
 	// ------------------------------------------------
 
@@ -132,7 +181,7 @@ public class Toggle {
 			toggles = new ArrayList<>();
 		}
 		AvailableToggle toggle = new AvailableToggle();
-		toggle.enabled = value;
+		toggle.enabled.set(value);
 		toggle.defaultValue = value;
 		toggles.add(toggle);
 		return toggle;
@@ -159,49 +208,56 @@ public class Toggle {
 
 	public static class AvailableToggle {
 
-		private boolean enabled;
+		private final TenantLocal<Boolean> enabled = new TenantLocal<>();
 		private boolean defaultValue;
 
 		private String id;
 
 		public boolean isEnabled() {
-			return enabled;
+			return getIsEnabledAndInitToDefaultIfNull();
 		}
 
 		public void ensureDisabled() {
-			if (enabled) {
+			if (getIsEnabledAndInitToDefaultIfNull()) {
 				throw new ImpossibleRuntimeException("Unsupported with toggle '" + id + "'");
 			}
 		}
 
 		public void reset() {
-			enabled = defaultValue;
+			enabled.set(defaultValue);
 		}
 
 		public void ensureEnabled() {
-			if (!enabled) {
+			if (!getIsEnabledAndInitToDefaultIfNull()) {
 				throw new ImpossibleRuntimeException("Only supported with toggle '" + id + "'");
 			}
 		}
 
 		public boolean enable() {
-			boolean oldValue = enabled;
-			enabled = true;
+			boolean oldValue = getIsEnabledAndInitToDefaultIfNull();
+			enabled.set(true);
 			return oldValue;
 		}
 
 		public void set(boolean value) {
-			this.enabled = value;
+			this.enabled.set(value);
 		}
 
 		public boolean disable() {
-			boolean oldValue = enabled;
-			enabled = false;
+			boolean oldValue = getIsEnabledAndInitToDefaultIfNull();
+			enabled.set(false);
 			return oldValue;
 		}
 
 		public String getId() {
 			return id;
+		}
+
+		private boolean getIsEnabledAndInitToDefaultIfNull() {
+			if (enabled.get() == null) {
+				enabled.set(defaultValue);
+			}
+			return enabled.get();
 		}
 	}
 }

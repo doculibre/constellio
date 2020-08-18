@@ -9,8 +9,6 @@ import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.schemas.Schemas;
 import org.apache.commons.io.FilenameUtils;
 
-import static com.constellio.data.io.ConversionManager.isSupportedExtension;
-
 public class RMDocumentMigrationTo8_0_1_2 extends RecordMigrationScript {
 
 	private RMSchemasRecordsServices rm;
@@ -39,7 +37,7 @@ public class RMDocumentMigrationTo8_0_1_2 extends RecordMigrationScript {
 
 		String filename = content.getCurrentVersion().getFilename();
 		String ext = FilenameUtils.getExtension(filename).toLowerCase();
-		return isSupportedExtension(ext);
+		return rm.getModelLayerFactory().getDataLayerFactory().getConversionManager().isSupportedExtension(ext);
 
 	}
 

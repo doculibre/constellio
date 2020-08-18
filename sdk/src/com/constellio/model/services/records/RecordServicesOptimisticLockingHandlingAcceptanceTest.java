@@ -15,7 +15,7 @@ import com.constellio.model.services.records.RecordServicesException.Unresolvabl
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.annotations.SlowTest;
+import com.constellio.sdk.tests.annotations.IntermittentFailureTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,7 +29,7 @@ import static java.util.Arrays.asList;
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SlowTest
+// Confirm @SlowTest
 public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends ConstellioTest {
 
 	RecordServices recordServices;
@@ -230,6 +230,7 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 	}
 
 	@Test
+	@IntermittentFailureTest
 	public void givenRecordWithCopiedValuesWhenMergingThenCopiedMetadatasMerged()
 			throws Exception {
 		final int numberOfThreads = 10;

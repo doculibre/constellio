@@ -17,4 +17,7 @@ public interface ReindexingAggregatedValuesTempStorage {
 	void incrementReferenceCount(String recordIdAggregatingValues, String aggregatedMetadataLocalCode);
 
 	int getReferenceCount(String recordIdAggregatingValues, String aggregatedMetadataLocalCode);
+
+	void populateCacheConsumptionInfos(SystemReindexingConsumptionInfos infos);
+
 }

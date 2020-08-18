@@ -31,6 +31,7 @@ public class ImportedMetadata {
 	private List<String> visibleInResultIn = new ArrayList<>();
 	private Boolean visibleInTables;// = false;
 	private List<String> visibleInTablesIn = new ArrayList<>();
+	private String sortingType;
 
 	private String tab;
 	private Boolean multiValue;
@@ -340,6 +341,15 @@ public class ImportedMetadata {
 
 	public ImportedMetadata setUnique(Boolean unique) {
 		this.unique = unique;
+		return this;
+	}
+
+	public String getSortingType() {
+		return sortingType;
+	}
+
+	public ImportedMetadata setSortingType(String sortingType) {
+		this.sortingType = sortingType;
 		return this;
 	}
 
