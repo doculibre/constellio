@@ -411,9 +411,6 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		File zipFile = buildZipWithContent(Arrays.asList(uploadedFile1, uploadedFile2), "administrativeUnit.xml",
 				"category.xml", "containerRecord.xml", "ddvContainerRecordType.xml", "folder.xml", "document.xml",
 				"retentionRule.xml", "ddvDocumentType.xml", "decommissioningList.xml");
-		File destination = new File("C:\\Users\\Constellio\\Desktop\\constellio\\dev\\workflows", zipFile.getName());
-		FileUtils.copyFile(zipFile, destination);
-
 		importServices.bulkImport(XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile), progressionListener, admin);
 		assertThat(contentManager.getParsedContent(uploadedFile1Hash) != null);
 		assertThat(contentManager.getParsedContent(uploadedFile2Hash) != null);
@@ -421,7 +418,6 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(contentManager.getParsedContent(uploadedFile1Hash).getParsedContent().equals("I am the value"));
 		assertThat(contentManager.getParsedContent(uploadedFile1Hash).getParsedContent().equals("I am another value"));
 	}
-
 
 
 	private void importAndValidate() {

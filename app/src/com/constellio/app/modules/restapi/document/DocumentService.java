@@ -84,6 +84,8 @@ public class DocumentService extends ResourceService {
 
 		validateUserAccess(user, folder, method);
 
+		validateAttributes(document.getAttributes(), schema);
+
 		validateExtendedAttributes(document.getExtendedAttributes(), schema);
 
 		validateAuthorizations(document.getDirectAces(), collection);

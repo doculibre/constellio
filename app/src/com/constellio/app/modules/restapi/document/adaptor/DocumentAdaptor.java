@@ -86,6 +86,8 @@ public class DocumentAdaptor extends ResourceAdaptor<DocumentDto> {
 			resource.setInheritedAces(filters.contains("inheritedAces") ? null : aces.getInheritedAces());
 		}
 
+		resource.setAttributes(null);
+
 		if (filters.contains("extendedAttributes")) {
 			resource.setExtendedAttributes(null);
 		} else if (resource.getExtendedAttributes() == null) {

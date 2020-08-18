@@ -35,6 +35,8 @@ import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordUsageCounterHookRetriever;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.UserCredentialServiceKeyCacheHookRetriever;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.UserCredentialTokenCacheHookRetriever;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -164,6 +166,8 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	EncryptionServices newEncryptionServices();
 
+	void resetEncryptionServices();
+
 	SearchBoostManager getSearchBoostManager();
 
 	void setAuthenticationService(AuthenticationService authenticationService);
@@ -204,4 +208,8 @@ public interface ModelLayerFactory extends LayerFactory {
 			}
 		};
 	}
+
+	UserCredentialTokenCacheHookRetriever getUserCredentialTokenCacheHookRetriever();
+
+	UserCredentialServiceKeyCacheHookRetriever getUserCredentialServiceKeyCacheHookRetriever();
 }

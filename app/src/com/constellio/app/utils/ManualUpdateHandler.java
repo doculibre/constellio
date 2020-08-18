@@ -1,25 +1,16 @@
 package com.constellio.app.utils;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import org.apache.commons.io.FileUtils;
-
 import com.constellio.app.api.extensions.UpdateModeExtension.UpdateModeHandler;
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFound;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.components.converters.TempFileUploadToContentVersionVOConverter;
+import com.constellio.app.ui.framework.components.fields.download.BaseDownloadField;
+import com.constellio.app.ui.framework.components.fields.download.TempFileDownload;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.ui.Alignment;
@@ -28,6 +19,13 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ManualUpdateHandler implements UpdateModeHandler {
 
@@ -63,10 +61,12 @@ public class ManualUpdateHandler implements UpdateModeHandler {
 
 		private BaseUploadField uploadField;
 		private Button uploadButton;
+		private BaseDownloadField downloadField;
+
 
 		private ManualUploadPanel() {
 			setWidth("100%");
-			setHeight("250px");
+			setHeight("450px");
 			setSpacing(true);
 
 			uploadField = new BaseUploadField();
@@ -76,19 +76,41 @@ public class ManualUpdateHandler implements UpdateModeHandler {
 				@Override
 				public void valueChange(ValueChangeEvent event) {
 					TempFileUpload tempUpload = (TempFileUpload) uploadField.getValue();
-					uploadButton.setEnabled(tempUpload != null);
+					TempFileDownload tempDownload = (TempFileDownload) downloadField.getValue();
+					uploadButton.setEnabled(tempUpload != null || tempDownload != null);
 				}
 			});
 
-			uploadButton = new BaseButton($("UpdateManagerViewImpl.upload")) {
+			downloadField = new BaseDownloadField();
+			downloadField.setCaption($("UpdateManagerViewImpl.useUrl"));
+			downloadField.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					TempFileDownload tempDownload = (TempFileDownload) downloadField.getValue();
+					TempFileUpload tempUpload = (TempFileUpload) uploadField.getValue();
+					uploadButton.setEnabled(tempUpload != null || tempDownload != null);
+				}
+			});
+
+			uploadButton = new BaseButton($("UpdateManagerViewImpl.updateButton")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					TempFileUpload tempUpload = (TempFileUpload) uploadField.getValue();
-					if (tempUpload != null) {
+					TempFileDownload tempDownload = (TempFileDownload) downloadField.getValue();
+					if (tempUpload != null || tempDownload != null) {
 						try {
+							File uploadedFile = null;
+							if (tempUpload != null) {
+								uploadedFile = tempUpload.getTempFile();
+							} else if (tempDownload != null) {
+								uploadedFile = tempDownload.getTempFile();
+							} else {
+								throw new WarFileNotFound();
+							}
+
 							File warFile = appLayerFactory.getModelLayerFactory().getFoldersLocator()
 									.getUploadConstellioWarFile();
-							File uploadedFile = tempUpload.getTempFile();
+
 							FileUtils.copyFile(uploadedFile, warFile);
 
 							ProgressInfo progressInfo = view.openProgressPopup();
@@ -101,7 +123,13 @@ public class ManualUpdateHandler implements UpdateModeHandler {
 								view.showErrorMessage($("UpdateManagerViewImpl.error.upload"));
 							} finally {
 								view.closeProgressPopup();
-								tempUpload.delete();
+
+								if (tempUpload != null) {
+									tempUpload.delete();
+								}
+								if (tempDownload != null) {
+									tempDownload.delete();
+								}
 								//view.
 							}
 						} catch (FileNotFoundException fnfe) {
@@ -115,7 +143,7 @@ public class ManualUpdateHandler implements UpdateModeHandler {
 			uploadButton.setEnabled(false);
 			uploadButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
-			addComponents(uploadField, uploadButton);
+			addComponents(uploadField, downloadField, uploadButton);
 			setComponentAlignment(uploadButton, Alignment.MIDDLE_RIGHT);
 		}
 

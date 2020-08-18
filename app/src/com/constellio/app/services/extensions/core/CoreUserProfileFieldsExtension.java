@@ -10,7 +10,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
 import com.constellio.app.ui.framework.components.ComponentState;
-import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
+import com.constellio.app.ui.framework.components.fields.ExtraTabAdditionalRecordField;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
@@ -44,15 +44,15 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 	}
 
 	@Override
-	public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
-		ArrayList<AdditionnalRecordField> additionnalFields = new ArrayList<>();
+	public List<ExtraTabAdditionalRecordField> getExtraTabAdditionalRecordFields(RecordFieldsExtensionParams params) {
+		ArrayList<ExtraTabAdditionalRecordField> additionnalFields = new ArrayList<>();
 		if (params.getMainComponent() instanceof ModifyProfileView) {
-			AdditionnalRecordField defaultPageLengthField = buildDefaultPageLengthField(params);
-			AdditionnalRecordField startTabField = buildStartTabField(params);
-			AdditionnalRecordField defaultTaxonomyField = buildDefaultTaxonomyField(params);
-			AdditionnalRecordField taxonomyOrderField = buildTaxonomyDisplayOrderField(params);
-			AdditionnalRecordField enabledFacetsField = buildDoApplyFacetsButton(params);
-			//			AdditionnalRecordField doNotReceiveEmailsField = buildDoNotReceiveEmailsField(params);
+			ExtraTabAdditionalRecordField defaultPageLengthField = buildDefaultPageLengthField(params);
+			ExtraTabAdditionalRecordField startTabField = buildStartTabField(params);
+			ExtraTabAdditionalRecordField defaultTaxonomyField = buildDefaultTaxonomyField(params);
+			ExtraTabAdditionalRecordField taxonomyOrderField = buildTaxonomyDisplayOrderField(params);
+			ExtraTabAdditionalRecordField enabledFacetsField = buildDoApplyFacetsButton(params);
+			//			ExtraTabAdditionalRecordField doNotReceiveEmailsField = buildDoNotReceiveEmailsField(params);
 
 			additionnalFields.addAll(asList(defaultPageLengthField, startTabField, defaultTaxonomyField,
 					taxonomyOrderField, enabledFacetsField/*, doNotReceiveEmailsField*/));
@@ -60,7 +60,7 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 		return additionnalFields;
 	}
 
-	private AdditionnalRecordField buildDefaultPageLengthField(RecordFieldsExtensionParams params) {
+	private ExtraTabAdditionalRecordField buildDefaultPageLengthField(RecordFieldsExtensionParams params) {
 		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 
 		DefaultSearchPageLengthFieldImpl defaultPageLength = new DefaultSearchPageLengthFieldImpl();
@@ -68,7 +68,7 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 		return defaultPageLength;
 	}
 
-	private AdditionnalRecordField buildStartTabField(RecordFieldsExtensionParams params) {
+	private ExtraTabAdditionalRecordField buildStartTabField(RecordFieldsExtensionParams params) {
 		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 
 		ConstellioModulesManagerImpl manager = (ConstellioModulesManagerImpl) appLayerFactory.getModulesManager();
@@ -90,7 +90,7 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 		return defaultPageLength;
 	}
 
-	private AdditionnalRecordField buildDefaultTaxonomyField(RecordFieldsExtensionParams params) {
+	private ExtraTabAdditionalRecordField buildDefaultTaxonomyField(RecordFieldsExtensionParams params) {
 		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 
 		TaxonomyVODataProvider dataProvider = new TaxonomyVODataProvider(new TaxonomyToVOBuilder(), appLayerFactory.getModelLayerFactory(),
@@ -101,7 +101,7 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 		return defaultTaxonomyField;
 	}
 
-	private AdditionnalRecordField buildTaxonomyDisplayOrderField(RecordFieldsExtensionParams params) {
+	private ExtraTabAdditionalRecordField buildTaxonomyDisplayOrderField(RecordFieldsExtensionParams params) {
 		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 
 		TaxonomyVODataProvider dataProvider = new TaxonomyVODataProvider(new TaxonomyToVOBuilder(),
@@ -114,7 +114,7 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 		return taxonomyDisplayOrderField;
 	}
 
-	private AdditionnalRecordField buildDoNotReceiveEmailsField(RecordFieldsExtensionParams params) {
+	private ExtraTabAdditionalRecordField buildDoNotReceiveEmailsField(RecordFieldsExtensionParams params) {
 		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 
 		UserCredential userCredentials = (UserCredential) appLayerFactory.getModelLayerFactory().newUserServices()
@@ -130,7 +130,7 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 
 	}
 
-	private AdditionnalRecordField buildDoApplyFacetsButton(RecordFieldsExtensionParams params) {
+	private ExtraTabAdditionalRecordField buildDoApplyFacetsButton(RecordFieldsExtensionParams params) {
 		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 
 		boolean isApplyFacetsEnabled = user.isApplyFacetsEnabled();
@@ -142,7 +142,7 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 		return enableFacetsApplyButton;
 	}
 
-	private class DefaultSearchPageLengthFieldImpl extends EnumWithSmallCodeComboBox<SearchPageLength> implements AdditionnalRecordField<Object> {
+	private class DefaultSearchPageLengthFieldImpl extends EnumWithSmallCodeComboBox<SearchPageLength> implements ExtraTabAdditionalRecordField<Object> {
 
 		public DefaultSearchPageLengthFieldImpl() {
 			super(SearchPageLength.class);
@@ -150,6 +150,11 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 			setId("defaultPageLength");
 			setNullSelectionAllowed(false);
 			setImmediate(true);
+		}
+
+		@Override
+		public String getTab() {
+			return $("ModifyProfileView.configsTab");
 		}
 
 		@Override
@@ -173,7 +178,7 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 		}
 	}
 
-	private class StartTabFieldImpl extends OptionGroup implements AdditionnalRecordField<Object> {
+	private class StartTabFieldImpl extends OptionGroup implements ExtraTabAdditionalRecordField<Object> {
 		public StartTabFieldImpl(List<String> tabs) {
 			super($("ModifyProfileView.startTab"));
 			setId("startTab");
@@ -181,6 +186,11 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 				addItem(tab);
 				setItemCaption(tab, $("HomeView.tab." + tab));
 			}
+		}
+
+		@Override
+		public String getTab() {
+			return $("ModifyProfileView.configsTab");
 		}
 
 		@Override
@@ -204,7 +214,7 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 		}
 	}
 
-	private class DefaultTaxonomyFieldImpl extends ListOptionGroup implements AdditionnalRecordField<Object> {
+	private class DefaultTaxonomyFieldImpl extends ListOptionGroup implements ExtraTabAdditionalRecordField<Object> {
 		public DefaultTaxonomyFieldImpl(List<TaxonomyVO> taxonomies) {
 			super($("ModifyProfileView.defaultTaxonomy"));
 			addStyleName("defaultTaxonomy");
@@ -215,6 +225,11 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 				addItem(taxonomy.getCode());
 				setItemCaption(taxonomy.getCode(), taxonomy.getTitle());
 			}
+		}
+
+		@Override
+		public String getTab() {
+			return $("ModifyProfileView.configsTab");
 		}
 
 		@Override
@@ -239,7 +254,7 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 	}
 
 	private class TaxonomyDisplayOrderFieldImpl extends ListAddRemoveField<String, ComboBox>
-			implements AdditionnalRecordField<List<String>> {
+			implements ExtraTabAdditionalRecordField<List<String>> {
 		private List<TaxonomyVO> taxonomies;
 		private Map<String, String> taxonomiesTitle;
 
@@ -256,6 +271,11 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 					taxonomiesTitle.put(taxonomy.getCode(), taxonomy.getTitle());
 				}
 			}
+		}
+
+		@Override
+		public String getTab() {
+			return $("ModifyProfileView.configsTab");
 		}
 
 		@Override
@@ -297,10 +317,15 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 		}
 	}
 
-	private class DoNotReceiveEmailsFieldImpl extends CheckBox implements AdditionnalRecordField<Boolean> {
+	private class DoNotReceiveEmailsFieldImpl extends CheckBox implements ExtraTabAdditionalRecordField<Boolean> {
 
 		public DoNotReceiveEmailsFieldImpl() {
 			super($("ModifyProfileView.doNotReceiveEmails"));
+		}
+
+		@Override
+		public String getTab() {
+			return $("ModifyProfileView.configsTab");
 		}
 
 		@Override
@@ -314,10 +339,15 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 		}
 	}
 
-	private class EnableFacetsApplyButton extends CheckBox implements AdditionnalRecordField<Boolean> {
+	private class EnableFacetsApplyButton extends CheckBox implements ExtraTabAdditionalRecordField<Boolean> {
 
 		public EnableFacetsApplyButton() {
 			super($("ModifyProfileView.enableFacetsApplyButton"));
+		}
+
+		@Override
+		public String getTab() {
+			return $("ModifyProfileView.configsTab");
 		}
 
 		@Override
