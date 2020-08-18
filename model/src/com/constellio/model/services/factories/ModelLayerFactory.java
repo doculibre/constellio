@@ -24,6 +24,7 @@ import com.constellio.model.services.emails.EmailTemplatesManager;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.logs.LogServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.migrations.RecordMigrationsManager;
 import com.constellio.model.services.parser.FileParser;
@@ -34,6 +35,8 @@ import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordUsageCounterHookRetriever;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.UserCredentialServiceKeyCacheHookRetriever;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.UserCredentialTokenCacheHookRetriever;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -125,6 +128,8 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	LoggingServices newLoggingServices();
 
+	LogServices newLogServices();
+
 	IOServicesFactory getIOServicesFactory();
 
 	ModelLayerConfiguration getConfiguration();
@@ -162,6 +167,8 @@ public interface ModelLayerFactory extends LayerFactory {
 	void setEncryptionKey(Key key);
 
 	EncryptionServices newEncryptionServices();
+
+	void resetEncryptionServices();
 
 	SearchBoostManager getSearchBoostManager();
 
@@ -203,4 +210,8 @@ public interface ModelLayerFactory extends LayerFactory {
 			}
 		};
 	}
+
+	UserCredentialTokenCacheHookRetriever getUserCredentialTokenCacheHookRetriever();
+
+	UserCredentialServiceKeyCacheHookRetriever getUserCredentialServiceKeyCacheHookRetriever();
 }

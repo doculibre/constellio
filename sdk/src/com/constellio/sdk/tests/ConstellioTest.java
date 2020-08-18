@@ -241,8 +241,9 @@ public class ConstellioTest extends AbstractConstellioTest {
 	@After
 	public void checkCacheAfterTest() throws Exception {
 
-		if (!failureDetectionTestWatcher.isFailed() && isUnitTestStatic() && ConstellioFactories.isInitialized()
-			&& cacheIntegrityCheckedAfterTest && Toggle.SDK_CACHE_INTEGRITY_VALIDATION.isEnabled()) {
+		if (!failureDetectionTestWatcher.isFailed() && isUnitTestStatic() &&
+			Toggle.SDK_CACHE_INTEGRITY_VALIDATION.isEnabled() && ConstellioFactories.isInitialized() &&
+			cacheIntegrityCheckedAfterTest) {
 
 			ConstellioFactories.getInstance().getDataLayerFactory()
 					.getDataLayerLogger().setPrintAllQueriesLongerThanMS(10000);

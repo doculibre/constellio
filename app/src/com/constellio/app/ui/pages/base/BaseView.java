@@ -2,11 +2,12 @@ package com.constellio.app.ui.pages.base;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.framework.components.dialogs.ConfirmDialogShower;
 
 import java.io.Serializable;
 import java.util.List;
 
-public interface BaseView extends ViewComponent {
+public interface BaseView extends ViewComponent, ConfirmDialogShower {
 
 	String getCollection();
 

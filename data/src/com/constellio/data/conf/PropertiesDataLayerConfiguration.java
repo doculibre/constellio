@@ -517,4 +517,43 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return getElectionServiceType() != ElectionServiceType.STANDALONE;
 	}
 
+	@Override
+	public String getAzureBlobStorageConnectionString() {
+		return getRequiredString("dao.contents.azure.connectionString");
+	}
+
+	@Override
+	public String getAzureBlobStorageConnectionAccountName() {
+		return getRequiredString("dao.contents.azure.accountName");
+	}
+
+	@Override
+	public String getAzureBlobStorageConnectionAccountKey() {
+		return getRequiredString("dao.contents.azure.accountKey");
+	}
+
+	@Override
+	public void setAzureBlobStorageConnectionAccountName(String accountName) {
+		setString("dao.contents.azure.accountName", accountName);
+	}
+
+	@Override
+	public void setAzureBlobStorageConnectionAccountKey(String accountKey) {
+		setString("dao.contents.azure.accountKey", accountKey);
+	}
+
+	@Override
+	public void setAzureBlobStorageContainerName(String containerName) {
+		setString("dao.contents.azure.containerName", containerName);
+	}
+
+	@Override
+	public void setAzureBlobStorageConnectionString(String containerName) {
+		setString("dao.contents.azure.connectionString", containerName);
+	}
+
+	@Override
+	public String getAzureBlobStorageContainerName() {
+		return getRequiredString("dao.contents.azure.containerName");
+	}
 }

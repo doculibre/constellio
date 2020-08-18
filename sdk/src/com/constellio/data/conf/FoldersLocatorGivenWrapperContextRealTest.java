@@ -25,7 +25,7 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 	static String givenJavaRootFolderIsNewWebappFolder = "givenJavaRootFolderIsNewWebappFolder";
 	static File constellioProperties, keystore, constellioSetupProperties, wrapperInstallationFolder, conf, importation, bin, webapp,
 			webapp2, webapp3, webinf, wrapperConf, command, deploy, temp, commandCmdTxt, uploadConstellioWar, settings, custom,
-			lib, languageProfiles, dict, bpmns, anotherTemp, smtpMail, buildData, vaadin, themes, themesConstellio,
+			lib, languageProfiles, dict, bpmns, anotherTemp, smtpMail, buildData, vaadin, themes, themesConstellio, classesFolder,
 			themesConstellioImages, crypt, workFolder;
 	String testCase;
 	FoldersLocator foldersLocator;
@@ -58,6 +58,7 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 		bpmns = new File(conf, "bpmns");
 		smtpMail = new File(conf, "smtpMail");
 		languageProfiles = new File(webinf, "languageProfiles");
+		classesFolder = new File(webinf, "classes");
 		dict = new File(webinf, "dict");
 		bin = new File(wrapperInstallationFolder, "bin");
 		settings = new File(conf, "settings");
@@ -149,6 +150,12 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 	public void whenGetConstellioLanguageSchemasFolderThenReturnCorrectFolder()
 			throws Exception {
 		Assertions.assertThat(foldersLocator.getLanguageProfiles()).isEqualTo(languageProfiles);
+	}
+
+	@Test
+	public void whenGetClassesPropFolderThenReturnCorrectFolder()
+			throws Exception {
+		Assertions.assertThat(foldersLocator.getWebClasses()).isEqualTo(classesFolder);
 	}
 
 	@Test

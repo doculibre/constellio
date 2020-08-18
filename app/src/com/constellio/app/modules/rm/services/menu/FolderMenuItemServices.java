@@ -220,12 +220,12 @@ public class FolderMenuItemServices {
 		}
 
 
-//		if (!filteredActionTypes.contains(FOLDER_LIST_EXTERNAL_LINKS.name())) {
-//			menuItemActions.add(buildMenuItemAction(FOLDER_LIST_EXTERNAL_LINKS.name(),
-//					isMenuItemActionPossible(FOLDER_LIST_EXTERNAL_LINKS.name(), folder, user, params),
-//					$("DisplayFolderView.externalLink"), FontAwesome.CLOUD, -1, 1900,
-//					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).listExternalLinks(folder, params)));
-//		}
+		//		if (!filteredActionTypes.contains(FOLDER_LIST_EXTERNAL_LINKS.name())) {
+		//			menuItemActions.add(buildMenuItemAction(FOLDER_LIST_EXTERNAL_LINKS.name(),
+		//					isMenuItemActionPossible(FOLDER_LIST_EXTERNAL_LINKS.name(), folder, user, params),
+		//					$("DisplayFolderView.externalLink"), FontAwesome.CLOUD, -1, 1900,
+		//					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).listExternalLinks(folder, params)));
+		//		}
 
 		if (!filteredActionTypes.contains(FOLDER_CREATE_TASK.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_CREATE_TASK.name(),

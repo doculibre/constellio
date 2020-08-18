@@ -46,5 +46,4 @@ public class XMLImportSchemaTypesDataProvider extends XMLImportDataProvider impl
 	protected String getTempFolderStreamName() {
 		return TEMP_FOLDER_STREAM_NAME;
 	}
-
 }

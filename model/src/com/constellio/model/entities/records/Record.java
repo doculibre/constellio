@@ -70,6 +70,9 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 		return false;
 	}
 
+
+	Record set(Metadata metadata, SetMetadataOption setMetadataOption, Object value);
+
 	Record set(Metadata metadata, Object value);
 
 	Record set(Metadata metadata, Locale locale, Object value);
@@ -147,7 +150,10 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 	RecordDTO getRecordDTO();
 
 	enum GetMetadataOption {
-		NO_SUMMARY_METADATA_VALIDATION, DIRECT_GET_FROM_DTO, RARELY_HAS_VALUE;
+		NO_SUMMARY_METADATA_VALIDATION, DIRECT_GET_FROM_DTO, RARELY_HAS_VALUE, NO_DECRYPTION;
 	}
 
+	enum SetMetadataOption {
+		NO_DECRYPTION;
+	}
 }

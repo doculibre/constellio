@@ -27,8 +27,7 @@ public class ParsedContent {
 	private String title;
 
 	public ParsedContent(String parsedContent, String language, String mimeType, long length,
-						 Map<String, Object> properties,
-						 Map<String, List<String>> styles) {
+						 Map<String, Object> properties, Map<String, List<String>> styles) {
 		this.parsedContent = parsedContent;
 		this.language = language;
 		this.mimeType = mimeType;
@@ -125,4 +124,5 @@ public class ParsedContent {
 	public void setTitle(String title) {
 		this.title = title;
 	}
+
 }

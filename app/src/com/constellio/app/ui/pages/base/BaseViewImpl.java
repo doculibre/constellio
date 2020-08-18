@@ -9,6 +9,8 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.buttons.BackButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.dialogs.ConfirmDialogProperties;
+import com.constellio.app.ui.framework.components.dialogs.ConfirmDialogShowerImpl;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.decorators.base.ActionMenuButtonsDecorator;
@@ -615,6 +617,11 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		//		notification.setHtmlContentAllowed(true);
 		//		notification.show(Page.getCurrent());
 		ClickableNotification.show(ConstellioUI.getCurrent(), "", message);
+	}
+
+	@Override
+	public void showConfirmDialog(ConfirmDialogProperties properties) {
+		new ConfirmDialogShowerImpl(UI::getCurrent).showConfirmDialog(properties);
 	}
 
 	@Override

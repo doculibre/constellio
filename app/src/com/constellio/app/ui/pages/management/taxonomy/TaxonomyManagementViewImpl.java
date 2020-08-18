@@ -31,6 +31,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.base.CustomGuideUrl;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.vaadin.data.Container;
@@ -58,7 +59,7 @@ import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class TaxonomyManagementViewImpl extends BaseViewImpl implements TaxonomyManagementView {
+public class TaxonomyManagementViewImpl extends BaseViewImpl implements TaxonomyManagementView, CustomGuideUrl {
 	VerticalLayout layout;
 	private HorizontalLayout searchLayout;
 	private TaxonomyManagementPresenter presenter;
@@ -394,6 +395,11 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 
 	public TaxonomyVO getTaxonomy() {
 		return presenter.getTaxonomy();
+	}
+
+	@Override
+	public String getGuideKey() {
+		return presenter.getGuideKey();
 	}
 
 	public static class SplitCommentsMetadataDisplayFactory extends MetadataDisplayFactory {

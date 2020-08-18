@@ -5,7 +5,6 @@ import com.constellio.model.services.emails.EmailServicesRuntimeException.EmailS
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;

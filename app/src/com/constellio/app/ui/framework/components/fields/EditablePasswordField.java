@@ -1,11 +1,9 @@
 package com.constellio.app.ui.framework.components.fields;
 
-import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.converters.CommentToStringConverter;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.vaadin.data.Property;
-import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.server.ErrorMessage;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
@@ -28,7 +26,7 @@ public class EditablePasswordField extends CustomField<String> {
 	}
 
 	public EditablePasswordField(String caption) {
-	    setCaption(caption);
+		setCaption(caption);
 		mainLayout = new I18NHorizontalLayout();
 		mainLayout.setSpacing(true);
 
@@ -71,7 +69,7 @@ public class EditablePasswordField extends CustomField<String> {
 	public void setValue(String newValue)
 			throws ReadOnlyException {
 		super.setValue(newValue);
-		if(passwordField != null) {
+		if (passwordField != null) {
 			passwordField.setValue(newValue);
 		}
 	}
