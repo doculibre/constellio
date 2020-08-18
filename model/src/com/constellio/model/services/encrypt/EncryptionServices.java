@@ -109,14 +109,10 @@ public class EncryptionServices {
 	//
 
 	public Object encryptWithAppKey(Object toEncrypt) {
-		return encrypt(toEncrypt, key, null);
+		return encrypt(toEncrypt, key);
 	}
 
-	public Object encrypt(Object toEncrypt, Key key) {
-		return encrypt(toEncrypt, key, null);
-	}
-
-	private Object encrypt(Object toEncrypt, Object key, byte[] iv) {
+	public Object encrypt(Object toEncrypt, Object key) {
 		if (toEncrypt == null) {
 			return null;
 		}
@@ -125,38 +121,31 @@ public class EncryptionServices {
 			List<Object> list = (List<Object>) toEncrypt;
 			List<Object> encryptedValues = new ArrayList<>();
 			for (Object item : list) {
-				encryptedValues.add(encrypt(item, key, iv));
+				encryptedValues.add(encrypt(item, key));
 			}
 			return encryptedValues;
 		} else if (toEncrypt instanceof String) {
-			return encrypt((String) toEncrypt, key, iv);
+			return encrypt((String) toEncrypt, key);
 		}
 
 		throw new IllegalArgumentException("Unsupported element of class '" + toEncrypt.getClass().getName() + "'");
 	}
 
-	private String encrypt(String toEncrypt, Object key, byte[] iv) {
-		boolean needGeneratedIv = iv == null;
-		if (needGeneratedIv) {
-			iv = generateIv();
-		}
-
+	private String encrypt(String toEncrypt, Object key) {
 		try {
+			byte[] iv = generateIv();
+
 			Cipher cipher = Cipher.getInstance(EncryptionAlgorithm.AES.getAlgorithm());
 			Key cipherKey = key instanceof byte[] ? new SecretKeySpec((byte[]) key, "AES") : (Key) key;
 			cipher.init(Cipher.ENCRYPT_MODE, cipherKey, new IvParameterSpec(iv));
 
 			byte[] encryptedText = cipher.doFinal(toEncrypt.getBytes());
 
-			if (needGeneratedIv) {
-				byte[] result = new byte[iv.length + encryptedText.length];
-				System.arraycopy(iv, 0, result, 0, iv.length);
-				System.arraycopy(encryptedText, 0, result, iv.length, encryptedText.length);
+			byte[] result = new byte[iv.length + encryptedText.length];
+			System.arraycopy(iv, 0, result, 0, iv.length);
+			System.arraycopy(encryptedText, 0, result, iv.length, encryptedText.length);
 
-				return Base64.encodeBase64String(result);
-			} else {
-				return Base64.encodeBase64String(encryptedText);
-			}
+			return Base64.encodeBase64String(result);
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot encrypt '" + toEncrypt + "'", e);
 		}
@@ -167,42 +156,30 @@ public class EncryptionServices {
 	//
 
 	public File encryptWithAppKey(File toEncrypt, File encryptedFile) {
-		return encrypt(toEncrypt, encryptedFile, key, this.iv);
+		return encrypt(toEncrypt, encryptedFile, key);
 	}
 
-	public File encrypt(File toEncrypt, File encryptedFile, Key key) {
-		return encrypt(toEncrypt, encryptedFile, key, null);
-	}
-
-	private File encrypt(File toEncrypt, File encryptedFile, Object key, byte[] iv) {
+	public File encrypt(File toEncrypt, File encryptedFile, Object key) {
 		if (toEncrypt == null) {
 			return null;
 		}
 
-		boolean needGeneratedIv = iv == null;
-		if (needGeneratedIv) {
-			iv = generateIv();
-		}
-
-		Cipher cipher;
-
 		try {
-			cipher = Cipher.getInstance(EncryptionAlgorithm.AES.getAlgorithm());
+			byte[] iv = generateIv();
+
+			Cipher cipher = Cipher.getInstance(EncryptionAlgorithm.AES.getAlgorithm());
 			Key cipherKey = key instanceof byte[] ? new SecretKeySpec((byte[]) key, "AES") : (Key) key;
 			cipher.init(Cipher.ENCRYPT_MODE, cipherKey, new IvParameterSpec(iv));
-		} catch (Exception e) {
-			throw new RuntimeException("Cannot encrypt '" + toEncrypt.getName() + "'", e);
-		}
 
-		try (InputStream in = new BufferedInputStream(new FileInputStream(toEncrypt));
-			 OutputStream out = new BufferedOutputStream(new FileOutputStream(encryptedFile));
-			 OutputStream cipherOut = new BufferedOutputStream(new CipherOutputStream(out, cipher))) {
+			try (InputStream in = new BufferedInputStream(new FileInputStream(toEncrypt));
+				 OutputStream out = new BufferedOutputStream(new FileOutputStream(encryptedFile));
+				 OutputStream cipherOut = new BufferedOutputStream(new CipherOutputStream(out, cipher))) {
 
-			if (needGeneratedIv) {
 				out.write(iv);
+				IOUtils.copy(in, cipherOut);
+			} catch (Exception e) {
+				throw new RuntimeException("Cannot encrypt '" + toEncrypt.getName() + "'", e);
 			}
-
-			IOUtils.copy(in, cipherOut);
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot encrypt '" + toEncrypt.getName() + "'", e);
 		}
@@ -211,17 +188,8 @@ public class EncryptionServices {
 	}
 
 	//
-	// Decrypt String or List<String>
+	// Decrypt old String or List<String>
 	//
-
-	public Object decryptWithAppKey(Object toDecrypt) {
-		return decrypt(toDecrypt, key, null);
-	}
-
-	public Object decrypt(Object toDecrypt, Key key) {
-		return decrypt(toDecrypt, key, null);
-	}
-
 
 	public String decryptWithOldWayAppKey(String encryptedText) {
 		return decryptWithOldWayAppKey(encryptedText, OLD_DEFAULT_ENCRYPTION_ALGORITHM);
@@ -261,7 +229,15 @@ public class EncryptionServices {
 		}
 	}
 
-	private Object decrypt(Object toDecrypt, Object key, byte[] iv) {
+	//
+	// Decrypt String or List<String>
+	//
+
+	public Object decryptWithAppKey(Object toDecrypt) {
+		return decrypt(toDecrypt, key);
+	}
+
+	public Object decrypt(Object toDecrypt, Object key) {
 		if (toDecrypt == null) {
 			return null;
 		}
@@ -270,36 +246,30 @@ public class EncryptionServices {
 			List<Object> list = (List<Object>) toDecrypt;
 			List<Object> decryptedValues = new ArrayList<>();
 			for (Object item : list) {
-				decryptedValues.add(decrypt(item, key, iv));
+				decryptedValues.add(decrypt(item, key));
 			}
 			return decryptedValues;
 		} else if (toDecrypt instanceof String) {
-			return decrypt((String) toDecrypt, key, iv);
+			return decrypt((String) toDecrypt, key);
 		}
 
 		throw new IllegalArgumentException("Unsupported element of class '" + toDecrypt.getClass().getName() + "'");
 	}
 
-	private String decrypt(String toDecrypt, Object key, byte[] iv) {
-		boolean useGeneratedIv = iv == null;
-		if (useGeneratedIv) {
-			iv = new byte[16];
-			System.arraycopy(toDecrypt.getBytes(), 0, iv, 0, iv.length);
-		}
-
+	private String decrypt(String toDecrypt, Object key) {
 		try {
+			byte[] iv = new byte[16];
+			System.arraycopy(toDecrypt.getBytes(), 0, iv, 0, iv.length);
+
 			Cipher cipher = Cipher.getInstance(EncryptionAlgorithm.AES.getAlgorithm());
 			Key cipherKey = key instanceof byte[] ? new SecretKeySpec((byte[]) key, "AES") : (Key) key;
 			cipher.init(Cipher.DECRYPT_MODE, cipherKey, new IvParameterSpec(iv));
 
 			byte[] decryptedText = cipher.doFinal(Base64.decodeBase64(toDecrypt));
-			if (useGeneratedIv) {
-				byte[] result = new byte[decryptedText.length - 16];
-				System.arraycopy(decryptedText, 16, result, 0, result.length);
-				return new String(result);
-			} else {
-				return new String(decryptedText);
-			}
+
+			byte[] result = new byte[decryptedText.length - 16];
+			System.arraycopy(decryptedText, 16, result, 0, result.length);
+			return new String(result);
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot decrypt '" + toDecrypt + "'", e);
 		}
@@ -310,25 +280,17 @@ public class EncryptionServices {
 	//
 
 	public File decryptWithAppKey(File toDecrypt, File decryptedFile) {
-		return decrypt(toDecrypt, decryptedFile, key, iv);
+		return decrypt(toDecrypt, decryptedFile, key);
 	}
 
-	public File decrypt(File toDecrypt, File decryptedFile, Key key) {
-		return decrypt(toDecrypt, decryptedFile, key, null);
-	}
-
-	private File decrypt(File toDecrypt, File decryptedFile, Object key, byte[] iv) {
+	public File decrypt(File toDecrypt, File decryptedFile, Object key) {
 		if (toDecrypt == null) {
 			return null;
 		}
 
-		boolean useGeneratedIv = iv == null;
-
 		try (InputStream in = new BufferedInputStream(new FileInputStream(toDecrypt))) {
-			if (useGeneratedIv) {
-				iv = new byte[16];
-				in.read(iv);
-			}
+			byte[] iv = new byte[16];
+			in.read(iv);
 
 			Cipher cipher = Cipher.getInstance(EncryptionAlgorithm.AES.getAlgorithm());
 			Key cipherKey = key instanceof byte[] ? new SecretKeySpec((byte[]) key, "AES") : (Key) key;
