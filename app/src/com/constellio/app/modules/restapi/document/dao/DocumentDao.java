@@ -53,6 +53,7 @@ public class DocumentDao extends ResourceDao {
 		Record documentTypeRecord = getResourceTypeRecord(document.getType(), documentSchema.getCollection());
 
 		updateDocumentMetadataValues(documentRecord, documentTypeRecord, documentSchema, document, content, false);
+		updateMetadataValues(documentRecord, documentSchema, document.getAttributes(), false);
 		updateCustomMetadataValues(documentRecord, documentSchema, document.getExtendedAttributes(), false);
 
 		transaction.add(documentRecord);

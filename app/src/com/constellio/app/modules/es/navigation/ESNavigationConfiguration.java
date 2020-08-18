@@ -80,7 +80,7 @@ public class ESNavigationConfiguration implements Serializable {
 			config.add(HomeView.TABS, new RecordTree(CoreNavigationConfiguration.TAXONOMIES) {
 				@Override
 				public List<LazyTreeDataProvider<String>> getDataProviders(AppLayerFactory appLayerFactory,
-																   SessionContext sessionContext) {
+																		   SessionContext sessionContext) {
 					TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(appLayerFactory.getModelLayerFactory(), sessionContext);
 					if (getDefaultDataProvider() == -1) {
 						int defaultTab = tabSheet.getDefaultTab();

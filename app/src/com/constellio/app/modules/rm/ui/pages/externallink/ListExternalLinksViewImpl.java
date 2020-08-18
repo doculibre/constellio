@@ -228,5 +228,5 @@ public class ListExternalLinksViewImpl extends BaseViewImpl implements ListExter
 	protected boolean isBreadcrumbsVisible() {
 		return true;
 	}
-	
+
 }

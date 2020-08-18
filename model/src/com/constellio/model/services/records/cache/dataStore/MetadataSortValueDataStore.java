@@ -1,8 +1,8 @@
 package com.constellio.model.services.records.cache.dataStore;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
-import com.constellio.model.entities.schemas.sort.StringSortFieldNormalizer;
 import com.constellio.data.dao.dto.records.RecordId;
+import com.constellio.model.entities.schemas.sort.StringSortFieldNormalizer;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapIntList;
 
 import java.util.Iterator;

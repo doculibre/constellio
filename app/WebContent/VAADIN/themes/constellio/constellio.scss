@@ -3470,14 +3470,14 @@ $popup-view-z-index: 3;
 					}
 
 				    .action-menu-layout {
-					    width: 225px;
-					    border: 1px solid #3a434d;
-					    border-radius: 4px;
+						width: 250px;
+						border: 1px solid #3a434d;
+						border-radius: 4px;
 
 						.v-button {
 							padding-left: 8px;
-					    	color: white;
-					    	font-weight: normal;
+							color: white;
+							font-weight: normal;
 							text-decoration: none;
 							font-size: 14px;
 							width: 100%;
@@ -5075,7 +5075,7 @@ $popup-view-z-index: 3;
 					.display-value-retentionRule_default_copyRetentionRules, .display-value-retentionRule_default_documentCopyRetentionRules {
 						padding-right: initial;
 					}
-					
+
 				}
 			}
         }
@@ -5089,7 +5089,7 @@ $popup-view-z-index: 3;
             padding-right: initial;
             padding-left: 320px;
     	}
-    	
+
     	.v-slot-search-result-facets {
     		float: left;
     	}
@@ -5126,7 +5126,7 @@ $popup-view-z-index: 3;
             		padding-right: initial;
             		padding-left: 260px;
 				}
-			
+
 			}
         }
 
@@ -5144,11 +5144,11 @@ $popup-view-z-index: 3;
             padding-right: initial;
             padding-left: 320px;
     	}
-    	
+
     	.v-slot-search-result-facets {
-    		float: left;    		
+    		float: left;
     	}
-	    
+
 	}
 
     .v-ui[width-range~="0-800px"].right-to-left {
@@ -5158,12 +5158,12 @@ $popup-view-z-index: 3;
 				right: initial;
 				left: 220px;
 			}
-			
+
 			.header-collection-menu {
 				right: initial;
 				left: 290px;
 			}
-			
+
 			.header-action-menu {
 				right: initial;
 				left: 150px;

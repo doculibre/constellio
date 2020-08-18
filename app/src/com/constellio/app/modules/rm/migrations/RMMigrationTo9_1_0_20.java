@@ -4,7 +4,9 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -36,6 +38,10 @@ public class RMMigrationTo9_1_0_20 implements MigrationScript {
 
 			MetadataSchemaBuilder emailSchema = typesBuilder.getSchemaType(Email.SCHEMA_TYPE).getCustomSchema(Email.SCHEMA_LOCAL_CODE);
 			emailSchema.createSystemReserved(Email.EMAIL_VERSIONS).setType(STRING).setMultivalue(true);
+
+			MetadataSchemaBuilder documentSchema = typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema();
+			documentSchema.get(Document.LINKED_TO).removeOldReferences();
+			documentSchema.get(Document.LINKED_TO).defineReferencesTo(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE));
 		}
 	}
 }

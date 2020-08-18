@@ -1,5 +1,6 @@
 package com.constellio.model.services.schemas.calculators;
 
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
@@ -7,7 +8,6 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.data.dao.dto.records.RecordId;
 
 import java.util.ArrayList;
 import java.util.Arrays;

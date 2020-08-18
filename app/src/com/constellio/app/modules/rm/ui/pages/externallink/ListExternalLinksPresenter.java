@@ -193,5 +193,5 @@ public class ListExternalLinksPresenter extends BasePresenter<ListExternalLinksV
 		result.addItem(new CurrentViewItem($("ListExternalLinksView.viewTitle")));
 		return result;
 	}
-	
+
 }

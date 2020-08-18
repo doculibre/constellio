@@ -9,7 +9,6 @@ import com.constellio.model.services.search.SearchServiceAcceptanceTestSchemas;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.internal.AssumptionViolatedException;

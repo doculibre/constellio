@@ -87,7 +87,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 
 	@Override
 	public boolean isInRollbackMode() {
-		return  transactionLogRecovery.isInRollbackMode();
+		return transactionLogRecovery.isInRollbackMode();
 	}
 
 	public void rollback(Throwable t) {

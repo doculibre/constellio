@@ -46,6 +46,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import lombok.extern.slf4j.Slf4j;
@@ -318,10 +319,17 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	}
 
 	private boolean canEditContent() {
-		Document document = rm.getDocument(recordId);
-		Content content = document.getContent();
-		return content != null &&
-			   (content.getCheckoutUserId() == null || content.getCheckoutUserId().equals(getCurrentUser().getId()));
+		boolean canEditContent;
+		Record record = rm.getModelLayerFactory().newRecordServices().getDocumentById(recordId);
+		if (Document.SCHEMA_TYPE.equals(SchemaUtils.getSchemaTypeCode(record.getSchemaCode()))) {
+			Document document = rm.getDocument(recordId);
+			Content content = document.getContent();
+			canEditContent = content != null &&
+							 (content.getCheckoutUserId() == null || content.getCheckoutUserId().equals(getCurrentUser().getId()));
+		} else {
+			canEditContent = false;
+		}
+		return canEditContent;
 	}
 
 	public String getSignatureImageData() {

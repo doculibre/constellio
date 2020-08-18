@@ -236,7 +236,7 @@ public class PdfSignatureServices {
 			throws PdfSignatureException {
 		UserServices userServices = modelLayerFactory.newUserServices();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		
+
 		Content content = record.get(metadata);
 		ContentVersion currentVersion = content.getCurrentVersion();
 
@@ -264,7 +264,7 @@ public class PdfSignatureServices {
 		} else {
 			uploadUser = user;
 		}
-		
+
 		String oldFilename = currentVersion.getFilename();
 		String substring = oldFilename.substring(0, oldFilename.lastIndexOf('.'));
 		String newFilename = substring + ".pdf";

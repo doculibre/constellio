@@ -19,7 +19,9 @@ import java.util.List;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
 import static com.constellio.data.utils.TimeProvider.getLocalDate;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isNotNull;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isNull;
 
 public class DecommissioningSearchConditionFactory {
 	RMSchemasRecordsServices schemas;

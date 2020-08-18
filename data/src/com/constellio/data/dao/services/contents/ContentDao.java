@@ -15,7 +15,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
@@ -38,8 +37,6 @@ public interface ContentDao {
 	enum MoveToVaultOption {
 		ONLY_IF_INEXISTING
 	}
-
-	void moveFileToVault(String id, File file, MoveToVaultOption... options);
 
 	/**
 	 * Copy in a file
@@ -191,11 +188,9 @@ public interface ContentDao {
 
 	}
 
+	void moveFileToVault(String relativePath, File file, MoveToVaultOption... options);
 
 	void deleteFileNameContaining(String contentId, String filter);
-
-	LocalDateTime getLastModification(String contentId);
-
 
 	String getLocalRelativePath(String id);
 
@@ -204,6 +199,11 @@ public interface ContentDao {
 	void add(String id, InputStream newInputStream);
 
 	void delete(List<String> ids);
+
+	default LocalDateTime getLastModification(String contentId) {
+		DaoFile file = getFile(contentId);
+		return new LocalDateTime(file.lastModifed());
+	}
 
 	InputStream getContentInputStream(String id, String streamName)
 			throws ContentDaoException_NoSuchContent;
@@ -231,5 +231,5 @@ public interface ContentDao {
 
 	void readLogsAndRepairs();
 
-	Stream<Path> streamVaultContent(Predicate<? super Path> filter);
+	Stream<DaoFile> streamVaultContent(Predicate<? super DaoFile> filterPredicate);
 }

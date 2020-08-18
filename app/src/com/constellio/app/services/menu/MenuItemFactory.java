@@ -59,9 +59,9 @@ public class MenuItemFactory {
 					@Override
 					public void menuSelected(MenuItem selectedItem) {
 						Stats.compilerFor(menuItemAction.getCaption() + ":click").log(() -> {
-						menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
-						callback.actionExecuted(menuItemAction, selectedItem);
-					});
+							menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
+							callback.actionExecuted(menuItemAction, selectedItem);
+						});
 					}
 				};
 			} else {
@@ -84,9 +84,9 @@ public class MenuItemFactory {
 				protected void buttonClick(ClickEvent event) {
 					if (menuItemAction.getCommand() != null) {
 						Stats.compilerFor(menuItemAction.getCaption() + ":click").log(() -> {
-						menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
-						callback.actionExecuted(menuItemAction, event.getComponent());
-					});
+							menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
+							callback.actionExecuted(menuItemAction, event.getComponent());
+						});
 					}
 				}
 			};

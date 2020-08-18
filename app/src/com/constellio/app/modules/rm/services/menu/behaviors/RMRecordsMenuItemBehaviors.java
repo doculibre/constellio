@@ -91,7 +91,6 @@ import com.constellio.model.services.records.RecordDeleteServicesRuntimeExceptio
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.zipContents.ZipContentsService;
 import com.constellio.model.services.search.zipContents.ZipContentsService.NoContentToZipRuntimeException;
@@ -510,71 +509,61 @@ public class RMRecordsMenuItemBehaviors {
 
 	public void sendReturnRemainder(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		List<Record> records = recordServices.getRecordsById(collection, recordIds);
-		Map<String, List<Record>> recordsBySchemaType = records.stream().collect(
-				Collectors.groupingBy(record -> SchemaUtils.getSchemaTypeCode((record.getSchemaCode()))
-				));
+		Record record = records.get(0);
 
-		for (String schemaType : recordsBySchemaType.keySet()) {
-			if (schemaType.equals(Document.SCHEMA_TYPE)) {
-				sendDocumentsReturnRemainder(records, params);
-			} else if (schemaType.equals(Folder.SCHEMA_TYPE)) {
-				sendFoldersReturnRemainder(records, params);
-			} else if (schemaType.equals(ContainerRecord.SCHEMA_TYPE)) {
-				sendContainersReturnRemainder(records, params);
-			}
+		if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+			sendDocumentsReturnRemainder(records, params);
+		} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+			sendFoldersReturnRemainder(records, params);
+		} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+			sendContainersReturnRemainder(records, params);
 		}
 	}
 
 	private void sendDocumentsReturnRemainder(List<Record> records, MenuItemActionBehaviorParams params) {
 		List<Document> documents = rm.wrapDocuments(records);
 		for (Document document : documents) {
-			if (documentRecordActionsServices.isSendReturnReminderActionPossible(document.getWrappedRecord(), params.getUser())) {
-				User borrower = null;
-				if (document.getContentCheckedOutBy() != null) {
-					borrower = rm.getUser(document.getContentCheckedOutBy());
-				}
-				String previewReturnDate = document.getContentCheckedOutDate().plusDays(getBorrowingDuration()).toString();
-
-				Button reminderReturnDocumentButton = new SendReturnReminderEmailButton(collection, appLayerFactory,
-						params.getView(), Document.SCHEMA_TYPE, document.get(), borrower, previewReturnDate);
-				reminderReturnDocumentButton.click();
+			User borrower = null;
+			if (document.getContentCheckedOutBy() != null) {
+				borrower = rm.getUser(document.getContentCheckedOutBy());
 			}
+			String previewReturnDate = document.getContentCheckedOutDate().plusDays(getBorrowingDuration()).toString();
+
+			Button reminderReturnDocumentButton = new SendReturnReminderEmailButton(collection, appLayerFactory,
+					params.getView(), Document.SCHEMA_TYPE, document.get(), borrower, previewReturnDate);
+			reminderReturnDocumentButton.click();
 		}
 	}
 
 	private void sendFoldersReturnRemainder(List<Record> records, MenuItemActionBehaviorParams params) {
 		List<Folder> folders = rm.wrapFolders(records);
 		for (Folder folder : folders) {
-			if (folderRecordActionsServices.isSendReturnReminderActionPossible(folder.getWrappedRecord(), params.getUser())) {
-				User borrower = null;
-				if (folder.getBorrowUserEntered() != null) {
-					borrower = rm.getUser(folder.getBorrowUserEntered());
-				} else {
-					borrower = rm.getUser(folder.getBorrowUser());
-				}
-				String previewReturnDate = folder.getBorrowPreviewReturnDate().toString();
-
-				Button reminderReturnFolderButton = new SendReturnReminderEmailButton(collection, appLayerFactory,
-						params.getView(), Folder.SCHEMA_TYPE, folder.get(), borrower, previewReturnDate);
-				reminderReturnFolderButton.click();
+			User borrower = null;
+			if (folder.getBorrowUserEntered() != null) {
+				borrower = rm.getUser(folder.getBorrowUserEntered());
+			} else {
+				borrower = rm.getUser(folder.getBorrowUser());
 			}
+			String previewReturnDate = folder.getBorrowPreviewReturnDate().toString();
+
+			Button reminderReturnFolderButton = new SendReturnReminderEmailButton(collection, appLayerFactory,
+					params.getView(), Folder.SCHEMA_TYPE, folder.get(), borrower, previewReturnDate);
+			reminderReturnFolderButton.click();
 		}
 	}
 
 	private void sendContainersReturnRemainder(List<Record> records, MenuItemActionBehaviorParams params) {
 		List<ContainerRecord> containers = rm.wrapContainerRecords(records);
 		for (ContainerRecord container : containers) {
-			if (containerRecordActionsServices.isSendReturnReminderActionPossible(container.getWrappedRecord(), params.getUser())) {
-				User borrower = null;
-				if (container.getBorrower() != null) {
-					borrower = rm.getUser(container.getBorrower());
-				}
-				String previewReturnDate = container.getPlanifiedReturnDate().toString();
-
-				Button reminderReturnContainerButton = new SendReturnReminderEmailButton(collection, appLayerFactory,
-						params.getView(), ContainerRecord.SCHEMA_TYPE, container.get(), borrower, previewReturnDate);
-				reminderReturnContainerButton.click();
+			User borrower = null;
+			if (container.getBorrower() != null) {
+				borrower = rm.getUser(container.getBorrower());
 			}
+			String previewReturnDate = container.getPlanifiedReturnDate().toString();
+
+			Button reminderReturnContainerButton = new SendReturnReminderEmailButton(collection, appLayerFactory,
+					params.getView(), ContainerRecord.SCHEMA_TYPE, container.get(), borrower, previewReturnDate);
+			reminderReturnContainerButton.click();
 		}
 	}
 
@@ -982,7 +971,7 @@ public class RMRecordsMenuItemBehaviors {
 								MenuItemActionBehaviorParams params) {
 		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA,
 				params.getView().getConstellioFactories(), params.getView().getSessionContext());
-		presenterUtils.delete(record, reason, physically, 1);
+		presenterUtils.delete(record, null, true, 1);
 	}
 
 	//

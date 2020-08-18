@@ -6,7 +6,6 @@ import com.constellio.data.io.concurrent.data.DataWithVersion;
 import com.constellio.data.io.concurrent.data.TextView;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.model.services.search.SynonymFeatureAcceptanceTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
