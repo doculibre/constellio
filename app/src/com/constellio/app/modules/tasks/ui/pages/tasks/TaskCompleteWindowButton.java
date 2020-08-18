@@ -50,6 +50,7 @@ import org.joda.time.LocalDateTime;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -117,7 +118,8 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		return mainLayout;
 	}
 
-	private void setWindowHeight(VerticalLayout mainLayout, Entry<MetadataVO, Field> decisionField, Field acceptedField, Field reasonField,
+	private void setWindowHeight(VerticalLayout mainLayout, Entry<MetadataVO, Field> decisionField, Field acceptedField,
+								 Field reasonField,
 								 Field descriptionField, Field commentField,
 								 Map<MetadataVO, Field> uncompletedRequiredFields) {
 		double height = 200;
@@ -148,7 +150,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 	private void setWindowWidth(VerticalLayout mainLayout, Entry<MetadataVO, Field> decisionField, Field acceptedField,
 								Field reasonField, Field descriptionField, Field commentField,
 								Map<MetadataVO, Field> uncompletedRequiredFields) {
-		if(commentField != null) {
+		if (commentField != null) {
 			mainLayout.setWidth(1000 + "px");
 			getWindow().setWidth(1000 + "px");
 		}
@@ -457,8 +459,9 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		return descriptionField;
 	}
 
-	protected Field buildCommentField(final Map.Entry<MetadataVO, Field> decisionField, final RecordVO recordVO, final TaskFieldFactory fieldFactory,
-									final VerticalLayout fieldLayout) {
+	protected Field buildCommentField(final Map.Entry<MetadataVO, Field> decisionField, final RecordVO recordVO,
+									  final TaskFieldFactory fieldFactory,
+									  final VerticalLayout fieldLayout) {
 		Field commentField;
 		MapStringStringStructure decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
 		if (task.getModelTask() != null && decisions != null) {
@@ -482,7 +485,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		List<MetadataValueVO> formMetadataValues = recordVO.getFormMetadataValues();
 		for (MetadataValueVO metadataValueVO : CollectionUtils.emptyIfNull(formMetadataValues)) {
 			MetadataVO m = metadataValueVO.getMetadata();
-			if (m.isRequired() && m.isEnabled() && m.getDefaultValue() == null && metadataValueVO.getValue() == null) {
+			if (isMetadataRequiredAndWithoutAValue(m, metadataValueVO)) {
 				Field<?> field = fieldFactory.build(m, recordVO.getId());
 				field.setWidth("100%");
 				fieldLayout.addComponent(field);
@@ -490,5 +493,18 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			}
 		}
 		return fields;
+	}
+
+	private boolean isMetadataRequiredAndWithoutAValue(MetadataVO metadata, MetadataValueVO metadataValueVO) {
+		boolean noValueAndUnchanged;
+
+		if (metadata.isMultivalue()) {
+			noValueAndUnchanged = CollectionUtils.isEmpty((Collection<?>) metadata.getDefaultValue())
+								  && CollectionUtils.isEmpty(metadataValueVO.getValue());
+		} else {
+			noValueAndUnchanged = metadata.getDefaultValue() == null && metadataValueVO.getValue() == null;
+		}
+
+		return metadata.isRequired() && metadata.isEnabled() && noValueAndUnchanged;
 	}
 }
