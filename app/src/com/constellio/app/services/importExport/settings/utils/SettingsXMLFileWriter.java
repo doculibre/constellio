@@ -77,7 +77,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
 	private void addOnlyUSRMode(Element systemElem, boolean onlyUSR) {
 		Element usrElement = new Element(ONLY_USR);
-		usrElement.setAttribute(VALUE, onlyUSR + "");
+		usrElement.setAttribute(VALUE, String.valueOf(onlyUSR));
 		systemElem.addContent(usrElement);
 	}
 
@@ -94,9 +94,9 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	private void addVersion(Element systemElem, ImportedSystemVersion importedSystemVersion) {
 		Element versionElement = new Element(VERSION);
 		versionElement.setAttribute(FULL, importedSystemVersion.getFullVersion());
-		versionElement.setAttribute(MAJOR, importedSystemVersion.getMajorVersion() + "");
-		versionElement.setAttribute(MINOR, importedSystemVersion.getMinorVersion() + "");
-		versionElement.setAttribute(REVISION, importedSystemVersion.getMinorRevisionVersion() + "");
+		versionElement.setAttribute(MAJOR, String.valueOf(importedSystemVersion.getMajorVersion()));
+		versionElement.setAttribute(MINOR, String.valueOf(importedSystemVersion.getMinorVersion()));
+		versionElement.setAttribute(REVISION, String.valueOf(importedSystemVersion.getMinorRevisionVersion()));
 		systemElem.addContent(versionElement);
 	}
 
