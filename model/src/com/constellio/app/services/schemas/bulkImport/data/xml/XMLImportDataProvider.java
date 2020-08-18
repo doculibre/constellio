@@ -8,8 +8,10 @@ import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class XMLImportDataProvider implements ImportDataProvider {
@@ -18,6 +20,8 @@ public class XMLImportDataProvider implements ImportDataProvider {
 	private static final String TEMP_FOLDER_STREAM_NAME = "XMLImportDataProvider-TempFolder";
 
 	private static final String FILE_READER_STREAM_NAME = "XMLImportDataProvider-FileReader";
+
+	private static final String DATA_DIRECTORY_NAME = "data";
 
 	private IOServicesFactory ioServicesFactory;
 
@@ -124,6 +128,17 @@ public class XMLImportDataProvider implements ImportDataProvider {
 		return schemaTypes;
 	}
 
+
+	@Override
+	public List<File> getImportedContents() {
+		File dataFolder = findDataFolder();
+		if (dataFolder != null) {
+			return Arrays.asList(dataFolder.listFiles());
+		}
+		return null;
+	}
+
+
 	@Override
 	public ImportDataIterator newDataIterator(String schemaType) {
 		IOServices ioServices = ioServicesFactory.newIOServices();
@@ -138,6 +153,18 @@ public class XMLImportDataProvider implements ImportDataProvider {
 		}
 		Reader reader = ioServices.newBufferedFileReader(file, getFileReaderStreamName());
 		return getXMLFileImportDataIterator(reader, ioServices, currentFileName);
+	}
+
+	private File findDataFolder() {
+		if (tempFolder != null && tempFolder.listFiles() != null) {
+			FileFilter fileFilter = file -> file.isDirectory();
+			for (File dir : tempFolder.listFiles(fileFilter)) {
+				if (DATA_DIRECTORY_NAME.equals(dir.getName())) {
+					return dir;
+				}
+			}
+		}
+		return null;
 	}
 
 	protected ImportDataIterator getXMLFileImportDataIterator(Reader reader, IOServices ioServices, String name) {
