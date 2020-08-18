@@ -79,20 +79,9 @@ public class Excel2007ImportDataProvider implements ImportDataProvider {
 		throw new RuntimeException("There are no sheet with this schema type");
 	}
 
-	@Override
-	public List<File> getImportedContents() {
-		return null;
-	}
-
 
 	public XSSFWorkbook loadWorkbook(File workbookFile) {
 		try {
-
-
-
-
-
-
 			opcPackage = OPCPackage.open(new FileInputStream(workbookFile));
 			return new XSSFWorkbook(opcPackage);
 		} catch (InvalidFormatException | IOException e) {

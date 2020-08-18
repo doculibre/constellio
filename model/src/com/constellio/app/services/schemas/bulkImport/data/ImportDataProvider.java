@@ -16,6 +16,8 @@ public interface ImportDataProvider {
 
 	ImportDataIterator newDataIterator(String schemaType);
 
-	List<File> getImportedContents();
+	default List<File> getImportedContents() {
+		return null;
+	}
 
 }

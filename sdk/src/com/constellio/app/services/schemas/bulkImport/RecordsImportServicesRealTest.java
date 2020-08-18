@@ -613,11 +613,6 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			}
 
 			@Override
-			public List<File> getImportedContents() {
-				return null;
-			}
-
-			@Override
 			public int size(String schemaType) {
 				return 0;
 			}
