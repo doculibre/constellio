@@ -10,7 +10,7 @@ import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskFollowerFieldImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
+import com.constellio.app.ui.framework.components.fields.ExtraTabAdditionalRecordField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
 import com.constellio.app.ui.pages.profile.ModifyProfileView;
@@ -46,20 +46,20 @@ public class TaskUserProfileFieldsExtension extends PagesComponentsExtension {
 	}
 
 	@Override
-	public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
-		ArrayList<AdditionnalRecordField> additionnalFields = new ArrayList<>();
+	public List<ExtraTabAdditionalRecordField> getExtraTabAdditionalRecordFields(RecordFieldsExtensionParams params) {
+		ArrayList<ExtraTabAdditionalRecordField> additionnalFields = new ArrayList<>();
 		if(params.getMainComponent() instanceof ModifyProfileView) {
-			AdditionnalRecordField autoAssigningField = buildAutoAssigningField(params);
-            AdditionnalRecordField taskFollowerField = buildTaskFollowerField(params);
-			AdditionnalRecordField taskAssignationEmailReceptionField = buildAssignationEmailReceptionField(params);
-			AdditionnalRecordField delegationTaskUserField = buildDelegationTaskUserField(params);
+			ExtraTabAdditionalRecordField autoAssigningField = buildAutoAssigningField(params);
+			ExtraTabAdditionalRecordField taskFollowerField = buildTaskFollowerField(params);
+			ExtraTabAdditionalRecordField taskAssignationEmailReceptionField = buildAssignationEmailReceptionField(params);
+			ExtraTabAdditionalRecordField delegationTaskUserField = buildDelegationTaskUserField(params);
 
 			additionnalFields.addAll(asList(autoAssigningField, taskFollowerField, taskAssignationEmailReceptionField, delegationTaskUserField));
 		}
 		return additionnalFields;
 	}
 
-	private AdditionnalRecordField buildTaskFollowerField(RecordFieldsExtensionParams params) {
+	private ExtraTabAdditionalRecordField buildTaskFollowerField(RecordFieldsExtensionParams params) {
         User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 
         TaskToVOBuilder taskToVOBuilder = new TaskToVOBuilder();
@@ -78,7 +78,7 @@ public class TaskUserProfileFieldsExtension extends PagesComponentsExtension {
         return taskFollowerField;
     }
 
-    private AdditionnalRecordField buildAutoAssigningField(RecordFieldsExtensionParams params) {
+	private ExtraTabAdditionalRecordField buildAutoAssigningField(RecordFieldsExtensionParams params) {
         User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 
         Boolean isAssigningTaskAutomatically = user.get(TaskUser.ASSIGN_TASK_AUTOMATICALLY);
@@ -97,7 +97,7 @@ public class TaskUserProfileFieldsExtension extends PagesComponentsExtension {
         return autoAssigningField;
     }
 
-	private AdditionnalRecordField buildAssignationEmailReceptionField(RecordFieldsExtensionParams params) {
+	private ExtraTabAdditionalRecordField buildAssignationEmailReceptionField(RecordFieldsExtensionParams params) {
 		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 		AssignationEmailReceptionField assignationEmailReceptionField = new AssignationEmailReceptionField();
 		if (Boolean.TRUE.equals(user.get(User.ASSIGNATION_EMAIL_RECEPTION_DISABLED))) {
@@ -109,7 +109,7 @@ public class TaskUserProfileFieldsExtension extends PagesComponentsExtension {
 		return assignationEmailReceptionField;
 	}
 
-	private AdditionnalRecordField buildDelegationTaskUserField(RecordFieldsExtensionParams params) {
+	private ExtraTabAdditionalRecordField buildDelegationTaskUserField(RecordFieldsExtensionParams params) {
 		User user = tasksSchemasRecordsServices.wrapUser(params.getRecord());
 		RecordTextInputDataProvider recordTextInputDataProvider = new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), User.SCHEMA_TYPE, null, false, true, false, false) {
 			@Override
@@ -125,11 +125,16 @@ public class TaskUserProfileFieldsExtension extends PagesComponentsExtension {
 		return delegationTaskUserField;
 	}
 
-	private class TaskFollowerAdditionalFieldImpl extends TaskFollowerFieldImpl implements AdditionnalRecordField<TaskFollowerVO> {
+	private class TaskFollowerAdditionalFieldImpl extends TaskFollowerFieldImpl implements ExtraTabAdditionalRecordField<TaskFollowerVO> {
 
 		@Override
 		public String getMetadataLocalCode() {
 			return TaskUser.DEFAULT_FOLLOWER_WHEN_CREATING_TASK;
+		}
+
+		@Override
+		public String getTab() {
+			return $("ModifyProfileView.configsTab");
 		}
 
 		@Override
@@ -159,9 +164,14 @@ public class TaskUserProfileFieldsExtension extends PagesComponentsExtension {
 		}
 	}
 
-	private class AutoAssigningTaskAdditionalFieldImpl extends CheckBox implements AdditionnalRecordField<Boolean>{
+	private class AutoAssigningTaskAdditionalFieldImpl extends CheckBox implements ExtraTabAdditionalRecordField<Boolean> {
 
-        @Override
+		@Override
+		public String getTab() {
+			return $("ModifyProfileView.configsTab");
+		}
+
+		@Override
         public String getMetadataLocalCode() {
             return TaskUser.ASSIGN_TASK_AUTOMATICALLY;
         }
@@ -172,10 +182,15 @@ public class TaskUserProfileFieldsExtension extends PagesComponentsExtension {
         }
     }
 
-	private class AssignationEmailReceptionField extends CheckBox implements AdditionnalRecordField<Boolean> {
+	private class AssignationEmailReceptionField extends CheckBox implements ExtraTabAdditionalRecordField<Boolean> {
 
 		public AssignationEmailReceptionField() {
 			super($("TaskUserProfileFieldsExtension.disableEmailForTaskAssignee"));
+		}
+
+		@Override
+		public String getTab() {
+			return $("ModifyProfileView.configsTab");
 		}
 
 		@Override
@@ -189,10 +204,15 @@ public class TaskUserProfileFieldsExtension extends PagesComponentsExtension {
 		}
 	}
 
-	private class DelegationTaskUserField extends LookupRecordField implements AdditionnalRecordField<Object> {
+	private class DelegationTaskUserField extends LookupRecordField implements ExtraTabAdditionalRecordField<Object> {
 
 		public DelegationTaskUserField(RecordTextInputDataProvider textInputDataProvider) {
 			super(textInputDataProvider, null);
+		}
+
+		@Override
+		public String getTab() {
+			return $("ModifyProfileView.configsTab");
 		}
 
 		@Override

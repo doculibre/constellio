@@ -32,7 +32,7 @@ public class RMMigrationTo9_1_0_30 implements MigrationScript {
 			MetadataSchemaBuilder documentSchema = typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema();
 			if (!documentSchema.hasMetadata(Document.ENCRYTION_KEY)) {
 				documentSchema.createUndeletable(Document.ENCRYTION_KEY).setType(MetadataValueType.STRING)
-						.setSystemReserved(true);
+						.setSystemReserved(true).setAvailableInSummary(true);
 			}
 		}
 	}

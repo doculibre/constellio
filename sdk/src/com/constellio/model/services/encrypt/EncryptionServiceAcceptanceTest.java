@@ -1,19 +1,16 @@
 package com.constellio.model.services.encrypt;
 
 import com.constellio.app.modules.restapi.core.util.HashingUtils;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.security.Key;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -396,26 +393,9 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 	//
 
 	private String getFileChecksum(File file) throws Exception {
-		FileInputStream fileStream = new FileInputStream(file);
-		byte[] fileData = new byte[fileStream.available()];
-		fileStream.read(fileData);
-		fileStream.close();
-
-		return HashingUtils.md5(fileData);
-	}
-
-	private File getFileFromContent(Content content, String filename) {
-		ContentVersion contentVersion = content.getCurrentVersion();
-		String hash = contentVersion.getHash();
-		InputStream in = getModelLayerFactory().getContentManager()
-				.getContentInputStream(hash, getClass().getSimpleName() + ".getFileFromContent");
-
-		File file = getModelLayerFactory().getIOServicesFactory().newFileService().newTemporaryFile(filename);
-		try (OutputStream outputStream = new FileOutputStream(file)) {
-			IOUtils.copy(in, outputStream);
-		} catch (Exception e) {
-			throw new RuntimeException("Cannot retrieve content.", e);
+		try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
+			byte[] fileData = IOUtils.toByteArray(in);
+			return HashingUtils.md5(fileData);
 		}
-		return file;
 	}
 }
