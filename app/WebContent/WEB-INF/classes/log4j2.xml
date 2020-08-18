@@ -26,6 +26,13 @@
             </Policies>
             <DefaultRolloverStrategy max="4"/>
         </RollingFile>
+        <RollingFile name="ldap" fileName="logs/ldap.log" filePattern="ldap.log.%i">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
+            <Policies>
+                <sizebasedtriggeringpolicy size="250 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="4"/>
+        </RollingFile>
         <RollingFile name="restapi" fileName="logs/${ctx:tenant.id}/restapi.log"
                      filePattern="logs/${ctx:tenant.id}/restapi.log.%i">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
@@ -113,6 +120,10 @@
         <Logger name="com.constellio.app.modules.restapi" level="info" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="restapi"/>
+        </Logger>
+        <Logger name="com.constellio.model.services.users.sync" level="info" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="ldap"/>
         </Logger>
         <Logger name="com.constellio.app.api.cmis" level="info" additivity="false">
             <AppenderRef ref="Console"/>
