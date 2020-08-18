@@ -10,7 +10,6 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -49,7 +48,7 @@ public class GroupWindowButton extends WindowButton {
 	private UserServices userServices;
 	private String collection;
 	private List<User> records;
-	private AdditionnalRecordField groupsField;
+	private GroupSelectionAddRemoveFieldImpl groupsField;
 	private CollectionSelectOptionField collectionsField;
 
 	public void addToGroup() {
@@ -128,8 +127,8 @@ public class GroupWindowButton extends WindowButton {
 		return mainLayout;
 	}
 
-	private AdditionnalRecordField buildFavoritesDisplayOrderField(List<User> records,
-																   MenuItemActionBehaviorParams params) {
+	private GroupSelectionAddRemoveFieldImpl buildFavoritesDisplayOrderField(List<User> records,
+																			 MenuItemActionBehaviorParams params) {
 
 		RecordVODataProvider groupDataProvider = getGroupDataProvider(params.getView().getSessionContext());
 

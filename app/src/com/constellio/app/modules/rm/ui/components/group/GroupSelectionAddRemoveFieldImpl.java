@@ -3,7 +3,6 @@ package com.constellio.app.modules.rm.ui.components.group;
 import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
-import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.model.entities.records.Record;
@@ -18,7 +17,7 @@ import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class GroupSelectionAddRemoveFieldImpl extends ListAddRemoveField<String, AbstractField<String>> implements AdditionnalRecordField<List<String>> {
+public class GroupSelectionAddRemoveFieldImpl extends ListAddRemoveField<String, AbstractField<String>> {
 
 	private List<Record> groups;
 	private Map<String, ReferenceDisplay> groupTitles;
@@ -40,12 +39,10 @@ public class GroupSelectionAddRemoveFieldImpl extends ListAddRemoveField<String,
 		});
 	}
 
-	@Override
 	public String getMetadataLocalCode() {
 		return RMUser.GROUPS;
 	}
 
-	@Override
 	public Object getCommittableValue() {
 		return getValue();
 	}

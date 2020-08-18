@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.user;
 
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
-import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.model.entities.records.Record;
@@ -16,7 +15,7 @@ import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class UserSelectionAddRemoveFieldImpl extends ListAddRemoveField<String, AbstractField<String>> implements AdditionnalRecordField<List<String>> {
+public class UserSelectionAddRemoveFieldImpl extends ListAddRemoveField<String, AbstractField<String>> {
 
 	private List<Record> users;
 	private Map<String, ReferenceDisplay> userTitles;
@@ -36,12 +35,10 @@ public class UserSelectionAddRemoveFieldImpl extends ListAddRemoveField<String, 
 		});
 	}
 
-	@Override
 	public String getMetadataLocalCode() {
 		return "user";
 	}
 
-	@Override
 	public Object getCommittableValue() {
 		return getValue();
 	}
