@@ -39,7 +39,7 @@ public class ImportUsersAndGroupsReport {
 
 	public void addUsersFoundList(Collection<LDAPUser> users) {
 		users.stream().forEach(user ->
-				usersFoundList.add("Found user " + user.getGivenName() + " with email " + user.getEmail() + "with last name" + user.getFamilyName() + "."));
+				usersFoundList.add("Found user " + user.getGivenName() + " with email " + user.getEmail() + "with last name " + user.getFamilyName() + "."));
 	}
 
 	public void addGroupsFoundList(LDAPGroup group) {
@@ -47,7 +47,7 @@ public class ImportUsersAndGroupsReport {
 	}
 
 	public void addUsersFoundList(LDAPUser user) {
-		usersFoundList.add("Found user " + user.getGivenName() + " with email " + user.getEmail() + "with last name" + user.getFamilyName() + ".");
+		usersFoundList.add("Found user " + user.getGivenName() + " with email " + user.getEmail() + "with last name " + user.getFamilyName() + ".");
 	}
 
 	public void addNewUsersImportedList(LDAPUser user) {
@@ -77,11 +77,11 @@ public class ImportUsersAndGroupsReport {
 
 	public void addAssignationRelationships(List<LDAPGroup> groups, String username) {
 		assignationRelationships.add("Assigned user " + username + " to group(s) " +
-									 groups.stream().map(group -> group.getDistinguishedName()).collect(Collectors.joining(",")) + ".");
+									 groups.stream().map(group -> group.getDistinguishedName()).collect(Collectors.joining(", ")) + ".");
 	}
 
 	public void removeAssignationRelationship(String groupCode, String username) {
-		assignationRelationships.add("Removed user " + username + " from group" + groupCode + ".");
+		assignationRelationships.add("Removed user " + username + " from group " + groupCode + ".");
 	}
 
 	public String reportImport(List<String> colletions) {
@@ -89,16 +89,17 @@ public class ImportUsersAndGroupsReport {
 		builder.append("Synchronization in the following collections: " + colletions.stream().collect(Collectors.joining(", ")) + "\n");
 		builder.append("Number of groups found: " + groupsFoundList.size() + "\n");
 		builder.append(groupsFoundList.stream().collect(Collectors.joining("\n")));
-		builder.append("Number of users found: " + usersFoundList.size() + "\n");
+		builder.append("\nNumber of users found: " + usersFoundList.size() + "\n");
 		builder.append(usersFoundList.stream().collect(Collectors.joining("\n")));
-		builder.append("Number of users added: " + newUsersImportedList.size() + "\n");
+		builder.append("\nNumber of users added: " + newUsersImportedList.size() + "\n");
 		builder.append(newUsersImportedList.stream().collect(Collectors.joining("\n")));
-		builder.append("Number of users unsynced : " + unsyncedUsersList.size() + "\n");
+		builder.append("\nNumber of users unsynced : " + unsyncedUsersList.size() + "\n");
 		builder.append(unsyncedUsersList.stream().collect(Collectors.joining("\n")));
-		builder.append("Number of groups removed: " + usersFoundList.size() + "\n");
+		builder.append("\nNumber of groups removed: " + usersFoundList.size() + "\n");
 		builder.append(groupsRemovedList.stream().collect(Collectors.joining("\n")));
-		builder.append("Number of users removed: " + usersFoundList.size() + "\n");
+		builder.append("\nNumber of users removed: " + usersFoundList.size() + "\n");
 		builder.append(usersRemovedList.stream().collect(Collectors.joining("\n")));
+		builder.append("\n");
 		builder.append(assignationRelationships.stream().collect(Collectors.joining("\n")));
 		return builder.toString();
 	}
