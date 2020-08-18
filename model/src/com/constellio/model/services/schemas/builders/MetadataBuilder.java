@@ -1224,6 +1224,15 @@ public class MetadataBuilder {
 		return requiringCacheReload;
 	}
 
+	public void moveToDefaultSchemas() {
+		schemaBuilder.deleteMetadataWithoutValidation(localCode);
+
+		//TODO Étienne, copier tous les champs
+		schemaBuilder.getDefaultSchema().create(localCode).setId(id).setType(type).setMultivalue(multivalue).setLabels(labels);
+		schemaBuilder.getDefaultSchema().get(localCode).setEnabled(false);
+		schemaBuilder.get(localCode).setEnabled(true);
+	}
+
 
 	private static class EncryptionServicesFactory implements Factory<EncryptionServices> {
 

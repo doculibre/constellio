@@ -180,6 +180,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		batchProcessesManager = getModelLayerFactory().getBatchProcessesManager();
 	}
 
+
 	@Test
 	public void whenCreatingSchemaAndThenReadingSchemaSettingOnDiskThenIdAreWritten() {
 
@@ -2044,6 +2045,35 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(localConfigsManager.isCacheRebuildRequired()).isTrue();
 		assertThat(getModelLayerFactory().getRecordsCaches().getLocalCacheConfigs()
 				.excludedDuringLastCacheRebuild(zeSchema.stringMetadata())).isTrue();
+	}
+
+	@Test
+	public void givenCustomSchemasWithCustomMetadatasWhenMoveToDefaultSchemaThenEnabledInSchemas() {
+		defineSchemasManager().using(defaultSchema);
+
+		schemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
+			MetadataSchemaTypeBuilder type = types.getSchemaType(zeSchema.typeCode());
+			type.createCustomSchema("schema1").create("customMetadata").setType(STRING).setMultivalue(true);
+			type.createCustomSchema("schema2");
+			type.createCustomSchema("schema3");
+		});
+
+		MetadataSchemaType schemaType = schemasManager.getSchemaTypes(zeCollection).getSchemaType(zeSchema.typeCode());
+		assertThat(schemaType.getDefaultSchema().hasMetadataWithCode("customMetadata")).isFalse();
+		assertThat(schemaType.getCustomSchema("schema1").hasMetadataWithCode("customMetadata")).isTrue();
+		assertThat(schemaType.getCustomSchema("schema2").hasMetadataWithCode("customMetadata")).isFalse();
+		assertThat(schemaType.getCustomSchema("schema3").hasMetadataWithCode("customMetadata")).isFalse();
+		short id = schemaType.getCustomSchema("schema1").getMetadata("customMetadata").getId();
+
+		schemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types ->
+				types.getMetadata("zeSchemaType_schema1_customMetadata").moveToDefaultSchemas());
+
+		schemaType = schemasManager.getSchemaTypes(zeCollection).getSchemaType(zeSchema.typeCode());
+		assertThat(schemaType.getDefaultSchema().getMetadata("customMetadata").isEnabled()).isFalse();
+		assertThat(schemaType.getCustomSchema("schema1").getMetadata("customMetadata").isEnabled()).isTrue();
+		assertThat(schemaType.getCustomSchema("schema2").getMetadata("customMetadata").isEnabled()).isFalse();
+		assertThat(schemaType.getCustomSchema("schema3").getMetadata("customMetadata").isEnabled()).isFalse();
+		assertThat(schemaType.getDefaultSchema().getMetadata("customMetadata").getId()).isEqualTo(id);
 	}
 
 
