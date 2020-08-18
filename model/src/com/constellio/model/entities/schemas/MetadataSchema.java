@@ -269,6 +269,10 @@ public class MetadataSchema implements Serializable {
 		return metadatas.onlyNonParentReferences();
 	}
 
+	public List<Metadata> getOnlyNonHerited() {
+		return metadatas.onlyNonHerited();
+	}
+
 	public Map<String, Metadata> getIndexByLocalCode() {
 		return indexByLocalCode;
 	}
