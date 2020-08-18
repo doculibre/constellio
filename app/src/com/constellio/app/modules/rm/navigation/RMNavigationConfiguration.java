@@ -144,6 +144,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String LIST_CARTS = "listCarts";
 	public static final String MY_CART = "myCart";
 	public static final String LOGS = "logs";
+	public static final String SUPPORT = "support";
 	public static final String REPORTS = "reports";
 	public static final String REQUEST_AGENT = "requestAgent";
 	public static final String AGENT_SETUP = "agentSetup";

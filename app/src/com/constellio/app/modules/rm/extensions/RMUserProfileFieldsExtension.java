@@ -14,7 +14,7 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
+import com.constellio.app.ui.framework.components.fields.ExtraTabAdditionalRecordField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeOptionGroup;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
@@ -59,21 +59,21 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 	}
 
 	@Override
-	public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
-		ArrayList<AdditionnalRecordField> additionnalFields = new ArrayList<>();
+	public List<ExtraTabAdditionalRecordField> getExtraTabAdditionalRecordFields(RecordFieldsExtensionParams params) {
+		ArrayList<ExtraTabAdditionalRecordField> additionnalFields = new ArrayList<>();
 		if (params.getMainComponent() instanceof ModifyProfileView) {
-			AdditionnalRecordField defaultTabInFolderDisplayField = buildDefaultTabInFolderDisplayField(params);
-			AdditionnalRecordField defaultAdministrativeUnitField = buildDefaultAdministrativeUnitField(params);
-			AdditionnalRecordField hideNotActiveField = buildHideNotActiveField(params);
-			AdditionnalRecordField agentManuallyDisabledField = buildAgentManuallyDisabledField(params);
-			AdditionnalRecordField favoritesOrderField = buildFavoritesDisplayOrderField(params);
+			ExtraTabAdditionalRecordField defaultTabInFolderDisplayField = buildDefaultTabInFolderDisplayField(params);
+			ExtraTabAdditionalRecordField defaultAdministrativeUnitField = buildDefaultAdministrativeUnitField(params);
+			ExtraTabAdditionalRecordField hideNotActiveField = buildHideNotActiveField(params);
+			ExtraTabAdditionalRecordField agentManuallyDisabledField = buildAgentManuallyDisabledField(params);
+			ExtraTabAdditionalRecordField favoritesOrderField = buildFavoritesDisplayOrderField(params);
 
 			additionnalFields.addAll(asList(defaultTabInFolderDisplayField, defaultAdministrativeUnitField, hideNotActiveField, agentManuallyDisabledField, favoritesOrderField));
 		}
 		return additionnalFields;
 	}
 
-	private AdditionnalRecordField buildDefaultTabInFolderDisplayField(RecordFieldsExtensionParams params) {
+	private ExtraTabAdditionalRecordField buildDefaultTabInFolderDisplayField(RecordFieldsExtensionParams params) {
 		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 
 		DefaultTabInFolderAdditionalFieldImpl defaultTabInFolderField = new DefaultTabInFolderAdditionalFieldImpl();
@@ -81,7 +81,7 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 		return defaultTabInFolderField;
 	}
 
-	private AdditionnalRecordField buildDefaultAdministrativeUnitField(RecordFieldsExtensionParams params) {
+	private ExtraTabAdditionalRecordField buildDefaultAdministrativeUnitField(RecordFieldsExtensionParams params) {
 		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 
 		DefaultAdministrativeUnitAdditionalFieldImpl defaultAdministrativeUnitField = new DefaultAdministrativeUnitAdditionalFieldImpl();
@@ -90,7 +90,7 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 		return defaultAdministrativeUnitField;
 	}
 
-	private AdditionnalRecordField buildHideNotActiveField(RecordFieldsExtensionParams params) {
+	private ExtraTabAdditionalRecordField buildHideNotActiveField(RecordFieldsExtensionParams params) {
 		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 
 		Boolean isHidingNotActive = user.get(RMUser.HIDE_NOT_ACTIVE);
@@ -106,7 +106,7 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 		return hideNotActiveField;
 	}
 
-	private AdditionnalRecordField buildAgentManuallyDisabledField(RecordFieldsExtensionParams params) {
+	private ExtraTabAdditionalRecordField buildAgentManuallyDisabledField(RecordFieldsExtensionParams params) {
 		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 
 		UserCredential userCredentials = appLayerFactory.getModelLayerFactory().newUserServices().getUser(user.getUsername());
@@ -120,7 +120,7 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 		return agentManuallyDisabledField;
 	}
 
-	private AdditionnalRecordField buildFavoritesDisplayOrderField(RecordFieldsExtensionParams params) {
+	private ExtraTabAdditionalRecordField buildFavoritesDisplayOrderField(RecordFieldsExtensionParams params) {
 		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 
 		RecordVODataProvider sharedCartsDataProvider = getFavoritesDataProvider(user, params.getMainComponent().getSessionContext());
@@ -146,13 +146,18 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 		return rmConfigs.isAgentEnabled() && ConstellioAgentUtils.isAgentSupported() && agentStatus != AgentStatus.DISABLED;
 	}
 
-	private class DefaultTabInFolderAdditionalFieldImpl extends EnumWithSmallCodeOptionGroup<DefaultTabInFolderDisplay> implements AdditionnalRecordField<Object> {
+	private class DefaultTabInFolderAdditionalFieldImpl extends EnumWithSmallCodeOptionGroup<DefaultTabInFolderDisplay> implements ExtraTabAdditionalRecordField<Object> {
 
 		public DefaultTabInFolderAdditionalFieldImpl() {
 			super(DefaultTabInFolderDisplay.class);
 			setCaption($("ModifyProfileView.defaultTabInFolderDisplay"));
 			setId("defaultTabInFolderDisplay");
 			setImmediate(true);
+		}
+
+		@Override
+		public String getTab() {
+			return $("ModifyProfileView.configsTab");
 		}
 
 		@Override
@@ -181,11 +186,16 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 		}
 	}
 
-	private class DefaultAdministrativeUnitAdditionalFieldImpl extends LookupRecordField implements AdditionnalRecordField<Object> {
+	private class DefaultAdministrativeUnitAdditionalFieldImpl extends LookupRecordField implements ExtraTabAdditionalRecordField<Object> {
 
 		public DefaultAdministrativeUnitAdditionalFieldImpl() {
 			super(AdministrativeUnit.SCHEMA_TYPE, true, false);
 			setImmediate(true);
+		}
+
+		@Override
+		public String getTab() {
+			return $("ModifyProfileView.configsTab");
 		}
 
 		@Override
@@ -199,10 +209,15 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 		}
 	}
 
-	private class HideNotActiveAdditionalFieldImpl extends CheckBox implements AdditionnalRecordField<Boolean> {
+	private class HideNotActiveAdditionalFieldImpl extends CheckBox implements ExtraTabAdditionalRecordField<Boolean> {
 
 		public HideNotActiveAdditionalFieldImpl() {
 			super($("ModifyProfileView.hideNotActive"));
+		}
+
+		@Override
+		public String getTab() {
+			return $("ModifyProfileView.configsTab");
 		}
 
 		@Override
@@ -216,7 +231,7 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 		}
 	}
 
-	private class AgentManuallyDisabledFieldImpl extends CheckBox implements AdditionnalRecordField<Boolean> {
+	private class AgentManuallyDisabledFieldImpl extends CheckBox implements ExtraTabAdditionalRecordField<Boolean> {
 		AgentStatus previousAgentStatus;
 
 		public AgentManuallyDisabledFieldImpl(AgentStatus previousAgentStatus) {
@@ -224,6 +239,11 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 			setId("agentManuallyDisabled");
 			addStyleName("agentManuallyDisabled");
 			this.previousAgentStatus = previousAgentStatus;
+		}
+
+		@Override
+		public String getTab() {
+			return $("ModifyProfileView.configsTab");
 		}
 
 		@Override
@@ -245,7 +265,7 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 	}
 
 	private class FavoritesDisplayOrderFieldImpl extends ListAddRemoveField<String, AbstractField<String>>
-			implements AdditionnalRecordField<List<String>> {
+			implements ExtraTabAdditionalRecordField<List<String>> {
 		private List<Record> favorites;
 		private Map<String, String> favoritesTitle;
 		private User currentUser;
@@ -266,6 +286,11 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 			if (showDefaultFavorite) {
 				this.favoritesTitle.put(currentUser.getId(), $("CartView.defaultFavorites"));
 			}
+		}
+
+		@Override
+		public String getTab() {
+			return $("ModifyProfileView.configsTab");
 		}
 
 		@Override
