@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ModifiableImportRecord {
 
@@ -74,13 +75,15 @@ public class ModifiableImportRecord {
 	}
 
 	public ModifiableImportRecord addField(String metadataName, Object value, Locale locale) {
-
 		if (metadataName == null) {
 			throw new RuntimeException("Metadata name is required");
 		}
 
 		if (value instanceof EnumWithSmallCode) {
 			this.fields.put(metadataName, ((EnumWithSmallCode) value).getCode());
+		} else if (isMultivaluedEnum(value)) {
+			List<EnumWithSmallCode> enumList = (List<EnumWithSmallCode>) value;
+			this.fields.put(metadataName, enumList.stream().map(v -> v.getCode()).collect(Collectors.toList()));
 
 		} else if (Boolean.TRUE.equals(value)) {
 			this.fields.put(metadataName, "true");
@@ -154,6 +157,14 @@ public class ModifiableImportRecord {
 			if (getFields().containsKey(field)) {
 				return true;
 			}
+		}
+		return false;
+	}
+
+	private boolean isMultivaluedEnum(Object value) {
+		if (value instanceof List) {
+			List valuesList = (List) value;
+			return valuesList.size() >= 1 && valuesList.get(0) instanceof EnumWithSmallCode;
 		}
 		return false;
 	}

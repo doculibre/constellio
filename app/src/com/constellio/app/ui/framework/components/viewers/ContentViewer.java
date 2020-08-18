@@ -17,7 +17,11 @@ import com.vaadin.ui.CustomComponent;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
 
 public class ContentViewer extends CustomComponent {
 

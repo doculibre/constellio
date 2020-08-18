@@ -12,6 +12,7 @@ import com.constellio.app.services.importExport.records.writers.ImportRecordOfSa
 import com.constellio.app.services.importExport.records.writers.ModifiableImportRecord;
 import com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecutor;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
+import com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.Authorizations;
 import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
@@ -70,7 +71,6 @@ public class RecordExportServices {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(RecordExportServices.class);
 	public static final String RECORDS_EXPORT_TEMP_FOLDER = "RecordsExportServices_recordsExportTempFolder";
-
 	AppLayerFactory appLayerFactory;
 	ModelLayerFactory modelLayerFactory;
 	ZipService zipService;
@@ -98,7 +98,7 @@ public class RecordExportServices {
 			ImportRecordOfSameCollectionWriter writer = new ImportRecordOfSameCollectionWriter(tempFolder);
 			StringBuilder contentPaths = new StringBuilder();
 			try {
-				writeRecords(writer, options, contentPaths);
+				writeRecords(writer, options, contentPaths, tempFolder);
 			} finally {
 				writer.close();
 			}
@@ -135,7 +135,8 @@ public class RecordExportServices {
 
 
 	private void writeRecords(ImportRecordOfSameCollectionWriter writer,
-							  RecordExportOptions options, StringBuilder contentPaths) {
+							  RecordExportOptions options, StringBuilder contentPaths,
+							  File tempFolder) {
 
 
 		Set<String> receivedTypes = new HashSet<>();
@@ -185,7 +186,7 @@ public class RecordExportServices {
 			}
 
 			appLayerFactory.getExtensions().forCollection(collection)
-					.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord, options.isForSameSystem()));
+					.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord, options.isForSameSystem(), tempFolder));
 
 			writer.write(modifiableImportRecord);
 		}
@@ -204,6 +205,12 @@ public class RecordExportServices {
 			Record authorizationRecord = authorization.getDetails().get();
 			ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, Authorization.SCHEMA_TYPE, authorization.getDetails().getId());
 			writeRecord(authorizationRecord, modifiableImportRecord, options, contentPaths);
+
+			String sharedById = authorization.getDetails().getSharedBy();
+			if (sharedById != null) {
+				String sharedByUsername = schemas.getUser(sharedById).getUsername();
+				modifiableImportRecord.with(Authorizations.SHARED_BY, "user:" + sharedByUsername);
+			}
 
 			List<String> principals = new ArrayList<>();
 
@@ -280,10 +287,9 @@ public class RecordExportServices {
 
 	}
 
+
 	private void writeRecord(Record record, ModifiableImportRecord modifiableImportRecord,
 							 final RecordExportOptions options, StringBuilder contentPaths) {
-
-
 		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(record);
 
 
@@ -318,7 +324,10 @@ public class RecordExportServices {
 	}
 
 	private boolean isMetadataExported(Metadata metadata, Record record, MetadataSchemaTypes metadataSchemaTypes) {
-
+		AppLayerCollectionExtensions collectionExtensions = appLayerFactory.getExtensions().forCollectionOf(record);
+		if (collectionExtensions.isMetadataExportForced(metadata)) {
+			return true;
+		}
 		List<String> allowedMetadatas = asList(Schemas.CREATED_ON.getLocalCode(), Schemas.CREATED_BY.getLocalCode(),
 				Schemas.MODIFIED_ON.getLocalCode(), Schemas.MODIFIED_BY.getLocalCode(),
 				Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), Schemas.LOGICALLY_DELETED_ON.getLocalCode(),
@@ -385,6 +394,7 @@ public class RecordExportServices {
 
 		}
 	}
+
 
 	private void writeContentPath(Content content, StringBuilder contentPaths) {
 		DataLayerFactory dataLayerFactory = modelLayerFactory.getDataLayerFactory();

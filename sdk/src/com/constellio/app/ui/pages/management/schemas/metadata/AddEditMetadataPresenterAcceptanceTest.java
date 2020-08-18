@@ -9,6 +9,9 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException;
@@ -122,6 +125,53 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(displayConfigOf("zeSchemaType_custom_stringMetadata").isVisibleInAdvancedSearch()).isFalse();
 		formMetadataVO = presenter.getFormMetadataVO();
 		assertThat(formMetadataVO.isAdvancedSearch()).isFalse();
+	}
+
+	@Test
+	public void whenAddedCustomMetadataDuplicatesAnotherCustomMetadataDuplicationHandlingHappens() {
+
+		String anotherCustomSchemaCode = "anotherCustom";
+
+		String duplicatedMetadataCode = "metadataToDuplicate";
+		String usrDuplicatedMetadataCode = "USR" + duplicatedMetadataCode;
+
+		MetadataValueType duplicatedMetadataValueType = MetadataValueType.STRING;
+		boolean duplicatedMetadataIsMultivalue = false;
+
+		MetadataSchemasManager schemasManager = getModelLayerFactory().getMetadataSchemasManager();
+		;
+
+		schemasManager.modify(zeCollection, types -> {
+			types.getSchemaType("zeSchemaType").createCustomSchema(anotherCustomSchemaCode);
+
+			types.getSchema(zeCustomSchema.code())
+					.create(usrDuplicatedMetadataCode)
+					.setType(duplicatedMetadataValueType).setMultivalue(duplicatedMetadataIsMultivalue);
+		});
+
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchema anotherCustomSchema = types.getSchema("zeSchemaType_" + anotherCustomSchemaCode);
+
+
+		try {
+			assertThat(anotherCustomSchema.getMetadata(usrDuplicatedMetadataCode)).isNotNull();
+		} catch (MetadataSchemasRuntimeException metadataNotFoundException) {
+			//Expected since the metadata has not been created
+		}
+
+
+		FormMetadataVO formMetadataVO = new FormMetadataVO(view.getSessionContext());
+		formMetadataVO.setLocalcode(duplicatedMetadataCode);
+		formMetadataVO.setValueType(duplicatedMetadataValueType);
+		formMetadataVO.setMultivalue(duplicatedMetadataIsMultivalue);
+
+		presenter.setSchemaCode(anotherCustomSchema.getCode());
+		presenter.preSaveButtonClicked(formMetadataVO, false);
+
+		types = schemasManager.getSchemaTypes(zeCollection);
+
+		anotherCustomSchema = types.getSchema(anotherCustomSchema.getCode());
+		assertThat(anotherCustomSchema.getMetadata(usrDuplicatedMetadataCode)).isNotNull();
 	}
 
 	@Test

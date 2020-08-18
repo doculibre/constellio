@@ -103,7 +103,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 		buttonsLayout.setSpacing(true);
-		buttonsLayout.addComponents(buildCancelButton(),buildSlowCompleteButton(),
+		buttonsLayout.addComponents(buildCancelButton(), buildSlowCompleteButton(),
 				buildQuickCompleteButton(mainLayout, decisionField, acceptedField, reasonField, descriptionField, commentField, uncompletedRequiredFields));
 
 		mainLayout.addComponent(buttonsLayout);
@@ -358,7 +358,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 				value = LocalDateTime.fromDateFields((Date) value);
 			} else if (field instanceof JodaDateField) {
 				value = LocalDate.fromDateFields((Date) value);
-			} else if(field instanceof BaseDoubleField) {
+			} else if (field instanceof BaseDoubleField) {
 				value = ((BaseDoubleField) field).getConvertedValue();
 			}
 			record.set(taskSchema.getMetadata(m.getCode()), value);

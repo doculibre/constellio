@@ -98,9 +98,7 @@ public class ApplicationStarter {
 		handler.setClassLoader(Thread.currentThread().getContextClassLoader());
 
 		handler.getSessionHandler().getSessionCookieConfig().setHttpOnly(true);
-		if (params.isSSL() || params.isForceSecuredCookies()) {
-			handler.getSessionHandler().getSessionCookieConfig().setSecure(true);
-		}
+		//https://bugs.eclipse.org/bugs/show_bug.cgi?id=326612 secure cookie is already enable automatically
 
 		server.setHandler(handler);
 
@@ -178,7 +176,6 @@ public class ApplicationStarter {
 				"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
 				"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
 				"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
-				//"TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
 				//"TLS_DHE_DSS_WITH_AES_128_GCM_SHA256",
 				"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
 				"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
@@ -187,13 +184,13 @@ public class ApplicationStarter {
 				"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256",
 				"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
 				"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384",
-				"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA"/*,
-				"TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
-				"TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
-				"TLS_DHE_RSA_WITH_AES_128_CBC_SHA256",
-				"TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
-				"TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
-				"TLS_DHE_RSA_WITH_AES_256_CBC_SHA256"*/
+				"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
+				//"TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+				//"TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+				//"TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
+				//"TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
+				"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+				"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"
 		);
 
 		HttpConfiguration https_config = new HttpConfiguration();

@@ -19,6 +19,7 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 	private boolean itemInformation;
 	protected List<ValueChangeListener> lookupFieldListenerList;
 	protected RecordTextInputDataProvider recordTextInputDataProvider;
+	protected List<String> idsToIgnore;
 
 	public ListAddRemoveRecordLookupField(String schemaTypeCode) {
 		this(schemaTypeCode, null, null, false);
@@ -41,6 +42,7 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 										  RecordTextInputDataProvider recordTextInputDataProvider,
 										  boolean sortByCaption) {
 		super();
+		this.idsToIgnore = new ArrayList<>();
 		this.schemaTypeCode = schemaTypeCode;
 		this.schemaCode = schemaCode;
 		this.recordTextInputDataProvider = recordTextInputDataProvider;
@@ -48,6 +50,10 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 		ignoreLinkability = false;
 		this.sortByCaption = sortByCaption;
 		lookupFieldListenerList = new ArrayList<>();
+	}
+
+	public List<String> getIdsToIgnore() {
+		return idsToIgnore;
 	}
 
 	@Override
@@ -106,7 +112,7 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 
 	protected LookupRecordField buildBaseLookupField() {
 		return recordTextInputDataProvider == null ?
-			   new LookupRecordField(schemaTypeCode, schemaCode)
+			   new LookupRecordField(schemaTypeCode, schemaCode, idsToIgnore)
 												   : new LookupRecordField(schemaTypeCode, schemaCode, false, recordTextInputDataProvider) {
 			@Override
 			protected String getReadOnlyMessage() {

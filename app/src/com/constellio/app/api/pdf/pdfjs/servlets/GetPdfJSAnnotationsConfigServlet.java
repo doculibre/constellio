@@ -1,5 +1,6 @@
 package com.constellio.app.api.pdf.pdfjs.servlets;
 
+import com.constellio.app.api.HttpServletRequestAuthenticator;
 import com.constellio.app.api.pdf.pdfjs.services.PdfJSServices;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -17,6 +18,7 @@ public class GetPdfJSAnnotationsConfigServlet extends BasePdfJSServlet {
 	@Override
 	protected void doService(Record record, Metadata metadata, User user, String localeCode, HttpServletRequest request,
 							 HttpServletResponse response) throws ServletException, IOException {
+		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(getModelLayerFactory());
 		String serviceKey = authenticator.getUserServiceKey(request);
 		String token = authenticator.getUserToken(request);
 		String urlPrefix = request.getParameter("urlPrefix");

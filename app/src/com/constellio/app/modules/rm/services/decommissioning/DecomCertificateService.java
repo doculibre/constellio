@@ -13,7 +13,11 @@ import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentsCert
 import com.constellio.app.modules.rm.reports.model.decommissioning.FoldersCertificateReportModel;
 import com.constellio.app.modules.rm.reports.model.decommissioning.FoldersCertificateReportModel.FoldersCertificateReportModel_Folder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
@@ -34,7 +38,12 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 

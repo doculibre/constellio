@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.migrations;
 
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
-import com.constellio.sdk.tests.annotations.SlowTest;
 
 import java.io.File;
 

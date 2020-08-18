@@ -11,7 +11,11 @@ import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.ArrayList;
@@ -43,7 +47,8 @@ public abstract class ContainerFormImpl extends RecordForm implements ContainerF
 		}
 	}
 
-	public ContainerFormImpl(RecordVO record, final AddEditContainerPresenter presenter, ConstellioFactories constellioFactories) {
+	public ContainerFormImpl(RecordVO record, final AddEditContainerPresenter presenter,
+							 ConstellioFactories constellioFactories) {
 		this(record, new ContainerFieldFactory(getTypeFromRecordIfAvalible(record),
 				getCapacityFromrecordVOIfAvalible(record), presenter), constellioFactories);
 		if (presenter.isMultipleMode()) {
@@ -94,7 +99,8 @@ public abstract class ContainerFormImpl extends RecordForm implements ContainerF
 		}
 	}
 
-	private ContainerFormImpl(final RecordVO recordVO, RecordFieldFactory formFieldFactory, ConstellioFactories constellioFactories) {
+	private ContainerFormImpl(final RecordVO recordVO, RecordFieldFactory formFieldFactory,
+							  ConstellioFactories constellioFactories) {
 		super(recordVO, buildFields(recordVO, formFieldFactory), formFieldFactory, constellioFactories);
 	}
 

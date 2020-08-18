@@ -1,11 +1,11 @@
 package com.constellio.model.services.records.reindexing;
 
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;

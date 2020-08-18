@@ -10,7 +10,8 @@ import com.constellio.app.ui.pages.base.SessionContext;
 public abstract class FacetConfigurationFormImpl extends RecordForm implements FacetConfigurationForm {
 	private ConstellioFactories constellioFactories;
 
-	public FacetConfigurationFormImpl(RecordVO record, FacetFieldFactory facetFieldFactory, ConstellioFactories constellioFactories) {
+	public FacetConfigurationFormImpl(RecordVO record, FacetFieldFactory facetFieldFactory,
+									  ConstellioFactories constellioFactories) {
 		super(record, facetFieldFactory, constellioFactories);
 		this.constellioFactories = constellioFactories;
 	}

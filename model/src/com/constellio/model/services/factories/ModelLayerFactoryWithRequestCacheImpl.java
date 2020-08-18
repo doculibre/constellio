@@ -22,6 +22,7 @@ import com.constellio.model.services.emails.EmailTemplatesManager;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.logs.LogServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.migrations.RecordMigrationsManager;
 import com.constellio.model.services.parser.FileParser;
@@ -214,6 +215,11 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	@Override
 	public LoggingServices newLoggingServices() {
 		return modelLayerFactory.newLoggingServices();
+	}
+
+	@Override
+	public LogServices newLogServices() {
+		return modelLayerFactory.newLogServices();
 	}
 
 	@Override

@@ -35,7 +35,7 @@ public class GuideManagerAcceptanceTest extends ConstellioTest {
 		guideManager = new GuideManager(getDataLayerFactory());
 		guideManager.alterProperty(DEFAULT_LANGUAGE, CUSTOM_PROPERTY_KEY_THAT_EXISTS, URL_DEFAULT_LANGUAGE);
 	}
-	
+
 
 	@Test
 	public void givenCustomUrlDefinedWhenFetchingGuideUrlThenReturnCustomUrl() {

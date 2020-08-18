@@ -1,36 +1,40 @@
 package com.constellio.model.services.contents;
 
+import com.constellio.data.dao.services.contents.DaoFile;
 import com.constellio.model.entities.records.ParsedContent;
 
-import java.io.File;
 import java.util.Optional;
 
 public abstract class VaultContentEntry {
 
-	File file;
+	DaoFile vaultFile;
 
-	public VaultContentEntry(File file) {
-		this.file = file;
+	public VaultContentEntry(DaoFile daoFile) {
+		this.vaultFile = daoFile;
 	}
 
-	public File getFile() {
-		return file;
+	public DaoFile getFile() {
+		return vaultFile;
 	}
 
-	public File getPreview() {
-		return new File(file.getParentFile(), file.getName() + ".preview");
+	public DaoFile getPreview() {
+		String name = vaultFile.getName() + ".preview";
+		return vaultFile.getContentDao().getFile(name);
 	}
 
-	public File getThumbnails() {
-		return new File(file.getParentFile(), file.getName() + ".thumbnails");
+	public DaoFile getThumbnails() {
+		String name = vaultFile.getName() + ".jpegConversion";
+		return vaultFile.getContentDao().getFile(name);
 	}
 
-	public File getParsedContent() {
-		return new File(file.getParentFile(), file.getName() + "__parsed");
+	public DaoFile getParsedContent() {
+		String name = vaultFile.getName() + "__parsed";
+		return vaultFile.getContentDao().getFile(name);
 	}
 
-	public File getJpegConversion() {
-		return new File(file.getParentFile(), file.getName() + ".jpegConversion");
+	public DaoFile getJpegConversion() {
+		String name = vaultFile.getName() + ".jpegConversion";
+		return vaultFile.getContentDao().getFile(name);
 	}
 
 	public abstract Optional<ParsedContent> loadParsedContent();

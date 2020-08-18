@@ -82,7 +82,7 @@ public class ShareContentViewImpl extends BaseViewImpl implements ShareContentVi
 	private void buildUsersAndGroupsField() {
 		users = new ListAddRemoveRecordLookupField(User.SCHEMA_TYPE);
 		users.setCaption($("AuthorizationsView.users"));
-		users.setId("users");
+		users.getIdsToIgnore().add(presenter.getCurrentUserId());
 
 		groups = new ListAddRemoveRecordLookupField(Group.SCHEMA_TYPE);
 		groups.setCaption($("AuthorizationsView.groups"));
