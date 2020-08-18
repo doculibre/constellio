@@ -299,7 +299,7 @@ public class UserServices {
 				}
 			}
 		}
-		if (request.getAddToGroupInCollection() != null && request.getAddToGroupInCollection().keySet().contains(collection)) {
+		if (request.getAddToGroupInCollection() != null && request.getAddToGroupInCollection().containsKey(collection)) {
 			for (String groupCode : request.getAddToGroupInCollection().get(collection)) {
 				if (getGroupInCollection(groupCode, collection) != null) {
 					String groupId = getGroupInCollection(groupCode, collection).getId();

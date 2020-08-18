@@ -365,6 +365,13 @@ public class UserAddUpdateRequest {
 		return this;
 	}
 
+	public UserAddUpdateRequest addToGroupsInCollections(List<String> groupCodes, List<String> collections) {
+		for (String collection : collections) {
+			addToGroupsInCollection(groupCodes, collection);
+		}
+		return this;
+	}
+
 	public UserAddUpdateRequest addToGroupInCollection(String groupCode, String collection) {
 		addToGroupsInCollection(Collections.singletonList(groupCode), collection);
 		return this;

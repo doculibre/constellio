@@ -71,6 +71,10 @@ public class ImportUsersAndGroupsReport {
 		groupsRemovedList.add("Removed group " + group.getCode() + " with record ID " + group.getId() + ".");
 	}
 
+	public void addGroupsRemovedListFromCollection(Group group, String collection) {
+		groupsRemovedList.add("Removed group " + group.getCode() + " with record ID " + group.getId() + " from collection " + collection + ".");
+	}
+
 	public void addAssignationRelationships(String groupCode, String username) {
 		assignationRelationships.add("Assigned user " + username + " to group " + groupCode + ".");
 	}
