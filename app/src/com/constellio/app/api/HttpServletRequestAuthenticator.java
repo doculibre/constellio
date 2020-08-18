@@ -138,7 +138,7 @@ public class HttpServletRequestAuthenticator {
 		try {
 			byte[] tokenOrPassword = userToken.getBytes(Charset.forName("UTF-8"));
 
-			SystemWideUserInfos userCredential = userServices.getUser(username);
+			SystemWideUserInfos userCredential = userServices.getUserInfos(username);
 			boolean authenticated = userCredential.getTokenKeys().contains(new String(tokenOrPassword));
 			if (!authenticated) {
 				authenticated = modelLayerFactory.newAuthenticationService().authenticate(username, new String(tokenOrPassword));
