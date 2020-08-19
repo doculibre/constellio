@@ -73,7 +73,12 @@ public class SystemVersionService {
 
 		boolean HasAllPlugins = listEqualsIgnoreOrder(currentSystemVersion.getPlugins(), importedSystemVersion.getPlugins());
 
-		return isSameVersionMajorToRevisedMinor && HasAllPlugins;
+		return (isSameVersionMajorToRevisedMinor && HasAllPlugins) || notSpecified(importedSystemVersion);
+	}
+
+	private boolean notSpecified(ImportedSystemVersion importedSystemVersion) {
+		return importedSystemVersion.getMajorVersion() == 0 && importedSystemVersion.getMinorVersion() == 0
+			   && importedSystemVersion.getMinorRevisionVersion() == 0;
 	}
 
 	private static <T> boolean listEqualsIgnoreOrder(List<T> list1, List<T> list2) {

@@ -92,12 +92,14 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	}
 
 	private void addVersion(Element systemElem, ImportedSystemVersion importedSystemVersion) {
-		Element versionElement = new Element(VERSION);
-		versionElement.setAttribute(FULL, importedSystemVersion.getFullVersion());
-		versionElement.setAttribute(MAJOR, String.valueOf(importedSystemVersion.getMajorVersion()));
-		versionElement.setAttribute(MINOR, String.valueOf(importedSystemVersion.getMinorVersion()));
-		versionElement.setAttribute(REVISION, String.valueOf(importedSystemVersion.getMinorRevisionVersion()));
-		systemElem.addContent(versionElement);
+		if (importedSystemVersion.getFullVersion() != null) {
+			Element versionElement = new Element(VERSION);
+			versionElement.setAttribute(FULL, importedSystemVersion.getFullVersion());
+			versionElement.setAttribute(MAJOR, String.valueOf(importedSystemVersion.getMajorVersion()));
+			versionElement.setAttribute(MINOR, String.valueOf(importedSystemVersion.getMinorVersion()));
+			versionElement.setAttribute(REVISION, String.valueOf(importedSystemVersion.getMinorRevisionVersion()));
+			systemElem.addContent(versionElement);
+		}
 	}
 
 	private void addLabelTemplates(List<ImportedLabelTemplate> importedLabelTemplates) {
