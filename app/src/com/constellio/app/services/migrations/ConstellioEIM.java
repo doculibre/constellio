@@ -223,11 +223,11 @@ public class ConstellioEIM {
 		scripts.add(new CoreMigrationTo_9_0_42_2());
 		scripts.add(new CoreMigrationTo_9_0_3());
 		scripts.add(new CoreMigrationTo_9_1_0());
-		scripts.add(new CoreMigrationTo_9_2_11());
 		scripts.add(new CoreMigrationTo_9_1_12());
 		scripts.add(new CoreMigrationTo_9_1_13());
 		scripts.add(new CoreMigrationTo_9_2());
 		scripts.add(new CoreMigrationTo_9_1_20());
+		scripts.add(new CoreMigrationTo_9_2_11());
 		return scripts;
 	}
 
