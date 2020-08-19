@@ -206,7 +206,7 @@ public class DocumentViewer extends CustomComponent {
 				}
 				String tokenAttributeName = "document_viewer_token";
 				String token = ConstellioUI.getCurrent().getAttribute(tokenAttributeName);
-				if (token == null || userServices.isAuthenticated(serviceKey, token)) {
+				if (token == null || !userServices.isAuthenticated(serviceKey, token)) {
 					token = userServices.generateToken(username);
 					ConstellioUI.getCurrent().setAttribute(tokenAttributeName, token);
 					final String finalToken = token;
