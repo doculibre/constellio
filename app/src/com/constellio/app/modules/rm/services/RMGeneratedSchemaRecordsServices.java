@@ -1262,10 +1262,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("inheritedRetentionRule");
 		}
 
-		public Metadata isCheckoutAlertSent() {
-			return metadata("isCheckoutAlertSent");
-		}
-
 		public Metadata isModel() {
 			return metadata("isModel");
 		}

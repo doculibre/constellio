@@ -36,7 +36,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -198,7 +197,7 @@ public class AdvancedViewBatchProcessingPresenter implements BatchProcessingPres
 		List<MetadataVO> result = new ArrayList<>();
 		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 		for (Metadata metadata : types().getSchemaType(schemaTypeCode).getAllMetadatas().sortAscTitle(language)) {
-			if (isBatchEditable(metadata) && !metadata.isEssential()) {
+			if (isBatchEditable(metadata) && !metadata.isDefaultRequirement()) {
 				result.add(builder.build(metadata, view.getSessionContext()));
 			}
 		}
@@ -355,7 +354,7 @@ public class AdvancedViewBatchProcessingPresenter implements BatchProcessingPres
 			   && !metadata.isUnmodifiable()
 			   && metadata.isEnabled()
 			   && !metadata.getType().isStructureOrContent()
-			   && metadata.getDataEntry().getType() == DataEntryType.MANUAL
+				//			   && metadata.getDataEntry().getType() == DataEntryType.MANUAL
 			   && isNotHidden(metadata)
 			   // XXX: Not supported in the backend
 			   && metadata.getType() != MetadataValueType.ENUM;
