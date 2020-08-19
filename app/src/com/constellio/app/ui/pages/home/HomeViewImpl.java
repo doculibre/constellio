@@ -99,9 +99,11 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefre
 
 		Map<String, Tab> tabsByCode = new HashMap<>();
 		for (PageItem item : tabs) {
-			Tab tab = tabSheet.addTab(new PlaceHolder(), $("HomeView.tab." + item.getCode()));
-			tab.setVisible(isTabVisible(tab));
-			tabsByCode.put(item.getCode(), tab);
+			if (!(item instanceof CustomItem) || presenter.isCustomItemVisible((CustomItem) item)) {
+				Tab tab = tabSheet.addTab(new PlaceHolder(), $("HomeView.tab." + item.getCode()));
+				tab.setVisible(isTabVisible(tab));
+				tabsByCode.put(item.getCode(), tab);
+			}
 		}
 
 		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {

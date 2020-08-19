@@ -78,6 +78,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.plugins.util.PluginManager;
 import org.apache.solr.client.solrj.SolrClient;
 import org.joda.time.Duration;
 import org.joda.time.LocalDate;
@@ -89,8 +92,6 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -130,6 +131,7 @@ import static org.junit.Assume.assumeTrue;
 
 public abstract class AbstractConstellioTest implements FailureDetectionTestWatcherListener {
 
+	public static Logger log = null;
 	protected static boolean notAUnitItest = false;
 
 	private static TestsSpeedStats stats = new TestsSpeedStats();
@@ -137,7 +139,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	public static final String SDK_STREAM = StreamsTestFeatures.SDK_STREAM;
 
 	public static SDKPropertiesLoader sdkPropertiesLoader = new SDKPropertiesLoader();
-	public final static Logger log = LoggerFactory.getLogger(AbstractConstellioTest.class);
+	//public final static Logger log = LoggerFactory.getLogger(AbstractConstellioTest.class);
 	//	private static boolean batchProcessControllerStarted = false;
 	private static String[] notUnitTestSuffix = new String[]{"AcceptanceTest", "IntegrationTest", "RealTest", "LoadTest",
 															 "StressTest", "PerformanceTest", "AcceptTest"};
@@ -190,6 +192,15 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	@BeforeClass
 	public static void beforeClass()
 			throws Exception {
+
+		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+		System.setProperty("log4j.configurationFile", new FoldersLocator().getSDKProject().getAbsolutePath() +
+													  File.separator + "log4j2.xml");
+
+		PluginManager.addPackage("com.constellio.app.services.factories");
+		log = LogManager.getLogger(AbstractConstellioTest.class);
+		log.error("Error log message");
+
 		MetadataSchemasManager.cacheEnabled = true;
 
 		System.setProperty(BenchmarkOptionsSystemProperties.BENCHMARK_ROUNDS_PROPERTY, "1");

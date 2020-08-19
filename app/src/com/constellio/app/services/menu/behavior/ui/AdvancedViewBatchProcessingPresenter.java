@@ -46,6 +46,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
@@ -258,6 +259,9 @@ public class AdvancedViewBatchProcessingPresenter implements BatchProcessingPres
 			query = extension.addAdditionalSearchQueryFilters(
 					new AdvancedSearchPresenterExtension.AddAdditionalSearchQueryFiltersParams(query, schemaTypeCode));
 		}
+
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.allExceptContentAndLargeText());
+
 		return query;
 	}
 

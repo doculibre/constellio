@@ -25,6 +25,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.lang.StringUtils;
 
@@ -94,7 +95,19 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 				return metadata.getLocalCode().startsWith("USR")
 					   && metadata.isEnabled()
 					   && !isDDVOrTaxonomy(metadata)
-					   && isNotAHiddenSystemReserved(metadata);
+					   && isNotAHiddenSystemReserved(metadata)
+					   && metadata.getDataEntry().getType() != DataEntryType.COPIED;
+			}
+		};
+
+		MetadataVODataProvider copied = new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection,
+				schemaCode, this) {
+			@Override
+			protected boolean isAccepted(Metadata metadata) {
+				return metadata.isEnabled()
+					   && !isDDVOrTaxonomy(metadata)
+					   && isNotAHiddenSystemReserved(metadata)
+					   && metadata.getDataEntry().getType() == DataEntryType.COPIED;
 			}
 		};
 
@@ -105,7 +118,8 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 				return !metadata.getLocalCode().startsWith("USR")
 					   && metadata.isEnabled()
 					   && !isDDVOrTaxonomy(metadata)
-					   && isNotAHiddenSystemReserved(metadata);
+					   && isNotAHiddenSystemReserved(metadata)
+					   && metadata.getDataEntry().getType() != DataEntryType.COPIED;
 			}
 		};
 
@@ -129,6 +143,7 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 		};
 
 		dataProviders.put($("AddEditSchemaMetadataView.tabs.custom", custom.size()), custom);
+		dataProviders.put($("AddEditSchemaMetadataView.tabs.copied", copied.size()), copied);
 		dataProviders.put($("AddEditSchemaMetadataView.tabs.ddvsAndTaxonomies", ddvTaxonomies.size()), ddvTaxonomies);
 		dataProviders.put($("AddEditSchemaMetadataView.tabs.system", system.size()), system);
 		dataProviders.put($("AddEditSchemaMetadataView.tabs.disabled", disabled.size()), disabled);

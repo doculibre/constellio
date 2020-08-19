@@ -4,6 +4,7 @@ import com.constellio.app.modules.restapi.core.dao.BaseDao;
 import com.constellio.app.modules.restapi.core.exception.UnsupportedMetadataTypeException;
 import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.ListUtils;
+import com.constellio.app.modules.restapi.resource.dto.AttributeDto;
 import com.constellio.app.modules.restapi.resource.dto.ExtendedAttributeDto;
 import com.constellio.app.modules.restapi.resource.dto.ResourceTypeDto;
 import com.constellio.app.modules.restapi.resource.exception.ResourceTypeNotFoundException;
@@ -89,6 +90,13 @@ public abstract class ResourceDao extends BaseDao {
 		return extendedAttributes;
 	}
 
+	protected void updateMetadataValues(Record resourceRecord, MetadataSchema schema,
+										List<AttributeDto> attributes, boolean partial) {
+		for (AttributeDto attribute : ListUtils.nullToEmpty(attributes)) {
+			updateAttributeMetadataValue(resourceRecord, schema, attribute.getKey(), attribute.getValues());
+		}
+	}
+
 	protected void updateCustomMetadataValues(Record resourceRecord, MetadataSchema schema,
 											  List<ExtendedAttributeDto> attributes, boolean partial) {
 		if (!partial || attributes != null) {
@@ -96,34 +104,39 @@ public abstract class ResourceDao extends BaseDao {
 		}
 
 		for (ExtendedAttributeDto attribute : ListUtils.nullToEmpty(attributes)) {
-			Metadata metadata = schema.getMetadata(attribute.getKey());
-
-			List<Object> values = new ArrayList<>(attribute.getValues().size());
-			for (String value : attribute.getValues()) {
-				switch (metadata.getType()) {
-					case STRING:
-					case TEXT:
-					case REFERENCE:
-						values.add(value);
-						break;
-					case DATE:
-						values.add(DateUtils.parseLocalDate(value, getDateFormat()));
-						break;
-					case DATE_TIME:
-						values.add(DateUtils.parseLocalDateTime(value, getDateTimeFormat()));
-						break;
-					case NUMBER:
-						values.add(Double.valueOf(value));
-						break;
-					case BOOLEAN:
-						values.add(Boolean.valueOf(value));
-						break;
-					default:
-						throw new UnsupportedMetadataTypeException(metadata.getType().name());
-				}
-			}
-			resourceRecord.set(metadata, metadata.isMultivalue() ? values : values.get(0));
+			updateAttributeMetadataValue(resourceRecord, schema, attribute.getKey(), attribute.getValues());
 		}
+	}
+
+	protected void updateAttributeMetadataValue(Record resourceRecord, MetadataSchema schema, String key,
+												List<String> values) {
+		Metadata metadata = schema.getMetadata(key);
+
+		List<Object> newValues = new ArrayList<>(values.size());
+		for (String value : values) {
+			switch (metadata.getType()) {
+				case STRING:
+				case TEXT:
+				case REFERENCE:
+					newValues.add(value);
+					break;
+				case DATE:
+					newValues.add(DateUtils.parseLocalDate(value, getDateFormat()));
+					break;
+				case DATE_TIME:
+					newValues.add(DateUtils.parseLocalDateTime(value, getDateTimeFormat()));
+					break;
+				case NUMBER:
+					newValues.add(Double.valueOf(value));
+					break;
+				case BOOLEAN:
+					newValues.add(Boolean.valueOf(value));
+					break;
+				default:
+					throw new UnsupportedMetadataTypeException(metadata.getType().name());
+			}
+		}
+		resourceRecord.set(metadata, metadata.isMultivalue() ? newValues : newValues.get(0));
 	}
 
 	protected <T> void updateDocumentMetadataValue(Record resourceRecord, MetadataSchema schema, String metadataCode,

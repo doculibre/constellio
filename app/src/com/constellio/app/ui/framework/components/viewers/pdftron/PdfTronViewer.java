@@ -250,8 +250,8 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		mainLayout.addComponents(canvas);
 		mainLayout.setExpandRatio(canvas, 1);
 
-//		DownloadLink downloadLink = new DownloadLink(new ContentVersionVOResource(this.contentVersion), $("contentVersionWindowButton.downloadWithoutAnnotation"));
-//		setTopRightButton(downloadLink);
+		//		DownloadLink downloadLink = new DownloadLink(new ContentVersionVOResource(this.contentVersion), $("contentVersionWindowButton.downloadWithoutAnnotation"));
+		//		setTopRightButton(downloadLink);
 
 		addComponent(mainLayout);
 	}

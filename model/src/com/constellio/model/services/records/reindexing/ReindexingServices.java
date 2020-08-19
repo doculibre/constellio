@@ -175,7 +175,9 @@ public class ReindexingServices {
 
 						List<RecordDTO> records = new ArrayList<>();
 
-						records.add(recordDao.get("the_private_key"));
+						if (!FoldersLocator.usingAppWrapper()) {
+							records.add(recordDao.get("the_private_key"));
+						}
 
 						for (Map.Entry<String, Long> entry : dataLayerFactory.getSequencesManager().getSequences().entrySet()) {
 							RecordDTO sequence = recordDao.get("seq_" + entry.getKey());

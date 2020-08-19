@@ -3,7 +3,6 @@ package com.constellio.model.services.records.cache;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.model.services.records.cache.locks.SimpleReadLockMechanism;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Before;
 import org.junit.Test;
 

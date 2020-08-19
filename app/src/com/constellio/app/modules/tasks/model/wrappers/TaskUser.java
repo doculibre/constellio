@@ -12,7 +12,7 @@ import com.constellio.model.services.security.roles.Roles;
 public class TaskUser extends User{
     public static final String DEFAULT_FOLLOWER_WHEN_CREATING_TASK = "defaultFollowerWhenCreatingTask";
     public static final String ASSIGN_TASK_AUTOMATICALLY = "assignTaskAutomatically";
-    public static final String DELEGATION_TASK_USER = "delegationTaskUser";
+	public static final String DELEGATION_TASK_USER = "delegationTaskUser";
 
     public TaskUser(Record record, MetadataSchemaTypes types, Roles roles) {
         super(record, types, roles);

@@ -136,6 +136,13 @@ public class MetadataFieldFactory implements Serializable {
 		}
 	}
 
+	private void setFieldCharacterLengthLimit(BaseTextField field, MetadataVO metadata) {
+		Integer maxLength = metadata.getMaxLength();
+		if (metadata.isMaxLenghtSupported() && maxLength != null) {
+			field.setMaxLength(maxLength);
+		}
+	}
+
 	private boolean isToManyCharactersValidatorPresent(Field<?> field) {
 		for (Validator validator : field.getValidators()) {
 			if (validator instanceof ToManyCharactersValidator) {
@@ -313,6 +320,7 @@ public class MetadataFieldFactory implements Serializable {
 					} else {
 						String inputMask = metadata.getInputMask();
 						BaseTextField textField = new BaseTextField();
+						setFieldCharacterLengthLimit(textField, metadata);
 						textField.setInputMask(inputMask);
 						field = textField;
 					}

@@ -1,8 +1,7 @@
 package com.constellio.model.services.taxonomies;
 
-import com.constellio.model.entities.records.Record;
-
 import com.constellio.data.utils.LangUtils;
+import com.constellio.model.entities.records.Record;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,7 +51,7 @@ public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 	public synchronized void invalidateWithoutChildren(String recordId) {
 		if (recordId != null) {
 			TaxonomyRecordCache taxonomyRecordCache = cache.get(recordId);
-  			if (taxonomyRecordCache != null) {
+			if (taxonomyRecordCache != null) {
 				taxonomyRecordCache.removeWithoutChildren();
 			}
 		}

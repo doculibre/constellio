@@ -205,6 +205,10 @@ public class FoldersLocator {
 		return new File(getWrapperInstallationFolder(), "logs");
 	}
 
+	public File getTenantLogsFolder() {
+		return new File(getLogsFolder(), TenantUtils.getTenantCode());
+	}
+
 	public File getBatFolder() {
 		return new File(getWrapperInstallationFolder(), "bat");
 	}
@@ -456,7 +460,7 @@ public class FoldersLocator {
 	}
 
 	public File getPluginsRepository() {
-		return new File(getConstellioProject().getParentFile(), concatTenantFolder("constellio-plugins"));
+		return new File(getConstellioProject().getParentFile(), "constellio-plugins");
 	}
 
 	public File getPluginsSDKProject() {
@@ -472,6 +476,18 @@ public class FoldersLocator {
 
 		} else {
 			return new File(getConstellioWebappFolder(), "languageProfiles");
+		}
+	}
+
+	public File getWebClasses() {
+		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+			return new File(getConstellioWebinfFolder(), "classes");
+
+		} else if (getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
+			return new File(getConstellioWebinfFolder(), "classes");
+
+		} else {
+			return new File(getConstellioWebappFolder(), "classes");
 		}
 	}
 

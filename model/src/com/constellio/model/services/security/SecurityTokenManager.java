@@ -30,7 +30,7 @@ public class SecurityTokenManager implements StatefulService {
 
 	}
 
-	UserTokens EMPTY_USER_TOKENS = new UserTokens(Collections.emptyList(),Collections.emptyList(),Collections.emptyList(),Collections.emptyList());
+	UserTokens EMPTY_USER_TOKENS = new UserTokens(Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
 
 	public UserTokens getTokens(final User user) {
 

@@ -14,7 +14,6 @@ import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.Test;

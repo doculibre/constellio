@@ -145,6 +145,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration ENABLE_INACTIF_SCHEMAS_IN_SEARCH;
 
+	public static final SystemConfiguration SHOW_COPIED_METADATA_SEPARATELY_IN_SEARCH;
+
 	public static final SystemConfiguration SPACE_QUOTA_FOR_USER_DOCUMENTS;
 
 	public static final SystemConfiguration BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE;
@@ -163,8 +165,6 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration ENABLE_THUMBNAIL_GENERATION;
 
 	public static final SystemConfiguration SHOW_RESULTS_NUMBERING_IN_LIST_VIEW;
-
-	public static final SystemConfiguration SHOW_PATH_TO_RESULT;
 
 	public static final SystemConfiguration ENABLE_LEARN_TO_RANK_FEATURE;
 
@@ -251,7 +251,6 @@ public class ConstellioEIMConfigs {
 		add(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS = search.createBooleanFalseByDefault("replaceSpacesInSimpleSearchForAnds"));
 		add(IS_RUNNING_WITH_SOLR_6 = search.createBooleanFalseByDefault("isRunningWithSolr6").whichIsHidden());
 		add(SHOW_RESULTS_NUMBERING_IN_LIST_VIEW = search.createBooleanFalseByDefault("showResultsNumberingInListView"));
-		add(SHOW_PATH_TO_RESULT = search.createBooleanFalseByDefault("showPathToResult"));
 
 		add(AUTOCOMPLETE_SPLIT_CRITERIA = search.createEnum("autocompleteSplitCriteria", AutocompleteSplitCriteria.class)
 				.withDefaultValue(AutocompleteSplitCriteria.SPACE).withReIndexationRequired());
@@ -270,6 +269,8 @@ public class ConstellioEIMConfigs {
 				.whichIsHidden());
 
 		add(ENABLE_INACTIF_SCHEMAS_IN_SEARCH = search.createBooleanTrueByDefault("enableInactifSchemasInSearch"));
+
+		add(SHOW_COPIED_METADATA_SEPARATELY_IN_SEARCH = search.createBooleanFalseByDefault("showCopiedMetadataSeparatelyInSearch"));
 
 		add(ENABLE_LEARN_TO_RANK_FEATURE = search.createBooleanFalseByDefault("enableLearnToRankFeature")
 				.whichIsHidden());
@@ -417,6 +418,10 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(ENABLE_INACTIF_SCHEMAS_IN_SEARCH);
 	}
 
+	public Boolean isShowCopiedMetadataSeparatelyInSearch() {
+		return manager.getValue(SHOW_COPIED_METADATA_SEPARATELY_IN_SEARCH);
+	}
+
 	public Boolean isCleanDuringInstall() {
 		return manager.getValue(CLEAN_DURING_INSTALL);
 	}
@@ -451,10 +456,6 @@ public class ConstellioEIMConfigs {
 
 	public Boolean isRemoveExtensionFromRecordTitle() {
 		return manager.getValue(REMOVE_EXTENSION_FROM_RECORD_TITLE);
-	}
-
-	public boolean isShowPathToResult() {
-		return manager.getValue(SHOW_PATH_TO_RESULT);
 	}
 
 	public boolean isSearchUsingTermsInBQ() {

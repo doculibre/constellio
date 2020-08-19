@@ -32,6 +32,7 @@ import com.constellio.data.dao.services.cache.event.ConstellioEventMapCacheManag
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
 import com.constellio.data.dao.services.cache.map.ConstellioMapCacheManager;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCacheManager;
+import com.constellio.data.dao.services.contents.AzureBlobStorageContentDao;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
@@ -494,7 +495,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	public void updateContentDao() {
 		if (ContentDaoType.FILESYSTEM == dataLayerConfiguration.getContentDaoType()) {
 			contentDao = add(new FileSystemContentDao(this, dataLayerConfiguration.getSubvaults()));
-
+		} else if (ContentDaoType.AZURE == dataLayerConfiguration.getContentDaoType()) {
+			contentDao = add(new AzureBlobStorageContentDao(this));
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ContentDaoType");
 		}

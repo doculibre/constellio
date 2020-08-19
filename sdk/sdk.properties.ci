@@ -1,0 +1,44 @@
+# === WEB DRIVERS CONFIGURATION ===
+# if both are specified, phantomjs is used, unless you call newFirefoxWebDriver() in the test
+#firefoxBinary=detect
+firefoxBinary=/firefox
+#phantomJSBinary=
+port=7070
+
+# === DATASTORE CONFIGURATION ===
+# *** WARNING : collections will be deleted ***3
+dao.records.type=http
+dao.records.http.url=http://192.168.86.66:8983/solr/
+dao.contents.type=filesystem
+dao.settings.type=filesystem
+
+# === RUN/SKIP TESTS CONFIGURATION ===
+skip.slowtests=false
+skip.uitests=false
+skip.drivertests=false
+skip.loadtests=false
+skip.internettests=true
+skip.indevelopment=true
+skip.importtests=false
+skip.testsWithGradle=false
+
+tests.whitelist=
+tests.blacklist=com.constellio.model.conf.ldap.LDAPConfigurationManagerAcceptanceTest,\
+com.constellio.app.services.migrations.ComboMigrationsAcceptanceTest,\
+com.constellio.model.conf.ldap.services.AzureAdClientAcceptanceTest,\
+com.constellio.model.services.security.authentification.LDAPAuthenticationServiceAcceptanceTest,\
+com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteAcceptanceTest,\
+com.constellio.model.services.records.cache.ignite.RecordsCachesIgniteAcceptanceTest,\
+com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManagerAcceptTest,\
+com.constellio.app.modules.migrations.PluginsComboMigrationsAcceptanceTest,\
+com.constellio.model.services.security.authentification.LDAPAuthenticationServiceAcceptanceTest,\
+com.constellio.model.conf.ldap.LDAPConfigurationManagerAcceptanceTest,\
+com.constellio.agent.ui.tray.AgentTrayAcceptancePresenterAcceptanceTest,\
+com.constellio.agent.fileImport.FileImportRequesterAcceptanceTest,\
+com.constellio.agent.fileImport.FileImportResponderAcceptanceTest,\
+com.constellio.workflows.model.authorizations.AuthorizationsWorkflowAcceptanceTest,\
+com.constellio.app.modules.ai.services.AIDocumentServicesAcceptanceTest,\
+com.constellio.app.modules.ai.ui.components.userDocument.DeclareRMRecordPresenterAcceptanceTest,\
+com.constellio.app.modules.sct.services.document.SCTMigrationAcceptanceTest,\
+com.constellio.model.services.contents.BulkUploaderAcceptTest,\
+com.constellio.model.services.batch.controller.BatchProcessControllerWithTaxonomiesAcceptanceTest

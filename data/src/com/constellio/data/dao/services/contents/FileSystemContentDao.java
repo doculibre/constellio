@@ -171,7 +171,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		return isFileToCoped;
 	}
 
-	boolean moveFile(File fileToBeMoved, File target) {
+	protected boolean moveFile(File fileToBeMoved, File target) {
 		boolean isFileMoved;
 
 		if (fileToBeMoved == null || target == null) {
@@ -703,7 +703,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	@Override
 	public DaoFile getFile(String id) {
 		File file = getFileOf(id);
-		return new DaoFile(id, file.getName(), file.length(), file.lastModified(), this);
+		return new DaoFile(id, file.getName(), file.length(), file.lastModified(), file.isDirectory(), this);
 	}
 
 	private String toCaseInsensitive(char character) {
@@ -724,10 +724,12 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	}
 
-
-	public Stream<Path> streamVaultContent(Predicate<? super Path> filter) {
+	public Stream<DaoFile> streamVaultContent(Predicate<? super DaoFile> filter) {
 		try {
-			return Files.walk(rootFolder.toPath(), 5).filter(filter);
+			Stream<DaoFile> daoFileStream = Files.walk(rootFolder.toPath(), 5)
+					.map(path -> new DaoFile(path.getFileName().toString(), path.getFileName().toString(), path.toFile().length(), path.toFile().lastModified(), path.toFile().isDirectory(), this))
+					.filter(filter);
+			return daoFileStream;
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

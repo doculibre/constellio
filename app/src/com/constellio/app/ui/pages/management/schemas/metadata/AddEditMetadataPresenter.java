@@ -42,6 +42,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -237,6 +238,77 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		return type.getLabel(Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage()));
 	}
 
+	public List<String> getReferenceMetadataCodes() {
+		MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
+				.getSchemaType(schemaTypeCode).getSchema(schemaCode);
+		List<String> codes = new ArrayList<>();
+		for (Metadata metadata : schema.getMetadatas()) {
+			if (metadata.getType() == REFERENCE && !metadata.isMultivalue()) {
+				codes.add(metadata.getCode());
+			}
+		}
+		return codes;
+	}
+
+	public String getReferenceMetadataCaption(String refMetadataCode) {
+		MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
+				.getSchemaType(schemaTypeCode).getSchema(schemaCode);
+		Metadata metadata = schema.getMetadata(refMetadataCode);
+		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
+		String typeCode = metadata.getReferencedSchemaTypeCode();
+		return metadata.getLabel(language) + " (" + getMetadataTypesCaption(typeCode) + ")";
+	}
+
+	public List<String> getSourceMetadataCodes(String dataEntryReference) {
+		if (StringUtils.isBlank(dataEntryReference)) {
+			return Collections.emptyList();
+		}
+
+		MetadataSchema schema = types.getSchemaType(schemaTypeCode).getSchema(schemaCode);
+		String typeCode = schema.getMetadata(dataEntryReference).getReferencedSchemaTypeCode();
+
+		MetadataSchema referenceSchema = types.getSchemaType(typeCode).getDefaultSchema();
+		List<String> codes = new ArrayList<>();
+		for (Metadata metadata : referenceSchema.getMetadatas()) {
+			switch (metadata.getType()) {
+				case STRING:
+				case DATE:
+				case DATE_TIME:
+				case BOOLEAN:
+				case NUMBER:
+				case ENUM:
+					codes.add(metadata.getCode());
+					break;
+			}
+		}
+		return codes;
+	}
+
+	public String getSourceMetadataCaption(String dataEntryReference, String dataEntrySource) {
+		MetadataSchema schema = types.getSchemaType(schemaTypeCode).getSchema(schemaCode);
+		String typeCode = schema.getMetadata(dataEntryReference).getReferencedSchemaTypeCode();
+
+		MetadataSchema referenceSchema = types.getSchemaType(typeCode).getDefaultSchema();
+		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
+		return referenceSchema.getMetadata(dataEntrySource).getLabel(language);
+	}
+
+	public Metadata getSourceMetadata(String dataEntryReference, String dataEntrySource) {
+		if (StringUtils.isBlank(dataEntrySource)) {
+			return null;
+		}
+
+		MetadataSchema schema = types.getSchemaType(schemaTypeCode).getSchema(schemaCode);
+		String typeCode = schema.getMetadata(dataEntryReference).getReferencedSchemaTypeCode();
+
+		MetadataSchema referenceSchema = types.getSchemaType(typeCode).getDefaultSchema();
+		return referenceSchema.getMetadata(dataEntrySource);
+	}
+
+	public MetadataInputType getInputType(Metadata metadata) {
+		return schemasDisplayManager().getMetadata(metadata.getCollection(), metadata.getCode()).getInputType();
+	}
+
 	private boolean isAllowedReferenceType(MetadataSchemaType type) {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		MetadataSchemaType collectionType = types.getSchemaType(Collection.SCHEMA_TYPE);
@@ -303,6 +375,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		if (!editMode) {
 			builder = types.getSchema(schemaCode).create("USR" + formMetadataVO.getLocalcode());
 			final MetadataAccessRestrictionBuilder originalMetadataAccessRestrictionBuilder = builder.defineAccessRestrictions();
+			boolean reindexRequired = false;
 
 			builder.setMultivalue(formMetadataVO.isMultivalue());
 			builder.setType(formMetadataVO.getValueType());
@@ -327,7 +400,6 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 				builder.setAccessRestrictionBuilder(metadataAccessRestrictionBuilder);
 			}
 
-
 			if (formMetadataVO.getValueType().equals(REFERENCE)) {
 				MetadataSchemaTypeBuilder refBuilder = types.getSchemaType(formMetadataVO.getReference());
 				Taxonomy taxonomy = modelLayerFactory.getTaxonomiesManager()
@@ -338,8 +410,25 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 					builder.defineReferencesTo(refBuilder);
 				}
 			}
+
+			if (formMetadataVO.getDataEntryType() == DataEntryType.COPIED) {
+				reindexRequired = true;
+				MetadataSchemaBuilder destinationDefaultSchema = types.getSchemaType(schemaTypeCode).getSchema(schemaCode);
+				MetadataBuilder refMetadata = destinationDefaultSchema.getMetadata(formMetadataVO.getDataEntryReference());
+
+				MetadataSchema schema = this.types.getSchemaType(schemaTypeCode).getSchema(schemaCode);
+				String typeCode = schema.getMetadata(formMetadataVO.getDataEntryReference()).getReferencedSchemaTypeCode();
+				MetadataSchemaBuilder sourceDefaultSchema = types.getSchemaType(typeCode).getDefaultSchema();
+				MetadataBuilder sourceMetadata = sourceDefaultSchema.getMetadata(formMetadataVO.getDataEntrySource());
+
+				if (formMetadataVO.getValueType() == ENUM) {
+					builder.defineAsEnum(sourceMetadata.getEnumClass());
+				}
+				builder.defineDataEntry().asCopied(refMetadata, sourceMetadata);
+			}
+
 			code = schemaCode + "_" + "USR" + formMetadataVO.getLocalcode();
-			saveButtonClicked(formMetadataVO, editMode, schemaCode, schemasManager, types, code, false, false, builder);
+			saveButtonClicked(formMetadataVO, editMode, schemaCode, schemasManager, types, code, reindexRequired, false, builder);
 		} else {
 			builder = types.getSchema(schemaCode).get(formMetadataVO.getCode());
 			code = formMetadataVO.getCode();
@@ -772,8 +861,12 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 				sortingType = MetadataSortingType.ENTRY_ORDER;
 			}
 
-			if (formMetadataVO.getValueType() == ENUM && editMode) {
-				enumClass = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(formMetadataVO.getCode()).getEnumClass();
+			if (formMetadataVO.getValueType() == ENUM) {
+				if (editMode) {
+					enumClass = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(formMetadataVO.getCode()).getEnumClass();
+				} else if (formMetadataVO.getDataEntryType() == DataEntryType.COPIED) {
+					enumClass = getSourceMetadata(formMetadataVO.getDataEntryReference(), formMetadataVO.getDataEntrySource()).getEnumClass();
+				}
 			}
 
 			CollectionInfo collectionInfo = defaultSchema().getCollectionInfo();

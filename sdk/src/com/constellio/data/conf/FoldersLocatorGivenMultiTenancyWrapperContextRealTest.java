@@ -134,17 +134,6 @@ public class FoldersLocatorGivenMultiTenancyWrapperContextRealTest extends Const
 	}
 
 	@Test
-	public void getPluginsRepository() {
-		TenantUtils.setTenant("1");
-		File file = foldersLocator.getPluginsRepository();
-		Assertions.assertThat(file.getPath()).endsWith("constellio-plugins/tenant1");
-
-		TenantUtils.setTenant("2");
-		File file2 = foldersLocator.getPluginsRepository();
-		Assertions.assertThat(file2.getPath()).endsWith("constellio-plugins/tenant2");
-	}
-
-	@Test
 	public void getPluginsResourcesFolder() {
 		TenantUtils.setTenant("1");
 		File file = foldersLocator.getPluginsResourcesFolder();

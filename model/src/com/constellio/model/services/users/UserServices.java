@@ -299,7 +299,7 @@ public class UserServices {
 				}
 			}
 		}
-		if (request.getAddToGroupInCollection() != null && request.getAddToGroupInCollection().keySet().contains(collection)) {
+		if (request.getAddToGroupInCollection() != null && request.getAddToGroupInCollection().containsKey(collection)) {
 			for (String groupCode : request.getAddToGroupInCollection().get(collection)) {
 				if (getGroupInCollection(groupCode, collection) != null) {
 					String groupId = getGroupInCollection(groupCode, collection).getId();
@@ -677,16 +677,16 @@ public class UserServices {
 	}
 
 	public void execute(GroupAddUpdateRequest request) {
-		SystemWideGroup systemWideGroup = getNullableGroup(request.getCode());
+		SystemWideGroup systemWideGroup = getGroup(request);
+		//SystemWideGroup systemWideGroup = getNullableGroup(request.getCode());
 
 		if (request.isMarkedForDeletionInAllCollections()) {
 			deleteGroup(request.getCode());
 		}
 
 		if (request.getMarkedForDeletionInCollections() != null && !request.getMarkedForDeletionInCollections().isEmpty()) {
-			for (String collection : request.getMarkedForDeletionInCollections()) {
-				deleteGroupFromCollection(request.getCode(), collection);
-			}
+			request.getMarkedForDeletionInCollections().stream()
+					.forEach(collection -> deleteGroupFromCollection(request.getCode(), collection));
 		}
 
 		validateNewGroupMetadatas(request);
@@ -695,9 +695,9 @@ public class UserServices {
 		sync(request);
 		if (request.getModifiedAttributes().containsKey(GlobalGroup.STATUS)) {
 			if (request.getModifiedAttributes().get(GlobalGroup.STATUS) == GlobalGroupStatus.ACTIVE) {
-				//				activateGlobalGroupHierarchyWithoutUserValidation(group);
+				//activateGlobalGroupHierarchyWithoutUserValidation(systemWideGroup);
 			} else {
-				//				logicallyRemoveGroupHierarchyWithoutUserValidation(group);
+				//logicallyRemoveGroupHierarchyWithoutUserValidation(group);
 			}
 		}
 
@@ -719,6 +719,11 @@ public class UserServices {
 				}
 			}
 		}
+	}
+
+	private void activateGlobalGroupHierarchyWithoutUserValidation(SystemWideGroup globalGroup) {
+		List<String> collections = globalGroup.getCollections();
+		restoreGroupHierarchyInBigVault(globalGroup.getCode(), collections);
 	}
 
 	private void validateNewCollections(GroupAddUpdateRequest request) {
@@ -1106,20 +1111,16 @@ public class UserServices {
 	}
 
 	private void restoreGroupHierarchyInBigVault(String globalGroupCode, List<String> collections) {
-		for (SystemWideGroup group : globalGroupsManager.getHierarchy(globalGroupCode)) {
-			LogicalSearchQuery query = new LogicalSearchQuery();
-			LogicalSearchCondition condition;
-			for (String collection : collections) {
-				condition = fromGroupsIn(collection)
-						.where(groupCodeMetadata(collection)).isEqualTo(group.getCode())
-						.andWhere(LOGICALLY_DELETED_STATUS).isTrue();
-				query.setCondition(condition);
-				Record recordGroup = searchServices.searchSingleResult(condition);
-				if (recordGroup != null) {
-					recordServices.restore(recordGroup, User.GOD);
-				}
-			}
+		for (String collection : collections) {
+			List<Group> childrenOfGroupInCollection = getInactiveChildrenOfGroupInCollection(globalGroupCode, collection);
+			childrenOfGroupInCollection.stream().forEach(group -> restoreGroupHierarchyInBigVault(globalGroupCode, collection));
+			restoreGroupHierarchyInBigVault(globalGroupCode, collection);
 		}
+	}
+
+	private void restoreGroupHierarchyInBigVault(String globalGroupCode, String collection) {
+		List<Group> childrenOfGroupInCollection = getChildrenOfGroupInCollection(globalGroupCode, collection);
+		childrenOfGroupInCollection.stream().forEach(group -> recordServices.restore(group, User.GOD));
 	}
 
 	public void logicallyRemoveGroupHierarchy(String username, SystemWideGroup globalGroup) {
@@ -1150,12 +1151,6 @@ public class UserServices {
 	void removeGroupFromCollectionsWithoutUserValidation(String group, List<String> collections) {
 		removeChildrenFromBigVault(group, collections);
 		removeFromBigVault(group, collections);
-	}
-
-	private void removeChildren(String group, String collection) {
-		for (Group child : getChildrenOfGroupInCollection(group, collection)) {
-			deleteGroupFromCollection(child.getCode(), collection);
-		}
 	}
 
 	private void removeChildrenFromBigVault(String group, List<String> collections) {
@@ -1697,6 +1692,21 @@ public class UserServices {
 		return groups;
 	}
 
+	List<Group> getInactiveChildrenOfGroupInCollection(String groupParentCode, String collection) {
+		List<Group> groups = new ArrayList<>();
+		String parentId = getGroupIdInCollection(groupParentCode, collection);
+		if (parentId != null) {
+			LogicalSearchCondition condition = from(groupSchema(collection))
+					.where(groupParentMetadata(collection))
+					.is(parentId).andWhere(LOGICALLY_DELETED_STATUS).isTrue();
+			LogicalSearchQuery query = new LogicalSearchQuery().setCondition(condition);
+			for (Record record : searchServices.search(query)) {
+				groups.add(wrapNullable(record, schemaTypes(collection)));
+			}
+		}
+		return groups;
+	}
+
 
 	public List<User> getAllUsersInCollection(String collection) {
 		return streamUser(collection).collect(toList());
@@ -1817,8 +1827,8 @@ public class UserServices {
 		SystemWideGroup systemWideGroup = getNullableGroup(groupCode);
 		if (systemWideGroup != null) {
 			for (String collection : systemWideGroup.getCollections()) {
-				removeGroupFrom(groupCode, collection);
 				removeChildren(groupCode, collection);
+				removeGroupFrom(groupCode, collection);
 			}
 		}
 	}
@@ -1826,8 +1836,15 @@ public class UserServices {
 	private void deleteGroupFromCollection(String groupCode, String collection) {
 		SystemWideGroup systemWideGroup = getNullableGroup(groupCode);
 		if (systemWideGroup != null) {
-			removeGroupFrom(groupCode, collection);
 			removeChildren(groupCode, collection);
+			removeGroupFrom(groupCode, collection);
+		}
+	}
+
+	private void removeChildren(String group, String collection) {
+		for (Group child : getChildrenOfGroupInCollection(group, collection)) {
+			removeChildren(child.getCode(), collection);
+			removeGroupFrom(child.getCode(), collection);
 		}
 	}
 
@@ -2144,13 +2161,6 @@ public class UserServices {
 	void activateGlobalGroupHierarchy(UserCredential userCredential, SystemWideGroup globalGroup) {
 		permissionValidateCredentialOnGroup(userCredential);
 		activateGlobalGroupHierarchyWithoutUserValidation(globalGroup);
-	}
-
-	@Deprecated
-	private void activateGlobalGroupHierarchyWithoutUserValidation(SystemWideGroup globalGroup) {
-		List<String> collections = collectionsListManager.getCollections();
-		restoreGroupHierarchyInBigVault(globalGroup.getCode(), collections);
-		globalGroupsManager.activateGlobalGroupHierarchy(globalGroup);
 	}
 
 	@Deprecated

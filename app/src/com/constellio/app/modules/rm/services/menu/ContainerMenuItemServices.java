@@ -18,9 +18,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_ADD_TO_CART;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_ADD_TO_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_BORROW;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_CHECK_IN;
-import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_ADD_TO_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_CONSULT;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_CONSULT_LINK;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_DELETE;

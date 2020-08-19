@@ -18,8 +18,10 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.breadcrumb.BreadcrumbTrailUtil;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.vaadin.data.Buffered.SourceException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -49,6 +51,12 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	private BaseTextField localcodeField;
 	@PropertyId("labels")
 	private MultilingualTextField labelsField;
+	@PropertyId("dataEntryType")
+	private OptionGroup dataEntryGroup;
+	@PropertyId("dataEntryReference")
+	private ComboBox dataEntryRef;
+	@PropertyId("dataEntrySource")
+	private ComboBox dataEntrySource;
 	@PropertyId("valueType")
 	private ComboBox valueType;
 	@PropertyId("multivalue")
@@ -265,6 +273,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			inputMask.setEnabled(MetadataValueType.STRING.equals(value));
 			this.setValueFields(value);
 		}
+
+		updateFields(formMetadataVO.getDataEntryType() == DataEntryType.MANUAL);
 	}
 
 	private void enableCorrectFields(MetadataValueType value, boolean inherited, boolean editMode, Boolean multivalue) {
@@ -363,6 +373,70 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		}
 	}
 
+	private void dataEntryTypeChanged(DataEntryType type) {
+		if (type == DataEntryType.COPIED) {
+			updateFields(false);
+			dataEntryRef.select(null);
+			dataEntrySource.select(null);
+			dataEntrySource.setEnabled(false);
+
+			valueType.addItem(MetadataValueType.ENUM);
+			valueType.setItemCaption(MetadataValueType.ENUM, $("ENUM"));
+		} else {
+			updateFields(true);
+
+			valueType.removeItem(MetadataValueType.ENUM);
+		}
+	}
+
+	private void dataEntryRefChanged(String refMetadataCode) {
+		if (StringUtils.isNotBlank(refMetadataCode)) {
+			dataEntrySource.setEnabled(true);
+
+			dataEntrySource.removeAllItems();
+			for (String code : presenter.getSourceMetadataCodes(refMetadataCode)) {
+				dataEntrySource.addItems(code);
+				dataEntrySource.setItemCaption(code, presenter.getSourceMetadataCaption(refMetadataCode, code));
+			}
+			dataEntrySource.setPageLength(dataEntrySource.size());
+		}
+	}
+
+	private void dataEntrySourceChanged(String refMetadataCode, String sourceMetadataCode) {
+		if (StringUtils.isNotBlank(sourceMetadataCode)) {
+			Metadata source = presenter.getSourceMetadata(refMetadataCode, sourceMetadataCode);
+			if (source != null) {
+				if (!inputType.isReadOnly()) {
+					formMetadataVO.setInput(presenter.getInputType(source));
+					inputType.setValue(formMetadataVO.getInput());
+				}
+				if (!valueType.isReadOnly()) {
+					valueType.select(source.getType());
+				}
+				if (!multivalueType.isReadOnly()) {
+					multivalueType.setValue(source.isMultivalue());
+				}
+				updateFields(false);
+			}
+		}
+	}
+
+	private void updateFields(boolean isManualMode) {
+		dataEntryRef.setVisible(!isManualMode);
+		dataEntryRef.setRequired(!isManualMode);
+		dataEntrySource.setVisible(!isManualMode);
+		dataEntrySource.setRequired(!isManualMode);
+
+		valueType.setEnabled(isManualMode);
+		multivalueType.setEnabled(isManualMode);
+		inputType.setEnabled(isManualMode);
+		inputMask.setEnabled(isManualMode);
+		refType.setEnabled(isManualMode);
+		requiredField.setEnabled(isManualMode);
+		defaultValueField.setEnabled(isManualMode);
+		displayType.setEnabled(isManualMode);
+	}
+
 	private MetadataForm newForm(final boolean editMode, final boolean inherited) {
 		localcodeField = new BaseTextField($("AddEditMetadataView.localcode"));
 		localcodeField.setId("localcode");
@@ -387,6 +461,57 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			parentMetadataLabel.setValue(presenter.getParentFormMetadataVO().getLabel(Language.French.getCode()));
 			parentMetadataLabel.setEnabled(false);
 		}
+
+		List<DataEntryType> dataEntryOption = new ArrayList<>();
+		dataEntryOption.add(DataEntryType.MANUAL);
+		dataEntryOption.add(DataEntryType.COPIED);
+		dataEntryGroup = new OptionGroup($("AddEditMetadataView.dataEntryType"), dataEntryOption);
+		dataEntryGroup.setRequired(true);
+		dataEntryGroup.setId("dataEntryType");
+		dataEntryGroup.addStyleName("horizontal");
+		dataEntryGroup.setItemCaption(DataEntryType.MANUAL, $("AddEditMetadataView.dataEntryType.manual"));
+		dataEntryGroup.setItemCaption(DataEntryType.COPIED, $("AddEditMetadataView.dataEntryType.copied"));
+		dataEntryGroup.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				dataEntryTypeChanged((DataEntryType) event.getProperty().getValue());
+			}
+		});
+		dataEntryGroup.setReadOnly(editMode);
+
+		dataEntryRef = new ComboBox();
+		dataEntryRef.setCaption($("AddEditMetadataView.dataEntryRef"));
+		dataEntryRef.setRequired(false);
+		dataEntryRef.setId("dataEntryRef");
+		dataEntryRef.setVisible(false);
+		for (String code : presenter.getReferenceMetadataCodes()) {
+			dataEntryRef.addItems(code);
+			dataEntryRef.setItemCaption(code, presenter.getReferenceMetadataCaption(code));
+		}
+		dataEntryRef.setNullSelectionAllowed(false);
+		dataEntryRef.setPageLength(dataEntryRef.size());
+		dataEntryRef.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				dataEntryRefChanged((String) event.getProperty().getValue());
+			}
+		});
+		dataEntryRef.setReadOnly(editMode);
+
+		dataEntrySource = new ComboBox();
+		dataEntrySource.setCaption($("AddEditMetadataView.dataEntrySource"));
+		dataEntrySource.setRequired(false);
+		dataEntrySource.setId("dataEntrySource");
+		dataEntrySource.setVisible(false);
+		dataEntrySource.setNullSelectionAllowed(false);
+		dataEntrySource.setPageLength(dataEntrySource.size());
+		dataEntrySource.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				dataEntrySourceChanged((String) dataEntryRef.getValue(), (String) event.getProperty().getValue());
+			}
+		});
+		dataEntrySource.setReadOnly(editMode);
 
 		valueType = new ComboBox();
 		valueType.setCaption($("AddEditMetadataView.type"));
@@ -669,7 +794,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		listOptionGroupRole.setValue(initialSelectedRoles);
 		formMetadataVO.setReadAccessRoles(initialSelectedRoles);
 
-		List<Field<?>> fields = new ArrayList<>(asList((Field<?>) localcodeField, labelsField, valueType, multivalueType,
+		List<Field<?>> fields = new ArrayList<>(asList((Field<?>) localcodeField, labelsField, dataEntryGroup,
+				dataEntryRef, dataEntrySource,  valueType, multivalueType,
 				inputType, inputMask, maxLength, measurementUnit, metadataGroup, listOptionGroupRole, refType, requiredField, duplicableField, enabledField, searchableField, sortableField,
 				advancedSearchField, highlight, autocomplete, availableInSummary, helpMessagesField, uniqueField, multiLingualField));
 

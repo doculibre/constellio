@@ -43,7 +43,7 @@ public class DownloadServlet extends HttpServlet {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(record.getCollection(), appLayerFactory);
 		Document document = rm.wrapDocument(record);
 
-		if (isUserReadAccess(user,document) || isDocumentAccessByPublish(document)) {
+		if (isUserReadAccess(user, document) || isDocumentAccessByPublish(document)) {
 			ContentVersion version = document.getContent().getLastMajorContentVersion();
 
 			if (version == null) {
@@ -90,8 +90,7 @@ public class DownloadServlet extends HttpServlet {
 		if(user !=null){
 			User userRecord = getUserService().getUserInCollection(user.getUsername(),document.getCollection());
 			return userRecord.hasReadAccess().on(document);
-		}
-		else{
+		} else {
 			return false;
 		}
 	}
@@ -106,7 +105,8 @@ public class DownloadServlet extends HttpServlet {
 	private synchronized ConstellioFactories getConstellioFactories() {
 		return ConstellioFactories.getInstance();
 	}
-	private UserServices getUserService(){
+
+	private UserServices getUserService() {
 		return new UserServices(modelLayerFactory());
 	}
 

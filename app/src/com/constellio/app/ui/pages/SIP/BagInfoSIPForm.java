@@ -13,7 +13,12 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.ArrayList;
@@ -158,7 +163,8 @@ public class BagInfoSIPForm extends BaseViewImpl {
 	}
 
 	static class BagInfoRecordForm extends RecordForm {
-		public BagInfoRecordForm(BagInfoVO viewObject, MetadataFieldFactory metadataFactory, ConstellioFactories constellioFactories,
+		public BagInfoRecordForm(BagInfoVO viewObject, MetadataFieldFactory metadataFactory,
+								 ConstellioFactories constellioFactories,
 								 FieldAndPropertyId... fields) {
 			super(viewObject, metadataFactory, constellioFactories);
 		}

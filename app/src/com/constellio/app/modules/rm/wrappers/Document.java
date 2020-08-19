@@ -75,7 +75,7 @@ public class Document extends RMObject {
 	public static final String IS_MODEL = "isModel";
 	public static final String CONTENT_HASHES = "contentHashes";
 	public static final String LINKED_TO = "linkedTo";
-	public static final String ENCRYTION_KEY = "encryptionKey";
+	public static final String ENCRYPTION_KEY = "encryptionKey";
 
 	public Document(Record record,
 					MetadataSchemaTypes types) {
@@ -480,11 +480,11 @@ public class Document extends RMObject {
 	}
 
 	public String getEncryptionKey() {
-		return get(ENCRYTION_KEY);
+		return get(ENCRYPTION_KEY);
 	}
 
 	public Document setEncryptionKey(String key) {
-		set(ENCRYTION_KEY, key);
+		set(ENCRYPTION_KEY, key);
 		return this;
 	}
 }

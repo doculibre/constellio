@@ -106,7 +106,8 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
 			super(recordVO, constellioFactories);
 		}
 
-		public PrintableReportFormImpl(RecordVO recordVO, RecordFieldFactory recordFieldFactory, ConstellioFactories constellioFactories) {
+		public PrintableReportFormImpl(RecordVO recordVO, RecordFieldFactory recordFieldFactory,
+									   ConstellioFactories constellioFactories) {
 			super(recordVO, recordFieldFactory, constellioFactories);
 		}
 
