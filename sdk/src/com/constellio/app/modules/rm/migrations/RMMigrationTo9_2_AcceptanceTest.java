@@ -5,7 +5,6 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.SystemWideGroup;
@@ -123,6 +122,7 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 
 	private void verifyData(List<Group> groups, List<User> users, List<UserCredential> credentials) {
 		List<Group> nobility = groups.stream().filter(x -> x.getCode().equals("nobility")).collect(toList());
+
 		assertThat(nobility).isNotEmpty().hasSize(3).has(new Condition<List<Group>>() {
 			@Override
 			public boolean matches(List<Group> value) {
@@ -130,42 +130,16 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		List<Group> collectionRidaGroups = groups.stream().filter(x -> x.getCollection().equals("LaCollectionDeRida")).collect(toList());
-
-		assertThat(collectionRidaGroups).isNotEmpty().has(new Condition<List<Group>>() {
-			@Override
-			public boolean matches(List<Group> value) {
-				return value.stream().filter(x -> x.getCode().equals("explorers")
-												  || x.getCode().equals("Bosses")
-												  || x.getCode().equals("royale"))
-							   .collect(toList()).size() > 2;
-
-			}
-		});
+		List<String> collectionRidaGroups = groups.stream()
+				.filter(x -> x.getCollection().equals("LaCollectionDeRida")).map(group -> group.getCode()).collect(toList());
+		assertThat(collectionRidaGroups).isNotEmpty().contains("explorers", "Bosses", "royale");
 
 		//dusty (edouard's rival) is part of big bad bosses
-		User dusty = users.stream().filter(x -> x.getUsername().equals("dusty")).findFirst().get();
-
-		assertThat(dusty.getUserGroups()).hasSize(1).has(new Condition<List<String>>() {
-			@Override
-			public boolean matches(List<String> value) {
-				return groups.stream().filter(x -> value.contains(x.getId())).findAny().get().getCode().equals("Bosses");
-			}
-		});
-
-		//String bossesGroupId = "00000012345"; On auraut très bien pu hardcoder l'id, il est dans le savestate
-		String bossesGroupId = getModelLayerFactory().newUserServices().getGroupInCollection("Bosses", "LaCollectionDeRida").getId();
-		assertThat(dusty.getUserGroups()).containsOnly(bossesGroupId);
-
-		assertThat(dusty.getUserGroups().stream().map((id -> record(id).get(Schemas.CODE))).collect(toList()))
-				.containsOnly("Bosses");
-
-		assertThat(dusty.getUserGroups()).hasSize(1).has(new Condition<List<String>>() {
-			@Override
-			public boolean matches(List<String> value) {
-				return groups.stream().filter(x -> value.contains(x.getId())).findAny().get().getCode().equals("Bosses");
-			}
-		});
+		assertThatUser("dusty")
+				.hasStatusIn(ACTIVE, businessCollection)
+				.hasName("Dusty", "Chien")
+				.hasEmail("dusty@doculibre.ca")
+				.hasGroupsInCollection(businessCollection, "Bosses");
 
 		//All global groups are gone
 		assertThat(getAllGlobalGroups(getModelLayerFactory())).isEmpty();

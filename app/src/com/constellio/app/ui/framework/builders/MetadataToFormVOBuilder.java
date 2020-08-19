@@ -13,6 +13,8 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 import java.io.Serializable;
@@ -96,13 +98,24 @@ public class MetadataToFormVOBuilder implements Serializable {
 		boolean duplicable = metadata.isDuplicable();
 		boolean uniqueValue = metadata.isUniqueValue();
 
+		DataEntryType dataEntryType = metadata.getDataEntry().getType();
+		String dataEntryRef = null;
+		String dataEntrySource = null;
+		if (dataEntryType == DataEntryType.COPIED) {
+			CopiedDataEntry dataEntry = (CopiedDataEntry) metadata.getDataEntry();
+			dataEntryRef = dataEntry.getReferenceMetadata();
+			dataEntrySource = dataEntry.getCopiedMetadata();
+		}
+
+
 		FormMetadataVO formMetadataVO = new FormMetadataVO(metadata.getId(), code, type, required, schemaVO, reference, newLabels, searchable,
 				multivalue, sortable,
 				advancedSearch, facet, entry, displayType, sortingType, highlight, autocomplete, availableInSummary, enabled, metadataGroup, defaultValue,
 				inputMask,
 				duplicable, uniqueValue,
 				metadata.getCustomAttributes(),
-				sessionContext, isMultiLingual, metadata.getMaxLength(), metadata.getMeasurementUnit(), newHelpMessages);
+				sessionContext, isMultiLingual, metadata.getMaxLength(), metadata.getMeasurementUnit(), newHelpMessages,
+				dataEntryType, dataEntryRef, dataEntrySource);
 
 		if (metadata.getInheritance() != null) {
 			formMetadataVO.setInheritance(

@@ -708,6 +708,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 
 		session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
 		assertThat(canBeMovedTo(record, newParentID, zeCollectionRecords.taxo2_station2_1)).isFalse();
+
 	}
 
 	@Test

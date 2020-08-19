@@ -114,6 +114,8 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private boolean refreshSelectionPanel;
 	private Map<String, String> deselectedRecordsWithSchema;
 
+	//private Map<String, Set<String>> metadataAllowedInCriteria = new HashMap<>();
+	private Map<String, Set<String>> copiedMetadataAllowedInCriteria = new HashMap<>();
 	private Map<String, Map<String, Set<String>>> metadataAllowedInCriteria = new HashMap<>();
 
 	public ConstellioHeaderPresenter(ConstellioHeader header) {
@@ -356,6 +358,12 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 	public boolean isValidAdvancedSearchCriterionPresent() {
 		return schemaTypeCode != null;
+	}
+
+	@Override
+	public boolean isSeparateCopiedMetadata() {
+		//		return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SHOW_COPIED_METADATA_SEPARATELY_IN_SEARCH);
+		return false;
 	}
 
 	@Override
