@@ -137,6 +137,12 @@ public class ConditionBuilder {
 				return generateFrom().where(metadata).isNull();
 			case IS_NOT_NULL:
 				return generateFrom().where(metadata).isNotNull();
+			case CONTAINS:
+				endValue = getValue(criterion, metadata, true);
+				return buildClause((Criterion) endValue);
+			case NOT_CONTAINS:
+				endValue = getValue(criterion, metadata, true);
+				return buildClause((Criterion) endValue).negate();
 			default:
 				throw new RuntimeException("Unsupported search operator");
 		}

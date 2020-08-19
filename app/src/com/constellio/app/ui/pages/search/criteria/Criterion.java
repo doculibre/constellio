@@ -22,7 +22,9 @@ public class Criterion implements Serializable, ModifiableStructure {
 		IS_FALSE,
 		IN_HIERARCHY,
 		IS_NULL,
-		IS_NOT_NULL
+		IS_NOT_NULL,
+		CONTAINS,
+		NOT_CONTAINS
 	}
 
 	private String schemaType;
