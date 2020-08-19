@@ -149,7 +149,6 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		boolean duplicatedMetadataIsMultivalue = false;
 
 		MetadataSchemasManager schemasManager = getModelLayerFactory().getMetadataSchemasManager();
-		;
 
 		schemasManager.modify(zeCollection, types -> {
 			types.getSchemaType("zeSchemaType").createCustomSchema(anotherCustomSchemaCode);
