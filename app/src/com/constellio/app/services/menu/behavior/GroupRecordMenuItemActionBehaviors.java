@@ -1,9 +1,9 @@
 package com.constellio.app.services.menu.behavior;
 
 import com.constellio.app.modules.rm.ui.buttons.CollectionsSelectWindowButton;
+import com.constellio.app.modules.rm.ui.buttons.DeleteGroupsWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.UsersSelectWindowButton;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -11,8 +11,6 @@ import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
-import com.vaadin.ui.Button;
-import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -82,29 +80,8 @@ public class GroupRecordMenuItemActionBehaviors {
 	}
 
 	public void delete(List<Group> groupRecords, MenuItemActionBehaviorParams params) {
-		Button deleteUserButton = new DeleteButton($("CollectionSecurityManagement.deleteGroups"), false) {
-			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				deleteGroupFromCollection(groupRecords);
-				params.getView().navigate().to().collectionSecurityShowGroupFirst();
-				params.getView().showMessage($("CollectionSecurityManagement.groupRemovedFromCollection"));
-			}
-
-			@Override
-			protected String getConfirmDialogMessage() {
-				return $("ConfirmDialog.confirmDeleteWithAllRecords", $("CollectionSecurityManagement.groupLowerCase"));
-			}
-		};
-
-		deleteUserButton.click();
-	}
-
-	public void deleteGroupFromCollection(List<Group> userRecords) {
-		for (Group currentGroup : userRecords) {
-			GroupAddUpdateRequest userAddUpdateRequest = userServices.request(currentGroup.getCode());
-			userAddUpdateRequest.removeCollection(collection);
-			userServices.execute(userAddUpdateRequest);
-		}
+		DeleteGroupsWindowButton deleteGroupsWindowButton = new DeleteGroupsWindowButton(groupRecords, params);
+		deleteGroupsWindowButton.click();
 	}
 
 	public void activate(List<Group> groupRecords, MenuItemActionBehaviorParams params, boolean isActivated) {
