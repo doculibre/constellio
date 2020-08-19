@@ -35,7 +35,7 @@ public class LDAPConfigurationManager implements StatefulService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LDAPConfigurationManager.class);
 
 	private static final String CACHE_KEY = "configs";
-	private static final String LDAP_CONFIGS = "ldapConfigs.properties";
+	private static final String LDAP_CONFIGS = "/ldapConfigs.properties";
 	public static final long MIN_DURATION = 1000 * 60 * 10;//10mns
 	private final ModelLayerFactory modelLayerFactory;
 	LDAPUserSyncConfiguration userSyncConfiguration;

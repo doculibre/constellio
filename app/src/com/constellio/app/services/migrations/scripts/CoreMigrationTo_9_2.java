@@ -69,7 +69,6 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 
 	private static TenantLocal<Key> OLD_KEY = new TenantLocal<>();
 
-
 	private static Map<String, Map<String, Object>> credentialMetadataMap = new HashMap<>();
 	private static Map<String, Map<String, Object>> globalGroupMetadataMap = new HashMap<>();
 
@@ -337,6 +336,16 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 				}
 			}
 		}.execute(from(systemSchemas.globalGroupSchemaType()).returnAll());
+
+		new ActionExecutorInBatch(searchServices, "Removing groups (system group schema)", 250) {
+			@Override
+			public void doActionOnBatch(List<Record> records)
+					throws Exception {
+				for (Record record : records) {
+					recordServices.logicallyDelete(record, User.GOD);
+				}
+			}
+		}.execute(from(systemSchemas.group.schemaType()).returnAll());
 	}
 
 	private void safePhysicalDeleteAllUserCredentialsWithEmptyCollections(ModelLayerFactory modelLayerFactory)
@@ -519,7 +528,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 				String password = ldapUserSyncConfiguration.getPassword();
 
 
-				if (password != null) {
+				if (password != null && !password.equals("")) {
 					password = oldEncryptionServices.decryptWithOldWayAppKey(password);
 
 					LDAPUserSyncConfiguration newLdapUserSyncConfiguration = new LDAPUserSyncConfiguration(ldapUserSyncConfiguration.getUser(), password, ldapUserSyncConfiguration.getUserFilter(), ldapUserSyncConfiguration.getGroupFilter(), ldapUserSyncConfiguration.getDurationBetweenExecution(),

@@ -20,7 +20,6 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 import lombok.AllArgsConstructor;
-import org.assertj.core.api.Condition;
 import org.junit.Test;
 
 import java.io.File;
@@ -29,6 +28,7 @@ import java.util.List;
 
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
+import static com.constellio.model.entities.security.global.UserCredentialStatus.DISABLED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
@@ -46,7 +46,7 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 				.givenSystemInState(state).withPasswordsReset()
 				.withFakeEncryptionServices();
 
-		List<String> collections = getAppLayerFactory().getCollectionsManager().getCollectionCodes();
+		List<String> collections = getModelLayerFactory().getCollectionsListManager().getCollections();
 		List<User> users = new ArrayList<>();
 
 		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
@@ -75,8 +75,6 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 		//SyncMode est dans les utilisateurs?
 		assertThat(credentialMetadataSchema.getMetadata(UserCredential.SYNC_MODE).getDataEntry().getType()).isEqualTo(MANUAL);
 		for (UserCredential user : credentials) {
-			System.out.println(user.getId());
-			System.out.println(user.getSyncMode());
 			assertThat(user.getSyncMode()).isNotNull();
 		}
 
@@ -121,14 +119,11 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 	}
 
 	private void verifyData(List<Group> groups, List<User> users, List<UserCredential> credentials) {
-		List<Group> nobility = groups.stream().filter(x -> x.getCode().equals("nobility")).collect(toList());
+		List<Group> nobility = groups.stream().filter(x -> x.getCode().equals("nobility")
+														   && !x.getCollection().equals(Collection.SYSTEM_COLLECTION)).collect(toList());
 
-		assertThat(nobility).isNotEmpty().hasSize(3).has(new Condition<List<Group>>() {
-			@Override
-			public boolean matches(List<Group> value) {
-				return value.stream().anyMatch(x -> x.getCollection().equals(zeCollection));
-			}
-		});
+		assertThat(nobility).isNotEmpty().hasSize(2);
+
 
 		List<String> collectionRidaGroups = groups.stream()
 				.filter(x -> x.getCollection().equals("LaCollectionDeRida")).map(group -> group.getCode()).collect(toList());
@@ -136,22 +131,21 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 
 		//dusty (edouard's rival) is part of big bad bosses
 		assertThatUser("dusty")
-				.hasStatusIn(ACTIVE, businessCollection)
-				.hasName("Dusty", "Chien")
-				.hasEmail("dusty@doculibre.ca")
+				.hasStatusIn(DISABLED, businessCollection)
+				.hasName("dusty", "le chien")
+				.hasEmail("dusty@doculibre.com")
 				.hasGroupsInCollection(businessCollection, "Bosses");
 
 		//All global groups are gone
 		assertThat(getAllGlobalGroups(getModelLayerFactory())).isEmpty();
 
-		//assertThatUser("MachoMan").isInCollections(zeCollection).hasGroupsInCollection("G1", "zeCollection");
-		//assertThatUser("Embalmer").doesNotExist();
-
-		Group legends = groups.stream().filter(x -> x.getCode().equals("legends")).findFirst().get();
-		Group villains = groups.stream().filter(x -> x.getCode().equals("villains")).findFirst().get();
-		assertThat(legends.getStatus()).isEqualTo(GlobalGroupStatus.ACTIVE);
+		Group legends = groups.stream().filter(x -> x.getCode().equals("legends")
+													&& !x.getCollection().equals(Collection.SYSTEM_COLLECTION)).findFirst().get();
+		Group villains = groups.stream().filter(x -> x.getCode().equals("villains")
+													 && !x.getCollection().equals(Collection.SYSTEM_COLLECTION)).findFirst().get();
 		assertThat(nobility.get(0).getStatus()).isEqualTo(GlobalGroupStatus.ACTIVE);
-		assertThat(villains.getStatus()).isEqualTo(GlobalGroupStatus.ACTIVE);
+		assertThat(legends.getStatus()).isEqualTo(GlobalGroupStatus.ACTIVE);
+		assertThat(villains.getStatus()).isEqualTo(GlobalGroupStatus.INACTIVE);
 		assertThat(legends.isLocallyCreated()).isTrue();
 		assertThat(nobility.get(0).isLocallyCreated()).isTrue();
 		assertThat(villains.isLocallyCreated()).isTrue();
@@ -269,8 +263,6 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 		//SyncMode est dans les utilisateurs?
 		assertThat(credentialMetadataSchema.getMetadata(UserCredential.SYNC_MODE).getDataEntry().getType()).isEqualTo(MANUAL);
 		for (UserCredential user : credentials) {
-			System.out.println(user.getId());
-			System.out.println(user.getSyncMode());
 			assertThat(user.getSyncMode()).isNotNull();
 		}
 
