@@ -677,9 +677,6 @@ public class UserServices {
 	}
 
 	public void execute(GroupAddUpdateRequest request) {
-		SystemWideGroup systemWideGroup = getGroup(request);
-		//SystemWideGroup systemWideGroup = getNullableGroup(request.getCode());
-
 		if (request.isMarkedForDeletionInAllCollections()) {
 			deleteGroup(request.getCode());
 		}
@@ -693,9 +690,10 @@ public class UserServices {
 		validateNewCollections(request);
 
 		sync(request);
+		SystemWideGroup systemWideGroup = getGroup(request);
 		if (request.getModifiedAttributes().containsKey(GlobalGroup.STATUS)) {
 			if (request.getModifiedAttributes().get(GlobalGroup.STATUS) == GlobalGroupStatus.ACTIVE) {
-				//activateGlobalGroupHierarchyWithoutUserValidation(systemWideGroup);
+				activateGlobalGroupHierarchyWithoutUserValidation(systemWideGroup);
 			} else {
 				//logicallyRemoveGroupHierarchyWithoutUserValidation(group);
 			}
@@ -1113,14 +1111,20 @@ public class UserServices {
 	private void restoreGroupHierarchyInBigVault(String globalGroupCode, List<String> collections) {
 		for (String collection : collections) {
 			List<Group> childrenOfGroupInCollection = getInactiveChildrenOfGroupInCollection(globalGroupCode, collection);
-			childrenOfGroupInCollection.stream().forEach(group -> restoreGroupHierarchyInBigVault(globalGroupCode, collection));
-			restoreGroupHierarchyInBigVault(globalGroupCode, collection);
+			childrenOfGroupInCollection.stream().forEach(childGroup -> restoreGroupHierarchyInBigVault(childGroup, collection));
 		}
 	}
 
-	private void restoreGroupHierarchyInBigVault(String globalGroupCode, String collection) {
-		List<Group> childrenOfGroupInCollection = getChildrenOfGroupInCollection(globalGroupCode, collection);
-		childrenOfGroupInCollection.stream().forEach(group -> recordServices.restore(group, User.GOD));
+	private void restoreGroupHierarchyInBigVault(Group group, String collection) {
+		List<Group> childrenOfGroupInCollection = getInactiveChildrenOfGroupInCollection(group.getCode(), collection);
+		childrenOfGroupInCollection.stream().forEach(childGroup -> restoreGroupHierarchyInBigVault(childGroup, collection));
+		LOGGER.info("restoreDeletedGroup : " + group.getCode());
+		recordServices.restore(group.getWrappedRecord(), User.GOD);
+		try {
+			recordServices.update(group.setStatus(GlobalGroupStatus.ACTIVE));
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public void logicallyRemoveGroupHierarchy(String username, SystemWideGroup globalGroup) {
@@ -1861,13 +1865,12 @@ public class UserServices {
 	}
 
 	void restoreDeletedGroup(String groupCode, String collection) {
-		SystemWideGroup globalGroup = globalGroupsManager.getGlobalGroupWithCode(groupCode);
-		if (globalGroup.getStatus().equals(GlobalGroupStatus.INACTIVE)) {
-			globalGroupsManager.addUpdate(request(globalGroup.getCode()).setStatusInAllCollections(GlobalGroupStatus.ACTIVE));
-		}
+		//		SystemWideGroup globalGroup = globalGroupsManager.getGlobalGroupWithCode(groupCode);
+		//		if (globalGroup.getStatus().equals(GlobalGroupStatus.INACTIVE)) {
+		//			globalGroupsManager.addUpdate(request(globalGroup.getCode()).setStatusInAllCollections(GlobalGroupStatus.ACTIVE));
+		//		}
 
 		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
-		MetadataSchema groupSchema = collectionTypes.getSchemaType(Group.SCHEMA_TYPE).getDefaultSchema();
 		LogicalSearchCondition condition = fromGroupsIn(collection).where(groupCodeMetadata(collection)).is(groupCode);
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		query.filteredByStatus(StatusFilter.DELETED);
