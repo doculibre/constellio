@@ -7,6 +7,8 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.entities.FormMetadataVO;
+import com.constellio.app.ui.framework.components.dialogs.ConfirmDialogProperties;
+import com.constellio.app.ui.framework.components.dialogs.ConfirmDialogResults;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -36,6 +38,8 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultival
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
@@ -103,6 +107,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenAddEditingMetadataWithoutInheritanceInDefaultSchemaThenAdvancedSearchFlagSaved()
 			throws Exception {
+
 		presenter.setSchemaCode(zeSchema.code());
 		presenter.setMetadataCode(zeSchema.stringMetadata().getCode());
 		assertThat(displayConfigOf("zeSchemaType_default_stringMetadata").isVisibleInAdvancedSearch()).isFalse();
@@ -129,6 +134,11 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void whenAddedCustomMetadataDuplicatesAnotherCustomMetadataDuplicationHandlingHappens() {
+
+		doAnswer(invocation -> {
+			invocation.getArgumentAt(0, ConfirmDialogProperties.class).getOnCloseListener().accept(ConfirmDialogResults.OK);
+			return null;
+		}).when(view).showConfirmDialog(any(ConfirmDialogProperties.class));
 
 		String anotherCustomSchemaCode = "anotherCustom";
 
