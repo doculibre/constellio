@@ -572,12 +572,13 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		assertThatGroup("g3").isInCollections(collection2, collection3).isInactiveInAllItsCollections();
 		assertThatGroup("g4").isInCollections(collection2).isInactiveInAllItsCollections();
 
-		services.executeGroupRequest("g2", (req) -> req.addCollections(collection1, collection2, collection3));
+		services.executeGroupRequest("g2", (req) -> req.addCollections(collection1, collection2, collection3).setStatusInAllCollections(GlobalGroupStatus.ACTIVE));
 
 		assertThatGroup("g1").isInCollections(collection1, collection2, collection3).isActiveInAllItsCollections();
 		assertThatGroup("g2").isInCollections(collection1, collection2, collection3).isActiveInAllItsCollections();
-		assertThatGroup("g3").isInCollections(collection2, collection3).isInactiveInAllItsCollections();
-		assertThatGroup("g4").isInCollections(collection2).isInactiveInAllItsCollections();
+		assertThatGroup("g3").isInCollections(collection2, collection3).isActiveInAllItsCollections();
+		assertThatGroup("g4").isInCollections(collection2).isActiveInAllItsCollections();
+
 
 		services.executeGroupRequest("g1", (req) -> req.markForDeletionInCollections(asList(collection2, collection3)));
 
