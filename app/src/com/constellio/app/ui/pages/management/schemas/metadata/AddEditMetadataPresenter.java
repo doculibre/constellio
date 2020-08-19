@@ -20,6 +20,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToFormVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
+import com.constellio.app.ui.framework.components.dialogs.ConfirmDialogProperties;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.dao.dto.records.FacetValue;
@@ -44,7 +45,6 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -72,8 +72,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.MetadataAttribute.REQUIRED;
@@ -361,144 +360,17 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 
 	public void preSaveButtonClicked(final FormMetadataVO formMetadataVO, final boolean editMode) {
+		if (isCreatingANewMetadata(editMode)) {
+			//			if(isTheSameAsAnotherMetadata(formMetadataVO)){
+			//				handleDuplicatedMetadataCreation(formMetadataVO);
+			//			}
+			//			else{
+			//				createMetadataFromForm(formMetadataVO);
+			//			}
 
-		final String schemaCode = getSchemaCode();
-		final MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-		final MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
-		final String code;
-		boolean isSaveButtonClicked = false;
-		MetadataBuilder builderDefaultSchema;
-		final MetadataBuilder builder;
-		final MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder;
-
-
-		if (!editMode) {
-			builder = types.getSchema(schemaCode).create("USR" + formMetadataVO.getLocalcode());
-			final MetadataAccessRestrictionBuilder originalMetadataAccessRestrictionBuilder = builder.defineAccessRestrictions();
-			boolean reindexRequired = false;
-
-			builder.setMultivalue(formMetadataVO.isMultivalue());
-			builder.setType(formMetadataVO.getValueType());
-			builder.setSortable(formMetadataVO.isSortable());
-			builder.setSchemaAutocomplete(formMetadataVO.isAutocomplete());
-			builder.setSearchable(formMetadataVO.isSearchable());
-			builder.setCustomAttributes(formMetadataVO.getCustomAttributes());
-			builder.setUniqueValue(formMetadataVO.isUniqueValue());
-			builder.setMultiLingual(formMetadataVO.isMultiLingual());
-			if (formMetadataVO.getMaxLength() != null) {
-				builder.setMaxLength(formMetadataVO.getMaxLength());
-			}
-			if (formMetadataVO.getMeasurementUnit() != null) {
-				builder.setMeasurementUnit(formMetadataVO.getMeasurementUnit());
-			}
-
-			if (formMetadataVO.getReadAccessRoles() != null) {
-				MetadataAccessRestriction metadataAccessRestriction = new MetadataAccessRestriction(formMetadataVO.getReadAccessRoles(), originalMetadataAccessRestrictionBuilder.getRequiredWriteRoles(),
-						originalMetadataAccessRestrictionBuilder.getRequiredModificationRoles(), originalMetadataAccessRestrictionBuilder.getRequiredDeleteRoles());
-
-				metadataAccessRestrictionBuilder = MetadataAccessRestrictionBuilder.modify(metadataAccessRestriction);
-				builder.setAccessRestrictionBuilder(metadataAccessRestrictionBuilder);
-			}
-
-			if (formMetadataVO.getValueType().equals(REFERENCE)) {
-				MetadataSchemaTypeBuilder refBuilder = types.getSchemaType(formMetadataVO.getReference());
-				Taxonomy taxonomy = modelLayerFactory.getTaxonomiesManager()
-						.getTaxonomyFor(collection, formMetadataVO.getReference());
-				if (taxonomy != null) {
-					builder.defineTaxonomyRelationshipToType(refBuilder);
-				} else {
-					builder.defineReferencesTo(refBuilder);
-				}
-			}
-
-			if (formMetadataVO.getDataEntryType() == DataEntryType.COPIED) {
-				reindexRequired = true;
-				MetadataSchemaBuilder destinationDefaultSchema = types.getSchemaType(schemaTypeCode).getSchema(schemaCode);
-				MetadataBuilder refMetadata = destinationDefaultSchema.getMetadata(formMetadataVO.getDataEntryReference());
-
-				MetadataSchema schema = this.types.getSchemaType(schemaTypeCode).getSchema(schemaCode);
-				String typeCode = schema.getMetadata(formMetadataVO.getDataEntryReference()).getReferencedSchemaTypeCode();
-				MetadataSchemaBuilder sourceDefaultSchema = types.getSchemaType(typeCode).getDefaultSchema();
-				MetadataBuilder sourceMetadata = sourceDefaultSchema.getMetadata(formMetadataVO.getDataEntrySource());
-
-				if (formMetadataVO.getValueType() == ENUM) {
-					builder.defineAsEnum(sourceMetadata.getEnumClass());
-				}
-				builder.defineDataEntry().asCopied(refMetadata, sourceMetadata);
-			}
-
-			code = schemaCode + "_" + "USR" + formMetadataVO.getLocalcode();
-			saveButtonClicked(formMetadataVO, editMode, schemaCode, schemasManager, types, code, reindexRequired, false, builder);
+			createMetadataFromForm(formMetadataVO);
 		} else {
-			builder = types.getSchema(schemaCode).get(formMetadataVO.getCode());
-			code = formMetadataVO.getCode();
-			final boolean cacheRebuildRequired = !isInherited(code)
-												 && !builder.isAvailableInSummary()
-												 && formMetadataVO.isAvailableInSummary()
-												 && !isAvailableInSummaryFlagAlwaysTrue(metadata.getType());
-
-			if (!isInherited(code)) {
-
-				builder.setCustomAttributes(formMetadataVO.getCustomAttributes());
-				final boolean reindexRequired = builder.isSortable() != formMetadataVO.isSortable() ||
-												builder.isSearchable() != formMetadataVO.isSearchable();
-
-				final boolean availableInSummaryBuilderValue = !isAvailableInSummaryFlagAlwaysTrue(metadata.getType())
-															   && formMetadataVO.isAvailableInSummary();
-				builder.setSchemaAutocomplete(formMetadataVO.isAutocomplete());
-				builder.setAvailableInSummary(availableInSummaryBuilderValue);
-
-				setReadRoleAccessRestriction(formMetadataVO, builder);
-
-				if (reindexRequired) {
-					String confirmDialogMessage = formMetadataVO.getValueType() == REFERENCE ?
-												  $("AddEditMetadataPresenter.saveButton.sortableReference") :
-												  $("AddEditMetadataPresenter.saveButton.sortable");
-
-					if (builder.isSearchable() != formMetadataVO.isSearchable()) {
-						confirmDialogMessage = $("AddEditMetadataPresenter.saveButton.searchable");
-					}
-
-					ConfirmDialog.show(UI.getCurrent(), $("AddEditMetadataPresenter.saveButton.title"), confirmDialogMessage,
-							$("confirm"), $("cancel"), new ConfirmDialog.Listener() {
-								@Override
-								public void onClose(ConfirmDialog dialog) {
-									if (dialog.isConfirmed()) {
-										builder.setSearchable(formMetadataVO.isSearchable());
-										builder.setSortable(formMetadataVO.isSortable());
-
-										saveButtonClicked(formMetadataVO, editMode, schemaCode,
-												schemasManager, types, code, reindexRequired, cacheRebuildRequired, builder);
-									}
-								}
-							});
-
-				} else if (cacheRebuildRequired) {
-					String confirmDialogMessage = $("AddEditMetadataPresenter.saveButton.cacheRebuildRequired");
-
-					ConfirmDialog.show(UI.getCurrent(), $("AddEditMetadataPresenter.saveButton.cacheRebuildRequiredTitle"), confirmDialogMessage,
-							$("confirm"), $("cancel"), new ConfirmDialog.Listener() {
-								@Override
-								public void onClose(ConfirmDialog dialog) {
-									if (dialog.isConfirmed()) {
-										saveButtonClicked(formMetadataVO, editMode, schemaCode,
-												schemasManager, types, code, reindexRequired, cacheRebuildRequired, builder);
-									}
-								}
-							});
-
-				} else {
-					isSaveButtonClicked = true;
-				}
-			} else {
-				isSaveButtonClicked = true;
-			}
-
-			if (isSaveButtonClicked) {
-				saveButtonClicked(formMetadataVO, editMode, schemaCode,
-						schemasManager, types, code,
-						false, false, builder);
-			}
+			editMetadataFromForm(formMetadataVO);
 		}
 	}
 
@@ -612,15 +484,190 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		view.navigate().to().listSchemaMetadata(params);
 	}
 
-	private void validateUniqueCode(String localCode) {
-		MetadataSchemaType type = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-				.getSchemaTypes(collection).getSchemaType(getSchemaTypeCode());
+	private void handleDuplicatedMetadataCreation(FormMetadataVO formMetadataVO) {
+		view.showConfirmDialog(ConfirmDialogProperties.builder()
+				.title("Métadonnées dupliquée")
+				.message("Des métadonnées ont été dupliquées")
+				.okCaption($("yes"))
+				.cancelCaption($("cancel"))
+				.notOkCaption("Banane")
+				.onCloseListener(confirmDialogResults -> {
+					switch (confirmDialogResults) {
+						case OK:
+							int a = 1;
+							break;
+						case CANCEL:
+							//Do nothing. Stays in the form
+							break;
+						case NOT_OK:
+							createMetadataFromForm(formMetadataVO);
+							break;
+					}
 
-		MetadataList allMetadatas = type.getAllMetadatas();
-		Set<String> existingCodes = allMetadatas.stream().map(Metadata::getLocalCode).collect(Collectors.toSet());
-		if (existingCodes.contains(localCode)) {
-			throw new MetadataSchemaBuilderRuntimeException.MetadataAlreadyExists(localCode);
+				}).build());
+	}
+
+	private void createMetadataFromForm(final FormMetadataVO formMetadataVO) {
+		final String schemaCode = getSchemaCode();
+		final MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		final MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
+		final MetadataBuilder builder;
+		final MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder;
+		final String code;
+
+		builder = types.getSchema(schemaCode).create("USR" + formMetadataVO.getLocalcode());
+		final MetadataAccessRestrictionBuilder originalMetadataAccessRestrictionBuilder = builder.defineAccessRestrictions();
+		boolean reindexRequired = false;
+
+		builder.setMultivalue(formMetadataVO.isMultivalue());
+		builder.setType(formMetadataVO.getValueType());
+		builder.setSortable(formMetadataVO.isSortable());
+		builder.setSchemaAutocomplete(formMetadataVO.isAutocomplete());
+		builder.setSearchable(formMetadataVO.isSearchable());
+		builder.setCustomAttributes(formMetadataVO.getCustomAttributes());
+		builder.setUniqueValue(formMetadataVO.isUniqueValue());
+		builder.setMultiLingual(formMetadataVO.isMultiLingual());
+		if (formMetadataVO.getMaxLength() != null) {
+			builder.setMaxLength(formMetadataVO.getMaxLength());
 		}
+		if (formMetadataVO.getMeasurementUnit() != null) {
+			builder.setMeasurementUnit(formMetadataVO.getMeasurementUnit());
+		}
+
+		if (formMetadataVO.getReadAccessRoles() != null) {
+			MetadataAccessRestriction metadataAccessRestriction = new MetadataAccessRestriction(formMetadataVO.getReadAccessRoles(), originalMetadataAccessRestrictionBuilder.getRequiredWriteRoles(),
+					originalMetadataAccessRestrictionBuilder.getRequiredModificationRoles(), originalMetadataAccessRestrictionBuilder.getRequiredDeleteRoles());
+
+			metadataAccessRestrictionBuilder = MetadataAccessRestrictionBuilder.modify(metadataAccessRestriction);
+			builder.setAccessRestrictionBuilder(metadataAccessRestrictionBuilder);
+		}
+
+		if (formMetadataVO.getValueType().equals(REFERENCE)) {
+			MetadataSchemaTypeBuilder refBuilder = types.getSchemaType(formMetadataVO.getReference());
+			Taxonomy taxonomy = modelLayerFactory.getTaxonomiesManager()
+					.getTaxonomyFor(collection, formMetadataVO.getReference());
+			if (taxonomy != null) {
+				builder.defineTaxonomyRelationshipToType(refBuilder);
+			} else {
+				builder.defineReferencesTo(refBuilder);
+			}
+		}
+
+		if (formMetadataVO.getDataEntryType() == DataEntryType.COPIED) {
+			reindexRequired = true;
+			MetadataSchemaBuilder destinationDefaultSchema = types.getSchemaType(schemaTypeCode).getSchema(schemaCode);
+			MetadataBuilder refMetadata = destinationDefaultSchema.getMetadata(formMetadataVO.getDataEntryReference());
+
+			MetadataSchema schema = this.types.getSchemaType(schemaTypeCode).getSchema(schemaCode);
+			String typeCode = schema.getMetadata(formMetadataVO.getDataEntryReference()).getReferencedSchemaTypeCode();
+			MetadataSchemaBuilder sourceDefaultSchema = types.getSchemaType(typeCode).getDefaultSchema();
+			MetadataBuilder sourceMetadata = sourceDefaultSchema.getMetadata(formMetadataVO.getDataEntrySource());
+
+			if (formMetadataVO.getValueType() == ENUM) {
+				builder.defineAsEnum(sourceMetadata.getEnumClass());
+			}
+			builder.defineDataEntry().asCopied(refMetadata, sourceMetadata);
+		}
+
+		code = schemaCode + "_" + "USR" + formMetadataVO.getLocalcode();
+		saveButtonClicked(formMetadataVO, false, schemaCode, schemasManager, types, code, reindexRequired, false, builder);
+	}
+
+	private void editMetadataFromForm(final FormMetadataVO formMetadataVO) {
+		final String schemaCode = getSchemaCode();
+		final MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		final MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
+		final String code;
+		boolean isSaveButtonClicked = false;
+		final MetadataBuilder builder;
+
+		builder = types.getSchema(schemaCode).get(formMetadataVO.getCode());
+		code = formMetadataVO.getCode();
+		final boolean cacheRebuildRequired = !isInherited(code)
+											 && !builder.isAvailableInSummary()
+											 && formMetadataVO.isAvailableInSummary()
+											 && !isAvailableInSummaryFlagAlwaysTrue(metadata.getType());
+
+		if (!isInherited(code)) {
+
+			builder.setCustomAttributes(formMetadataVO.getCustomAttributes());
+			final boolean reindexRequired = builder.isSortable() != formMetadataVO.isSortable() ||
+											builder.isSearchable() != formMetadataVO.isSearchable();
+
+			final boolean availableInSummaryBuilderValue = !isAvailableInSummaryFlagAlwaysTrue(metadata.getType())
+														   && formMetadataVO.isAvailableInSummary();
+			builder.setSchemaAutocomplete(formMetadataVO.isAutocomplete());
+			builder.setAvailableInSummary(availableInSummaryBuilderValue);
+
+			setReadRoleAccessRestriction(formMetadataVO, builder);
+
+			if (reindexRequired) {
+				String confirmDialogMessage = formMetadataVO.getValueType() == REFERENCE ?
+											  $("AddEditMetadataPresenter.saveButton.sortableReference") :
+											  $("AddEditMetadataPresenter.saveButton.sortable");
+
+				if (builder.isSearchable() != formMetadataVO.isSearchable()) {
+					confirmDialogMessage = $("AddEditMetadataPresenter.saveButton.searchable");
+				}
+
+				ConfirmDialog.show(UI.getCurrent(), $("AddEditMetadataPresenter.saveButton.title"), confirmDialogMessage,
+						$("confirm"), $("cancel"), new ConfirmDialog.Listener() {
+							@Override
+							public void onClose(ConfirmDialog dialog) {
+								if (dialog.isConfirmed()) {
+									builder.setSearchable(formMetadataVO.isSearchable());
+									builder.setSortable(formMetadataVO.isSortable());
+
+									saveButtonClicked(formMetadataVO, true, schemaCode,
+											schemasManager, types, code, reindexRequired, cacheRebuildRequired, builder);
+								}
+							}
+						});
+
+			} else if (cacheRebuildRequired) {
+				String confirmDialogMessage = $("AddEditMetadataPresenter.saveButton.cacheRebuildRequired");
+
+				ConfirmDialog.show(UI.getCurrent(), $("AddEditMetadataPresenter.saveButton.cacheRebuildRequiredTitle"), confirmDialogMessage,
+						$("confirm"), $("cancel"), new ConfirmDialog.Listener() {
+							@Override
+							public void onClose(ConfirmDialog dialog) {
+								if (dialog.isConfirmed()) {
+									saveButtonClicked(formMetadataVO, true, schemaCode,
+											schemasManager, types, code, reindexRequired, cacheRebuildRequired, builder);
+								}
+							}
+						});
+
+			} else {
+				isSaveButtonClicked = true;
+			}
+		} else {
+			isSaveButtonClicked = true;
+		}
+
+		if (isSaveButtonClicked) {
+			saveButtonClicked(formMetadataVO, true, schemaCode,
+					schemasManager, types, code,
+					false, false, builder);
+		}
+	}
+
+	private boolean isTheSameAsAnotherMetadata(final FormMetadataVO formMetadataVO) {
+		return getAllCurrentSchemaTypeMetadatasAsStream()
+				.anyMatch(metadata ->
+						metadata.getLocalCode().equals("USR" + formMetadataVO.getLocalcode()) &&
+						metadata.getType().equals(formMetadataVO.getValueType()) &&
+						metadata.isMultivalue() == formMetadataVO.isMultivalue());
+	}
+
+	private void validateUniqueCode(String localCode) {
+		getAllCurrentSchemaTypeMetadatasAsStream()
+				.filter(metadata -> metadata.getLocalCode().equals(localCode))
+				.findAny()
+				.ifPresent(alreadyExistingMetadata ->
+				{
+					throw new MetadataSchemaBuilderRuntimeException.MetadataAlreadyExists(localCode);
+				});
 	}
 
 	private void saveDisplayConfig(FormMetadataVO formMetadataVO, String code, MetadataSchemasManager schemasManager,
@@ -751,6 +798,20 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	public void cancelButtonClicked() {
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_SCHEMA_METADATA, parameters);
 		view.navigate().to().listSchemaMetadata(params);
+	}
+
+	private Stream<Metadata> getAllCurrentSchemaTypeMetadatasAsStream() {
+		return appLayerFactory
+				.getModelLayerFactory()
+				.getMetadataSchemasManager()
+				.getSchemaTypes(collection)
+				.getSchemaType(getSchemaTypeCode())
+				.getAllMetadatas()
+				.stream();
+	}
+
+	private static boolean isCreatingANewMetadata(boolean editMode) {
+		return !editMode;
 	}
 
 	public boolean isMetadataEnableStatusModifiable() {

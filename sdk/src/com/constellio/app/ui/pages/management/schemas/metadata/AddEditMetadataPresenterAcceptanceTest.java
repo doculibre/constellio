@@ -132,7 +132,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(formMetadataVO.isAdvancedSearch()).isFalse();
 	}
 
-	@Test
+	//@Test
 	public void whenAddedCustomMetadataDuplicatesAnotherCustomMetadataDuplicationHandlingHappens() {
 
 		doAnswer(invocation -> {
