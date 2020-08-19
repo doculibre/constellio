@@ -1,7 +1,7 @@
 package com.constellio.app.modules.restapi.validation;
 
 import com.constellio.app.modules.restapi.core.exception.InvalidDateCombinationException;
-import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
+import com.constellio.app.modules.restapi.core.exception.OptimisticLockRuntimeException;
 import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
 import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
@@ -188,7 +188,7 @@ public class ValidationServiceTest {
 		validationService.validateETag("1", "1", 1L);
 	}
 
-	@Test(expected = OptimisticLockException.class)
+	@Test(expected = OptimisticLockRuntimeException.class)
 	public void testValidateETagWithMismatch() {
 		validationService.validateETag("1", "1", 2L);
 	}

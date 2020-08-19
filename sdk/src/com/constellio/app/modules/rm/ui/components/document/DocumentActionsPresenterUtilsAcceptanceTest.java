@@ -94,7 +94,7 @@ public class DocumentActionsPresenterUtilsAcceptanceTest extends ConstellioTest 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 		contentManager = getModelLayerFactory().getContentManager();
 		ioServices = getDataLayerFactory().getIOServicesFactory().newIOServices();
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());

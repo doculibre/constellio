@@ -11,6 +11,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,15 +34,15 @@ public class UserRestfulServiceDELETEInitialsAcceptanceTest extends BaseRestfulS
 
 		contentManager = getModelLayerFactory().getContentManager();
 
-		webTarget = newWebTarget("v1/user/initials", new ObjectMapper());
+		webTarget = newWebTarget("v1/user/credentials/initials", new ObjectMapper());
 
 		File file = getTestResourceFile("imageTestFile.png");
 		ContentVersionDataSummary versionDataSummary = contentManager.upload(file);
 		Content content = contentManager.createSystemContent(file.getName(), versionDataSummary);
 
-		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
+		UserAddUpdateRequest userCredentials = userServices.addUpdate(users.bobIn(zeCollection).getUsername());
 		userCredentials.setElectronicInitials(content);
-		userServices.addUpdateUserCredential(userCredentials);
+		userServices.execute(userCredentials);
 
 		queryCounter.reset();
 		commitCounter.reset();
@@ -49,7 +50,7 @@ public class UserRestfulServiceDELETEInitialsAcceptanceTest extends BaseRestfulS
 
 	@Test
 	public void validateService() {
-		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
+		UserCredential userCredentials = userServices.getUserConfigs(users.bobIn(zeCollection).getUsername());
 		assertThat(userCredentials.getElectronicInitials()).isNotNull();
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
@@ -59,7 +60,7 @@ public class UserRestfulServiceDELETEInitialsAcceptanceTest extends BaseRestfulS
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
-		userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
+		userCredentials = userServices.getUserConfigs(users.bobIn(zeCollection).getUsername());
 		assertThat(userCredentials.getElectronicInitials()).isNull();
 	}
 

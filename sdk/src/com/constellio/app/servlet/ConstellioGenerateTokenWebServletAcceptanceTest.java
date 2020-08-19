@@ -50,8 +50,8 @@ public class ConstellioGenerateTokenWebServletAcceptanceTest extends ConstellioT
 			throws Exception {
 
 		givenTimeIs(dateTime(2014, 1, 2, 3, 0, 3));
-		getModelLayerFactory().newUserServices().addUpdateUserCredential(getModelLayerFactory().newUserServices()
-				.getUser(admin).setServiceKey("adminkey"));
+		getModelLayerFactory().newUserServices().execute(getModelLayerFactory().newUserServices()
+				.addUpdate(admin).setServiceKey("adminkey"));
 		getModelLayerFactory().newAuthenticationService().changePassword(admin, "1qaz2wsx");
 		getModelLayerFactory().newAuthenticationService().changePassword(aliceWonderland, "mouhahaha");
 		getModelLayerFactory().newAuthenticationService().changePassword(bobGratton, "1qaz2wsx");
@@ -135,7 +135,7 @@ public class ConstellioGenerateTokenWebServletAcceptanceTest extends ConstellioT
 					String user = getModelLayerFactory().newUserServices().getUserCredentialByServiceKey(serviceKey);
 					assertThat(getModelLayerFactory().newUserServices().isAuthenticated(serviceKey, token))
 							.describedAs("can be authentified with given credentials").isTrue();
-					assertThat(getModelLayerFactory().newUserServices().getUser(user).getAccessTokens())
+					assertThat(getModelLayerFactory().newUserServices().getUserConfigs(user).getAccessTokens())
 							.describedAs("token end date").containsEntry(token, dateTime);
 
 				} catch (JDOMException e) {

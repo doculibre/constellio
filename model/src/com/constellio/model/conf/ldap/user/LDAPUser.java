@@ -15,93 +15,111 @@ public class LDAPUser {
 	private String givenName;
 	private String familyName;
 	private Date lastLogon;
-	private String lieuTravail;
+	private String workAddress;
 	private List<String> msExchDelegateListBL;
 	//private String primaryGroupID;
 	private List<LDAPGroup> userGroups = new ArrayList<>();
 
-	public void addGroup(LDAPGroup group) {
+	public LDAPUser addGroup(LDAPGroup group) {
 		userGroups.add(group);
+		return this;
+	}
+
+	public LDAPUser addGroups(LDAPGroup... groups) {
+		for (LDAPGroup group : groups) {
+			addGroup(group);
+		}
+		return this;
 	}
 
 	public Boolean getEnabled() {
 		return enabled;
 	}
 
-	public void setEnabled(Boolean enabled) {
+	public LDAPUser setEnabled(Boolean enabled) {
 		this.enabled = enabled;
+		return this;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public void setName(String name) {
+	public LDAPUser setName(String name) {
 		this.name = name;
+		return this;
 	}
 
 	public String getEmail() {
 		return email;
 	}
 
-	public void setEmail(String email) {
+	public LDAPUser setEmail(String email) {
 		this.email = email;
+		return this;
 	}
 
 	public List<LDAPGroup> getUserGroups() {
 		return userGroups;
 	}
 
-	public void setUserGroups(List<LDAPGroup> userGroups) {
+	public LDAPUser setUserGroups(List<LDAPGroup> userGroups) {
 		this.userGroups = userGroups;
+		return this;
 	}
 
 	public String getId() {
 		return this.id;
 	}
 
-	public void setId(String id) {
+	public LDAPUser setId(String id) {
 		this.id = id;
+		return this;
 	}
 
 	public String getGivenName() {
 		return givenName;
 	}
 
-	public void setGivenName(String givenName) {
+	public LDAPUser setGivenName(String givenName) {
 		this.givenName = givenName;
+		return this;
 	}
 
 	public String getFamilyName() {
 		return familyName;
 	}
 
-	public void setFamilyName(String familyName) {
+	public LDAPUser setFamilyName(String familyName) {
 		this.familyName = familyName;
+		return this;
 	}
 
 	public Date getLastLogon() {
 		return lastLogon;
 	}
 
-	public void setLastLogon(Date lastLogon) {
+	public LDAPUser setLastLogon(Date lastLogon) {
 		this.lastLogon = lastLogon;
+		return this;
 	}
 
-	public String getLieuTravail() {
-		return lieuTravail;
+	public String getWorkAddress() {
+		return workAddress;
 	}
 
-	public void setLieuTravail(String lieuTravail) {
-		this.lieuTravail = lieuTravail;
+	public LDAPUser setWorkAddress(String workAddress) {
+		this.workAddress = workAddress;
+		return this;
 	}
 
 	public List<String> getMsExchDelegateListBL() {
 		return msExchDelegateListBL;
 	}
 
-	public void setMsExchDelegateListBL(List<String> msExchDelegateListBL) {
+	public LDAPUser setMsExchDelegateListBL(List<String> msExchDelegateListBL) {
 		this.msExchDelegateListBL = msExchDelegateListBL;
+		return this;
 	}
 
 	@Override
@@ -113,7 +131,7 @@ public class LDAPUser {
 		strb.append("familyName :" + familyName + "\n");
 		strb.append("email :" + email + "\n");
 		strb.append("enabled :" + enabled + "\n");
-		strb.append("lieuTravail :" + lieuTravail + "\n");
+		strb.append("workAddress :" + workAddress + "\n");
 		strb.append("userGroups :\n" + StringUtils.join(userGroups.toArray(), "\n"));
 		if (msExchDelegateListBL != null) {
 			strb.append("msExchDelegateListBL :\n" + StringUtils.join(msExchDelegateListBL.toArray()) + "\n");

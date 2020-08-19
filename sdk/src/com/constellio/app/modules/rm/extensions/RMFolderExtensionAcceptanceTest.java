@@ -62,7 +62,7 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 		service = new DecommissioningService(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 	}
 
 	@Test

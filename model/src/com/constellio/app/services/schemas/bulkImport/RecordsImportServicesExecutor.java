@@ -89,6 +89,8 @@ import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -111,6 +113,7 @@ import static com.constellio.app.services.schemas.bulkImport.Resolver.toResolver
 import static com.constellio.data.utils.LangUtils.replacingLiteral;
 import static com.constellio.data.utils.ThreadUtils.iterateOverRunningTaskInParallel;
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -289,8 +292,8 @@ public class RecordsImportServicesExecutor {
 			importedFilesMap.put(key, entry.getValue());
 		}
 
+		importContentsFolder(importDataProvider.getImportedContents());
 		List<String> schemaTypesWithSecondPhaseImport = new ArrayList<>();
-
 		for (String schemaType : getImportedSchemaTypes()) {
 			if (importSchemaType(errors, schemaType, false)) {
 				schemaTypesWithSecondPhaseImport.add(schemaType);
@@ -304,12 +307,28 @@ public class RecordsImportServicesExecutor {
 			}
 		}
 
+
 		progressionHandler.onImportFinished();
 		throwIfNonEmptyErrorOrWarnings(errors);
 
 
 		return importResults;
 	}
+
+	private void importContentsFolder(List<File> importedContents) {
+		if (importedContents == null) {
+			return;
+		}
+		ContentManager contentManager = modelLayerFactory.getContentManager();
+		for(File file: importedContents){
+			try {
+				contentManager.upload(file);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 
 	private boolean importSchemaType(ValidationErrors errors, String schemaType, boolean secondPhase)
 			throws ValidationException {
@@ -1292,7 +1311,7 @@ public class RecordsImportServicesExecutor {
 
 		if (!resolverCache.isAvailable(referenceType, resolver.metadata, resolver.value)) {
 
-			if (isReferenceInReversedOrder(metadata)) {
+			if (isReferenceInReversedOrder(metadata) || isSelfReferencingUSR(metadata)) {
 				if (typeBatchImportContext.typeImportContext.secondPhaseImport) {
 					throw new SkippedBecauseOfFailedDependency();
 
@@ -1348,6 +1367,12 @@ public class RecordsImportServicesExecutor {
 		}
 	}
 
+	private boolean isSelfReferencingUSR(Metadata metadata) {
+		return metadata.getLocalCode().startsWith("USR")
+			   && metadata.getType() == REFERENCE
+			   && metadata.getReferencedSchemaType().getCode().equals(metadata.getSchemaTypeCode());
+	}
+
 	private boolean isReferenceInReversedOrder(Metadata metadata) {
 		List<String> schemaTypes = schemasManager.getSchemaTypes(metadata.getCollection()).getSchemaTypesCodesSortedByDependency();
 		int schemaTypeDependencyIndex = schemaTypes.indexOf(metadata.getSchemaTypeCode());
@@ -1390,6 +1415,7 @@ public class RecordsImportServicesExecutor {
 		}
 
 	}
+
 
 	List<String> getImportedSchemaTypes()
 			throws ValidationException {

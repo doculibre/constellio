@@ -225,12 +225,14 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 			for (int i = 0; i < propertyId.length; i++) {
 				Metadata metadata;
 				MetadataVO metadataVO = propertyId[i];
-				metadata = schema.getMetadata(metadataVO.getCode());
+				if (schema.hasMetadataWithCode(metadataVO.getCode())) {
+					metadata = schema.getMetadata(metadataVO.getCode());
 
-				if (ascending[i]) {
-					query = query.sortAsc(metadata);
-				} else {
-					query = query.sortDesc(metadata);
+					if (ascending[i]) {
+						query = query.sortAsc(metadata);
+					} else {
+						query = query.sortDesc(metadata);
+					}
 				}
 			}
 		}

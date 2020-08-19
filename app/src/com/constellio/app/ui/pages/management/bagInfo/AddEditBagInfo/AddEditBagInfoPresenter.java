@@ -9,14 +9,19 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AddEditBagInfoPresenter extends BasePresenter<AddEditBagInfoView> {
 	RecordServices recordServices;
 	AddEditBagInfoView view;
 	SchemaPresenterUtils presenterUtils;
+
+	private static Logger LOGGER = LoggerFactory.getLogger(AddEditBagInfoPresenter.class);
 
 	public AddEditBagInfoPresenter(AddEditBagInfoView view) {
 		super(view);
@@ -39,10 +44,16 @@ public class AddEditBagInfoPresenter extends BasePresenter<AddEditBagInfoView> {
 	}
 
 	public void saveButtonClicked(RecordVO recordVO) throws RecordServicesException {
-		Record record = presenterUtils.toRecord(recordVO);
-		Transaction trans = new Transaction();
-		trans.update(record);
-		presenterUtils.recordServices().execute(trans);
-		view.navigate().to().previousView();
+		try {
+			Record record = presenterUtils.toRecord(recordVO);
+			Transaction trans = new Transaction();
+			trans.update(record);
+			presenterUtils.recordServices().execute(trans);
+			view.navigate().to().previousView();
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
+
 	}
 }

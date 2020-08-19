@@ -55,7 +55,7 @@ public class StartApplicationWithSmbRecordsAcceptanceTest extends ConstellioTest
 		prepareSystem(withZeCollection().withConstellioESModule().withAllTestUsers());
 		inCollection(zeCollection).giveReadAccessTo(gandalf);
 
-		Users users = new Users().setUp(getModelLayerFactory().newUserServices())
+		Users users = new Users().setUp(getModelLayerFactory().newUserServices(), zeCollection)
 				.withPasswords(getModelLayerFactory().getPasswordFileAuthenticationService());
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());

@@ -57,6 +57,7 @@ import java.util.Set;
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
 import static com.constellio.model.entities.records.Record.GetMetadataOption.DIRECT_GET_FROM_DTO;
+import static com.constellio.model.entities.records.Record.GetMetadataOption.NO_DECRYPTION;
 import static com.constellio.model.entities.records.Record.GetMetadataOption.NO_SUMMARY_METADATA_VALIDATION;
 import static com.constellio.model.entities.records.Record.GetMetadataOption.RARELY_HAS_VALUE;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
@@ -189,9 +190,9 @@ public class RecordImpl implements Record {
 		}
 
 		if (value instanceof List) {
-			return setModifiedValue(metadata, locale.getLanguage(), unmodifiableList((List<?>) convertedRecord));
+			return setModifiedValue(metadata, locale.getLanguage(), unmodifiableList((List<?>) convertedRecord), null);
 		} else {
-			return setModifiedValue(metadata, locale.getLanguage(), convertedRecord);
+			return setModifiedValue(metadata, locale.getLanguage(), convertedRecord, null);
 		}
 
 	}
@@ -207,13 +208,28 @@ public class RecordImpl implements Record {
 	}
 
 	private Record set(Metadata metadata, String language, Object value) {
+		return set(metadata, language, null, value);
+	}
+
+	public Record set(Metadata metadata, SetMetadataOption setMetadataOption, Object value) {
+		return set(metadata, null, setMetadataOption, value);
+	}
+
+	private Record set(Metadata metadata, String language, SetMetadataOption setMetadataOption, Object value) {
 		ensureModifiable();
 		if ("".equals(value)) {
 			value = null;
 		}
 
 		// Get may parse some metadata, and this is required later
-		get(metadata);
+		GetMetadataOption getMetadataOption = null;
+
+		boolean noDecryption = setMetadataOption == SetMetadataOption.NO_DECRYPTION;
+		if (noDecryption) {
+			getMetadataOption = NO_DECRYPTION;
+		}
+
+		get(metadata, getMetadataOption);
 		validateMetadata(metadata);
 		if (!metadata.isMultivalue()) {
 			validateScalarValue(metadata, value);
@@ -249,7 +265,7 @@ public class RecordImpl implements Record {
 			convertedRecord = value;
 		}
 
-		return setModifiedValue(metadata, language, convertedRecord);
+		return setModifiedValue(metadata, language, convertedRecord, setMetadataOption);
 	}
 
 	private void validateScalarValue(Metadata metadata, Object value) {
@@ -302,17 +318,24 @@ public class RecordImpl implements Record {
 		}
 	}
 
-	private Record setModifiedValue(Metadata metadata, String language, Object value) {
+	private Record setModifiedValue(Metadata metadata, String language, Object value,
+									SetMetadataOption setMetadataOption) {
 
 
 		lastCreatedDeltaDTO = null;
 		validateSetArguments(metadata, value);
 
+		GetMetadataOption getMetadataOption = null;
+		boolean noDecryption = setMetadataOption == SetMetadataOption.NO_DECRYPTION;
+		if (noDecryption) {
+			getMetadataOption = NO_DECRYPTION;
+		}
+
 		Object originalValues;
 		if (metadata.isMultivalue()) {
-			originalValues = getList(metadata);
+			originalValues = getList(metadata, getMetadataOption);
 		} else {
-			originalValues = get(metadata);
+			originalValues = get(metadata, getMetadataOption);
 		}
 		if (!isValueModified(metadata, originalValues, value)) {
 			return this;
@@ -409,6 +432,16 @@ public class RecordImpl implements Record {
 		return get(metadata, collectionInfo.getMainSystemLanguage().getCode(), STRICT, options);
 	}
 
+	private boolean isOptionInArray(GetMetadataOption toTest, GetMetadataOption... options) {
+		for (GetMetadataOption getMetadataOption : options) {
+			if (getMetadataOption == toTest) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private <T> T get(Metadata metadata, String language, LocalisedRecordMetadataRetrieval mode,
 					  GetMetadataOption... options) {
 
@@ -471,7 +504,7 @@ public class RecordImpl implements Record {
 		} else if (recordDTO != null) {
 			Object value = recordDTO.getFields().get(codeAndType);
 
-			returnedValue = (T) getConvertedValue(value, metadata);
+			returnedValue = (T) getConvertedValue(value, metadata, isOptionInArray(NO_DECRYPTION, options));
 
 		} else {
 			returnedValue = null;
@@ -525,7 +558,7 @@ public class RecordImpl implements Record {
 		return returnedValue;
 	}
 
-	private Object getConvertedValue(Object rawValue, Metadata metadata) {
+	private Object getConvertedValue(Object rawValue, Metadata metadata, boolean noDecrypt) {
 
 		if (!isConvertedValue(metadata)) {
 
@@ -541,8 +574,13 @@ public class RecordImpl implements Record {
 		}
 
 		if (metadata.isEncrypted()) {
-			EncryptionServices encryptionServices = metadata.getEncryptionServicesFactory().get();
-			return encryptionServices.decryptWithAppKey(rawValue);
+			if (!noDecrypt) {
+				EncryptionServices encryptionServices = metadata.getEncryptionServicesFactory().get();
+				return encryptionServices.decryptWithAppKey(rawValue);
+			} else {
+				return rawValue;
+			}
+
 		}
 
 		if (structuredValues == null) {
@@ -1126,6 +1164,10 @@ public class RecordImpl implements Record {
 	}
 
 	private Object correctValue(Object value) {
+
+		if (value instanceof Integer) {
+			return ((Integer) value).intValue();
+		}
 		if (value instanceof Number) {
 			return ((Number) value).doubleValue();
 		} else if (value instanceof EnumWithSmallCode) {

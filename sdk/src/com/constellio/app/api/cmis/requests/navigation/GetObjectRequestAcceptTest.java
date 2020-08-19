@@ -53,7 +53,7 @@ public class GetObjectRequestAcceptTest extends ConstellioTest {
 
 		taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 
 		defineSchemasManager().using(zeCollectionSchemas);
 		CmisAcceptanceTestSetup.allSchemaTypesSupported(getAppLayerFactory());
@@ -63,10 +63,10 @@ public class GetObjectRequestAcceptTest extends ConstellioTest {
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 
-		userServices.addUpdateUserCredential(
-				userServices.getUserCredential(chuckNorris).setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
+		userServices.execute(
+				userServices.addUpdate(chuckNorris).setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
 		chuckNorrisToken = userServices.generateToken(chuckNorris);
-		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection(zeCollection));
 		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 

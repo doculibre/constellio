@@ -5,13 +5,13 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
@@ -28,8 +28,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.data.dao.dto.records.RecordId.id;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.attachedRecordInPrincipalConcept;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.principalAccessOnRecordInConcept;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.principalConceptAuthGivingAccessToRecordInSecondaryConceptKey;
@@ -787,7 +787,7 @@ public class TaxonomyCacheHookAcceptanceTest extends ConstellioTest {
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		UserCredential userCredential = userServices.getUserCredential(aliceWonderland);
-		userServices.addUserToCollection(userCredential, zeCollection);
+		userServices.execute(userCredential.getUsername(), (req) -> req.addToCollection(zeCollection));
 
 		AuthorizationsServices authsServices = getModelLayerFactory().newAuthorizationsServices();
 		authsServices = getModelLayerFactory().newAuthorizationsServices();

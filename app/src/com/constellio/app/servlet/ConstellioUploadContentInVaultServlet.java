@@ -3,15 +3,18 @@ package com.constellio.app.servlet;
 import com.constellio.app.api.HttpServletRequestAuthenticator;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.data.io.services.facades.FileService;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.jetbrains.annotations.NotNull;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -23,63 +26,57 @@ import java.util.Map;
 
 public class ConstellioUploadContentInVaultServlet extends HttpServlet {
 
-	@SuppressWarnings("unchecked")
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		OutputStream output = null;
-		Map<String, Object> responseResult = null;
-		Throwable throwable = null;
+			throws IOException {
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory());
-		try {
-			InputStream inputStream = request.getInputStream();
-			File file = new File(request.getHeader("fileName"));
-			FileOutputStream fos = new FileOutputStream(file);
-			UserCredential user = authenticator.authenticateUsingUsername(request);
-			if (user == null) {
-				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			} else {
-				byte[] buffer = new byte[4096];
-				int bytesRead;
+		SystemWideUserInfos user = authenticator.authenticate(request);
+		if (user == null) {
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+		} else {
+			try (ObjectOutputStream responseOutputStream = new ObjectOutputStream(response.getOutputStream())) {
+				responseOutputStream.writeObject(handle(request));
+			}
+		}
 
-				try {
-					while ((bytesRead = inputStream.read(buffer)) != -1) {
-						fos.write(buffer, 0, bytesRead);
-					}
-				} finally {
-					if (inputStream != null) {
-						inputStream.close();
-					}
-					fos.close();
+
+	}
+
+	@NotNull
+	private Map<String, Object> handle(HttpServletRequest request) {
+		Map<String, Object> outParams = new HashMap<>();
+		try (InputStream inputStream = request.getInputStream()) {
+			FileService fileService = ConstellioFactories.getInstance().getIoServicesFactory().newFileService();
+			String filename = request.getHeader("fileName");
+			File tempFile = fileService.newTemporaryFile("ConstellioUploadContentInVaultServlet.tempFile", filename);
+			try {
+				try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(tempFile))) {
+					IOUtils.copy(inputStream, outputStream);
 				}
-				responseResult = respond(file);
-				output = response.getOutputStream();
-				Map<String, Object> outParams = new HashMap<>();
-				ObjectOutputStream oos = new ObjectOutputStream(output);
-				outParams.put("result", responseResult);
-				oos.writeObject(outParams);
+				outParams.put("result", respond(tempFile));
+
+			} finally {
+				fileService.deleteQuietly(tempFile);
 			}
-		} catch (Throwable e) {
-			e.printStackTrace();
-			throwable = e;
-		} finally {
-			IOUtils.closeQuietly(output);
+
+		} catch (Throwable throwable) {
+			throwable.printStackTrace();
+			outParams = toThrowableParams(throwable);
+
 		}
-		if (responseResult != null || throwable != null) {
-			Map<String, Object> outParams = new HashMap<>();
-			ObjectOutputStream oos = new ObjectOutputStream(output);
-			if (responseResult != null) {
-				outParams.put("result", responseResult);
-			} else {
-				String exceptionClassName = throwable.getClass().getName();
-				String exceptionMessage = throwable.getMessage();
-				String exceptionStackTrace = ExceptionUtils.getFullStackTrace(throwable);
-				outParams.put("throwableClassName", exceptionClassName);
-				outParams.put("throwableMessage", exceptionMessage);
-				outParams.put("throwableStackTrace", exceptionStackTrace);
-			}
-			oos.writeObject(outParams);
-		}
+		return outParams;
+	}
+
+	@NotNull
+	private Map<String, Object> toThrowableParams(Throwable throwable) {
+		Map<String, Object> outParams = new HashMap<>();
+		String exceptionClassName = throwable.getClass().getName();
+		String exceptionMessage = throwable.getMessage();
+		String exceptionStackTrace = ExceptionUtils.getFullStackTrace(throwable);
+		outParams.put("throwableClassName", exceptionClassName);
+		outParams.put("throwableMessage", exceptionMessage);
+		outParams.put("throwableStackTrace", exceptionStackTrace);
+		return outParams;
 	}
 
 	protected ModelLayerFactory modelLayerFactory() {

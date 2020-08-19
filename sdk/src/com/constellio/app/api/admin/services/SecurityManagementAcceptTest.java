@@ -9,9 +9,8 @@ import com.constellio.app.client.services.SecurityManagementDriver;
 import com.constellio.app.client.services.UserServicesClient;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordServices;
@@ -27,7 +26,7 @@ import com.constellio.model.services.security.authentification.AuthenticationSer
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.services.users.SolrGlobalGroupsManager;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -49,7 +48,6 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 
 	UserServices userServices;
 	AuthenticationService authService;
-	SolrGlobalGroupsManager globalGroupsManager;
 	RecordServices recordServices;
 
 	SecurityManagementDriver securityManagementDriver;
@@ -72,7 +70,7 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 
 	User bob, alice;
 
-	UserCredential userCredentialBob, userCredentialAlice;
+	SystemWideUserInfos userCredentialBob, userCredentialAlice;
 
 	String authId;
 
@@ -87,7 +85,6 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 
 		userServices = getModelLayerFactory().newUserServices();
 		authService = getModelLayerFactory().newAuthenticationService();
-		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
 		recordServices = getModelLayerFactory().newRecordServices();
 		recordServices = getModelLayerFactory().newRecordServices();
 		taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
@@ -104,16 +101,15 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 		taxonomiesManager.setPrincipalTaxonomy(schemas.getTaxonomy1(), schemasManager);
 		records = schemas.givenRecords(recordServices);
 
-		usersRecords.setUp(userServices);
+		usersRecords.setUp(userServices, zeCollection);
 		bob = usersRecords.bobIn(zeCollection);
 		alice = usersRecords.aliceIn(zeCollection);
 		userCredentialBob = usersRecords.bob();
 		userCredentialAlice = usersRecords.alice();
-		userServices.addUpdateUserCredential(userCredentialAlice);
-		userServices.addUserToCollection(userCredentialAlice, zeCollection);
+		userServices.execute(userCredentialAlice.getUsername(), (req) -> req.addToCollection(zeCollection));
 
 		userServices.givenSystemAdminPermissionsToUser(userCredentialBob);
-		bobServiceKey = userServices.giveNewServiceToken(userCredentialBob);
+		bobServiceKey = userServices.giveNewServiceKey(userCredentialBob.getUsername());
 
 		authService.changePassword(userCredentialBob.getUsername(), bobPassword);
 
@@ -149,9 +145,9 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 
 	private void givenGroupInCollectionAndCollectionPermissionToLegendsWhenGetGroupCollectionPermissionsThenReturnIt() {
 
-		GlobalGroup globalGroup = userServices.createGlobalGroup(
+		GroupAddUpdateRequest globalGroup = userServices.createGlobalGroup(
 				"legends", "legends", Arrays.asList(zeCollection), null, GlobalGroupStatus.ACTIVE, true);
-		userServices.addUpdateGlobalGroup(globalGroup);
+		userServices.execute(globalGroup);
 
 		GroupCollectionPermissionsResource resource = new GroupCollectionPermissionsResource();
 		resource.setGroupCode("legends");

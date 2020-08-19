@@ -9,7 +9,6 @@ import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.RecordCacheType;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -19,10 +18,10 @@ import com.constellio.model.services.search.query.logical.FreeTextQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.authentification.AuthenticationService;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
@@ -61,13 +60,13 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 	RecordServices recordServices;
 	UserServices userServices;
 
-	UserCredential userWithZeCollectionReadAccess;
-	UserCredential userWithAnotherCollectionReadAccess;
-	UserCredential userWithBothCollectionReadAccess;
-	UserCredential userInBothCollectionWithoutAnyAccess;
-	UserCredential userInNoCollection;
-	UserCredential userWithSomeRecordAccess;
-	UserCredential systemAdmin;
+	SystemWideUserInfos userWithZeCollectionReadAccess;
+	SystemWideUserInfos userWithAnotherCollectionReadAccess;
+	SystemWideUserInfos userWithBothCollectionReadAccess;
+	SystemWideUserInfos userInBothCollectionWithoutAnyAccess;
+	SystemWideUserInfos userInNoCollection;
+	SystemWideUserInfos userWithSomeRecordAccess;
+	SystemWideUserInfos systemAdmin;
 
 	String zeCollectionRecord1 = "zeCollectionRecord1";
 	String zeCollectionRecord2 = "zeCollectionRecord2";
@@ -228,7 +227,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 
 		SolrClient solrServer = newSearchClient();
 
-		String serviceKey = userServices.giveNewServiceToken(userServices.getUserCredential(systemAdmin.getUsername()));
+		String serviceKey = userServices.giveNewServiceKey(systemAdmin.getUsername());
 		String token = userServices.getToken(serviceKey, systemAdmin.getUsername(), "youshallnotpass");
 		solrParams.set("serviceKey", serviceKey);
 		solrParams.set("token", token);
@@ -308,7 +307,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 
 		SolrClient solrServer = newSearchClient();
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "eventType_s:RECORD_UPDATE");
-		String serviceKey = userServices.giveNewServiceToken(userServices.getUserCredential(systemAdmin.getUsername()));
+		String serviceKey = userServices.giveNewServiceKey(systemAdmin.getUsername());
 		String token = userServices.getToken(serviceKey, systemAdmin.getUsername(), "youshallnotpass");
 		solrParams.set("serviceKey", serviceKey);
 		solrParams.set("token", token);
@@ -340,11 +339,11 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 				anotherCollectionUser);
 	}
 
-	private List<String> findAllRecordsVisibleBy(UserCredential user) {
+	private List<String> findAllRecordsVisibleBy(SystemWideUserInfos user) {
 		FreeTextSearchServices freeTextSearchServices = getModelLayerFactory().newFreeTextSearchServices();
 		SolrParams solrParams = new ModifiableSolrParams().set("q", "search_txt_fr:perdu");
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		UserCredential refreshedUser = userServices.getUser(user.getUsername());
+		SystemWideUserInfos refreshedUser = userServices.getUserInfos(user.getUsername());
 		List<String> records = new ArrayList<>();
 		QueryResponse response = freeTextSearchServices.search(new FreeTextQuery(solrParams).filteredByUser(refreshedUser));
 		for (SolrDocument result : response.getResults()) {
@@ -360,7 +359,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "search_txt_fr:perdu");
 
 		String serviceKey = userServices
-				.giveNewServiceToken(userServices.getUserCredential(userWithBothCollectionReadAccess.getUsername()));
+				.giveNewServiceKey(userWithBothCollectionReadAccess.getUsername());
 		solrParams.set("serviceKey", serviceKey);
 		solrParams.set("token", "noidea");
 		try {
@@ -379,7 +378,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "search_txt_fr:perdu");
 
 		String serviceKey = userServices
-				.giveNewServiceToken(userServices.getUserCredential(userWithBothCollectionReadAccess.getUsername()));
+				.giveNewServiceKey(userWithBothCollectionReadAccess.getUsername());
 		String anotherUserToken = userServices.generateToken(userWithZeCollectionReadAccess.getUsername());
 		solrParams.set("serviceKey", serviceKey);
 		solrParams.set("token", anotherUserToken);
@@ -399,7 +398,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "search_txt_fr:perdu");
 
 		String serviceKey = userServices
-				.giveNewServiceToken(userServices.getUserCredential(userWithBothCollectionReadAccess.getUsername()));
+				.giveNewServiceKey(userWithBothCollectionReadAccess.getUsername());
 		solrParams.set("serviceKey", serviceKey);
 		try {
 
@@ -428,12 +427,12 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 		}
 	}
 
-	private List<String> findAllRecordsVisibleByUsingWebService(UserCredential user)
+	private List<String> findAllRecordsVisibleByUsingWebService(SystemWideUserInfos user)
 			throws SolrServerException, IOException {
 		SolrClient solrServer = newSearchClient();
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "schema_s:zeSchemaType*");
 
-		String serviceKey = userServices.giveNewServiceToken(userServices.getUserCredential(user.getUsername()));
+		String serviceKey = userServices.giveNewServiceKey(user.getUsername());
 		String token = userServices.getToken(serviceKey, user.getUsername(), "youshallnotpass");
 		solrParams.set("serviceKey", serviceKey);
 		solrParams.set("token", token);
@@ -446,12 +445,12 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 		return records;
 	}
 
-	private List<String> findAllRecordsVisibleOfNonSecuredSchemaByUsingWebService(UserCredential user)
+	private List<String> findAllRecordsVisibleOfNonSecuredSchemaByUsingWebService(SystemWideUserInfos user)
 			throws SolrServerException, IOException {
 		SolrClient solrServer = newSearchClient();
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "schema_s:anotherSchemaType*");
 		solrParams.add("fq", "collection_s:zeCollection");
-		String serviceKey = userServices.giveNewServiceToken(userServices.getUserCredential(user.getUsername()));
+		String serviceKey = userServices.giveNewServiceKey(user.getUsername());
 		String token = userServices.getToken(serviceKey, user.getUsername(), "youshallnotpass");
 		solrParams.set("serviceKey", serviceKey);
 		solrParams.set("token", token);
@@ -467,7 +466,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 	private void setupUsers()
 			throws RecordServicesException, InterruptedException {
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.addUpdateUserCredential(users.chuckNorris().setSystemAdminEnabled());
+		userServices.execute(users.chuckNorrisAddUpdateRequest().setSystemAdminEnabled());
 
 		userWithZeCollectionReadAccess = users.alice();
 		userWithAnotherCollectionReadAccess = users.bob();
@@ -477,14 +476,14 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 		userWithSomeRecordAccess = users.gandalfLeblanc();
 		systemAdmin = users.chuckNorris();
 
-		userServices.addUserToCollection(userWithZeCollectionReadAccess, zeCollection);
-		userServices.addUserToCollection(userWithAnotherCollectionReadAccess, anotherCollection);
-		userServices.addUserToCollection(userWithBothCollectionReadAccess, zeCollection);
-		userServices.addUserToCollection(userWithBothCollectionReadAccess, anotherCollection);
-		userServices.addUserToCollection(userInBothCollectionWithoutAnyAccess, zeCollection);
-		userServices.addUserToCollection(userInBothCollectionWithoutAnyAccess, anotherCollection);
-		userServices.addUserToCollection(userWithSomeRecordAccess, zeCollection);
-		userServices.addUserToCollection(userWithSomeRecordAccess, anotherCollection);
+		userServices.execute(userWithZeCollectionReadAccess.getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(userWithAnotherCollectionReadAccess.getUsername(), (req) -> req.addToCollection(anotherCollection));
+		userServices.execute(userWithBothCollectionReadAccess.getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(userWithBothCollectionReadAccess.getUsername(), (req) -> req.addToCollection(anotherCollection));
+		userServices.execute(userInBothCollectionWithoutAnyAccess.getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(userInBothCollectionWithoutAnyAccess.getUsername(), (req) -> req.addToCollection(anotherCollection));
+		userServices.execute(userWithSomeRecordAccess.getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(userWithSomeRecordAccess.getUsername(), (req) -> req.addToCollection(anotherCollection));
 
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
 		authenticationService.changePassword(systemAdmin.getUsername(), "youshallnotpass");
@@ -497,21 +496,21 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 
 		waitForBatchProcess();
 
-		userWithZeCollectionReadAccess = userServices.getUserCredential(userWithZeCollectionReadAccess.getUsername());
-		userWithAnotherCollectionReadAccess = userServices.getUserCredential(userWithAnotherCollectionReadAccess.getUsername());
-		userWithBothCollectionReadAccess = userServices.getUserCredential(userWithBothCollectionReadAccess.getUsername());
-		userInBothCollectionWithoutAnyAccess = userServices.getUserCredential(userInBothCollectionWithoutAnyAccess.getUsername());
-		userInNoCollection = userServices.getUserCredential(userInNoCollection.getUsername());
-		userWithSomeRecordAccess = userServices.getUserCredential(userWithSomeRecordAccess.getUsername());
-		systemAdmin = userServices.getUserCredential(systemAdmin.getUsername());
+		userWithZeCollectionReadAccess = userServices.getUserInfos(userWithZeCollectionReadAccess.getUsername());
+		userWithAnotherCollectionReadAccess = userServices.getUserInfos(userWithAnotherCollectionReadAccess.getUsername());
+		userWithBothCollectionReadAccess = userServices.getUserInfos(userWithBothCollectionReadAccess.getUsername());
+		userInBothCollectionWithoutAnyAccess = userServices.getUserInfos(userInBothCollectionWithoutAnyAccess.getUsername());
+		userInNoCollection = userServices.getUserInfos(userInNoCollection.getUsername());
+		userWithSomeRecordAccess = userServices.getUserInfos(userWithSomeRecordAccess.getUsername());
+		systemAdmin = userServices.getUserInfos(systemAdmin.getUsername());
 	}
 
 	private void assertThatUserIsInCollection(String username, String collection) {
-		UserCredential userCredential = userServices.getUser(username);
+		SystemWideUserInfos userCredential = userServices.getUserInfos(username);
 		assertThatUserIsInCollection(userCredential, collection);
 	}
 
-	private void assertThatUserIsInCollection(UserCredential userCredential, String collection) {
+	private void assertThatUserIsInCollection(SystemWideUserInfos userCredential, String collection) {
 		assertThat(userCredential.getCollections()).contains(collection);
 	}
 

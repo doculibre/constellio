@@ -202,6 +202,7 @@ public class JSPFPluginServicesTestAcceptanceTest extends ConstellioTest {
 		jar3NewVersion = newTempFileWithContentInFolder(tempDir, "jar3." + NEW_JAR_EXTENSION, "jar3NewVersion");
 		jar4ExistingVersion = newTempFileWithContentInFolder(tempDir, "jar4.jar", "jar4ExistingVersion");
 
+		JSPFPluginServices.pluginsWithReplacementException = null;
 		services.replaceOldPluginVersionsByNewOnes(tempDir, previousVersionFolder);
 
 		assertThat(jar1NewVersion.exists()).isFalse();

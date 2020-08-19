@@ -370,6 +370,7 @@ public class MetadataList implements List<Metadata>, Serializable {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
+
 	public MetadataList only(MetadataListFilter filter) {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
@@ -404,6 +405,16 @@ public class MetadataList implements List<Metadata>, Serializable {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
 			if (!metadata.isSystemReserved()) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
+	public MetadataList onlyNonHerited() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.getInheritance() == null) {
 				filteredMetadatasList.add(metadata);
 			}
 		}
@@ -628,6 +639,16 @@ public class MetadataList implements List<Metadata>, Serializable {
 
 	public boolean containsMetadataWithLocalCode(String localCode) {
 		return localCodeIndex.containsKey(localCode);
+	}
+
+	public boolean containsMetadataWithLocalCode(String... localCodes) {
+		for (String localCode : localCodes) {
+			if (localCodeIndex.containsKey(localCode)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public MetadataList onlyDuplicable() {

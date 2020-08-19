@@ -96,8 +96,10 @@ public class ConnectorUtil {
 				smbFile = new SmbFile(connectorSmbInstance.getSeeds().get(0), auth);
 				smbFile.connect();
 			} catch (MalformedURLException e) {
+				LOGGER.warn("SMB Connector test details : ", e);
 				return new ConnectionStatusResult(ConnectionStatus.badUrlNoParam);
 			} catch (IOException e) {
+				LOGGER.warn("SMB Connector test details : ", e);
 				return new ConnectionStatusResult(ConnectionStatus.ioError);
 			}
 		}

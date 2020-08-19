@@ -1,8 +1,9 @@
 "use strict";
 
-function PDFAnnotationsManager(config, signatureDataStore, pdfViewerElement) {
+function PDFAnnotationsManager(config, signatureDataStore, signatureOptionsElement, pdfViewerElement) {
     this.config = config;
     this.signatureDataStore = signatureDataStore;
+    this.signatureOptionsElement = signatureOptionsElement; 
     this.pdfViewerElement = pdfViewerElement;
     this.pdfAnnotations = new PDFAnnotations();
     this.currentPage = 1;
@@ -112,10 +113,31 @@ PDFAnnotationsManager.prototype.newDropZoneManager = function(pageNumber) {
     this.dropZoneManagers[pageNumber] = dropZoneManager;
 };
 
+PDFAnnotationsManager.prototype.defineSignHereAnnotation = function() {
+    var signaturePicker = this.getCurrentSignaturePicker();
+    signaturePicker.signHereAnnotationPicked();
+};   
+
+PDFAnnotationsManager.prototype.defineTextAnnotation = function() {
+    var dropZoneManager = this.getCurrentDropZoneManager();
+    var textAnnotation = new TextAnnotation();
+    dropZoneManager.defineAnnotation(textAnnotation);
+};   
+
+PDFAnnotationsManager.prototype.openSignaturePicker = function() {
+    var signaturePicker = this.getCurrentSignaturePicker();
+    signaturePicker.openPicker();
+};    
+
+PDFAnnotationsManager.prototype.getCurrentSignaturePicker = function(pageNumber, dropZoneManager) {
+    var dropZoneManager = this.getCurrentDropZoneManager();
+    return this.getSignaturePicker(this.currentPage, dropZoneManager);
+};    
+
 PDFAnnotationsManager.prototype.getSignaturePicker = function(pageNumber, dropZoneManager) {
     var pageSignatureAnnotationPicker = this.signatureAnnotationPickers[pageNumber];
     if (!pageSignatureAnnotationPicker) {
-        pageSignatureAnnotationPicker = new SignatureAnnotationPicker(this.signatureDataStore, dropZoneManager);
+        pageSignatureAnnotationPicker = new SignatureAnnotationPicker(this.signatureDataStore, dropZoneManager, this.signatureOptionsElement);
         this.signatureAnnotationPickers[pageNumber] = pageSignatureAnnotationPicker;
     }
     return pageSignatureAnnotationPicker;

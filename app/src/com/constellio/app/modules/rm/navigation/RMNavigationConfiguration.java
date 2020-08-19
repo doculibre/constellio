@@ -86,9 +86,9 @@ import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.AgentStatus;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.View;
@@ -144,6 +144,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String LIST_CARTS = "listCarts";
 	public static final String MY_CART = "myCart";
 	public static final String LOGS = "logs";
+	public static final String SUPPORT = "support";
 	public static final String REPORTS = "reports";
 	public static final String REQUEST_AGENT = "requestAgent";
 	public static final String AGENT_SETUP = "agentSetup";
@@ -463,7 +464,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.hasAny(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN, RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN).globally());
+				return visibleIf(user.hasAny(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN, RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN).onSomething());
 			}
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(UNIFORM_SUBDIVISIONS, UNIFORM_SUBDIVISIONS_ICON) {
@@ -486,7 +487,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.hasAny(RMPermissionsTo.MANAGE_RETENTIONRULE, RMPermissionsTo.CONSULT_RETENTIONRULE).globally());
+				return visibleIf(user.hasAny(RMPermissionsTo.MANAGE_RETENTIONRULE, RMPermissionsTo.CONSULT_RETENTIONRULE).onSomething());
 			}
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(BORROWINGS, BORROWINGS_ICON) {
@@ -619,7 +620,7 @@ public class RMNavigationConfiguration implements Serializable {
 				RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 
 				String username = user.getUsername();
-				UserCredential userCredentials = (UserCredential) userServices.getUser(username);
+				SystemWideUserInfos userCredentials = userServices.getUserInfos(username);
 				AgentStatus agentStatus = userCredentials.getAgentStatus();
 				if (agentStatus == AgentStatus.DISABLED && !rmConfigs.isAgentDisabledUntilFirstConnection()) {
 					agentStatus = AgentStatus.ENABLED;

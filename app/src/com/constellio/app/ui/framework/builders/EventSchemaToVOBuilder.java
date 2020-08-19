@@ -41,7 +41,8 @@ public class EventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 											   boolean isMultiLingual, Locale locale,
 											   Map<String, Object> customParameters,
 											   CollectionInfoVO collectionInfoVO, boolean sortable,
-											   boolean summaryMetadata, Integer maxLength, String measurementUnit, Map<Locale, String> helpMessages) {
+											   boolean summaryMetadata, Integer maxLength, String measurementUnit,
+											   Map<Locale, String> helpMessages) {
 				MetadataVO metadataVO;
 				String modifiedOnCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(Schemas.MODIFIED_ON.getCode());
 				String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);

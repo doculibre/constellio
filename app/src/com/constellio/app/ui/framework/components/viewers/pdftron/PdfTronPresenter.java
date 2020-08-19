@@ -30,10 +30,10 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.pdf.PdfAnnotation;
 import com.constellio.model.services.pdf.pdtron.AnnotationLockManager;
 import com.constellio.model.services.pdf.pdtron.PdfTronXMLException;
 import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_CannotEditAnnotationWithoutLock;
@@ -42,11 +42,12 @@ import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLEx
 import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
 import com.constellio.model.services.pdf.pdtron.PdfTronXMLService;
 import com.constellio.model.services.pdf.signature.CreateVisibleSignature;
-import com.constellio.model.services.pdf.signature.PdfSignatureAnnotation;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -318,21 +319,28 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	}
 
 	private boolean canEditContent() {
-		Document document = rm.getDocument(recordId);
-		Content content = document.getContent();
-		return content != null &&
-			   (content.getCheckoutUserId() == null || content.getCheckoutUserId().equals(getCurrentUser().getId()));
+		boolean canEditContent;
+		Record record = rm.getModelLayerFactory().newRecordServices().getDocumentById(recordId);
+		if (Document.SCHEMA_TYPE.equals(SchemaUtils.getSchemaTypeCode(record.getSchemaCode()))) {
+			Document document = rm.getDocument(recordId);
+			Content content = document.getContent();
+			canEditContent = content != null &&
+							 (content.getCheckoutUserId() == null || content.getCheckoutUserId().equals(getCurrentUser().getId()));
+		} else {
+			canEditContent = false;
+		}
+		return canEditContent;
 	}
 
 	public String getSignatureImageData() {
 		UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-		UserCredential userCredentials = userServices.getUser(currentUser.getUsername());
+		SystemWideUserInfos userCredentials = userServices.getUserInfos(currentUser.getUsername());
 		return getImageData(userCredentials.getElectronicSignature());
 	}
 
 	public String getInitialsImageData() {
 		UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-		UserCredential userCredentials = userServices.getUser(currentUser.getUsername());
+		SystemWideUserInfos userCredentials = userServices.getUserInfos(currentUser.getUsername());
 		return getImageData(userCredentials.getElectronicInitials());
 	}
 
@@ -373,7 +381,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		String keystorePass = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE_PASSWORD);
 
-		List<PdfSignatureAnnotation> signatures = new ArrayList<>();
+		List<PdfAnnotation> signatures = new ArrayList<>();
 		try {
 			signatures = pdfTronParser.getSignatureAnnotations(xmlCurrentAnnotations);
 		} catch (PdfTronXMLException e) {
@@ -386,7 +394,7 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 		Collections.sort(signatures);
 
 		File signedDocument = null;
-		for (PdfSignatureAnnotation signature : signatures) {
+		for (PdfAnnotation signature : signatures) {
 			String signaturePath = createTempFileFromBase64("signature", signature.getImageData());
 			if (StringUtils.isBlank(signaturePath)) {
 				throw new PdfSignatureException_CannotReadSignatureFileException();

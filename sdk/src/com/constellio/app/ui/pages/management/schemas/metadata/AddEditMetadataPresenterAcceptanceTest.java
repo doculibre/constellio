@@ -71,7 +71,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.navigate()).thenReturn(navigator);
 		userServices = getModelLayerFactory().newUserServices();
-		userServices.addUserToCollection(userServices.getUserCredential(admin), zeCollection);
+		userServices.execute(admin, (req) -> req.addToCollection(zeCollection));
 
 		presenter = new AddEditMetadataPresenter(view);
 		Map<String, String> parameters = new HashMap<>();

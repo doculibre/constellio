@@ -429,6 +429,10 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		return Collections.emptyList();
 	}
 
+	protected boolean alwaysUseLayoutForActionMenu() {
+		return false;
+	}
+
 	/**
 	 * Adapted from https://vaadin.com/forum#!/thread/8150555/8171634
 	 *
@@ -471,7 +475,17 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 						result = actionMenuBarLayout;
 					}
 				} else {
-					result = menuBar;
+					if (!alwaysUseLayoutForActionMenu()) {
+						result = menuBar;
+					} else {
+						if (actionMenuBarLayout == null) {
+							actionMenuBarLayout = new I18NHorizontalLayout();
+							actionMenuBarLayout.addStyleName("action-menu-bar-layout");
+							actionMenuBarLayout.setSpacing(true);
+						}
+						actionMenuBarLayout.addComponent(menuBar);
+						result = actionMenuBarLayout;
+					}
 				}
 			} else {
 				VerticalLayout actionMenuLayout = new VerticalLayout();

@@ -3,8 +3,8 @@ package com.constellio.model.services.security.authentification;
 import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -106,10 +106,10 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 		givenCollection(zeCollection);
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		for (String username : usernames) {
-			UserCredential userCredential = userServices.createUserCredential(username, "Inc", "Onnu",
+			UserAddUpdateRequest userCredential = addUpdateUserCredential(username, "Inc", "Onnu",
 					username + "@constellio.com", new ArrayList<String>(), asList(zeCollection), UserCredentialStatus.ACTIVE);
 
-			userServices.addUpdateUserCredential(userCredential);
+			userServices.execute(userCredential);
 		}
 	}
 

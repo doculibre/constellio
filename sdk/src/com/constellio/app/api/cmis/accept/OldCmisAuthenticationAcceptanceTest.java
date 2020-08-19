@@ -62,7 +62,7 @@ public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 
 		taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 
 		defineSchemasManager().using(zeCollectionSchemas);
 		defineSchemasManager().using(anotherCollectionSchemas);
@@ -76,9 +76,9 @@ public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 		anotherCollectionRecords = anotherCollectionSchemas.givenRecords(recordServices);
 
 		givenChuckAndBobPasswordsProperties();
-		userServices.addUserToCollection(users.bob(), zeCollection);
-		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
-		userServices.addUserToCollection(users.chuckNorris(), anotherCollection);
+		userServices.execute(users.bob().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection(zeCollection));
 		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 	//
@@ -217,7 +217,7 @@ public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 	private void whenCreateNewCollectionThenUsersCanConnectInIt() {
 		givenCollection(thirdCollection);
 
-		userServices.addUserToCollection(users.chuckNorris(), thirdCollection);
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection(thirdCollection));
 
 		Session cmisSessionChuckThirdCollection = newCmisSessionBuilder().authenticatedBy(chuckNorris, "1qaz2wsx")
 				.onCollection(thirdCollection).build();

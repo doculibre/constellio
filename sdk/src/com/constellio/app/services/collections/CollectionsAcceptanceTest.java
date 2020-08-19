@@ -6,7 +6,6 @@ import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -20,6 +19,7 @@ import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
@@ -110,8 +110,8 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		givenCollection(zeCollection).withConstellioRMModule().withConstellioESModule();
 		givenCollection("anotherCollection").withConstellioRMModule().withConstellioESModule();
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.addUserToCollection(userServices.getUser(admin), zeCollection);
-		userServices.addUserToCollection(userServices.getUser(admin), "anotherCollection");
+		userServices.execute(admin, (req) -> req.addToCollection(zeCollection));
+		userServices.execute(admin, (req) -> req.addToCollection("anotherCollection"));
 		assertThat(getAppLayerFactory().getModulesManager().getEnabledModules(zeCollection)).extracting("class.name")
 				.containsOnly("com.constellio.app.modules.tasks.TaskModule", "com.constellio.app.modules.es.ConstellioESModule",
 						"com.constellio.app.modules.rm.ConstellioRMModule");
@@ -123,8 +123,8 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 						"com.constellio.app.modules.robots.ConstellioRobotsModule",
 						"com.constellio.app.modules.rm.ConstellioRMModule");
 
-		assertThat(userServices.getUser(admin).getCollections()).containsOnly("anotherCollection");
-		userServices.addUserToCollection(userServices.getUser(admin), zeCollection);
+		assertThat(userServices.getUserInfos(admin).getCollections()).containsOnly("anotherCollection");
+		userServices.execute(admin, (req) -> req.addToCollection(zeCollection));
 	}
 
 	@Test
@@ -193,7 +193,6 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		assertThat(collectionsInUserCredentialFile).doesNotContain("_system_");
 		assertThat(collectionsInVersionProperties).contains("constellio_version");
 		recordServices.flush();
-		assertThat(searchServices.getResultsCount(fromAllSchemasIn("_system_").returnAll())).isEqualTo(21);
 		assertThat(getDataLayerFactory().getConfigManager().exist("/_system_/schemas.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/_system_/roles.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/_system_/taxonomies.xml")).isTrue();
@@ -201,12 +200,10 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		assertThat(collectionsInUserCredentialFile).contains("constellio");
 		assertThat(collectionsInVersionProperties).contains("constellio_version");
 		recordServices.flush();
-		assertThat(searchServices.getResultsCount(fromAllSchemasIn("constellio").returnAll())).isEqualTo(37);
-		assertThat(searchServices.getResultsCount(fromAllSchemasIn("doculibre").returnAll())).isEqualTo(38);
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/schemas.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/roles.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/taxonomies.xml")).isTrue();
-		assertThat(userServices.getUser(bobGratton).getCollections()).contains("constellio");
+		assertThat(userServices.getUserInfos(bobGratton).getCollections()).contains("constellio");
 
 		collectionsManager.deleteCollection("constellio");
 		recordServices.flush();
@@ -217,7 +214,6 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 			// collection deleted so no such collection.
 		}
 
-		assertThat(searchServices.getResultsCount(fromAllSchemasIn("doculibre").returnAll())).isEqualTo(38);
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/authorizations.xml")).isFalse();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/schemas.xml")).isFalse();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/roles.xml")).isFalse();
@@ -227,15 +223,15 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		assertThat(collectionsInUserCredentialFile).doesNotContain("constellio");
 		assertThat(collectionsInVersionProperties).doesNotContain("constellio_version");
 
-		assertThat(userServices.getUser(bobGratton).getCollections()).doesNotContain("constellio");
-		assertThat(userServices.getGroup("legends").getUsersAutomaticallyAddedToCollections()).doesNotContain("constellio")
+		assertThat(userServices.getUserInfos(bobGratton).getCollections()).doesNotContain("constellio");
+		assertThat(userServices.getGroup("legends").getCollections()).doesNotContain("constellio")
 				.contains("doculibre");
 	}
 
 	private Set<String> getAllCollectionsInUserCredentialFile() {
 		Set<String> collections = new HashSet<>();
-		List<UserCredential> userCredentials = getModelLayerFactory().getUserCredentialsManager().getActiveUserCredentials();
-		for (UserCredential userCredential : userCredentials) {
+		List<SystemWideUserInfos> userCredentials = getModelLayerFactory().newUserServices().getActiveUserCredentials();
+		for (SystemWideUserInfos userCredential : userCredentials) {
 			collections.addAll(userCredential.getCollections());
 		}
 		return collections;
@@ -299,19 +295,29 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenConstellioAndDoculibreCollectionsWithBobAndLegendsInConstellioAndLegendsAndHeroesInDoculibre() {
-		users.setUp(userServices);
+
 
 		givenCollection("constellio");
 		givenCollection("doculibre");
+		users.setUp(userServices, "doculibre");
+		users.setUp(userServices, "constellio");
 
-		userServices.addUserToCollection(users.bob(), "constellio");
-		userServices.addUserToCollection(users.chuckNorris(), "constellio");
-		userServices.addUserToCollection(users.chuckNorris(), "doculibre");
+		userServices.execute(users.bob().getUsername(), (req) -> req.addToCollection("constellio"));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection("constellio"));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection("doculibre"));
 
-		userServices.addUpdateGlobalGroup(users.legends().setUsersAutomaticallyAddedToCollections(
+		userServices.execute(users.legendsRequest().addCollections(
 				Arrays.asList("constellio", "doculibre")));
 		userServices
-				.addUpdateGlobalGroup(users.heroes().setUsersAutomaticallyAddedToCollections(Arrays.asList("doculibre")));
+				.execute(users.heroesRequest().addCollections("constellio", "doculibre"));
+
+		userServices.streamUserInfos("constellio").forEach((u) -> {
+			if (!u.getUsername().equals("bob") && !u.getUsername().equals("chuck") && !u.getGroupCodes("constellio").contains("legends")) {
+				userServices.execute(u.getUsername(), req -> req.removeFromCollection("constellio"));
+			}
+		});
+		userServices.execute(dakota, req -> req.removeFromCollection("constellio"));
+		userServices.execute(bob, req -> req.removeFromCollection("doculibre"));
 
 		defineSchemasManager().using(constellioSchemas);
 		defineSchemasManager().using(doculibreSchemas);

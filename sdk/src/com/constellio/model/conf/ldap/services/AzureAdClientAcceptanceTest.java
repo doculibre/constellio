@@ -32,6 +32,9 @@ public class AzureAdClientAcceptanceTest extends ConstellioTest {
 	@Mock
 	LDAPUserSyncConfiguration ldapUserSyncConfiguration;
 
+	@Mock
+	AzureRequestHelper azureRequestHelper;
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -72,7 +75,7 @@ public class AzureAdClientAcceptanceTest extends ConstellioTest {
 	@InDevelopmentTest
 	public void testGetGroupsAndTheirUsers()
 			throws Exception {
-		AzureAdClient.RequestHelper.maxResults = 1;
+		azureRequestHelper.maxResults = 1;
 
 		AzureAdClient azureAdClientSpy = spy(new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration));
 
@@ -91,7 +94,27 @@ public class AzureAdClientAcceptanceTest extends ConstellioTest {
 	@InDevelopmentTest
 	public void testGetUsersAndTheirGroups()
 			throws Exception {
-		AzureAdClient.RequestHelper.maxResults = 2;
+		azureRequestHelper.maxResults = 2;
+
+		AzureAdClient azureAdClientSpy = spy(new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration));
+
+		final Map<String, LDAPGroup> ldapGroups = new HashMap<>();
+		final Map<String, LDAPUser> ldapUsers = new HashMap<>();
+
+		azureAdClientSpy.getUsersAndTheirGroups(ldapGroups, ldapUsers);
+
+		assertThat(ldapGroups).isNotEmpty();
+		assertThat(ldapGroups.size()).isEqualTo(3);
+		assertThat(ldapUsers).isNotEmpty();
+		//user 3 is without groups
+		assertThat(ldapUsers.size()).isEqualTo(21);
+	}
+
+	@Test
+	@InDevelopmentTest
+	public void testGetGroupsAndSubGroupsAndTheirUsers()
+			throws Exception {
+		azureRequestHelper.maxResults = 2;
 
 		AzureAdClient azureAdClientSpy = spy(new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration));
 

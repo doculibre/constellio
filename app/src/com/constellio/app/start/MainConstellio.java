@@ -1,10 +1,11 @@
 package com.constellio.app.start;
 
 import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.zip.ZipServiceException;
+import com.constellio.data.services.tenant.Log4JRuntimeExceptionHandler;
 import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.services.appManagement.InstallationService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -21,14 +22,21 @@ import static com.constellio.app.services.appManagement.AppManagementService.RES
 public final class MainConstellio {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MainConstellio.class);
 
+	static {
+		Thread.setDefaultUncaughtExceptionHandler(new Log4JRuntimeExceptionHandler());
+	}
+
 	private MainConstellio() {
 
 	}
 
 	public static void main(String[] args)
 			throws IOException, InterruptedException, ZipServiceException {
+
 		changeTemporaryDirectory();
 		File constellioInstallationDir = new FoldersLocator().getWrapperInstallationFolder();
+		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+		System.setProperty("log4j.configurationFile", new FoldersLocator().getWebClasses().getAbsolutePath() + "log4j2.xml");
 
 		FileService fileService = new FileService(null);
 
@@ -133,9 +141,6 @@ public final class MainConstellio {
 
 		String serverPortConfig = properties.get("server.port");
 		params.setPort(StringUtils.isNotBlank(serverPortConfig) ? Integer.valueOf(serverPortConfig) : 8080);
-
-		Boolean isForceSecuredCookies = new Boolean(properties.get("server.forceSecuredCookies"));
-		params.setForceSecuredCookies(isForceSecuredCookies);
 
 		ApplicationStarter.startApplication(params);
 	}

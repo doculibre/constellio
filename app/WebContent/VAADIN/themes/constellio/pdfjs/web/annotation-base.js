@@ -37,6 +37,41 @@ Annotation.prototype.getType = function() {
 	return "annotation";
 };
 
+Annotation.prototype.toJSON = function() {
+	return {
+		type: this.getType(),
+		id: this.getId(),
+		x: this.getX(),
+		y: this.getY(),
+		width: this.getWidth(),
+		height: this.getHeight(),
+		readOnly: this.isReadOnly(),
+		baked: this.isBaked(),
+		creationUser: this.getCreationUser(),
+		creationDate: this.getCreationDate(),
+		lastModificationUser: this.getLastModificationUser(),
+		lastModificationDate: this.getLastModificationDate(),
+		bakeUser: this.getBakeUser(),
+		bakeDate: this.getBakeDate()
+	};
+};
+
+Annotation.prototype.fromJSON = function(json) {
+	this.id = json.id;
+	this.x = json.x;
+	this.y = json.y;
+	this.width = json.width;	
+	this.height = json.height;
+	this.readOnly = json.readOnly;
+	this.baked = json.baked;
+	this.creationUser = json.creationUser;
+	this.creationDate = json.creationDate;
+	this.lastModificationUser = json.lastModificationUser;
+	this.lastModificationDate = json.lastModificationDate;
+	this.bakeUser = json.bakeUser;
+	this.bakeDate = json.bakeDate;
+};
+
 Annotation.prototype.isHtmlElementSameType = function(htmlElement) {
 	if (htmlElement instanceof jQuery) {
 		htmlElement = htmlElement[0];
@@ -86,7 +121,7 @@ Annotation.prototype.getLastModificationUser = function() {
 	return this.lastModificationUser;
 };
 
-Annotation.prototype.setModificationUser = function(lastModificationUser) {
+Annotation.prototype.setLastModificationUser = function(lastModificationUser) {
 	this.lastModificationUser = lastModificationUser;
 };
 

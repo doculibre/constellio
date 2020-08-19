@@ -18,7 +18,6 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbFile;
 import org.junit.Before;

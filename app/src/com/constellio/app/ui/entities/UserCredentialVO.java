@@ -1,6 +1,7 @@
 package com.constellio.app.ui.entities;
 
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.UserSyncMode;
 import org.joda.time.LocalDateTime;
 
 import java.io.Serializable;
@@ -39,6 +40,8 @@ public class UserCredentialVO implements Serializable {
 
 	UserCredentialStatus status;
 
+	UserSyncMode syncMode;
+
 	String domain;
 
 	String phone;
@@ -57,7 +60,7 @@ public class UserCredentialVO implements Serializable {
 							String phone, String fax, String address, String personalEmails,
 							String serviceKey, boolean systemAdmin, List<String> globalGroups, Set<String> collections,
 							Map<String, LocalDateTime> tokens, String password, String confirmPassword,
-							UserCredentialStatus status) {
+							UserCredentialStatus status, UserSyncMode syncMode) {
 		this.username = username;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -71,6 +74,7 @@ public class UserCredentialVO implements Serializable {
 		this.password = password;
 		this.confirmPassword = confirmPassword;
 		this.status = status;
+		this.syncMode = syncMode;
 		this.fax = fax;
 		this.jobTitle = jobTitle;
 		this.address = address;
@@ -234,5 +238,13 @@ public class UserCredentialVO implements Serializable {
 
 	public void setJobTitle(String jobTitle) {
 		this.jobTitle = jobTitle;
+	}
+
+	public UserSyncMode getSyncMode() {
+		return syncMode;
+	}
+
+	public void setSyncMode(UserSyncMode syncMode) {
+		this.syncMode = syncMode;
 	}
 }

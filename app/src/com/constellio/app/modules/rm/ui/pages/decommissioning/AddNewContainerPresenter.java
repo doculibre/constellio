@@ -13,6 +13,9 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,6 +23,7 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddNewContainerPresenter extends AddEditContainerPresenter {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AddNewContainerPresenter.class);
 	private transient RMSchemasRecordsServices rmRecordsServices;
 	private transient RMConfigs rmConfigs;
 
@@ -50,7 +54,13 @@ public class AddNewContainerPresenter extends AddEditContainerPresenter {
 	@Override
 	public void saveButtonClicked(RecordVO recordVO) {
 		DecommissioningList decommissioningList = rmRecordsServices().getDecommissioningList(listId);
-		ContainerRecord container = rmRecordsServices().wrapContainerRecord(toRecord(recordVO));
+		ContainerRecord container = null;
+		try {
+			container = rmRecordsServices().wrapContainerRecord(toRecord(recordVO));
+		} catch (OptimisticLockException e) {
+			LOGGER.error(e.getMessage());
+			view.showErrorMessage(e.getMessage());
+		}
 		if (!canEditAdministrativeUnit()) {
 			container.setAdministrativeUnit(decommissioningList.getAdministrativeUnit());
 		}

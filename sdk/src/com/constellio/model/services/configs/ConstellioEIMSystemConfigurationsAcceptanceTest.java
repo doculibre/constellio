@@ -2,7 +2,6 @@ package com.constellio.model.services.configs;
 
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Before;
 import org.junit.Test;
 

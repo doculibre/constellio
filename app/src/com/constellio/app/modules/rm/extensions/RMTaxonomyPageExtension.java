@@ -57,7 +57,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 
 		} else if (canManageTaxonomyParams.getTaxonomy().getCode().equals(RMTaxonomies.CLASSIFICATION_PLAN)) {
 			return ExtensionBooleanResult.forceTrueIf(
-					user.has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally());
+					user.has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).onSomething());
 		} else if (canManageTaxonomyParams.getTaxonomy().getCode().equals(RMTaxonomies.STORAGES)) {
 			return ExtensionBooleanResult.forceTrueIf(
 					user.has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally());
@@ -68,7 +68,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 
 	public ExtensionBooleanResult canConsultTaxonomy(CanConsultTaxonomyParams canConsultTaxonomyParams) {
 		if(canConsultTaxonomyParams.getTaxonomy().getCode().equals(RMTaxonomies.CLASSIFICATION_PLAN)) {
-			return ExtensionBooleanResult.forceTrueIf(canConsultTaxonomyParams.getUser().has(RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN).globally());
+			return ExtensionBooleanResult.forceTrueIf(canConsultTaxonomyParams.getUser().has(RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN).onSomething());
 		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;
 		}
@@ -251,10 +251,10 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 		FolderToVOBuilder voBuilder = new FolderToVOBuilder();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
 		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder.build(rm.folder.schema(), VIEW_MODE.TABLE, sessionContext);
+		User currentUser = rm.getUser(sessionContext.getCurrentUser().getId());
 		return new RecordVODataProvider(foldersSchemaVO, voBuilder, sessionContextProvider) {
 			@Override
 			public LogicalSearchQuery getQuery() {
-				User currentUser = getCurrentUser(sessionContextProvider);
 				return logicalSearchQueryFactory.get().filteredWithUser(currentUser);
 			}
 		};

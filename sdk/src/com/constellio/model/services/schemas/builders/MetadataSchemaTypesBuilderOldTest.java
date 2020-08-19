@@ -41,11 +41,11 @@ public class MetadataSchemaTypesBuilderOldTest extends ConstellioTest {
 			throws Exception {
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
-		typesBuilder = MetadataSchemaTypesBuilder.createWithVersion(zeCollectionInfo, VERSION, new DefaultClassProvider(),
-				Arrays.asList(Language.French));
+		typesBuilder = (new MetadataSchemaTypesBuilder(zeCollectionInfo)).createWithVersion(zeCollectionInfo, modelLayerFactory, VERSION,
+				new DefaultClassProvider(), Arrays.asList(Language.French));
 		folderTypeBuilder = typesBuilder.createNewSchemaType(FOLDER);
-		schemaTypes = typesBuilder.build(typesFactory, modelLayerFactory);
-		typesBuilder2 = MetadataSchemaTypesBuilder.modify(schemaTypes, new DefaultClassProvider());
+		schemaTypes = typesBuilder.build(typesFactory);
+		typesBuilder2 = (new MetadataSchemaTypesBuilder(zeCollectionInfo)).modify(schemaTypes, modelLayerFactory, new DefaultClassProvider());
 		folderTypeBuilder.getDefaultSchema().create("zetitle");
 		employeeFolderSchemaBuilder = folderTypeBuilder.createCustomSchema("employeeFolder");
 		employeeName = employeeFolderSchemaBuilder.create("employeeName");
@@ -100,7 +100,7 @@ public class MetadataSchemaTypesBuilderOldTest extends ConstellioTest {
 	public void whenBuildModifySchemaTypesThenNewSchemaTypesIsBuildWithNewVersion()
 			throws Exception {
 
-		assertThat(typesBuilder2.build(typesFactory, modelLayerFactory).getVersion()).isEqualTo(schemaTypes.getVersion() + 1);
+		assertThat(typesBuilder2.build(typesFactory).getVersion()).isEqualTo(schemaTypes.getVersion() + 1);
 	}
 
 	@Test

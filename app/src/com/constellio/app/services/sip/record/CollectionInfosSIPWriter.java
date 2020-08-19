@@ -31,7 +31,7 @@ import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordHierarchyServices;
@@ -120,7 +120,7 @@ public class CollectionInfosSIPWriter {
 		if (Collection.SYSTEM_COLLECTION.equals(collection)) {
 			exportRecordsInSchemaTypesDivision(Collection.SCHEMA_TYPE);
 			exportRecordsInSchemaTypesDivision(UserCredential.SCHEMA_TYPE);
-			exportRecordsInSchemaTypesDivision(GlobalGroup.SCHEMA_TYPE);
+			exportRecordsInSchemaTypesDivision(SystemWideGroup.SCHEMA_TYPE);
 			exportRecordsInSchemaTypesDivision(EmailToSend.SCHEMA_TYPE);
 			exportRecordsInSchemaTypesDivision(Facet.SCHEMA_TYPE);
 			exportRecordsInSchemaTypesDivision(Group.SCHEMA_TYPE);

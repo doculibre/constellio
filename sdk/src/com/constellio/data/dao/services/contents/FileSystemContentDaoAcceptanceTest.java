@@ -17,6 +17,8 @@ import java.io.InputStream;
 import static com.constellio.data.dao.services.contents.ContentDao.MoveToVaultOption.ONLY_IF_INEXISTING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 	public static final String FILE_NAME_1 = "FileName1.docx";
@@ -89,6 +91,57 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenCopyFileWithExistingTargetAndOnlyIfExistingOptionThenMoveFileIsNotCalled() throws Exception {
+		File tempFile1 = ioServices.newTemporaryFile(FILE_NAME_1);
+		FileUtils.copyToFile(getTestResourceInputStream("1.docx"), tempFile1);
+		InputStream inputStream = null;
+		try {
+			String fileHash1 = hashingService.getHashFromFile(tempFile1);
+			inputStream = new FileInputStream(tempFile1);
+			fileSystemContentDao.add(fileHash1, inputStream);
+			fileSystemContentDao.moveFileToVault(fileHash1, tempFile1, ONLY_IF_INEXISTING);
+			assertThat(fileSystemContentDao.isDocumentExisting(fileHash1)).isTrue();
+			verify(fileSystemContentDao, times(0)).moveFile(Mockito.any(File.class), Mockito.any(File.class));
+		} finally {
+			ioServices.deleteQuietly(tempFile1);
+			ioServices.closeQuietly(inputStream);
+		}
+	}
+
+	@Test
+	public void whenCopyFileWithInexistingTargetAndOnlyIfExistingOptionThenMoveFileIsCalled() throws Exception {
+		File tempFile1 = ioServices.newTemporaryFile(FILE_NAME_1);
+		FileUtils.copyToFile(getTestResourceInputStream("1.docx"), tempFile1);
+		try {
+			String fileHash1 = hashingService.getHashFromFile(tempFile1);
+			fileSystemContentDao.moveFileToVault(fileHash1, tempFile1, ONLY_IF_INEXISTING);
+			File fileOfFileHash1 = fileSystemContentDao.getFileOf(fileHash1);
+			verify(fileSystemContentDao, times(1)).moveFile(tempFile1, fileOfFileHash1);
+		} finally {
+			ioServices.deleteQuietly(tempFile1);
+		}
+	}
+
+	@Test
+	public void whenCopyFileWithExistingTargetAndNoOptionThenMoveFileIsCalled() throws Exception {
+		File tempFile1 = ioServices.newTemporaryFile(FILE_NAME_1);
+		FileUtils.copyToFile(getTestResourceInputStream("1.docx"), tempFile1);
+		InputStream inputStream = null;
+		try {
+			String fileHash1 = hashingService.getHashFromFile(tempFile1);
+			inputStream = new FileInputStream(tempFile1);
+			fileSystemContentDao.add(fileHash1, inputStream);
+			fileSystemContentDao.moveFileToVault(fileHash1, tempFile1);
+			assertThat(fileSystemContentDao.isDocumentExisting(fileHash1)).isTrue();
+			File fileOfFileHash1 = fileSystemContentDao.getFileOf(fileHash1);
+			verify(fileSystemContentDao, times(1)).moveFile(tempFile1, fileOfFileHash1);
+		} finally {
+			ioServices.deleteQuietly(tempFile1);
+			ioServices.closeQuietly(inputStream);
+		}
+	}
+
+	@Test
 	public void givenMoveFileToVaultWithErrorsAddedToRecoveryFilesWhenReadLogAndRepairThenAllFileArePresent()
 			throws Exception {
 
@@ -152,7 +205,7 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 		String fileHash1 = hashingService.getHashFromFile(tempFile1);
 
 		try {
-			fileSystemContentDao.moveFileToVault(fileHash1,tempFile1,  ONLY_IF_INEXISTING);
+			fileSystemContentDao.moveFileToVault(fileHash1, tempFile1, ONLY_IF_INEXISTING);
 			fail("The file vault move should fail.");
 		} catch (FileSystemContentDaoRuntimeException e) {
 			// Ok the exception is expected.
@@ -311,11 +364,6 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 			ioServices.closeQuietly(tempFileInputStream);
 			ioServices.deleteQuietly(tempFile1);
 		}
-	}
-
-	@Test
-	public void whenMovingFromVaultThen() {
-
 	}
 
 	private int getNumberOfNonEmptyLines(String folderPath) throws IOException {

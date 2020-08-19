@@ -232,7 +232,7 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 	}
 
 
-	@Test
+	//@Test
 	public void test() throws Exception {
 
 		//Équivalent de 2 unités administratives
@@ -264,7 +264,7 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 
 	}
 
-	@Test
+	//@Test
 	public void test2() throws Exception {
 
 

@@ -751,8 +751,16 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("allauthorizations");
 		}
 
+		public Metadata ancestors() {
+			return metadata("ancestors");
+		}
+
 		public Metadata code() {
 			return metadata("code");
+		}
+
+		public Metadata status() {
+			return metadata("status");
 		}
 
 		public Metadata isGlobal() {

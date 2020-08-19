@@ -1,10 +1,10 @@
 package com.constellio.model.services.records.cache.cacheIndexHook.impl;
 
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.model.services.records.cache.cacheIndexHook.MetadataIndexCacheDataStoreHook;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -15,13 +15,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.constellio.data.dao.dto.records.RecordId.toId;
 import static com.constellio.model.entities.schemas.Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS;
 import static com.constellio.model.entities.schemas.Schemas.PRINCIPALS_ANCESTORS_INT_IDS;
 import static com.constellio.model.entities.schemas.Schemas.PRINCIPAL_CONCEPTS_INT_IDS;
 import static com.constellio.model.entities.schemas.Schemas.SECONDARY_CONCEPTS_INT_IDS;
 import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.entities.schemas.Schemas.VISIBLE_IN_TREES;
-import static com.constellio.data.dao.dto.records.RecordId.toId;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.attachedRecordInPrincipalConcept;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.principalAccessOnRecordInConcept;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.principalConceptAuthGivingAccessToRecordInSecondaryConceptKey;

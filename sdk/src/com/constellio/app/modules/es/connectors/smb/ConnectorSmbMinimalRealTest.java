@@ -20,7 +20,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import jcifs.smb.NtlmPasswordAuthentication;
 import org.assertj.core.groups.Tuple;
 import org.joda.time.Duration;

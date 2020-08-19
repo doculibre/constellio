@@ -33,6 +33,7 @@ public class Toggle {
 	public static AvailableToggle FORCE_ROLLBACK = newToggle();
 	public static AvailableToggle LOST_PRIVATE_KEY = newToggle();
 	public static AvailableToggle EXTERNAL_TOKENS_DISABLED = newToggle();
+	public static AvailableToggle MARKED_RECORDS_IN_SAVESTATES_DISABLED = newToggle();
 	public static AvailableToggle NO_WEBSERVICES_PASSWORDS_VALIDATIONS = newToggle();
 	public static AvailableToggle STORAGE_SPACE_CAPACITIY_VALIDATION = newToggle(true);
 	public static AvailableToggle ALERT_USERS_EMAIL = newToggle(true);
@@ -134,11 +135,17 @@ public class Toggle {
 
 	public static AvailableToggle IGNORE_CONFIGS_WHEN_SYNCHRONIZING_AZURE_RELATED_USERS_AND_GROUPS = newToggle(false);
 
+	public static AvailableToggle PUT_IN_CONTAINER_ACTION = newToggle(false);
+
 	public static AvailableToggle ENABLE_OFFICE365_EXCLUSIVE = newToggle(false);
 
 	public static AvailableToggle ENABLE_SIGNATURE = newToggle(false);
 
+	public static AvailableToggle SHOW_STACK_TRACE_UPON_ERRORS = newToggle(false);
+
 	public static AvailableToggle ENABLE_CLOUD_SYSADMIN_FEATURES = newToggle(false);
+
+	public static AvailableToggle VALIDATE_USER_COLLECTIONS = newToggle(true);
 
 
 	// ------------------------------------------------

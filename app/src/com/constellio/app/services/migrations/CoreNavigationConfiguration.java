@@ -146,19 +146,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 		});
 
-		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(GROUPS, GROUPS_ICON) {
-			@Override
-			public void activate(Navigation navigate) {
-				navigate.to().listGlobalGroups();
-			}
 
-			@Override
-			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
-						.has(user.getUsername());
-				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_GROUPS));
-			}
-		});
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(USERS, USERS_ICON) {
 			@Override
 			public void activate(Navigation navigate) {
@@ -276,7 +264,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
+				return visibleIf(userServices.getUserInfos(user.getUsername()).isSystemAdmin()
 								 || userServices.has(user).allGlobalPermissionsInAnyCollection(
 						CorePermissions.MANAGE_SYSTEM_COLLECTIONS, CorePermissions.MANAGE_SECURITY));
 			}
@@ -477,7 +465,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
+				return visibleIf(userServices.getUserInfos(user.getUsername()).isSystemAdmin()
 								 || user.hasAny(CorePermissions.ACCESS_TEMPORARY_RECORD, CorePermissions.SEE_ALL_TEMPORARY_RECORD)
 										 .globally());
 			}
@@ -516,7 +504,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
+				return visibleIf(userServices.getUserInfos(user.getUsername()).isSystemAdmin()
 								 || user.hasAny(CorePermissions.ACCESS_TEMPORARY_RECORD, CorePermissions.SEE_ALL_TEMPORARY_RECORD)
 										 .globally());
 			}
@@ -593,10 +581,12 @@ public class CoreNavigationConfiguration implements Serializable {
 
 						boolean canManageCollection = user.hasAny(permissions).globally();
 
+						boolean asSomethingOnCollection = user.hasAny(RMPermissionsTo.RM_COLLECTION_ON_SOMETHING).onSomething();
+
 						UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 						boolean canManageSystem = userServices.has(user.getUsername())
 								.anyGlobalPermissionInAnyCollection(CorePermissions.SYSTEM_MANAGEMENT_PERMISSIONS);
-						return visibleIf((canManageCollection || canManageSystem) && !ResponsiveUtils.isPhone());
+						return visibleIf((canManageCollection || canManageSystem || asSomethingOnCollection) && !ResponsiveUtils.isPhone());
 					}
 				});
 

@@ -8,12 +8,13 @@ import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.users.SystemWideUserInfos;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -77,9 +78,10 @@ public class TaskSchemasExtensionTestAssigneeAlertAcceptanceTest extends Constel
 	public void givenTaskAssigneeModifiedToHeroesThenEmailToSendToHeroesCreatedWithTaskAssignedToYouTemplate()
 			throws RecordServicesException {
 		Group heroes = users.heroesIn(zeCollection);
-		for (final UserCredential user : getModelLayerFactory().newUserServices().getGlobalGroupActifUsers(heroes.getCode())) {
-			user.setPersonalEmails(Arrays.asList(user.getUsername() + ".personal.mail@gmail.com"));
-			getModelLayerFactory().newUserServices().addUpdateUserCredential(user);
+		for (final SystemWideUserInfos user : getModelLayerFactory().newUserServices().getGlobalGroupActifUsers(heroes.getCode())) {
+			UserAddUpdateRequest userReq = getModelLayerFactory().newUserServices().addUpdate(user.getUsername());
+			userReq.setPersonalEmails(Arrays.asList(user.getUsername() + ".personal.mail@gmail.com"));
+			getModelLayerFactory().newUserServices().execute(userReq);
 		}
 		List<String> heroesEmails = getGroupUsersEmails(heroes);
 		assertThat(heroesEmails).isNotEmpty();
@@ -297,9 +299,9 @@ public class TaskSchemasExtensionTestAssigneeAlertAcceptanceTest extends Constel
 	private List<String> getGroupUsersEmails(Group group) {
 		List<String> returnList = new ArrayList<>();
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		List<UserCredential> groupUsers = userServices
-				.getGlobalGroupActifUsers(group.getCode());
-		for (UserCredential user : groupUsers) {
+		List<User> groupUsers = tasksSchemas.searchUsers(from(tasksSchemas.user.schemaType())
+				.where(tasksSchemas.user.groups()).isEqualTo(group.getId()));
+		for (User user : groupUsers) {
 			String email = user.getEmail();
 			if (StringUtils.isNotBlank(email)) {
 				returnList.add(email);

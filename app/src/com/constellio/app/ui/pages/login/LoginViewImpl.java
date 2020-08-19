@@ -29,7 +29,6 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.Notification;
-import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
@@ -255,8 +254,8 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				UserServices userServices = modelLayerFactory.newUserServices();
-				userServices.addUpdateUserCredential(userServices.getUserCredential(userInLastCollection.getUsername())
-						.setAgreedPrivacyPolicy(true));
+				userServices.execute(userServices.addUpdate(userInLastCollection.getUsername())
+						.setHasAgreedToPrivacyPolicy(true));
 				presenter.signInValidated(userInLastCollection, lastCollection);
 				window.close();
 			}
@@ -300,8 +299,8 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				UserServices userServices = modelLayerFactory.newUserServices();
-				userServices.addUpdateUserCredential(userServices.getUserCredential(userInLastCollection.getUsername())
-						.setReadLastAlert(true));
+				userServices.execute(userServices.addUpdate(userInLastCollection.getUsername())
+						.setHasReadLastAlert(true));
 				presenter.signInValidated(userInLastCollection, lastCollection);
 				window.close();
 			}

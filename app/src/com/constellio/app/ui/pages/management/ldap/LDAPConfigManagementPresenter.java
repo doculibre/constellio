@@ -15,7 +15,7 @@ import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotCon
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager.LDAPSynchProgressionInfo;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -77,7 +77,7 @@ public class LDAPConfigManagementPresenter extends
 
 	public String getAuthenticationResultMessage(LDAPServerConfiguration ldapServerConfiguration,
 												 String user, String password) {
-		LDAPServices ldapServices = LDAPServicesFactory.newLDAPServices(ldapServerConfiguration.getDirectoryType());
+		LDAPServices ldapServices = new LDAPServicesFactory().newLDAPServices(ldapServerConfiguration.getDirectoryType());
 		if (StringUtils.isBlank(user) || StringUtils.isBlank(password)) {
 			return $("ldap.authentication.fail");
 		}
@@ -93,7 +93,7 @@ public class LDAPConfigManagementPresenter extends
 	public String getSynchResultMessage(LDAPServerConfiguration ldapServerConfiguration,
 										LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		StringBuilder result = new StringBuilder();
-		LDAPServices ldapServices = LDAPServicesFactory.newLDAPServices(ldapServerConfiguration.getDirectoryType());
+		LDAPServices ldapServices = new LDAPServicesFactory().newLDAPServices(ldapServerConfiguration.getDirectoryType());
 		List<String> groups = ldapServices.getTestSynchronisationGroups(ldapServerConfiguration, ldapUserSyncConfiguration);
 		if (groups != null && !groups.isEmpty()) {
 			result.append($("ldap.imported.groups") + ":\n\t");
@@ -160,10 +160,10 @@ public class LDAPConfigManagementPresenter extends
 	}
 
 	public void deleteUsedUserButtonClick() {
-		List<UserCredential> nonDeletedUser = userServices().safePhysicalDeleteAllUnusedUserCredentials();
+		List<SystemWideUserInfos> nonDeletedUser = userServices().safePhysicalDeleteAllUnusedUserCredentials();
 		if (nonDeletedUser.size() > 0) {
 			String message = $("ldap.authentication.unDeletedUser") + "<br>";
-			for (UserCredential userCredential : nonDeletedUser) {
+			for (SystemWideUserInfos userCredential : nonDeletedUser) {
 				message += userCredential.getUsername() + "<br>";
 			}
 			this.view.showMessage(message);

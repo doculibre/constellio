@@ -9,9 +9,9 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 
 import javax.servlet.ServletException;
@@ -30,7 +30,7 @@ public class DownloadServlet extends HttpServlet {
 
 		String documentId = req.getParameter("id");
 
-		UserCredential user = authenticate(req);
+		SystemWideUserInfos user = authenticate(req);
 
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
@@ -43,7 +43,7 @@ public class DownloadServlet extends HttpServlet {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(record.getCollection(), appLayerFactory);
 		Document document = rm.wrapDocument(record);
 
-		if (isUserReadAccess(user,document) || isDocumentAccessByPublish(document)) {
+		if (isUserReadAccess(user, document) || isDocumentAccessByPublish(document)) {
 			ContentVersion version = document.getContent().getLastMajorContentVersion();
 
 			if (version == null) {
@@ -86,19 +86,18 @@ public class DownloadServlet extends HttpServlet {
 		return document.isPublished() && document.isActiveAuthorization() && document.getContent() != null;
 	}
 
-	private boolean isUserReadAccess(UserCredential user, Document document){
+	private boolean isUserReadAccess(SystemWideUserInfos user, Document document){
 		if(user !=null){
 			User userRecord = getUserService().getUserInCollection(user.getUsername(),document.getCollection());
 			return userRecord.hasReadAccess().on(document);
-		}
-		else{
+		} else {
 			return false;
 		}
 	}
 
-	public UserCredential authenticate(HttpServletRequest request) {
+	public SystemWideUserInfos authenticate(HttpServletRequest request) {
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory());
-		UserCredential user = authenticator.authenticate(request);
+		SystemWideUserInfos user = authenticator.authenticate(request);
 
 		return user;
 	}
@@ -106,7 +105,8 @@ public class DownloadServlet extends HttpServlet {
 	private synchronized ConstellioFactories getConstellioFactories() {
 		return ConstellioFactories.getInstance();
 	}
-	private UserServices getUserService(){
+
+	private UserServices getUserService() {
 		return new UserServices(modelLayerFactory());
 	}
 

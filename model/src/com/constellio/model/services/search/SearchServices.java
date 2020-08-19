@@ -393,6 +393,7 @@ public class SearchServices {
 
 	}
 
+
 	@AllArgsConstructor
 	public static class RecordIdVersion {
 

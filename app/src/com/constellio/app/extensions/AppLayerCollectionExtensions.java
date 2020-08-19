@@ -17,6 +17,7 @@ import com.constellio.app.api.extensions.MetadataFieldExtension;
 import com.constellio.app.api.extensions.MetadataFieldFactoryExtension;
 import com.constellio.app.api.extensions.PageExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
+import com.constellio.app.api.extensions.RecordAuthorisationPageExtension;
 import com.constellio.app.api.extensions.RecordDisplayFactoryExtension;
 import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
@@ -49,6 +50,7 @@ import com.constellio.app.api.extensions.params.FilterCapsuleParam;
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
 import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
 import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
+import com.constellio.app.api.extensions.params.IsMetadataExportedParams;
 import com.constellio.app.api.extensions.params.IsRecordExportableParams;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandParams;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
@@ -57,6 +59,7 @@ import com.constellio.app.api.extensions.params.MetadataFieldExtensionParams;
 import com.constellio.app.api.extensions.params.MetadataFieldFactoryBuildExtensionParams;
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
+import com.constellio.app.api.extensions.params.RecordAuthorisationPageExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryPostBuildExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
@@ -115,8 +118,7 @@ import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
-import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
-import com.constellio.app.ui.framework.components.fields.SignatureRecordField;
+import com.constellio.app.ui.framework.components.fields.ExtraTabAdditionalRecordField;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -244,6 +246,8 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<ViewableRecordVOTablePanelExtension> viewableRecordVOTablePanelExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<RecordAuthorisationPageExtension> recordAuthorisationPageExtensions = new VaultBehaviorsList<>();
+
 	//Key : schema type code
 	//Values : record's code
 	public KeyListMap<String, String> lockedRecords = new KeyListMap<>();
@@ -257,6 +261,15 @@ public class AppLayerCollectionExtensions {
 	}
 
 	//----------------- Callers ---------------
+
+	public boolean isRecordAuthorisationPageAccessible(User user, Record record) {
+		return ExtensionUtils.getBooleanValue(recordAuthorisationPageExtensions, false, new BooleanCaller<RecordAuthorisationPageExtension>() {
+			@Override
+			public ExtensionBooleanResult call(RecordAuthorisationPageExtension behavior) {
+				return behavior.isAuthorisationPageAvalibleForUser(new RecordAuthorisationPageExtensionParams(record, user));
+			}
+		});
+	}
 
 	public List<AvailableSequence> getAvailableSequencesForRecord(Record record) {
 
@@ -871,7 +884,7 @@ public class AppLayerCollectionExtensions {
 	public Field<?> getFieldForMetadata() {
 		for (MetadataFieldExtension extension : workflowExecutionFieldExtensions) {
 			Field<?> component = extension.getMetadataField(null);
-				return component;
+			return component;
 		}
 		return null;
 	}
@@ -906,8 +919,10 @@ public class AppLayerCollectionExtensions {
 				unwantedTaxonomies.addAll(unwantedTaxonomiesFromExtension);
 			}
 		}
-        return new ArrayList<>(unwantedTaxonomies);
-    }public LogicalSearchCondition adjustSearchPageCondition(SearchPageConditionParam param) {
+		return new ArrayList<>(unwantedTaxonomies);
+	}
+
+	public LogicalSearchCondition adjustSearchPageCondition(SearchPageConditionParam param) {
 		LogicalSearchCondition condition = param.getCondition();
 		for (SearchPageExtension extension : searchPageExtensions) {
 			condition = extension.adjustSearchPageCondition(
@@ -947,20 +962,12 @@ public class AppLayerCollectionExtensions {
 		return false;
 	}
 
-	public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
-		List<AdditionnalRecordField> additionnalFields = new ArrayList<>();
+	public List<ExtraTabAdditionalRecordField> getExtraTabAdditionalRecordFields(RecordFieldsExtensionParams params) {
+		List<ExtraTabAdditionalRecordField> extraTabAdditionalRecordField = new ArrayList<>();
 		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
-			additionnalFields.addAll(extension.getAdditionnalFields(params));
+			extraTabAdditionalRecordField.addAll(extension.getExtraTabAdditionalRecordFields(params));
 		}
-		return additionnalFields;
-    }
-
-	public List<SignatureRecordField> getSignatureFields(RecordFieldsExtensionParams params) {
-		List<SignatureRecordField> signatureFields = new ArrayList<>();
-		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
-			signatureFields.addAll(extension.getSignatureFields(params));
-		}
-		return signatureFields;
+		return extraTabAdditionalRecordField;
 	}
 
 	public void fieldBindingExtentions(FieldBindingExtentionParam fieldBindingExtentionParam) {
@@ -983,6 +990,16 @@ public class AppLayerCollectionExtensions {
 			@Override
 			public ExtensionBooleanResult call(RecordExportExtension extension) {
 				return extension.isExportable(new IsRecordExportableParams(schemaType));
+			}
+		});
+	}
+
+
+	public boolean isMetadataExportForced(final Metadata metadata) {
+		return recordExportExtensions.getBooleanValue(true, new BooleanCaller<RecordExportExtension>() {
+			@Override
+			public ExtensionBooleanResult call(RecordExportExtension extension) {
+				return extension.isMetadataExportForced(new IsMetadataExportedParams(metadata));
 			}
 		});
 	}
@@ -1097,4 +1114,10 @@ public class AppLayerCollectionExtensions {
 		return navigationHandledByExtension;
 	}
 
+
+	public boolean isSequencesActionPossibleOnSchemaRecord(Record record, User user) {
+		return schemaRecordExtentions.getBooleanValue(true,
+				(behavior) -> behavior.isSequencesActionPossible(
+						new SchemaRecordExtensionActionPossibleParams(record, user)));
+	}
 }

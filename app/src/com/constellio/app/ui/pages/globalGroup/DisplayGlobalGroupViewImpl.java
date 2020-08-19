@@ -33,15 +33,18 @@ import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 @SuppressWarnings("serial")
 public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayGlobalGroupView {
 
 	public static final String PROPERTY_BUTTONS = "buttons";
+	public static final String GLOBAL_GROUP_CODE = "globalGroupCode";
 
 	private DisplayGlobalGroupPresenter presenter;
 
@@ -77,8 +80,10 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 			breadCrumb = parameters.substring(0, indexOfSlash);
 		}
 		paramsMap = ParamUtils.getParamsMap(parameters);
-		if (paramsMap.containsKey("globalGroupCode")) {
-			globalGroupVO = presenter.getGlobalGroupVO(paramsMap.get("globalGroupCode"));
+		if (paramsMap.containsKey(GLOBAL_GROUP_CODE)) {
+			String groupCode = paramsMap.get("globalGroupCode");
+			globalGroupVO = presenter.getGlobalGroupVO(groupCode);
+			presenter.setPageGroup(groupCode);
 		}
 		presenter.setParamsMap(paramsMap);
 		presenter.setBreadCrumb(breadCrumb);
@@ -143,6 +148,11 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		return viewLayout;
 	}
 
+	@Override
+	public void partialRefresh() {
+		refreshTable();
+	}
+
 	private Table buildSubGroupTable() {
 		final GlobalGroupVODataProvider dataProvider = presenter.getGlobalGroupVODataProvider();
 		List<GlobalGroupVO> subGroupsVOs = dataProvider.listActiveSubGlobalGroupsVOsFromGroup(globalGroupVO.getCode());
@@ -157,6 +167,9 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 
 	private Table buildUserTable() {
 		final UserCredentialVODataProvider dataProvider = presenter.getUserCredentialVODataProvider(globalGroupVO.getCode());
+		List<UserCredentialVO> availableUserCredentialVOs = dataProvider.listActifsUserCredentialVOsInGlobalGroup(
+				globalGroupVO.getCode());
+		dataProvider.setUserCredentialVOs(availableUserCredentialVOs);
 		Container container = new UserCredentialVOLazyContainer(dataProvider, batchSize);
 		ButtonsContainer buttonsContainer = new ButtonsContainer(container, PROPERTY_BUTTONS);
 		addUserButtons(dataProvider, buttonsContainer);
@@ -171,6 +184,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		List<UserCredentialVO> availableUserCredentialVOs = dataProvider.listActifsUserCredentialVOsNotInGlobalGroup(
 				globalGroupVO.getCode());
 		dataProvider.setUserCredentialVOs(availableUserCredentialVOs);
+
 		Container container = new UserCredentialVOLazyContainer(dataProvider, batchSize);
 		ButtonsContainer buttonsContainer = new ButtonsContainer(container, PROPERTY_BUTTONS);
 		buttonsContainer.addButton(new ContainerButton() {
@@ -228,7 +242,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 					protected void buttonClick(ClickEvent event) {
 						Integer index = (Integer) itemId;
 						UserCredentialVO entity = dataProvider.getUserCredentialVO(index);
-						presenter.displayUserCredentialButtonClicked(entity, globalGroupVO.getCode());
+						presenter.displayUserCredentialButtonClicked(entity);
 					}
 				};
 			}
@@ -242,7 +256,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 					protected void buttonClick(ClickEvent event) {
 						Integer index = (Integer) itemId;
 						UserCredentialVO entity = dataProvider.getUserCredentialVO(index);
-						presenter.editUserCredentialButtonClicked(entity, globalGroupVO.getCode());
+						presenter.editUserCredentialButtonClicked(entity);
 
 					}
 				};
@@ -340,7 +354,28 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		return new RecordVOActionButtonFactory(globalGroupVO).build();
+		return new RecordVOActionButtonFactory(presenter.getPageGroup(), this, Arrays.asList()).build();
+	}
+
+	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		Button editGroupButton = new EditButton($("edit")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.editGroupButtonClicked();
+			}
+		};
+		return asList(editGroupButton);
+	}
+
+	@Override
+	protected boolean alwaysUseLayoutForActionMenu() {
+		return true;
+	}
+
+	@Override
+	protected boolean isActionMenuBar() {
+		return true;
 	}
 
 	@Override

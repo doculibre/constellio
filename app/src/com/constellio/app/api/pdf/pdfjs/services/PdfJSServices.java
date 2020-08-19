@@ -31,8 +31,8 @@ import com.constellio.model.services.contents.ContentManagerRuntimeException.Con
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.pdf.pdfjs.signature.PdfJSAnnotations;
-import com.constellio.model.services.pdf.signature.PdfSignatureAnnotation;
+import com.constellio.model.services.pdf.PdfAnnotation;
+import com.constellio.model.services.pdf.pdfjs.PdfJSAnnotations;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
@@ -48,6 +48,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Base64;
 import java.util.Date;
@@ -74,12 +75,13 @@ public class PdfJSServices {
 	}
 
 	public String getExternalViewerUrl(Record record, Metadata metadata, User user, Locale locale, String serviceKey,
-							   String token, boolean includeConstellioUrl) {
+									   String token, boolean includeConstellioUrl) {
 		return getViewerUrl(record, metadata, user, locale, null, null, serviceKey, token, includeConstellioUrl);
 	}
 
-	public String getInternalViewerUrl(Record record, Metadata metadata, User user, Locale locale, String contentPathPrefix,
-							   String contentPreviewPath, String serviceKey, String token) {
+	public String getInternalViewerUrl(Record record, Metadata metadata, User user, Locale locale,
+									   String contentPathPrefix,
+									   String contentPreviewPath, String serviceKey, String token) {
 		return getViewerUrl(record, metadata, user, locale, contentPathPrefix, contentPreviewPath, serviceKey, token, false);
 	}
 
@@ -117,7 +119,7 @@ public class PdfJSServices {
 				contentPreviewParams.append("&accessId=" + externalAccessUser.getExternalAccessUrl().getId());
 			}
 			contentPreviewParams.append("&ts=" + System.currentTimeMillis());
-			
+
 			Content content = record.get(metadata);
 			String filename = content.getCurrentVersion().getFilename();
 			if (!StringUtils.endsWith(filename, ".pdf")) {
@@ -181,7 +183,11 @@ public class PdfJSServices {
 			params.append("&accessId=" + externalAccessUser.getExternalAccessUrl().getId());
 		}
 		if (urlPrefix != null) {
-			params.append("&urlPrefix=" + urlPrefix);
+			try {
+				params.append("&urlPrefix=" + URLEncoder.encode(urlPrefix, "UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				throw new RuntimeException(e);
+			}
 		}
 		return params.toString();
 	}
@@ -234,7 +240,7 @@ public class PdfJSServices {
 			String signatureExtension = FilenameUtils.getExtension(signatureContentVersion.getFilename()).toLowerCase();
 			try (InputStream in = contentManager.getContentInputStream(hash, getClass().getSimpleName() + ".getSignatureBase64")) {
 				byte[] imageBytes = ioServices.readBytes(in);
-				String urlFirstPart = "data:image/" + signatureExtension +";base64,";
+				String urlFirstPart = "data:image/" + signatureExtension + ";base64,";
 				signatureBase64Url = urlFirstPart + new String(Base64.getEncoder().encodeToString(imageBytes));
 			} catch (ContentManagerRuntimeException_NoSuchContent e) {
 				log.warn("No signature for user " + user.getUsername(), e);
@@ -380,8 +386,8 @@ public class PdfJSServices {
 				pdDocument = PDDocument.load(pdfInputStream);
 
 				String bakeUserInfo = getUserSignatureInfo(user);
-				List<PdfSignatureAnnotation> signatureAnnotations = annotations.getSignatureAnnotations(pdDocument, true);
-				for (PdfSignatureAnnotation signatureAnnotation : signatureAnnotations) {
+				List<PdfAnnotation> signatureAnnotations = annotations.getAnnotationsToSaveWithSignature(pdDocument, true);
+				for (PdfAnnotation signatureAnnotation : signatureAnnotations) {
 					if (signatureAnnotation.getUserId() == null && !(user instanceof ExternalAccessUser)) {
 						signatureAnnotation.setUserId(user.getId());
 					}
@@ -396,7 +402,7 @@ public class PdfJSServices {
 				annotations.setVersion(newAnnotationsVersion);
 
 				Date bakeDate = new Date();
-				annotations.markSignatureAnnotationsAsBaked(bakeUserInfo, bakeDate);
+				annotations.markAnnotationsToSaveWithSignatureAsBaked(bakeUserInfo, bakeDate);
 				saveAnnotations(record, metadata, user, annotations);
 
 				if (user instanceof ExternalAccessUser) {
@@ -454,6 +460,12 @@ public class PdfJSServices {
 			urlPrefix = constellioUrl;
 			if (StringUtils.endsWith(urlPrefix, "/")) {
 				urlPrefix = StringUtils.substringBeforeLast(urlPrefix, "/");
+			}
+		} else {
+			try {
+				urlPrefix = URLDecoder.decode(urlPrefix, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				throw new RuntimeException(e);
 			}
 		}
 

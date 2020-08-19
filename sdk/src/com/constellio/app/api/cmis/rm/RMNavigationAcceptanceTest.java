@@ -82,7 +82,7 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 
 		recordServices.update(users.adminIn(zeCollection).setCollectionAllAccess(true));
 		recordServices.update(users.aliceIn(zeCollection).setCollectionReadAccess(true));

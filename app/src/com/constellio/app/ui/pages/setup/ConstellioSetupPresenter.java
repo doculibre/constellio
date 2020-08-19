@@ -39,7 +39,6 @@ import com.constellio.model.entities.modules.PluginUtil;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -48,6 +47,7 @@ import com.constellio.model.services.extensions.ConstellioModulesManagerExceptio
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Page;
 import org.apache.commons.io.FileUtils;
@@ -62,7 +62,6 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
 
 public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView> {
 
@@ -218,10 +217,21 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 					ModelLayerFactory modelLayerFactory = factories.getModelLayerFactory();
 
 					UserServices userServices = modelLayerFactory.newUserServices();
-					UserCredential adminCredential = userServices.createUserCredential("admin", "System", "Admin", "admin@administration.com",
-							new ArrayList<String>(), asList(collectionCode), UserCredentialStatus.ACTIVE).setSystemAdminEnabled();
-					userServices.addUpdateUserCredential(adminCredential);
-					userServices.addUserToCollection(adminCredential, collectionCode);
+					UserAddUpdateRequest adminRequest = userServices.addUpdate("admin")
+							.setFirstName("System")
+							.setLastName("Admin")
+							.setEmail("admin@administration.com")
+							.setServiceKey(null)
+							.setSystemAdmin(false)
+							.addToCollection(collectionCode)
+							.setStatusForAllCollections(UserCredentialStatus.ACTIVE)
+							.setDomain(null)
+							.setMsExchDelegateListBL(null)
+							.setDn(null);
+
+
+					userServices.execute(adminRequest);
+					userServices.execute("admin", (req) -> req.addToCollection(collectionCode));
 					User user = userServices.getUserRecordInCollection("admin", collectionCode);
 					String effectiveAdminPassword;
 					if (StringUtils.isBlank(adminPassword)) {

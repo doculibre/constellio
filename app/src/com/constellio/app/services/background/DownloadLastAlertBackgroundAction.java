@@ -2,9 +2,9 @@ package com.constellio.app.services.background;
 
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.CannotConnectToServer;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.conf.FoldersLocatorMode;
+import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder;
 import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder.RecordScript;
 import com.constellio.model.entities.records.Record;
@@ -16,12 +16,15 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class DownloadLastAlertBackgroundAction implements Runnable {
 	private String oldAlertHash;
@@ -73,7 +76,7 @@ public class DownloadLastAlertBackgroundAction implements Runnable {
 				}
 
 				if (!isOldAndNewAlertHashEquals()) {
-					resetHasReadLastAlertMetadataOnUsers();
+					modelLayerFactory.newUserServices().resetHasReadLastAlertMetadataOnUsers();
 					copyNewAlertFileToConfigValue();
 					oldAlertHash = newAlertHash;
 					newAlertHash = null;
@@ -99,20 +102,6 @@ public class DownloadLastAlertBackgroundAction implements Runnable {
 		return newAlertHash.equals(oldAlertHash);
 	}
 
-	private void resetHasReadLastAlertMetadataOnUsers() {
-		new ConditionnedActionExecutorInBatchBuilder(modelLayerFactory, appLayerFactory.getModelLayerFactory()
-				.getUserCredentialsManager().getUserCredentialsWithReadLastAlert().getCondition())
-				.setOptions(RecordUpdateOptions
-						.validationExceptionSafeOptions())
-				.modifyingRecordsWithImpactHandling(new RecordScript() {
-
-					@Override
-					public void modifyRecord(Record record) {
-						UserCredential userCredential = schemasRecordsServices.wrapUserCredential(record);
-						userCredential.setReadLastAlert(false);
-					}
-				});
-	}
 
 	private void copyNewAlertFileToConfigValue() {
 		StreamFactory<InputStream> streamFactory = new StreamFactory<InputStream>() {

@@ -9,8 +9,8 @@ import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -21,8 +21,6 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import java.util.ArrayList;
 
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
@@ -54,7 +52,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		prepareSystem(withZeCollection().withTasksModule().withAllTest(users));
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 		givenTimeIs(now);
 
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -382,7 +380,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 
 		Group newGroup = userServices.getGroupInCollection(newGlobalGroup, zeCollection);
 		Group taskNewGroup = userServices.getGroupInCollection(taskNewGlobalGroup, zeCollection);
-		userServices.addUpdateUserCredential(users.alice().setGlobalGroups(asList(newGlobalGroup, aliceNewGlobalGroup)));
+		userServices.execute(users.aliceAddUpdateRequest().addToGroupsInCollection(asList(newGlobalGroup, aliceNewGlobalGroup), zeCollection));
 		aliceHasWriteAccessOnZeTask = users.aliceIn(zeCollection);
 
 		recordServices.update(zeTask.setAssigneeGroupsCandidates(asList(newGroup.getId(), taskNewGroup.getId()))
@@ -394,8 +392,8 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 
 	private void addGroup(String groupCode) {
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		GlobalGroup group = userServices.createGlobalGroup(
-				groupCode, groupCode, new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE, true);
-		userServices.addUpdateGlobalGroup(group);
+		GroupAddUpdateRequest group = userServices.createGlobalGroup(
+				groupCode, groupCode, asList(zeCollection), null, GlobalGroupStatus.ACTIVE, true);
+		userServices.execute(group);
 	}
 }

@@ -5,22 +5,18 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.ImportServices;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.authentification.PasswordFileAuthenticationService;
-import com.constellio.model.services.users.SolrUserCredentialsManager;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.rometools.utils.Strings;
-import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 public class UserImportServices implements ImportServices {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserImportServices.class);
@@ -29,7 +25,6 @@ public class UserImportServices implements ImportServices {
 	private UserServices userServices;
 	private int currentElement;
 	private PasswordFileAuthenticationService passwordFileAuthenticationService;
-	SolrUserCredentialsManager solrUserCredentialsManager;
 
 	public UserImportServices(ModelLayerFactory modelLayerFactory) {
 		this(modelLayerFactory, DEFAULT_BATCH_SIZE);
@@ -39,13 +34,8 @@ public class UserImportServices implements ImportServices {
 		this.batchSize = batchSize;
 		userServices = modelLayerFactory.newUserServices();
 		this.passwordFileAuthenticationService = modelLayerFactory.getPasswordFileAuthenticationService();
-		this.solrUserCredentialsManager = modelLayerFactory.getUserCredentialsManager();
 	}
 
-	void importUser(List<String> collections, UserCredential userCredential) {
-		userCredential = userCredential.setCollections(collections);
-		userServices.addUpdateUserCredential(userCredential);
-	}
 
 	@Override
 	public BulkImportResults bulkImport(ImportDataProvider importDataProvider,
@@ -116,27 +106,25 @@ public class UserImportServices implements ImportServices {
 		} else if (status.equals("s")) {
 			userCredentialStatus = UserCredentialStatus.SUSPENDED;
 		} else if (status.equals("d")) {
-			userCredentialStatus = UserCredentialStatus.DELETED;
+			userCredentialStatus = UserCredentialStatus.DISABLED;
 		} else {
 			userCredentialStatus = UserCredentialStatus.ACTIVE;
 		}
-		UserCredential userCredential;
 		Object systemAdmin = toImport.getFields().get("systemAdmin");
-		if (systemAdmin != null) {
-			boolean systemAdminBoolean = Boolean.valueOf((String) systemAdmin);
-			Map<String, LocalDateTime> tokens = new HashMap<>();
-			userCredential = userServices.createUserCredential(
-					username, firstName, lastName, email, null, systemAdminBoolean, globalGroups, collections, tokens,
-					userCredentialStatus);
-		} else {
-			userCredential = userServices.createUserCredential(
-					username, firstName, lastName, email, globalGroups, collections, userCredentialStatus);
-		}
+		UserAddUpdateRequest userCredential = userServices.addUpdate(username)
+				.setFirstName(firstName)
+				.setLastName(lastName)
+				.setEmail(email)
+				.setServiceKey(null)
+				.setSystemAdmin(systemAdmin == null ? null : Boolean.valueOf((String) systemAdmin))
+				.addToGroupsInEachCollection(globalGroups)
+				.addToCollections(collections)
+				.setStatusForAllCollections(userCredentialStatus);
 		try {
-			if (solrUserCredentialsManager.getUserCredential(username) == null && Strings.isNotEmpty(password)) {
+			if (userServices.getUserCredential(username) == null && Strings.isNotEmpty(password)) {
 				passwordFileAuthenticationService.changePassword(username, password);
 			}
-			userServices.addUpdateUserCredential(userCredential);
+			userServices.execute(userCredential);
 		} catch (Exception e) {
 			LOGGER.warn(e.toString(), e);
 			Throwable cause = e.getCause();

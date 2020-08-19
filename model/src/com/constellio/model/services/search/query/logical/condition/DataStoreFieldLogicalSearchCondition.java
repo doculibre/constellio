@@ -2,6 +2,7 @@ package com.constellio.model.services.search.query.logical.condition;
 
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.LogicalSearchConditionRuntimeException;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
@@ -171,7 +172,7 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 				return dataStoreField.getSecondaryLanguageField(params.getLanguageCode());
 			}
 		} else {
-			if (params.isPreferAnalyzedFields() && dataStoreField.isSearchable()) {
+			if (params.isPreferAnalyzedFields() && dataStoreField.isSearchable() && dataStoreField.getType() != MetadataValueType.REFERENCE) {
 				return dataStoreField.getAnalyzedField(params.getLanguageCode());
 			} else {
 				return dataStoreField;

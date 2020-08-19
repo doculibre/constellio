@@ -9,7 +9,6 @@ import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.SingletonSecurityModel;
-import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
 import com.constellio.model.extensions.events.records.TransactionExecutedEvent;
@@ -144,11 +143,7 @@ public class SecurityModelCache implements EventBusListener {
 			for (Record modifiedRecord : event.getUpdatedRecords()) {
 				switch (modifiedRecord.getTypeCode()) {
 					case Group.SCHEMA_TYPE:
-						fullInvalidateRequired = event.getModifiedMetadataListOf(modifiedRecord).containsMetadataWithLocalCode(Group.PARENT);
-						break;
-
-					case GlobalGroup.SCHEMA_TYPE:
-						allCollectionInvalidateRequired = event.getModifiedMetadataListOf(modifiedRecord).containsMetadataWithLocalCode(GlobalGroup.STATUS);
+						fullInvalidateRequired = event.getModifiedMetadataListOf(modifiedRecord).containsMetadataWithLocalCode(Group.PARENT, Group.STATUS);
 						break;
 
 					case User.SCHEMA_TYPE:
@@ -160,6 +155,7 @@ public class SecurityModelCache implements EventBusListener {
 						break;
 				}
 			}
+
 
 			if (allCollectionInvalidateRequired) {
 				for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {

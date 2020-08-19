@@ -1,9 +1,8 @@
 package com.constellio.app.extensions.api;
 
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.users.SystemWideUserInfos;
 
 public class UserCredentialExtension {
 	public ExtensionBooleanResult isEditActionPossible(
@@ -17,19 +16,15 @@ public class UserCredentialExtension {
 	}
 
 	public static class UserCredentialExtensionActionPossibleParams {
-		private UserCredential userCredential;
+		private SystemWideUserInfos userCredential;
 		private User user;
 
-		public UserCredentialExtensionActionPossibleParams(UserCredential userCredential, User user) {
-			this.userCredential = userCredential;
+		public UserCredentialExtensionActionPossibleParams(SystemWideUserInfos systemWideUserInfos, User user) {
+			this.userCredential = systemWideUserInfos;
 			this.user = user;
 		}
 
-		public Record getRecord() {
-			return userCredential.getWrappedRecord();
-		}
-
-		public UserCredential getUserCredential() {
+		public SystemWideUserInfos getUserCredential() {
 			return userCredential;
 		}
 

@@ -133,7 +133,7 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 		robotsService = new RobotsService(zeCollection, getAppLayerFactory());
 
 		inCollection(zeCollection).giveReadAccessTo(gandalf);
-		Users users = new Users().setUp(getModelLayerFactory().newUserServices());
+		Users users = new Users().setUp(getModelLayerFactory().newUserServices(), zeCollection);
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();

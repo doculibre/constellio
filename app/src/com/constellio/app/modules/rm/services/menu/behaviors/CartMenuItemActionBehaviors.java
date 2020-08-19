@@ -6,8 +6,6 @@ import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportParameters;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportWriterFactory;
@@ -44,7 +42,6 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -56,11 +53,9 @@ import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
-import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -72,6 +67,7 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
@@ -219,68 +215,18 @@ public class CartMenuItemActionBehaviors {
 		return button;
 	}
 
-	public void foldersLabels(Cart cart, MenuItemActionBehaviorParams params) {
-		Button button = buildLabelsButton(Folder.SCHEMA_TYPE, cart.getId(), params);
-		button.click();
-	}
-
-	public void documentLabels(Cart cart, MenuItemActionBehaviorParams params) {
-		Button button = buildLabelsButton(Document.SCHEMA_TYPE, cart.getId(), params);
-		button.click();
-	}
-
-	public void containerRecordLabels(Cart cart, MenuItemActionBehaviorParams params) {
-		Button button = buildLabelsButton(ContainerRecord.SCHEMA_TYPE, cart.getId(), params);
-		button.click();
-	}
-
-	public List<LabelTemplate> getCustomTemplates(String schemaType) {
-		LabelTemplateManager labelTemplateManager = appLayerFactory.getLabelTemplateManager();
-		return labelTemplateManager.listExtensionTemplates(schemaType);
-	}
-
-	public List<LabelTemplate> getDefaultTemplates(String schemaType) {
-		LabelTemplateManager labelTemplateManager = appLayerFactory.getLabelTemplateManager();
-		return labelTemplateManager.listTemplates(schemaType);
-	}
-
-	private Button buildLabelsButton(final String schemaType, String cartId, MenuItemActionBehaviorParams params) {
-		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-			@Override
-			public List<LabelTemplate> get() {
-				return getCustomTemplates(schemaType);
-			}
-		};
-		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-			@Override
-			public List<LabelTemplate> get() {
-				return getDefaultTemplates(schemaType);
-			}
-		};
-		SessionContext sessionContext = params.getView().getSessionContext();
-		LabelButtonV2 labelsButton = new LabelButtonV2(
-				$("SearchView.printLabels"),
-				$("SearchView.printLabels"),
-				customLabelTemplatesFactory,
-				defaultLabelTemplatesFactory,
-				appLayerFactory,
-				params.getView().getCollection(),
-				sessionContext.getCurrentUser()
-		);
-
-		labelsButton.setElementsWithIds(cartUtil.getNotDeletedRecordsIds(schemaType, params.getUser(), cartId),
-				schemaType, sessionContext);
-
-		return labelsButton;
-	}
-
 	public void batchDelete(Cart cart, MenuItemActionBehaviorParams params) {
 		Button button;
 		if (!isNeedingAReasonToDeleteRecords()) {
 			button = new DeleteButton(false) {
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					deletionRequested(null, cart, params);
+					try {
+						deletionRequested(null, cart, params);
+					} catch (RecordDeleteServicesRuntimeException e) {
+						params.getView().showMessage(i18n.$("deletionFailed") + "\n" + MessageUtils.toMessage(e));
+						return;
+					}
 				}
 
 				@Override
@@ -294,7 +240,12 @@ public class CartMenuItemActionBehaviors {
 			button = new DeleteWithJustificationButton(false) {
 				@Override
 				protected void deletionConfirmed(String reason) {
-					deletionRequested(reason, cart, params);
+					try {
+						deletionRequested(reason, cart, params);
+					} catch (RecordDeleteServicesRuntimeException e) {
+						params.getView().showMessage(i18n.$("deletionFailed") + "\n" + MessageUtils.toMessage(e));
+						return;
+					}
 				}
 
 				@Override

@@ -89,8 +89,10 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 
 		String token;
 		UserCredential userCredential;
+		UserCredential serviceUserCredential;
 		synchronized (username.intern()) {
 			userCredential = userServices.getUserCredential(username);
+			serviceUserCredential = userCredential;
 			if (asUser != null) {
 				if (userCredential.isSystemAdmin()) {
 					try {
@@ -109,8 +111,10 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 			}
 
 			if (userCredential.getServiceKey() == null) {
-				userCredential = userCredential.setServiceKey("agent_" + userCredential.getUsername());
-				userServices.addUpdateUserCredential(userCredential);
+
+				userServices.execute(userServices.addUpdate(userCredential.getUsername()).setServiceKey("agent_" + userCredential.getUsername()));
+				userCredential = userServices.getUserConfigs(userCredential.getUsername());
+
 			}
 
 			token = userServices.generateToken(userCredential.getUsername(), Duration.standardHours(tokenDurationInHours));

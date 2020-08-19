@@ -103,6 +103,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	RecordExportOptions options = new RecordExportOptions();
 	Users users = new Users();
+	Users anotherCollectionUsers = new Users();
 
 	public static final String TITLE = "Title1";
 	public static final String CODE = "CODE1";
@@ -152,7 +153,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users)
 						.withRMTest(records).withTasksModule(),
-				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users).withTasksModule());
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(anotherCollectionUsers).withTasksModule());
 
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override

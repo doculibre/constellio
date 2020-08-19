@@ -125,6 +125,8 @@ public class Folder extends RMObject {
 	public static final String HAS_CONTENT = "hasContent";
 	public static final String IS_MODEL = "isModel";
 
+	public static final String ABBREVIATION = "abbreviation";
+
 	public Folder(Record record,
 				  MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -994,6 +996,10 @@ public class Folder extends RMObject {
 
 	public boolean isSummary() {
 		return getWrappedRecord().getLoadedFieldsMode() != RecordDTOMode.FULLY_LOADED;
+	}
+
+	public String getAbbreviation() {
+		return get(ABBREVIATION);
 	}
 }
 

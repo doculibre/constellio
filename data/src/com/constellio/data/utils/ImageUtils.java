@@ -38,6 +38,25 @@ public class ImageUtils {
 		throw new RuntimeException("No image reader found for image : " + file.getName());
 	}
 
+	public static Dimension getImageDimension(InputStream inputStream) {
+		try (ImageInputStream in = ImageIO.createImageInputStream(inputStream)) {
+			if (in != null) {
+				final Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
+				if (readers.hasNext()) {
+					ImageReader reader = readers.next();
+					try {
+						reader.setInput(in);
+						return new Dimension(reader.getWidth(0), reader.getHeight(0));
+					} finally {
+						reader.dispose();
+					}
+				}
+			}
+		} catch (IOException ignored) {
+		}
+		throw new RuntimeException("No image reader found");
+	}
+
 	public static BufferedImage resizeWithSubSampling(InputStream inputStream) throws IOException {
 		ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream);
 		Iterator iter = ImageIO.getImageReaders(imageInputStream);

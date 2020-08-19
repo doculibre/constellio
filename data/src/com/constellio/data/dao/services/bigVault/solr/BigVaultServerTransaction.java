@@ -135,19 +135,20 @@ public class BigVaultServerTransaction {
 
 	@JsonIgnore
 	public boolean isParallelisable() {
-		boolean parallelisable = false;
 		if (deletedRecords.isEmpty() && deletedQueries.isEmpty()) {
-			parallelisable = true;
 
 			for (SolrInputDocument solrInputDocument : updatedDocuments) {
 				String id = (String) solrInputDocument.getFieldValue("id");
 				if (!id.startsWith("idx_rfc")) {
-					parallelisable = false;
+					return false;
 				}
 			}
 
+			return true;
+
+		} else {
+			return false;
 		}
-		return parallelisable;
 	}
 
 	public boolean isInTestRollbackMode() {
@@ -173,6 +174,12 @@ public class BigVaultServerTransaction {
 
 		return updatedDocumentsWithOptimisticLocking > 1 || (updatedDocumentsWithOptimisticLocking == 1
 															 && newDocuments.size() > 0);
+
+	}
+
+	public boolean isEmpty() {
+		return updatedDocuments.isEmpty() && newDocuments.isEmpty()
+			   && deletedQueries.isEmpty() && deletedRecords.isEmpty();
 
 	}
 }

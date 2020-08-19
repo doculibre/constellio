@@ -3,7 +3,6 @@ package com.constellio.data.io;
 import com.constellio.sdk.tests.ConstellioTestWithGlobalContext;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.PerformanceTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;

@@ -60,7 +60,6 @@ import org.mockito.stubbing.Answer;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -153,14 +152,13 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 					taxonomiesManager.setPrincipalTaxonomy(taxonomy, metadataSchemasManager);
 
 					UserServices userServices = getModelLayerFactory().newUserServices();
-					userServices.addUpdateUserCredential(userServices.createUserCredential(
+					userServices.execute(addUpdateUserCredential(
 							"bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(),
-							asList(zeCollection, "anotherCollection"), UserCredentialStatus.ACTIVE, "domain", Arrays.asList(""),
-							null));
+							asList(zeCollection, "anotherCollection"), UserCredentialStatus.ACTIVE));
 
-					userServices.addUpdateUserCredential(userServices.createUserCredential(
+					userServices.execute(addUpdateUserCredential(
 							"alice", "alice", "wonderland", "alice@doculibre.com", new ArrayList<String>(),
-							asList(zeCollection), UserCredentialStatus.ACTIVE, "domain", Arrays.asList(""), null));
+							asList(zeCollection), UserCredentialStatus.ACTIVE));
 
 					bob = spy(userServices.getUserInCollection("bob", zeCollection));
 					bob.setCollectionDeleteAccess(true);

@@ -5,8 +5,8 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -87,7 +87,7 @@ public class UserImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(mariImportError.getCompleteErrorMessage()).contains($("legends1"));
 
 		try {
-			userServices.getUser("mari");
+			userServices.getUserInfos("mari");
 			fail("mari shouldn't exist");
 		} catch (UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser e) {
 		}
@@ -96,24 +96,24 @@ public class UserImportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private void validateBob() {
-		UserCredential bob = userServices.getUser("bob");
+		SystemWideUserInfos bob = userServices.getUserInfos("bob");
 		assertThat(bob.getFirstName()).isEqualTo("Bob 'Elvis'");
 		assertThat(bob.getLastName()).isEqualTo("Gratton");
 		assertThat(bob.getEmail()).isEqualTo("bob@doculibre.com");
 		assertThat(bob.isSystemAdmin()).isEqualTo(true);
-		assertThat(bob.getGlobalGroups().size()).isEqualTo(0);
+		assertThat(bob.getGroupCodes(zeCollection).size()).isEqualTo(0);
 		assertThat(bob.getCollections()).contains(zeCollection);
 		assertThat(bob.getCollections().size()).isEqualTo(1);
 	}
 
 	private void validateAlice() {
-		UserCredential alice = userServices.getUser("alice");
+		SystemWideUserInfos alice = userServices.getUserInfos("alice");
 		assertThat(alice.getFirstName()).isEqualTo("Alice");
 		assertThat(alice.getLastName()).isEqualTo("Wonderland");
 		assertThat(alice.getEmail()).isEqualTo("alice@doculibre.com");
 		assertThat(alice.isSystemAdmin()).isEqualTo(false);
-		assertThat(alice.getGlobalGroups()).contains("legends", "heroes");
-		assertThat(alice.getGlobalGroups().size()).isEqualTo(2);
+		assertThat(alice.getGroupCodes(zeCollection)).contains("legends", "heroes");
+		assertThat(alice.getGroupCodes(zeCollection).size()).isEqualTo(2);
 		assertThat(alice.getCollections()).contains(zeCollection);
 		assertThat(alice.getCollections().size()).isEqualTo(1);
 	}

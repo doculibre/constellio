@@ -3,9 +3,9 @@ package com.constellio.app.ui.framework.data;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 
 import java.io.IOException;
@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("serial")
 public class UserCredentialVODataProvider extends AbstractDataProvider {
@@ -29,14 +30,17 @@ public class UserCredentialVODataProvider extends AbstractDataProvider {
 
 	private transient UserCredentialToVOBuilder voBuilder;
 
+	private String collection;
+
 	public void setUserCredentialVOs(List<UserCredentialVO> userCredentialVOs) {
 		this.userCredentialVOs = userCredentialVOs;
 		setFilter(null);
 	}
 
 	public UserCredentialVODataProvider(UserCredentialToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory,
-										String globalGroupCode) {
+										String globalGroupCode, String collection) {
 		this.voBuilder = voBuilder;
+		this.collection = collection;
 		init(modelLayerFactory, globalGroupCode);
 	}
 
@@ -55,13 +59,14 @@ public class UserCredentialVODataProvider extends AbstractDataProvider {
 
 	private void loadUserCredentialVOs() {
 		List<UserCredentialVO> newUserCredentialVOs = new ArrayList<>();
-		List<UserCredential> userCredentials;
+		List<SystemWideUserInfos> userCredentials;
 		if (globalGroupCode != null) {
 			userCredentials = userServices.getGlobalGroupActifUsers(globalGroupCode);
 		} else {
 			userCredentials = userServices.getAllUserCredentials();
 		}
-		for (UserCredential userCredential : userCredentials) {
+		for (SystemWideUserInfos userCredential : userCredentials) {
+
 			UserCredentialVO userCredentialVO = voBuilder.build(userCredential);
 			newUserCredentialVOs.add(userCredentialVO);
 		}
@@ -113,18 +118,14 @@ public class UserCredentialVODataProvider extends AbstractDataProvider {
 
 	public List<UserCredentialVO> listActiveUserCredentialVOs() {
 		List<UserCredentialVO> activeUserCredentialVOs = new ArrayList<>();
-		List<UserCredential> userCredentials = userServices.getActiveUserCredentials();
-		for (UserCredential userCredential : userCredentials) {
-			UserCredentialVO userCredentialVO = voBuilder.build(userCredential);
-			activeUserCredentialVOs.add(userCredentialVO);
-		}
+
 		return activeUserCredentialVOs;
 	}
 
 	public UserCredentialVO getUserCredentialVO(String username) {
-		UserCredential userCredential;
+		SystemWideUserInfos userCredential;
 		try {
-			userCredential = userServices.getUser(username);
+			userCredential = userServices.getUserInfos(username);
 		} catch (Exception e) {
 			return null;
 		}
@@ -153,20 +154,40 @@ public class UserCredentialVODataProvider extends AbstractDataProvider {
 
 	public List<UserCredentialVO> listActifsUserCredentialVOsNotInGlobalGroup(String globalGroupCode) {
 		List<UserCredentialVO> newUserCredentialVOs = new ArrayList<>();
-		List<String> usernamesInGlobalGroup = listUsernamesInGlobalGroup(globalGroupCode);
 
-		for (UserCredentialVO userCredentialVO : listActiveUserCredentialVOs()) {
-			if (!usernamesInGlobalGroup.contains(userCredentialVO.getUsername())) {
-				newUserCredentialVOs.add(userCredentialVO);
-			}
+		List<SystemWideUserInfos> userCredentials = getSystemWideUserInfosUserNotInGroupId(globalGroupCode);
+		return convertToUserCredentialVO(newUserCredentialVOs, userCredentials);
+	}
+
+	public List<UserCredentialVO> listActifsUserCredentialVOsInGlobalGroup(String globalGroupCode) {
+		List<UserCredentialVO> newUserCredentialVOs = new ArrayList<>();
+
+		List<SystemWideUserInfos> userCredentials = getSystemWideUserInfosUserInGroupId(globalGroupCode);
+		return convertToUserCredentialVO(newUserCredentialVOs, userCredentials);
+	}
+
+	private List<UserCredentialVO> convertToUserCredentialVO(List<UserCredentialVO> newUserCredentialVOs,
+															 List<SystemWideUserInfos> userCredentials) {
+		for (SystemWideUserInfos userCredential : userCredentials) {
+			UserCredentialVO userCredentialVO = voBuilder.build(userCredential);
+			newUserCredentialVOs.add(userCredentialVO);
 		}
+
 		sort(newUserCredentialVOs);
 		return newUserCredentialVOs;
 	}
 
+	public List<SystemWideUserInfos> getSystemWideUserInfosUserNotInGroupId(String groupId) {
+		return userServices.streamUserInfos().filter(u -> u.getCollections().contains(collection) && !u.getGroupCodes(collection).contains(groupId)).collect(Collectors.toList());
+	}
+
+	public List<SystemWideUserInfos> getSystemWideUserInfosUserInGroupId(String globalGroupCode) {
+		return userServices.streamUserInfos().filter(u -> u.getGroupCodes(collection).contains(globalGroupCode)).collect(Collectors.toList());
+	}
+
 	private List<String> listUsernamesInGlobalGroup(String globalGroupCode) {
 		List<String> usernames = new ArrayList<>();
-		for (UserCredential userCredential : userServices.getGlobalGroupActifUsers(globalGroupCode)) {
+		for (SystemWideUserInfos userCredential : userServices.getGlobalGroupActifUsers(globalGroupCode)) {
 			usernames.add(userCredential.getUsername());
 		}
 		return usernames;

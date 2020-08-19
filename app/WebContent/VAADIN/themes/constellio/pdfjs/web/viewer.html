@@ -48,14 +48,17 @@ See https://github.com/adobe-type-tools/cmap-resources
 
       <script src="./jquery/1.12.4/jquery.min.js"></script>
       <script src="./jquery/jquery.ajaxQueue.min.js"></script>
+      <script src="./jquery/removeAccented/removeAccented.min.js"></script>
 
       <script src="./tooltipster/dist/js/tooltipster.bundle.min.js"></script>
+    <script src="./html2canvas/0.4.1/html2canvas.min.js"></script>
 
       <script src="./annotation-common.js"></script>
       <script src="./signature-datastore.js"></script>
       <script src="./annotation-base.js"></script>
       <script src="./annotation-editor-base.js"></script>
       <script src="./annotation-editor-text.js"></script>
+      <script src="./annotation-editor-signature-text.js"></script>
       <script src="./annotation-editor-signature-pad.js"></script>
       <script src="./annotation-text.js"></script>
       <script src="./annotation-image.js"></script>
@@ -65,7 +68,6 @@ See https://github.com/adobe-type-tools/cmap-resources
       <script src="./annotation-signature-image.js"></script>
       <script src="./annotation-signature-text.js"></script>
       <script src="./annotation-dropzone.js"></script>
-      <script src="./signature-picker.js"></script>
       <script src="./annotation-signature-picker.js"></script>
       <script src="./pdf-annotations.js"></script>
       <script src="./pdf-annotations-services.js"></script>
@@ -129,6 +131,37 @@ See https://github.com/adobe-type-tools/cmap-resources
           </div>
         </div>  <!-- findbar -->
 
+          <div class="signatureOptions hidden doorHanger" id="signatureOptions">
+              <div class="signatureOptionsContainer" id="signatureOptionsContainer" style="height:auto;">
+
+                  <div class="signatureOptionContainer" id="signatureOptionContainer" style="float:initial;">
+                      <img class="signatureThumbnail" id="signatureThumbnail"
+                           src="https://via.placeholder.com/200x100"/>
+                      <button class="signatureAddButton" id="signatureAddButton" title="Add signature"
+                              data-l10n-id="signature_add">
+                          <span data-l10n-id="signature_add">Add signature</span>
+                      </button>
+                      <button class="signatureDeleteButton" id="signatureDeleteButton" title="Delete signature"
+                              data-l10n-id="signature_delete">
+                          <span data-l10n-id="signature_delete">Delete signature</span>
+                      </button>
+                  </div>
+
+                  <div class="initialsOptionContainer" id="initialsOptionContainer" style="float:initial;">
+                      <img class="initialsThumbnail" id="initialsThumbnail" src="https://via.placeholder.com/200x100"/>
+                      <button class="initialsAddButton" id="initialsAddButton" title="Add initials"
+                              data-l10n-id="initials_add">
+                          <span data-l10n-id="initials_add">Add initials</span>
+                      </button>
+                      <button class="initialsDeleteButton" id="initialsDeleteButton" title="Delete initials"
+                              data-l10n-id="initials_delete">
+                          <span data-l10n-id="initials_delete">Delete initials</span>
+                      </button>
+                  </div>
+
+              </div>
+          </div>  <!-- signature options -->
+
         <div id="secondaryToolbar" class="secondaryToolbar hidden doorHangerRight">
           <div id="secondaryToolbarButtonContainer">
             <button id="secondaryPresentationMode" class="secondaryToolbarButton presentationMode visibleLargeView" title="Switch to Presentation Mode" tabindex="51" data-l10n-id="presentation_mode">
@@ -148,14 +181,27 @@ See https://github.com/adobe-type-tools/cmap-resources
               <span data-l10n-id="print_label">Print</span>
             </button>
 
-              <button id="secondarySign" class="secondaryToolbarButton sign visibleMediumView" title="Sign"
-                      tabindex="53" data-l10n-id="Sign">
+              <button id="secondaryCertify" class="secondaryToolbarButton certify visibleMediumView tooltip"
+                      title="Certify"
+                      tabindex="53" data-l10n-id="certify">
+              <span data-l10n-id="certify_label">Certify</span>
+            </button>
+
+              <button id="secondarySign" class="secondaryToolbarButton sign visibleMediumView tooltip" title="Sign"
+                      tabindex="53" data-l10n-id="sign">
                   <span data-l10n-id="sign_label">Sign</span>
               </button>
 
-              <button id="secondaryCertify" class="secondaryToolbarButton certify visibleMediumView" title="Certify"
-                      tabindex="53" data-l10n-id="Certify">
-                  <span data-l10n-id="certify_label">Certify</span>
+              <button id="secondarySignatureZone" class="secondaryToolbarButton signatureZone visibleMediumView tooltip"
+                      title="New signature zone"
+                      tabindex="53" data-l10n-id="buttons.newSignHereAnnotation.tooltip">
+                  <span data-l10n-id="buttons.newSignHereAnnotation">New signature zone</span>
+            </button>
+
+              <button id="secondaryTextZone" class="secondaryToolbarButton textZone visibleMediumView tooltip"
+                      title="New text zone"
+                      tabindex="53" data-l10n-id="buttons.newTextAnnotation.tooltip">
+                  <span data-l10n-id="buttons.newTextAnnotation.tooltip">New text zone</span>
               </button>
 
 <!--  
@@ -167,7 +213,8 @@ See https://github.com/adobe-type-tools/cmap-resources
               <span data-l10n-id="download_label">Download</span>
             </button>
 
-            <a href="#" id="secondaryViewBookmark" class="secondaryToolbarButton bookmark visibleSmallView" title="Current view (copy or open in new window)" tabindex="55" data-l10n-id="bookmark">
+            <a href="#" id="secondaryViewBookmark" class="secondaryToolbarButton bookmark visibleSmallView hidden"
+               title="Current view (copy or open in new window)" tabindex="55" data-l10n-id="bookmark">
               <span data-l10n-id="bookmark_label">Current View</span>
             </a>
 
@@ -212,9 +259,34 @@ See https://github.com/adobe-type-tools/cmap-resources
           <div id="toolbarContainer">
             <div id="toolbarViewer">
               <div id="toolbarViewerLeft">
+
                 <button id="sidebarToggle" class="toolbarButton" title="Toggle Sidebar" tabindex="11" data-l10n-id="toggle_sidebar">
                   <span data-l10n-id="toggle_sidebar_label">Toggle Sidebar</span>
                 </button>
+
+                  <button id="certify" class="toolbarButton certify hiddenMediumView certifyNotification tooltip"
+                          title="Certify" tabindex="33"
+                          data-l10n-id="certify">
+                  <span data-l10n-id="certify_label">Certify</span>
+                </button>
+
+                  <button id="sign" class="toolbarButton sign hiddenMediumView tooltip" title="Sign" tabindex="33"
+                          data-l10n-id="sign">
+                  <span data-l10n-id="sign_label">Sign</span>
+                </button>
+
+                  <button id="signatureZone" class="toolbarButton signatureZone hiddenMediumView tooltip"
+                          title="New signature zone" tabindex="33"
+                          data-l10n-id="buttons.newSignHereAnnotation.tooltip">
+                      <span data-l10n-id="buttons.newSignHereAnnotation">New signature zone</span>
+                </button>
+
+                  <button id="textZone" class="toolbarButton textZone hiddenMediumView tooltip" title="New text zone"
+                          tabindex="33"
+                          data-l10n-id="buttons.newTextAnnotation.tooltip">
+                      <span data-l10n-id="buttons.newTextAnnotation">New text zone</span>
+                </button>
+
                 <div class="toolbarButtonSpacer"></div>
                 <button id="viewFind" class="toolbarButton" title="Find in Document" tabindex="12" data-l10n-id="findbar">
                   <span data-l10n-id="findbar_label">Find</span>
@@ -249,16 +321,6 @@ See https://github.com/adobe-type-tools/cmap-resources
                   <span data-l10n-id="print_label">Print</span>
                 </button>
 
-                  <button id="sign" class="toolbarButton sign hiddenMediumView" title="Sign" tabindex="33"
-                          data-l10n-id="sign">
-                      <span data-l10n-id="sign_label">Sign</span>
-                  </button>
-
-                  <button id="certify" class="toolbarButton certify hiddenMediumView" title="Certify" tabindex="33"
-                          data-l10n-id="certify">
-                      <span data-l10n-id="sign_label">Certify</span>
-                  </button>
-
                   <!--
                                   <button id="download" class="toolbarButton download hiddenMediumView" title="Download" tabindex="34" data-l10n-id="download">
                                     <span data-l10n-id="download_label">Download</span>
@@ -267,7 +329,8 @@ See https://github.com/adobe-type-tools/cmap-resources
                 <button id="download" class="toolbarButton download hidden" title="Download" tabindex="34" data-l10n-id="download">
                   <span data-l10n-id="download_label">Download</span>
                 </button>
-                <a href="#" id="viewBookmark" class="toolbarButton bookmark hiddenSmallView" title="Current view (copy or open in new window)" tabindex="35" data-l10n-id="bookmark">
+                <a href="#" id="viewBookmark" class="toolbarButton bookmark hiddenSmallView hidden"
+                   title="Current view (copy or open in new window)" tabindex="35" data-l10n-id="bookmark">
                   <span data-l10n-id="bookmark_label">Current View</span>
                 </a>
 
@@ -433,11 +496,16 @@ See https://github.com/adobe-type-tools/cmap-resources
     <script src="./signature_pad.umd.js"></script>
     <script>
         $(document).ready(function() {
-            $('.tooltip').tooltipster();
-            //$('[data-l10n-id]').tooltipster();
+          var mozL10n = document.mozL10n || document.webL10n;
+          if (mozL10n) {
+            mozL10n.ready(function() {
+              setTimeout(function() {
+                //$('.tooltip').tooltipster();
+                $('[data-l10n-id]').tooltipster();
+              }, 1000);
+            });
+          }
         });
-
-
     </script>
   </body>
 </html>

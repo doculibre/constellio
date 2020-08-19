@@ -2,7 +2,6 @@ package com.constellio.app.ui.pages.management.ldap;
 
 import com.constellio.app.ui.framework.components.StringListComponent;
 import com.constellio.app.ui.framework.components.fields.EditablePasswordField;
-import com.constellio.app.ui.framework.components.fields.EditablePasswordField;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.config.AzureADServerConfig;
 import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
@@ -15,7 +14,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;

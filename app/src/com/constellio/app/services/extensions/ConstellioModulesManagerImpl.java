@@ -236,11 +236,11 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	}
 
 	public void markAsInstalled(final Module module, CollectionsListManager collectionsListManager) {
-		LOGGER.warn("Marking module '" + module.getId() + "' as installed for tenant " + TenantUtils.getTenantId(), new Exception());
+		//LOGGER.warn("Marking module '" + module.getId() + "' as installed for tenant " + TenantUtils.getTenantId(), new Exception());
 		for (String dependentModuleId : getDependencies(module)) {
 			InstallableModule dependentModule = getInstalledModule(dependentModuleId);
 			if (!isInstalled(dependentModule)) {
-				LOGGER.warn("Marking module '" + dependentModuleId + "' as installed for tenant, since it is a dependency of '" + module.getId() + "' " + TenantUtils.getTenantId(), new Exception());
+				//LOGGER.warn("Marking module '" + dependentModuleId + "' as installed for tenant, since it is a dependency of '" + module.getId() + "' " + TenantUtils.getTenantId(), new Exception());
 				addModuleInConfigFile(dependentModule);
 			}
 		}

@@ -23,6 +23,7 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
@@ -37,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -298,7 +300,8 @@ public class TaskPresenterServices {
 		}
 		Task task = tasksSchemas.getTask(record.getId());
 		return task.getAssignee() == null && (task.getAssigneeUsersCandidates() == null || task.getAssigneeUsersCandidates()
-				.isEmpty()) && (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates().isEmpty());
+				.isEmpty()) && (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates().isEmpty())
+			   || (task.getAssignee() == null && task.getAssigneeUsersCandidates().contains(user.getId()) || !Collections.disjoint(task.getAssigneeGroupsCandidates(), user.getUserGroups()));
 	}
 
 	public boolean currentUserHasWriteAuthorisationWithoutBeingCollaborator(RecordVO recordVO, String currentUserId) {
@@ -330,11 +333,15 @@ public class TaskPresenterServices {
 		taskVO.setTaskCollaboratorsGroups(taskCollaboratorsGroups);
 		taskVO.settaskCollaboratorsGroupsWriteAuthorizations(taskCollaboratorsGroupsWriteAuthorizations);
 
-		Record record = schemaPresenterUtils.toRecord(taskVO);
-		Task task = tasksSchemas.wrapTask(record);
 		try {
-			recordServices.update(task);
-		} catch (RecordServicesException e) {
+			Record record = schemaPresenterUtils.toRecord(taskVO);
+			Task task = tasksSchemas.wrapTask(record);
+			try {
+				recordServices.update(task);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		} catch (OptimisticLockException e) {
 			throw new RuntimeException(e);
 		}
 	}

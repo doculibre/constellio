@@ -31,6 +31,7 @@ public class UserCredential extends RecordWrapper {
 	public static final String COLLECTIONS = "collections";
 	public static final String GLOBAL_GROUPS = "globalGroups";
 	public static final String STATUS = "status";
+	public static final String SYNC_MODE = "syncMode";
 	public static final String DOMAIN = "domain";
 	public static final String MS_EXCHANGE_DELEGATE_LIST = "msExchangeDelegateList";
 	public static final String DN = "dn";
@@ -47,6 +48,9 @@ public class UserCredential extends RecordWrapper {
 	public static final String ELECTRONIC_INITIALS = "electronicInitials";
 	public static final String AZURE_USERNAME = "azureUsername";
 
+	public static final String TEAMS_FAVORITES_DISPLAY_ORDER = "teamsFavoritesDisplayOrder";
+	public static final String TEAMS_HIDDEN_FAVORITES = "teamsHiddenFavorites";
+
 	public UserCredential(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
@@ -55,7 +59,7 @@ public class UserCredential extends RecordWrapper {
 		return get(USERNAME);
 	}
 
-	public UserCredential setUsername(String username) {
+	public UserCredential _setUsername(String username) {
 		set(USERNAME, username);
 		return this;
 	}
@@ -147,11 +151,11 @@ public class UserCredential extends RecordWrapper {
 	}
 
 	public boolean isSystemAdmin() {
-		return get(SYSTEM_ADMIN);
+		return Boolean.TRUE.equals(get(SYSTEM_ADMIN));
 	}
 
-	public UserCredential setSystemAdmin(boolean systemAdmin) {
-		set(SYSTEM_ADMIN, systemAdmin);
+	public UserCredential setSystemAdmin(Boolean systemAdmin) {
+		set(SYSTEM_ADMIN, Boolean.TRUE.equals(systemAdmin));
 		return this;
 	}
 
@@ -178,12 +182,25 @@ public class UserCredential extends RecordWrapper {
 		return this;
 	}
 
+	public UserCredential setGroups(String... groups) {
+		return setGlobalGroups(asList(groups));
+	}
+
 	public UserCredentialStatus getStatus() {
 		return get(STATUS);
 	}
 
 	public UserCredential setStatus(UserCredentialStatus status) {
 		set(STATUS, status);
+		return this;
+	}
+
+	public UserSyncMode getSyncMode() {
+		return get(SYNC_MODE);
+	}
+
+	public UserCredential setSyncMode(UserSyncMode syncMode) {
+		set(SYNC_MODE, syncMode);
 		return this;
 	}
 
@@ -322,8 +339,20 @@ public class UserCredential extends RecordWrapper {
 		return Boolean.TRUE.equals(get(HAS_READ_LAST_ALERT));
 	}
 
-	public UserCredential setReadLastAlert(boolean hasReadLastAlert) {
+	public UserCredential setReadLastAlert(Boolean hasReadLastAlert) {
 		set(HAS_READ_LAST_ALERT, hasReadLastAlert);
+		return this;
+	}
+
+
+	public UserCredential setNotReceivingEmails(Boolean value) {
+		set(DO_NOT_RECEIVE_EMAILS, value);
+		return this;
+	}
+
+
+	public UserCredential setApplyFacetsEnabled(Boolean value) {
+		set(ENABLE_FACETS_APPLY_BUTTON, value);
 		return this;
 	}
 

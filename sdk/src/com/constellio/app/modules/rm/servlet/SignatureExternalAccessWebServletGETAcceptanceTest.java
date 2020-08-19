@@ -12,6 +12,7 @@ import com.constellio.sdk.tests.setups.Users;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.HttpMethod;
 import com.gargoylesoftware.htmlunit.Page;
+import com.gargoylesoftware.htmlunit.ScriptException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebRequest;
 import com.gargoylesoftware.htmlunit.WebResponse;
@@ -32,6 +33,7 @@ import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebSe
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet.PARAM_LANGUAGE;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet.PARAM_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class SignatureExternalAccessWebServletGETAcceptanceTest extends ConstellioTest {
 
@@ -61,8 +63,12 @@ public class SignatureExternalAccessWebServletGETAcceptanceTest extends Constell
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		documentMenuItemActionBehaviors = new DocumentMenuItemActionBehaviors(zeCollection, getAppLayerFactory());
 
-		validUrl = documentMenuItemActionBehaviors.createExternalSignatureUrl(records.document_A19, "Constellio Test", getTomorrow(), validLanguage, users.adminIn(zeCollection));
-		expiredUrl = documentMenuItemActionBehaviors.createExternalSignatureUrl(records.document_A19, "Constellio Test", getYesterday(), validLanguage, users.adminIn(zeCollection));
+		validUrl = documentMenuItemActionBehaviors.createExternalSignatureUrl(records.document_A19,
+				"Constellio Test", "noreply.doculibre2@gmail.com", getTomorrow(),
+				validLanguage, users.adminIn(zeCollection));
+		expiredUrl = documentMenuItemActionBehaviors.createExternalSignatureUrl(records.document_A19,
+				"Constellio Test", "noreply.doculibre2@gmail.com", getYesterday(),
+				validLanguage, users.adminIn(zeCollection));
 		validAccess = createAccess();
 	}
 
@@ -71,42 +77,46 @@ public class SignatureExternalAccessWebServletGETAcceptanceTest extends Constell
 		stopApplication();
 	}
 
-	/* TODO --> Hadle redirection without crashing test?
 	@Test
 	public void validateWebService()
 			throws Exception {
-		WebResponse response = callWebservice(validUrl);
+		try {
+			WebResponse response = callWebservice(validUrl);
+		} catch (ScriptException ignored) {
+			// TODO --> Better handle redirection exception
+		}
+	}
 
-		assertThat(response.getStatusCode()).isEqualTo(HttpServletResponse.SC_OK);
-	}*/
-
-	/* TODO --> Handle redirection without crashing test?
 	@Test
 	public void whenCallingServiceWithValidAccess()
 			throws Exception {
-		WebResponse response = callWebservice(validAccessId, validAccess.getToken(), validLanguage);
+		try {
+			WebResponse response = callWebservice(validAccessId, validAccess.getToken(), validLanguage);
+		} catch (ScriptException ignored) {
+			// TODO --> Better handle redirection exception
+		}
+	}
 
-		assertThat(response.getStatusCode()).isEqualTo(HttpServletResponse.SC_OK);
-	}*/
-
-	/* TODO --> Handle redirection without crashing test?
-	@Test
-	public void whenCallingServiceWithToClosedAccessStatus()
-			throws Exception {
-
-		validAccess.setStatus(ExternalAccessUrlStatus.TO_CLOSE);
-		recordServices.update(validAccess);
-
-		WebResponse response = callWebservice(validAccessId, validAccess.getToken(), validLanguage);
-
-		assertThat(response.getStatusCode()).isEqualTo(HttpServletResponse.SC_OK);
-	}*/
+	//	@Test
+	//	public void whenCallingServiceWithToClosedAccessStatus()
+	//			throws Exception {
+	//
+	//		validAccess.setStatusForAllCollections(ExternalAccessUrlStatus.TO_CLOSE);
+	//		recordServices.update(validAccess);
+	//
+	//		try {
+	//			WebResponse response = callWebservice(validAccessId, validAccess.getToken(), validLanguage);
+	//		} catch (ScriptException ignored) {
+	//			// TODO --> Better handle redirection exception
+	//		}
+	//	}
 
 	@Test
 	public void whenCallingServiceWithMissingId()
 			throws Exception {
 		try {
 			callWebservice("", validAccess.getToken(), validLanguage);
+			fail("whenCallingServiceWithMissingId should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
 			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
@@ -118,6 +128,7 @@ public class SignatureExternalAccessWebServletGETAcceptanceTest extends Constell
 			throws Exception {
 		try {
 			callWebservice("fakeId", validAccess.getToken(), validLanguage);
+			fail("whenCallingServiceWitNonExistingId should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
 			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
@@ -129,6 +140,7 @@ public class SignatureExternalAccessWebServletGETAcceptanceTest extends Constell
 			throws Exception {
 		try {
 			callWebservice(records.document_A19, validAccess.getToken(), validLanguage);
+			fail("whenCallingServiceWithInvalidId should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
 			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
@@ -140,6 +152,7 @@ public class SignatureExternalAccessWebServletGETAcceptanceTest extends Constell
 			throws Exception {
 		try {
 			callWebservice(validAccessId, "", validLanguage);
+			fail("whenCallingServiceWithMissingToken should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
 			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
@@ -151,6 +164,7 @@ public class SignatureExternalAccessWebServletGETAcceptanceTest extends Constell
 			throws Exception {
 		try {
 			callWebservice(validAccessId, "fakeToken", validLanguage);
+			fail("whenCallingServiceWithInvalidToken should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
 			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
@@ -165,6 +179,7 @@ public class SignatureExternalAccessWebServletGETAcceptanceTest extends Constell
 			recordServices.update(validAccess);
 
 			callWebservice(validAccessId, validAccess.getToken(), validLanguage);
+			fail("whenCallingServiceWithClosedAccessStatus should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
 			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
@@ -179,6 +194,7 @@ public class SignatureExternalAccessWebServletGETAcceptanceTest extends Constell
 			recordServices.update(validAccess);
 
 			callWebservice(validAccessId, validAccess.getToken(), validLanguage);
+			fail("whenCallingServiceWithExpiredAccessStatus should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
 			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
@@ -190,6 +206,7 @@ public class SignatureExternalAccessWebServletGETAcceptanceTest extends Constell
 			throws Exception {
 		try {
 			callWebservice(validAccessId, validAccess.getToken(), "");
+			fail("whenCallingServiceWithMissingLanguage should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
 			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
@@ -201,6 +218,7 @@ public class SignatureExternalAccessWebServletGETAcceptanceTest extends Constell
 			throws Exception {
 		try {
 			callWebservice(expiredUrl);
+			fail("whenCallingServiceWithExpiredAccess should throw an exception.");
 		} catch (FailingHttpStatusCodeException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
 			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);

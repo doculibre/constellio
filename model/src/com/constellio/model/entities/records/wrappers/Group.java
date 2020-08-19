@@ -3,6 +3,7 @@ package com.constellio.model.entities.records.wrappers;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.GlobalGroupStatus;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,6 +18,9 @@ public class Group extends RecordWrapper {
 	public static final String TITLE = Schemas.TITLE_CODE;
 	public static final String PARENT = "parent";
 	public static final String ANCESTORS = "ancestors";
+	public static final String STATUS = "status";
+	public static final String HIERARCHY = "hierarchy";
+	public static final String LOCALLY_CREATED = "locallyCreated";
 
 	public Group(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -40,14 +44,19 @@ public class Group extends RecordWrapper {
 		return get(CODE);
 	}
 
+	public String getCaption() {
+		return get(Schemas.CAPTION.getLocalCode());
+	}
+
 	//TODO Replace this method in release 8.2
 	public List<String> getAncestors() {
 		List<String> ancestors = getList(ANCESTORS);
-		if (ancestors.isEmpty()) {
-			return Collections.singletonList(wrappedRecord.getId());
-		} else {
-			return ancestors;
+		if (ancestors.contains(wrappedRecord.getId())) {
+			List<String> ancestorsWithoutRecordId = new ArrayList<>(ancestors);
+			ancestorsWithoutRecordId.remove(wrappedRecord.getId());
+			return ancestorsWithoutRecordId;
 		}
+		return ancestors;
 	}
 
 	//TODO Use this version in release 8.2, with a forced full reindexing
@@ -88,5 +97,32 @@ public class Group extends RecordWrapper {
 	@Override
 	public String toString() {
 		return toStringPrintingCodes(CODE, TITLE);
+	}
+
+	public GlobalGroupStatus getStatus() {
+		return get(STATUS);
+	}
+
+	public String getHierarchy() {
+		return get(HIERARCHY);
+	}
+
+	public Group setHierarchy(String path) {
+		set(HIERARCHY, path);
+		return this;
+	}
+
+	public Group setStatus(GlobalGroupStatus status) {
+		set(STATUS, status);
+		return this;
+	}
+
+	public boolean isLocallyCreated() {
+		return Boolean.TRUE.equals(get(LOCALLY_CREATED));
+	}
+
+	public Group setLocallyCreated(boolean locallyCreated) {
+		set(LOCALLY_CREATED, locallyCreated);
+		return this;
 	}
 }

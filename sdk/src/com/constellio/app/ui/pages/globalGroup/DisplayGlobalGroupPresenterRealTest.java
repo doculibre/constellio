@@ -5,7 +5,7 @@ import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserServices;
@@ -43,13 +43,13 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 	@Mock CoreViews coreView;
 	@Mock SolrUserCredentialsManager userCredentialsManager;
 	@Mock UserCredential dakotaCredential, newDakotaCredential;
-	@Mock GlobalGroup heroes, legends;
+	@Mock SystemWideGroup heroes, legends;
 	@Mock GlobalGroupVODataProvider globalGroupVODataProvider;
 	@Mock UserCredentialVO dakotaCredentialVO;
 
 	DisplayGlobalGroupPresenter presenter;
 	MockedFactories mockedFactories = new MockedFactories();
-	List<GlobalGroup> globalGroups;
+	List<SystemWideGroup> globalGroups;
 
 	@Before
 	public void setUp()
@@ -72,7 +72,6 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 		when(heroesGlobalGroupVO.getName()).thenReturn(HEROES_GLOBAL_GROUP);
 
 		when(mockedFactories.getModelLayerFactory().newUserServices()).thenReturn(userServices);
-		when(mockedFactories.getModelLayerFactory().getUserCredentialsManager()).thenReturn(userCredentialsManager);
 		when(userServices.getGroup(HEROES)).thenReturn(heroes);
 
 		when(dakotaCredentialVO.getUsername()).thenReturn(dakota);
@@ -110,30 +109,12 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 				"UTF-8"));
 	}
 
-	@Test
-	public void whenAddUserCredentialButtonClickedThenOk()
-			throws Exception {
-
-		List<String> dakotaGlobalGroups = new ArrayList<>();
-		List<String> newDakotaGlobalGroups = new ArrayList<>();
-		dakotaGlobalGroups.add(HEROES);
-		newDakotaGlobalGroups.addAll(dakotaGlobalGroups);
-		newDakotaGlobalGroups.add(LEGENDS);
-		when(dakotaCredential.getGlobalGroups()).thenReturn(dakotaGlobalGroups);
-		when(dakotaCredential.setGlobalGroups(newDakotaGlobalGroups)).thenReturn(newDakotaCredential);
-		when(userServices.getUserCredential(dakota)).thenReturn(dakotaCredential);
-
-		presenter.addUserCredentialButtonClicked(LEGENDS, dakota);
-
-		verify(userServices).addUpdateUserCredential(newDakotaCredential);
-		verify(globalGroupView).refreshTable();
-	}
 
 	@Test
 	public void whenDisplayUserCredentialButtonClickedThenNavigateToDisplayUserCredential()
 			throws Exception {
 
-		presenter.displayUserCredentialButtonClicked(dakotaCredentialVO, HEROES);
+		presenter.displayUserCredentialButtonClicked(dakotaCredentialVO);
 
 		verify(globalGroupView.navigate().to(), times(1))
 				.displayUserCredential("url1/url2/url3/" + NavigatorConfigurationService.GROUP_DISPLAY + "/" + URLEncoder
@@ -144,7 +125,7 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 	public void whenEditUserCredentialButtonClickedThenNavigateToEditUserCredential()
 			throws Exception {
 
-		presenter.editUserCredentialButtonClicked(dakotaCredentialVO, HEROES);
+		presenter.editUserCredentialButtonClicked(dakotaCredentialVO);
 
 		verify(globalGroupView.navigate().to(), times(1))
 				.editUserCredential("url1/url2/url3/" + NavigatorConfigurationService.GROUP_DISPLAY + "/" + URLEncoder

@@ -4,7 +4,7 @@ import com.constellio.app.modules.restapi.BaseRestfulServiceAcceptanceTest;
 import com.constellio.app.modules.restapi.core.exception.InvalidAuthenticationException;
 import com.constellio.app.modules.restapi.core.exception.mapper.RestApiErrorResponse;
 import com.constellio.app.modules.restapi.core.util.HashingUtils;
-import com.constellio.app.modules.restapi.user.dto.UserSignatureDto;
+import com.constellio.app.modules.restapi.user.dto.UserCredentialsContentDto;
 import com.constellio.app.modules.restapi.user.exception.SignatureInvalidContentException;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredTokenException;
 import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserRestfulServicePOSTSignatureAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
 
-	private UserSignatureDto signatureToAdd;
+	private UserCredentialsContentDto signatureToAdd;
 	private File fileToAdd, invalidFileToAdd;
 	private String expectedFilename;
 	private String expectedMimeType;
@@ -51,11 +51,11 @@ public class UserRestfulServicePOSTSignatureAcceptanceTest extends BaseRestfulSe
 
 		contentManager = getModelLayerFactory().getContentManager();
 
-		webTarget = newWebTarget("v1/user/signature", new ObjectMapper());
+		webTarget = newWebTarget("v1/user/credentials/signature", new ObjectMapper());
 
 		fileToAdd = getTestResourceFile("imageTestFile.png");
 		invalidFileToAdd = getTestResourceFile("docTestFile.docx");
-		signatureToAdd = UserSignatureDto.builder().filename(fileToAdd.getName()).build();
+		signatureToAdd = UserCredentialsContentDto.builder().filename(fileToAdd.getName()).build();
 
 		FileInputStream fileStream = new FileInputStream(fileToAdd);
 		byte[] fileData = new byte[fileStream.available()];
@@ -79,7 +79,7 @@ public class UserRestfulServicePOSTSignatureAcceptanceTest extends BaseRestfulSe
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 		assertThat(commitCounter.newCommitsCall()).hasSize(1);
 
-		UserCredential userCredentials = userServices.getUser(users.bobIn(zeCollection).getUsername());
+		UserCredential userCredentials = userServices.getUserConfigs(users.bobIn(zeCollection).getUsername());
 		Content content = userCredentials.getElectronicSignature();
 		ContentVersion contentVersion = content.getCurrentVersion();
 
@@ -236,7 +236,7 @@ public class UserRestfulServicePOSTSignatureAcceptanceTest extends BaseRestfulSe
 
 	@Test
 	public void whenCallingServiceWithMissingFilename() {
-		UserSignatureDto emptySignatureToAdd = UserSignatureDto.builder().build();
+		UserCredentialsContentDto emptySignatureToAdd = UserCredentialsContentDto.builder().build();
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token))
@@ -272,7 +272,7 @@ public class UserRestfulServicePOSTSignatureAcceptanceTest extends BaseRestfulSe
 		assertThat(error.getMessage()).isEqualTo(i18n.$(new SignatureInvalidContentException().getValidationError()));
 	}
 
-	private MultiPart buildMultiPart(UserSignatureDto userSignature, File file) {
+	private MultiPart buildMultiPart(UserCredentialsContentDto userSignature, File file) {
 		FormDataMultiPart multiPart = new FormDataMultiPart();
 		if (userSignature != null) {
 			multiPart.bodyPart(new FormDataBodyPart("userSignature", userSignature, APPLICATION_JSON_TYPE));

@@ -20,8 +20,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -170,13 +169,13 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 		List<String> groupCodes = new ArrayList<>();
 		UserServices userServices = modelLayerFactory.newUserServices();
 		PasswordFileAuthenticationService authenticationService = modelLayerFactory.getPasswordFileAuthenticationService();
-		for (GlobalGroup group : userPreparator.createGroups()) {
-			userServices.addUpdateGlobalGroup(group);
+		for (GroupAddUpdateRequest group : userPreparator.createGroups()) {
+			userServices.execute(group);
 			groupCodes.add(group.getCode());
 		}
 
-		for (UserCredential user : userPreparator.createUsers(groupCodes)) {
-			userServices.addUpdateUserCredential(user);
+		for (com.constellio.model.services.users.UserAddUpdateRequest user : userPreparator.createUsers(groupCodes)) {
+			userServices.execute(user);
 			authenticationService.changePassword(user.getUsername(), "password");
 
 		}

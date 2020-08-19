@@ -25,6 +25,7 @@ import com.constellio.model.entities.schemas.preparationSteps.ValidateCyclicRefe
 import com.constellio.model.entities.schemas.preparationSteps.ValidateMetadatasRecordPreparationStep;
 import com.constellio.model.entities.schemas.preparationSteps.ValidateUsingSchemaValidatorsRecordPreparationStep;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
+import com.constellio.model.extensions.behaviors.SchemaExtension.SchemaInCreationBeforeSaveEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaComparators;
@@ -184,7 +185,8 @@ public class MetadataSchemaBuilder {
 		return labels;
 	}
 
-	static MetadataSchemaBuilder createDefaultSchema(MetadataSchemaTypeBuilder schemaTypeBuilder,
+	static MetadataSchemaBuilder createDefaultSchema(ModelLayerFactory modelLayerFactory,
+													 MetadataSchemaTypeBuilder schemaTypeBuilder,
 													 MetadataSchemaTypesBuilder schemaTypesBuilder,
 													 boolean initialize) {
 		MetadataSchemaBuilder builder = new MetadataSchemaBuilder();
@@ -199,6 +201,15 @@ public class MetadataSchemaBuilder {
 		builder.schemaValidators = new ClassListBuilder<>(builder.classProvider, RecordValidator.class);
 		if (initialize) {
 			new CommonMetadataBuilder().addCommonMetadataToNewSchema(builder, schemaTypesBuilder);
+
+			if (modelLayerFactory.getExtensions() != null) {
+				modelLayerFactory.getExtensions().forCollection(schemaTypeBuilder.getCollection())
+						.schemaExtensions.getExtensions().forEach(extension -> {
+					extension.schemaInCreationBeforeSave(
+							new SchemaInCreationBeforeSaveEvent(builder, schemaTypesBuilder.getLanguages()));
+
+				});
+			}
 		}
 		return builder;
 	}
@@ -347,6 +358,7 @@ public class MetadataSchemaBuilder {
 	public MetadataBuilder createUndeletable(String code) {
 		return this.create(code).setUndeletable(true);
 	}
+
 
 	public MetadataBuilder createIfInexisting(String code, Consumer<MetadataBuilder> metadataConsumer) {
 		if (!hasMetadata(code)) {

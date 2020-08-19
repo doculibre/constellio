@@ -17,6 +17,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -28,8 +29,16 @@ public class CollectionGroupViewImpl extends BaseViewImpl implements CollectionG
 	private final CollectionGroupPresenter presenter;
 	private RecordVO group;
 
+	Button roles, authorizations, delete;
+
+
 	public CollectionGroupViewImpl() {
 		presenter = new CollectionGroupPresenter(this);
+	}
+
+	public CollectionGroupViewImpl(ViewChangeEvent event) {
+		presenter = new CollectionGroupPresenter(this);
+		this.buildMainComponent(event);
 	}
 
 	@Override
@@ -47,7 +56,7 @@ public class CollectionGroupViewImpl extends BaseViewImpl implements CollectionG
 		List<Button> buttons = super.buildActionMenuButtons(event);
 
 		if (presenter.isRMModuleEnabled()) {
-			Button authorizations = new AuthorizationsButton(false) {
+			authorizations = new AuthorizationsButton(false) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					presenter.authorizationsButtonClicked();
@@ -56,7 +65,7 @@ public class CollectionGroupViewImpl extends BaseViewImpl implements CollectionG
 			buttons.add(authorizations);
 		}
 
-		Button roles = new RolesButton(false) {
+		roles = new RolesButton(false) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.rolesButtonClicked();
@@ -64,7 +73,7 @@ public class CollectionGroupViewImpl extends BaseViewImpl implements CollectionG
 		};
 		buttons.add(roles);
 
-		Button delete = new DeleteButton(false) {
+		delete = new DeleteButton(false) {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
 				String code = group.get(GROUP_CODE);
@@ -74,6 +83,25 @@ public class CollectionGroupViewImpl extends BaseViewImpl implements CollectionG
 		buttons.add(delete);
 
 		return buttons;
+	}
+
+	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		List<Button> quickActionMenuButtons = new ArrayList<>();
+
+		if (roles != null) {
+			quickActionMenuButtons.add(roles);
+		}
+		if (authorizations != null) {
+			quickActionMenuButtons.add(authorizations);
+		}
+
+		return quickActionMenuButtons;
+	}
+
+	@Override
+	protected boolean isActionMenuBar() {
+		return true;
 	}
 
 	@Override

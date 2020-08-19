@@ -8,6 +8,7 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -46,7 +47,7 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 		}
 	}
 
-	protected abstract void doGet(UserCredential user, HttpServletRequest req, HttpServletResponse resp)
+	protected abstract void doGet(SystemWideUserInfos user, HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException;
 
 	protected synchronized ConstellioFactories getConstellioFactories() {
@@ -99,9 +100,9 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 	}
 
 	@NotNull
-	protected UserCredential authenticate(HttpServletRequest request) {
+	protected SystemWideUserInfos authenticate(HttpServletRequest request) {
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory());
-		UserCredential user = authenticator.authenticate(request);
+		SystemWideUserInfos user = authenticator.authenticate(request);
 		if (user == null) {
 			throw new isNotAuthenticatedException();
 		}
@@ -117,7 +118,7 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 		return getConstellioFactories().getAppLayerFactory();
 	}
 
-	protected QueryResponse getQueryResponse(String core, ModifiableSolrParams solrParams, UserCredential user) {
+	protected QueryResponse getQueryResponse(String core, ModifiableSolrParams solrParams, SystemWideUserInfos user) {
 		FreeTextSearchServices freeTextSearchServices = modelLayerFactory().newFreeTextSearchServices();
 		return freeTextSearchServices.search(core, new FreeTextQuery(solrParams).filteredByUser(user));
 	}

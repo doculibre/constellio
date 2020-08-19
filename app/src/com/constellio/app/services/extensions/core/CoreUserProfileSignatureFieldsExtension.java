@@ -5,7 +5,7 @@ import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
-import com.constellio.app.ui.framework.components.fields.SignatureRecordField;
+import com.constellio.app.ui.framework.components.fields.ExtraTabAdditionalRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.app.ui.pages.profile.ModifyProfileView;
 import com.constellio.app.ui.util.MessageUtils;
@@ -42,12 +42,12 @@ public class CoreUserProfileSignatureFieldsExtension extends PagesComponentsExte
 	}
 
 	@Override
-	public List<SignatureRecordField> getSignatureFields(RecordFieldsExtensionParams params) {
-		ArrayList<SignatureRecordField> signatureFields = new ArrayList<>();
+	public List<ExtraTabAdditionalRecordField> getExtraTabAdditionalRecordFields(RecordFieldsExtensionParams params) {
+		ArrayList<ExtraTabAdditionalRecordField> signatureFields = new ArrayList<>();
 		if (params.getMainComponent() instanceof ModifyProfileView) {
-			SignatureRecordField electronicSignatureField =
+			ExtraTabAdditionalRecordField electronicSignatureField =
 					buildElectronicSignatureField(params, getUserCredentialMetadata(UserCredential.ELECTRONIC_SIGNATURE));
-			SignatureRecordField electronicInitialsField =
+			ExtraTabAdditionalRecordField electronicInitialsField =
 					buildElectronicSignatureField(params, getUserCredentialMetadata(UserCredential.ELECTRONIC_INITIALS));
 			signatureFields.addAll(asList(electronicSignatureField, electronicInitialsField));
 		}
@@ -60,9 +60,11 @@ public class CoreUserProfileSignatureFieldsExtension extends PagesComponentsExte
 		return userCredentialSchema.getMetadata(localCode);
 	}
 
-	private SignatureRecordField buildElectronicSignatureField(RecordFieldsExtensionParams params, Metadata metadata) {
+	private ExtraTabAdditionalRecordField buildElectronicSignatureField(RecordFieldsExtensionParams params,
+																		Metadata metadata) {
 		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
-		UserCredential userCredentials = appLayerFactory.getModelLayerFactory().newUserServices().getUser(user.getUsername());
+		//OK
+		UserCredential userCredentials = appLayerFactory.getModelLayerFactory().newUserServices().getUserConfigs(user.getUsername());
 		Language language = Language.withCode(params.getMainComponent().getSessionContext().getCurrentLocale().getLanguage());
 
 		ElectronicSignatureField field = new ElectronicSignatureField(user, userCredentials.getId(), metadata, language);
@@ -89,7 +91,7 @@ public class CoreUserProfileSignatureFieldsExtension extends PagesComponentsExte
 		return field;
 	}
 
-	private class ElectronicSignatureField extends ContentVersionUploadField implements SignatureRecordField<Object> {
+	private class ElectronicSignatureField extends ContentVersionUploadField implements ExtraTabAdditionalRecordField<Object> {
 		private final static String CHANGE_SIGNATURE_STREAM = "ElectronicSignatureField_Change_";
 
 		private User user;
@@ -102,6 +104,11 @@ public class CoreUserProfileSignatureFieldsExtension extends PagesComponentsExte
 			this.metadata = metadata;
 
 			setCaption(metadata.getLabel(language));
+		}
+
+		@Override
+		public String getTab() {
+			return $("ModifyProfileView.signatureTab");
 		}
 
 		@Override
