@@ -53,11 +53,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.SearchEventServices;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -117,7 +114,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private boolean refreshSelectionPanel;
 	private Map<String, String> deselectedRecordsWithSchema;
 
-	private Map<String, Set<String>> metadataAllowedInCriteria = new HashMap<>();
+	//private Map<String, Set<String>> metadataAllowedInCriteria = new HashMap<>();
 	private Map<String, Set<String>> copiedMetadataAllowedInCriteria = new HashMap<>();
 	private Map<String, Map<String, Set<String>>> metadataAllowedInCriteria = new HashMap<>();
 
@@ -365,7 +362,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 	@Override
 	public boolean isSeparateCopiedMetadata() {
-//		return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SHOW_COPIED_METADATA_SEPARATELY_IN_SEARCH);
+		//		return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SHOW_COPIED_METADATA_SEPARATELY_IN_SEARCH);
 		return false;
 	}
 

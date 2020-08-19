@@ -255,7 +255,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 				.getSchemaType(schemaTypeCode).getSchema(schemaCode);
 		Metadata metadata = schema.getMetadata(refMetadataCode);
 		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
-		String typeCode = metadata.getReferencedSchemaType();
+		String typeCode = metadata.getReferencedSchemaTypeCode();
 		return metadata.getLabel(language) + " (" + getMetadataTypesCaption(typeCode) + ")";
 	}
 
@@ -265,7 +265,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		}
 
 		MetadataSchema schema = types.getSchemaType(schemaTypeCode).getSchema(schemaCode);
-		String typeCode = schema.getMetadata(dataEntryReference).getReferencedSchemaType();
+		String typeCode = schema.getMetadata(dataEntryReference).getReferencedSchemaTypeCode();
 
 		MetadataSchema referenceSchema = types.getSchemaType(typeCode).getDefaultSchema();
 		List<String> codes = new ArrayList<>();
@@ -286,7 +286,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public String getSourceMetadataCaption(String dataEntryReference, String dataEntrySource) {
 		MetadataSchema schema = types.getSchemaType(schemaTypeCode).getSchema(schemaCode);
-		String typeCode = schema.getMetadata(dataEntryReference).getReferencedSchemaType();
+		String typeCode = schema.getMetadata(dataEntryReference).getReferencedSchemaTypeCode();
 
 		MetadataSchema referenceSchema = types.getSchemaType(typeCode).getDefaultSchema();
 		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
@@ -299,7 +299,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		}
 
 		MetadataSchema schema = types.getSchemaType(schemaTypeCode).getSchema(schemaCode);
-		String typeCode = schema.getMetadata(dataEntryReference).getReferencedSchemaType();
+		String typeCode = schema.getMetadata(dataEntryReference).getReferencedSchemaTypeCode();
 
 		MetadataSchema referenceSchema = types.getSchemaType(typeCode).getDefaultSchema();
 		return referenceSchema.getMetadata(dataEntrySource);
@@ -417,7 +417,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 				MetadataBuilder refMetadata = destinationDefaultSchema.getMetadata(formMetadataVO.getDataEntryReference());
 
 				MetadataSchema schema = this.types.getSchemaType(schemaTypeCode).getSchema(schemaCode);
-				String typeCode = schema.getMetadata(formMetadataVO.getDataEntryReference()).getReferencedSchemaType();
+				String typeCode = schema.getMetadata(formMetadataVO.getDataEntryReference()).getReferencedSchemaTypeCode();
 				MetadataSchemaBuilder sourceDefaultSchema = types.getSchemaType(typeCode).getDefaultSchema();
 				MetadataBuilder sourceMetadata = sourceDefaultSchema.getMetadata(formMetadataVO.getDataEntrySource());
 
@@ -428,7 +428,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			}
 
 			code = schemaCode + "_" + "USR" + formMetadataVO.getLocalcode();
-			saveButtonClicked(formMetadataVO, editMode, schemaCode, schemasManager, types, code, reindexRequired, false, false, builder);
+			saveButtonClicked(formMetadataVO, editMode, schemaCode, schemasManager, types, code, reindexRequired, false, builder);
 		} else {
 			builder = types.getSchema(schemaCode).get(formMetadataVO.getCode());
 			code = formMetadataVO.getCode();
