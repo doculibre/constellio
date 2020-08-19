@@ -360,17 +360,20 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 
 	public void preSaveButtonClicked(final FormMetadataVO formMetadataVO, final boolean editMode) {
+		final MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		final MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
+
 		if (isCreatingANewMetadata(editMode)) {
 			//			if(isTheSameAsAnotherMetadata(formMetadataVO)){
-			//				handleDuplicatedMetadataCreation(formMetadataVO);
+			//				handleDuplicatedMetadataCreation(schemasManager, types, formMetadataVO);
 			//			}
 			//			else{
-			//				createMetadataFromForm(formMetadataVO);
+			//				createMetadataFromForm(schemasManager, types, formMetadataVO);
 			//			}
 
-			createMetadataFromForm(formMetadataVO);
+			createMetadataFromForm(schemasManager, types, formMetadataVO);
 		} else {
-			editMetadataFromForm(formMetadataVO);
+			editMetadataFromForm(schemasManager, types, formMetadataVO);
 		}
 	}
 
@@ -484,7 +487,11 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		view.navigate().to().listSchemaMetadata(params);
 	}
 
-	private void handleDuplicatedMetadataCreation(FormMetadataVO formMetadataVO) {
+	private void handleDuplicatedMetadataCreation(
+			final MetadataSchemasManager schemasManager,
+			final MetadataSchemaTypesBuilder types,
+			final FormMetadataVO formMetadataVO) {
+
 		view.showConfirmDialog(ConfirmDialogProperties.builder()
 				.title("Métadonnées dupliquée")
 				.message("Des métadonnées ont été dupliquées")
@@ -494,23 +501,41 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 				.onCloseListener(confirmDialogResults -> {
 					switch (confirmDialogResults) {
 						case OK:
-							int a = 1;
+							MoveDuplicatedMetadataToDefaultSchemaThenActivateForCustomSchemas(types, "USR" + formMetadataVO.getLocalcode());
+							formMetadataVO.setLocalcode("USR" + formMetadataVO);
+
+							editMetadataFromForm(schemasManager, types, formMetadataVO);
 							break;
 						case CANCEL:
 							//Do nothing. Stays in the form
 							break;
 						case NOT_OK:
-							createMetadataFromForm(formMetadataVO);
+							createMetadataFromForm(schemasManager, types, formMetadataVO);
 							break;
 					}
 
 				}).build());
 	}
 
-	private void createMetadataFromForm(final FormMetadataVO formMetadataVO) {
+	private void MoveDuplicatedMetadataToDefaultSchemaThenActivateForCustomSchemas(
+			final MetadataSchemaTypesBuilder types,
+			final String localCode) {
+
+
+		Metadata metadataToMove = getAllCurrentSchemaTypeMetadatasAsStream()
+				.filter(metadata -> metadata.getLocalCode().equals(localCode))
+				.findAny().get();
+
+		types.getSchema(metadataToMove.getSchemaCode())
+				.getMetadata(metadataToMove.getCode())
+				.moveToDefaultSchemas();
+	}
+
+	private void createMetadataFromForm(final MetadataSchemasManager schemasManager,
+										final MetadataSchemaTypesBuilder types,
+										final FormMetadataVO formMetadataVO) {
+
 		final String schemaCode = getSchemaCode();
-		final MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-		final MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
 		final MetadataBuilder builder;
 		final MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder;
 		final String code;
@@ -573,13 +598,16 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		saveButtonClicked(formMetadataVO, false, schemaCode, schemasManager, types, code, reindexRequired, false, builder);
 	}
 
-	private void editMetadataFromForm(final FormMetadataVO formMetadataVO) {
+
+	private void editMetadataFromForm(MetadataSchemasManager schemasManager,
+									  MetadataSchemaTypesBuilder types,
+									  final FormMetadataVO formMetadataVO) {
+
 		final String schemaCode = getSchemaCode();
-		final MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-		final MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
+		final MetadataBuilder builder;
+
 		final String code;
 		boolean isSaveButtonClicked = false;
-		final MetadataBuilder builder;
 
 		builder = types.getSchema(schemaCode).get(formMetadataVO.getCode());
 		code = formMetadataVO.getCode();
