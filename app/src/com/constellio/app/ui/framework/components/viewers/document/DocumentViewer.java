@@ -221,7 +221,7 @@ public class DocumentViewer extends CustomComponent {
 						}
 					});
 				}
-				
+
 				String viewerUrl;
 				if (recordVO != null) {
 					Record record = presenterService.getRecord(recordVO.getId());

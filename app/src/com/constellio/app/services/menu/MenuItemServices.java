@@ -1,7 +1,12 @@
 package com.constellio.app.services.menu;
 
 import com.constellio.app.extensions.menu.MenuItemActionsExtension;
-import com.constellio.app.extensions.menu.MenuItemActionsExtension.*;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionAddMenuItemActionsForQueryParams;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionAddMenuItemActionsForRecordParams;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionAddMenuItemActionsForRecordsParams;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetActionStateForQueryParams;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetActionStateForRecordParams;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetActionStateForRecordsParams;
 import com.constellio.app.modules.rm.ui.pages.userDocuments.ListUserDocumentsViewImpl;
 import com.constellio.app.services.action.UserDocumentActionsServices;
 import com.constellio.app.services.action.UserFolderActionsServices;
@@ -30,7 +35,9 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.*;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.DISABLED;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.services.menu.MenuItemServices.RecordsMenuItemActionType.CLASSIFY;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.vaadin.server.FontAwesome.FOLDER_O;

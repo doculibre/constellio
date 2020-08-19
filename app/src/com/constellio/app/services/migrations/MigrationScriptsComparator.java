@@ -1,5 +1,6 @@
 package com.constellio.app.services.migrations;
 
+import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.Migration;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.modules.PluginUtil;
@@ -27,6 +28,15 @@ public class MigrationScriptsComparator implements Comparator<Migration> {
 	public int compare(Migration migration1, Migration migration2) {
 		String migration1Version = migration1.getVersion();
 		String migration2Version = migration2.getVersion();
+
+		if (migration1.getScript() instanceof ComboMigrationScript) {
+			migration1Version = "1.0";
+		}
+
+		if (migration2.getScript() instanceof ComboMigrationScript) {
+			migration2Version = "1.0";
+		}
+
 		int result = versionsComparator.compare(migration1Version, migration2Version);
 		if (result == 0) {
 			Integer script1ModuleIndex = modulesInDependencyOrder.indexOf(migration1.getModuleId());

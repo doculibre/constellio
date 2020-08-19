@@ -45,12 +45,20 @@ public class LookupRecordField extends LookupField<String> {
 	}
 
 	public LookupRecordField(String schemaTypeCode, String schemaCode) {
-		this(schemaTypeCode, schemaCode, false);
+		this(schemaTypeCode, schemaCode, false, (List<String>) null);
+	}
+
+	public LookupRecordField(String schemaTypeCode, String schemaCode, List<String> idsToIgnore) {
+		this(schemaTypeCode, schemaCode, false, idsToIgnore);
 	}
 
 	public LookupRecordField(String schemaTypeCode, boolean writeAccess,
 							 RecordTextInputDataProvider recordTextInputDataProvider) {
 		this(schemaTypeCode, null, writeAccess, recordTextInputDataProvider);
+	}
+
+	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess) {
+		this(schemaTypeCode, schemaCode, writeAccess, (List<String>) null);
 	}
 
 	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess,
@@ -59,21 +67,22 @@ public class LookupRecordField extends LookupField<String> {
 	}
 
 	public LookupRecordField(String schemaTypeCode, boolean writeAccess) {
-		this(schemaTypeCode, null, writeAccess, true, true, false);
+		this(schemaTypeCode, null, writeAccess, true, true, false, null);
 	}
 
 	public LookupRecordField(String schemaTypeCode, boolean writeAccess, boolean isShowAllIfHasAccessToManageSecurity) {
-		this(schemaTypeCode, null, writeAccess, true, isShowAllIfHasAccessToManageSecurity, false);
+		this(schemaTypeCode, null, writeAccess, true, isShowAllIfHasAccessToManageSecurity, false, null);
 	}
 
-	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess) {
-		this(schemaTypeCode, schemaCode, writeAccess, true, true, false);
+	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess, List<String> idsToIgnore) {
+		this(schemaTypeCode, schemaCode, writeAccess, true, true, false, idsToIgnore);
 	}
 
 
 	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess, boolean showDeactivated,
-							 boolean isShowAllIfHasAccessToManageSecurity, boolean includeLogicallyDeleted) {
-		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess, showDeactivated, false, includeLogicallyDeleted),
+							 boolean isShowAllIfHasAccessToManageSecurity, boolean includeLogicallyDeleted,
+							 List<String> idsToIgnore) {
+		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess, showDeactivated, false, includeLogicallyDeleted).addIdToToIgnore(idsToIgnore),
 				getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess, isShowAllIfHasAccessToManageSecurity));
 		this.isShowDeactivated = showDeactivated;
 		setItemConverter(new TaxonomyRecordIdToContextCaptionConverter());

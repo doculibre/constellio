@@ -27,6 +27,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class TrashRecordsTable extends SelectionTableAdapter {
 
 	private static final Resource RELATED_RESOURCE = new ThemeResource("images/commun/warning.png");
+	public static final String TRASH_BUTTONS = "buttons";
+
 	private final TrashPresenter presenter;
 	private final RecordVODataProvider dataProvider;
 
@@ -50,12 +52,22 @@ public class TrashRecordsTable extends SelectionTableAdapter {
 			}
 
 			@Override
+			public boolean isSelectColumn() {
+				return true;
+			}
+
+			@Override
+			public boolean isButtonsColumn() {
+				return true;
+			}
+
+			@Override
 			public boolean isContextMenuPossible() {
 				return false;
 			}
 		};
 
-		ButtonsContainer<?> dataSource = new ButtonsContainer(new RecordVOLazyContainer(dataProvider), "buttons");
+		ButtonsContainer<?> dataSource = new ButtonsContainer(new RecordVOLazyContainer(dataProvider), TRASH_BUTTONS);
 		table.setColumnCollapsingAllowed(true);
 		table.setContainerDataSource(dataSource);
 
@@ -96,7 +108,7 @@ public class TrashRecordsTable extends SelectionTableAdapter {
 		table.setPageLength(Math.min(15, dataProvider.size()));
 		table.setSizeFull();
 
-		table.setColumnHeader("buttons", "");
+		table.setColumnHeader(TRASH_BUTTONS, "");
 		table.setCellStyleGenerator(new TrashStyleGenerator());
 		setTable(table);
 	}

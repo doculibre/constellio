@@ -1,7 +1,7 @@
 package com.constellio.model.services.records.cache.cacheIndexHook.impl;
 
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.dao.dto.records.RecordId;
+import com.constellio.data.utils.dev.Toggle;
 
 public class TaxonomyRecordsHookKey {
 

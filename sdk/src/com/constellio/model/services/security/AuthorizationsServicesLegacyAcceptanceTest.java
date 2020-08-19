@@ -6,7 +6,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.After;
 import org.junit.Test;
 

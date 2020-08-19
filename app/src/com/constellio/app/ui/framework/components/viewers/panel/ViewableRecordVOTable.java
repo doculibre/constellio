@@ -103,7 +103,7 @@ public class ViewableRecordVOTable extends RecordVOTable {
 			manageColumns(getTableId());
 			//			refreshRenderedCells();
 			refreshRowCache();
-			adjustHeight();
+			//adjustHeight();
 		}
 	}
 

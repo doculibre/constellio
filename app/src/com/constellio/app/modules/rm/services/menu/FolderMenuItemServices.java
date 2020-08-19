@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_ADD_AUTHORIZATION;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_ADD_DOCUMENT;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_ADD_SUBFOLDER;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_ADD_TO_CART;
@@ -39,6 +38,7 @@ import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_SHARE;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_TRIGGER_MANAGEMENT;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_UNSHARE;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_VIEW_OR_MANAGE_AUTHORIZATION;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -121,9 +121,9 @@ public class FolderMenuItemServices {
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).copy(folder, params)));
 		}
 
-		if (!filteredActionTypes.contains(FOLDER_ADD_AUTHORIZATION.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_AUTHORIZATION.name(),
-					isMenuItemActionPossible(FOLDER_ADD_AUTHORIZATION.name(), folder, user, params),
+		if (!filteredActionTypes.contains(FOLDER_VIEW_OR_MANAGE_AUTHORIZATION.name())) {
+			menuItemActions.add(buildMenuItemAction(FOLDER_VIEW_OR_MANAGE_AUTHORIZATION.name(),
+					isMenuItemActionPossible(FOLDER_VIEW_OR_MANAGE_AUTHORIZATION.name(), folder, user, params),
 					$("DisplayFolderView.addAuthorization"), null, -1, 800,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addAuthorization(folder, params)));
 		}
@@ -220,12 +220,12 @@ public class FolderMenuItemServices {
 		}
 
 
-//		if (!filteredActionTypes.contains(FOLDER_LIST_EXTERNAL_LINKS.name())) {
-//			menuItemActions.add(buildMenuItemAction(FOLDER_LIST_EXTERNAL_LINKS.name(),
-//					isMenuItemActionPossible(FOLDER_LIST_EXTERNAL_LINKS.name(), folder, user, params),
-//					$("DisplayFolderView.externalLink"), FontAwesome.CLOUD, -1, 1900,
-//					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).listExternalLinks(folder, params)));
-//		}
+		//		if (!filteredActionTypes.contains(FOLDER_LIST_EXTERNAL_LINKS.name())) {
+		//			menuItemActions.add(buildMenuItemAction(FOLDER_LIST_EXTERNAL_LINKS.name(),
+		//					isMenuItemActionPossible(FOLDER_LIST_EXTERNAL_LINKS.name(), folder, user, params),
+		//					$("DisplayFolderView.externalLink"), FontAwesome.CLOUD, -1, 1900,
+		//					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).listExternalLinks(folder, params)));
+		//		}
 
 		if (!filteredActionTypes.contains(FOLDER_CREATE_TASK.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_CREATE_TASK.name(),
@@ -258,8 +258,8 @@ public class FolderMenuItemServices {
 				return folderRecordActionsServices.isDeleteActionPossible(record, user);
 			case FOLDER_COPY:
 				return folderRecordActionsServices.isCopyActionPossible(record, user);
-			case FOLDER_ADD_AUTHORIZATION:
-				return folderRecordActionsServices.isAddAuthorizationActionPossible(record, user);
+			case FOLDER_VIEW_OR_MANAGE_AUTHORIZATION:
+				return folderRecordActionsServices.isViewOrAddAuthorizationActionPossible(record, user);
 			case FOLDER_SHARE:
 				return folderRecordActionsServices.isShareActionPossible(record, user);
 			case FOLDER_UNSHARE:
@@ -322,7 +322,7 @@ public class FolderMenuItemServices {
 		FOLDER_EDIT,
 		FOLDER_DELETE,
 		FOLDER_COPY,
-		FOLDER_ADD_AUTHORIZATION,
+		FOLDER_VIEW_OR_MANAGE_AUTHORIZATION,
 		FOLDER_SHARE,
 		FOLDER_UNSHARE,
 		FOLDER_ADD_TO_CART,

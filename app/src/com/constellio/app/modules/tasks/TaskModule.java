@@ -54,6 +54,7 @@ import com.constellio.app.modules.tasks.migrations.TasksMigrationTo9_0_4;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo9_1;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo9_1_0_1;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo9_1_0_2;
+import com.constellio.app.modules.tasks.migrations.TasksMigrationTo9_1_0_3;
 import com.constellio.app.modules.tasks.model.TaskRecordsCachesHook;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
@@ -69,7 +70,7 @@ import java.util.Map;
 
 import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
-import static org.joda.time.Duration.standardHours;
+import static org.joda.time.Duration.standardMinutes;
 
 public class TaskModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "tasks";
@@ -108,6 +109,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		scripts.add(new TasksMigrationTo9_1());
 		scripts.add(new TasksMigrationTo9_1_0_1());
 		scripts.add(new TasksMigrationTo9_1_0_2());
+		scripts.add(new TasksMigrationTo9_1_0_3());
 		//		scripts.add(new TasksMigrationTo_8_3_1_1());
 
 		return scripts;
@@ -131,7 +133,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 				.getModelLayerBackgroundThreadsManager();
 		manager.configureBackgroundThreadConfiguration(repeatingAction("alertOverdueTasksBackgroundAction-" + collection,
 				new AlertOverdueTasksBackgroundAction(appLayerFactory, collection))
-				.executedEvery(standardHours(2)).handlingExceptionWith(CONTINUE));
+				.executedEvery(standardMinutes(15)).handlingExceptionWith(CONTINUE));
 	}
 
 	private void setupAppLayerSystemExtensions(AppLayerFactory appLayerFactory) {

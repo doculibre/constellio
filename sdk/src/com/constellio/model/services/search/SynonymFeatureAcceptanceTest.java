@@ -7,7 +7,6 @@ import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.SolrSafeConstellioAcceptanceTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Test;
 
 import java.util.List;

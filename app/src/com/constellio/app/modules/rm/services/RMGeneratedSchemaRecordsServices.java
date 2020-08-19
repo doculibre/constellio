@@ -1206,6 +1206,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("contentHashes");
 		}
 
+		public Metadata isCheckoutAlertSent() {
+			return metadata("isCheckoutAlertSent");
+		}
+
 		public Metadata copyStatus() {
 			return metadata("copyStatus");
 		}
@@ -1256,10 +1260,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata inheritedRetentionRule() {
 			return metadata("inheritedRetentionRule");
-		}
-
-		public Metadata isCheckoutAlertSent() {
-			return metadata("isCheckoutAlertSent");
 		}
 
 		public Metadata isModel() {
@@ -1554,6 +1554,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_externalLink_default externalLink
 			= new SchemaTypeShortcuts_externalLink_default("externalLink_default");
+
 	public class SchemaTypeShortcuts_externalLink_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_externalLink_default(String schemaCode) {
 			super(schemaCode);
@@ -1571,6 +1572,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("typeCode");
 		}
 	}
+
 	public ExternalLinkType wrapExternalLinkType(Record record) {
 		return record == null ? null : new ExternalLinkType(record, getTypes());
 	}
@@ -1628,6 +1630,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_externalLinkType_default externalLinkType
 			= new SchemaTypeShortcuts_externalLinkType_default("externalLinkType_default");
+
 	public class SchemaTypeShortcuts_externalLinkType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_externalLinkType_default(String schemaCode) {
 			super(schemaCode);
@@ -2533,6 +2536,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("user");
 		}
 	}
+
 	public Trigger wrapTrigger(Record record) {
 		return record == null ? null : new Trigger(record, getTypes());
 	}
@@ -2802,6 +2806,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_triggerActionType_default triggerActionType
 			= new SchemaTypeShortcuts_triggerActionType_default("triggerActionType_default");
+
 	public class SchemaTypeShortcuts_triggerActionType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_triggerActionType_default(String schemaCode) {
 			super(schemaCode);
@@ -2819,6 +2824,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("title");
 		}
 	}
+
 	public TriggerType wrapTriggerType(Record record) {
 		return record == null ? null : new TriggerType(record, getTypes());
 	}
@@ -2876,6 +2882,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_triggerType_default triggerType
 			= new SchemaTypeShortcuts_triggerType_default("triggerType_default");
+
 	public class SchemaTypeShortcuts_triggerType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_triggerType_default(String schemaCode) {
 			super(schemaCode);

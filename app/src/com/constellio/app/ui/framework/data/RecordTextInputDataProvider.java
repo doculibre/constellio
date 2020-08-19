@@ -52,6 +52,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 	protected boolean includeDeactivated;
 	protected boolean includeLogicallyDeleted;
 	protected ConverterWithCache<String, String> converterWithCache;
+	protected List<String> idsToIgnore;
 
 	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
 									   String schemaTypeCode, boolean writeAccess) {
@@ -88,6 +89,15 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 		this.includeDeactivated = includeDeactivated;
 		this.onlyLinkables = onlyLinkables;
 		this.includeLogicallyDeleted = includeLogicallyDeleted;
+		this.idsToIgnore = new ArrayList<>();
+	}
+
+	public RecordTextInputDataProvider addIdToToIgnore(List<String> idToIgnore) {
+		if (idToIgnore != null) {
+			this.idsToIgnore.addAll(idToIgnore);
+		}
+
+		return this;
 	}
 
 	public RecordTextInputDataProvider setConverterWithCache(
@@ -173,6 +183,14 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 		return modelLayerFactory.newSearchServices().query(query.setName("Autocomplete"));
 	}
 
+	LogicalSearchCondition addIgnoreIdsToCondition(LogicalSearchCondition condition) {
+		if (idsToIgnore != null && idsToIgnore.size() > 0) {
+			return condition.andWhere(Schemas.IDENTIFIER).isNotIn(idsToIgnore);
+		} else {
+			return condition;
+		}
+	}
+
 	public LogicalSearchQuery getQuery(User user, String text, int startIndex, int count) {
 		LogicalSearchCondition condition;
 
@@ -212,6 +230,8 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 		if (onlyLinkables) {
 			condition = condition.andWhere(Schemas.LINKABLE).isTrueOrNull();
 		}
+
+		condition = addIgnoreIdsToCondition(condition);
 
 		LogicalSearchQuery query = new LogicalSearchQuery(condition)
 				.setPreferAnalyzedFields(true)

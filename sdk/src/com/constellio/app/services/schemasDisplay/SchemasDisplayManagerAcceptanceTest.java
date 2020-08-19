@@ -885,7 +885,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenMetadataWhenWithAddedHelpMessageThenMessageConserved()
-		throws Exception {
+			throws Exception {
 
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(zeCollection);
 		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType("myType");

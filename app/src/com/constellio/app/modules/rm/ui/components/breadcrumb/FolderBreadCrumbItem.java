@@ -55,7 +55,6 @@ public class FolderBreadCrumbItem implements BreadcrumbItem {
 	}
 
 
-
 	public Boolean getForcedEnabled() {
 		return forceEnableBaseItem;
 	}

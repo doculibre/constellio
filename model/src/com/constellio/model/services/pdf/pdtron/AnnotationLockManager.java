@@ -107,11 +107,13 @@ public class AnnotationLockManager {
 	public String getUserIdOfLock(String hash, String recordId, String version) {
 		XMLConfiguration xmlConfig = this.configManager.getXML(LOCK_XML_CONFIG_FILE);
 
-		Document xmlDocument = xmlConfig.getDocument();
+		if (xmlConfig != null) {
+			Document xmlDocument = xmlConfig.getDocument();
 
-		for (Element element : xmlDocument.getRootElement().getChildren()) {
-			if (isElementEqual(element, hash, recordId, version)) {
-				return element.getAttributeValue(USER_ID_ATTRIBUTE);
+			for (Element element : xmlDocument.getRootElement().getChildren()) {
+				if (isElementEqual(element, hash, recordId, version)) {
+					return element.getAttributeValue(USER_ID_ATTRIBUTE);
+				}
 			}
 		}
 

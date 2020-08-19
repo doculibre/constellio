@@ -164,8 +164,6 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration SHOW_RESULTS_NUMBERING_IN_LIST_VIEW;
 
-	public static final SystemConfiguration SHOW_PATH_TO_RESULT;
-
 	public static final SystemConfiguration ENABLE_LEARN_TO_RANK_FEATURE;
 
 	public static final SystemConfiguration NO_LINKS_IN_SEARCH_RESULTS;
@@ -251,7 +249,6 @@ public class ConstellioEIMConfigs {
 		add(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS = search.createBooleanFalseByDefault("replaceSpacesInSimpleSearchForAnds"));
 		add(IS_RUNNING_WITH_SOLR_6 = search.createBooleanFalseByDefault("isRunningWithSolr6").whichIsHidden());
 		add(SHOW_RESULTS_NUMBERING_IN_LIST_VIEW = search.createBooleanFalseByDefault("showResultsNumberingInListView"));
-		add(SHOW_PATH_TO_RESULT = search.createBooleanFalseByDefault("showPathToResult"));
 
 		add(AUTOCOMPLETE_SPLIT_CRITERIA = search.createEnum("autocompleteSplitCriteria", AutocompleteSplitCriteria.class)
 				.withDefaultValue(AutocompleteSplitCriteria.SPACE).withReIndexationRequired());
@@ -451,10 +448,6 @@ public class ConstellioEIMConfigs {
 
 	public Boolean isRemoveExtensionFromRecordTitle() {
 		return manager.getValue(REMOVE_EXTENSION_FROM_RECORD_TITLE);
-	}
-
-	public boolean isShowPathToResult() {
-		return manager.getValue(SHOW_PATH_TO_RESULT);
 	}
 
 	public boolean isSearchUsingTermsInBQ() {

@@ -10,7 +10,6 @@ import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;

@@ -24,10 +24,12 @@ public class TaskConfigs {
 	}
 
 	public static final SystemConfiguration DEFAULT_DUE_DATE;
+	public static final SystemConfiguration SHOW_COMMENTS;
 
 	static {
 		SystemConfigurationGroup task = new SystemConfigurationGroup(ID, "tasks");
 		add(DEFAULT_DUE_DATE = task.createInteger("defaultDueDate").withDefaultValue(0));
+		add(SHOW_COMMENTS = task.createBooleanFalseByDefault("showComments"));
 	}
 
 	public int getDefaultDueDate() {
