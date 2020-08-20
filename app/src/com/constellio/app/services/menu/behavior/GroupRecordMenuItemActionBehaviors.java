@@ -1,15 +1,14 @@
 package com.constellio.app.services.menu.behavior;
 
+import com.constellio.app.modules.rm.ui.buttons.AddRemoveUsersFromGroupsWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CollectionsSelectWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.DeleteGroupsWindowButton;
-import com.constellio.app.modules.rm.ui.buttons.UsersSelectWindowButton;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 
 import java.util.List;
@@ -39,23 +38,9 @@ public class GroupRecordMenuItemActionBehaviors {
 	}
 
 	public void addUserToGroup(List<Group> groupRecords, MenuItemActionBehaviorParams params) {
-		UsersSelectWindowButton button = new UsersSelectWindowButton(groupRecords, params) {
-			@Override
-			protected void saveButtonClick(BaseView baseView) {
-				List<String> userFieldsValue = this.getSelectedValues();
-				List<String> userCodeList = this.getCore().getUsers(userFieldsValue).stream().map(user -> user.getUsername()).collect(Collectors.toList());
-				List<String> groupCodeList = this.getRecords().stream().map(group -> group.getCode()).collect(Collectors.toList());
-
-				for (String username : userCodeList) {
-					UserAddUpdateRequest userAddUpdateRequest = userServices.addUpdate(username);
-					userAddUpdateRequest.addToGroupsInCollection(groupCodeList, collection);
-					userServices.execute(userAddUpdateRequest);
-				}
-				baseView.partialRefresh();
-				baseView.showMessage($("CollectionSecurityManagement.addedUsersToGroups"));
-			}
-		};
-		button.click();
+		AddRemoveUsersFromGroupsWindowButton addRemoveUsersFromGroupsWindowButton =
+				new AddRemoveUsersFromGroupsWindowButton(groupRecords, params, true);
+		addRemoveUsersFromGroupsWindowButton.click();
 	}
 
 	public void addToCollection(List<Group> groupRecords, MenuItemActionBehaviorParams params) {
@@ -88,25 +73,9 @@ public class GroupRecordMenuItemActionBehaviors {
 	}
 
 	public void removeUser(List<Group> groupRecords, MenuItemActionBehaviorParams params) {
-		UsersSelectWindowButton button = new UsersSelectWindowButton(groupRecords, params) {
-			@Override
-			protected void saveButtonClick(BaseView baseView) {
-				List<String> userFieldsValue = this.getSelectedValues();
-				List<String> userCodeList = this.getCore().getUsers(userFieldsValue).stream().map(user -> user.getUsername()).collect(Collectors.toList());
-				List<String> groupCodeList = this.getRecords().stream().map(group -> group.getCode()).collect(Collectors.toList());
-
-				for (String username : userCodeList) {
-					UserAddUpdateRequest userAddUpdateRequest = userServices.addUpdate(username);
-					for (String currentGroupCode : groupCodeList) {
-						userAddUpdateRequest.removeFromGroupOfCollection(currentGroupCode, collection);
-					}
-					userServices.execute(userAddUpdateRequest);
-				}
-				baseView.partialRefresh();
-				baseView.showMessage($("CollectionSecurityManagement.removedUsersToGroups"));
-			}
-		};
-		button.click();
+		AddRemoveUsersFromGroupsWindowButton addRemoveUsersFromGroupsWindowButton =
+				new AddRemoveUsersFromGroupsWindowButton(groupRecords, params, false);
+		addRemoveUsersFromGroupsWindowButton.click();
 	}
 
 	public void manageSecurity(Group group, MenuItemActionBehaviorParams params) {

@@ -45,10 +45,11 @@ public class DeleteGroupsWindowButton extends WindowButton {
 	@Override
 	protected Component buildWindowContent() {
 		VerticalLayout mainLayout = new VerticalLayout();
-		mainLayout.setHeight("90%");
+		mainLayout.setHeight("95%");
 		mainLayout.setSpacing(true);
 
-		this.collectionsField = new GroupCollectionSelectOptionField(appLayerFactory, groupRecords, $("CollectionSecurityManagement.deleteGroupsFromCollection", groups.size()));
+		this.collectionsField = new GroupCollectionSelectOptionField(appLayerFactory, groupRecords,
+				$("CollectionSecurityManagement.deleteGroupsFromCollection", groups.size()), true);
 		mainLayout.addComponent(collectionsField);
 		Button deleteUserButton = new DeleteButton(null, $("CollectionSecurityManagement.delete"), false) {
 			@Override

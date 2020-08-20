@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.buttons;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.components.user.UserSelectionAddRemoveFieldImpl;
+import com.constellio.app.modules.rm.ui.field.GroupCollectionSelectOptionField;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -12,16 +13,16 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
@@ -30,49 +31,39 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-public abstract class UsersSelectWindowButton extends WindowButton {
-
-	private SchemasRecordsServices core;
+public class AddRemoveUsersFromGroupsWindowButton extends WindowButton {
 	private MenuItemActionBehaviorParams params;
 	private AppLayerFactory appLayerFactory;
-	private RecordServices recordServices;
-	private UserServices userServices;
 	private String collection;
-	private List<Group> records;
+	private List<Group> groups;
+	private List<Record> groupRecords;
+	private boolean addMode;
+	private SchemasRecordsServices schemasRecordsServices;
+	private UserServices userServices;
 	private UserSelectionAddRemoveFieldImpl userFields;
+	private GroupCollectionSelectOptionField collectionsField;
 
-	public void addToGroup() {
-		click();
-	}
-
-	public UsersSelectWindowButton(List<Group> records, MenuItemActionBehaviorParams params) {
-		super($("CollectionSecurityManagement.addToGroups"), $("CollectionSecurityManagement.selectUsers"));
+	public AddRemoveUsersFromGroupsWindowButton(List<Group> groups, MenuItemActionBehaviorParams params,
+												boolean addMode) {
+		super(addMode ? $("CollectionSecurityManagement.addUserToGroups") : $("CollectionSecurityManagement.removeUserToGroups"),
+				addMode ? $("CollectionSecurityManagement.addUserToGroups") : $("CollectionSecurityManagement.removeUserToGroups"),
+				WindowConfiguration.modalDialog("50%", "75%"));
 
 		this.params = params;
 		this.appLayerFactory = params.getView().getConstellioFactories().getAppLayerFactory();
-		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-		this.userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 		this.collection = params.getView().getSessionContext().getCurrentCollection();
-		this.core = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
-		this.records = records;
-	}
+		this.groups = groups;
+		this.groupRecords = groups.stream().map(g -> g.getWrappedRecord()).collect(Collectors.toList());
+		this.addMode = addMode;
 
-	public SchemasRecordsServices getCore() {
-		return core;
-	}
-
-	public List<Group> getRecords() {
-		return records;
-	}
-
-	public List<String> getSelectedValues() {
-		return new ArrayList<>((java.util.Collection<? extends String>) userFields.getValue());
+		userServices = params.getView().getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newUserServices();
+		schemasRecordsServices = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 	}
 
 	@Override
@@ -85,20 +76,27 @@ public abstract class UsersSelectWindowButton extends WindowButton {
 		userSelectLayout.setSpacing(true);
 		userSelectLayout.setSizeFull();
 
-		userFields = buildUsersDisplayOrderField(records, params);
+		userFields = buildUsersDisplayOrderField(params);
+		userSelectLayout.addComponent(userFields);
+		mainLayout.addComponents(userSelectLayout);
+
+		collectionsField = new GroupCollectionSelectOptionField(appLayerFactory, groupRecords,
+				addMode ? $("CollectionSecurityManagement.addUserToGroupsInCollection", groups.size())
+						: $("CollectionSecurityManagement.removeUserFromGroupsInCollection", groups.size()), true);
+		mainLayout.addComponent(collectionsField);
 
 		BaseButton saveButton;
 		BaseButton cancelButton;
-		userSelectLayout.addComponent(userFields);
 		I18NHorizontalLayout buttonLayout = new I18NHorizontalLayout();
-		mainLayout.addComponents(userSelectLayout);
 
 		buttonLayout.addComponent(saveButton = new BaseButton($("save")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				try {
-					//getUserServices().addUsersToGroup();
-					saveButtonClick(params.getView());
+					addRemoveUsersFromGroupInCollection();
+					params.getView().navigate().to().collectionSecurityShowGroupFirst();
+					params.getView().showMessage(addMode ? $("CollectionSecurityManagement.addedUsersToGroups")
+														 : $("CollectionSecurityManagement.removedUsersToGroups"));
 					getWindow().close();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -117,16 +115,15 @@ public abstract class UsersSelectWindowButton extends WindowButton {
 
 		buttonLayout.setSpacing(true);
 		mainLayout.addComponent(buttonLayout);
-		mainLayout.setComponentAlignment(buttonLayout, Alignment.MIDDLE_CENTER);
-		mainLayout.setHeight("100%");
+		mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_CENTER);
+		mainLayout.setHeight("95%");
 		mainLayout.setWidth("100%");
 		mainLayout.setSpacing(true);
 
 		return mainLayout;
 	}
 
-	private UserSelectionAddRemoveFieldImpl buildUsersDisplayOrderField(List<Group> records,
-																		MenuItemActionBehaviorParams params) {
+	private UserSelectionAddRemoveFieldImpl buildUsersDisplayOrderField(MenuItemActionBehaviorParams params) {
 
 		RecordVODataProvider groupDataProvider = getUserDataProvider(params.getView().getSessionContext());
 
@@ -161,5 +158,35 @@ public abstract class UsersSelectWindowButton extends WindowButton {
 		return query;
 	}
 
-	protected abstract void saveButtonClick(BaseView baseView);
+	private void addRemoveUsersFromGroupInCollection() {
+		List<String> userFieldsValue = userFields.getValue();
+		List<String> userCodeList = schemasRecordsServices.getUsers(userFieldsValue).stream()
+				.map(user -> user.getUsername()).collect(Collectors.toList());
+		List<String> groupCodeList = groups.stream().map(group -> group.getCode()).collect(Collectors.toList());
+
+		List<String> collections = collectionsField.getSelectedValues();
+		for (String collection : collections) {
+			for (String username : userCodeList) {
+				if (addMode) {
+					addUsersToGroupInCollection(username, groupCodeList);
+				} else {
+					removeUsersFromGroupInCollection(username, groupCodeList);
+				}
+			}
+		}
+	}
+
+	private void addUsersToGroupInCollection(String username, List<String> groupCodeList) {
+		UserAddUpdateRequest userAddUpdateRequest = userServices.addUpdate(username);
+		userAddUpdateRequest.addToGroupsInCollection(groupCodeList, collection);
+		userServices.execute(userAddUpdateRequest);
+	}
+
+	private void removeUsersFromGroupInCollection(String username, List<String> groupCodeList) {
+		UserAddUpdateRequest userAddUpdateRequest = userServices.addUpdate(username);
+		for (String currentGroupCode : groupCodeList) {
+			userAddUpdateRequest.removeFromGroupOfCollection(currentGroupCode, collection);
+		}
+		userServices.execute(userAddUpdateRequest);
+	}
 }
