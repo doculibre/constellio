@@ -131,18 +131,20 @@ subprojects {
 
 ext {
     // Open the 2 Git repository
-    gitConstellio = org.ajoberstar.grgit.Grgit.open(dir: project(":constellio").projectDir)
-    revisionConstellio = gitConstellio.head().abbreviatedId
-    branchConstellio = gitConstellio.branch.current().fullName
+    //gitConstellio = org.ajoberstar.grgit.Grgit.open(dir: project(":constellio").projectDir)
+    //revisionConstellio = gitConstellio.head().abbreviatedId
+    //branchConstellio = gitConstellio.branch.current().fullName
+    revisionConstellio = ""
+    branchConstellio = ""
 
-    if (findProject(":constellio-plugins") != null) {
-        gitPlugins = org.ajoberstar.grgit.Grgit.open(dir: project(":constellio-plugins").projectDir)
-        branchPlugins = gitPlugins.branch.current().fullName
-        revisionPlugins = gitConstellio.head().abbreviatedId
-    } else {
-        branchPlugins = ""
-        revisionPlugins = ""
-    }
+    //if (findProject(":constellio-plugins") != null) {
+    //gitPlugins = org.ajoberstar.grgit.Grgit.open(dir: project(":constellio-plugins").projectDir)
+    //branchPlugins = gitPlugins.branch.current().fullName
+    //revisionPlugins = gitConstellio.head().abbreviatedId
+    //} else {
+    branchPlugins = ""
+    revisionPlugins = ""
+    //}
 }
 
 war {
