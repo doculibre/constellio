@@ -22,22 +22,10 @@ import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.validator.AbstractValidator;
 import com.vaadin.server.Resource;
-import com.vaadin.ui.AbstractField;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.DateField;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -46,13 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -385,7 +367,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 				List<String> tabCaptionToIgnore = appLayerFactory.getExtensions().
 						forCollection(ConstellioUI.getCurrentSessionContext().getCurrentCollection()).
-						getTabSheetCaptionToHideInDisplayAndForm();
+						getTabSheetCaptionToHideInDisplayAndForm(getSchemaCode(propertyId));
 
 				if (tabCaptionToIgnore.contains(groupLabel)) {
 					Tab tab = tabSheet.getTab(panel);
@@ -424,6 +406,10 @@ public abstract class BaseForm<T> extends CustomComponent {
 	 * @return The caption of the tab under which the field will be added
 	 */
 	protected String getTabCaption(Field<?> field, Object propertyId) {
+		return null;
+	}
+
+	protected String getSchemaCode(Object propertyId) {
 		return null;
 	}
 

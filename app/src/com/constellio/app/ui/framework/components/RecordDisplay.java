@@ -21,11 +21,7 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.VerticalLayout;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("serial")
 public class RecordDisplay extends BaseDisplay {
@@ -87,7 +83,7 @@ public class RecordDisplay extends BaseDisplay {
 					displayComponent.setId(valueId);
 					displayComponent.addStyleName(valueId);
 
-					captionsAndComponents.add(new CaptionAndComponent(captionLabel, displayComponent, tabCaption));
+					captionsAndComponents.add(new CaptionAndComponent(captionLabel, displayComponent, tabCaption, recordVO.getSchemaCode()));
 				}
 			}
 		}

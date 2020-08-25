@@ -26,13 +26,7 @@ import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -258,6 +252,15 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 			tabCaption = null;
 		}
 		return tabCaption;
+	}
+
+	@Override
+	protected String getSchemaCode(Object propertyId) {
+		if (propertyId instanceof MetadataVO) {
+			MetadataVO metadataVO = (MetadataVO) propertyId;
+			return metadataVO.getSchema().getCode();
+		}
+		return null;
 	}
 
 	@Override
