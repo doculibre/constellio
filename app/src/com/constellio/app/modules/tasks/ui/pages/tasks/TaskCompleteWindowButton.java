@@ -34,13 +34,7 @@ import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.data.Validator;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -48,13 +42,7 @@ import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -482,7 +470,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		List<MetadataValueVO> formMetadataValues = recordVO.getFormMetadataValues();
 		for (MetadataValueVO metadataValueVO : CollectionUtils.emptyIfNull(formMetadataValues)) {
 			MetadataVO m = metadataValueVO.getMetadata();
-			if (m.isRequired() && m.isEnabled() && m.getDefaultValue() == null && metadataValueVO.getValue() == null) {
+			if (isMetadataRequiredAndWithoutAValue(m, metadataValueVO)) {
 				Field<?> field = fieldFactory.build(m, recordVO.getId());
 				field.setWidth("100%");
 				fieldLayout.addComponent(field);
@@ -490,5 +478,18 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			}
 		}
 		return fields;
+	}
+
+	private boolean isMetadataRequiredAndWithoutAValue(MetadataVO metadata, MetadataValueVO metadataValueVO) {
+		boolean noValueAndUnchanged;
+
+		if (metadata.isMultivalue()) {
+			noValueAndUnchanged = CollectionUtils.isEmpty((Collection<?>) metadata.getDefaultValue())
+								  && CollectionUtils.isEmpty(metadataValueVO.getValue());
+		} else {
+			noValueAndUnchanged = metadata.getDefaultValue() == null && metadataValueVO.getValue() == null;
+		}
+
+		return metadata.isRequired() && metadata.isEnabled() && noValueAndUnchanged;
 	}
 }
