@@ -8,23 +8,14 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.*;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 import com.vaadin.ui.TabSheet.Tab;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
@@ -138,7 +129,7 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 			String tabCaption = captionAndComponent.tabCaption;
 			captionLabel.addStyleName(STYLE_CAPTION);
 			displayComponent.addStyleName(STYLE_VALUE);
-			addToDefaultLayoutOrTabSheet(captionLabel, displayComponent, tabCaption);
+			addToDefaultLayoutOrTabSheet(captionLabel, displayComponent, tabCaption, captionAndComponent.linkedSchemaCode);
 		}
 	}
 	
@@ -150,7 +141,8 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 		return mainLayout;
 	}
 
-	private void addToDefaultLayoutOrTabSheet(Label captionLabel, Component displayComponent, String tabCaption) {
+	private void addToDefaultLayoutOrTabSheet(Label captionLabel, Component displayComponent, String tabCaption,
+											  String linkedSchemaCode) {
 		VerticalLayout layout;
 		if (useTabSheet) {
 			if (StringUtils.isBlank(tabCaption)) {
@@ -176,7 +168,7 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 
 				List<String> tabCaptionToIgnore = appLayerFactory.getExtensions().
 						forCollection(ConstellioUI.getCurrentSessionContext()
-								.getCurrentCollection()).getTabSheetCaptionToHideInDisplayAndForm();
+								.getCurrentCollection()).getTabSheetCaptionToHideInDisplayAndForm(linkedSchemaCode);
 
 				if (tabCaptionToIgnore.contains(tabCaption)) {
 					Tab tab = tabSheet.getTab(panel);
@@ -228,21 +220,25 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 	
 	public static class CaptionAndComponent implements Serializable {
 
-		public Label captionLabel;
+		private Label captionLabel;
 
-		public Component displayComponent;
+		private Component displayComponent;
 
-		public String tabCaption;
+		private String tabCaption;
+
+		private String linkedSchemaCode;
 
 		public CaptionAndComponent(Label captionLabel, Component displayComponent) {
-			this(captionLabel, displayComponent, null);
+			this(captionLabel, displayComponent, null, null);
 		}
 
-		public CaptionAndComponent(Label captionLabel, Component displayComponent, String tabCaption) {
+		public CaptionAndComponent(Label captionLabel, Component displayComponent, String tabCaption,
+								   String linkedSchemaCode) {
 			super();
 			this.captionLabel = captionLabel;
 			this.displayComponent = displayComponent;
 			this.tabCaption = tabCaption;
+			this.linkedSchemaCode = linkedSchemaCode;
 		}
 
 	}
