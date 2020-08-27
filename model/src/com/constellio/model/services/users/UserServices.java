@@ -2,8 +2,6 @@ package com.constellio.model.services.users;
 
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.utils.LangUtils;
-import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ModelLayerConfiguration;
@@ -22,7 +20,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
@@ -30,6 +27,7 @@ import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.security.global.UserSyncMode;
+import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
@@ -48,13 +46,13 @@ import com.constellio.model.services.search.query.logical.ongoing.OngoingLogical
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.security.roles.RolesManager;
-import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
 import com.constellio.model.services.users.UserCredentialsManagerRuntimeException.UserCredentialsManagerRuntimeException_CannotExecuteTransaction;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_AtLeastOneCollectionRequired;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotAssignUserToGroupsInOtherCollection;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotAssignUserToInexistingGroupInCollection;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotExcuteTransaction;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotRemoveAdmin;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotRemoveSyncedGroupFromSyncedCollection;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_EmailRequired;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_FirstNameRequired;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidCollectionForGroup;
@@ -71,6 +69,7 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserPermissionDeniedToDelete;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.joda.time.ReadableDuration;
@@ -141,21 +140,6 @@ public class UserServices {
 		this.schemas = SchemasRecordsServices.usingMainModelLayerFactory(com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
 
-	public UserServices(ModelLayerFactory modelLayerFactory, LDAPConfigurationManager ldapConfigurationManager ) {
-		this.modelLayerFactory = modelLayerFactory;
-		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
-		this.recordServices = modelLayerFactory.newRecordServices();
-		this.searchServices = modelLayerFactory.newSearchServices();
-		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-		this.authenticationService = modelLayerFactory.newAuthenticationService();
-		this.modelLayerConfiguration = modelLayerFactory.getConfiguration();
-		this.rolesManager = modelLayerFactory.getRolesManager();
-		this.secondaryUniqueIdGenerator = modelLayerFactory.getDataLayerFactory().getSecondaryUniqueIdGenerator();
-		this.authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-		this.schemas = SchemasRecordsServices.usingMainModelLayerFactory(com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION, modelLayerFactory);
-		this.ldapConfigurationManager = ldapConfigurationManager;
-	}
-
 	public GroupAddUpdateRequest newGlobalGroup(String code) {
 		return new GroupAddUpdateRequest(code);
 	}
@@ -216,13 +200,6 @@ public class UserServices {
 	}
 
 
-	//Created from refact
-	private User existingUserOrNew(String username, String collection) {
-		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
-		Record userRecord = searchServices.searchSingleResult(from(schemas.user.schemaType())
-				.where(schemas.user.username()).isEqualTo(username));
-		return userRecord == null ? schemas.newUser().setUsername(username) : schemas.wrapUser(userRecord);
-	}
 
 	//Created from refact
 	private UserCredential existingUserCredentialOrNull(String username) {
@@ -230,14 +207,6 @@ public class UserServices {
 		Record userRecord = searchServices.searchSingleResult(from(schemas.credentialSchemaType())
 				.where(schemas.credentialUsername()).isEqualTo(username));
 		return userRecord == null ? null : schemas.wrapUserCredential(userRecord);
-	}
-
-	//Created from refact
-	private UserCredential existingUserCredentialOrNew(String username) {
-		SchemasRecordsServices schemas = new SchemasRecordsServices(SYSTEM_COLLECTION, modelLayerFactory);
-		Record userRecord = searchServices.searchSingleResult(from(schemas.credentialSchemaType())
-				.where(schemas.credentialUsername()).isEqualTo(username));
-		return userRecord == null ? schemas.newCredential()._setUsername(username) : schemas.wrapUserCredential(userRecord);
 	}
 
 	//Created from refact
@@ -327,7 +296,9 @@ public class UserServices {
 		List<String> removeFromGroup = request.getRemoveFromGroup();
 		if (removeFromGroup != null) {
 			for (String groupCode : removeFromGroup) {
+				Group group = getGroupInCollection(groupCode, collection);
 				if (getGroupInCollection(groupCode, collection) != null) {
+					verifyUserAndGroupSync(userCredential, group, request.isLdapSyncRequest());
 					userGroups.remove(getGroupInCollection(groupCode, collection).getId());
 				}
 			}
@@ -335,7 +306,10 @@ public class UserServices {
 		Map<String, List<String>> removeFromGroupInCollection = request.getRemoveFromGroupInCollection();
 		if (removeFromGroupInCollection != null && removeFromGroupInCollection.keySet().contains(collection)) {
 			for (String groupCode : removeFromGroupInCollection.get(collection)) {
+				Group group = getGroupInCollection(groupCode, collection);
+
 				if (getGroupInCollection(groupCode, collection) != null) {
+					verifyUserAndGroupSync(userCredential, group, request.isLdapSyncRequest());
 					String groupId = getGroupInCollection(groupCode, collection).getId();
 					if (userGroups.contains(groupId)) {
 						userGroups.remove(groupId);
@@ -359,10 +333,7 @@ public class UserServices {
 			}
 		}
 
-
-		//if (request.getExtraMetadatas().containsKey(UserCredential.SYSTEM_ADMIN) || userCredential.isSystemAdmin()) {
 		user.setSystemAdmin(userCredential.isSystemAdmin());
-		//}
 
 		boolean logicallyDeletedStatus = user.getStatus() != ACTIVE;
 		user.set(LOGICALLY_DELETED_STATUS, logicallyDeletedStatus ? Boolean.TRUE : null);
@@ -372,9 +343,22 @@ public class UserServices {
 
 	private void verifyUserUpdateRequestedSyncedStatus(UserCredential userCredential, UserAddUpdateRequest request) {
 		if (!request.isStopSyncingLDAP() && !request.isLdapSyncRequest()
-			&& request.isCrucialSyncInformationModified() && userCredential.getSyncMode() == UserSyncMode.SYNCED) {
-			throw new UserServicesRuntimeException
-					.UserServicesRuntimeException_CannotChangeNameOfSyncedUser(userCredential.getUsername());
+			&& userCredential.getSyncMode() == UserSyncMode.SYNCED) {
+
+			if (request.isModified(User.FIRSTNAME) || request.isModified(User.LASTNAME)) {
+				throw new UserServicesRuntimeException
+						.UserServicesRuntimeException_CannotChangeNameOfSyncedUser(userCredential.getUsername());
+			}
+
+			if (request.isModified(User.EMAIL)) {
+				throw new UserServicesRuntimeException
+						.UserServicesRuntimeException_CannotChangeEmailOfSyncedUser(userCredential.getUsername());
+			}
+
+			if (request.isModified(User.STATUS)) {
+				throw new UserServicesRuntimeException
+						.UserServicesRuntimeException_CannotChangeStatusOfSyncedUser(userCredential.getUsername());
+			}
 		}
 	}
 
@@ -446,7 +430,7 @@ public class UserServices {
 
 	//Created from refact
 
-	private boolean removeUserFrom(String username, String collection, UserAndGroupsAddUpdateResponse response) {
+	private boolean removeUserFrom(String username, String collection, UserAddUpdateResponse response) {
 		User user = getUserRecordInCollection(username, collection);
 		if (user == null) {
 			return true;
@@ -454,11 +438,10 @@ public class UserServices {
 			if (hasUsedSystem(user) || username.equals("admin")) {
 				try {
 					recordServices.update(user.setStatus(DISABLED).set(LOGICALLY_DELETED_STATUS, true));
-					Map<String, String> parameters = new HashMap<>();
+					Map<String, Object> parameters = new HashMap<>();
 					parameters.put("username", username);
 					parameters.put("collection", collection);
-					response.addError(new UserAndGroupsResponseError(UserServices.class, USER_CANNOT_BE_DELETED,
-							parameters));
+					response.addWarning(new ValidationError(UserServices.class, USER_CANNOT_BE_DELETED, parameters));
 				} catch (RecordServicesException e) {
 					throw new RuntimeException(e);
 				}
@@ -472,17 +455,16 @@ public class UserServices {
 	}
 
 	private void removeGroupFrom(String groupCode, String collection,
-								 UserAndGroupsAddUpdateResponse response) {
+								 GroupAddUpdateResponse response) {
 		Group group = getGroupInCollection(groupCode, collection);
 		if (group != null) {
 			if (hasUsedSystem(group)) {
 				try {
 					recordServices.update(group.setStatus(GlobalGroupStatus.INACTIVE).set(LOGICALLY_DELETED_STATUS, true));
-					Map<String, String> parameters = new HashMap<>();
+					Map<String, Object> parameters = new HashMap<>();
 					parameters.put("groupCode", groupCode);
 					parameters.put("collection", collection);
-					response.addError(new UserAndGroupsResponseError(UserServices.class, GROUP_CANNOT_BE_DELETED,
-							parameters));
+					response.addWarning(new ValidationError(UserServices.class, GROUP_CANNOT_BE_DELETED, parameters));
 				} catch (RecordServicesException e) {
 					throw new RuntimeException(e);
 				}
@@ -513,9 +495,32 @@ public class UserServices {
 		}
 	}
 
+	public static class GroupAddUpdateResponse {
 
-	public UserAndGroupsAddUpdateResponse execute(com.constellio.model.services.users.UserAddUpdateRequest request) {
-		UserAndGroupsAddUpdateResponse response = new UserAndGroupsAddUpdateResponse();
+		@Getter
+		private List<ValidationError> warnings = new ArrayList<>();
+
+
+		public GroupAddUpdateResponse addWarning(ValidationError validationError) {
+			this.warnings.add(validationError);
+			return this;
+		}
+	}
+
+	public static class UserAddUpdateResponse {
+
+		@Getter
+		private List<ValidationError> warnings = new ArrayList<>();
+
+
+		public UserAddUpdateResponse addWarning(ValidationError validationError) {
+			this.warnings.add(validationError);
+			return this;
+		}
+	}
+
+	public UserAddUpdateResponse execute(com.constellio.model.services.users.UserAddUpdateRequest request) {
+		UserAddUpdateResponse response = new UserAddUpdateResponse();
 		SystemWideUserInfos userInfos = systemWideUserInfosOrNull(request.getUsername());
 
 		if (userInfos == null && (request.getAddToCollections() == null || request.getAddToCollections().isEmpty())
@@ -597,56 +602,6 @@ public class UserServices {
 				}
 			}
 
-			//			if (request.getAddToCollections() != null || request.getRemoveFromCollections() != null) {
-			//				List<String> collections = new ArrayList<>(userCredential.getCollections());
-			//				if (request.getAddToCollections() != null) {
-			//					for (String collection : request.getAddToCollections()) {
-			//						if (!collections.contains(collection)) {
-			//							collections.add(collection);
-			//						}
-			//					}
-			//				}
-			//
-			//				if (request.getRemoveFromCollections() != null) {
-			//					for (String collection : request.getRemoveFromCollections()) {
-			//						collections.remove(collection);
-			//					}
-			//				}
-			//
-			//			}
-
-			//			if (request.getAddToGroup() != null || request.getRemoveFromGroup() != null) {
-			//				List<String> groups = new ArrayList<>(userCredential.getGlobalGroups());
-			//				if (request.getAddToGroup() != null) {
-			//					for (String group : request.getAddToGroup()) {
-			//						if (!groups.contains(group)) {
-			//							groups.add(group);
-			//						}
-			//					}
-			//				}
-			//
-			//				if (request.getRemoveFromGroup() != null) {
-			//					for (String group : request.getRemoveFromGroup()) {
-			//						groups.remove(group);
-			//					}
-			//				}
-			//
-			//				userCredential.setGlobalGroups(groups);
-			//			}
-
-
-			//			for (Map.Entry<String, Object> extraMetadata : request.getExtraMetadatas().entrySet()) {
-			//				MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(SYSTEM_COLLECTION)
-			//						.getDefaultSchema(UserCredential.SCHEMA_TYPE);
-			//				if (schema.hasMetadataWithCode(extraMetadata.getKey())) {
-			//					userCredential.set(schema.get(extraMetadata.getKey()), extraMetadata.getValue());
-			//				}
-			//			}
-
-			//execute(userCredential, request.isDnUnicityValidationCheck());
-
-			//
-
 		}
 		return response;
 	}
@@ -724,15 +679,15 @@ public class UserServices {
 		execute(request);
 	}
 
-	public UserAndGroupsAddUpdateResponse executeGroupRequest(String groupCode,
+	public GroupAddUpdateResponse executeGroupRequest(String groupCode,
 															  Consumer<GroupAddUpdateRequest> requestConsumer) {
 		GroupAddUpdateRequest request = request(groupCode);
 		requestConsumer.accept(request);
 		return execute(request);
 	}
 
-	public UserAndGroupsAddUpdateResponse execute(GroupAddUpdateRequest request) {
-		UserAndGroupsAddUpdateResponse response = new UserAndGroupsAddUpdateResponse();
+	public GroupAddUpdateResponse execute(GroupAddUpdateRequest request) {
+		GroupAddUpdateResponse response = new GroupAddUpdateResponse();
 		if (request.isMarkedForDeletionInAllCollections()) {
 			deleteGroup(request.getCode(), response);
 		}
@@ -792,6 +747,26 @@ public class UserServices {
 			if (request.getModifiedAttributes().get(GroupAddUpdateRequest.NAME) == null) {
 				throw new UserServicesRuntimeException_NameRequired(request.getCode());
 			}
+		} else {
+
+			if (!request.isLdapSyncRequest()  && !systemWideGroup.isLocallyCreated()) {
+
+				if (request.isModified(GroupAddUpdateRequest.NAME)) {
+					throw new UserServicesRuntimeException
+							.UserServicesRuntimeException_CannotChangeNameOfSyncedGroup(systemWideGroup.getCode());
+				}
+
+				if (request.isModified(GlobalGroup.STATUS)) {
+					throw new UserServicesRuntimeException
+							.UserServicesRuntimeException_CannotChangeStatusOfSyncedGroup(systemWideGroup.getCode());
+				}
+
+				if (request.isModified(Group.PARENT)) {
+					throw new UserServicesRuntimeException
+							.UserServicesRuntimeException_CannotChangeParentOfSyncedGroup(systemWideGroup.getCode());
+				}
+			}
+
 		}
 
 	}
@@ -1084,7 +1059,6 @@ public class UserServices {
 				.groupStatus(status != null ? status : GlobalGroupStatus.ACTIVE)
 				.hierarchy((String) request.getModifiedAttributes().get(GroupAddUpdateRequest.HIERARCHY))
 				.parent(parentCode)
-				//				.logicallyDeletedStatus(group.getLogicallyDeletedStatus())
 				.build();
 	}
 
@@ -1145,28 +1119,12 @@ public class UserServices {
 
 	public void logicallyRemoveGroupHierarchy(String username, SystemWideGroup globalGroup) {
 		executeGroupRequest(globalGroup.getCode(), req -> req.setStatusInAllCollections(GlobalGroupStatus.INACTIVE));
-		//		UserCredential userCredential = getUser(username);
-		//		permissionValidateCredentialOnGroup(userCredential);
-		//		logicallyRemoveGroupHierarchyWithoutUserValidation(globalGroup);
-
 	}
 
 	@Deprecated
 	public void logicallyRemoveGroupHierarchy(SystemWideUserInfos systemWideUserInfos, SystemWideGroup globalGroup) {
 		execute(systemWideUserInfos.getUsername(), req -> req.setStatusForAllCollections(DISABLED));
 	}
-
-	//	private void logicallyRemoveGroupHierarchyWithoutUserValidation(SystemWideGroup globalGroup) {
-	//		List<String> collections = collectionsListManager.getCollections();
-	//		List<SystemWideUserInfos> users = getGlobalGroupActifUsers(globalGroup.getCode());
-	//
-	//		userCredentialsManager.removeGroup(globalGroup.getCode());
-	//		globalGroupsManager.logicallyRemoveGroup(globalGroup);
-	//		removeGroupFromCollectionsWithoutUserValidation(globalGroup.getCode(), collections);
-	//
-	//		syncUsersCredentials(users);
-	//	}
-
 
 	void removeGroupFromCollectionsWithoutUserValidation(String group, List<String> collections) {
 		removeChildrenFromBigVault(group, collections);
@@ -1188,31 +1146,6 @@ public class UserServices {
 		return nextToken;
 	}
 
-	//	void sync(SystemWideUserInfos user) {
-	//		List<String> availableCollections = collectionsListManager.getCollectionsExcludingSystem();
-	//		List<String> removedCollections = new ArrayList<>();
-	//		for (String collection : user.getCollections()) {
-	//			if (availableCollections.contains(collection)) {
-	//				Transaction transaction = new Transaction().setSkippingReferenceToLogicallyDeletedValidation(true);
-	//				sync(user, collection, transaction);
-	//				try {
-	//					recordServices.execute(transaction);
-	//				} catch (RecordServicesException e) {
-	//					throw new UserServicesRuntimeException_CannotExcuteTransaction(e);
-	//				}
-	//			} else {
-	//				removedCollections.add(collection);
-	//				LOGGER.warn("User '" + user.getUsername() + "' is in invalid collection '" + collection + "'");
-	//			}
-	//		}
-	//
-	//		if (!removedCollections.isEmpty()) {
-	//			com.constellio.model.services.users.UserAddUpdateRequest request = addUpdate(user.getUsername());
-	//			removedCollections.forEach(request::removeFromCollection);
-	//			execute(request);
-	//		}
-	//	}
-
 	public boolean canAddOrModifyUserAndGroup() {
 		return !(ldapConfigurationManager.isLDAPAuthentication() && ldapConfigurationManager.idUsersSynchActivated());
 	}
@@ -1226,115 +1159,12 @@ public class UserServices {
 		return ldapConfigurationManager.isLDAPAuthentication();
 	}
 
-	private List<String> toUserNames(List<SystemWideUserInfos> users) {
-		List<String> usernames = new ArrayList<>();
-		for (SystemWideUserInfos user : users) {
-			usernames.add(user.getUsername());
-		}
-		return usernames;
-	}
-
-
-	//	private void sync(SystemWideUserInfos user, String collection, Transaction transaction) {
-	//		User userInCollection = getUserInCollection(user.getUsername(), collection);
-	//
-	//		if (userInCollection == null) {
-	//			userInCollection = newUserInCollection(collection);
-	//		} else {
-	//			userInCollection.set(CommonMetadataBuilder.LOGICALLY_DELETED, false);
-	//		}
-	//		userInCollection.setEmail(StringUtils.isBlank(user.getEmail()) ? null : user.getEmail());
-	//		if (userInCollection.getSchema().hasMetadataWithCode(UserCredential.PERSONAL_EMAILS)) {
-	//			userInCollection.setPersonalEmails(isEmpty(user.getPersonalEmails()) ? null : user.getPersonalEmails());
-	//		}
-	//		userInCollection.setFirstName(user.getFirstName());
-	//		userInCollection.setLastName(user.getLastName());
-	//		userInCollection.setUsername(user.getUsername());
-	//		userInCollection.setSystemAdmin(user.isSystemAdmin());
-	//		try {
-	//			userInCollection.setPhone(user.getPhone());
-	//			userInCollection.setJobTitle(user.getJobTitle());
-	//			userInCollection.setAddress(user.getAddress());
-	//			userInCollection.setFax(user.getFax());
-	//		} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
-	//			//Normal with versions before 6.2
-	//		}
-	//		setRoles(userInCollection);
-	//		changeUserStatus(userInCollection, user.getUsername());
-	//		//List<String> groupIds = getGroupIds(user.getGlobalGroups() != null ? user.getGlobalGroups() : new ArrayList<>(), collection);
-	//		List<String> UserInCollectionGroupIds = userInCollection.getUserGroups();
-	//		if (!hasSameGroups(groupIds, UserInCollectionGroupIds)) {
-	//			userInCollection.setUserGroups(groupIds);
-	//		}
-	//		if (userInCollection.isDirty()) {
-	//			transaction.add(userInCollection.getWrappedRecord());
-	//		}
-	//	}
-
-	private void setRoles(User userInCollection) {
-		if (userInCollection.getUserRoles() != null && userInCollection.getUserRoles().isEmpty()) {
-			try {
-				Role role = rolesManager.getRole(userInCollection.getCollection(), "U");
-				if (role != null) {
-					userInCollection.setUserRoles("U");
-				}
-			} catch (RolesManagerRuntimeException e) {
-				//
-			}
-		}
-	}
-
-	private void changeUserStatus(User userInCollection, String username) {
-		UserCredential userCredential = getUserConfigs(username);
-		if (userCredential.getStatus() != null) {
-			userInCollection.setStatus(userCredential.getStatus());
-			if (userCredential.getStatus() == UserCredentialStatus.ACTIVE) {
-				userInCollection.set("deleted", false);
-			} else {
-				validateAdminIsActive(userCredential);
-				userInCollection.set("deleted", true);
-			}
-		}
-	}
-
-	private List<String> getGroupIds(List<String> groupCodes, String collection) {
-		List<String> groupIds = new ArrayList<>();
-		for (String groupCode : groupCodes) {
-			String groupId = getGroupIdInCollection(groupCode, collection);
-			if (groupId != null) {
-				groupIds.add(groupId);
-				//throw new ImpossibleRuntimeException("No group with code '" + groupCode + "' in collection '" + collection + "'");
-			}
-
-		}
-		return groupIds;
-	}
-
 	String getGroupIdInCollection(String groupCode, String collection) {
 		Group group = getGroupInCollection(groupCode, collection);
 		return group == null ? null : group.getId();
 	}
 
-	private boolean hasSameGroups(List<String> groupIds1, List<String> groupIds2) {
-		ListComparisonResults<String> comparisonResults = new LangUtils().compare(groupIds1, groupIds2);
-
-		return comparisonResults.getNewItems().isEmpty() && comparisonResults.getRemovedItems().isEmpty();
-	}
-
-	public void sync(SystemWideGroup group) {
-		Transaction transaction;
-		for (String collection : group.getCollections()) {
-			transaction = new Transaction();
-			sync(group, collection, transaction);
-			try {
-				recordServices.execute(transaction);
-			} catch (RecordServicesException e) {
-				throw new UserServicesRuntimeException_CannotExcuteTransaction(e);
-			}
-		}
-	}
-
-	public void sync(GroupAddUpdateRequest request, UserAndGroupsAddUpdateResponse response) {
+	private void sync(GroupAddUpdateRequest request, GroupAddUpdateResponse response) {
 		SystemWideGroup systemWideGroup = getGroup(request);
 		Set<String> groupCollections = new HashSet<>();
 		if (systemWideGroup != null && systemWideGroup.getCollections() != null) {
@@ -1346,9 +1176,13 @@ public class UserServices {
 		Transaction transaction;
 		String parent = (String) request.getModifiedAttributes().get(GroupAddUpdateRequest.PARENT);
 		syncParentHierarchy(parent, systemWideGroup, groupCollections);
+
+		validateGroupRemovable(request);
+
 		for (String collection : groupCollections) {
 			transaction = new Transaction();
 			if (request.getRemovedCollections() != null && request.getRemovedCollections().contains(collection)) {
+
 				removeChildren(systemWideGroup.getCode(), collection, response);
 				removeGroupFrom(request.getCode(), collection, response);
 			} else if (canSyncGroup(request, collection)) {
@@ -1359,6 +1193,22 @@ public class UserServices {
 			} catch (RecordServicesException e) {
 				throw new UserServicesRuntimeException_CannotExcuteTransaction(e);
 			}
+		}
+	}
+
+	private void validateGroupRemovable(GroupAddUpdateRequest request) {
+		if (request.getRemovedCollections() != null && !request.isLdapSyncRequest()) {
+
+			List<String> syncCollections = ldapConfigurationManager
+					.getLDAPUserSyncConfiguration(false).getSelectedCollectionsCodes();
+
+			for(String collection : request.getRemovedCollections()) {
+				if (syncCollections.contains(collection)) {
+					throw new UserServicesRuntimeException_CannotRemoveSyncedGroupFromSyncedCollection(request.getCode(), collection);
+				};
+
+			}
+
 		}
 	}
 
@@ -1481,10 +1331,6 @@ public class UserServices {
 		return parentId;
 	}
 
-	private OngoingLogicalSearchCondition fromUsersIn(String collection) {
-		return from(userSchema(collection));
-	}
-
 	private OngoingLogicalSearchCondition fromGroupsIn(String collection) {
 		return from(groupSchema(collection));
 	}
@@ -1516,11 +1362,6 @@ public class UserServices {
 
 	private Metadata groupParentMetadata(String collection) {
 		return groupSchema(collection).getMetadata(Group.PARENT);
-	}
-
-	User newUserInCollection(String collection) {
-		Record record = recordServices.newRecordWithSchema(userSchema(collection));
-		return new User(record, schemaTypes(collection), rolesManager.getCollectionRoles(collection, modelLayerFactory));
 	}
 
 	Group newGroupInCollection(String collection) {
@@ -1558,13 +1399,6 @@ public class UserServices {
 		Metadata isGlobalGroup = groupSchema.getMetadata(Group.IS_GLOBAL);
 		return from(groupSchema).where(isGlobalGroup);
 	}
-
-	//	private void syncUsersCredentials(List<SystemWideUserInfos> users) {
-	//		for (SystemWideUserInfos userCredential : users) {
-	//			SystemWideUserInfos userCredentialUpdated = getUserInfos(userCredential.getUsername());
-	//			sync(userCredentialUpdated);
-	//		}
-	//	}
 
 	private void removeFromBigVault(String group, List<String> collections) {
 		for (String collection : collections) {
@@ -1844,7 +1678,7 @@ public class UserServices {
 	}
 
 	private void deleteUser(com.constellio.model.services.users.UserAddUpdateRequest request,
-							UserAndGroupsAddUpdateResponse response) {
+							UserAddUpdateResponse response) {
 		String username = request.getUsername();
 		SystemWideUserInfos userInfos = systemWideUserInfosOrNull(username);
 		if (userInfos != null) {
@@ -1863,7 +1697,7 @@ public class UserServices {
 		}
 	}
 
-	private void deleteGroup(String groupCode, UserAndGroupsAddUpdateResponse response) {
+	private void deleteGroup(String groupCode, GroupAddUpdateResponse response) {
 		SystemWideGroup systemWideGroup = getNullableGroup(groupCode);
 		if (systemWideGroup != null) {
 			for (String collection : systemWideGroup.getCollections()) {
@@ -1874,7 +1708,7 @@ public class UserServices {
 	}
 
 	private void deleteGroupFromCollection(String groupCode, String collection,
-										   UserAndGroupsAddUpdateResponse response) {
+										   GroupAddUpdateResponse response) {
 		SystemWideGroup systemWideGroup = getNullableGroup(groupCode);
 		if (systemWideGroup != null) {
 			removeChildren(groupCode, collection, response);
@@ -1882,7 +1716,7 @@ public class UserServices {
 		}
 	}
 
-	private void removeChildren(String group, String collection, UserAndGroupsAddUpdateResponse response) {
+	private void removeChildren(String group, String collection, GroupAddUpdateResponse response) {
 		for (Group child : getChildrenOfGroupInCollection(group, collection)) {
 			removeChildren(child.getCode(), collection, response);
 			removeGroupFrom(child.getCode(), collection, response);
@@ -1902,10 +1736,6 @@ public class UserServices {
 	}
 
 	void restoreDeletedGroup(String groupCode, String collection) {
-		//		SystemWideGroup globalGroup = globalGroupsManager.getGlobalGroupWithCode(groupCode);
-		//		if (globalGroup.getStatus().equals(GlobalGroupStatus.INACTIVE)) {
-		//			globalGroupsManager.addUpdate(request(globalGroup.getCode()).setStatusInAllCollections(GlobalGroupStatus.ACTIVE));
-		//		}
 
 		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
 		LogicalSearchCondition condition = fromGroupsIn(collection).where(groupCodeMetadata(collection)).is(groupCode);
@@ -2012,21 +1842,6 @@ public class UserServices {
 			return getNullableGroup(aGroup).getStatus(collection) == GlobalGroupStatus.ACTIVE;
 		}
 
-
-		//
-		//		SystemWideGroup globalGroup;
-		//		Record record = recordServices.getDocumentById(aGroup);
-		//
-		//		if (Group.SCHEMA_TYPE.equals(record.getTypeCode())) {
-
-		//			globalGroup = globalGroupsManager.getGlobalGroupWithCode(group.getCode());
-		//		} else {
-		//			SchemasRecordsServices schemas = new SchemasRecordsServices(
-		//					SYSTEM_COLLECTION, modelLayerFactory);
-		//			globalGroup = globalGroupsManager.wrapGlobalGroup(record);
-		//		}
-		//
-		//		return isGroupAndAllHisAncestorsActive(globalGroup);
 	}
 
 

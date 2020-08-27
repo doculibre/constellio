@@ -48,8 +48,6 @@ public class UserAddUpdateRequest {
 
 	private boolean resumeSyncingLDAP;
 
-	private boolean crucialSyncInformationModified = false;
-
 	@Getter
 	private boolean markedForDeletionInAllCollections;
 
@@ -107,19 +105,16 @@ public class UserAddUpdateRequest {
 
 	public UserAddUpdateRequest setFirstName(String firstName) {
 		this.modifiedProperties.put(UserCredential.FIRST_NAME, firstName);
-		crucialSyncInformationModified = true;
 		return this;
 	}
 
 	public UserAddUpdateRequest setLastName(String lastName) {
 		this.modifiedProperties.put(UserCredential.LAST_NAME, lastName);
-		crucialSyncInformationModified = true;
 		return this;
 	}
 
 	public UserAddUpdateRequest setEmail(String email) {
 		this.modifiedProperties.put(UserCredential.EMAIL, email);
-		crucialSyncInformationModified = true;
 		return this;
 	}
 
@@ -496,8 +491,8 @@ public class UserAddUpdateRequest {
 		return modifiedCollectionProperties;
 	}
 
-	public boolean isCrucialSyncInformationModified() {
-		return this.crucialSyncInformationModified;
+	public boolean isModified(String metadataCode) {
+		return modifiedProperties.containsKey(metadataCode)
+			   || (modifiedCollectionsProperties.values().stream().anyMatch(m -> m.containsKey(metadataCode)));
 	}
-
 }

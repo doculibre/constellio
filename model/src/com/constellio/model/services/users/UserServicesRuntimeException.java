@@ -142,6 +142,18 @@ public class UserServicesRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class UserServicesRuntimeException_CannotChangeNameOfSyncedGroup extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_CannotChangeNameOfSyncedGroup(String groupCode) {
+			super("Cannot change name of synced group '" + groupCode + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_CannotChangeParentOfSyncedGroup extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_CannotChangeParentOfSyncedGroup(String groupCode) {
+			super("Cannot change parent of synced group '" + groupCode + "'");
+		}
+	}
+
 	public static class UserServicesRuntimeException_CannotChangeAssignmentOfSyncedUserToSyncedGroup extends UserServicesRuntimeException {
 		public UserServicesRuntimeException_CannotChangeAssignmentOfSyncedUserToSyncedGroup(String username,
 																							String group) {
@@ -156,9 +168,9 @@ public class UserServicesRuntimeException extends RuntimeException {
 	}
 
 	public static class UserServicesRuntimeException_CannotRemoveSyncedGroupFromSyncedCollection extends UserServicesRuntimeException {
-		public UserServicesRuntimeException_CannotRemoveSyncedGroupFromSyncedCollection(String username,
+		public UserServicesRuntimeException_CannotRemoveSyncedGroupFromSyncedCollection(String groupCode,
 																						String collection) {
-			super("Cannot remove synced group '" + username + "' from synced collection '" + collection + "'");
+			super("Cannot remove synced group '" + groupCode + "' from synced collection '" + collection + "'");
 		}
 	}
 

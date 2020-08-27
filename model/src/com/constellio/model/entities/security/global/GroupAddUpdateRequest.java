@@ -148,4 +148,8 @@ public class GroupAddUpdateRequest {
 		}
 		markedForDeletionInCollections.addAll(collections);
 	}
+
+	public boolean isModified(String metadataCode) {
+		return modifiedAttributes.containsKey(metadataCode);
+	}
 }

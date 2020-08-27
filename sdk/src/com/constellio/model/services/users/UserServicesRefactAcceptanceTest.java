@@ -5,7 +5,6 @@ import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
-import com.constellio.model.conf.ldap.RegexFilter;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.entities.records.Record;
@@ -19,15 +18,19 @@ import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.security.global.UserSyncMode;
+import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.users.UserServices.GroupAddUpdateResponse;
+import com.constellio.model.services.users.UserServices.UserAddUpdateResponse;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_AtLeastOneCollectionRequired;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotAssignUserToGroupsInOtherCollection;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotAssignUserToInexistingGroupInCollection;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotChangeAssignmentOfSyncedUserToSyncedGroup;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotChangeEmailOfSyncedUser;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotChangeNameOfSyncedUser;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotChangeStatusOfSyncedGroup;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotChangeStatusOfSyncedUser;
@@ -44,7 +47,6 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserAlreadyExists;
 import com.constellio.sdk.tests.ConstellioTest;
 import lombok.AllArgsConstructor;
-import org.joda.time.Duration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -78,8 +80,6 @@ import static com.constellio.sdk.tests.TestUtils.instanceOf;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Mockito.when;
 
 public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
@@ -552,9 +552,9 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		createAuthorisationGivingAccessToGroupInCollection("g4", collection2);
 		createAuthorisationGivingAccessToGroupInCollection("g3", collection3);
 
-		UserAndGroupsAddUpdateResponse response = services.executeGroupRequest("g2", (req) -> req.removeCollections(collection1, collection2, collection3));
+		GroupAddUpdateResponse response = services.executeGroupRequest("g2", (req) -> req.removeCollections(collection1, collection2, collection3));
 
-		assertThat(response.getErrors().size()).isEqualTo(5);
+		assertThat(response.getWarnings().size()).isEqualTo(5);
 		assertThatResponse(response).containsGroupInCollection("g2", "collection2");
 		assertThatResponse(response).containsGroupInCollection("g2", "collection3");
 		assertThatResponse(response).containsGroupInCollection("g3", "collection2");
@@ -984,7 +984,7 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 		//Try to put back embalmer with it's old email. Attempt failed, because the user is synced
 		assertThatException(() -> services.execute("machoman", (req) -> req.setEmail("zemachoman@constellio.com"))
-		).is(instanceOf(UserServicesRuntimeException_CannotChangeNameOfSyncedUser.class));
+		).is(instanceOf(UserServicesRuntimeException_CannotChangeEmailOfSyncedUser.class));
 
 		assertThatUser("embalmer")
 				.hasName("William Alvin", "Moody")
@@ -1153,19 +1153,6 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenSyncedUsersWhenRemovingFromSyncedCollectionWithoutSyncFlagThenException() {
 
-		//need to setup synConfig before
-
-		LDAPUserSyncConfiguration ldapUserSyncConfiguration = new LDAPUserSyncConfiguration( admin, "",
-				new RegexFilter("",""), new RegexFilter("",""), new Duration(1,1),
-				asList("1 0 1"),
-				asList(""), asList(""),
-				asList(""),false,
-				asList(collection1,collection2));
-
-		when(ldapConfigurationManagerMock.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(ldapUserSyncConfiguration);
-
-		services = new UserServices(getModelLayerFactory(), ldapConfigurationManagerMock);
-
 		activateLDAPSyncOnCollections(collection1, collection2);
 
 		services.createUser("embalmer", (req) -> req.ldapSyncRequest()
@@ -1250,7 +1237,6 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 	}
 
-	//test 1
 	@Test
 	public void whenRemovingSyncedUserFromSyncedGroupWithoutSyncFlagThenException() {
 
@@ -1292,7 +1278,6 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 	}
 
-	//test2
 	@Test
 	public void whenModifyingStatusOfSyncedUserWithoutSyncFlagThenException() {
 
@@ -1331,7 +1316,6 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 	}
 
-	//test3
 	@Test
 	public void whenRemovingSyncedGroupOfSyncedCollectionsWithoutSyncFlagThenException() {
 
@@ -1350,7 +1334,6 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		assertThatGroup("g1").doesNotExist();
 	}
 
-	//test4
 	@Test
 	public void whenModifyingStatusOfSyncedGroupOfSyncedCollectionsWithoutSyncFlagThenException() {
 
@@ -1361,10 +1344,10 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 		assertThatException(() -> services.executeGroupRequest("g1", req->req.setStatusInAllCollections(GlobalGroupStatus.INACTIVE))
 		).is(instanceOf(UserServicesRuntimeException_CannotChangeStatusOfSyncedGroup.class));
-		assertThatGroup("g1").isActiveInAllItsCollections().isInCollections(collection1, collection2);
+		assertThatGroup("g1").isActiveInAllItsCollections().isInCollections(collection1, collection2, collection3);
 
 		services.executeGroupRequest("g1", req->req.ldapSyncRequest().setStatusInAllCollections(GlobalGroupStatus.INACTIVE));
-		assertThatGroup("g1").isInactiveInAllItsCollections().isInCollections(collection1, collection2);
+		assertThatGroup("g1").isInactiveInAllItsCollections().isInCollections(collection1, collection2, collection3);
 	}
 
 
@@ -1626,19 +1609,19 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	private UserAndGroupsAddUpdateResponseAssertions assertThatResponse(UserAndGroupsAddUpdateResponse response) {
-		return new UserAndGroupsAddUpdateResponseAssertions(response);
+	private GroupsAddUpdateResponseAssertions assertThatResponse(GroupAddUpdateResponse response) {
+		return new GroupsAddUpdateResponseAssertions(response);
 	}
 
 	@AllArgsConstructor
-	private class UserAndGroupsAddUpdateResponseAssertions {
-		UserAndGroupsAddUpdateResponse response;
+	private class GroupsAddUpdateResponseAssertions {
+		GroupAddUpdateResponse response;
 
-		public UserAndGroupsAddUpdateResponseAssertions containsGroupInCollection(String groupCode, String collection) {
-			List<UserAndGroupsResponseError> errors = response.getErrors();
+		public GroupsAddUpdateResponseAssertions containsGroupInCollection(String groupCode, String collection) {
+			List<ValidationError> errors = response.getWarnings();
 			Boolean containsCodeAndCollection = false;
 
-			for (UserAndGroupsResponseError error : errors) {
+			for (ValidationError error : errors) {
 				if (error.getParameters().get("groupCode").equals(groupCode) && error.getParameters().get("collection").equals(collection)) {
 					containsCodeAndCollection = true;
 				}
@@ -1648,13 +1631,33 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 			return this;
 		}
 
-		public UserAndGroupsAddUpdateResponseAssertions hasExactlyErrorCodes(String... errorCodes) {
-			List<UserAndGroupsResponseError> errors = response.getErrors();
+		public GroupsAddUpdateResponseAssertions hasExactlyErrorCodes(String... errorCodes) {
+			List<ValidationError> errors = response.getWarnings();
 			List<String> responseErrorCodes = new ArrayList<>();
 			errors.forEach(error -> {
 				responseErrorCodes.add(error.getCode());
 			});
-			assertThat(errorCodes).containsExactly(errorCodes);
+			assertThat(errorCodes).containsOnly(errorCodes);
+
+			return this;
+		}
+	}
+
+	private UserAddUpdateResponseAssertions assertThatResponse(UserAddUpdateResponse response) {
+		return new UserAddUpdateResponseAssertions(response);
+	}
+
+	@AllArgsConstructor
+	private class UserAddUpdateResponseAssertions {
+		UserAddUpdateResponse response;
+
+		public UserAddUpdateResponseAssertions hasExactlyErrorCodes(String... errorCodes) {
+			List<ValidationError> errors = response.getWarnings();
+			List<String> responseErrorCodes = new ArrayList<>();
+			errors.forEach(error -> {
+				responseErrorCodes.add(error.getCode());
+			});
+			assertThat(errorCodes).containsOnly(errorCodes);
 
 			return this;
 		}
