@@ -43,7 +43,7 @@ public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		UserServices userServices = userServices();
-		return userServices.getUser(user.getUsername()).isSystemAdmin()
+		return userServices.getUserInfos(user.getUsername()).isSystemAdmin()
 			   || userServices.has(user).allGlobalPermissionsInAnyCollection(
 				CorePermissions.MANAGE_SYSTEM_COLLECTIONS, CorePermissions.MANAGE_SECURITY);
 	}

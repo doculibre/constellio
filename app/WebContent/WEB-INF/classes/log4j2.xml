@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="debug" name="RoutingTest" packages="org.apache.logging.log4j.test">
+<Configuration status="INFO" name="RoutingTest" packages="org.apache.logging.log4j.test">
     <Properties>
         <Property name="filename">constellio</Property>
         <Property name="tenant.id">default</Property>
     </Properties>
     <ThresholdFilter level="debug"/>
-
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
@@ -17,6 +16,14 @@
                 <SizeBasedTriggeringPolicy size="1 MB"/>
             </Policies>
             <DefaultRolloverStrategy max="1"/>
+        </RollingFile>
+        <RollingFile name="sync" fileName="logs/${ctx:tenant.id}/sync.log"
+                     filePattern="logs/${ctx:tenant.id}/sync.log.%i">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="250 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="4"/>
         </RollingFile>
         <RollingFile name="system" fileName="logs/${ctx:tenant.id}/system.log"
                      filePattern="logs/${ctx:tenant.id}/system.log.%i">
@@ -99,16 +106,16 @@
             </Routes>
         </Routing>
     </Appenders>
-
     <Loggers>
-        <Logger name="STDOUT_APPENDER" level="INFO"
-                additivity="false">
-            <AppenderRef ref="Console"/>
-        </Logger>
         <Logger name="com.constellio.com.constellio.importscript.data.utils.systemLogger" level="info"
                 additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="system"/>
+        </Logger>
+        <Logger name="com.constellio.model.services.users.sync" level="info"
+                additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="sync"/>
         </Logger>
         <Logger name="com.constellio.app.modules.restapi" level="info" additivity="false">
             <AppenderRef ref="Console"/>
@@ -126,14 +133,9 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="file"/>
         </Logger>
-        <Root level="TRACE">
-            <!--
+        <Root level="info">
             <AppenderRef ref="Console"/>
-            -->
             <AppenderRef ref="Routing"/>
-            <!--
-            <AppenderRef ref="es"/>
-            -->
         </Root>
     </Loggers>
 

@@ -23,7 +23,6 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
@@ -38,6 +37,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
@@ -247,6 +247,7 @@ public class TaskRecordExtension extends RecordExtension {
 			}
 		}
 	}
+
 	private void invalidateOldAndNewAssigneesForUnreadTasksCache(Task task, RecordModificationEvent event) {
 		Boolean assigneeModified = event.hasModifiedMetadata(Task.ASSIGNEE);
 		Boolean assigneeUserCandidatesModified = event.hasModifiedMetadata(Task.ASSIGNEE_USERS_CANDIDATES);
@@ -641,8 +642,8 @@ public class TaskRecordExtension extends RecordExtension {
 				UserServices userServices = modelLayerFactory.newUserServices();
 				try {
 					Group group = tasksSchema.getGroup(groupId);
-					List<UserCredential> groupUsers = userServices.getGlobalGroupActifUsers(group.getCode());
-					for (UserCredential user : groupUsers) {
+					List<SystemWideUserInfos> groupUsers = userServices.getGlobalGroupActifUsers(collection, group.getCode());
+					for (SystemWideUserInfos user : groupUsers) {
 						User assigneeCandidate = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(user.getUsername(), collection);
 						if (!assigneeCandidate.isAssignationEmailReceptionDisabled()) {
 							assigneeEmails.addAll(buildEmailAddressList(user.getTitle(), user.getEmail(), user.getPersonalEmails()));

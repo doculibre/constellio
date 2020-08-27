@@ -26,6 +26,7 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
@@ -91,14 +92,16 @@ public class HomePresenter extends BasePresenter<HomeView> {
 									expandedRecordIds.add(0, expandedRecordIdParam);
 
 									Record lastAddedParent = null;
-									String currentParentId = expandedRecord.getParentId();
+									MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(expandedRecord);
+									String currentParentId = expandedRecord.getParentId(schema);
 									List<Record> recordHierarchie = new ArrayList<>();
 									recordHierarchie.add(expandedRecord);
 									while (currentParentId != null) {
 										lastAddedParent = getRecord(currentParentId);
 										recordHierarchie.add(0, lastAddedParent);
 										expandedRecordIds.add(0, currentParentId);
-										currentParentId = lastAddedParent.getParentId();
+										MetadataSchema lastAddedParentSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(lastAddedParent);
+										currentParentId = lastAddedParent.getParentId(lastAddedParentSchema);
 									}
 
 									TreeNode currentNode = TreeNode.namelessNode(recordHierarchie.get(0).getId(), LegacyTreeNodesDataProviderAdapter.PROVIDER_ID, recordHierarchie.get(0).getTypeCode());

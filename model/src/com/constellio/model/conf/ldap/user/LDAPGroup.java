@@ -21,6 +21,7 @@ public class LDAPGroup {
 	private String simpleName;
 
 	private List<String> ldapUsers = new ArrayList<>();
+	private List<String> parents = new ArrayList<>();
 
 	private boolean enabled = true;
 
@@ -59,13 +60,24 @@ public class LDAPGroup {
 		}
 	}
 
+	public void addParent(String parentId) {
+		if (!this.parents.contains(parentId)) {
+			this.parents.add(parentId);
+		}
+	}
+
 	public List<String> getMembers() {
 		return Collections.unmodifiableList(this.ldapUsers);
 	}
 
+	public List<String> getMemberOf() {
+		return Collections.unmodifiableList(this.parents);
+	}
+
 	@Override
 	public String toString() {
-		return "\t" + distinguishedName + "\n\tUsers :\n\t" + StringUtils.join(ldapUsers.toArray(), "\n\t");
+		return "\t" + distinguishedName + "\n\tUsers :\n\t" + StringUtils.join(ldapUsers.toArray(), "\n\t")
+			   + "\n\tParents: \n\t" + StringUtils.join(parents.toArray(), "\n\t");
 	}
 
 	@Override

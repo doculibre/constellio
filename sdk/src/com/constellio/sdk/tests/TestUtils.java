@@ -23,7 +23,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
@@ -36,7 +35,9 @@ import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
+import lombok.AllArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -78,6 +79,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -401,9 +403,9 @@ public class TestUtils {
 		return ids;
 	}
 
-	public static List<String> usernamesOf(List<UserCredential> users) {
+	public static List<String> usernamesOf(List<SystemWideUserInfos> users) {
 		List<String> ids = new ArrayList<>();
-		for (UserCredential user : users) {
+		for (SystemWideUserInfos user : users) {
 			ids.add(user.getUsername());
 		}
 		return ids;
@@ -665,6 +667,27 @@ public class TestUtils {
 			return new File(dir, name).isDirectory();
 		}
 	};
+
+	public static Condition<? super Throwable> instanceOf(
+			Class<? extends RuntimeException> exceptionClass) {
+
+		return new Condition<Throwable>() {
+			@Override
+			public boolean matches(Throwable value) {
+
+				if (value == null) {
+					fail("Exception of class '" + exceptionClass + "' was expected");
+				} else {
+					if (!value.getClass().equals(exceptionClass)) {
+						throw new RuntimeException("Unexpected exception thrown", value);
+					}
+				}
+
+				return true;
+			}
+		};
+
+	}
 
 	public static class MapBuilder<K, V> {
 
@@ -1371,4 +1394,99 @@ public class TestUtils {
 			return assertThat(e);
 		}
 	}
+
+	public static ValidationErrorAssert assertThatValidationException(ThrowingRunnable r) {
+
+		try {
+			r.run();
+			fail("Was expecting validation errors, nothing was thrown");
+			return null;
+
+		} catch (ValidationException e) {
+			return new ValidationErrorAssert(e.getErrors());
+
+		} catch (com.constellio.model.frameworks.validation.ValidationException e) {
+			return new ValidationErrorAssert(e.getValidationErrors());
+
+		} catch (ValidationRuntimeException e) {
+			return new ValidationErrorAssert(e.getValidationErrors());
+
+		} catch (Exception e) {
+			throw new RuntimeException("Was expecting validation errors, but this exception was thrown instead", e);
+		}
+
+	}
+
+	public static ValidationErrorAssert assertThatValidationException(Supplier<ValidationErrors> errorsSupplier) {
+
+		try {
+			ValidationErrors errors = errorsSupplier.get();
+			if (errors == null) {
+				fail("Was expecting validation errors, nothing was thrown");
+			} else {
+				return new ValidationErrorAssert(errors);
+			}
+			return null;
+
+		} catch (ValidationRuntimeException e) {
+			return new ValidationErrorAssert(e.getValidationErrors());
+
+		} catch (Exception e) {
+			throw new RuntimeException("Was expecting validation errors, but this exception was thrown instead", e);
+		}
+
+	}
+
+
+	@AllArgsConstructor
+	public static class ValidationErrorAssert {
+
+
+		@NotNull
+		ValidationErrors errors;
+
+		public ValidationErrorAssert hasWarningsWithEnglishMessage(String... englishMessages) {
+
+			assertThat(TestUtils.englishMessages(errors.getValidationWarnings())).containsOnly(englishMessages);
+			return this;
+		}
+
+		public ValidationErrorAssert hasWarningsWithFrenchMessage(String... englishMessages) {
+			assertThat(TestUtils.englishMessages(errors.getValidationWarnings())).containsOnly(englishMessages);
+			return this;
+		}
+
+		public ValidationErrorAssert hasErrorsWithEnglishMessage(String... englishMessages) {
+			assertThat(TestUtils.englishMessages(errors)).containsOnly(englishMessages);
+			return this;
+		}
+
+		public ValidationErrorAssert hasErrorsWithFrenchMessage(String... englishMessages) {
+			assertThat(TestUtils.englishMessages(errors)).containsOnly(englishMessages);
+			return this;
+		}
+
+		public ValidationErrorAssert hasWarningWithEnglishMessage(String englishMessages) {
+			assertThat(TestUtils.englishMessages(errors.getValidationWarnings())).containsOnly(englishMessages);
+			return this;
+		}
+
+		public ValidationErrorAssert hasWarningWithFrenchMessage(String englishMessages) {
+			assertThat(TestUtils.englishMessages(errors.getValidationWarnings())).containsOnly(englishMessages);
+			return this;
+		}
+
+		public ValidationErrorAssert hasErrorWithEnglishMessage(String englishMessages) {
+			assertThat(TestUtils.englishMessages(errors)).containsOnly(englishMessages);
+			return this;
+		}
+
+		public ValidationErrorAssert hasErrorWithFrenchMessage(String englishMessages) {
+			assertThat(TestUtils.englishMessages(errors)).containsOnly(englishMessages);
+			return this;
+		}
+
+	}
+
+
 }

@@ -49,6 +49,127 @@ public class UserServicesRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class UserServicesRuntimeException_AtLeastOneCollectionRequired extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_AtLeastOneCollectionRequired(String code) {
+			super("At least one collection is required for new user/group '" + code + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_ParentGroupDoesNotExistInCollection extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_ParentGroupDoesNotExistInCollection(String code, String parentCode,
+																				String collection) {
+			super("Parent group with code '" + parentCode + "' does not exist in collection '" + collection + "' for child group '" + code + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_InvalidUsername extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_InvalidUsername(String username) {
+			super("Username is invalid : '" + username + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_UserAlreadyExists extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_UserAlreadyExists(String username) {
+			super("Username already exist in '" + username + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_InvalidCollectionForUser extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_InvalidCollectionForUser(String username, String collection) {
+			super("Cannot add user in this invalid collection name '" + collection + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_InvalidCollectionForGroup extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_InvalidCollectionForGroup(String username, String collection) {
+			super("Cannot add group in this invalid collection name '" + collection + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_FirstNameRequired extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_FirstNameRequired(String username) {
+			super("First name is required for new user '" + username + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_LastNameRequired extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_LastNameRequired(String username) {
+			super("Last name is required for new user '" + username + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_EmailRequired extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_EmailRequired(String username) {
+			super("Email is required for new user '" + username + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_NameRequired extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_NameRequired(String code) {
+			super("Name is required for new group '" + code + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_CannotAssignUserToInexistingGroupInCollection extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_CannotAssignUserToInexistingGroupInCollection(String username, String code,
+																						  String collection) {
+			super("Cannot assign '" + username + "' to inexisting group '" + code + "' in collection '" + collection + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_CannotChangeNameOfSyncedUser extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_CannotChangeNameOfSyncedUser(String username) {
+			super("Cannot change name of synced user '" + username + "'");
+		}
+	}
+
+
+	public static class UserServicesRuntimeException_CannotChangeEmailOfSyncedUser extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_CannotChangeEmailOfSyncedUser(String username) {
+			super("Cannot change email of synced user '" + username + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_CannotChangeStatusOfSyncedUser extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_CannotChangeStatusOfSyncedUser(String username) {
+			super("Cannot change status of synced user '" + username + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_CannotChangeStatusOfSyncedGroup extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_CannotChangeStatusOfSyncedGroup(String groupCode) {
+			super("Cannot change status of synced group '" + groupCode + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_CannotChangeAssignmentOfSyncedUserToSyncedGroup extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_CannotChangeAssignmentOfSyncedUserToSyncedGroup(String username,
+																							String group) {
+			super("Cannot change assignment of synced user '" + username + "' to synced group '" + group + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_CannotRemoveUserFromSyncedCollection extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_CannotRemoveUserFromSyncedCollection(String username, String collection) {
+			super("Cannot remove synced user '" + username + "' from synced collection '" + collection + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_CannotRemoveSyncedGroupFromSyncedCollection extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_CannotRemoveSyncedGroupFromSyncedCollection(String username,
+																						String collection) {
+			super("Cannot remove synced group '" + username + "' from synced collection '" + collection + "'");
+		}
+	}
+
+	public static class UserServicesRuntimeException_CannotAssignUserToGroupsInOtherCollection extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_CannotAssignUserToGroupsInOtherCollection(String username, String code,
+																					  String collection) {
+			super("User '" + username + "' cannot be assigned to group '" + code + "' in collection '" + collection + "', because the user is not in this collection");
+		}
+	}
+
+
 	public static class UserServicesRuntimeException_UserPermissionDeniedToDelete extends UserServicesRuntimeException {
 		public UserServicesRuntimeException_UserPermissionDeniedToDelete(String user) {
 			super("User " + user + " has not permission to delete");

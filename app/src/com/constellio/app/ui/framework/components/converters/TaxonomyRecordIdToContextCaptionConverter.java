@@ -5,6 +5,7 @@ import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -22,6 +23,8 @@ public class TaxonomyRecordIdToContextCaptionConverter extends RecordIdToCaption
 
 	private transient TaxonomiesManager taxonomiesManager;
 
+	private transient ModelLayerFactory modelLayerFactory;
+
 	public TaxonomyRecordIdToContextCaptionConverter() {
 		super();
 		initTransientObjects();
@@ -35,7 +38,7 @@ public class TaxonomyRecordIdToContextCaptionConverter extends RecordIdToCaption
 
 	private void initTransientObjects() {
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+		modelLayerFactory = constellioFactories.getModelLayerFactory();
 		recordServices = modelLayerFactory.newRecordServices();
 		taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 	}
@@ -58,7 +61,8 @@ public class TaxonomyRecordIdToContextCaptionConverter extends RecordIdToCaption
 						String currentRecordCaption = SchemaCaptionUtils.getCaptionForRecord(currentRecord, locale, true);
 						sb.insert(0, currentRecordCaption);
 
-						String parentRecordId = currentRecord.getParentId();
+						MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record);
+						String parentRecordId = currentRecord.getParentId(schema);
 						if (parentRecordId != null) {
 							currentRecord = recordServices.getDocumentById(parentRecordId);
 						} else {

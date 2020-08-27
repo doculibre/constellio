@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataList;
@@ -140,7 +141,8 @@ public class XmlReportGenerator extends AbstractXmlGenerator {
 
 	public String getPath(Record recordElement) {
 		StringBuilder builder = new StringBuilder();
-		String parentId = recordElement.getParentId();
+		MetadataSchema schema = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(recordElement);
+		String parentId = recordElement.getParentId(schema);
 		if (parentId == null) {
 			if (recordElement.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
 				parentId = getRMSchemasRecordsServices().wrapFolder(recordElement).getCategory();

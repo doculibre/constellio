@@ -2,7 +2,8 @@ package com.constellio.app.modules.complementary.esRmRobots.services;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.services.factories.ModelLayerFactory;
 
 import java.util.Iterator;
 
@@ -10,10 +11,10 @@ import static java.util.Arrays.asList;
 
 public class ClassifyConnectorHelper {
 
-	RecordServices recordServices;
+	ModelLayerFactory modelLayerFactory;
 
-	public ClassifyConnectorHelper(RecordServices recordServices) {
-		this.recordServices = recordServices;
+	public ClassifyConnectorHelper(ModelLayerFactory modelLayerFactory) {
+		this.modelLayerFactory = modelLayerFactory;
 	}
 
 	public static class ClassifiedRecordPathInfo {
@@ -71,7 +72,7 @@ public class ClassifyConnectorHelper {
 			Record conceptOfCurrentSegment = null;
 			if (stillInTaxonomy && delimiter != null && rawPathPart.contains(delimiter)) {
 				String firstPart = rawPathPart.split(delimiter)[0];
-				conceptOfCurrentSegment = recordServices.getRecordByMetadata(codeMetadata, firstPart);
+				conceptOfCurrentSegment = modelLayerFactory.newRecordServices().getRecordByMetadata(codeMetadata, firstPart);
 
 				if (conceptOfCurrentSegment != null) {
 					pathPart = firstPart;
@@ -79,7 +80,7 @@ public class ClassifyConnectorHelper {
 					stillInTaxonomy = conceptOfCurrentSegment != null;
 				}
 			} else if (stillInTaxonomy) {
-				conceptOfCurrentSegment = recordServices.getRecordByMetadata(codeMetadata, pathPart);
+				conceptOfCurrentSegment = modelLayerFactory.newRecordServices().getRecordByMetadata(codeMetadata, pathPart);
 				if (taxonomyStarted) {
 					stillInTaxonomy = conceptOfCurrentSegment != null;
 				}
@@ -111,11 +112,14 @@ public class ClassifyConnectorHelper {
 	}
 
 	private boolean isDetectedConceptInHisParent(Record parentConcept, Record concept) {
+
+		MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(concept);
+
 		if (parentConcept == null) {
-			if (concept.getParentId() != null) {
+			if (concept.getParentId(schema) != null) {
 				return false;
 			}
-		} else if (!parentConcept.getId().equals(concept.getParentId())) {
+		} else if (!parentConcept.getId().equals(concept.getParentId(schema))) {
 			return false;
 		}
 		return true;

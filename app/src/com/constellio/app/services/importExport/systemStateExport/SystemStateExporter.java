@@ -112,10 +112,10 @@ public class SystemStateExporter {
 	}
 
 	private LocalDateTime getLastWeeklyExportBeginningTimeStamp() {
-		return null;
-		//		Map<String, String> infos = readWeeklyExportInfos();
-		//		String lastExport = infos.get(EXPORT_TIMESTAMP);
-		//		return lastExport == null ? null : LocalDateTime.parse(lastExport);
+		//return null;
+				Map<String, String> infos = readWeeklyExportInfos();
+				String lastExport = infos.get(EXPORT_TIMESTAMP);
+				return lastExport == null ? null : LocalDateTime.parse(lastExport);
 	}
 
 	private void markHasLastWeeklyExport(LocalDateTime localDateTime) {

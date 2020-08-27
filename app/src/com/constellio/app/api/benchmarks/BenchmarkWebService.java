@@ -34,7 +34,7 @@ public class BenchmarkWebService extends HttpServlet {
 		//
 		//		} catch (BenchmarkWebServiceConfigurationRuntimeException e) {
 		//			LOGGER.error(e.getMessage());
-		//			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		//			response.setStatusForAllCollections(HttpServletResponse.SC_BAD_REQUEST);
 		//
 		//		} catch (RuntimeException e) {
 		//			e.printStackTrace();

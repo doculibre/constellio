@@ -17,6 +17,7 @@ import com.constellio.model.services.contents.ContentImplRuntimeException;
 import com.constellio.model.services.contents.ContentManager.ContentVersionDataSummaryResponse;
 import com.constellio.model.services.contents.ContentManagerRuntimeException;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -52,7 +53,7 @@ public class UserDao extends BaseDao {
 
 	public UserCredentialsContentDto getContent(String username, String metadataCode) {
 		try {
-			UserCredential userCredentials = userServices.getUser(username);
+			UserCredential userCredentials = userServices.getUserConfigs(username);
 
 			if (!userCredentials.hasValue(metadataCode)) {
 				throw new SignatureNoContentException();
@@ -90,14 +91,14 @@ public class UserDao extends BaseDao {
 		}
 
 		Content content = contentManager.createSystemContent(filename, versionDataSummary);
-		UserCredential userCredentials = userServices.getUser(username);
+		UserAddUpdateRequest userCredentials = userServices.addUpdate(username);
 		userCredentials.set(metadataCode, content);
-		userServices.addUpdateUserCredential(userCredentials);
+		userServices.execute(userCredentials);
 	}
 
 	public void deleteContent(String username, String metadataCode) {
-		UserCredential userCredentials = userServices.getUser(username);
+		UserAddUpdateRequest userCredentials = userServices.addUpdate(username);
 		userCredentials.set(metadataCode, null);
-		userServices.addUpdateUserCredential(userCredentials);
+		userServices.execute(userCredentials);
 	}
 }

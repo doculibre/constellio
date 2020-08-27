@@ -45,7 +45,7 @@ public class ImportedAuthorizationToAuthorizationBuilderAcceptTest extends Const
 				withZeCollection().withConstellioRMModule().withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus().withAllTestUsers().withDocumentsHavingContent()
 		);
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 
 		builder = new ImportedAuthorizationToAuthorizationBuilder(zeCollection, getModelLayerFactory());
 

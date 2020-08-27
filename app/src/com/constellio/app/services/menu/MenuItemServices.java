@@ -13,16 +13,14 @@ import com.constellio.app.services.action.UserFolderActionsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.DesktopMenuItemActionBehaviors;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
-import com.constellio.app.ui.entities.GlobalGroupVO;
-import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Resource;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -47,8 +45,6 @@ public class MenuItemServices {
 
 	private List<MenuItemActionsExtension> menuItemActionsExtensions;
 
-	private UserCredentialMenuItemServices userCredentialMenuItemServices;
-	private GlobalGroupMenuItemServices globalGroupMenuItemServices;
 	private SchemaRecordMenuItemServices schemaRecordMenuItemServices;
 	private UserDocumentMenuItemServices userDocumentMenuItemServices;
 	private UserFolderMenuItemServices userFolderMenuItemServices;
@@ -59,6 +55,7 @@ public class MenuItemServices {
 	private AppLayerFactory appLayerFactory;
 
 	private SchemasRecordsServices schemasRecordsServices;
+	private UserServices userServices;
 
 	public MenuItemServices(String collection, AppLayerFactory appLayerFactory) {
 		this.menuItemActionsExtensions = appLayerFactory.getExtensions()
@@ -66,8 +63,6 @@ public class MenuItemServices {
 
 		this.schemasRecordsServices = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 
-		this.userCredentialMenuItemServices = new UserCredentialMenuItemServices(appLayerFactory);
-		this.globalGroupMenuItemServices = new GlobalGroupMenuItemServices(appLayerFactory);
 		this.schemaRecordMenuItemServices = new SchemaRecordMenuItemServices(collection, appLayerFactory);
 		this.userDocumentMenuItemServices = new UserDocumentMenuItemServices(collection, appLayerFactory);
 		this.userFolderMenuItemServices = new UserFolderMenuItemServices(collection, appLayerFactory);
@@ -75,6 +70,7 @@ public class MenuItemServices {
 		this.userFolderActionsServices = new UserFolderActionsServices(collection, appLayerFactory);
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
+		this.userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 	}
 
 	public List<MenuItemAction> getActionsForRecord(Record record, MenuItemActionBehaviorParams params) {
@@ -92,18 +88,6 @@ public class MenuItemServices {
 		}
 
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
-		Object objectRecordVO = params.getObjectRecordVO();
-		if (objectRecordVO != null) {
-			if (objectRecordVO instanceof UserCredentialVO) {
-				menuItemActions.addAll(userCredentialMenuItemServices.getActionsForRecord(userCredentialMenuItemServices
-								.getUserCredential((UserCredentialVO) objectRecordVO), params.getUser(),
-						excludedActionTypes, params));
-			} else if (objectRecordVO instanceof GlobalGroupVO) {
-				menuItemActions.addAll(globalGroupMenuItemServices.getActionsForRecord(globalGroupMenuItemServices
-								.getGlobalGroup((GlobalGroupVO) objectRecordVO), params.getUser(),
-						excludedActionTypes, params));
-			}
-		}
 
 		if (record != null && record.getSchemaCode().startsWith("ddv")) {
 			menuItemActions.addAll(schemaRecordMenuItemServices.getActionsForRecord(record, params.getUser(), excludedActionTypes, params));
@@ -239,12 +223,6 @@ public class MenuItemServices {
 		} else if (record.isOfSchemaType(UserFolder.SCHEMA_TYPE)) {
 			return MenuItemActionState.visibleOrHidden(userFolderMenuItemServices.isMenuItemActionPossible(actionType,
 					schemasRecordsServices.wrapUserFolder(record), params.getUser(), params));
-		} else if (record.isOfSchemaType(User.SCHEMA_TYPE)) {
-			return MenuItemActionState.visibleOrHidden(userCredentialMenuItemServices.isMenuItemActionPossible(actionType,
-					schemasRecordsServices.wrapUserCredential(record), params.getUser(), params));
-		} else if (record.isOfSchemaType(Group.SCHEMA_TYPE)) {
-			return MenuItemActionState.visibleOrHidden(globalGroupMenuItemServices.isMenuItemActionPossible(actionType,
-					schemasRecordsServices.wrapGlobalGroup(record), params.getUser(), params));
 		} else if (record.getSchemaCode().startsWith("ddv")) {
 			return MenuItemActionState.visibleOrHidden(schemaRecordMenuItemServices.isMenuItemActionPossible(actionType,
 					record, params.getUser(), params));

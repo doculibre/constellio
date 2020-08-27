@@ -98,7 +98,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.servlet.ConstellioImportRecordsServlet;
 import com.constellio.app.servlet.ConstellioUploadContentInVaultServlet;
 import com.constellio.app.start.ApplicationStarter;
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
@@ -289,6 +288,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo9_1_10());
 		scripts.add(new RMMigrationTo9_1_0_30());
 		scripts.add(new RMMigrationTo9_1_10_1());
+		scripts.add(new RMMigrationTo9_2_11());
 
 		return scripts;
 	}

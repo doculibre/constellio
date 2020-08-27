@@ -1,6 +1,6 @@
 package com.constellio.model.services.search.query.logical;
 
-import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import org.apache.solr.common.params.SolrParams;
 
 public class FreeTextQuery {
@@ -9,13 +9,13 @@ public class FreeTextQuery {
 
 	private boolean searchingEvents;
 
-	private UserCredential userFilter;
+	private SystemWideUserInfos userFilter;
 
 	public FreeTextQuery(SolrParams solrParams) {
 		this.solrParams = solrParams;
 	}
 
-	public FreeTextQuery filteredByUser(UserCredential multiCollectionUserFilter) {
+	public FreeTextQuery filteredByUser(SystemWideUserInfos multiCollectionUserFilter) {
 		this.userFilter = multiCollectionUserFilter;
 		return this;
 	}
@@ -24,7 +24,7 @@ public class FreeTextQuery {
 		return solrParams;
 	}
 
-	public UserCredential getUserFilter() {
+	public SystemWideUserInfos getUserFilter() {
 		return userFilter;
 	}
 

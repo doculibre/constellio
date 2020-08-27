@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -23,8 +24,10 @@ public class DecommissioningEmailService {
 	String collection;
 	RecordServices recordServices;
 	AuthorizationsServices authorizationsServices;
+	ModelLayerFactory modelLayerFactory;
 
 	public DecommissioningEmailService(String collection, ModelLayerFactory modelLayerFactory) {
+		this.modelLayerFactory = modelLayerFactory;
 		this.authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.collection = collection;
@@ -40,7 +43,8 @@ public class DecommissioningEmailService {
 						RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, record));
 
 		if (returnedUsers.isEmpty()) {
-			String parentId = record.getParentId();
+			MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record);
+			String parentId = record.getParentId(schema);
 			if (parentId == null) {
 				return getUsersWithEmailAddressWithGlobalDecommissioningPermission();
 			} else {

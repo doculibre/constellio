@@ -79,6 +79,7 @@ public class ListSchemaTypePresenterAcceptanceTest extends ConstellioTest {
 				List<String> preSaveData = excelSheetToListOfCellAsStringValue(presaveSheet);
 				List<String> generatedData = excelSheetToListOfCellAsStringValue(generatedSheet);
 
+				//TODO ajouter abréviation dans fichier
 				Assertions.assertThat(generatedData).isEqualTo(preSaveData);
 			}
 

@@ -3,7 +3,7 @@ package com.constellio.model.entities.security.global;
 import com.constellio.model.entities.EnumWithSmallCode;
 
 public enum UserCredentialStatus implements EnumWithSmallCode {
-	ACTIVE("a"), PENDING("p"), SUSPENDED("s"), DELETED("d");
+	ACTIVE("a"), PENDING("p"), SUSPENDED("s"), DISABLED("d");
 
 	private String code;
 
@@ -26,7 +26,7 @@ public enum UserCredentialStatus implements EnumWithSmallCode {
 				return UserCredentialStatus.SUSPENDED;
 
 			case "d":
-				return UserCredentialStatus.DELETED;
+				return UserCredentialStatus.DISABLED;
 
 			default:
 				throw new IllegalArgumentException("Unsupported value : " + value);

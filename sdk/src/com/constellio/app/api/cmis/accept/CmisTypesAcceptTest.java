@@ -61,7 +61,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 
 		taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 
 		defineSchemasManager().using(zeCollectionSchemas);
 		defineSchemasManager().using(anotherCollectionSchemas);
@@ -74,15 +74,15 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 		anotherCollectionRecords = anotherCollectionSchemas.givenRecords(recordServices);
 
-		userServices.addUpdateUserCredential(
-				userServices.getUserCredential(bobGratton).setServiceKey(bobKey).setSystemAdminEnabled());
-		userServices.addUpdateUserCredential(
-				userServices.getUserCredential(chuckNorris).setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
+		userServices.execute(
+				userServices.addUpdate(bobGratton).setServiceKey(bobKey).setSystemAdminEnabled());
+		userServices.execute(
+				userServices.addUpdate(chuckNorris).setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
 		bobToken = userServices.generateToken(bobGratton);
 		chuckNorrisToken = userServices.generateToken(chuckNorris);
-		userServices.addUserToCollection(users.bob(), zeCollection);
-		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
-		userServices.addUserToCollection(users.chuckNorris(), anotherCollection);
+		userServices.execute(users.bob().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection(zeCollection));
 
 		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 

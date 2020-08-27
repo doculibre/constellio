@@ -1,7 +1,7 @@
 package com.constellio.app.api.search;
 
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -33,12 +33,12 @@ public class SearchWebServiceRMAcceptTest extends ConstellioTest {
 		getModelLayerFactory().getPasswordFileAuthenticationService().changePassword("admin", "youshallnotpass");
 	}
 
-	private QueryResponse query(UserCredential userCredential, ModifiableSolrParams solrParams)
+	private QueryResponse query(SystemWideUserInfos userCredential, ModifiableSolrParams solrParams)
 			throws SolrServerException, IOException {
 		SolrClient solrServer = newSearchClient();
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		String serviceKey = userServices.giveNewServiceToken(userServices.getUserCredential(userCredential.getUsername()));
+		String serviceKey = userServices.giveNewServiceKey(userCredential.getUsername());
 		String token = userServices.getToken(serviceKey, userCredential.getUsername(), "youshallnotpass");
 		solrParams.set("serviceKey", serviceKey);
 		solrParams.set("token", token);

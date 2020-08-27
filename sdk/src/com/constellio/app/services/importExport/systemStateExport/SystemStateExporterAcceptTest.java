@@ -2,6 +2,7 @@ package com.constellio.app.services.importExport.systemStateExport;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.FileUtils;
@@ -23,24 +24,31 @@ public class SystemStateExporterAcceptTest extends ConstellioTest {
 		givenTransactionLogIsEnabled();
 
 		//First (and maybe more) tlog file(s) for system preparation records
+		System.out.println("First (and maybe more) tlog file(s) for system preparation records : " + TimeProvider.getLocalDateTime().toString());
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus());
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMove();
 		getDataLayerFactory().getSequencesManager().set("aNiceSequence", 42);
 
 		//Second tlog file is containing the dark lord
+		System.out.println("Second tlog file is containing the dark lord : " + TimeProvider.getLocalDateTime().toString());
 		getModelLayerFactory().newRecordServices().add(rm.newFolderType().setCode("darthvader").setTitle("darthvader"));
 		getModelLayerFactory().newRecordServices().flushRecords();
 		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMove();
 
-		getAppLayerFactory().getAppLayerBackgroundThreadsManager().getCreateBaseSaveStateBackgroundAction().run();
+
+		System.out.println("Creating base file : " + TimeProvider.getLocalDateTime().toString());
+		new SystemStateExporter(getAppLayerFactory()).createSavestateBaseFileInVault(false);
 
 		//Third tlog file is containing the dog
+		System.out.println("Third tlog file is containing the dog : " + TimeProvider.getLocalDateTime().toString());
 		getModelLayerFactory().newRecordServices().add(rm.newFolderType().setCode("nemo").setTitle("nemo"));
 		getDataLayerFactory().getSecondTransactionLogManager().regroupAndMove();
 
-		//Fourth tlog file is containing the dark lord
+		//Fourth tlog file is containing the private
+		System.out.println("Third tlog file is containing the private : " + TimeProvider.getLocalDateTime().toString());
 		getModelLayerFactory().newRecordServices().add(rm.newFolderType().setCode("PrivateRyan").setTitle("PrivateRyan"));
+
 
 		File exportToFolder = newTempFolder();
 		new SystemStateExporter(getAppLayerFactory()).exportSystemToFolder(exportToFolder,
@@ -48,7 +56,6 @@ public class SystemStateExporterAcceptTest extends ConstellioTest {
 
 		File tlogs = new File(exportToFolder, "content" + File.separator + "tlogs");
 
-		//Tlogs has only 3 files (1 base file and 2 files for following transactions)
 		assertThat(tlogs.listFiles()).hasSize(3);
 		assertThatThingsAppearInOnlyOneFile(tlogs);
 

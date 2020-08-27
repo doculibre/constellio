@@ -9,6 +9,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -154,8 +155,9 @@ public class ObjectDataBuilder {
 				}
 			}
 
-			if (record.getParentId() != null) {
-				propertiesBuilder.addPropertyString(PropertyIds.PARENT_ID, record.getParentId());
+			MetadataSchema schema = schemas.getSchemaOf(record);
+			if (record.getParentId(schema) != null) {
+				propertiesBuilder.addPropertyString(PropertyIds.PARENT_ID, record.getParentId(schema));
 			} else if (path != null) {
 				// The principal path is used here, also.
 				propertiesBuilder.addPropertyString(PropertyIds.PARENT_ID,

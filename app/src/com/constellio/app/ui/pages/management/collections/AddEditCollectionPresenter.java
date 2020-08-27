@@ -17,13 +17,13 @@ import com.constellio.model.entities.modules.PluginUtil;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.lang3.StringUtils;
 
@@ -230,8 +230,8 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		}
 
 		UserServices userServices = modelLayerFactory.newUserServices();
-		UserCredential currentUser = userServices.getUser(getCurrentUser().getUsername());
-		userServices.addUserToCollection(currentUser, collectionRecord.getId());
+		SystemWideUserInfos currentUser = userServices.getUserInfos(getCurrentUser().getUsername());
+		userServices.execute(currentUser.getUsername(), (req) -> req.addToCollection(collectionRecord.getId()));
 		User user = userServices.getUserInCollection(currentUser.getUsername(), collectionCode);
 		try {
 			recordServices().update(user.addUserRoles(roles.toArray(new String[roles.size()])).setCollectionAllAccess(true));

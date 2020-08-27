@@ -250,6 +250,9 @@ public class EncryptionServices {
 			}
 			return decryptedValues;
 		} else if (toDecrypt instanceof String) {
+			if(toDecrypt.equals("")) {
+				return "";
+			}
 			return decrypt((String) toDecrypt, key);
 		}
 

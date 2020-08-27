@@ -44,6 +44,8 @@ public class SchemasListsUnmodifiableTest extends ConstellioTest {
 		List<Metadata> metadatas = Arrays.asList(metadata1, metadata2);
 		when(metadata1.getType()).thenReturn(MetadataValueType.BOOLEAN);
 		when(metadata2.getType()).thenReturn(MetadataValueType.ENUM);
+		when(metadata2.getLocalCode()).thenReturn("m1");
+		when(metadata2.getLocalCode()).thenReturn("m2");
 		when(metadata1.getId()).thenReturn((short) 1);
 		when(metadata2.getId()).thenReturn((short) 2);
 		Set<RecordValidator> validators = new HashSet<RecordValidator>();

@@ -82,11 +82,13 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 			Element elementPlugins = importedSystemVersionLabel.getChild(PLUGINS);
 			Element elementUSR = importedSystemVersionLabel.getChild(ONLY_USR);
 
-			importedSystemVersion.setFullVersion(elementVersion.getAttributeValue(FULL));
-			importedSystemVersion.setMajorVersion(Integer.parseInt(elementVersion.getAttributeValue(MAJOR)));
-			importedSystemVersion.setMinorVersion(Integer.parseInt(elementVersion.getAttributeValue(MINOR)));
-			importedSystemVersion.setMinorRevisionVersion(Integer.parseInt(elementVersion.getAttributeValue(REVISION)));
-			importedSystemVersion.setOnlyUSR(Boolean.parseBoolean(elementUSR.getAttributeValue(VALUE)));
+			if (elementVersion != null) {
+				importedSystemVersion.setFullVersion(elementVersion.getAttributeValue(FULL));
+				importedSystemVersion.setMajorVersion(Integer.parseInt(elementVersion.getAttributeValue(MAJOR)));
+				importedSystemVersion.setMinorVersion(Integer.parseInt(elementVersion.getAttributeValue(MINOR)));
+				importedSystemVersion.setMinorRevisionVersion(Integer.parseInt(elementVersion.getAttributeValue(REVISION)));
+				importedSystemVersion.setOnlyUSR(Boolean.parseBoolean(elementUSR.getAttributeValue(VALUE)));
+			}
 
 			for (Element plugin : elementPlugins.getChildren()) {
 				plugins.add(plugin.getAttributeValue(PLUGIN_ID));

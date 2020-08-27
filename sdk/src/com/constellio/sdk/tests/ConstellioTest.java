@@ -2,6 +2,7 @@ package com.constellio.sdk.tests;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.utils.TenantUtils;
+import com.constellio.data.utils.InclassToggle;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.dev.Toggle.AvailableToggle;
 import com.constellio.model.entities.records.Record;
@@ -79,6 +80,8 @@ public class ConstellioTest extends AbstractConstellioTest {
 		}
 		Toggle.ROLES_WITH_NEW_7_2_PERMISSIONS.enable();
 		Toggle.STRUCTURE_CACHE_BASED_ON_EXISTING_IDS.disable();
+		Toggle.VALIDATE_USER_COLLECTIONS.disable();
+		InclassToggle.resetAll();
 		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 		if (!isKeepingPreviousState() && testSession.getFactoriesTestFeatures() != null && IS_FIRST_EXECUTED_TEST) {
 

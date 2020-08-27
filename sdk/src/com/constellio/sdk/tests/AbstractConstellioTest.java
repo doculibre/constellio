@@ -50,6 +50,7 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleRuntimeException;
 import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
@@ -60,6 +61,7 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.FailureDetectionTestWatcher.FailureDetectionTestWatcherListener;
 import com.constellio.sdk.tests.ToggleTestFeature.ToggleCondition;
@@ -113,6 +115,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import static com.constellio.data.conf.HashingEncoding.BASE64;
@@ -189,7 +192,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	@BeforeClass
 	public static void beforeClass()
 			throws Exception {
-
+		//-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager
 		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
 		System.setProperty("log4j.configurationFile", new FoldersLocator().getSDKProject().getAbsolutePath() +
 													  File.separator + "log4j2.xml");
@@ -235,18 +238,18 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected void givenTwoTenants() {
 		getCurrentTestSession().getFactoriesTestFeatures().addTenants();
+
+		new SDKPropertiesLoader().createTenantsSDKProperties();
 	}
 
 	protected void givenTwoTenants(final RunnableWithException runnable) throws Exception {
-		getCurrentTestSession().getFactoriesTestFeatures().addTenants();
+		givenTwoTenants();
 
 		TenantUtils.setTenant("1");
 		runnable.run();
 
 		TenantUtils.setTenant("2");
 		runnable.run();
-
-
 	}
 
 	protected void forEachTenants(final RunnableWithException runnable) throws Exception {
@@ -1324,7 +1327,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 					preparator.demoTestRecordsObject.alreadySettedUp(getModelLayerFactory());
 				}
 				if (preparator.users != null) {
-					preparator.users.setUp(getModelLayerFactory().newUserServices());
+					preparator.users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 				}
 				for (Class<? extends InstallableModule> pluginClass : preparator.plugins) {
 					givenInstalledModule(pluginClass);
@@ -1365,7 +1368,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				if (preparator.allTestUsers) {
 					modulesAndMigrationsTestFeatures = modulesAndMigrationsTestFeatures.withAllTestUsers();
 					if (preparator.users != null) {
-						preparator.users.setUp(modelLayerFactory.newUserServices());
+						preparator.users.setUp(modelLayerFactory.newUserServices(), preparator.collection);
 					}
 				}
 
@@ -1754,7 +1757,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected Session newCMISSessionAsUserInCollection(String username, String collection) {
 		ensureNotUnitTest();
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.addUpdateUserCredential(userServices.getUser(username).setServiceKey(username + "-key"));
+		userServices.execute(userServices.addUpdate(username).setServiceKey(username + "-key"));
 		String token = userServices.generateToken(username, Duration.standardHours(72));
 		System.out.println("Logging as " + username + "-key / " + token);
 		Session session = newCmisSessionBuilder().authenticatedBy(username + "-key", token).onCollection(collection).build();
@@ -1802,6 +1805,26 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		this.failMessage = failMessage;
 	}
 
+	public UserAddUpdateRequest addUpdateUserCredential(String username, String firstName, String lastName,
+														String email,
+														List<String> globalGroups, List<String> collections,
+														UserCredentialStatus status) {
+
+		return getModelLayerFactory().newUserServices().addUpdate(username)
+				.setFirstName(firstName)
+				.setLastName(lastName)
+				.setEmail(email)
+				.setServiceKey(null)
+				.setSystemAdmin(false)
+				.setGlobalGroups(globalGroups)
+				.setCollections(collections)
+				.setStatusForAllCollections(status)
+				.setDomain(null)
+				.setMsExchDelegateListBL(null)
+				.setDn(null);
+
+	}
+
 	public double getSolrVersion() {
 		Response response = ClientBuilder.newClient()
 				.target(sdkProperties.get("dao.records.http.url").concat("admin/info/system?wt=json"))
@@ -1818,4 +1841,6 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	public QueryCounter newQueryCounter() {
 		return new QueryCounter(getDataLayerFactory(), getClass());
 	}
+
+	protected Function<String, String> idToCode = id -> AbstractConstellioTest.this.record(id).get(Schemas.CODE);
 }

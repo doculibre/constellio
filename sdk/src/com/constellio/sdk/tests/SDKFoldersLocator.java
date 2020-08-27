@@ -38,4 +38,11 @@ public class SDKFoldersLocator extends FoldersLocator {
 			   folder;
 	}
 
+	public File getDefaultSdkProperties() {
+		return new File(getSDKProject(), "sdk.properties.default");
+	}
+
+	public File getTenant2SdkProperties() {
+		return new File(getSDKProject(), "sdk.properties.tenant2");
+	}
 }

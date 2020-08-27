@@ -18,7 +18,6 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordDeleteServices;
@@ -36,6 +35,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.security.SecurityAcceptanceTestSetup.Records;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -95,6 +95,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	protected Records records;
 	protected Records otherCollectionRecords;
 	protected Users users = new Users();
+	protected Users otherCollectionUsers = new Users();
 	protected RolesManager roleManager;
 
 	protected String ROLE1 = "role1";
@@ -183,7 +184,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				collectionsListManager = modelLayerFactory.getCollectionsListManager();
 				userServices = modelLayerFactory.newUserServices();
 				schemas = new SchemasRecordsServices(zeCollection, modelLayerFactory);
-				users.setUp(modelLayerFactory.newUserServices());
+				users.setUp(modelLayerFactory.newUserServices(), zeCollection, anotherCollection);
 
 			}
 
@@ -1006,7 +1007,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		public UserAction isRemovedFromGroup(String group) {
-			userServices.addUpdateUserCredential(userServices.getUser(username).removeGlobalGroup(group));
+			userServices.execute(userServices.addUpdate(username).removeFromGroupOfEachCollection(group));
 			try {
 				waitForBatchProcess();
 			} catch (InterruptedException e) {
@@ -1016,7 +1017,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		public UserAction isAddedInGroup(String group) {
-			userServices.addUpdateUserCredential(userServices.getUser(username).addGlobalGroup(group));
+			userServices.execute(userServices.addUpdate(username).addToGroupInEachCollection(group));
 			try {
 				waitForBatchProcess();
 			} catch (InterruptedException e) {
@@ -1221,7 +1222,8 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	protected Group createGroup(String name) {
-		return userServices.createCustomGroupInCollectionWithCodeAndName(zeCollection, ZE_GROUP, name);
+		userServices.createGroup(ZE_GROUP, req -> req.setName(name).addCollections(zeCollection));
+		return userServices.getGroupInCollection(ZE_GROUP, zeCollection);
 	}
 
 	protected void givenChuckNorrisSeesEverything()
@@ -1302,9 +1304,9 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		for (int i = 1; i <= qty; i++) {
 			System.out.println("adding user " + i + "/" + qty);
 			String username = "grim.patron." + i;
-			UserCredential userCredential = userServices.createUserCredential(username, "Grim", "Patron",
+			UserAddUpdateRequest userCredential = addUpdateUserCredential(username, "Grim", "Patron",
 					username + "@constellio.com", asList("legends"), asList(zeCollection), ACTIVE);
-			userServices.addUpdateUserCredential(userCredential);
+			userServices.execute(userCredential);
 			users.add(username);
 		}
 		return users;

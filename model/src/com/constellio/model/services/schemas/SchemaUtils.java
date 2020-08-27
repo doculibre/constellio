@@ -1,6 +1,7 @@
 package com.constellio.model.services.schemas;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.InclassToggle;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
@@ -186,10 +187,10 @@ public class SchemaUtils {
 		} else {
 			firstPart = metadataDataStoreCode.substring(0, indexOfUnderscore);
 		}
-		if (firstPart.endsWith("PId") && !isCustomMetadata(firstPart)) {
+		if (firstPart.endsWith("PId")) {
 			return firstPart.substring(0, firstPart.length() - 3);
 
-		} else if (firstPart.endsWith("Id") && !isCustomMetadata(firstPart)) {
+		} else if (firstPart.endsWith("Id")) {
 			return firstPart.substring(0, firstPart.length() - 2);
 		} else {
 			return StringUtils.substringBefore(firstPart, ".");
@@ -225,6 +226,15 @@ public class SchemaUtils {
 	public Map<String, Metadata> buildIndexByDatastoreCode(List<Metadata> metadatas) {
 		Map<String, Metadata> index = new HashMap<>();
 		for (Metadata metadata : metadatas) {
+			//			String localCode = metadata.getLocalCode();
+			//			if (localCode.endsWith("PId")) {
+			//				localCode = localCode.substring(0, localCode.length() - 3);
+			//
+			//
+			//			} else if (localCode.endsWith("Id")) {
+			//				localCode = localCode.substring(0, localCode.length() - 3);
+			//			}
+			//
 			index.put(metadata.getDataStoreCode(), metadata);
 		}
 		return index;
@@ -242,7 +252,15 @@ public class SchemaUtils {
 	public Map<String, Metadata> buildIndexByLocalCode(List<Metadata> metadatas) {
 		Map<String, Metadata> index = new HashMap<>();
 		for (Metadata metadata : metadatas) {
-			index.put(metadata.getLocalCode(), metadata);
+			String localCode = metadata.getLocalCode();
+			if (localCode != null) {
+				if (localCode.endsWith("PId")) {
+					index.put(localCode.substring(0, localCode.length() - 3), metadata);
+				} else if (localCode.endsWith("Id")) {
+					index.put(localCode.substring(0, localCode.length() - 2), metadata);
+				}
+				index.put(localCode, metadata);
+			}
 		}
 		return index;
 	}
@@ -442,8 +460,9 @@ public class SchemaUtils {
 	}
 
 	static Set<String> validMetadataLocalCodes = new HashSet<>();
+	public static InclassToggle VALIDATE_METADATAS_CODES = new InclassToggle(true);
 
-	public static boolean isValidMetadataCodeWithCache(String localCode) {
+	public static boolean isInValidMetadataCodeWithCache(String localCode) {
 		if (localCode == null) {
 			return false;
 		}
@@ -451,13 +470,14 @@ public class SchemaUtils {
 			return true;
 		}
 		String pattern = "([a-zA-Z0-9])+";
-		boolean valid = !localCode.matches(pattern) || (localCode.toLowerCase().endsWith("id") && !localCode.equals("id"));
+		boolean invalid = VALIDATE_METADATAS_CODES.isEnabled()
+						  && !localCode.matches(pattern);
 
-		if (valid) {
+		if (invalid) {
 			validMetadataLocalCodes.add(localCode);
 		}
 
-		return valid;
+		return invalid;
 	}
 
 	static Set<String> validSchemaLocalCodes = new HashSet<>();

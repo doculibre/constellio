@@ -115,7 +115,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		UserCredential userCredential = userServices.getUserCredential(aliceWonderland);
-		userServices.addUserToCollection(userCredential, zeCollection);
+		userServices.execute(userCredential.getUsername(), (req) -> req.addToCollection(zeCollection));
 		alice = userServices.getUserInCollection(aliceWonderland, zeCollection);
 		zeSasquatch = userServices.getUserInCollection(sasquatch, zeCollection);
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(false));

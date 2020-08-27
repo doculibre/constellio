@@ -30,7 +30,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -48,6 +47,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -334,13 +334,13 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 
 	public String getSignatureImageData() {
 		UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-		UserCredential userCredentials = userServices.getUser(currentUser.getUsername());
+		SystemWideUserInfos userCredentials = userServices.getUserInfos(currentUser.getUsername());
 		return getImageData(userCredentials.getElectronicSignature());
 	}
 
 	public String getInitialsImageData() {
 		UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-		UserCredential userCredentials = userServices.getUser(currentUser.getUsername());
+		SystemWideUserInfos userCredentials = userServices.getUserInfos(currentUser.getUsername());
 		return getImageData(userCredentials.getElectronicInitials());
 	}
 

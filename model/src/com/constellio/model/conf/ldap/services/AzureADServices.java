@@ -5,6 +5,7 @@ import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
+import com.constellio.model.services.users.sync.model.LDAPUsersAndGroups;
 
 import java.util.ArrayList;
 import java.util.HashMap;

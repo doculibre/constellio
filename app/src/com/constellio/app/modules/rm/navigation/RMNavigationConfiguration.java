@@ -86,9 +86,9 @@ import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.AgentStatus;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.View;
@@ -620,7 +620,7 @@ public class RMNavigationConfiguration implements Serializable {
 				RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 
 				String username = user.getUsername();
-				UserCredential userCredentials = (UserCredential) userServices.getUser(username);
+				SystemWideUserInfos userCredentials = userServices.getUserInfos(username);
 				AgentStatus agentStatus = userCredentials.getAgentStatus();
 				if (agentStatus == AgentStatus.DISABLED && !rmConfigs.isAgentDisabledUntilFirstConnection()) {
 					agentStatus = AgentStatus.ENABLED;

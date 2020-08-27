@@ -47,7 +47,7 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
-		users = users.setUp(getModelLayerFactory().newUserServices());
+		users = users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 	}
 
 	@Test

@@ -1,5 +1,7 @@
 plugins {
     id "org.sonarqube" version "2.6.2"
+    id 'java-test-fixtures'
+    id "io.freefair.lombok" version "5.1.1"
 }
 
 dependencies {
@@ -53,7 +55,7 @@ eclipse {
 }
 
 sourceSets {
-    test {
+    testFixtures {
         java {
             srcDir "src/"
         }
@@ -62,20 +64,6 @@ sourceSets {
         }
     }
 }
-
-task jarTest(type: Jar, dependsOn: testClasses) {
-    from sourceSets.test.output
-    classifier = 'test'
-}
-
-configurations {
-    testArtifacts
-}
-
-artifacts {
-    testArtifacts jarTest
-}
-
 
 project.tasks["sonarqube"].dependsOn "build"
 

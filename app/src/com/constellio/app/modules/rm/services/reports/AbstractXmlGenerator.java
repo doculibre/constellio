@@ -95,7 +95,7 @@ public abstract class AbstractXmlGenerator {
 	/**
 	 * Constellio's AppLayerFactory
 	 */
-	private AppLayerFactory factory;
+	protected AppLayerFactory factory;
 
 	/**
 	 * Constellio's Collection
@@ -573,7 +573,8 @@ public abstract class AbstractXmlGenerator {
 	 */
 	public String getPath(Record recordElement) {
 		StringBuilder builder = new StringBuilder();
-		String parentId = recordElement.getParentId();
+		MetadataSchema schema = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(recordElement);
+		String parentId = recordElement.getParentId(schema);
 		if (parentId == null) {
 			if (recordElement.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
 				parentId = getRMSchemasRecordsServices().wrapFolder(recordElement).getCategory();

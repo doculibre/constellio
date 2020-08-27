@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 public class CyclicHierarchyValidatorTest extends ConstellioTest {
@@ -80,8 +81,8 @@ public class CyclicHierarchyValidatorTest extends ConstellioTest {
 		when(anAllowedRecord.get(Schemas.PRINCIPAL_PATH)).thenReturn("/concept/anAllowedRecordId");
 		when(descendantRecord.get(Schemas.PRINCIPAL_PATH)).thenReturn("/concept/theRecordId/aDescendantId");
 
-		when(anAllowedRecord.getParentId()).thenReturn("anAllowedRecordId");
-		when(descendantRecord.getParentId()).thenReturn("theRecordId");
+		when(anAllowedRecord.getParentId(any(MetadataSchema.class))).thenReturn("anAllowedRecordId");
+		when(descendantRecord.getParentId(any(MetadataSchema.class))).thenReturn("theRecordId");
 
 		when(metadataWithoutReferences.getType()).thenReturn(MetadataValueType.STRING);
 		when(metadataWithAReference.getType()).thenReturn(MetadataValueType.REFERENCE);

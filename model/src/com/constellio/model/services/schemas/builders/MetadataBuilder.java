@@ -1069,7 +1069,7 @@ public class MetadataBuilder {
 	}
 
 	void validateCode(String localCode) {
-		if (SchemaUtils.isValidMetadataCodeWithCache(localCode)) {
+		if (SchemaUtils.isInValidMetadataCodeWithCache(localCode)) {
 			throw new MetadataBuilderRuntimeException.InvalidAttribute(this.getCode(), "code");
 		}
 	}

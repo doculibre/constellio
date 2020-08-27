@@ -78,6 +78,13 @@ public class LDAPConfigurationManager implements StatefulService {
 			validateLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
 		}
 
+		configManager.createPropertiesDocumentIfInexistent(LDAP_CONFIGS, new PropertiesAlteration() {
+			@Override
+			public void alter(Map<String, String> properties) {
+				//Default values
+			}
+		});
+
 		configManager.updateProperties(LDAP_CONFIGS, new PropertiesAlteration() {
 			@Override
 			public void alter(Map<String, String> properties) {

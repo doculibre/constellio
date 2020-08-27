@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.components;
 
+import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -259,6 +260,19 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		}
 		return tabCaption;
 	}
+
+	@Override
+	protected String getTabCode(Field<?> field, Object propertyId) {
+		if (propertyId instanceof MetadataVO) {
+			MetadataVO metadataVO = (MetadataVO) propertyId;
+			SchemasDisplayManager schemasDisplayManager = ConstellioFactories.getInstance().getAppLayerFactory().getMetadataSchemasDisplayManager();
+			MetadataDisplayConfig metadataDisplayConfig = schemasDisplayManager.getMetadata(metadataVO.getCollection(), metadataVO.getCode());
+			return metadataDisplayConfig.getMetadataGroupCode();
+		} else {
+			return null;
+		}
+	}
+
 
 	@Override
 	protected List<String> getOrderedTabCaptions(RecordVO recordVO) {

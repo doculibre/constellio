@@ -156,7 +156,7 @@ public class IsGreaterThanCriterionTest extends ConstellioTest {
 
 		IsStartingWithTextCriterion criterion = new IsStartingWithTextCriterion(value);
 
-		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo("textMetadata:value\\/with\\/slashs*");
+		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo("textMetadata:value\\/with\\/slashs* OR textMetadata:value\\/with\\/slashs");
 	}
 
 	@Test

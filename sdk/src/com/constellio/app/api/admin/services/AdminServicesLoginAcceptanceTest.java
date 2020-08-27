@@ -34,13 +34,13 @@ public class AdminServicesLoginAcceptanceTest extends ConstellioTest {
 		userServices = getModelLayerFactory().newUserServices();
 		authService = getModelLayerFactory().newAuthenticationService();
 
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 
 		userServices.givenSystemAdminPermissionsToUser(users.alice());
 		userServices.givenSystemAdminPermissionsToUser(users.bob());
 
-		aliceServiceKey = userServices.giveNewServiceToken(users.alice());
-		bobServiceKey = userServices.giveNewServiceToken(users.bob());
+		aliceServiceKey = userServices.giveNewServiceKey(users.alice().getUsername());
+		bobServiceKey = userServices.giveNewServiceKey(users.bob().getUsername());
 
 		authService.changePassword(users.alice().getUsername(), alicePassword);
 		authService.changePassword(users.bob().getUsername(), bobPassword);
@@ -59,7 +59,7 @@ public class AdminServicesLoginAcceptanceTest extends ConstellioTest {
 		assertThat(aliceCredentials.getUsername()).isEqualTo(users.alice().getUsername());
 		assertThat(aliceCredentials.getEmail()).isEqualTo(users.alice().getEmail());
 		assertThat(aliceCredentials.getFirstName()).isEqualTo(users.alice().getFirstName());
-		assertThat(aliceCredentials.getGlobalGroups()).isEqualTo(users.alice().getGlobalGroups());
+		assertThat(aliceCredentials.getGlobalGroups()).isEqualTo(users.alice().getGroupCodes(zeCollection));
 		assertThat(aliceCredentials.getLastName()).isEqualTo(users.alice().getLastName());
 		assertThat(aliceCredentials.getServiceKey()).isEqualTo(users.alice().getServiceKey());
 		assertThat(aliceCredentials.getCollections()).isEqualTo(users.alice().getCollections());
@@ -68,7 +68,7 @@ public class AdminServicesLoginAcceptanceTest extends ConstellioTest {
 		assertThat(bobCredentials.getUsername()).isEqualTo(users.bob().getUsername());
 		assertThat(bobCredentials.getEmail()).isEqualTo(users.bob().getEmail());
 		assertThat(bobCredentials.getFirstName()).isEqualTo(users.bob().getFirstName());
-		assertThat(bobCredentials.getGlobalGroups()).isEqualTo(users.bob().getGlobalGroups());
+		assertThat(bobCredentials.getGlobalGroups()).isEqualTo(users.bob().getGroupCodes(zeCollection));
 		assertThat(bobCredentials.getLastName()).isEqualTo(users.bob().getLastName());
 		assertThat(bobCredentials.getServiceKey()).isEqualTo(users.bob().getServiceKey());
 		assertThat(bobCredentials.getCollections()).isEqualTo(users.bob().getCollections());
@@ -122,7 +122,7 @@ public class AdminServicesLoginAcceptanceTest extends ConstellioTest {
 	public void whenCreatingSessionWithNonAdminUserThenException()
 			throws Exception {
 		String dakotaPassword = "feufeujolifeu";
-		String dakotaServiceKey = userServices.giveNewServiceToken(users.dakotaLIndien());
+		String dakotaServiceKey = userServices.giveNewServiceKey(users.dakotaLIndien().getUsername());
 		authService.changePassword(users.alice().getUsername(), dakotaPassword);
 
 		try {

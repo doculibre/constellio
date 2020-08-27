@@ -41,6 +41,39 @@ public class SortedIntIdsListTest extends ConstellioTest {
 		}
 	}
 
+
+	@Test
+	public void whenAddingThenRemovingLotOfDataThenOk() {
+
+		SortedIdsList list = new SortedIntIdsList();
+		List<String> expectedList = new ArrayList<>();
+
+		for (int i = 1; i < 10_000; i++) {
+			list.add(i);
+			expectedList.add(id(i));
+			//assertThat(list.getValues()).isEqualTo(expectedList);
+		}
+
+		for (int i = 1; i < 10_000; i++) {
+			String removedId = expectedList.remove(expectedList.size()-1);
+			list.remove(removedId);
+			//assertThat(list.getValues()).isEqualTo(expectedList);
+		}
+
+		for (int i = 1; i < 10_000; i++) {
+			list.add(i);
+			expectedList.add(id(i));
+			assertThat(list.getValues()).isEqualTo(expectedList);
+		}
+
+		for (int i = 1; i < 10_000; i++) {
+			String removedId = expectedList.remove(expectedList.size()-1);
+			list.remove(removedId);
+			assertThat(list.getValues()).isEqualTo(expectedList);
+		}
+	}
+
+
 	@Test
 	public void whenAddingSameItemsTwiceThenNoDuplicates() {
 

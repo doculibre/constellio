@@ -1,5 +1,6 @@
 package com.constellio.model.conf.ldap.services;
 
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
@@ -73,6 +74,7 @@ public class LDAPServicesAcceptanceTest extends ConstellioTest {
 	@InDevelopmentTest
 	public void whenSearchingMoreThan1000UsersThenReturnAllUsers()
 			throws Exception {
+		Toggle.ALLOW_LDAP_FETCH_SUB_GROUPS.enable();
 		LdapContext ldapContext = getValidContext();
 		String ouWith3001Users = "OU=Departement1,OU=doculibre,DC=test,DC=doculibre,DC=ca";
 		List<String> users = new LDAPServicesImpl()
@@ -84,6 +86,7 @@ public class LDAPServicesAcceptanceTest extends ConstellioTest {
 	@InDevelopmentTest
 	public void whenSearchingGroupsFromTwoContextsThenReturnAllGroupsFromBothContexts()
 			throws Exception {
+		Toggle.ALLOW_LDAP_FETCH_SUB_GROUPS.enable();
 		LdapContext ldapContext = getValidContext();
 		String allTestGroupsOU = "OU=testSynchronization,DC=test,DC=doculibre,DC=ca";
 		Set<LDAPGroup> groups = new LDAPServicesImpl().getAllGroups(ldapContext, Arrays.asList(new String[]{allTestGroupsOU}));

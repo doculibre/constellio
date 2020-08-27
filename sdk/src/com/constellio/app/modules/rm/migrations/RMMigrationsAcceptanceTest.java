@@ -211,7 +211,8 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 
 		assertThat(folderDisplayConfig.getFormMetadataCodes()).endsWith(
 				Folder.DEFAULT_SCHEMA + "_" + Folder.BORROW_PREVIEW_RETURN_DATE,
-				Folder.DEFAULT_SCHEMA + "_" + Folder.LINEAR_SIZE);
+				Folder.DEFAULT_SCHEMA + "_" + Folder.LINEAR_SIZE,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.ABBREVIATION);
 
 		assertThat(folderDisplayConfig.getDisplayMetadataCodes()).endsWith(
 				Folder.DEFAULT_SCHEMA + "_" + Folder.BORROWED,
@@ -228,7 +229,8 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 				Folder.DEFAULT_SCHEMA + "_" + Folder.REACTIVATION_USERS,
 				Folder.DEFAULT_SCHEMA + "_" + Folder.PREVIOUS_TRANSFER_DATES,
 				Folder.DEFAULT_SCHEMA + "_" + Folder.PREVIOUS_DEPOSIT_DATES,
-				Folder.DEFAULT_SCHEMA + "_" + Folder.COMMENTS);
+				Folder.DEFAULT_SCHEMA + "_" + Folder.COMMENTS,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.ABBREVIATION);
 
 		//		SchemaDisplayConfig categoryDisplayConfig = getAppLayerFactory().getMetadataSchemasDisplayManager()
 		//				.getSchema(zeCollection, Category.DEFAULT_SCHEMA);

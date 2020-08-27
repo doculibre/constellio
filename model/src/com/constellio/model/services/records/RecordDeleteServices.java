@@ -127,7 +127,8 @@ public class RecordDeleteServices {
 		ValidationErrors validationErrors = new ValidationErrors();
 		ensureSameCollection(user, record);
 		List<Record> recordsHierarchy = loadRecordsHierarchyOf(record);
-		String parentId = record.getParentId();
+		MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record);
+		String parentId = record.getParentId(schema);
 		boolean parentActiveOrNull;
 		if (parentId != null) {
 			Record parent = recordServices.getDocumentById(parentId);
@@ -781,8 +782,9 @@ public class RecordDeleteServices {
 			int referencesTotal = modelLayerFactory.getRecordUsageCounterHookRetriever(record.getCollection())
 					.countRecordsReferencing(record);
 
+			MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record);
 			int referencesInHierarchy = (int) recordsHierarchy.stream()
-					.filter(childRecord -> childRecord.getParentId() != null && childRecord.getParentId().equals(record.getId()))
+					.filter(childRecord -> childRecord.getParentId(schema) != null && childRecord.getParentId(schema).equals(record.getId()))
 					.count();
 
 			return referencesTotal > referencesInHierarchy;

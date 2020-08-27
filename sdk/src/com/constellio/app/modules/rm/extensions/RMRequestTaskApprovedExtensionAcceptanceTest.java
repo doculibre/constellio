@@ -82,7 +82,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		taskSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		users.setUp(new UserServices(getModelLayerFactory()));
+		users.setUp(new UserServices(getModelLayerFactory()), zeCollection);
 
 		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);

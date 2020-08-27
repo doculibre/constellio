@@ -769,7 +769,7 @@ public class LogicalSearchQuery implements SearchQuery {
 				}
 
 				for (String aGroup : user.getUserGroups()) {
-					if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)
+					if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup, user.getCollection())
 						&& hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(aGroup, true))) {
 
 						if (tokensHierarchy.contains("nr_" + aGroup)) {
@@ -803,7 +803,7 @@ public class LogicalSearchQuery implements SearchQuery {
 				}
 
 				for (String aGroup : user.getUserGroups()) {
-					if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
+					if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup, user.getCollection())) {
 
 						if (tokensHierarchy.contains(tokenPrefix + "_" + aGroup)) {
 							return true;

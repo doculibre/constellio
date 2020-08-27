@@ -8,8 +8,8 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemas.bulkImport.BulkImportResults;
 import com.constellio.app.services.schemas.bulkImport.ImportError;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -68,7 +68,7 @@ public class AuthorizationImportServicesAcceptanceTest extends ConstellioTest {
 		);
 
 		//rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 		searchServices = getModelLayerFactory().newSearchServices();
 		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 

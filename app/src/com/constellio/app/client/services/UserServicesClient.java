@@ -27,11 +27,11 @@ public class UserServicesClient {
 	}
 
 	public String addUpdateUserCredential(UserResource userResource) {
-		return requestString("addUpdateUserCredential").post(Entity.json(userResource), String.class);
+		return requestString("execute").post(Entity.json(userResource), String.class);
 	}
 
 	public String addUpdateGlobalGroup(GlobalGroupResource resource) {
-		return requestString("addUpdateGlobalGroup").post(Entity.json(resource), String.class);
+		return requestString("execute").post(Entity.json(resource), String.class);
 	}
 
 	public String addUserToCollection(String user, String collection) {
@@ -80,7 +80,7 @@ public class UserServicesClient {
 	public String removeGlobalGroup(String group) {
 		GlobalGroupResource resource = new GlobalGroupResource();
 		resource.setCode(group);
-		return requestString("removeGlobalGroup").post(Entity.json(resource), String.class);
+		return requestString("removeFromGroupOfEachCollection").post(Entity.json(resource), String.class);
 	}
 
 	public String removeUserFromGlobalGroup(String username, String groupCode) {

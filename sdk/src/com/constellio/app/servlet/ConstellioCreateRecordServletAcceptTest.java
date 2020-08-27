@@ -70,8 +70,8 @@ public class ConstellioCreateRecordServletAcceptTest extends ConstellioTest {
 		userServices = getModelLayerFactory().newUserServices();
 		bobToken = userServices.generateToken(bobGratton);
 		aliceToken = userServices.generateToken(aliceWonderland);
-		userServices.addUpdateUserCredential(users.bob().setServiceKey(bobServiceKey).setSystemAdminEnabled());
-		userServices.addUpdateUserCredential(users.alice().setServiceKey(aliceServiceKey));
+		userServices.execute(users.bobAddUpdateRequest().setServiceKey(bobServiceKey).setSystemAdminEnabled());
+		userServices.execute(users.aliceAddUpdateRequest().setServiceKey(aliceServiceKey));
 		startApplication();
 	}
 

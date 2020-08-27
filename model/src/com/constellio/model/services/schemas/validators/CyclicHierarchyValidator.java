@@ -52,7 +52,8 @@ public class CyclicHierarchyValidator implements Validator<Record> {
 						} else {
 							ids.add(referencedId);
 							Record referencedRecordSummary = recordProvider.getRecordSummary(referencedId);
-							referencedId = referencedRecordSummary.getParentId();
+							MetadataSchema referencedRecordSummarySchema = getSchema(record);
+							referencedId = referencedRecordSummary.getParentId(referencedRecordSummarySchema);
 						}
 					}
 

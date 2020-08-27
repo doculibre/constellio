@@ -65,7 +65,7 @@ public class NotCriterionTest extends com.constellio.sdk.tests.ConstellioTest {
 				LogicalOperator.AND, firstConditions);
 
 		assertThat(andSearchCondition.getSolrQuery(params))
-				.isEqualTo("( ( (*:* -(firstText:chuck*) ) ) AND ( firstText:*noris ) )");
+				.isEqualTo("( ( (*:* -(firstText:chuck* OR firstText:chuck) ) ) AND ( firstText:*noris ) )");
 	}
 
 	@org.junit.Test
@@ -74,6 +74,6 @@ public class NotCriterionTest extends com.constellio.sdk.tests.ConstellioTest {
 				LogicalOperator.AND, secondConditions);
 
 		assertThat(andSearchCondition.getSolrQuery(params)).isEqualTo(
-				"( ( ( (*:* -(firstText:chuck*) ) AND (*:* -(firstText:*lechat) ) ) ) )");
+				"( ( ( (*:* -(firstText:chuck* OR firstText:chuck) ) AND (*:* -(firstText:*lechat) ) ) ) )");
 	}
 }

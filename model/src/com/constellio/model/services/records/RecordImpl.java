@@ -349,7 +349,7 @@ public class RecordImpl implements Record {
 			map = lazyTransientValues;
 		}
 
-		Object correctedValue = correctValue(value);
+		Object correctedValue = correctValue(metadata, value);
 		String codeAndType;
 
 		if (language == null || collectionInfo.getMainSystemLanguage().getCode().equals(language)) {
@@ -1163,10 +1163,10 @@ public class RecordImpl implements Record {
 			   || Schemas.CREATED_BY.getDataStoreCode().equals(key) || Schemas.CREATED_ON.getDataStoreCode().equals(key);
 	}
 
-	private Object correctValue(Object value) {
+	private Object correctValue(Metadata metadata, Object value) {
 
-		if (value instanceof Integer) {
-			return ((Integer) value).intValue();
+		if (metadata.getType() == MetadataValueType.INTEGER && !metadata.isMultivalue()) {
+			return value == null ? null :((Number) value).intValue();
 		}
 		if (value instanceof Number) {
 			return ((Number) value).doubleValue();
@@ -1219,19 +1219,12 @@ public class RecordImpl implements Record {
 	}
 
 	@Override
-	public String getParentId() {
+	public String getParentId(MetadataSchema schema) {
 
-		for (Map.Entry<String, Object> entry : modifiedValues.entrySet()) {
-			if (entry.getKey().contains("PId_") && entry.getValue() != null) {
-				return (String) entry.getValue();
-			}
-		}
-
-		if (recordDTO != null) {
-			for (Map.Entry<String, Object> entry : recordDTO.getFields().entrySet()) {
-				if (entry.getKey().contains("PId_") && entry.getValue() != null) {
-					return (String) entry.getValue();
-				}
+		for (Metadata parentMetadata : schema.getParentReferences()) {
+			String value = get(parentMetadata);
+			if (value != null) {
+				return value;
 			}
 		}
 		return null;

@@ -49,7 +49,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 		backgroundThreadsManager.configure(BackgroundThreadConfiguration.repeatingAction("removeTimedOutTokens", new Runnable() {
 			@Override
 			public void run() {
-				modelLayerFactory.getUserCredentialsManager().removeTimedOutTokens();
+				modelLayerFactory.newUserServices().removeTimedOutTokens();
 			}
 		}).handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE)
 				.executedEvery(configuration.getTokenRemovalThreadDelayBetweenChecks()));

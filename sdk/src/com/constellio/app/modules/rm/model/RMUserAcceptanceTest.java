@@ -5,9 +5,9 @@ import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
@@ -41,8 +41,8 @@ public class RMUserAcceptanceTest extends ConstellioTest {
 
 	}
 
-	private UserCredential newJackBauerUserCredential() {
-		return userServices.createUserCredential("jack.bauer", "Jack", "Bauer", "jack.bauer@constellio.com",
+	private UserAddUpdateRequest newJackBauerUserCredential() {
+		return addUpdateUserCredential("jack.bauer", "Jack", "Bauer", "jack.bauer@constellio.com",
 				new ArrayList<String>(), asList(zeCollection), UserCredentialStatus.ACTIVE);
 	}
 
@@ -50,7 +50,7 @@ public class RMUserAcceptanceTest extends ConstellioTest {
 	public void whenAddUpdatingUserWithoutRolesThenAddDefaultUserRole()
 			throws Exception {
 
-		userServices.addUpdateUserCredential(newJackBauerUserCredential());
+		userServices.execute(newJackBauerUserCredential());
 		assertThat(jackBauerInZeCollection().getAllRoles()).containsOnly(RMRoles.USER);
 
 		recordServices.update(jackBauerInZeCollection().setUserRoles(asList(RMRoles.MANAGER)));

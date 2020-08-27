@@ -8,16 +8,15 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.batchprocess.ListBatchProcessesViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionGroupRolesViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionGroupViewImpl;
+import com.constellio.app.ui.pages.collection.CollectionSecurityManagementImpl;
 import com.constellio.app.ui.pages.collection.CollectionUserRolesViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionUserViewImpl;
-import com.constellio.app.ui.pages.collection.ListCollectionUserViewImpl;
 import com.constellio.app.ui.pages.elevations.EditElevationViewImpl;
 import com.constellio.app.ui.pages.events.BaseEventCategoryViewImpl;
 import com.constellio.app.ui.pages.events.EventCategoriesViewImpl;
 import com.constellio.app.ui.pages.events.EventViewImpl;
 import com.constellio.app.ui.pages.globalGroup.AddEditGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.DisplayGlobalGroupViewImpl;
-import com.constellio.app.ui.pages.globalGroup.ListGlobalGroupsViewImpl;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.pages.imports.ExportViewImpl;
 import com.constellio.app.ui.pages.imports.ImportFileViewImpl;
@@ -129,7 +128,6 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String TAXONOMY_CONCEPT_ADD_EDIT = "taxonomyConceptAddEdit";
 	public static final String LIST_VALUE_DOMAINS = "valueDomains";
 	public static final String SEARCH_SCHEMA_RECORDS = "searchSchemaRecords";
-	public static final String GROUP_LIST = "groupList";
 	public static final String GROUP_ADD_EDIT = "groupAddEdit";
 	public static final String COLLECTION_ADD_EDIT = "collectionAddEdit";
 	public static final String GROUP_DISPLAY = "groupDisplay";
@@ -241,6 +239,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String SUMMARY_CONFIGURATOR = "summaryconfig";
 	public static final String FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR = "FolderUniqueKeyMetadataConfigurator";
 	public static final String DISPLAY_INFOS = "displayInfos";
+	public static final String ADD_EDIT_GROUP = "addEditGroup";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -252,7 +251,6 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(APP_MANAGEMENT, AppManagementView.class));
 		viewProviders.add(new ClassBasedViewProvider(TAXONOMY_MANAGEMENT, TaxonomyManagementViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(TAXONOMY_CONCEPT_ADD_EDIT, AddEditTaxonomyConceptViewImpl.class));
-		viewProviders.add(new ClassBasedViewProvider(GROUP_LIST, ListGlobalGroupsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(GROUP_ADD_EDIT, AddEditGlobalGroupViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(GROUP_DISPLAY, DisplayGlobalGroupViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(USER_ADD_EDIT, AddEditUserCredentialViewImpl.class));
@@ -285,7 +283,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(SHARE_CONTENT, ShareContentViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(MODIFY_SHARE, ShareContentViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(PUBLISH_DOCUMENT, PublishDocumentViewImpl.class));
-		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER_LIST, ListCollectionUserViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER_LIST, CollectionSecurityManagementImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER, CollectionUserViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER_ROLES, CollectionUserRolesViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_GROUP, CollectionGroupViewImpl.class));

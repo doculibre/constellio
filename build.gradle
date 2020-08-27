@@ -2,7 +2,6 @@ plugins {
     id "application"
     id "org.ajoberstar.grgit" version "3.0.0-rc.2"
     id "com.devsoap.plugin.vaadin" version "1.4.1" apply false
-    //id "fi.jasoft.plugin.vaadin" version '1.1.11' apply false
 }
 
 apply plugin: 'war'
@@ -36,11 +35,14 @@ subprojects {
         }
     }
 
+    tasks.test.enabled(project.runTest == "true")
+
     dependencies {
         annotationProcessor('org.projectlombok:lombok:1.18.2')
         compileOnly('org.projectlombok:lombok:1.18.2')
         testAnnotationProcessor('org.projectlombok:lombok:1.18.2')
         testCompileOnly('org.projectlombok:lombok:1.18.2')
+        testFixtures('org.projectlombok:lombok:1.18.2')
 
         compile "com.cybozu.labs:langdetect:1.1-20120112"
         compile "com.eaio.uuid:uuid:3.2"
@@ -125,43 +127,30 @@ subprojects {
     }
 
     jar {
-        version = project.VERSION
+        version = project.constellioVersion
     }
 }
 
 ext {
-    // Open the 2 Git repository
-    //gitConstellio = org.ajoberstar.grgit.Grgit.open(dir: project(":constellio").projectDir)
-    //revisionConstellio = gitConstellio.head().abbreviatedId
-    //branchConstellio = gitConstellio.branch.current().fullName
-    revisionConstellio = ""
-    branchConstellio = ""
-
-    //if (findProject(":constellio-plugins") != null) {
-    //gitPlugins = org.ajoberstar.grgit.Grgit.open(dir: project(":constellio-plugins").projectDir)
-    //branchPlugins = gitPlugins.branch.current().fullName
-    //revisionPlugins = gitConstellio.head().abbreviatedId
-    //} else {
-    branchPlugins = ""
-    revisionPlugins = ""
-    //}
+    // Open the Git repository
+    gitConstellio = org.ajoberstar.grgit.Grgit.open(dir: project(":").projectDir)
+    revisionConstellio = gitConstellio.head().abbreviatedId
+    branchConstellio = gitConstellio.branch.current().fullName
 }
 
 war {
     doFirst {
         manifest {
             attributes("Implementation-Title": project.name,
-                    "Implementation-Version": project.VERSION,
+                    "Implementation-Version": project.constellioVersion,
                     "Implementation-Timestamp": new Date(),
                     "Implementation-Revision-Constellio": revisionConstellio,
-                    "Implementation-Revision-Plugins": revisionPlugins,
-                    "Implementation-Branch-Constellio": branchConstellio,
-                    "Implementation-Branch-Plugins": branchPlugins)
+                    "Implementation-Branch-Constellio": branchConstellio)
         }
     }
 
     baseName = "constellio"
-    version = project.VERSION
+    version = project.constellioVersion
 
     webInf {
         from("resources_i18n/") {

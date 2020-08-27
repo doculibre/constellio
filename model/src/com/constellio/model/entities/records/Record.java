@@ -111,7 +111,7 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 
 	CollectionInfo getCollectionInfo();
 
-	String getParentId();
+	String getParentId(MetadataSchema schema);
 
 	boolean isActive();
 

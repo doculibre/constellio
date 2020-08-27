@@ -152,7 +152,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		factory = new ConditionTemplateFactory(getModelLayerFactory(), zeCollection);
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 	}
 
 	@Test

@@ -17,6 +17,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -140,7 +141,8 @@ public class PartialSystemStateExporter {
 						if (!ids.contains(currentId) && filteredSchemaTypes.contains(schemaType)) {
 							records.add(record);
 							ids.add(currentId);
-							currentId = record.getParentId();
+							MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record);
+							currentId = record.getParentId(schema);
 						} else {
 							currentId = null;
 						}

@@ -204,7 +204,7 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 
 		SolrClient solrServer = newSearchClient();
 
-		String serviceKey = userServices.giveNewServiceToken(userServices.getUserCredential(systemAdmin.getUsername()));
+		String serviceKey = userServices.giveNewServiceKey(systemAdmin.getUsername());
 		String token = userServices.getToken(serviceKey, systemAdmin.getUsername(), "youshallnotpass");
 		solrParams.set("serviceKey", serviceKey);
 		solrParams.set("token", token);
@@ -611,10 +611,10 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 	private void setupUsers()
 			throws RecordServicesException {
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
-		userServices.addUserToCollection(users.alice(), zeCollection);
-		userServices.addUserToCollection(users.bob(), zeCollection);
-		userServices.addUserToCollection(users.dakotaLIndien(), zeCollection);
+		users.setUp(userServices, zeCollection);
+		userServices.execute(users.alice().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.bob().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.dakotaLIndien().getUsername(), (req) -> req.addToCollection(zeCollection));
 
 		Transaction transaction = new Transaction();
 		transaction.add(users.aliceIn(zeCollection).setCollectionReadAccess(true).getWrappedRecord());

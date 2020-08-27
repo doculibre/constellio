@@ -83,7 +83,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 
 		UserCredential userCredential = userServices.getUserCredential(enteredUsername);
 		String username = userCredential != null ? userCredential.getUsername() : enteredUsername;
-		List<String> collections = userCredential != null ? userCredential.getCollections() : new ArrayList<String>();
+		List<String> collections = userCredential != null ? userServices.getUserInfos(username).getCollections() : new ArrayList<String>();
 		if (userCredential != null && userCredential.getStatus() == UserCredentialStatus.ACTIVE && authenticationService
 				.authenticate(username, password)) {
 			if (!collections.isEmpty()) {

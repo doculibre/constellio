@@ -88,7 +88,7 @@ public class CMISMultinenancyAcceptanceTest extends ConstellioTest {
 			authorizationsServices.set(getModelLayerFactory().newAuthorizationsServices());
 
 
-			users.get().setUp(getModelLayerFactory().newUserServices());
+			users.get().setUp(getModelLayerFactory().newUserServices(), zeCollection);
 
 			recordServices.get().update(users.get().adminIn(zeCollection).setCollectionAllAccess(true));
 			recordServices.get().update(users.get().aliceIn(zeCollection).setCollectionReadAccess(true));

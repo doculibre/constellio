@@ -25,12 +25,15 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerFactoryWithRequestCacheImpl;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.roles.Roles;
+import com.constellio.model.services.users.SystemWideUserInfos;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -110,6 +113,10 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return credentialSchema().getMetadata(UserCredential.STATUS);
 	}
 
+	public Metadata syncStatus() {
+		return credentialSchema().getMetadata(UserCredential.SYNC_MODE);
+	}
+
 	public Metadata credentialCollections() {
 		return credentialSchema().getMetadata(UserCredential.COLLECTIONS);
 	}
@@ -154,47 +161,49 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 
 	public MetadataSchemaType globalGroupSchemaType() {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
-		return types.getSchemaType(GlobalGroup.SCHEMA_TYPE);
+		return types.getSchemaType(SystemWideGroup.SCHEMA_TYPE);
 	}
 
 	public MetadataSchema globalGroupSchema() {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
-		return types.getSchema(GlobalGroup.DEFAULT_SCHEMA);
+		return types.getSchema(SystemWideGroup.DEFAULT_SCHEMA);
 	}
 
 	public Metadata globalGroupCode() {
-		return globalGroupSchema().getMetadata(GlobalGroup.CODE);
+		return globalGroupSchema().getMetadata(SystemWideGroup.CODE);
 	}
 
 	public Metadata globalGroupHierarchy() {
-		return globalGroupSchema().getMetadata(GlobalGroup.HIERARCHY);
+		return globalGroupSchema().getMetadata(SystemWideGroup.HIERARCHY);
 	}
 
 	public Metadata globalGroupStatus() {
-		return globalGroupSchema().getMetadata(GlobalGroup.STATUS);
+		return globalGroupSchema().getMetadata(SystemWideGroup.STATUS);
 	}
 
 	public Metadata globalGroupCollections() {
-		return globalGroupSchema().getMetadata(GlobalGroup.COLLECTIONS);
+		return globalGroupSchema().getMetadata(SystemWideGroup.COLLECTIONS);
 	}
 
-	public GlobalGroup newGlobalGroup() {
-		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
-		return new GlobalGroup(create(globalGroupSchema()), types);
+	public GroupAddUpdateRequest newGlobalGroup(String code) {
+		return new GroupAddUpdateRequest(code);
 	}
 
-	public GlobalGroup wrapGlobalGroup(Record record) {
+
+	public GlobalGroup wrapOldGlobalGroup(Record record) {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
 		return new GlobalGroup(record, types);
 	}
 
-	public List<GlobalGroup> wrapGlobalGroups(List<Record> records) {
-		List<GlobalGroup> result = new ArrayList<>(records.size());
+	public List<GlobalGroup> wrapOldGlobalGroups(List<Record> records) {
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
+		List<GlobalGroup> groups = new ArrayList<>();
 		for (Record record : records) {
-			result.add(wrapGlobalGroup(record));
+			groups.add(new GlobalGroup(record, types));
 		}
-		return result;
+		return groups;
 	}
+
 
 	//Events
 
@@ -414,6 +423,14 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return new UserCredential(record, getTypes());
 	}
 
+	public List<UserCredential> wrapUserCredentials(List<Record> records) {
+		List<UserCredential> users = new ArrayList<>();
+		for (Record record : records) {
+			users.add(new UserCredential(record, getTypes()));
+		}
+		return users;
+	}
+
 	public List<User> wrapUsers(List<Record> records) {
 		List<User> users = new ArrayList<>();
 		for (Record record : records) {
@@ -485,7 +502,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	 * @return
 	 */
 	@Deprecated
-	public List<UserCredential> getAllUserCredentials() {
+	public List<SystemWideUserInfos> getAllUserCredentials() {
 		return modelLayerFactory.newUserServices().getAllUserCredentials();
 	}
 
@@ -495,7 +512,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	 * @return
 	 */
 	@Deprecated
-	public List<GlobalGroup> getAllGlobalGroups() {
+	public List<SystemWideGroup> getAllGlobalGroups() {
 		return modelLayerFactory.newUserServices().getAllGlobalGroups();
 	}
 
@@ -580,11 +597,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return wrapGroup(get(id));
 	}
 
-	public GlobalGroup getGlobalGroup(String id) {
-		return wrapGlobalGroup(get(id));
-	}
-
-	public GlobalGroup getGlobalGroupWithCode(String code) {
+	public SystemWideGroup getGlobalGroupWithCode(String code) {
 		return modelLayerFactory.newUserServices().getGroup(code);
 	}
 
@@ -605,12 +618,12 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return wrapped;
 	}
 
-	public boolean isGroupActive(String aGroup) {
-		return modelLayerFactory.newUserServices().isGroupActive(aGroup);
+	public boolean isGroupActive(String aGroup, String collection) {
+		return modelLayerFactory.newUserServices().isGroupAndAllHisAncestorsActive(aGroup, collection);
 	}
 
 	public boolean isGroupActive(Group aGroup) {
-		return modelLayerFactory.newUserServices().isGroupActive(aGroup);
+		return modelLayerFactory.newUserServices().isGroupAndAllHisAncestorsActive(aGroup.getCode(), aGroup.getCollection());
 	}
 
 	public List<User> getAllUsersInGroup(Group group, boolean includeGroupInheritance,

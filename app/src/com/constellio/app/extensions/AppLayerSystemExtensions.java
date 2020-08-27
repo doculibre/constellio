@@ -26,9 +26,9 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.ViewWindow;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.vaadin.ui.Component;
 
 import javax.mail.internet.MimeMessage;
@@ -155,38 +155,34 @@ public class AppLayerSystemExtensions {
 		}
 		return mimelMessage;
 	}
-	
+
 	public void decorateWindow(BaseWindowParams params) {
 		for (BaseWindowExtension windowExtension : windowExtensions) {
 			windowExtension.decorateWindow(params);
 		}
 	}
 
-	public boolean isAddSubGroupActionPossibleOnGlobalGroup(final GlobalGroup globalGroup, final User user) {
+	public boolean isAddSubGroupActionPossibleOnGlobalGroup(final SystemWideGroup globalGroup, final User user) {
 		return globalGroupExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isAddSubGroupActionPossible(
 						new GlobalGroupExtensionActionPossibleParams(globalGroup, user)));
 	}
 
-	public boolean isEditActionPossibleOnGlobalGroup(final GlobalGroup globalGroup, final User user) {
+	public boolean isEditActionPossibleOnGlobalGroup(final SystemWideGroup globalGroup, final User user) {
 		return globalGroupExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isEditActionPossible(
 						new GlobalGroupExtensionActionPossibleParams(globalGroup, user)));
 	}
 
-	public boolean isDeleteActionPossibleOnGlobalGroup(final GlobalGroup globalGroup, final User user) {
+	public boolean isDeleteActionPossibleOnGlobalGroup(final SystemWideGroup globalGroup, final User user) {
 		return globalGroupExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isDeleteActionPossible(
 						new GlobalGroupExtensionActionPossibleParams(globalGroup, user)));
 	}
 
-	public boolean isEditActionPossibleOnUserCredential(final UserCredential userCredential, final User user) {
-		return userCredentialGroupExtensions.getBooleanValue(true,
-				(behavior) -> behavior.isEditActionPossible(
-						new UserCredentialExtensionActionPossibleParams(userCredential, user)));
-	}
+	public boolean isGenerateTokenActionPossibleOnSystemWideUserInfos(final SystemWideUserInfos userCredential,
+																	  final User user) {
 
-	public boolean isGenerateTokenActionPossibleOnUserCredential(final UserCredential userCredential, final User user) {
 		return userCredentialGroupExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isGenerateTokenActionPossible(
 						new UserCredentialExtensionActionPossibleParams(userCredential, user)));

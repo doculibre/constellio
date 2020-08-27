@@ -5,8 +5,8 @@ import com.constellio.app.api.search.isNotAuthenticatedException;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -30,7 +30,7 @@ public class SystemInfoWebService extends HttpServlet {
 		}
 	}
 
-	private void respondFullSystemInformation(UserCredential user,
+	private void respondFullSystemInformation(SystemWideUserInfos user,
 											  HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		respondLimitedSystemInformation(req, resp);
 	}
@@ -50,9 +50,9 @@ public class SystemInfoWebService extends HttpServlet {
 		resp.getWriter().write(responseJson.toString());
 	}
 
-	protected UserCredential authenticate(HttpServletRequest request) {
+	protected SystemWideUserInfos authenticate(HttpServletRequest request) {
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory());
-		UserCredential user = authenticator.authenticate(request);
+		SystemWideUserInfos user = authenticator.authenticate(request);
 		if (user == null) {
 			throw new isNotAuthenticatedException();
 		}

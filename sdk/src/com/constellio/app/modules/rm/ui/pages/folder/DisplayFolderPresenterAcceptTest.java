@@ -399,7 +399,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		waitForBatchProcess();
 
 		record = recordServices.getDocumentById(subDocument.getId());
-		assertThat(record.getParentId()).isEqualTo(subFolder.getId());
+		assertThat(record.getParentId(getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(record))).isEqualTo(subFolder.getId());
 	}
 
 	@Test
@@ -416,7 +416,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		waitForBatchProcess();
 
 		Record record = recordServices.getDocumentById(subFolder1.getId());
-		assertThat(record.getParentId()).isEqualTo(subFolder2.getId());
+		assertThat(record.getParentId(getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(record))).isEqualTo(subFolder2.getId());
 	}
 
 	@Test
@@ -437,7 +437,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		waitForBatchProcess();
 
 		Record record = recordServices.getDocumentById(subFolder1.getId());
-		assertThat(record.getParentId()).isEqualTo("abeille2");
+		assertThat(record.getParentId(getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(record))).isEqualTo("abeille2");
 	}
 
 	@Test

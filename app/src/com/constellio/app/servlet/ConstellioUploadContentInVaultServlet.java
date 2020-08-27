@@ -6,6 +6,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +30,7 @@ public class ConstellioUploadContentInVaultServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws IOException {
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory());
-		UserCredential user = authenticator.authenticate(request);
+		SystemWideUserInfos user = authenticator.authenticate(request);
 		if (user == null) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 		} else {

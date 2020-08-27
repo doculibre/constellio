@@ -6,10 +6,9 @@ import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.conf.email.EmailServerConfiguration;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.users.SolrUserCredentialsManager;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 import org.junit.Test;
@@ -122,12 +121,12 @@ public class CoreMigrationTo_9_2AcceptanceTest extends ConstellioTest {
 				//	.givenPrivateKey("constellio_34-817-204_ext", "constellio_class_key_part49-539-354")
 				.givenSystemInState(state);
 
-		SolrUserCredentialsManager solrUserCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
+		UserServices userServices = getModelLayerFactory().newUserServices();
 
-		UserCredential userCredential = solrUserCredentialsManager.getUserCredentialByServiceKey("1ab6764a-d5ba-11ea-8ae5-633d2f7118c5");
+		String userCredential = userServices.getUserCredentialByServiceKey("1ab6764a-d5ba-11ea-8ae5-633d2f7118c5");
 
 		assertThat(userCredential).isNotNull();
-		assertThat(userCredential.getUsername()).isEqualTo("admin");
+		assertThat(userCredential).isEqualTo("admin");
 	}
 
 	@Test
@@ -140,12 +139,13 @@ public class CoreMigrationTo_9_2AcceptanceTest extends ConstellioTest {
 				.givenPrivateKey("constellio_34-817-204_ext", "constellio_class_key_part49-539-354")
 				.givenSystemInState(state);
 
-		SolrUserCredentialsManager solrUserCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
+		UserServices userServices = getModelLayerFactory().newUserServices();
 
-		UserCredential userCredential = solrUserCredentialsManager.getUserCredentialByToken("26dc0c12-d5ba-11ea-8ae5-d521396b0a57");
+		String serviceKey = userServices.getServiceKeyByToken("26dc0c12-d5ba-11ea-8ae5-d521396b0a57");
+		String username = userServices.getUserCredentialByServiceKey(serviceKey);
 
-		assertThat(userCredential).isNotNull();
-		assertThat(userCredential.getUsername()).isEqualTo("admin");
+		assertThat(username).isNotNull();
+		assertThat(username).isEqualTo("admin");
 
 
 //		assertThat("TODO-find-other-string-with-same-hashcode".hashCode()).isEqualTo("26dc0c12-d5ba-11ea-8ae5-d521396b0a57".hashCode());

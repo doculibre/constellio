@@ -16423,7 +16423,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="1101px-"] .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar-layout .action-menu-bar {
 	top: inherit;
-	right: -22px;
+	right: -18px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .v-slot-suggestions-summary-results {
@@ -16555,7 +16555,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="801-1100px"] .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar-layout .action-menu-bar {
 	top: inherit;
-	right: -22px;
+	right: -18px;
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .v-slot-suggestions-summary-results {

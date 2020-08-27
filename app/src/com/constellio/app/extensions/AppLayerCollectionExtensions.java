@@ -996,7 +996,7 @@ public class AppLayerCollectionExtensions {
 
 
 	public boolean isMetadataExportForced(final Metadata metadata) {
-		return recordExportExtensions.getBooleanValue(true, new BooleanCaller<RecordExportExtension>() {
+		return recordExportExtensions.getBooleanValue(false, new BooleanCaller<RecordExportExtension>() {
 			@Override
 			public ExtensionBooleanResult call(RecordExportExtension extension) {
 				return extension.isMetadataExportForced(new IsMetadataExportedParams(metadata));
@@ -1076,11 +1076,11 @@ public class AppLayerCollectionExtensions {
 		return userFolderExtensions.getBooleanValue(true, (behavior -> behavior.isFileActionPossible(new UserFolderExtensionActionPossibleParams(userFolder, user))));
 	}
 
-	public List<String> getTabSheetCaptionToHideInDisplayAndForm() {
+	public List<String> getTabSheetCodeToHideInDisplayAndForm() {
 		List<String> actionTabToIgnore = new ArrayList<>();
 
 		for (TabSheetInDisplayAndFormExtention tabSheetInDisplayAndFormExtention : tabSheetCaptionToHide) {
-			actionTabToIgnore.addAll(tabSheetInDisplayAndFormExtention.getTabSheetCaptionToHide(new TabSheetInDisplayAndFormExtentionParams()));
+			actionTabToIgnore.addAll(tabSheetInDisplayAndFormExtention.getTabSheetCodeToHide(new TabSheetInDisplayAndFormExtentionParams()));
 		}
 
 		return actionTabToIgnore;

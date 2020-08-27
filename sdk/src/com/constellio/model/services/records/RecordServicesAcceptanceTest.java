@@ -39,6 +39,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Reco
 import com.constellio.model.services.records.RecordServicesRuntimeException.SchemaTypeOfARecordHasReadOnlyLock;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -76,6 +77,7 @@ import java.util.Map;
 
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE;
 import static com.constellio.model.entities.schemas.Schemas.ESTIMATED_SIZE;
@@ -1019,9 +1021,9 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		RecordDTO recordDTO = recordDao.get(record.getId());
 		assertThat(recordDTO.getFields().get(zeSchema.title().getDataStoreCode())).isEqualTo("neverEncryptedValue");
-		assertThat(recordDTO.getFields().get(zeSchema.stringMetadata().getDataStoreCode())).isEqualTo("AN1Qletvk4b6cysfpDjWUg==");
+		assertThat(recordDTO.getFields().get(zeSchema.stringMetadata().getDataStoreCode())).isNotEqualTo("decryptedValue2");
 		assertThat(recordDTO.getFields().get(zeSchema.anotherStringMetadata().getDataStoreCode()))
-				.isEqualTo(asList("2xz/K3dNfajma8DJQVMBnQ==", "0d6Amw6w/rOUYwTrjNK4LQ=="));
+				.isNotEqualTo(asList("decryptedValue3", "decryptedValue4"));
 
 		record.set(zeSchema.stringMetadata(), "decryptedValue2")
 				.set(zeSchema.anotherStringMetadata(), asList("decryptedValue3", "decryptedValue4"));
@@ -1041,9 +1043,9 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		recordDTO = recordDao.get(record.getId());
 		assertThat(recordDTO.getFields().get(zeSchema.title().getDataStoreCode())).isEqualTo("neverEncryptedValue");
-		assertThat(recordDTO.getFields().get(zeSchema.stringMetadata().getDataStoreCode())).isEqualTo("2xz/K3dNfajma8DJQVMBnQ==");
+		assertThat(recordDTO.getFields().get(zeSchema.stringMetadata().getDataStoreCode())).isNotEqualTo("decryptedValue2");
 		assertThat(recordDTO.getFields().get(zeSchema.anotherStringMetadata().getDataStoreCode()))
-				.isEqualTo(asList("0d6Amw6w/rOUYwTrjNK4LQ==", "bLMsWh344pykcDFxbBvrvg=="));
+				.isNotEqualTo(asList("decryptedValue3", "decryptedValue4"));
 
 	}
 
@@ -2634,6 +2636,62 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		assertThat(record3.<String>get(anotherSchema.metadata("m2Copied"))).isEqualTo("v8");
 		assertThat(record3.<String>get(anotherSchema.metadata("mCalculated"))).isEqualTo("v7");
 		queryCounter.reset();
+
+	}
+
+	@Test
+	public void givenUSRMetadatasThenNoConflictsWithIdSuffix() throws Exception {
+		SchemaUtils.VALIDATE_METADATAS_CODES.disable();
+		defineSchemasManager().using(schemas.with((MetadataSchemaTypesBuilder b) -> {
+			b.getDefaultSchema("zeSchemaType").create("USRzeRefMetadata").setType(REFERENCE)
+					.defineReferencesTo(b.getSchemaType("anotherSchemaType"));
+			b.getDefaultSchema("zeSchemaType").create("USRzeStringMetadata1PId").setType(STRING);
+			b.getDefaultSchema("zeSchemaType").create("USRzeStringMetadata2Id").setType(STRING);
+
+			b.getDefaultSchema("zeSchemaType").create("zeRefMetadata").setType(REFERENCE)
+					.defineReferencesTo(b.getSchemaType("anotherSchemaType"));
+			b.getDefaultSchema("zeSchemaType").create("zeStringMetadata1PId").setType(STRING);
+			b.getDefaultSchema("zeSchemaType").create("zeStringMetadata2Id").setType(STRING);
+		}));
+
+		recordServices.execute(tx->{
+			tx.add(new TestRecord(schemas.anotherDefaultSchema(), "ref1" ).set(TITLE, "A"));
+			tx.add(new TestRecord(schemas.anotherDefaultSchema(), "ref2").set(TITLE, "B"));
+		});
+
+		Record record = new TestRecord(schemas.zeDefaultSchema(), "record" )
+				.set(zeSchema.metadata("USRzeRefMetadata"), "ref1")
+				.set(zeSchema.metadata("USRzeStringMetadata1PId"), "v1")
+				.set(zeSchema.metadata("USRzeStringMetadata2Id"), "v2")
+				.set(zeSchema.metadata("zeRefMetadata"), "ref1")
+				.set(zeSchema.metadata("zeStringMetadata1PId"), "v3")
+				.set(zeSchema.metadata("zeStringMetadata2Id"), "v4");
+		recordServices.add(record);
+
+		assertThatRecord(record)
+				.hasMetadataValue(zeSchema.metadata("USRzeRefMetadata"), "ref1")
+				.hasMetadataValue(zeSchema.metadata("USRzeStringMetadata1PId"), "v1")
+				.hasMetadataValue(zeSchema.metadata("USRzeStringMetadata2Id"), "v2")
+				.hasMetadataValue(zeSchema.metadata("zeRefMetadata"), "ref1")
+				.hasMetadataValue(zeSchema.metadata("zeStringMetadata1PId"), "v3")
+				.hasMetadataValue(zeSchema.metadata("zeStringMetadata2Id"), "v4");
+
+		recordServices.update(record
+				.set(zeSchema.metadata("USRzeRefMetadata"), "ref2")
+				.set(zeSchema.metadata("USRzeStringMetadata1PId"), "v5")
+				.set(zeSchema.metadata("USRzeStringMetadata2Id"), "v6")
+				.set(zeSchema.metadata("zeRefMetadata"), "ref2")
+				.set(zeSchema.metadata("zeStringMetadata1PId"), "v7")
+				.set(zeSchema.metadata("zeStringMetadata2Id"), "v8"));
+
+		assertThatRecord(record)
+				.hasMetadataValue(zeSchema.metadata("USRzeRefMetadata"), "ref2")
+				.hasMetadataValue(zeSchema.metadata("USRzeStringMetadata1PId"), "v5")
+				.hasMetadataValue(zeSchema.metadata("USRzeStringMetadata2Id"), "v6")
+				.hasMetadataValue(zeSchema.metadata("zeRefMetadata"), "ref2")
+				.hasMetadataValue(zeSchema.metadata("zeStringMetadata1PId"), "v7")
+				.hasMetadataValue(zeSchema.metadata("zeStringMetadata2Id"), "v8");
+
 
 	}
 

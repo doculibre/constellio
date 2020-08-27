@@ -787,7 +787,7 @@ public class TaxonomyCacheHookAcceptanceTest extends ConstellioTest {
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		UserCredential userCredential = userServices.getUserCredential(aliceWonderland);
-		userServices.addUserToCollection(userCredential, zeCollection);
+		userServices.execute(userCredential.getUsername(), (req) -> req.addToCollection(zeCollection));
 
 		AuthorizationsServices authsServices = getModelLayerFactory().newAuthorizationsServices();
 		authsServices = getModelLayerFactory().newAuthorizationsServices();

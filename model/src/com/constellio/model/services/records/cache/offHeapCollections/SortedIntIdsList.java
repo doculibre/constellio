@@ -25,7 +25,7 @@ public class SortedIntIdsList implements SortedIdsList {
 
 	int size;
 
-	short capacity;
+	int capacity;
 
 
 	@Override
@@ -140,7 +140,7 @@ public class SortedIntIdsList implements SortedIdsList {
 
 	@Override
 	public long valuesHeapLength() {
-		return 12 + Long.BYTES + Integer.BYTES + Short.BYTES;
+		return 12 + Long.BYTES + Integer.BYTES + Integer.BYTES;
 	}
 
 	@Override

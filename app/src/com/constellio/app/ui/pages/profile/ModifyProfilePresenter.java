@@ -13,6 +13,7 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.enums.SearchPageLength;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.security.global.AgentStatus;
@@ -22,6 +23,8 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.authentification.AuthenticationService;
+import com.constellio.model.services.users.SystemWideUserInfos;
+import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
 import com.constellio.model.services.users.UserServices;
@@ -114,9 +117,9 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 	private void updateUserCredential(final ProfileVO profileVO,
 									  HashMap<String, Object> additionnalMetadataValues) {
 		String username = profileVO.getUsername();
-		UserCredential userCredential = (UserCredential) userServices.getUserCredential(username);
+		UserAddUpdateRequest userCredential = userServices.addUpdate(username);
 
-		userCredential = (UserCredential) userCredential.
+		userCredential = userCredential.
 				setFirstName(profileVO.getFirstName())
 				.setLastName(profileVO.getLastName())
 				.setEmail(profileVO.getEmail())
@@ -126,10 +129,12 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 				.setFax(profileVO.getFax());
 
 		if (profileVO.getPersonalEmails() != null) {
-			userCredential = (UserCredential) userCredential.setPersonalEmails(Arrays.asList(profileVO.getPersonalEmails().split("\n")));
+			userCredential.setPersonalEmails(Arrays.asList(profileVO.getPersonalEmails().split("\n")));
 		}
 
-		MetadataSchema userCredentialSchema = userCredential.getSchema();
+
+		MetadataSchema userCredentialSchema = modelLayerFactory.getMetadataSchemasManager()
+				.getSchemaTypes(Collection.SYSTEM_COLLECTION).getSchemaType(UserCredential.SCHEMA_TYPE).getDefaultSchema();
 		Iterator<Entry<String, Object>> additionnalMetadatasIterator = additionnalMetadataValues.entrySet().iterator();
 		while (additionnalMetadatasIterator.hasNext()) {
 			Map.Entry<String, Object> metadataValue = additionnalMetadatasIterator.next();
@@ -138,7 +143,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 			}
 		}
 
-		userServices.addUpdateUserCredential(userCredential);
+		userServices.execute(userCredential);
 
 		SessionContext sessionContext = view.getSessionContext();
 		String collection = view.getCollection();
@@ -227,7 +232,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 			defaultTaxonomy = presenterService().getSystemConfigs().getDefaultTaxonomy();
 		}
 
-		UserCredential userCredentials = (UserCredential) userServices.getUser(username);
+		SystemWideUserInfos userCredentials = userServices.getUserInfos(username);
 		AgentStatus agentStatus = userCredentials.getAgentStatus();
 		boolean agentManuallyDisabled = agentStatus == AgentStatus.MANUALLY_DISABLED;
 

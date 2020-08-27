@@ -51,13 +51,13 @@ public class DataStoreFieldLogicalSearchConditionTest extends ConstellioTest {
 	public void givenMetadatasAndAndOperatorStartsWithConditionThenReturnValidSolrString() {
 		DataStoreFieldLogicalSearchCondition andSearchCondition = new DataStoreFieldLogicalSearchCondition(
 				new SchemaFilters(schemaType), metadatas, LogicalOperator.AND, startsWith);
-		assertThat(andSearchCondition.getSolrQuery(params)).isEqualTo("( firstText:edouard* AND secondText:edouard* )");
+		assertThat(andSearchCondition.getSolrQuery(params)).isEqualTo("( firstText:edouard* OR firstText:edouard AND secondText:edouard* OR secondText:edouard )");
 	}
 
 	@Test
 	public void givenMetadatasAndOrOperatorStartsWithConditionThenReturnValidSolrString() {
 		DataStoreFieldLogicalSearchCondition andSearchCondition = new DataStoreFieldLogicalSearchCondition(
 				new SchemaFilters(schemaType), metadatas, LogicalOperator.OR, startsWith);
-		assertThat(andSearchCondition.getSolrQuery(params)).isEqualTo("( firstText:edouard* OR secondText:edouard* )");
+		assertThat(andSearchCondition.getSolrQuery(params)).isEqualTo("( firstText:edouard* OR firstText:edouard OR secondText:edouard* OR secondText:edouard )");
 	}
 }

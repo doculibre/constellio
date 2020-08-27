@@ -178,7 +178,7 @@ public class FolderDocumentContainerBreadcrumbTrailPresenter implements Serializ
 							while (taxonomyItemReference != null) {
 								Record taxonomyItem = rmSchemasRecordsServices.get(taxonomyItemReference);
 								breadcrumbItems.add(0, new TaxonomyElementBreadcrumbItem(taxonomyItem.getId()));
-								taxonomyItemReference = taxonomyItem.getParentId();
+								taxonomyItemReference = taxonomyItem.getParentId(schema);
 							}
 						}
 					}

@@ -202,11 +202,14 @@ public class MetadataSchemaBuilder {
 		if (initialize) {
 			new CommonMetadataBuilder().addCommonMetadataToNewSchema(builder, schemaTypesBuilder);
 
-			modelLayerFactory.getExtensions().forCollection(schemaTypeBuilder.getCollection())
-					.schemaExtensions.getExtensions().forEach(extension -> {
-				extension.schemaInCreationBeforeSave(
-						new SchemaInCreationBeforeSaveEvent(builder, schemaTypesBuilder.getLanguages()));
-			});
+			if (modelLayerFactory.getExtensions() != null) {
+				modelLayerFactory.getExtensions().forCollection(schemaTypeBuilder.getCollection())
+						.schemaExtensions.getExtensions().forEach(extension -> {
+					extension.schemaInCreationBeforeSave(
+							new SchemaInCreationBeforeSaveEvent(builder, schemaTypesBuilder.getLanguages()));
+
+				});
+			}
 		}
 		return builder;
 	}

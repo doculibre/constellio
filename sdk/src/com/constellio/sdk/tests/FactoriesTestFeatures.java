@@ -33,6 +33,7 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.sdk.FakeEncryptionServices;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
@@ -344,9 +345,9 @@ public class FactoriesTestFeatures {
 							public void initialize() {
 								try {
 									ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
-									List<UserCredential> users = modelLayerFactory.newUserServices().getAllUserCredentials();
+									List<SystemWideUserInfos> users = modelLayerFactory.newUserServices().getAllUserCredentials();
 									StringBuilder passwordFileContent = new StringBuilder();
-									for (UserCredential user : users) {
+									for (SystemWideUserInfos user : users) {
 										passwordFileContent.append(user.getUsername() + "=W6ph5Mm5Pz8GgiULbPgzG37mj9g\\=\n");
 									}
 									File settingsFolder = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration()

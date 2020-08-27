@@ -56,7 +56,7 @@ public class CollectionGroupRolesPresenterAcceptanceTest extends ConstellioTest 
 
 		recordServices.add(recordServices.newRecordWithSchema(setup.zeDefaultSchema(), zeConcept));
 
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 		aliceId = users.aliceIn(zeCollection).getId();
 		legendsId = users.legendsIn(zeCollection).getId();
 		legends = users.legends().getCode();
@@ -176,7 +176,7 @@ public class CollectionGroupRolesPresenterAcceptanceTest extends ConstellioTest 
 
 	private void givenAliceIsInLegendsGroup() {
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.addUpdateUserCredential(users.alice().addGlobalGroup(users.legends().getCode()));
+		userServices.execute(users.aliceAddUpdateRequest().addToGroupInEachCollection(users.legends().getCode()));
 	}
 
 	private RoleAuthVOListVerifier verifyThat(List<RoleAuthVO> roleAuthVOs) {

@@ -1082,60 +1082,7 @@ public class RecordImplTest extends ConstellioTest {
 		return fieldValues;
 	}
 
-	@Test
-	public void givenNewRecordWithoutParentThenReturnNullParentId()
-			throws Exception {
 
-		RecordImpl record = new TestRecord("a_b", "zeCollection", "zeId");
-		assertThat(record.getParentId()).isNull();
-	}
-
-	@Test
-	public void givenNewRecordWithParentThenReturnParentId()
-			throws Exception {
-		RecordImpl record = new TestRecord("a_b", "zeCollection", "zeId");
-		record.modifiedValues.put("zeParentPId_s", "modifiedParentId");
-		assertThat(record.getParentId()).isEqualTo("modifiedParentId");
-	}
-
-	@Test
-	public void givenSavedRecordWithoutParentThenReturnNullParentId()
-			throws Exception {
-		RecordDTO recordDTO = new SolrRecordDTO("id", 4,
-				asMap("refId_s", (Object) 123, "collection_s", "zeCollection"), RecordDTOMode.FULLY_LOADED);
-		RecordImpl record = new RecordImpl(recordDTO, collectionInfo, (short) 1);
-		assertThat(record.getParentId()).isNull();
-	}
-
-	@Test
-	public void givenSavedRecordWithParentThenReturnParentId()
-			throws Exception {
-		RecordDTO recordDTO = new SolrRecordDTO("id", 4,
-				asMap("refId_s", (Object) 123, "collection_s", "zeCollection", "zeParentPId_s", "initialParentId"), RecordDTOMode.FULLY_LOADED);
-		RecordImpl record = new RecordImpl(recordDTO, collectionInfo, (short) 1);
-		assertThat(record.getParentId()).isEqualTo("initialParentId");
-	}
-
-	@Test
-	public void givenSavedRecordWithModifiedParentThenReturnModifiedParentId()
-			throws Exception {
-		RecordDTO recordDTO = new SolrRecordDTO("id", 4,
-				asMap("refId_s", (Object) 123, "collection_s", "zeCollection", "zeParentPId_s", "initialParentId"), RecordDTOMode.FULLY_LOADED);
-		RecordImpl record = new RecordImpl(recordDTO, collectionInfo, (short) 1);
-		record.modifiedValues.put("zeParentPId_s", "modifiedParentId");
-		assertThat(record.getParentId()).isEqualTo("modifiedParentId");
-	}
-
-	@Test
-	public void givenModifiedRecordWhenGetCopyOfOriginalRecordThenHasValuesFetchedFromServerAndNoModifications()
-			throws Exception {
-		RecordDTO recordDTO = new SolrRecordDTO("id", 4,
-				asMap("refId_s", (Object) 123, "collection_s", "zeCollection", "zeParentPId_s", "initialParentId"), RecordDTOMode.FULLY_LOADED);
-		RecordImpl record = new RecordImpl(recordDTO, collectionInfo, (short) 1);
-		record.modifiedValues.put("zeParentPId_s", "modifiedParentId");
-		assertThat(record.getParentId()).isEqualTo("modifiedParentId");
-		assertThat(record.getCopyOfOriginalRecord().getParentId()).isEqualTo("initialParentId");
-	}
 
 	@Test(expected = RecordImplException_UnsupportedOperationOnUnsavedRecord.class)
 	public void givenUnsavedRecordWhenGetCopyOfOriginalRecordThenException()

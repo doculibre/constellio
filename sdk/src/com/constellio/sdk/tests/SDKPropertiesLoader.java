@@ -1,6 +1,7 @@
 package com.constellio.sdk.tests;
 
 import com.constellio.data.utils.PropertyFileUtils;
+import com.constellio.data.utils.TenantUtils;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -9,6 +10,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 
@@ -36,17 +38,33 @@ public class SDKPropertiesLoader {
 
 	private Map<String, String> loadSDKProperties() {
 		File sdkProperties = new SDKFoldersLocator().getSDKProperties();
-
 		if (!sdkProperties.exists()) {
-			File defaultSdkProperties = new File(sdkProperties.getParentFile(), "sdk.properties.default");
-			try {
-				FileUtils.copyFile(defaultSdkProperties, sdkProperties);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
+			copyDefaultSdkProperties(sdkProperties);
 		}
 
 		return PropertyFileUtils.loadKeyValues(sdkProperties);
+	}
+
+	public void createTenantsSDKProperties() {
+		Stream.of(1, 2).forEach(tenantId -> {
+			TenantUtils.setTenant(tenantId);
+			File tenantSdkProperties = new SDKFoldersLocator().getSDKProperties();
+			if (!tenantSdkProperties.exists()) {
+				copyDefaultSdkProperties(tenantSdkProperties);
+			}
+			TenantUtils.setTenant(null);
+		});
+	}
+
+	private void copyDefaultSdkProperties(File targetSdkProperties) {
+		try {
+			File sdkProperties = "2".equals(TenantUtils.getTenantId()) ?
+								 new SDKFoldersLocator().getTenant2SdkProperties() :
+								 new SDKFoldersLocator().getDefaultSdkProperties();
+			FileUtils.copyFile(sdkProperties, targetSdkProperties);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public void writeValues(Map<String, String> values) {

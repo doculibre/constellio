@@ -59,7 +59,7 @@ public class UserAuthorizationsUtils {
 		}
 
 		for (String aGroup : user.getUserGroups()) {
-			if (tokens.contains(prefix + aGroup) && user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
+			if (tokens.contains(prefix + aGroup) && user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup, user.getCollection())) {
 				return true;
 			}
 		}
@@ -96,7 +96,7 @@ public class UserAuthorizationsUtils {
 			}
 
 			for (String aGroup : user.getUserGroups()) {
-				if (tokens.contains(negativeTokenToCheck + aGroup) && user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
+				if (tokens.contains(negativeTokenToCheck + aGroup) && user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup, user.getCollection())) {
 					return false;
 				}
 			}
@@ -254,6 +254,7 @@ public class UserAuthorizationsUtils {
 			}
 		} else {
 			if (schemas.isGroupActive(group)) {
+				principalsIdsToInclude.add(group.getId());
 				principalsIdsToInclude.addAll(group.getAncestors());
 			}
 		}

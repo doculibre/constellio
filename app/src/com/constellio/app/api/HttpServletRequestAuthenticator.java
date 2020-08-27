@@ -6,6 +6,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
@@ -59,45 +60,45 @@ public class HttpServletRequestAuthenticator {
 		return userToken;
 	}
 
-	public UserCredential authenticate(HttpServletRequest request) {
+	public SystemWideUserInfos authenticate(HttpServletRequest request) {
 		String userServiceKey = getUserServiceKey(request);
 		String userToken = getUserToken(request);
 
 		//Save time when testing on a developer computer
 		if ("SDK".equals(userToken) && !usingAppWrapper()) {
-			return userServices.getUser(userServiceKey);
+			return userServices.getUserInfos(userServiceKey);
 		}
 
 		UserServices userServices = modelLayerFactory.newUserServices();
 
 		String cachedUsername = authCache.get(userServiceKey, userToken);
 		if (cachedUsername != null) {
-			return userServices.getUser(cachedUsername);
+			return userServices.getUserInfos(cachedUsername);
 		} else {
 			if (userServices.isAuthenticated(userServiceKey, userToken)) {
 				String username = userServices.getUserCredentialByServiceKey(userServiceKey);
 				authCache.insert(userServiceKey, userToken, username);
-				return userServices.getUser(username);
+				return userServices.getUserInfos(username);
 			} else {
 				return ssoLogin(request);
 			}
 		}
 	}
 
-	private UserCredential ssoLogin(HttpServletRequest request) {
+	private SystemWideUserInfos ssoLogin(HttpServletRequest request) {
 		Principal userPrincipal = (Principal) request.getSession().getAttribute(VaadinSessionContext.USER_PRINCIPAL_ATTRIBUTE);
 		if (userPrincipal != null) {
 			String username = userPrincipal.getName();
 			UserCredential userCredential = userServices.getUserCredential(username);
 			if (userCredential.getStatus() == UserCredentialStatus.ACTIVE) {
-				return userServices.getUser(username);
+				return userServices.getUserInfos(username);
 			}
 		}
 		return null;
 	}
 
-	public UserCredential authenticateSystemAdmin(HttpServletRequest request) {
-		UserCredential user = authenticate(request);
+	public SystemWideUserInfos authenticateSystemAdmin(HttpServletRequest request) {
+		SystemWideUserInfos user = authenticate(request);
 		if (user == null) {
 			return null;
 		} else {
@@ -112,7 +113,7 @@ public class HttpServletRequestAuthenticator {
 	}
 
 	public User authenticateInCollection(HttpServletRequest request) {
-		UserCredential userCredential = authenticate(request);
+		SystemWideUserInfos userCredential = authenticate(request);
 		if (userCredential == null) {
 			return null;
 		} else {
@@ -129,7 +130,7 @@ public class HttpServletRequestAuthenticator {
 		return collection;
 	}
 
-	public UserCredential authenticateUsingUsername(HttpServletRequest request) {
+	public SystemWideUserInfos authenticateUsingUsername(HttpServletRequest request) {
 		String username = request.getHeader(USERNAME);
 		String userToken = request.getHeader(USER_TOKEN);
 
@@ -137,14 +138,14 @@ public class HttpServletRequestAuthenticator {
 		try {
 			byte[] tokenOrPassword = userToken.getBytes(Charset.forName("UTF-8"));
 
-			UserCredential userCredential = userServices.getUser(username);
+			SystemWideUserInfos userCredential = userServices.getUserInfos(username);
 			boolean authenticated = userCredential.getTokenKeys().contains(new String(tokenOrPassword));
 			if (!authenticated) {
 				authenticated = modelLayerFactory.newAuthenticationService().authenticate(username, new String(tokenOrPassword));
 			}
 
 			if (authenticated) {
-				return userServices.getUser(username);
+				return userServices.getUserInfos(username);
 			} else {
 				LOGGER.warn("Cannot authentify user - Bad token or password");
 				return null;
@@ -157,7 +158,7 @@ public class HttpServletRequestAuthenticator {
 	}
 
 	public User authenticateSystemAdminInCollection(HttpServletRequest request) {
-		UserCredential userCredential = authenticateSystemAdmin(request);
+		SystemWideUserInfos userCredential = authenticateSystemAdmin(request);
 		if (userCredential == null) {
 			return null;
 		} else {

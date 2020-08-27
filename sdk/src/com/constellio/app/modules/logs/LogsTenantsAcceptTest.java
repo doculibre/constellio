@@ -24,7 +24,7 @@ public class LogsTenantsAcceptTest extends ConstellioTest {
 
 	@Before
 	public void setUp() throws Exception {
-
+		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
 		givenTwoTenants();
 	}
 
@@ -69,6 +69,9 @@ public class LogsTenantsAcceptTest extends ConstellioTest {
 		org.slf4j.Logger slf4Logger = LoggerFactory.getLogger(this.getClass());
 		org.apache.commons.logging.Log commonsLogger = LogFactory.getLog(this.getClass());
 		java.util.logging.Logger jdkLogger = java.util.logging.Logger.getLogger(this.getClass().getName());
+		java.util.logging.LogManager.getLogManager().addLogger(jdkLogger);
+
+		jdkLogger.setLevel(Level.INFO);
 		Logger logger = LogManager.getLogger(this.getClass());
 
 		jdkLogger.log(Level.SEVERE, "SEVERE JDK log message Tenant 1");
@@ -86,20 +89,23 @@ public class LogsTenantsAcceptTest extends ConstellioTest {
 		File logsTenant1 = new File(logsFolder, "T01/constellio.log");
 		File logsTenant2 = new File(logsFolder, "T02/constellio.log");
 
-		List<String> linesT01 = reverseLinesAndGetLastNumberOffLines(logsTenant1, 4);
-		List<String> linesT02 = reverseLinesAndGetLastNumberOffLines(logsTenant2, 4);
+		List<String> linesT01 = reverseLinesAndGetLastNumberOffLines(logsTenant1, 8);
+		List<String> linesT02 = reverseLinesAndGetLastNumberOffLines(logsTenant2, 8);
 
 		assertThat(linesT01.get(0)).contains("Error LOG4J log message Tenant 1");
 		assertThat(linesT02.get(0)).contains("Error LOG4J log message Tenant 2");
 
-		assertThat(linesT01.get(1)).contains("Error slf4 log message Tenant 1");
-		assertThat(linesT02.get(1)).contains("Error slf4 log message Tenant 2");
+		assertThat(linesT01.get(2)).contains("Error slf4 log message Tenant 1");
+		assertThat(linesT02.get(2)).contains("Error slf4 log message Tenant 2");
 
-		assertThat(linesT01.get(2)).contains("Error Apache commons log message Tenant 1");
-		assertThat(linesT02.get(2)).contains("Error Apache commons log message Tenant 2");
+		assertThat(linesT01.get(4)).contains("Error Apache commons log message Tenant 1");
+		assertThat(linesT02.get(4)).contains("Error Apache commons log message Tenant 2");
 
-		assertThat(linesT01.get(3)).contains("SEVERE JDK log message Tenant 1");
-		assertThat(linesT02.get(3)).contains("SEVERE JDK log message Tenant 2");
+		//JDK cannot log unless we pass -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager
+		if(System.getProperty("java.util.logging.manager").equals("org.apache.logging.log4j.jul.LogManager")) {
+			assertThat(linesT01.get(6)).contains("SEVERE JDK log message Tenant 1");
+			assertThat(linesT02.get(6)).contains("SEVERE JDK log message Tenant 2");
+		}
 
 	}
 
@@ -141,8 +147,8 @@ public class LogsTenantsAcceptTest extends ConstellioTest {
 		assertThat(linesT01.get(0)).contains("WARN LOG4J log message Tenant 1");
 		assertThat(linesT02.get(0)).contains("WARN LOG4J log message Tenant 2");
 
-		assertThat(linesT01.get(1)).contains("Info LOG4J log message Tenant 1");
-		assertThat(linesT02.get(1)).contains("Info LOG4J log message Tenant 2");
+		assertThat(linesT01.get(2)).contains("Info LOG4J log message Tenant 1");
+		assertThat(linesT02.get(2)).contains("Info LOG4J log message Tenant 2");
 
 	}
 
@@ -150,12 +156,12 @@ public class LogsTenantsAcceptTest extends ConstellioTest {
 	public void givenXMLConfigurationPlugin_whenInfoExceptionThrown_thenLog() {
 		TenantUtils.setTenant("1");
 		Logger logger = LogManager.getLogger(this.getClass());
-		logger.debug("Debug log message Tenant 1");
+		logger.debug("Debug LOG4J log message Tenant 1");
 		System.out.println("sout : Hello from tenant 1");
 		new RuntimeException("Exception from tenant 1").printStackTrace();
 
 		TenantUtils.setTenant("2");
-		logger.debug("Debug log message Tenant 1");
+		logger.debug("Debug LOG4J log message Tenant 2");
 		System.out.println("sout : Hello from tenant 2");
 
 		File logsFolder = new File(new FoldersLocator().getSDKProject(), "logs");

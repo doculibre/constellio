@@ -317,6 +317,10 @@ public class BaseSchemasRecordsServices implements Serializable {
 		};
 	}
 
+	public MetadataSchema getSchemaOf(Record record) {
+		return modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record);
+	}
+
 	public static abstract class AbstractSchemaTypeShortcuts {
 
 		String schemaTypeCode;

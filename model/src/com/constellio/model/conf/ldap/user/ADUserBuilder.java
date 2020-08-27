@@ -66,7 +66,7 @@ public class ADUserBuilder extends CommonUserBuilder implements LDAPUserBuilder 
 		if (getCompanyAttributeName() != null) {
 			Attribute lieuTravailAttribute = attrs.get(getCompanyAttributeName());
 			String lieuTravail = buildCompany(lieuTravailAttribute);
-			returnUser.setLieuTravail(lieuTravail);
+			returnUser.setWorkAddress(lieuTravail);
 		}
 
 		if (getMsExchDelegateListBl() != null) {

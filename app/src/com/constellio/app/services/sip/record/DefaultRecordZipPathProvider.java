@@ -6,6 +6,7 @@ import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -39,7 +40,8 @@ public class DefaultRecordZipPathProvider implements RecordPathProvider {
 		Taxonomy taxonomy = taxonomiesManager.getTaxonomyFor(record.getCollection(), record.getTypeCode());
 
 		if (taxonomy != null) {
-			parent = record.getParentId();
+			MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record);
+			parent = record.getParentId(schema);
 
 		} else if (Authorization.SCHEMA_TYPE.equals(record.getTypeCode())) {
 			parent = schemasOf(record).wrapSolrAuthorizationDetails(record).getTarget();

@@ -134,6 +134,7 @@ public class Toggle {
 	public static AvailableToggle SDK_PANEL_LOG_CALLS = newToggle(false);
 
 	public static AvailableToggle IGNORE_CONFIGS_WHEN_SYNCHRONIZING_AZURE_RELATED_USERS_AND_GROUPS = newToggle(false);
+	public static AvailableToggle ALLOW_LDAP_FETCH_SUB_GROUPS = newToggle(false);
 
 	public static AvailableToggle PUT_IN_CONTAINER_ACTION = newToggle(false);
 
@@ -144,6 +145,8 @@ public class Toggle {
 	public static AvailableToggle SHOW_STACK_TRACE_UPON_ERRORS = newToggle(false);
 
 	public static AvailableToggle ENABLE_CLOUD_SYSADMIN_FEATURES = newToggle(false);
+
+	public static AvailableToggle VALIDATE_USER_COLLECTIONS = newToggle(true);
 
 
 	// ------------------------------------------------

@@ -1,0 +1,39 @@
+# === WEB DRIVERS CONFIGURATION ===
+# if both are specified, phantomjs is used, unless you call newFirefoxWebDriver() in the test
+#firefoxBinary=detect
+#firefoxBinary=
+#phantomJSBinary=
+port=7070
+
+# === SQL SERVER DATABSE CONFIGURATION ===
+sql.server.url=jdbc:sqlserver://localhost:1433
+sql.server.database=constellio
+sql.server.user=yourusername@yourserver
+sql.server.password=yourpassword
+sql.server.encrypt=true
+sql.server.trustServerCertificate=false
+sql.server.loginTimeout=15
+
+# === DATASTORE CONFIGURATION ===
+# *** WARNING : collections will be deleted ***3
+dao.records.type=http
+dao.records.http.url=http://localhost:8983/solr/
+dao.contents.type=filesystem
+dao.settings.type=filesystem
+
+# === RUN/SKIP TESTS CONFIGURATION ===
+skip.slowtests=true
+skip.uitests=true
+skip.drivertests=true
+skip.loadtests=true
+skip.internettests=true
+skip.indevelopment=true
+skip.testsWithGradle=false
+
+
+tests.whitelist=
+tests.blacklist=
+
+dao.records.collection=records2
+dao.events.collection=events2
+dao.notifications.collection=notifications2

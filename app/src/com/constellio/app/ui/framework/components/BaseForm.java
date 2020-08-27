@@ -383,11 +383,11 @@ public abstract class BaseForm<T> extends CustomComponent {
 				}
 				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 
-				List<String> tabCaptionToIgnore = appLayerFactory.getExtensions().
+				List<String> tabCodesToIgnore = appLayerFactory.getExtensions().
 						forCollection(ConstellioUI.getCurrentSessionContext().getCurrentCollection()).
-						getTabSheetCaptionToHideInDisplayAndForm();
-
-				if (tabCaptionToIgnore.contains(groupLabel)) {
+						getTabSheetCodeToHideInDisplayAndForm();
+				String tabCode = getTabCode(field, propertyId);
+				if (tabCodesToIgnore.contains(tabCode)) {
 					Tab tab = tabSheet.getTab(panel);
 					tab.setVisible(false);
 					tab.setEnabled(false);
@@ -424,6 +424,10 @@ public abstract class BaseForm<T> extends CustomComponent {
 	 * @return The caption of the tab under which the field will be added
 	 */
 	protected String getTabCaption(Field<?> field, Object propertyId) {
+		return null;
+	}
+
+	protected String getTabCode(Field<?> field, Object propertyId) {
 		return null;
 	}
 

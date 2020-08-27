@@ -114,6 +114,8 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private boolean refreshSelectionPanel;
 	private Map<String, String> deselectedRecordsWithSchema;
 
+	//private Map<String, Set<String>> metadataAllowedInCriteria = new HashMap<>();
+	private Map<String, Set<String>> copiedMetadataAllowedInCriteria = new HashMap<>();
 	private Map<String, Map<String, Set<String>>> metadataAllowedInCriteria = new HashMap<>();
 
 	public ConstellioHeaderPresenter(ConstellioHeader header) {
@@ -359,6 +361,12 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	@Override
+	public boolean isSeparateCopiedMetadata() {
+		//		return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SHOW_COPIED_METADATA_SEPARATELY_IN_SEARCH);
+		return false;
+	}
+
+	@Override
 	public List<MetadataVO> getMetadataAllowedInCriteria() {
 
 		MetadataSchemaType schemaType = types().getSchemaType(schemaTypeCode);
@@ -523,7 +531,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		this.deselectedRecordsWithSchema = new HashMap<>();
 
 		UserServices userServices = modelLayerFactory.newUserServices();
-		List<String> collections = userServices.getUser(getCurrentUser().getUsername()).getCollections();
+		List<String> collections = userServices.getUserInfos(getCurrentUser().getUsername()).getCollections();
 		header.setCollections(collections);
 
 		if (sessionContext.getSelectedRecordIds().isEmpty()) {

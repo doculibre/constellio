@@ -148,10 +148,6 @@ public class CollectionsManager implements StatefulService {
 		return collectionsListManager.getCollectionsExcludingSystem();
 	}
 
-	void addGlobalGroupsInCollection(String code) {
-		modelLayerFactory.newUserServices().addGlobalGroupsInCollection(code);
-	}
-
 	public Record createCollectionRecordWithCode(String code, String name, List<String> languages) {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		Record record = recordServices.newRecordWithSchema(collectionSchema(code));
@@ -210,8 +206,6 @@ public class CollectionsManager implements StatefulService {
 
 	public void deleteCollection(final String collection) {
 		ConfigManager configManager = dataLayerFactory.getConfigManager();
-		removeCollectionFromUserCredentials(collection);
-		removeCollectionFromGlobalGroups(collection);
 		removeFromCollectionsListManager(collection);
 		removeCollectionFromBigVault(collection);
 		removeCollectionFromVersionProperties(collection, configManager);
@@ -243,13 +237,6 @@ public class CollectionsManager implements StatefulService {
 		constellioModulesManager.removeCollectionFromVersionProperties(collection, configManager);
 	}
 
-	private void removeCollectionFromUserCredentials(final String collection) {
-		modelLayerFactory.getUserCredentialsManager().removeCollection(collection);
-	}
-
-	private void removeCollectionFromGlobalGroups(final String collection) {
-		modelLayerFactory.getGlobalGroupsManager().removeCollection(collection);
-	}
 
 	private void removeFromCollectionsListManager(final String collection) {
 		collectionsListManager.remove(collection);
@@ -295,9 +282,6 @@ public class CollectionsManager implements StatefulService {
 
 	private Record createCollectionAfterPrepare(String code, String name, List<String> languages) {
 		Record collectionRecord = createCollectionRecordWithCode(code, name, languages);
-		if (!code.equals(Collection.SYSTEM_COLLECTION)) {
-			addGlobalGroupsInCollection(code);
-		}
 		initializeCollection(code);
 		return collectionRecord;
 	}

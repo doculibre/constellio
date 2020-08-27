@@ -44,36 +44,36 @@ public class CmisAuthenticationAcceptanceTest extends ConstellioTest {
 		Role anotherCollectionRole = new Role("anotherCollection", "zeRole", asList(CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION));
 		getModelLayerFactory().getRolesManager().addRole(anotherCollectionRole);
 
-		userServices.addUpdateUserCredential(users.bob().setServiceKey(bobServiceKey));
+		userServices.execute(users.bobAddUpdateRequest().setServiceKey(bobServiceKey));
 		bobToken = userServices.generateToken(users.bob().getUsername());
 
-		userServices.addUpdateUserCredential(users.dakotaLIndien().setServiceKey(dakotaServiceKey));
+		userServices.execute(users.dakotaAddUpdateRequest().setServiceKey(dakotaServiceKey));
 		dakotaToken = userServices.generateToken(users.dakotaLIndien().getUsername());
 		getModelLayerFactory().newRecordServices().update(users.dakotaLIndienIn(zeCollection).setUserRoles(role.getCode()));
 
-		userServices.addUpdateUserCredential(users.robin().setServiceKey(robinServiceKey));
+		userServices.execute(users.robinAddUpdateRequest().setServiceKey(robinServiceKey));
 		robinToken = userServices.generateToken(users.robin().getUsername());
 		getModelLayerFactory().newRecordServices().update(users.robinIn(zeCollection).setUserRoles(role.getCode()));
 		getModelLayerFactory().newRecordServices().update(users.robinIn("anotherCollection").setUserRoles(role.getCode()));
 
 		adminToken = userServices.generateToken(users.admin().getUsername());
-		userServices.addUpdateUserCredential(users.admin().setServiceKey(adminServiceKey).setSystemAdminEnabled());
+		userServices.execute(users.adminAddUpdateRequest().setServiceKey(adminServiceKey).setSystemAdminEnabled());
 
 		robinToken = userServices.generateToken(users.robin().getUsername());
-		userServices.addUpdateUserCredential(users.robin().setServiceKey(robinServiceKey).setSystemAdminEnabled());
+		userServices.execute(users.robinAddUpdateRequest().setServiceKey(robinServiceKey).setSystemAdminEnabled());
 
 		userServices
-				.addUpdateUserCredential(users.chuckNorris().setServiceKey(chuckNorrisServiceKey).setSystemAdminEnabled()
-						.setCollections(asList(zeCollection)));
+				.execute(users.chuckNorrisAddUpdateRequest().setServiceKey(chuckNorrisServiceKey).setSystemAdminEnabled()
+						.addToCollection(zeCollection).removeFromCollection("anotherCollection"));
 		chuckNorrisToken = userServices.generateToken(users.chuckNorris().getUsername());
 
-		userServices.addUserToCollection(users.admin(), zeCollection);
-		userServices.addUserToCollection(users.admin(), "anotherCollection");
-		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
-		userServices.addUserToCollection(users.robin(), zeCollection);
+		userServices.execute(users.admin().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.admin().getUsername(), (req) -> req.addToCollection("anotherCollection"));
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.robin().getUsername(), (req) -> req.addToCollection(zeCollection));
 
-		userServices.addUserToCollection(users.robin(), zeCollection);
-		userServices.addUserToCollection(users.robin(), "anotherCollection");
+		userServices.execute(users.robin().getUsername(), (req) -> req.addToCollection(zeCollection));
+		userServices.execute(users.robin().getUsername(), (req) -> req.addToCollection("anotherCollection"));
 	}
 
 	@Test

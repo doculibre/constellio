@@ -11,13 +11,13 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.pdf.pdfjs.PdfJSAnnotations;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -85,10 +85,10 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 		String collection = record.getCollection();
 
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory);
-		UserCredential userCredentials = authenticator.authenticate(request);
+		SystemWideUserInfos userCredentials = authenticator.authenticate(request);
 		User user;
 		if (userCredentials != null) {
-			user = getUser(userCredentials, collection);
+			user = getUser(userCredentials.getUsername(), collection);
 		} else if (accessId != null) {
 			MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 			RolesManager rolesManager = modelLayerFactory.getRolesManager();
@@ -127,9 +127,9 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 		return getAppLayerFactory().getModelLayerFactory();
 	}
 
-	protected User getUser(UserCredential userCredential, String collection) {
+	protected User getUser(String username, String collection) {
 		UserServices userServices = getAppLayerFactory().getModelLayerFactory().newUserServices();
-		return userServices.getUserInCollection(userCredential.getUsername(), collection);
+		return userServices.getUserInCollection(username, collection);
 	}
 
 	protected PdfJSServices newPdfJSServices() {

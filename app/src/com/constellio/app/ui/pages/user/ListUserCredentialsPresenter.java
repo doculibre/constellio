@@ -37,17 +37,15 @@ public class ListUserCredentialsPresenter extends BasePresenter<ListUsersCredent
 
 	public UserCredentialVODataProvider getDataProvider() {
 		UserCredentialToVOBuilder voBuilder = new UserCredentialToVOBuilder();
-		return new UserCredentialVODataProvider(voBuilder, modelLayerFactory, null);
+		return new UserCredentialVODataProvider(voBuilder, modelLayerFactory, null, view.getCollection());
 	}
 
 	public void addButtonClicked() {
-		String params = ParamUtils.addParams(NavigatorConfigurationService.USER_LIST, null);
-		view.navigate().to().addUserCredential(params);
+		view.navigate().to().addEditUserCredential(null);
 	}
 
 	public void editButtonClicked(UserCredentialVO entity) {
-		String parameters = getParameters(entity);
-		view.navigate().to().editUserCredential(parameters);
+		view.navigate().to().editUserCredential(entity.getUsername());
 	}
 
 	public void displayButtonClicked(UserCredentialVO entity) {

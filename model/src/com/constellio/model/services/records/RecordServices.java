@@ -42,6 +42,12 @@ public interface RecordServices {
 	void execute(Transaction transaction)
 			throws RecordServicesException;
 
+	default void execute(Consumer<Transaction> txConsumer) throws RecordServicesException {
+		Transaction tx = new Transaction();
+		txConsumer.accept(tx);
+		execute(tx);
+	}
+
 	void executeWithoutImpactHandling(Transaction transaction)
 			throws RecordServicesException;
 

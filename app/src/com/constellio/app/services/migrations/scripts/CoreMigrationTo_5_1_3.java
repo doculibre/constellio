@@ -15,7 +15,6 @@ import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.users.SolrUserCredentialsManager;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -58,7 +57,7 @@ public class CoreMigrationTo_5_1_3 implements MigrationScript {
 				}
 				encryptionServices = modelLayerFactory.newEncryptionServices();
 				encryptLdapPassword(modelLayerFactory, encryptionServices);
-				encryptUserTokens(modelLayerFactory.getUserCredentialsManager());
+				//encryptUserTokens(modelLayerFactory.getUserCredentialsManager());
 			} else {
 				encryptionServices = modelLayerFactory.newEncryptionServices();
 			}
@@ -74,10 +73,6 @@ public class CoreMigrationTo_5_1_3 implements MigrationScript {
 		if (config != null) {
 			emailManager.updateEmailServerConfiguration(config, collection, true);
 		}
-	}
-
-	private static void encryptUserTokens(SolrUserCredentialsManager userCredentialsManager) {
-		userCredentialsManager.rewrite();
 	}
 
 	private static void encryptLdapPassword(ModelLayerFactory modelLayerFactory,

@@ -18,9 +18,8 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SecurityModelAuthorization;
-import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
@@ -67,14 +66,9 @@ public class CollectionInfosSIPWriterAcceptanceTest extends ConstellioTest {
 
 		SchemasRecordsServices system = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, getModelLayerFactory());
 		List<String> expectedFiles = new ArrayList<>();
-		for (UserCredential userCredential : system.getAllUserCredentials()) {
+		for (SystemWideUserInfos userCredential : system.getAllUserCredentials()) {
 			expectedFiles.add("data/userCredential/userCredential-" + userCredential.getId() + ".xml");
 		}
-
-		for (GlobalGroup globalGroup : system.getAllGlobalGroups()) {
-			expectedFiles.add("data/globalGroup/globalGroup-" + globalGroup.getId() + ".xml");
-		}
-
 
 		expectedFiles.add("manifest-sha256.txt");
 		expectedFiles.add("tagmanifest-sha256.txt");

@@ -1,14 +1,13 @@
 package com.constellio.sdk.load.script;
 
-import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 
 import java.util.List;
 
 public interface UserPreparator {
 
-	public List<GlobalGroup> createGroups();
+	public List<GroupAddUpdateRequest> createGroups();
 
-	public List<UserCredential> createUsers(List<String> groups);
+	public List<com.constellio.model.services.users.UserAddUpdateRequest> createUsers(List<String> groups);
 
 }

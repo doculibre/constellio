@@ -28,7 +28,7 @@ public class StartDemoTasksConstellioAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		givenCollection(zeCollection).withTaskModule().withAllTestUsers();
-		users.setUp(getModelLayerFactory().newUserServices());
+		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 
 
 		recordServices = getModelLayerFactory().newRecordServices();

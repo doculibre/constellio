@@ -57,8 +57,6 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.trash.TrashQueueManager;
-import com.constellio.model.services.users.SolrGlobalGroupsManager;
-import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
@@ -108,11 +106,7 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	CollectionsListManager getCollectionsListManager();
 
-	SolrUserCredentialsManager getUserCredentialsManager();
-
 	StoredBatchProcessProgressionServices getStoredBatchProcessProgressionServices();
-
-	SolrGlobalGroupsManager getGlobalGroupsManager();
 
 	UserServices newUserServices();
 

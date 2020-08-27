@@ -5,11 +5,9 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-
-import java.util.List;
 
 public class CoreMigrationTo_6_5_19 implements MigrationScript {
 
@@ -24,36 +22,6 @@ public class CoreMigrationTo_6_5_19 implements MigrationScript {
 		//
 		new AddGlobalGroupLocallyCreatedMetadata(collection, provider, appLayerFactory).migrate();
 
-		if (appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-				.hasSchema(GlobalGroup.DEFAULT_SCHEMA)) {
-			// Set metadata value
-			final boolean locallyCreated = appLayerFactory.
-					getModelLayerFactory().
-					newUserServices().
-					canAddOrModifyUserAndGroup();
-
-			final List<GlobalGroup> globalGroupList = appLayerFactory.
-					getModelLayerFactory().
-					getGlobalGroupsManager().
-					getAllGroups();
-
-			boolean runGroupMigration = true;
-			for (int attempt = 0; attempt < 5 && runGroupMigration; attempt++) {
-				runGroupMigration = false;
-				for (final GlobalGroup globalGroup : globalGroupList) {
-					try {
-						appLayerFactory.
-								getModelLayerFactory().
-								getGlobalGroupsManager().
-								addUpdate(globalGroup.setLocallyCreated(locallyCreated));
-					} catch (Exception e) {
-						e.printStackTrace();
-						runGroupMigration = true;
-					}
-
-				}
-			}
-		}
 	}
 
 	private class AddGlobalGroupLocallyCreatedMetadata extends MetadataSchemasAlterationHelper {
@@ -64,12 +32,12 @@ public class CoreMigrationTo_6_5_19 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder metadataSchemaTypesBuilder) {
-			if (metadataSchemaTypesBuilder.hasSchemaType(GlobalGroup.SCHEMA_TYPE)) {
+			if (metadataSchemaTypesBuilder.hasSchemaType(SystemWideGroup.SCHEMA_TYPE)) {
 				// Add metadata to schema
 				final MetadataSchemaBuilder metadataSchemaBuilder = metadataSchemaTypesBuilder
-						.getSchema(GlobalGroup.DEFAULT_SCHEMA);
-				if (!metadataSchemaBuilder.hasMetadata(GlobalGroup.LOCALLY_CREATED)) {
-					metadataSchemaBuilder.createUndeletable(GlobalGroup.LOCALLY_CREATED).setType(MetadataValueType.BOOLEAN);
+						.getSchema(SystemWideGroup.DEFAULT_SCHEMA);
+				if (!metadataSchemaBuilder.hasMetadata(SystemWideGroup.LOCALLY_CREATED)) {
+					metadataSchemaBuilder.createUndeletable(SystemWideGroup.LOCALLY_CREATED).setType(MetadataValueType.BOOLEAN);
 				}
 			}
 		}

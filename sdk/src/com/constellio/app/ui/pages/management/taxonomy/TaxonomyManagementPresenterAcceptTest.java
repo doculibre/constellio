@@ -14,6 +14,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -43,12 +44,14 @@ public class TaxonomyManagementPresenterAcceptTest extends ConstellioTest {
 	@Mock MetadataSchemaVO metadataSchemaVO;
 	TaxonomyManagementPresenter presenter;
 
+	private Users users = new Users();
+
 	@Before
 	public void setUp()
 			throws Exception {
 
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
@@ -59,7 +62,7 @@ public class TaxonomyManagementPresenterAcceptTest extends ConstellioTest {
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
-		when(userVO.getId()).thenReturn(admin);
+		when(userVO.getId()).thenReturn(users.adminIn(zeCollection).getId());
 		when(userVO.getUsername()).thenReturn(admin);
 		when(sessionContext.getCurrentUser()).thenReturn(userVO);
 		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);

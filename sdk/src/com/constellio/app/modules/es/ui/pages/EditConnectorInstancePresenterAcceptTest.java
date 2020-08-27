@@ -55,7 +55,7 @@ public class EditConnectorInstancePresenterAcceptTest extends ConstellioTest {
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 		connectorManager = es.getConnectorManager();
 
 		configureConnectorsInstances();

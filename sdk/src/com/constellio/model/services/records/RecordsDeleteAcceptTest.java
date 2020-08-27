@@ -143,7 +143,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			}
 
 			private void setupServices() {
-				users.setUp(getModelLayerFactory().newUserServices());
+				users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
 				recordServices = spy(getModelLayerFactory().newCachelessRecordServices());
 				taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 				searchServices = getModelLayerFactory().newSearchServices();

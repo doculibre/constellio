@@ -40,13 +40,13 @@ public class CollectionsManagementAcceptTest extends ConstellioTest {
 		authService = getModelLayerFactory().newAuthenticationService();
 		collectionsManager = getAppLayerFactory().getCollectionsManager();
 
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 
 		userServices.givenSystemAdminPermissionsToUser(users.alice());
 		userServices.givenSystemAdminPermissionsToUser(users.bob());
 
-		aliceServiceKey = userServices.giveNewServiceToken(users.alice());
-		bobServiceKey = userServices.giveNewServiceToken(users.bob());
+		aliceServiceKey = userServices.giveNewServiceKey(users.alice().getUsername());
+		bobServiceKey = userServices.giveNewServiceKey(users.bob().getUsername());
 
 		authService.changePassword(users.alice().getUsername(), alicePassword);
 		authService.changePassword(users.bob().getUsername(), bobPassword);

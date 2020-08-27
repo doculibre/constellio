@@ -8,9 +8,9 @@ import com.constellio.app.modules.restapi.document.dto.DocumentDto;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import org.junit.Before;
 import org.junit.Test;
@@ -103,16 +103,16 @@ public class RestApiWithDistributedCacheAcceptanceTest extends BaseDocumentRestf
 		waitForBatchProcess();
 
 		// populate caches
-		userServices.getUser(users.bob().getUsername());
-		userServices2.getUser(users.bob().getUsername());
+		userServices.getUserInfos(users.bob().getUsername());
+		userServices2.getUserInfos(users.bob().getUsername());
 
-		userServices2.addUpdateUserCredential(
-				users.bob().setServiceKey(serviceKey)
+		userServices2.execute(
+				users.bobAddUpdateRequest().setServiceKey(serviceKey)
 						.addAccessToken(token2, TimeProvider.getLocalDateTime().plusYears(1)));
 
-		UserCredential user = userServices.getUser(users.bob().getUsername());
+		SystemWideUserInfos user = userServices.getUserInfos(users.bob().getUsername());
 		assertThat(user.getAccessTokens().size()).isEqualTo(2);
-		UserCredential user2 = userServices2.getUser(users.bob().getUsername());
+		SystemWideUserInfos user2 = userServices2.getUserInfos(users.bob().getUsername());
 		assertThat(user2.getAccessTokens().size()).isEqualTo(3);
 
 		Response response = doGetUrlQuery();

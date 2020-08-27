@@ -330,7 +330,7 @@ public class ZipContentsService {
 			containerRecordId = record.getId();
 			containerRecordPrincipalPath = record.get(Schemas.PRINCIPAL_PATH);
 		} else {
-			containerRecordId = record.getParentId();
+			containerRecordId = record.getParentId(schema);
 			Record parentRecord = recordServices.getDocumentById(containerRecordId);
 			containerRecordPrincipalPath = parentRecord.get(Schemas.PRINCIPAL_PATH);
 		}

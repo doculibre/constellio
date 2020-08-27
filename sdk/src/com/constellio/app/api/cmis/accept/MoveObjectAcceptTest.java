@@ -58,7 +58,7 @@ public class MoveObjectAcceptTest extends ConstellioTest {
 
 		taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 
-		users.setUp(userServices);
+		users.setUp(userServices, zeCollection);
 
 		defineSchemasManager().using(zeCollectionSchemas);
 		CmisAcceptanceTestSetup.allSchemaTypesSupported(getAppLayerFactory());
@@ -66,10 +66,10 @@ public class MoveObjectAcceptTest extends ConstellioTest {
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy1(), schemasManager);
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 
-		userServices.addUpdateUserCredential(
-				userServices.getUserCredential(chuckNorris).setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
+		userServices.execute(
+				userServices.addUpdate(chuckNorris).setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
 		chuckNorrisToken = userServices.generateToken(chuckNorris);
-		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
+		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection(zeCollection));
 
 		cmisSession = newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
 				.build();
@@ -85,7 +85,7 @@ public class MoveObjectAcceptTest extends ConstellioTest {
 		String parentTargetId = zeCollectionRecords.folder1.getId();
 
 		moveObject(record, parentTargetId);
-		assertThat(record.getParentId()).isEqualTo(parentTargetId);
+		assertThat(record.getParentId(getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(record))).isEqualTo(parentTargetId);
 		assertParentAndPrincipalPath(record, parentTargetId);
 	}
 

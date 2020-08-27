@@ -63,7 +63,8 @@ public class CoreUserProfileSignatureFieldsExtension extends PagesComponentsExte
 	private ExtraTabAdditionalRecordField buildElectronicSignatureField(RecordFieldsExtensionParams params,
 																		Metadata metadata) {
 		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
-		UserCredential userCredentials = appLayerFactory.getModelLayerFactory().newUserServices().getUser(user.getUsername());
+		//OK
+		UserCredential userCredentials = appLayerFactory.getModelLayerFactory().newUserServices().getUserConfigs(user.getUsername());
 		Language language = Language.withCode(params.getMainComponent().getSessionContext().getCurrentLocale().getLanguage());
 
 		ElectronicSignatureField field = new ElectronicSignatureField(user, userCredentials.getId(), metadata, language);

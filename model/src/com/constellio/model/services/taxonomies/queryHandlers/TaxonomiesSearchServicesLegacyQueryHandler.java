@@ -174,7 +174,8 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 
 			List<Record> children = new ArrayList<>();
 			for (Record record : caches.getCache(ctx.getCollection()).getAllValues(ctx.forSelectionOfSchemaType.getCode())) {
-				if (LangUtils.isEqual(record.getParentId(), ctx.getRecord() == null ? null : ctx.getRecord().getId())) {
+				MetadataSchema schema = metadataSchemasManager.getSchemaOf(record);
+				if (LangUtils.isEqual(record.getParentId(schema), ctx.getRecord() == null ? null : ctx.getRecord().getId())) {
 					children.add(record);
 				}
 			}

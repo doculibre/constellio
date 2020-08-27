@@ -209,7 +209,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	private void classifyForPath(String fullConnectorDocPath, Taxonomy targetTaxonomy, Metadata codeMetadata,
 								 String legacyId) {
 
-		ClassifiedRecordPathInfo recordPathInfo = new ClassifyConnectorHelper(recordServices)
+		ClassifiedRecordPathInfo recordPathInfo = new ClassifyConnectorHelper(modelLayerFactory)
 				.extractInfoFromPath(fullConnectorDocPath, params.getPathPrefix(), params.getDelimiter(), codeMetadata);
 
 		if (recordPathInfo != null) {
@@ -490,17 +490,6 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		return mappedEntries;
 	}
 
-	private String verifyConceptInPath(Metadata codeMetadata, String parent, Record concept) {
-		if (parent == null) {
-			if (concept.getParentId() != null) {
-				throw new RuntimeException("Concept should be root");
-			}
-		} else if (!parent.equals(recordServices.getDocumentById(concept.getParentId()).get(codeMetadata))) {
-			throw new RuntimeException("Concept is under the wrong parent");
-		}
-		parent = concept.get(codeMetadata);
-		return parent;
-	}
 
 	private String getParentPath(String fullPath, String pathPart) {
 		StringBuilder builder = new StringBuilder(fullPath);

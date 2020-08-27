@@ -339,6 +339,11 @@ public class RecordServicesAggregatedSumMetadatasAcceptTest extends ConstellioTe
 		recordServices.physicallyDelete(folder.getWrappedRecord(), User.GOD);
 		waitForBatchProcess();
 
+		Document document2 = rm.getDocument("fakeDocument2");
+		recordServices.logicallyDelete(document2.getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(document2.getWrappedRecord(), User.GOD);
+		waitForBatchProcess();
+
 		Folder folder2 = rm.getFolder("fakeFolder2");
 		recordServices.logicallyDelete(folder2.getWrappedRecord(), User.GOD);
 		recordServices.physicallyDelete(folder2.getWrappedRecord(), User.GOD);

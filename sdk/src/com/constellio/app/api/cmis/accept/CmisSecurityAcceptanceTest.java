@@ -107,8 +107,6 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 
 		taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 
-		users.setUp(userServices);
-
 		defineSchemasManager().using(zeCollectionSchemas.withContentMetadata());
 		CmisAcceptanceTestSetup.allSchemaTypesSupported(getAppLayerFactory());
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
@@ -135,18 +133,19 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 
 		schemasManager.saveUpdateSchemaTypes(metadataSchemaTypesBuilder);
 
-		userServices.addUserToCollection(users.alice(), zeCollection);
-		userServices.addUserToCollection(users.bob(), zeCollection);
-		userServices.addUserToCollection(users.charles(), zeCollection);
-		userServices.addUserToCollection(users.dakotaLIndien(), zeCollection);
-		userServices.addUserToCollection(users.edouardLechat(), zeCollection);
-		userServices.addUserToCollection(users.gandalfLeblanc(), zeCollection);
-		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
-		userServices.addUserToCollection(users.sasquatch(), zeCollection);
-		userServices.addUserToCollection(users.robin(), zeCollection);
-
-		userServices.addUserToCollection(users.admin(), zeCollection);
-		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
+		users.setUp(userServices, zeCollection);
+		//		userServices.execute(users.alice().getUsername(), (req) -> req.addToCollection(zeCollection));
+		//		userServices.execute(users.bob().getUsername(), (req) -> req.addToCollection(zeCollection));
+		//		userServices.execute(users.charles().getUsername(), (req) -> req.addToCollection(zeCollection));
+		//		userServices.execute(users.dakotaLIndien().getUsername(), (req) -> req.addToCollection(zeCollection));
+		//		userServices.execute(users.edouardLechat().getUsername(), (req) -> req.addToCollection(zeCollection));
+		//		userServices.execute(users.gandalfLeblanc().getUsername(), (req) -> req.addToCollection(zeCollection));
+		//		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection(zeCollection));
+		//		userServices.execute(users.sasquatch().getUsername(), (req) -> req.addToCollection(zeCollection));
+		//		userServices.execute(users.robin().getUsername(), (req) -> req.addToCollection(zeCollection));
+		//
+		userServices.execute(users.admin().getUsername(), (req) -> req.addToCollection(zeCollection));
+		//		userServices.execute(users.chuckNorris().getUsername(), (req) -> req.addToCollection(zeCollection));
 
 		recordServices.update(users.adminIn(zeCollection).setCollectionAllAccess(true));
 		recordServices.update(users.aliceIn(zeCollection).setCollectionReadAccess(true));
@@ -709,6 +708,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 
 		session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
 		assertThat(canBeMovedTo(record, newParentID, zeCollectionRecords.taxo2_station2_1)).isFalse();
+
 	}
 
 	@Test
@@ -1123,7 +1123,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 	}
 
 	private boolean canBeMovedTo(Record record, String parentTargetId) {
-		String oldParentID = record.getParentId();
+		String oldParentID = record.getParentId(getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(record));
 
 		try {
 			moveObject(record, parentTargetId);
@@ -1135,14 +1135,14 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 				throw e;
 			}
 		}
-		boolean isMovable = record.getParentId().equals(parentTargetId);
+		boolean isMovable = record.getParentId(getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(record)).equals(parentTargetId);
 		moveObject(record, oldParentID);
 
 		return isMovable;
 	}
 
 	private boolean validateErrorFromFunctionCanBeMovedTo(Record record, String parentTargetId) {
-		String oldParentID = record.getParentId();
+		String oldParentID = record.getParentId(getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(record));
 
 		try {
 			moveObject(record, parentTargetId);

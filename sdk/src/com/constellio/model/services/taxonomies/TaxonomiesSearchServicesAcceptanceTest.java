@@ -126,24 +126,6 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenGetParentOfTaxonomyRecordThenObtainValidParentId()
-			throws Exception {
-
-		assertThat(records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem2.getParentId())
-				.isEqualTo(records.taxo1_firstTypeItem2_firstTypeItem2.getId());
-
-		assertThat(records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem2_secondTypeItem1.getParentId())
-				.isEqualTo(records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem2.getId());
-
-		assertThat(records.taxo2_defaultSchemaItem2_defaultSchemaItem2.getParentId())
-				.isEqualTo(records.taxo2_defaultSchemaItem2.getId());
-
-		assertThat(records.taxo2_defaultSchemaItem2_defaultSchemaItem2_customSchemaItem1.getParentId())
-				.isEqualTo(records.taxo2_defaultSchemaItem2_defaultSchemaItem2.getId());
-
-	}
-
-	@Test
 	public void whenCheckingIfHasNonTaxonomyRecordsThenWorkWithAllLevels()
 			throws Exception {
 		Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.disable();

@@ -265,9 +265,7 @@ public class MultiTenantAppManagementServicesAcceptanceTest extends ConstellioTe
 
 		InvalidJarsTest.loadJarsToPluginsFolder(pluginsFolder);
 
-		File fileBeforeLastWeek = getTestResourceFile("initial-wrapper.conf");
 		givenTimeIs(new LocalDateTime(pluginsFolder.lastModified()).plusDays(6));
-		assertThat(appManagementService.isModifiedBeforeLastWeek(fileBeforeLastWeek)).isTrue();
 		addVersion("5.0");
 		addVersion("5.0.7");
 		addVersion("5.1.1");

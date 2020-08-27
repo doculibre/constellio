@@ -53,7 +53,7 @@ public class CompositeLogicalSearchConditionTest extends ConstellioTest {
 		CompositeLogicalSearchCondition andSearchCondition = new CompositeLogicalSearchCondition(new SchemaFilters(schema),
 				LogicalOperator.AND, validConditions);
 		assertThat(andSearchCondition.getSolrQuery(params)).isEqualTo(
-				"( ( firstText:chuck* ) AND ( firstText:*lechat* ) AND ( firstText:*noris ) )");
+				"( ( firstText:chuck* OR firstText:chuck ) AND ( firstText:*lechat* ) AND ( firstText:*noris ) )");
 	}
 
 	@Test
@@ -61,6 +61,6 @@ public class CompositeLogicalSearchConditionTest extends ConstellioTest {
 		CompositeLogicalSearchCondition andSearchCondition = new CompositeLogicalSearchCondition(new SchemaFilters(schema),
 				LogicalOperator.OR, validConditions);
 		assertThat(andSearchCondition.getSolrQuery(params)).isEqualTo(
-				"( ( firstText:chuck* ) OR ( firstText:*lechat* ) OR ( firstText:*noris ) )");
+				"( ( firstText:chuck* OR firstText:chuck ) OR ( firstText:*lechat* ) OR ( firstText:*noris ) )");
 	}
 }

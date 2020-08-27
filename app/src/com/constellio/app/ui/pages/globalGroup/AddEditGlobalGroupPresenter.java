@@ -1,13 +1,13 @@
 package com.constellio.app.ui.pages.globalGroup;
 
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.users.UserServices;
@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,7 +52,7 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 	}
 
 	public GlobalGroupVO getGlobalGroupVO(String code) {
-		GlobalGroup globalGroup = null;
+		SystemWideGroup globalGroup = null;
 		if (StringUtils.isNotBlank(code)) {
 			editMode = true;
 			this.code = code;
@@ -83,32 +82,32 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 				LOGGER.info(e.getMessage(), e);
 			}
 		}
-		GlobalGroup globalGroup = toGlobalGroup(entity);
-		userServices.addUpdateGlobalGroup(globalGroup);
+		GroupAddUpdateRequest globalGroup = toGlobalGroup(entity);
+		userServices.execute(globalGroup);
 
-		if (!isEditMode()) {
-			for (String collection : globalGroup.getUsersAutomaticallyAddedToCollections()) {
-				Group group = userServices.getGroupInCollection(entity.getCode(), collection);
-				loggingServices.addUserOrGroup(group.getWrappedRecord(), getCurrentUser(), collection);
-			}
-		} else {
-			for (String collection : globalGroup.getUsersAutomaticallyAddedToCollections()) {
-				Group group = userServices.getGroupInCollection(entity.getCode(), collection);
-				if (entity.getCollections().contains(collection) && !collections.contains(collection)) {
-					loggingServices.addUserOrGroup(group.getWrappedRecord(), getCurrentUser(), collection);
-				}
-			}
-		}
+		//		if (!isEditMode()) {
+		//			for (String collection : globalGroup.getCollections()) {
+		//				Group group = userServices.getGroupInCollection(entity.getCode(), collection);
+		//				loggingServices.addUserOrGroup(group.getWrappedRecord(), getCurrentUser(), collection);
+		//			}
+		//		} else {
+		//			for (String collection : globalGroup.getCollections()) {
+		//				Group group = userServices.getGroupInCollection(entity.getCode(), collection);
+		//				if (entity.getCollections().contains(collection) && !collections.contains(collection)) {
+		//					loggingServices.addUserOrGroup(group.getWrappedRecord(), getCurrentUser(), collection);
+		//				}
+		//			}
+		//		}
 
 		navigateToBackPage();
 	}
 
-	GlobalGroup toGlobalGroup(GlobalGroupVO globalGroupVO) {
+	GroupAddUpdateRequest toGlobalGroup(GlobalGroupVO globalGroupVO) {
 		List<String> collections = new ArrayList<>();
 		if (globalGroupVO.getCollections() != null) {
 			collections.addAll(globalGroupVO.getCollections());
 		}
-		GlobalGroup newGlobalGroup = userServices.createGlobalGroup(globalGroupVO.getCode(), globalGroupVO.getName(),
+		GroupAddUpdateRequest newGlobalGroup = userServices.createGlobalGroup(globalGroupVO.getCode(), globalGroupVO.getName(),
 				collections, globalGroupVO.getParent(), globalGroupVO.getStatus(), globalGroupVO.isLocallyCreated());
 		return newGlobalGroup;
 	}
@@ -142,22 +141,7 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 	}
 
 	private void navigateToBackPage() {
-		String viewNames[] = breadCrumb.split("/");
-		String backPage = viewNames[viewNames.length - 1];
-		breadCrumb = breadCrumb.replace(backPage, "");
-		if (breadCrumb.endsWith("/")) {
-			breadCrumb = breadCrumb.substring(0, breadCrumb.length() - 1);
-		}
-		if (paramsMap.containsKey("parentGlobalGroupCode")) {
-			paramsMap.put("globalGroupCode", paramsMap.get("parentGlobalGroupCode"));
-			paramsMap.remove("parentGlobalGroupCode");
-		}
-		Map<String, Object> newParamsMap = new HashMap<>();
-		newParamsMap.putAll(paramsMap);
-		String parameters = ParamUtils.addParams(breadCrumb, newParamsMap);
-		parameters = cleanParameters(parameters);
-		backPage = correctUrlSlash(backPage, parameters);
-		view.navigate().to().url(backPage + parameters);
+		view.navigate().to(CoreViews.class).previousView();
 	}
 
 	private String correctUrlSlash(String backPage, String parameters) {

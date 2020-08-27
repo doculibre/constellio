@@ -83,8 +83,6 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.trash.TrashQueueManager;
-import com.constellio.model.services.users.SolrGlobalGroupsManager;
-import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
@@ -115,7 +113,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private final RolesManager rolesManager;
 	private final EmailConfigurationsManager emailConfigurationsManager;
 	private final CollectionsListManager collectionsListManager;
-	private final SolrGlobalGroupsManager globalGroupsManager;
 	private final SystemConfigurationsManager systemConfigurationsManager;
 	private final UserConfigurationsManager userConfigurationsManager;
 	private final LanguageDetectionManager languageDetectionManager;
@@ -255,7 +252,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.recordMigrationsManager = add(new RecordMigrationsManager(this));
 		this.batchProcessesController = add(
 				new BatchProcessController(this, modelLayerConfiguration.getNumberOfRecordsPerTask()));
-		this.globalGroupsManager = add(new SolrGlobalGroupsManager(this));
 		this.rolesManager = add(new RolesManager(this));
 
 		languageDetectionManager = add(new LanguageDetectionManager(getFoldersLocator().getLanguageProfiles()));
@@ -353,6 +349,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		recordUsageCounterHookRetrieverMap.put(collection, new RecordUsageCounterHookRetriever(
 				recordsCaches.registerRecordCountHook(collection, new RecordUsageCounterHook(collection, this)), this));
+
+		if (userCredentialTokenCacheHookRetriever == null && collection.equals(Collection.SYSTEM_COLLECTION)) {
+			configureRecordsCacheHooks();
+		}
 	}
 
 	@Override
@@ -492,16 +492,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		return collectionsListManager;
 	}
 
-	public SolrUserCredentialsManager getUserCredentialsManager() {
-		return new SolrUserCredentialsManager(this);
-	}
-
 	public StoredBatchProcessProgressionServices getStoredBatchProcessProgressionServices() {
 		return storedBatchProcessProgressionServices;
-	}
-
-	public SolrGlobalGroupsManager getGlobalGroupsManager() {
-		return globalGroupsManager;
 	}
 
 	public UserServices newUserServices() {
