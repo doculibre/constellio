@@ -35,7 +35,7 @@ import static com.constellio.model.services.records.cache.cacheIndexHook.impl.Ta
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.principalConceptAuthGivingAccessToRecordInSecondaryConceptKey;
 import static com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookKey.recordInSecondaryConcept;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static org.apache.curator.shaded.com.google.common.primitives.Booleans.asList;
+import static com.google.common.primitives.Booleans.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.joda.time.LocalDate.now;
 
