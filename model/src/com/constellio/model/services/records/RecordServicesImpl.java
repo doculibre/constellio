@@ -26,6 +26,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.MultiCollectionTransaction;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.RecordRuntimeException;
@@ -2027,5 +2028,22 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return newAutomaticMetadataServices().isValueAutomaticallyFilled(metadata, record.get());
 	}
 
+	@Override
+	public void execute(MultiCollectionTransaction multiCollectionTransaction) throws RecordServicesException{
+
+		throw new UnsupportedOperationException("TODO : Should work, but not tested");
+//		for(Transaction transaction : multiCollectionTransaction.getTransactionMap().values()) {
+//			try {
+//				validateTransaction(transaction);
+//			} catch (ValidationException e) {
+//				throw new RecordServicesException.ValidationException(transaction, e.getErrors());
+//			}
+//		}
+//
+//		for(Transaction transaction : multiCollectionTransaction.getTransactionMap().values()) {
+//			execute(transaction);
+//		}
+
+	}
 
 }

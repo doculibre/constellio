@@ -51,7 +51,6 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotAssignUserToGroupsInOtherCollection;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotAssignUserToInexistingGroupInCollection;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotExcuteTransaction;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotRemoveAdmin;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotRemoveSyncedGroupFromSyncedCollection;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_EmailRequired;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_FirstNameRequired;
@@ -67,8 +66,6 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserPermissionDeniedToDelete;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
@@ -77,7 +74,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -990,7 +986,7 @@ public class UserServices {
 		return !groupsInCollection.isEmpty() ? build(groupsInCollection.get(0), wideGroupCollections, groupStatus) : build(request);
 	}
 
-	public SystemWideGroup build(Group group, List<String> wideGroupCollections, GlobalGroupStatus groupStatus) {
+	private SystemWideGroup build(Group group, List<String> wideGroupCollections, GlobalGroupStatus groupStatus) {
 		String parentCode = null;
 		if (group.getParent() != null) {
 			parentCode = recordServices.getDocumentById(group.getParent()).get(Schemas.CODE);
@@ -1018,38 +1014,8 @@ public class UserServices {
 				.build();
 	}
 
-	public SystemWideGroup build(Group group, List<String> wideGroupCollections) {
-		String parentCode = null;
 
-		SchemasRecordsServices core = new SchemasRecordsServices(group.getCollection(), modelLayerFactory);
-
-		if (group.getParent() != null) {
-			parentCode = core.getGroup(group.getParent()).getCode();
-		}
-
-		List<String> ancestorsCodes = new ArrayList<>();
-		List<String> ancestorsIds = group.getAncestors();
-		if (ancestorsIds != null) {
-			for (String ancestorId : ancestorsIds) {
-				ancestorsCodes.add(recordServices.getDocumentById(ancestorId).get(Schemas.CODE));
-			}
-		}
-
-		return SystemWideGroup.builder()
-				.code(group.getCode())
-				.name(group.getTitle())
-				.collections(wideGroupCollections)
-				.parent(parentCode)
-				.groupStatus(group.getStatus())
-				.hierarchy(group.getHierarchy())
-				.locallyCreated(group.isLocallyCreated())
-				.logicallyDeletedStatus(group.getLogicallyDeletedStatus())
-				.caption(group.getCaption())
-				.ancestors(ancestorsCodes)
-				.build();
-	}
-
-	public SystemWideGroup build(GroupAddUpdateRequest request) {
+	private SystemWideGroup build(GroupAddUpdateRequest request) {
 		String parentCode = (String) request.getModifiedAttributes().get(GroupAddUpdateRequest.PARENT);
 		GlobalGroupStatus status = (GlobalGroupStatus) request.getModifiedAttributes().get(GroupAddUpdateRequest.STATUS);
 		return SystemWideGroup.builder()
@@ -1060,13 +1026,6 @@ public class UserServices {
 				.hierarchy((String) request.getModifiedAttributes().get(GroupAddUpdateRequest.HIERARCHY))
 				.parent(parentCode)
 				.build();
-	}
-
-
-	private GlobalGroup getOldNullableGroup(String groupCode) {
-		Record record = modelLayerFactory.newRecordServices()
-				.getRecordByMetadata(schemas.globalGroupCode(), groupCode);
-		return record != null ? schemas.wrapOldGlobalGroup(record) : null;
 	}
 
 
@@ -1082,19 +1041,9 @@ public class UserServices {
 		return group;
 	}
 
-	public SystemWideGroup getActiveGroup(String groupCode) {
-		SystemWideGroup group = getGroup(groupCode);
-		return group.getGroupStatus() == GlobalGroupStatus.ACTIVE ? group : null;
-	}
-
 	public Group getGroupInCollection(String groupCode, String collection) {
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		return schemas.getGroupWithCode(groupCode);
-	}
-
-	public Group getGroupInCollectionById(String id, String collection) {
-		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
-		return schemas.getGroup(id);
 	}
 
 
@@ -1117,27 +1066,10 @@ public class UserServices {
 		}
 	}
 
+	//TODO Determine if can be deleted
+	@Deprecated
 	public void logicallyRemoveGroupHierarchy(String username, SystemWideGroup globalGroup) {
 		executeGroupRequest(globalGroup.getCode(), req -> req.setStatusInAllCollections(GlobalGroupStatus.INACTIVE));
-	}
-
-	@Deprecated
-	public void logicallyRemoveGroupHierarchy(SystemWideUserInfos systemWideUserInfos, SystemWideGroup globalGroup) {
-		execute(systemWideUserInfos.getUsername(), req -> req.setStatusForAllCollections(DISABLED));
-	}
-
-	void removeGroupFromCollectionsWithoutUserValidation(String group, List<String> collections) {
-		removeChildrenFromBigVault(group, collections);
-		removeFromBigVault(group, collections);
-	}
-
-	private void removeChildrenFromBigVault(String group, List<String> collections) {
-		for (String collection : collections) {
-			for (Group child : getChildrenOfGroupInCollection(group, collection)) {
-				removeFromBigVault(child.getCode(), asList(collection));
-				removeChildrenFromBigVault(child.getCode(), asList(collection));
-			}
-		}
 	}
 
 	public String giveNewServiceKey(String username) {
@@ -1339,24 +1271,20 @@ public class UserServices {
 		return metadataSchemasManager.getSchemaTypes(collection);
 	}
 
-	MetadataSchema userSchema(String collection) {
+	private MetadataSchema userSchema(String collection) {
 		MetadataSchemaTypes schemaTypes = schemaTypes(collection);
 		return schemaTypes.getDefaultSchema(User.SCHEMA_TYPE);
 	}
 
-	Metadata usernameMetadata(String collection) {
+	private Metadata usernameMetadata(String collection) {
 		return userSchema(collection).getMetadata(User.USERNAME);
 	}
 
-	Metadata userGroupsMetadata(String collection) {
-		return userSchema(collection).getMetadata(User.GROUPS);
-	}
-
-	MetadataSchema groupSchema(String collection) {
+	private MetadataSchema groupSchema(String collection) {
 		return schemaTypes(collection).getDefaultSchema(Group.SCHEMA_TYPE);
 	}
 
-	Metadata groupCodeMetadata(String collection) {
+	private Metadata groupCodeMetadata(String collection) {
 		return groupSchema(collection).getMetadata(Group.CODE);
 	}
 
@@ -1364,7 +1292,7 @@ public class UserServices {
 		return groupSchema(collection).getMetadata(Group.PARENT);
 	}
 
-	Group newGroupInCollection(String collection) {
+	private Group newGroupInCollection(String collection) {
 		Record record = recordServices.newRecordWithSchema(groupSchema(collection));
 		return new Group(record, schemaTypes(collection));
 	}
@@ -1383,12 +1311,6 @@ public class UserServices {
 		return Group.wrap(searchServices.search(query), collectionTypes);
 	}
 
-	List<Group> getGlobalGroupsInCollections(String collection) {
-		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
-		LogicalSearchQuery query = new LogicalSearchQuery(allGroupsWhereGlobalGroupFlag(collectionTypes).isTrue());
-		return Group.wrap(searchServices.search(query), collectionTypes);
-	}
-
 	private OngoingLogicalSearchCondition allGroups(MetadataSchemaTypes types) {
 		MetadataSchema groupSchema = types.getSchemaType(Group.SCHEMA_TYPE).getDefaultSchema();
 		return from(groupSchema);
@@ -1400,36 +1322,11 @@ public class UserServices {
 		return from(groupSchema).where(isGlobalGroup);
 	}
 
-	private void removeFromBigVault(String group, List<String> collections) {
-		for (String collection : collections) {
-			MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
-			LogicalSearchCondition condition = from(types.getSchemaType(Group.SCHEMA_TYPE))
-					.where(groupCodeMetadata(collection)).isEqualTo(group);
-			Record recordGroup = searchServices.searchSingleResult(condition);
-			if (recordGroup != null) {
-				recordServices.logicallyDelete(recordGroup, User.GOD);
-			}
-		}
-	}
-
-	public boolean isSystemAdmin(User user) {
-		UserCredential userCredential = getUserCredential(user.getUsername());
-		return userCredential != null && userCredential.isSystemAdmin();
-	}
-
 	private void permissionValidateCredentialOnGroup(UserCredential userCredential) {
 		if (!has(userCredential).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_GROUPS_ACTIVATION)) {
 			throw new UserServicesRuntimeException_UserPermissionDeniedToDelete(userCredential.getUsername());
 		}
 	}
-
-
-	private void permissionValidateCredentialOnGroup(SystemWideUserInfos userCredential) {
-		if (!has(userCredential).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_GROUPS_ACTIVATION)) {
-			throw new UserServicesRuntimeException_UserPermissionDeniedToDelete(userCredential.getUsername());
-		}
-	}
-
 
 	public String getToken(String serviceKey, String username, String password) {
 		ReadableDuration tokenDuration = modelLayerConfiguration.getTokenDuration();
@@ -1479,12 +1376,6 @@ public class UserServices {
 		execute(username, (req) -> req.addAccessToken(token, expiry));
 
 		return token;
-	}
-
-	private void validateAdminIsActive(UserCredential userCredential) {
-		if (userCredential.getUsername().equals(ADMIN) && userCredential.getStatus() != UserCredentialStatus.ACTIVE) {
-			throw new UserServicesRuntimeException_CannotRemoveAdmin();
-		}
 	}
 
 	public String getTokenUser(String serviceKey, String token) {
@@ -1542,7 +1433,7 @@ public class UserServices {
 		return record == null ? null : getUserInfos(schemas.wrapUserCredential(record).getUsername());
 	}
 
-	List<Group> getChildrenOfGroupInCollection(String groupParentCode, String collection) {
+	private List<Group> getChildrenOfGroupInCollection(String groupParentCode, String collection) {
 		List<Group> groups = new ArrayList<>();
 		String parentId = getGroupIdInCollection(groupParentCode, collection);
 		if (parentId != null) {
@@ -1557,7 +1448,7 @@ public class UserServices {
 		return groups;
 	}
 
-	List<Group> getInactiveChildrenOfGroupInCollection(String groupParentCode, String collection) {
+	private List<Group> getInactiveChildrenOfGroupInCollection(String groupParentCode, String collection) {
 		List<Group> groups = new ArrayList<>();
 		String parentId = getGroupIdInCollection(groupParentCode, collection);
 		if (parentId != null) {
@@ -1590,92 +1481,6 @@ public class UserServices {
 		}
 	}
 
-	void physicallyRemoveGroup(Group group, String collection) {
-		LOGGER.info("physicallyRemoveGroup : " + group.getCode());
-
-		List<Record> userInGroup = authorizationsServices.getUserRecordsInGroup(group.getWrappedRecord());
-		if (userInGroup.size() != 0 ||
-			searchServices.hasResults(fromAllSchemasIn(collection).where(ALL_REFERENCES).isEqualTo(group.getId()))) {
-			LOGGER.warn("Exception on physicallyRemoveGroup : " + group.getCode());
-			throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(group.getCode());
-		}
-
-		recordServices.logicallyDelete(group.getWrappedRecord(), User.GOD);
-		recordServices.physicallyDelete(group.getWrappedRecord(), User.GOD);
-	}
-
-	public List<SystemWideUserInfos> safePhysicalDeleteAllUnusedUserCredentials() {
-		//TODO Refact Francis : Decide what to do with this!
-		List<SystemWideUserInfos> nonDeletedUsers = new ArrayList<>();
-		Predicate<SystemWideUserInfos> filter = new Predicate<SystemWideUserInfos>() {
-			@Override
-			public boolean apply(SystemWideUserInfos input) {
-				return input.hasStatusInAllCollection(DISABLED);
-			}
-		};
-		List<SystemWideUserInfos> userCredentials = this.getAllUserCredentials();
-		LOGGER.info("safePhysicalDeleteAllUnusedUsers getAllUserCredentials  : " + userCredentials.size());
-		Collection<SystemWideUserInfos> usersToDelete = Collections2.filter(userCredentials, filter);
-		LOGGER.info("safePhysicalDeleteAllUnusedUsers usersToDelete  : " + usersToDelete.size());
-		for (SystemWideUserInfos credential : usersToDelete) {
-			try {
-				safePhysicalDeleteUserCredential(credential.getUsername());
-			} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
-				nonDeletedUsers.add(credential);
-			}
-		}
-		return nonDeletedUsers;
-	}
-
-	void safePhysicalDeleteUserCredential(String username)
-			throws UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically {
-		LOGGER.info("safePhysicalDeleteUser : " + username);
-		UserCredential userCredential = getUser(username);
-		for (String collection : userCredential.getCollections()) {
-			User user = this.getUserInCollection(userCredential.getUsername(), collection);
-			if (user != null) {
-				if (searchServices.hasResults(
-						fromAllSchemasIn(collection).where(ALL_REFERENCES)
-								.isEqualTo(user.getId()))) {
-					LOGGER.warn("Exception on safePhysicalDeleteUser : " + username);
-					throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(username);
-				}
-			}
-		}
-		recordServices.logicallyDelete((userCredential).getWrappedRecord(), User.GOD);
-		recordServices.physicallyDelete((userCredential).getWrappedRecord(), User.GOD);
-	}
-
-	public List<User> safePhysicalDeleteAllUnusedUsers(String collection) {
-
-		List<User> nonDeletedUsers = new ArrayList<>();
-
-
-
-		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
-		LogicalSearchQuery query = new LogicalSearchQuery(
-				from(collectionTypes.getSchemaType(User.SCHEMA_TYPE).getDefaultSchema()).returnAll());
-		List<User> deletedUsers = new ArrayList<>();
-		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
-		for (Record record : searchServices.search(query)) {
-			deletedUsers.add(schemas.wrapUser(record));
-		}
-
-
-		for (User user : deletedUsers) {
-			if (!ADMIN.equals(user.getUsername())) {
-				LOGGER.info("safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
-				try {
-					physicallyRemoveUser(user, collection);
-				} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
-					LOGGER.warn("Exception on safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
-					nonDeletedUsers.add(user);
-				}
-			}
-		}
-
-		return nonDeletedUsers;
-	}
 
 	private void deleteUser(com.constellio.model.services.users.UserAddUpdateRequest request,
 							UserAddUpdateResponse response) {
@@ -1720,32 +1525,6 @@ public class UserServices {
 		for (Group child : getChildrenOfGroupInCollection(group, collection)) {
 			removeChildren(child.getCode(), collection, response);
 			removeGroupFrom(child.getCode(), collection, response);
-		}
-	}
-
-	void physicallyRemoveUser(User user, String collection) {
-		LOGGER.info("physicallyRemoveUser : " + user.getUsername());
-
-		if (searchServices.hasResults(fromAllSchemasIn(collection).where(ALL_REFERENCES).isEqualTo(user.getId()))) {
-			LOGGER.warn("Exception on physicallyRemoveUser : " + user.getUsername());
-			throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(user.getUsername());
-		}
-
-		recordServices.logicallyDelete(user.getWrappedRecord(), User.GOD);
-		recordServices.physicallyDelete(user.getWrappedRecord(), User.GOD);
-	}
-
-	void restoreDeletedGroup(String groupCode, String collection) {
-
-		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
-		LogicalSearchCondition condition = fromGroupsIn(collection).where(groupCodeMetadata(collection)).is(groupCode);
-		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.filteredByStatus(StatusFilter.DELETED);
-
-		List<Group> groups = Group.wrap(searchServices.search(query), collectionTypes);
-		for (Group group : groups) {
-			LOGGER.info("restoreDeletedGroup : " + group.getCode());
-			recordServices.restore(group.getWrappedRecord(), User.GOD);
 		}
 	}
 

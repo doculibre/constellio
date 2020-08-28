@@ -4,6 +4,7 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.records.MultiCollectionTransaction;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -41,6 +42,8 @@ public interface RecordServices {
 
 	void execute(Transaction transaction)
 			throws RecordServicesException;
+
+	void execute(MultiCollectionTransaction transaction) throws RecordServicesException;
 
 	default void execute(Consumer<Transaction> txConsumer) throws RecordServicesException {
 		Transaction tx = new Transaction();

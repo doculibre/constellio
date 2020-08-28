@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.records.MultiCollectionTransaction;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -195,6 +196,11 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	@Override
 	public void execute(Transaction transaction)
 			throws RecordServicesException {
+		recordServices.execute(transaction);
+	}
+
+	@Override
+	public void execute(MultiCollectionTransaction transaction) throws RecordServicesException {
 		recordServices.execute(transaction);
 	}
 

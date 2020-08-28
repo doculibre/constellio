@@ -51,7 +51,7 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 	protected Button saveButton;
 	private BaseButton forceUsersSynchronization;
 
-	protected Button deleteUnusedUserButton, activateLDAPButton;
+	protected Button activateLDAPButton;
 
 
 	protected LDAPConfigBaseView() {
@@ -206,13 +206,6 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 	protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
 		List<Button> actionMenuButtons = new ArrayList<Button>();
 
-		deleteUnusedUserButton = new AddButton($("ldap.authentication.deleteUnusedUser")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.deleteUsedUserButtonClick();
-			}
-		};
-
 		activateLDAPButton = new AddButton(!presenter.isLDAPActive() ? $("ldap.authentication.active") : $("ldap.authentication.inactive")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -238,7 +231,6 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 
 			}
 		};
-		//actionMenuButtons.add(deleteUnusedUserButton);
 		actionMenuButtons.add(activateLDAPButton);
 		return actionMenuButtons;
 	}
