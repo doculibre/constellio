@@ -47,7 +47,7 @@ public class GroupRecordMenuItemActionBehaviors {
 	}
 
 	public void manageRoles(Group group, MenuItemActionBehaviorParams params) {
-		params.getView().navigate().to().editCollectionUserRoles(group.getId());
+		params.getView().navigate().to().editCollectionGroupRoles(group.getId());
 	}
 
 	public void removeFromCollection(List<Group> groupRecords, MenuItemActionBehaviorParams params) {
