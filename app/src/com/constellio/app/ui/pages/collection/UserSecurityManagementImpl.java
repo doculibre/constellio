@@ -159,7 +159,8 @@ public class UserSecurityManagementImpl extends BaseViewImpl implements Security
 			searchButton = new SearchButton() {
 				@Override
 				protected void buttonClick(ClickEvent event) {
-					String value = searchField.getValue();
+					String searchValue = searchField.getValue();
+					final String value = searchValue.endsWith("*") ? searchValue : searchValue + "*";
 					presenter.changeUserDataProvider(value);
 
 				}
@@ -170,7 +171,8 @@ public class UserSecurityManagementImpl extends BaseViewImpl implements Security
 			OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
 				@Override
 				public void onEnterKeyPressed() {
-					String value = searchField.getValue();
+					String searchValue = searchField.getValue();
+					final String value = searchValue.endsWith("*") ? searchValue : searchValue + "*";
 					presenter.changeUserDataProvider(value);
 				}
 			};
