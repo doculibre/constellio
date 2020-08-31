@@ -345,12 +345,20 @@ public class CoreViews {
 	}
 
 	public void addEditUserCredential(String userName) {
-		Map<String, String> params = new HashMap<>();
+		addEditUserCredential(null, userName);
+	}
+
+	public void addEditUserCredential(String params, String userName) {
+		String viewPath = params == null ? NavigatorConfigurationService.USER_ADD_EDIT
+										 : NavigatorConfigurationService.USER_ADD_EDIT + "/" + params;
+
+		Map<String, String> viewParams = new HashMap<>();
 		if (userName != null) {
-			params.put("username", userName);
+			viewParams.put("username", userName);
 		}
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.USER_ADD_EDIT, params);
-		navigator.navigateTo(viewPath);
+
+		String path = ParamUtils.addParams(viewPath, viewParams);
+		navigator.navigateTo(path);
 	}
 
 	public void url(String url) {

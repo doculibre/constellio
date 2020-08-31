@@ -57,6 +57,13 @@ public class CollectionSecurityManagementImpl extends BaseViewImpl implements Co
 	}
 
 	@Override
+	protected void initBeforeCreateComponents(ViewChangeEvent event) {
+		if (event != null) {
+			presenter.forParams(event.getParameters());
+		}
+	}
+
+	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		mainLayout = new VerticalLayout();
 		mainLayout.addStyleName("display-folder-view");
@@ -183,6 +190,7 @@ public class CollectionSecurityManagementImpl extends BaseViewImpl implements Co
 		};
 		addUserButton.setIcon(FontAwesome.USER_PLUS);
 		addUserButton.setCaptionVisibleOnMobile(false);
+		addUserButton.setEnabled(presenter.canAddUser());
 		return addUserButton;
 	}
 
@@ -197,6 +205,7 @@ public class CollectionSecurityManagementImpl extends BaseViewImpl implements Co
 		};
 		addGroupButton.setIcon(FontAwesome.GROUP);
 		addGroupButton.setCaptionVisibleOnMobile(false);
+		addGroupButton.setEnabled(presenter.canAddGroup());
 		return addGroupButton;
 	}
 

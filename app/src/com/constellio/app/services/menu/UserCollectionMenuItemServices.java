@@ -23,10 +23,12 @@ import static com.constellio.app.services.menu.UserCollectionMenuItemServices.Us
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_CONSULT;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_CREDENTIAL_GENERATE_TOKEN;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_DELETE;
+import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_DESYNCHRONIZE;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_EDIT;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_MANAGE_ROLES;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_MANAGE_SECURITY;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_SYNCHRONIZE;
+import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_TRANSFER_PERMISSION;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class UserCollectionMenuItemServices {
@@ -94,6 +96,13 @@ public class UserCollectionMenuItemServices {
 
 					menuItemActions.add(menuItemAction);
 				}
+
+				if (!filteredActionTypes.contains(USER_TRANSFER_PERMISSION.name())) {
+					menuItemActions.add(buildMenuItemAction(USER_TRANSFER_PERMISSION.name(),
+							isMenuItemActionPossible(USER_TRANSFER_PERMISSION.name(), userRecords.get(0), user, params),
+							$("TransferPermissionsButton.title"), FontAwesome.EXCHANGE, -1, 250,
+							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).transferPermission(userRecords.get(0), params)));
+				}
 			}
 
 			if (!filteredActionTypes.contains(USER_ADD_TO_GROUP.name())) {
@@ -135,13 +144,12 @@ public class UserCollectionMenuItemServices {
 						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).synchronize(userRecords, params, true)));
 			}
 
-			if (!filteredActionTypes.contains(USER_CHANGE_STATUS.name())) {
-				menuItemActions.add(buildMenuItemAction(USER_CHANGE_STATUS.name(),
-						isMenuItemActionPossible(USER_CHANGE_STATUS.name(), userRecords.get(0), user, params),
+			if (!filteredActionTypes.contains(USER_DESYNCHRONIZE.name())) {
+				menuItemActions.add(buildMenuItemAction(USER_DESYNCHRONIZE.name(),
+						isMenuItemActionPossible(USER_DESYNCHRONIZE.name(), userRecords.get(0), user, params),
 						$("CollectionSecurityManagement.desynchronize"), FontAwesome.EJECT, -1, 400,
 						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).synchronize(userRecords, params, false)));
 			}
-
 		}
 
 		return menuItemActions;
@@ -166,14 +174,17 @@ public class UserCollectionMenuItemServices {
 			case USER_CHANGE_STATUS:
 				return userRecordActionsServices.isChangeStatusActionPossible(record, user);
 			case USER_SYNCHRONIZE:
+				return userRecordActionsServices.isSynchroActionPossible(record, user);
 			case USER_DESYNCHRONIZE:
-				return userRecordActionsServices.isChangeSynchroActionPossible(record, user);
+				return userRecordActionsServices.isDesynchroActionPossible(record, user);
 			case USER_MANAGE_SECURITY:
 				return userRecordActionsServices.isManageSecurityActionPossible(record, user);
 			case USER_MANAGE_ROLES:
 				return userRecordActionsServices.isManageRoleActionPossible(record, user);
 			case USER_CREDENTIAL_GENERATE_TOKEN:
 				return userRecordActionsServices.isGenerateTokenActionPossibe(record, user);
+			case USER_TRANSFER_PERMISSION:
+				return userRecordActionsServices.isTransferPermissionActionPossible(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
@@ -204,6 +215,7 @@ public class UserCollectionMenuItemServices {
 		USER_MANAGE_ROLES,
 		USER_SYNCHRONIZE,
 		USER_DESYNCHRONIZE,
-		USER_CREDENTIAL_GENERATE_TOKEN
+		USER_CREDENTIAL_GENERATE_TOKEN,
+		USER_TRANSFER_PERMISSION
 	}
 }

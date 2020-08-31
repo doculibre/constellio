@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.globalGroup;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
@@ -19,9 +20,11 @@ import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
 import com.constellio.app.ui.framework.data.UserCredentialVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -30,6 +33,8 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
@@ -37,6 +42,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_CONSULT;
+import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_EDIT;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
@@ -54,7 +61,9 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 
 	private VerticalLayout viewLayout;
 
-	private Label codeCaptionLabel, codeDisplayComponent, nameCaptionLabel, nameDisplayComponent;
+	private Label codeCaptionLabel, codeDisplayComponent, nameCaptionLabel, nameDisplayComponent, parentCaptionLabel;
+
+	private Button parentDisplayComponent;
 
 	private final int batchSize = 100;
 
@@ -100,19 +109,36 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		viewLayout.setSizeFull();
 		viewLayout.setSpacing(true);
 
+		List<BaseDisplay.CaptionAndComponent> captionsAndComponents = new ArrayList<>();
+
 		codeCaptionLabel = new Label($("GlobalGroup.Code"));
 		codeCaptionLabel.setId("code");
 		codeCaptionLabel.addStyleName("code");
 		codeDisplayComponent = new Label(globalGroupVO.getCode());
+		captionsAndComponents.add(new CaptionAndComponent(codeCaptionLabel, codeDisplayComponent));
 
 		nameCaptionLabel = new Label($("GlobalGroup.Name"));
 		nameCaptionLabel.setId("name");
 		nameCaptionLabel.addStyleName("name");
 		nameDisplayComponent = new Label(globalGroupVO.getName());
-
-		List<BaseDisplay.CaptionAndComponent> captionsAndComponents = new ArrayList<>();
-		captionsAndComponents.add(new CaptionAndComponent(codeCaptionLabel, codeDisplayComponent));
 		captionsAndComponents.add(new CaptionAndComponent(nameCaptionLabel, nameDisplayComponent));
+
+		if (StringUtils.isNotBlank(globalGroupVO.getParent())) {
+			parentCaptionLabel = new Label($("GlobalGroup.Parent"));
+			parentCaptionLabel.setId("parent");
+			parentCaptionLabel.addStyleName("parent");
+
+			Group parentGroup = presenter.getGroup(globalGroupVO.getParent());
+			parentDisplayComponent = new BaseButton(parentGroup.getTitle()) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					navigate().to().displayGlobalGroup(parentGroup.getCode());
+				}
+			};
+			parentDisplayComponent.addStyleName(ValoTheme.BUTTON_LINK);
+			captionsAndComponents.add(new CaptionAndComponent(parentCaptionLabel, parentDisplayComponent));
+		}
+
 		globalGroupDisplay = new BaseDisplay(captionsAndComponents);
 
 		filterAndSearchButtonLayoutSubGroups = new HorizontalLayout();
@@ -354,18 +380,29 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		return new RecordVOActionButtonFactory(presenter.getPageGroup(), this, Arrays.asList()).build();
+		return new RecordVOActionButtonFactory(presenter.getPageGroup(), this,
+				Arrays.asList(GROUP_CONSULT.name(), GROUP_EDIT.name())).build();
 	}
 
 	@Override
 	protected List<Button> getQuickActionMenuButtons() {
+		BaseButton addSubgroupButton = new AddButton($("DisplayGlobalGroupView.addSubGroup")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.addSubGroupClicked(globalGroupVO);
+			}
+		};
+		addSubgroupButton.setIcon(FontAwesome.GROUP);
+		addSubgroupButton.setCaptionVisibleOnMobile(false);
+
 		Button editGroupButton = new EditButton($("edit")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.editGroupButtonClicked();
 			}
 		};
-		return asList(editGroupButton);
+
+		return asList(addSubgroupButton, editGroupButton);
 	}
 
 	@Override

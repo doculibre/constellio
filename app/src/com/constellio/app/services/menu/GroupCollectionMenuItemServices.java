@@ -8,7 +8,6 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
 
@@ -16,12 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_ACTIVATE;
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_ADD_TO_COLLECTION;
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_ADD_USER;
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_CONSULT;
-import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_DEACTIVATE;
-import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_DELETE;
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_EDIT;
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_MANAGE_ROLES;
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_MANAGE_SECURITY;
@@ -34,7 +30,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class GroupCollectionMenuItemServices {
 	private AppLayerFactory appLayerFactory;
 	private GroupRecordActionsServices groupRecordActionsServices;
-	private UserServices userServices;
 	private String collection;
 
 	public GroupCollectionMenuItemServices(String collection, AppLayerFactory appLayerFactory) {
@@ -64,18 +59,10 @@ public class GroupCollectionMenuItemServices {
 				if (!filteredActionTypes.contains(GROUP_EDIT.name())) {
 					MenuItemAction menuItemAction = buildMenuItemAction(GROUP_EDIT.name(),
 							isMenuItemActionPossible(GROUP_EDIT.name(), groupRecords.get(0), user, params),
-							$("CollectionSecurityManagement.edit"), FontAwesome.EDIT, -1, 150,
+							$("CollectionSecurityManagement.edit"), FontAwesome.EDIT, -1, 200,
 							(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(groupRecords.get(0), params));
 					menuItemActions.add(menuItemAction);
 				}
-			}
-
-			if (!filteredActionTypes.contains(GROUP_ADD_USER.name())) {
-				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_ADD_USER.name(),
-						isMenuItemActionPossible(GROUP_ADD_USER.name(), groupRecords.get(0), user, params),
-						$("CollectionSecurityManagement.addUserToGroups"), FontAwesome.USER_PLUS, -1, 200,
-						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).addUserToGroup(groupRecords, params));
-				menuItemActions.add(menuItemAction);
 			}
 
 			if (!filteredActionTypes.contains(GROUP_ADD_TO_COLLECTION.name())) {
@@ -86,51 +73,10 @@ public class GroupCollectionMenuItemServices {
 				menuItemActions.add(menuItemAction);
 			}
 
-			if (!filteredActionTypes.contains(GROUP_DELETE.name())) {
-				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_DELETE.name(),
-						isMenuItemActionPossible(GROUP_DELETE.name(), groupRecords.get(0), user, params),
-						$("CollectionSecurityManagement.delete"), FontAwesome.TRASH_O, -1, 325,
-						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).delete(groupRecords, params));
-
-				menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
-				menuItemActions.add(menuItemAction);
-			}
-
-			if (!filteredActionTypes.contains(GROUP_ACTIVATE.name())) {
-				menuItemActions.add(buildMenuItemAction(GROUP_ACTIVATE.name(),
-						isMenuItemActionPossible(GROUP_ACTIVATE.name(), groupRecords.get(0), user, params),
-						$("CollectionSecurityManagement.activate"), FontAwesome.PLAY, -1, 350,
-						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).activate(groupRecords, params, true)));
-			}
-
-			if (!filteredActionTypes.contains(GROUP_DEACTIVATE.name())) {
-				menuItemActions.add(buildMenuItemAction(GROUP_DEACTIVATE.name(),
-						isMenuItemActionPossible(GROUP_DEACTIVATE.name(), groupRecords.get(0), user, params),
-						$("CollectionSecurityManagement.deactivate"), FontAwesome.STOP, -1, 350,
-						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).activate(groupRecords, params, false)));
-			}
-
-			if (!filteredActionTypes.contains(GROUP_MANAGE_SECURITY.name())) {
-				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_MANAGE_SECURITY.name(),
-						isMenuItemActionPossible(GROUP_MANAGE_SECURITY.name(), groupRecords.get(0), user, params),
-						$("CollectionSecurityManagement.manageSecurity"), FontAwesome.LOCK, -1, 400,
-						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).manageSecurity(groupRecords.get(0), params));
-				menuItemActions.add(menuItemAction);
-			}
-
-			if (!filteredActionTypes.contains(GROUP_MANAGE_ROLES.name())) {
-				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_MANAGE_ROLES.name(),
-						isMenuItemActionPossible(GROUP_MANAGE_ROLES.name(), groupRecords.get(0), user, params),
-						$("CollectionSecurityManagement.manageRoles"), FontAwesome.USER_SECRET, -1, 500,
-						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).manageRoles(groupRecords.get(0), params));
-
-				menuItemActions.add(menuItemAction);
-			}
-
 			if (!filteredActionTypes.contains(GROUP_REMOVE_FROM_COLLECTION.name())) {
 				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_REMOVE_FROM_COLLECTION.name(),
 						isMenuItemActionPossible(GROUP_REMOVE_FROM_COLLECTION.name(), groupRecords.get(0), user, params),
-						$("CollectionSecurityManagement.removeFromCollection"), FontAwesome.MINUS_CIRCLE, -1, 500,
+						$("CollectionSecurityManagement.removeFromCollection"), FontAwesome.MINUS_CIRCLE, -1, 400,
 						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).removeFromCollection(groupRecords, params));
 
 				menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
@@ -138,13 +84,38 @@ public class GroupCollectionMenuItemServices {
 				menuItemActions.add(menuItemAction);
 			}
 
+			if (!filteredActionTypes.contains(GROUP_ADD_USER.name())) {
+				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_ADD_USER.name(),
+						isMenuItemActionPossible(GROUP_ADD_USER.name(), groupRecords.get(0), user, params),
+						$("CollectionSecurityManagement.addUserToGroups"), FontAwesome.USER_PLUS, -1, 500,
+						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).addUserToGroup(groupRecords, params));
+				menuItemActions.add(menuItemAction);
+			}
+
 			if (!filteredActionTypes.contains(GROUP_REMOVE_USER.name())) {
 				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_REMOVE_USER.name(),
 						isMenuItemActionPossible(GROUP_REMOVE_USER.name(), groupRecords.get(0), user, params),
-						$("CollectionSecurityManagement.removeUser"), FontAwesome.LONG_ARROW_DOWN, -1, 500,
+						$("CollectionSecurityManagement.removeUser"), FontAwesome.LONG_ARROW_DOWN, -1, 600,
 						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).removeUser(groupRecords, params));
 
 				menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
+
+				menuItemActions.add(menuItemAction);
+			}
+
+			if (!filteredActionTypes.contains(GROUP_MANAGE_SECURITY.name())) {
+				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_MANAGE_SECURITY.name(),
+						isMenuItemActionPossible(GROUP_MANAGE_SECURITY.name(), groupRecords.get(0), user, params),
+						$("CollectionSecurityManagement.manageSecurity"), FontAwesome.LOCK, -1, 700,
+						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).manageSecurity(groupRecords.get(0), params));
+				menuItemActions.add(menuItemAction);
+			}
+
+			if (!filteredActionTypes.contains(GROUP_MANAGE_ROLES.name())) {
+				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_MANAGE_ROLES.name(),
+						isMenuItemActionPossible(GROUP_MANAGE_ROLES.name(), groupRecords.get(0), user, params),
+						$("CollectionSecurityManagement.manageRoles"), FontAwesome.USER_SECRET, -1, 800,
+						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).manageRoles(groupRecords.get(0), params));
 
 				menuItemActions.add(menuItemAction);
 			}
@@ -167,12 +138,6 @@ public class GroupCollectionMenuItemServices {
 				return groupRecordActionsServices.isAddAUserActionPossible(record, user);
 			case GROUP_ADD_TO_COLLECTION:
 				return groupRecordActionsServices.isAddToCollectionActionPossible(record, user);
-			case GROUP_DELETE:
-				return groupRecordActionsServices.isDeleteActionPossible(record, user);
-			case GROUP_ACTIVATE:
-				return groupRecordActionsServices.isActivateActionPossible(record, user);
-			case GROUP_DEACTIVATE:
-				return groupRecordActionsServices.isDeactivateActionPossible(record, user);
 			case GROUP_MANAGE_SECURITY:
 				return groupRecordActionsServices.isManageSecurityActionPossible(record, user);
 			case GROUP_MANAGE_ROLES:
@@ -205,9 +170,6 @@ public class GroupCollectionMenuItemServices {
 		GROUP_EDIT,
 		GROUP_ADD_USER,
 		GROUP_ADD_TO_COLLECTION,
-		GROUP_DELETE,
-		GROUP_ACTIVATE,
-		GROUP_DEACTIVATE,
 		GROUP_MANAGE_SECURITY,
 		GROUP_MANAGE_ROLES,
 		GROUP_REMOVE_USER,

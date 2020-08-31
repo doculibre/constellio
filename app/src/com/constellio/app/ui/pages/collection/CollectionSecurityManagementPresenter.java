@@ -36,6 +36,14 @@ public class CollectionSecurityManagementPresenter extends BasePresenter<Collect
 		return user.has(CorePermissions.MANAGE_SECURITY).globally();
 	}
 
+	protected boolean canAddUser() {
+		return user.has(CorePermissions.MANAGE_SYSTEM_USERS).globally();
+	}
+
+	protected boolean canAddGroup() {
+		return user.has(CorePermissions.MANAGE_SYSTEM_GROUPS).globally();
+	}
+
 	public void viewAssembled() {
 		selectInitialTabForUser();
 	}
@@ -81,7 +89,6 @@ public class CollectionSecurityManagementPresenter extends BasePresenter<Collect
 
 	public void addUserButtonClicked() {
 		String params = ParamUtils.addParams(NavigatorConfigurationService.COLLECTION_USER_LIST, null);
-		view.navigate().to().addEditUserCredential(params);
-
+		view.navigate().to().addEditUserCredential(params, null);
 	}
 }

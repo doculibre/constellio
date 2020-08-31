@@ -1,28 +1,23 @@
 package com.constellio.app.services.menu.behavior;
 
-import com.constellio.app.modules.rm.ui.buttons.ChangeEnumStatusRecordWindowButton;
-import com.constellio.app.modules.rm.ui.buttons.CollectionsSelectWindowButton;
-import com.constellio.app.modules.rm.ui.buttons.DeleteUsersWindowButton;
-import com.constellio.app.modules.rm.ui.buttons.DesynchronizationWarningDialog;
-import com.constellio.app.modules.rm.ui.buttons.GroupWindowButton;
+import com.constellio.app.modules.rm.ui.buttons.AddUsersToCollectionsWindowButton;
+import com.constellio.app.modules.rm.ui.buttons.AddUsersToGroupsWindowButton;
+import com.constellio.app.modules.rm.ui.buttons.ChangeUsersStatusWindowButton;
+import com.constellio.app.modules.rm.ui.buttons.RemoveUsersFromCollectionsWindowButton;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.TransferPermissionsButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
-import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.model.entities.records.Record;
+import com.constellio.app.ui.pages.management.authorizations.TransferPermissionPresenter;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
@@ -36,12 +31,9 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.extern.slf4j.Slf4j;
-import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -49,12 +41,12 @@ import static com.constellio.app.ui.i18n.i18n.$;
 @Slf4j
 public class UserRecordMenuItemActionBehaviors {
 
+	private String collection;
 	private AppLayerFactory appLayerFactory;
+
 	private ModelLayerFactory modelLayerFactory;
 	private UserServices userServices;
 	private RecordServices recordServices;
-	private String collection;
-	private SchemasRecordsServices core;
 
 	public UserRecordMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
@@ -62,21 +54,7 @@ public class UserRecordMenuItemActionBehaviors {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.userServices = modelLayerFactory.newUserServices();
 		this.recordServices = modelLayerFactory.newRecordServices();
-		this.core = new SchemasRecordsServices(collection, modelLayerFactory);
 	}
-
-	private Map<String, String> clone(Map<String, String> map) {
-		if (map == null) {
-			return null;
-		}
-
-		Map<String, String> newMap = new HashMap<>();
-
-		newMap.putAll(map);
-
-		return newMap;
-	}
-
 
 	public void edit(User userRecord, MenuItemActionBehaviorParams params) {
 		params.getView().navigate().to().editUserCredential(userRecord.getUsername());
@@ -87,92 +65,23 @@ public class UserRecordMenuItemActionBehaviors {
 	}
 
 	public void addToGroup(List<User> userRecords, MenuItemActionBehaviorParams params) {
-		List<User> synchronizedUsers = ListSelectedSynchronizedUsers(userRecords);
-
-		List<User> recordsList = core.getUsers(userRecords.stream().map(record -> record.getId()).collect(Collectors.toList()));
-
-		GroupWindowButton groupWindowButton = new GroupWindowButton(recordsList, params) {
-			@Override
-			public void addToGroup() {
-				if (synchronizedUsers.isEmpty()) {
-					super.addToGroup();
-				} else {
-					new DesynchronizationWarningDialog(synchronizedUsers).showConfirm(ConstellioUI.getCurrent(), (ConfirmDialog.Listener) warningDialog -> {
-						if (warningDialog.isConfirmed()) {
-							super.addToGroup();
-						}
-					});
-				}
-
-			}
-		};
-		groupWindowButton.addToGroup();
+		AddUsersToGroupsWindowButton addButton = new AddUsersToGroupsWindowButton(userRecords, params);
+		addButton.click();
 	}
 
 	public void addToCollection(List<User> userRecords, MenuItemActionBehaviorParams params) {
-		List<User> synchronizedUsers = ListSelectedSynchronizedUsers(userRecords);
-		List<Record> records = userRecords.stream().map(user -> user.getWrappedRecord()).collect(Collectors.toList());
-		CollectionsSelectWindowButton collectionSelectWindowButton = new CollectionsSelectWindowButton($("CollectionSecurityManagement.addedUserToCollections"), records, params) {
-			@Override
-			protected void saveButtonClick(BaseView baseView) {
-				List<String> collectionCodes = getSelectedValues();
-
-				for (Record record : records) {
-					User currentUser = getCore().wrapUser(record);
-					UserAddUpdateRequest userAddUpdateRequest = userServices.addUpdate(currentUser.getUsername());
-					userAddUpdateRequest.addToCollections(collectionCodes);
-					userServices.execute(userAddUpdateRequest);
-				}
-
-				baseView.showMessage($("CollectionSecurityManagement.addedGroupToCollections"));
-			}
-
-			@Override
-			public void addToCollections() {
-				if (synchronizedUsers.isEmpty()) {
-					super.addToCollections();
-				} else {
-					new DesynchronizationWarningDialog(synchronizedUsers).showConfirm(ConstellioUI.getCurrent(), (ConfirmDialog.Listener) warningDialog -> {
-						if (warningDialog.isConfirmed()) {
-							super.addToCollections();
-						}
-					});
-				}
-			}
-		};
-		collectionSelectWindowButton.addToCollections();
+		AddUsersToCollectionsWindowButton addButton = new AddUsersToCollectionsWindowButton(userRecords, params);
+		addButton.click();
 	}
 
 	public void delete(List<User> userRecords, MenuItemActionBehaviorParams params) {
-		DeleteUsersWindowButton deleteUsersWindowButton = new DeleteUsersWindowButton(userRecords, params);
-		deleteUsersWindowButton.click();
+		RemoveUsersFromCollectionsWindowButton deleteButton = new RemoveUsersFromCollectionsWindowButton(userRecords, params);
+		deleteButton.click();
 	}
-
-	private List<User> ListSelectedSynchronizedUsers(List<User> userRecords) {
-		return userRecords.stream()
-				.filter(u -> userServices.getUserCredential(u.getUsername()).getSyncMode().equals(UserSyncMode.SYNCED))
-				.collect(Collectors.toList());
-	}
-
 
 	public void changeStatus(List<User> userRecords, MenuItemActionBehaviorParams params) {
-		UserCredentialStatus currentStatus = userRecords.size() == 1 ? userRecords.get(0).getStatus() : null;
-		ChangeEnumStatusRecordWindowButton statusButton = new ChangeEnumStatusRecordWindowButton($("CollectionSecurityManagement.changeStatus"),
-				$("CollectionSecurityManagement.changeStatus"), appLayerFactory, params, UserCredentialStatus.class, currentStatus, userRecords) {
-			@Override
-			public void changeStatus(Object value) {
-
-				try {
-					userRecords.stream().forEach(user -> user.setStatus(UserCredentialStatus.valueOf((String) value)));
-					recordServices.update(userRecords.stream().map(element -> element.getWrappedRecord()).collect(Collectors.toList()), params.getUser());
-				} catch (RecordServicesException e) {
-					log.error("User.cannotChangeStatus", e);
-					params.getView().showErrorMessage($("CollectionSecurityManagement.cannotChangeUserStatus"));
-				}
-			}
-
-		};
-		statusButton.click();
+		ChangeUsersStatusWindowButton updateButton = new ChangeUsersStatusWindowButton(userRecords, params);
+		updateButton.click();
 	}
 
 	public void manageSecurity(User user, MenuItemActionBehaviorParams params) {
@@ -210,6 +119,15 @@ public class UserRecordMenuItemActionBehaviors {
 				params.getView().showErrorMessage($("CollectionSecurityManagement.cannotChangeSynchronization"));
 			}
 		}
+	}
+
+	public void transferPermission(User user, MenuItemActionBehaviorParams params) {
+		TransferPermissionPresenter transferPermissionPresenter = new TransferPermissionPresenter(params.getView(), user.getId());
+		TransferPermissionsButton transferUserPermissions = new TransferPermissionsButton(
+				$("TransferPermissionsButton.title"),
+				$("TransferPermissionsButton.title"),
+				transferPermissionPresenter);
+		transferUserPermissions.click();
 	}
 
 	public void generateToken(MenuItemActionBehaviorParams params) {

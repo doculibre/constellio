@@ -78,13 +78,38 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 		if (!validateEntityInfos(entity, username)) {
 			return;
 		}
-		UserAddUpdateRequest userRequest = toUserRequest(entity);
+
 		try {
 			if (!isLDAPAuthentication() && !isEditMode() || entity.getPassword() != null && !entity.getPassword().isEmpty()) {
 				authenticationService.changePassword(entity.getUsername(), entity.getPassword());
 			}
 
-			userServices.execute(userRequest);
+
+			if (isEditMode()) {
+				userServices.execute(toUserRequest(entity));
+			} else {
+				final List<String> personalEmails = entity.getPersonalEmails() == null
+													? new ArrayList<>()
+													: Arrays.asList(entity.getPersonalEmails().split("\n"));
+
+				userServices.createUser(entity.getUsername(), (req) -> req
+						.setFirstName(entity.getFirstName())
+						.setLastName(entity.getLastName())
+						.setEmail(entity.getEmail())
+						.setPersonalEmails(personalEmails)
+						.setServiceKey(entity.getServiceKey())
+						.setSystemAdmin(entity.isSystemAdmin())
+						.setCollections(new ArrayList<>(entity.getCollections()))
+						.setStatusForAllCollections(entity.getStatus())
+						.setDomain(entity.getDomain())
+						.setMsExchDelegateListBL(Arrays.asList(""))
+						.setDn(null)
+						.setJobTitle(entity.getJobTitle())
+						.setAddress(entity.getAddress())
+						.setPhone(entity.getPhone())
+						.setFax(entity.getFax())
+				);
+			}
 
 			SystemWideUserInfos userInfos = userServices.getUserInfos(entity.getUsername());
 			if (!editMode) {
@@ -181,7 +206,6 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 				.setServiceKey(userCredentialVO.getServiceKey())
 				.setSystemAdmin(userCredentialVO.isSystemAdmin())
 				.setCollections(new ArrayList<>(userCredentialVO.getCollections()))
-				.setStatusForCollection(status, collection)
 				.setDomain(domain)
 				.setMsExchDelegateListBL(Arrays.asList(""))
 				.setDn(null)
@@ -189,6 +213,10 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 				.setAddress(userCredentialVO.getAddress())
 				.setPhone(userCredentialVO.getPhone())
 				.setFax(userCredentialVO.getFax());
+
+		for (String collection : userCredentialVO.getCollections()) {
+			request.setStatusForCollection(status, collection);
+		}
 
 		Set<String> currentTokens = userServices.getUser(userCredentialVO.getUsername()).getAccessTokens().keySet();
 		for (Map.Entry<String, LocalDateTime> entry : tokens.entrySet()) {

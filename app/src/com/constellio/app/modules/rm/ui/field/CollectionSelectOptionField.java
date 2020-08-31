@@ -6,36 +6,22 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.vaadin.ui.OptionGroup;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class CollectionSelectOptionField extends OptionGroup {
 	protected AppLayerFactory appLayerFactory;
 	protected List<Record> records;
-	protected boolean restrictCollectionToRecords;
 
 	public CollectionSelectOptionField(AppLayerFactory appLayerFactory, List<Record> records) {
-		this(appLayerFactory, records, $("CollectionSecurityManagement.selectCollections"), false);
-	}
-
-	public CollectionSelectOptionField(AppLayerFactory appLayerFactory, List<Record> records,
-									   boolean restrictCollectionToRecords) {
-		this(appLayerFactory, records, $("CollectionSecurityManagement.selectCollections"), restrictCollectionToRecords);
+		this(appLayerFactory, records, $("CollectionSecurityManagement.selectCollections"));
 	}
 
 	public CollectionSelectOptionField(AppLayerFactory appLayerFactory, List<Record> records, String title) {
-		this(appLayerFactory, records, title, false);
-	}
-
-	public CollectionSelectOptionField(AppLayerFactory appLayerFactory, List<Record> records, String title,
-									   boolean restrictCollectionToRecords) {
 		super(title);
 		this.appLayerFactory = appLayerFactory;
 		this.records = records;
-		this.restrictCollectionToRecords = restrictCollectionToRecords;
 		build();
 	}
 
@@ -58,23 +44,22 @@ public class CollectionSelectOptionField extends OptionGroup {
 				String collectionName = appLayerFactory.getCollectionsManager().getCollection(collection).getTitle();
 				this.addItem(collection);
 				this.setItemCaption(collection, collectionName);
-				boolean existsforAll = records.stream().allMatch(record -> record.getCollection().equals(collection));
-				if (existsforAll) {
-					this.select(collection);
+				if (isCommonCollection(collection)) {
+					processCommonCollection(collection);
 				}
 			}
 		}
 	}
 
 	protected List<String> getAvailableCollections() {
-		if (!restrictCollectionToRecords) {
-			return appLayerFactory.getCollectionsManager().getCollectionCodes();
-		}
+		return appLayerFactory.getCollectionsManager().getCollectionCodes();
+	}
 
-		Set<String> collections = new HashSet<>();
-		for (Record record : records) {
-			collections.add(record.getCollection());
-		}
-		return new ArrayList<>(collections);
+	protected boolean isCommonCollection(String collection) {
+		return records.stream().allMatch(record -> record.getCollection().equals(collection));
+	}
+
+	protected void processCommonCollection(String collection) {
+		this.select(collection);
 	}
 }

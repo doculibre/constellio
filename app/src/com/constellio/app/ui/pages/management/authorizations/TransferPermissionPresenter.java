@@ -2,8 +2,8 @@ package com.constellio.app.ui.pages.management.authorizations;
 
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
-import com.constellio.app.ui.pages.collection.CollectionUserView;
 import com.constellio.app.ui.pages.management.authorizations.TransferPermissionPresenterException.TransferPermissionPresenterException_CannotRemovePermission;
 import com.constellio.app.ui.pages.management.authorizations.TransferPermissionPresenterException.TransferPermissionPresenterException_CannotSelectUser;
 import com.constellio.app.ui.pages.management.authorizations.TransferPermissionPresenterException.TransferPermissionPresenterException_CannotUpdateUser;
@@ -25,7 +25,7 @@ public class TransferPermissionPresenter extends SingleSchemaBasePresenter {
 	private boolean removeUserAccess;
 	private String recordId;
 
-	public TransferPermissionPresenter(CollectionUserView view, String selectedUserRecord) {
+	public TransferPermissionPresenter(BaseView view, String selectedUserRecord) {
 		super(view, User.DEFAULT_SCHEMA);
 		recordId = selectedUserRecord;
 	}
