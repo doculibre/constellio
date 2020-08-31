@@ -133,7 +133,7 @@ public class CollectionSecurityManagementImpl extends BaseViewImpl implements Co
 
 	@Override
 	protected String getTitle() {
-		return $("ListCollectionUserView.viewTitle");
+		return $("AdminView.security");
 	}
 
 	@Override
