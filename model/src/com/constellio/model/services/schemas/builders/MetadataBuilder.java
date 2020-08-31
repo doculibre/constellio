@@ -1227,12 +1227,64 @@ public class MetadataBuilder {
 	public void moveToDefaultSchemas() {
 		schemaBuilder.deleteMetadataWithoutValidation(localCode);
 
-		//TODO Étienne, copier tous les champs
-		schemaBuilder.getDefaultSchema().create(localCode).setId(id).setType(type).setMultivalue(multivalue).setLabels(labels);
-		schemaBuilder.getDefaultSchema().get(localCode).setEnabled(false);
-		schemaBuilder.get(localCode).setEnabled(true);
+		MetadataBuilder defaultMetadataBuilder = schemaBuilder.getDefaultSchema().create(getLocalCode());
+
+		setBuilderPropertiesOfAnotherBuilder(this, defaultMetadataBuilder);
+		defaultMetadataBuilder.setEnabled(false);
+
+		setBuilderInheritablePropertiesOfAnotherBuilder(this, schemaBuilder.get(localCode));
+		schemaBuilder.get(localCode).setEnabled(enabled);
 	}
 
+	private static void setBuilderInheritablePropertiesOfAnotherBuilder(MetadataBuilder anotherBuilder,
+																		MetadataBuilder builder) {
+		builder.setLabels(anotherBuilder.getLabels());
+		builder.setEnabled(anotherBuilder.getEnabled());
+		builder.setDefaultRequirement(anotherBuilder.getDefaultRequirement());
+		builder.setRelationshipProvidingSecurity(anotherBuilder.isRelationshipProvidingSecurity());
+		builder.setDefaultValue(anotherBuilder.getDefaultValue());
+		builder.setInputMask(anotherBuilder.getInputMask());
+		builder.setAccessRestrictionBuilder(anotherBuilder.accessRestrictionBuilder);
+		builder.setAllowedReferenceBuilder(anotherBuilder.getAllowedReferencesBuilder());
+		builder.setDuplicable(anotherBuilder.isDuplicable());
+	}
+
+	private static void setBuilderPropertiesOfAnotherBuilder(MetadataBuilder anotherBuilder, MetadataBuilder builder) {
+		builder.setType(anotherBuilder.getType());
+		builder.setUndeletable(anotherBuilder.isUndeletable());
+		builder.setMultivalue(anotherBuilder.isMultivalue());
+		builder.setSearchable(anotherBuilder.isSearchable());
+		builder.setTransiency(anotherBuilder.getTransiency());
+		builder.setSortable(anotherBuilder.isSortable());
+		builder.setSchemaAutocomplete(anotherBuilder.isSchemaAutocomplete());
+		builder.setUnmodifiable(anotherBuilder.isUnmodifiable());
+		builder.setUniqueValue(anotherBuilder.isUniqueValue());
+		builder.setSystemReserved(anotherBuilder.isSystemReserved());
+		builder.setEncrypted(anotherBuilder.isEncrypted());
+		builder.setEssential(anotherBuilder.isEssential());
+		builder.setEssentialInSummary(anotherBuilder.isEssentialInSummary());
+		builder.setAvailableInSummary(anotherBuilder.isAvailableInSummary());
+		builder.setChildOfRelationship(anotherBuilder.isChildOfRelationship());
+		builder.setTaxonomyRelationship(anotherBuilder.isTaxonomyRelationship());
+		builder.setMarkedForDeletion(anotherBuilder.isMarkedForDeletion());
+		builder.setMultiLingual(anotherBuilder.isMultiLingual());
+		builder.setIncreasedDependencyLevel(anotherBuilder.isIncreasedDependencyLevel());
+		builder.setCustomAttributes(new HashSet<>(anotherBuilder.getCustomAttributes()));
+		builder.setCustomParameter(new HashMap<>(anotherBuilder.getCustomParameter()));
+		builder.setCacheIndex(anotherBuilder.isCacheIndex());
+		builder.setMaxLength(anotherBuilder.getMaxLength());
+		builder.setMeasurementUnit(anotherBuilder.getMeasurementUnit());
+		builder.setId(anotherBuilder.getId());
+
+		builder.originalMetadata = anotherBuilder.getOriginalMetadata();
+		builder.dataEntry = anotherBuilder.getDataEntry();
+		builder.recordMetadataValidators = anotherBuilder.recordMetadataValidators;
+		builder.structureFactoryClass = anotherBuilder.structureFactoryClass;
+		builder.enumClass = anotherBuilder.getEnumClass();
+		builder.populateConfigsBuilder = anotherBuilder.populateConfigsBuilder;
+
+		setBuilderInheritablePropertiesOfAnotherBuilder(anotherBuilder, builder);
+	}
 
 	private static class EncryptionServicesFactory implements Factory<EncryptionServices> {
 

@@ -25,6 +25,9 @@ import com.constellio.sdk.tests.MockedNavigation;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.assertj.core.api.ThrowableAssert;
+import org.assertj.core.internal.Failures;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -32,6 +35,7 @@ import org.mockito.Mock;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
@@ -132,7 +136,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(formMetadataVO.isAdvancedSearch()).isFalse();
 	}
 
-	//@Test
+	@Test()
 	public void whenAddedCustomMetadataDuplicatesAnotherCustomMetadataDuplicationHandlingHappens() {
 
 		doAnswer(invocation -> {
@@ -158,15 +162,11 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 					.setType(duplicatedMetadataValueType).setMultivalue(duplicatedMetadataIsMultivalue);
 		});
 
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(zeCollection);
-		MetadataSchema anotherCustomSchema = types.getSchema("zeSchemaType_" + anotherCustomSchemaCode);
-
-
-		try {
-			assertThat(anotherCustomSchema.getMetadata(usrDuplicatedMetadataCode)).isNotNull();
-		} catch (MetadataSchemasRuntimeException metadataNotFoundException) {
-			//Expected since the metadata has not been created
-		}
+		assertThatExceptionIsThrown(MetadataSchemasRuntimeException.class, () ->
+				schemasManager
+						.getSchemaTypes(zeCollection)
+						.getSchema("zeSchemaType_" + anotherCustomSchemaCode)
+						.getMetadata(usrDuplicatedMetadataCode));
 
 
 		FormMetadataVO formMetadataVO = new FormMetadataVO(view.getSessionContext());
@@ -174,13 +174,14 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		formMetadataVO.setValueType(duplicatedMetadataValueType);
 		formMetadataVO.setMultivalue(duplicatedMetadataIsMultivalue);
 
-		presenter.setSchemaCode(anotherCustomSchema.getCode());
+		presenter.setSchemaCode("zeSchemaType_" + anotherCustomSchemaCode);
 		presenter.preSaveButtonClicked(formMetadataVO, false);
 
-		types = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(zeCollection);
 
-		anotherCustomSchema = types.getSchema(anotherCustomSchema.getCode());
+		MetadataSchema anotherCustomSchema = types.getSchema("zeSchemaType_" + anotherCustomSchemaCode);
 		assertThat(anotherCustomSchema.getMetadata(usrDuplicatedMetadataCode)).isNotNull();
+		assertThat(types.getSchema(zeSchema.code()).getMetadata(usrDuplicatedMetadataCode)).isNotNull();
 	}
 
 	@Test
@@ -499,5 +500,17 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(metadataDisplayConfig).isNotNull();
 		assertThat(metadataDisplayConfig.getInputType()).isEqualTo(MetadataInputType.RADIO_BUTTONS);
 		assertThat(metadataDisplayConfig.getDisplayType()).isEqualTo(MetadataDisplayType.VERTICAL);
+	}
+
+	private static <TException extends Exception> ThrowableAssert assertThatExceptionIsThrown(
+			@NotNull Class<TException> expectedException, @NotNull final Callable action) {
+		try {
+			action.call();
+
+			throw Failures.instance().failure("The action has completed it's task when an exception was expected." + System.lineSeparator() +
+											  "Exception expected: " + expectedException.toString());
+		} catch (Exception e) {
+			return assertThat(e).isInstanceOf(expectedException);
+		}
 	}
 }

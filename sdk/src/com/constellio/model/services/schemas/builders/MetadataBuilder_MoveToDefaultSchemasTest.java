@@ -12,12 +12,21 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MetadataBuilder_MoveToDefaultSchemasTest extends MetadataBuilderTest {
 
 	private static final String CUSTOM_METADATA_CODE = "USRmetadata";
+	private static final MetadataValueType CUSTOM_METADATA_VALUE_TYPE = MetadataValueType.NUMBER;
+	private static final Object CUSTOM_METADATA_DEFAULT_VALUE = Arrays.asList(1, 2, 3);
+	private static final boolean CUSTOM_METADATA_IS_MULTIVALUE = true;
+	private static final Map<Language, String> CUSTOM_METADATA_LABELS = TestUtils.MapBuilder
+			.with(Language.French, "Libellé en français")
+			.andWith(Language.English, "Label in english")
+			.build();
 
 	private MetadataSchemaBuilder customSchemaBuilder;
 	private MetadataBuilder metadataBuilderInCustomSchema;
@@ -31,14 +40,10 @@ public class MetadataBuilder_MoveToDefaultSchemasTest extends MetadataBuilderTes
 
 		metadataBuilderInCustomSchema = customSchemaBuilder
 				.create(CUSTOM_METADATA_CODE)
-				.setType(MetadataValueType.NUMBER)
-				.setDefaultValue(Arrays.asList(1, 2, 3))
-				.setMultivalue(true)
-				.setLabels(
-						TestUtils.MapBuilder
-								.with(Language.French, "Libellé en français")
-								.andWith(Language.English, "Label in english")
-								.build());
+				.setType(CUSTOM_METADATA_VALUE_TYPE)
+				.setDefaultValue(CUSTOM_METADATA_DEFAULT_VALUE)
+				.setMultivalue(CUSTOM_METADATA_IS_MULTIVALUE)
+				.setLabels(CUSTOM_METADATA_LABELS);
 	}
 
 	@Test
@@ -61,19 +66,33 @@ public class MetadataBuilder_MoveToDefaultSchemasTest extends MetadataBuilderTes
 
 		MetadataBuilder metadataBuilderInDefaultSchema = schemaBuilder.getMetadata(CUSTOM_METADATA_CODE);
 
-		assertThat(metadataBuilderInDefaultSchema.getLocalCode()).isEqualTo(metadataBuilderInCustomSchema.getLocalCode());
-		assertThat(metadataBuilderInDefaultSchema.isMultivalue()).isEqualTo(metadataBuilderInCustomSchema.isMultivalue());
-		assertThat(metadataBuilderInDefaultSchema.getType()).isEqualTo(metadataBuilderInCustomSchema.getType());
-		assertThatMapsAreEqual(metadataBuilderInDefaultSchema.getLabels(), metadataBuilderInCustomSchema.getLabels());
+		assertThatValueAreEqualOnMultipleInstance(CUSTOM_METADATA_CODE, MetadataBuilder::getLocalCode, metadataBuilderInDefaultSchema, metadataBuilderInCustomSchema);
+		assertThatValueAreEqualOnMultipleInstance(CUSTOM_METADATA_IS_MULTIVALUE, MetadataBuilder::isMultivalue, metadataBuilderInDefaultSchema, metadataBuilderInCustomSchema);
+		assertThatValueAreEqualOnMultipleInstance(CUSTOM_METADATA_VALUE_TYPE, MetadataBuilder::getType, metadataBuilderInDefaultSchema, metadataBuilderInCustomSchema);
+		executeOnAllInstances(builder -> assertThatMapsAreEqual(builder.getLabels(), CUSTOM_METADATA_LABELS), metadataBuilderInDefaultSchema, metadataBuilderInCustomSchema);
+
+	}
+
+	private static <TInstance> void executeOnAllInstances(Consumer<TInstance> whatToDo, TInstance... instances) {
+		Arrays.stream(instances)
+				.forEach(whatToDo);
+	}
+
+	private static <TValue, TInstance> void assertThatValueAreEqualOnMultipleInstance(TValue value,
+																					  Function<TInstance, TValue> valueProvider,
+																					  TInstance... instances) {
+		Arrays.stream(instances)
+				.map(valueProvider)
+				.forEach(valueGotten -> assertThat(valueGotten).isEqualTo(value));
 	}
 
 	private static <K, V> void assertThatMapsAreEqual(Map<K, V> actual, Map<K, V> expected) {
-		assertThat(actual.entrySet().stream().count()).isEqualTo(expected.entrySet().stream().count());
+		assertThat(actual.entrySet().size()).isEqualTo(expected.entrySet().size());
 		actual.forEach((key, value) -> assertThat(value).isEqualTo(expected.get(key)));
 	}
 
 	private static <TException extends Exception> ThrowableAssert assertThatExceptionIsThrown(
-			@NotNull Class<TException> expectedException, @NotNull final Callable action) {
+			@NotNull Class<TException> expectedException, @NotNull final Callable<?> action) {
 		try {
 			action.call();
 

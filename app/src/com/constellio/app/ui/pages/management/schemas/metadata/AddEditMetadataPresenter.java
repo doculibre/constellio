@@ -72,6 +72,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -364,14 +365,13 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		final MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
 
 		if (isCreatingANewMetadata(editMode)) {
-			//			if(isTheSameAsAnotherMetadata(formMetadataVO)){
-			//				handleDuplicatedMetadataCreation(schemasManager, types, formMetadataVO);
-			//			}
-			//			else{
-			//				createMetadataFromForm(schemasManager, types, formMetadataVO);
-			//			}
+			List<Metadata> duplicatedMatadatas = new ArrayList<>();
 
-			createMetadataFromForm(schemasManager, types, formMetadataVO);
+			if (isTheSameAsAnotherMetadata(formMetadataVO, duplicatedMatadatas)) {
+				handleDuplicatedMetadataCreation(schemasManager, types, formMetadataVO, duplicatedMatadatas.get(0));
+			} else {
+				createMetadataFromForm(schemasManager, types, formMetadataVO);
+			}
 		} else {
 			editMetadataFromForm(schemasManager, types, formMetadataVO);
 		}
@@ -385,6 +385,93 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			metadataAccessRestrictionBuilder = MetadataAccessRestrictionBuilder.modify(metadataAccessRestriction);
 			builder.setAccessRestrictionBuilder(metadataAccessRestrictionBuilder);
 		}
+	}
+
+	private void saveButtonClickedWithDuplicatedMetadata(FormMetadataVO formMetadataVO, boolean editMode,
+														 String schemaCode,
+														 MetadataSchemasManager schemasManager,
+														 MetadataSchemaTypesBuilder types, String code,
+														 boolean reindexRequired, boolean cacheRebuildRequired,
+														 MetadataBuilder builder) {
+		builder.setDefaultValue(formMetadataVO.getDefaultValue());
+		builder.setInputMask(formMetadataVO.getInputMask());
+
+		if (formMetadataVO.getMeasurementUnit() != null) {
+			builder.setMeasurementUnit(formMetadataVO.getMeasurementUnit());
+		}
+		builder.setEnabled(formMetadataVO.isEnabled());
+
+		for (Entry<String, String> entry : formMetadataVO.getLabels().entrySet()) {
+			builder.addLabel(Language.withCode(entry.getKey()), entry.getValue());
+		}
+		builder.setDefaultRequirement(formMetadataVO.isRequired());
+		builder.setDuplicable(formMetadataVO.isDuplicable());
+
+		MetadataBuilder metadataBuilder = null;
+
+		if (schemaCode.endsWith("_default")) {
+			metadataBuilder = builder;
+		} else {
+			try {
+				metadataBuilder = types.getSchema(schemaCode).get(formMetadataVO.getCode());
+			} catch (MetadataSchemaBuilderRuntimeException.NoSuchMetadata e) {
+				// error
+			} catch (MetadataSchemaBuilderRuntimeException.InvalidAttribute e) {
+				// error take provided schema
+			}
+
+			if (metadataBuilder != null && metadataBuilder.getInheritance() != null) {
+				metadataBuilder = types.getSchema(schemaCode).getDefaultSchema().get(formMetadataVO.getCode());
+			}
+
+			if (metadataBuilder == null) {
+				metadataBuilder = builder;
+			}
+		}
+
+		metadataBuilder.setMultiLingual(formMetadataVO.isMultiLingual());
+
+		MetadataSchemaBuilder defaultSchemaBuilder = types
+				.getSchema(schemaCode.substring(0, schemaCode.lastIndexOf('_')) + "_default");
+		String localCode = code.substring(code.lastIndexOf("_") + 1);
+		if (defaultSchemaBuilder.hasMetadata(localCode)) {
+			defaultSchemaBuilder.getMetadata(localCode).setInputMask(formMetadataVO.getInputMask());
+			defaultSchemaBuilder.getMetadata(localCode).setMaxLength(formMetadataVO.getMaxLength());
+			defaultSchemaBuilder.getMetadata(localCode).setMeasurementUnit(formMetadataVO.getMeasurementUnit());
+			defaultSchemaBuilder.get(localCode).setSearchable(formMetadataVO.isSearchable());
+			defaultSchemaBuilder.get(localCode).setUniqueValue(formMetadataVO.isUniqueValue());
+			setReadRoleAccessRestriction(formMetadataVO, defaultSchemaBuilder.get(localCode));
+		}
+
+		try {
+			schemasManager.saveUpdateSchemaTypes(types);
+		} catch (OptimisticLocking optimistickLocking) {
+			// TODO exception gestion
+			throw new RuntimeException(optimistickLocking);
+		} catch (EssentialMetadataCannotBeDisabled | EssentialMetadataInSummaryCannotBeDisabled e) {
+			view.showErrorMessage($("AddEditMetadataView.essentialMetadataCannotBeDisabled"));
+			return;
+		}
+
+		saveDisplayConfig(formMetadataVO, code, schemasManager, editMode);
+
+		MetadataSchema schema = schemasManager.getSchemaTypes(collection).getSchema(schemaCode);
+		Metadata metadata = schema.getMetadata(code);
+		User user = getCurrentUser();
+		appCollectionExtentions.metadataSavedFromView(metadata, user);
+
+		if (reindexRequired) {
+			appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
+			view.showMessage($("AddEditMetadataView.reindexRequired"));
+
+		} else if (cacheRebuildRequired) {
+			appLayerFactory.getSystemGlobalConfigsManager().markLocalCachesAsRequiringRebuild();
+			view.showMessage($("AddEditMetadataView.cacheRebuildRequired"));
+
+		}
+
+		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_METADATA, parameters);
+		view.navigate().to().listSchemaMetadata(params);
 	}
 
 	private void saveButtonClicked(FormMetadataVO formMetadataVO, boolean editMode, String schemaCode,
@@ -490,21 +577,28 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	private void handleDuplicatedMetadataCreation(
 			final MetadataSchemasManager schemasManager,
 			final MetadataSchemaTypesBuilder types,
-			final FormMetadataVO formMetadataVO) {
+			final FormMetadataVO formMetadataVO,
+			final Metadata duplicatedMetadata) {
 
 		view.showConfirmDialog(ConfirmDialogProperties.builder()
-				.title("Métadonnées dupliquée")
-				.message("Des métadonnées ont été dupliquées")
+				.title($("AddEditMetadataPresenter.saveButton.duplicatedMetadata.title"))
+				.message($("AddEditMetadataPresenter.saveButton.duplicatedMetadata.message", duplicatedMetadata.getSchemaCode()))
 				.okCaption($("yes"))
 				.cancelCaption($("cancel"))
-				.notOkCaption("Banane")
+				.notOkCaption($("no"))
 				.onCloseListener(confirmDialogResults -> {
 					switch (confirmDialogResults) {
 						case OK:
-							MoveDuplicatedMetadataToDefaultSchemaThenActivateForCustomSchemas(types, "USR" + formMetadataVO.getLocalcode());
-							formMetadataVO.setLocalcode("USR" + formMetadataVO);
+							MoveDuplicatedMetadataToDefaultSchemaThenActivateForCustomSchemas(types, duplicatedMetadata, formMetadataVO);
 
-							editMetadataFromForm(schemasManager, types, formMetadataVO);
+							//setup to be like in edit mode
+							formMetadataVO.setLocalcode("USR" + formMetadataVO.getLocalcode());
+							formMetadataVO.setCode(getSchemaCode() + "_" + formMetadataVO.getLocalcode());
+
+							saveButtonClickedWithDuplicatedMetadata(formMetadataVO, true, getSchemaCode(),
+									schemasManager, types, formMetadataVO.getCode(),
+									false, false, types.getSchema(getSchemaCode()).get(formMetadataVO.getCode()));
+
 							break;
 						case CANCEL:
 							//Do nothing. Stays in the form
@@ -519,15 +613,11 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	private void MoveDuplicatedMetadataToDefaultSchemaThenActivateForCustomSchemas(
 			final MetadataSchemaTypesBuilder types,
-			final String localCode) {
+			final Metadata duplicatedMetadata,
+			final FormMetadataVO formMetadataVO) {
 
-
-		Metadata metadataToMove = getAllCurrentSchemaTypeMetadatasAsStream()
-				.filter(metadata -> metadata.getLocalCode().equals(localCode))
-				.findAny().get();
-
-		types.getSchema(metadataToMove.getSchemaCode())
-				.getMetadata(metadataToMove.getCode())
+		types.getSchema(duplicatedMetadata.getSchemaCode())
+				.getMetadata(duplicatedMetadata.getCode())
 				.moveToDefaultSchemas();
 	}
 
@@ -680,12 +770,25 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		}
 	}
 
-	private boolean isTheSameAsAnotherMetadata(final FormMetadataVO formMetadataVO) {
-		return getAllCurrentSchemaTypeMetadatasAsStream()
-				.anyMatch(metadata ->
+	private boolean isTheSameAsAnotherMetadata(final FormMetadataVO formMetadataVO,
+											   final List<Metadata> duplicatedMetadatas) {
+		if (!formMetadataVO.getDataEntryType().equals(DataEntryType.MANUAL)) {
+			return false;
+		}
+
+		final Optional<Metadata> possibleDuplicatedMetadata = getAllCurrentSchemaTypeMetadatasAsStream()
+				.filter(metadata ->
 						metadata.getLocalCode().equals("USR" + formMetadataVO.getLocalcode()) &&
 						metadata.getType().equals(formMetadataVO.getValueType()) &&
-						metadata.isMultivalue() == formMetadataVO.isMultivalue());
+						metadata.isMultivalue() == formMetadataVO.isMultivalue() &&
+						metadata.getDataEntry().getType().equals(DataEntryType.MANUAL) &&
+						!metadata.getCode().contains("default") &&
+						!metadata.getSchemaCode().equals(getSchemaCode()))
+				.findAny();
+
+		possibleDuplicatedMetadata.ifPresent(duplicatedMetadatas::add);
+
+		return possibleDuplicatedMetadata.isPresent();
 	}
 
 	private void validateUniqueCode(String localCode) {
