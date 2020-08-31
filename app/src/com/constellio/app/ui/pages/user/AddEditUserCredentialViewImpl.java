@@ -6,6 +6,7 @@ import com.constellio.app.ui.framework.components.fields.EditablePasswordField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Validator;
 import com.vaadin.data.fieldgroup.PropertyId;
@@ -111,7 +112,8 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 		firstNameField.setNullRepresentation("");
 		firstNameField.setId("firstName");
 		firstNameField.addStyleName("firstName");
-		firstNameField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
+		firstNameField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername())
+								  && userCredentialVO.getSyncMode() != UserSyncMode.SYNCED);
 
 		lastNameField = new TextField();
 		lastNameField.setCaption($("UserCredentialView.lastName"));
@@ -119,7 +121,8 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 		lastNameField.setNullRepresentation("");
 		lastNameField.setId("lastName");
 		lastNameField.addStyleName("lastName");
-		lastNameField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
+		lastNameField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername())
+								 && userCredentialVO.getSyncMode() != UserSyncMode.SYNCED);
 
 		emailField = new TextField();
 		emailField.setCaption($("UserCredentialView.email"));
@@ -128,7 +131,8 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 		emailField.setId("email");
 		emailField.addStyleName("email");
 		emailField.addValidator(new EmailValidator($("AddEditUserCredentialView.invalidEmail")));
-		emailField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
+		emailField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername())
+							  && userCredentialVO.getSyncMode() != UserSyncMode.SYNCED);
 
 		jobTitle = new TextField();
 		jobTitle.setCaption($("UserCredentialView.jobTitle"));
@@ -236,7 +240,8 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 			statusField.addItem(status);
 			statusField.setItemCaption(status, $("UserCredentialView.status." + status.getCode()));
 		}
-		statusField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
+		statusField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername())
+							   && userCredentialVO.getSyncMode() != UserSyncMode.SYNCED);
 
 		// Allow to modify user collection and nothing else when ldapsynch.
 		boolean isEnabled = presenter.userNotLDAPSynced(userCredentialVO.getUsername());
@@ -256,9 +261,9 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 		}
 
 		usernameField.setEnabled(isEnabled);
-		firstNameField.setEnabled(isEnabled);
-		lastNameField.setEnabled(isEnabled);
-		emailField.setEnabled(isEnabled);
+		firstNameField.setEnabled(isEnabled && userCredentialVO.getSyncMode() != UserSyncMode.SYNCED);
+		lastNameField.setEnabled(isEnabled && userCredentialVO.getSyncMode() != UserSyncMode.SYNCED);
+		emailField.setEnabled(isEnabled && userCredentialVO.getSyncMode() != UserSyncMode.SYNCED);
 		jobTitle.setEnabled(isEnabled);
 		phone.setEnabled(isEnabled);
 		fax.setEnabled(isEnabled);
@@ -267,7 +272,7 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 		passwordField.setEnabled(isEnabled);
 		confirmPasswordField.setEnabled(isEnabled);
 		collectionsField.setEnabled(true);
-		statusField.setEnabled(isEnabled);
+		statusField.setEnabled(isEnabled && userCredentialVO.getSyncMode() != UserSyncMode.SYNCED);
 		confirmPasswordField.setReadOnly(!confirmPasswordField.isEnabled() || !presenter.isPasswordChangeEnabled());
 		passwordField.setReadOnly(!passwordField.isEnabled() || !presenter.isPasswordChangeEnabled());
 
