@@ -11,11 +11,15 @@ import com.constellio.model.conf.ldap.RegexFilter;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager.LDAPSynchProgressionInfo;
+import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
@@ -50,8 +54,9 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 	protected ScheduleComponent scheduleComponentField;
 	protected Button saveButton;
 	private BaseButton forceUsersSynchronization;
+	protected CheckBox activateLDAPCheckBox;
 
-	protected Button activateLDAPButton;
+	protected Button deleteUnusedUserButton, activateLDAPButton;
 
 
 	protected LDAPConfigBaseView() {
@@ -202,37 +207,32 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 		layout.setComponentAlignment(buttonsPanel, Alignment.BOTTOM_RIGHT);
 	}
 
-	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<Button>();
+	protected void buildActionCheckbox() {
 
-		activateLDAPButton = new AddButton(!presenter.isLDAPActive() ? $("ldap.authentication.active") : $("ldap.authentication.inactive")) {
+		activateLDAPCheckBox = new CheckBox($("ldap.authentication.active"));
+		activateLDAPCheckBox.setValue(presenter.isLDAPActive());
+		activateLDAPCheckBox.addValueChangeListener(new ValueChangeListener() {
 			@Override
-			protected void buttonClick(ClickEvent event) {
+			public void valueChange(Property.ValueChangeEvent event) {
+				presenter.setLDAPActive(!presenter.isLDAPActive());
 				ConfirmDialog confirmDialog = ConfirmDialog.getFactory().create(
 						presenter.isLDAPActive() ? $("ldap.authentication.inactive.caption") : $("ldap.authentication.active.caption"),
 						presenter.isLDAPActive() ? $("ldap.authentication.inactive.msg") : $("ldap.authentication.active.msg"),
 						$("OK"),
-						$("cancel"),
+						null,
 						null);
 				confirmDialog.getOkButton().addClickListener(new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
-						presenter.setLDAPActive(!presenter.isLDAPActive());
-						activateLDAPButton.setCaption(!presenter.isLDAPActive() ? $("ldap.authentication.active") : $("ldap.authentication.inactive"));
 					}
 				});
 				confirmDialog.show(UI.getCurrent(), new ConfirmDialog.Listener() {
 					@Override
 					public void onClose(ConfirmDialog dialog) {
-
 					}
 				}, true);
-
 			}
-		};
-		actionMenuButtons.add(activateLDAPButton);
-		return actionMenuButtons;
+		});
 	}
 
 	protected abstract String getAuthenticationPassword();

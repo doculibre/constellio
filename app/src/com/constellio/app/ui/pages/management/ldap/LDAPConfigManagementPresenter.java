@@ -108,6 +108,18 @@ public class LDAPConfigManagementPresenter extends
 		return result.toString();
 	}
 
+	public LDAPConfigManagementPresenter activateLDAPActive(boolean active) {
+
+		String notConfigureMessage = getLDAPUserSyncConfiguration().isMinimumConfiguredMessage();
+		if (!this.isLDAPActive && notConfigureMessage != null) {
+			view.showMessage($("ldap.config.missingConfiguration", $(notConfigureMessage)));
+		} else {
+			view.showMessage($("ldap.config.activated"));
+			this.isLDAPActive = active;
+		}
+		return this;
+	}
+
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return userServices().has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_LDAP);

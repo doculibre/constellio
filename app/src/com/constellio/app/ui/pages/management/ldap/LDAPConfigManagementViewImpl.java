@@ -39,7 +39,9 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 		layout.setSizeFull();
 		layout.setSpacing(true);
 		buildDirectoryTypeField();
+		buildActionCheckbox();
 		layout.addComponent(super.directoryTypeField);
+		layout.addComponent(super.activateLDAPCheckBox);
 
 		tabsheet = createConfigTabSheet();
 

@@ -193,4 +193,15 @@ public class LDAPUserSyncConfiguration {
 	public List<String> getUserFilterGroupsList() {
 		return nonAzureADUserSynchConfig.userFilterGroupsList;
 	}
+
+	public String isMinimumConfiguredMessage() {
+		String notConfigured = null;
+		if(this.getUser() == null || this.getUser().isEmpty()){
+			notConfigured = "ldap.syncConfiguration.user.login";
+		}
+		else if (this.getPassword() == null || this.getPassword().isEmpty()){
+			notConfigured = "ldap.syncConfiguration.user.password";
+		}
+		return notConfigured;
+	}
 }
