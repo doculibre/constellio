@@ -18,6 +18,7 @@ import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.UserSyncMode;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.MarginInfo;
@@ -245,17 +246,16 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+				Integer index = (Integer) itemId;
+				GlobalGroupVO entity = globalGroupVODataProvider.getGlobalGroupVO(index);
 				Button addButton = new AddButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						Integer index = (Integer) itemId;
-						GlobalGroupVO entity = globalGroupVODataProvider.getGlobalGroupVO(index);
 						presenter.addGlobalGroupButtonClicked(userCredentialVO.getUsername(), entity.getCode());
-
 					}
 				};
-				addButton.setEnabled(userCredentialVO.getStatus() == UserCredentialStatus.ACTIVE && presenter.canAddOrModify());
-				addButton.setVisible(userCredentialVO.getStatus() == UserCredentialStatus.ACTIVE && presenter.canAddOrModify());
+				addButton.setEnabled(canChangeGroupAssignment(entity));
+				addButton.setVisible(canChangeGroupAssignment(entity));
 				return addButton;
 			}
 		});
@@ -298,29 +298,32 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 
 					}
 				};
-				editButton.setEnabled(userCredentialVO.getStatus() == UserCredentialStatus.ACTIVE && presenter.canAddOrModify());
-				editButton.setVisible(userCredentialVO.getStatus() == UserCredentialStatus.ACTIVE && presenter.canAddOrModify());
 				return editButton;
 			}
 		});
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+				Integer index = (Integer) itemId;
+				GlobalGroupVO entity = globalGroupVODataProvider.getGlobalGroupVO(index);
 				Button deleteButton = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
-						Integer index = (Integer) itemId;
-						GlobalGroupVO entity = globalGroupVODataProvider.getGlobalGroupVO(index);
 						presenter.deleteGlobalGroupButtonClicked(userCredentialVO.getUsername(), entity.getCode());
 					}
 				};
-				deleteButton
-						.setEnabled(userCredentialVO.getStatus() == UserCredentialStatus.ACTIVE && presenter.canAddOrModify());
-				deleteButton
-						.setVisible(userCredentialVO.getStatus() == UserCredentialStatus.ACTIVE && presenter.canAddOrModify());
+				deleteButton.setEnabled(canChangeGroupAssignment(entity));
+				deleteButton.setVisible(canChangeGroupAssignment(entity));
 				return deleteButton;
 			}
 		});
+	}
+
+	private boolean canChangeGroupAssignment(GlobalGroupVO groupVO) {
+		boolean canModifyAssignment = userCredentialVO.getStatus() == UserCredentialStatus.ACTIVE
+									  && presenter.canAddOrModify();
+		boolean isBothSynced = userCredentialVO.getSyncMode() == UserSyncMode.SYNCED && !groupVO.isLocallyCreated();
+		return canModifyAssignment && !isBothSynced;
 	}
 
 	@Override

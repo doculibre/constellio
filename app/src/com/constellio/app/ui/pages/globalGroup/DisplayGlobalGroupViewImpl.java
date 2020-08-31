@@ -22,6 +22,7 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.UserSyncMode;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
@@ -216,17 +217,16 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+				Integer index = (Integer) itemId;
+				UserCredentialVO entity = dataProvider.getUserCredentialVO(index);
 				Button addButton = new AddButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						Integer index = (Integer) itemId;
-						UserCredentialVO entity = dataProvider.getUserCredentialVO(index);
 						presenter.addUserCredentialButtonClicked(globalGroupVO.getCode(), entity.getUsername());
-
 					}
 				};
-				addButton.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && globalGroupVO.isLocallyCreated());
-				addButton.setVisible(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && globalGroupVO.isLocallyCreated());
+				addButton.setEnabled(canChangeUserAssignment(entity));
+				addButton.setVisible(canChangeUserAssignment(entity));
 				return addButton;
 			}
 		});
@@ -286,24 +286,22 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 
 					}
 				};
-				editButton.setEnabled(globalGroupVO.isLocallyCreated());
-				editButton.setVisible(globalGroupVO.isLocallyCreated());
 				return editButton;
 			}
 		});
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+				Integer index = (Integer) itemId;
+				UserCredentialVO entity = dataProvider.getUserCredentialVO(index);
 				Button deleteButton = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
-						Integer index = (Integer) itemId;
-						UserCredentialVO entity = dataProvider.getUserCredentialVO(index);
 						presenter.deleteUserCredentialButtonClicked(entity, globalGroupVO.getCode());
 					}
 				};
-				deleteButton.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && globalGroupVO.isLocallyCreated());
-				deleteButton.setVisible(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && globalGroupVO.isLocallyCreated());
+				deleteButton.setEnabled(canChangeUserAssignment(entity));
+				deleteButton.setVisible(canChangeUserAssignment(entity));
 				return deleteButton;
 
 			}
@@ -340,32 +338,39 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 					}
 				};
 				editSubGroupButton.addStyleName("DisplayGlobalGroupView.editSubGroup");
-				editSubGroupButton
-						.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && globalGroupVO.isLocallyCreated());
-				editSubGroupButton
-						.setVisible(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && globalGroupVO.isLocallyCreated());
 				return editSubGroupButton;
 			}
 		});
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+				Integer index = (Integer) itemId;
+				GlobalGroupVO entity = dataProvider.getGlobalGroupVO(index);
 				Button deleteSubGroupButton = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
-						Integer index = (Integer) itemId;
-						GlobalGroupVO entity = dataProvider.getGlobalGroupVO(index);
 						presenter.deleteSubGroupButtonClicked(entity);
 					}
 				};
 				deleteSubGroupButton.addStyleName("DisplayGlobalGroupView.deleteSubGroup");
-				deleteSubGroupButton
-						.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && globalGroupVO.isLocallyCreated());
-				deleteSubGroupButton
-						.setVisible(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && globalGroupVO.isLocallyCreated());
+				deleteSubGroupButton.setEnabled(canChangeGroupAssignment(entity));
+				deleteSubGroupButton.setVisible(canChangeGroupAssignment(entity));
 				return deleteSubGroupButton;
 			}
 		});
+	}
+
+	private boolean canChangeGroupAssignment(GlobalGroupVO groupVO) {
+		boolean canModifyAssignment = globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE;
+		boolean isBothSynced = !globalGroupVO.isLocallyCreated() && !groupVO.isLocallyCreated();
+		return canModifyAssignment && !isBothSynced;
+	}
+
+	private boolean canChangeUserAssignment(UserCredentialVO userCredentialVO) {
+		boolean canModifyAssignment = globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE;
+		boolean isBothSynced = !globalGroupVO.isLocallyCreated()
+							   && userCredentialVO.getSyncMode() == UserSyncMode.SYNCED;
+		return canModifyAssignment && !isBothSynced;
 	}
 
 	@Override
