@@ -335,6 +335,58 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 	}
 
 	/**
+	 * Lorsqu’un utilisateur synchronisé est rapporté avec son nom, prénom et email différent, l'utilisateur est ajusté
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	public void givenUserSyncConfiguredAndNameAndEmailChangedThenModifyUser()
+			throws Exception {
+
+		UserServices userServices = modelLayerFactory.newUserServices();
+
+		LDAPGroup caballeros = caballeros();
+		LDAPGroup pilotes = pilotes();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes)
+				.build());
+
+		sync();
+
+		User importedUser = user("nicolas", businessCollection);
+		UserCredential userCredentialImportedUser = user("nicolas");
+		assertThat(importedUser.getFirstName()).isEqualTo("Nicolas");
+		assertThat(importedUser.getLastName()).isEqualTo("Belisle");
+		assertThat(importedUser.getEmail()).isEqualTo("nicolas@doculibre.ca");
+		assertThat(importedUser.getMsExchDelegateListBL()).isEmpty();
+		assertThat(userCredentialImportedUser.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
+
+		//Modify name and email for Nicolas in LDAP
+
+		caballeros = caballeros();
+		pilotes = pilotes();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas2().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes)
+				.build());
+
+		sync();
+
+		//Nicolas is synchronized again
+		importedUser = user("nicolas", businessCollection);
+		userCredentialImportedUser = user("nicolas");
+		assertThat(importedUser.getFirstName()).isEqualTo("NicoNico");
+		assertThat(importedUser.getEmail()).isEqualTo("niiiiiiiii@doculibre.ca");
+		assertThat(userCredentialImportedUser.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
+		assertThat(importedUser.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
+	}
+
+	/**
 	 * Lorsqu’un utilisateur synchronisé n’est pas rapporté, il est supprimé (lorsque possible) dans toutes les collections synchronisées et seulement celles-ci
 	 */
 	@Test
@@ -1239,6 +1291,11 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 	private LDAPUser nicolas() {
 		return new LDAPUser().setEmail("nicolas@doculibre.ca").setFamilyName("Belisle")
 				.setName("Nicolas").setGivenName("Nicolas");
+	}
+
+	private LDAPUser nicolas2() {
+		return new LDAPUser().setEmail("niiiiiiiii@doculibre.ca").setFamilyName("Bégin")
+				.setName("Nicolas").setGivenName("NicoNico");
 	}
 
 	private LDAPUser dusty() {
