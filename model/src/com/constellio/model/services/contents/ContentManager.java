@@ -28,7 +28,6 @@ import com.constellio.data.io.streamFactories.services.one.StreamOperationThrowi
 import com.constellio.data.threads.BackgroundThreadExceptionHandling;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.utils.BatchBuilderIterator;
-import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImageUtils;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
@@ -875,8 +874,51 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
-	public Map<String, Factory<ContentVersionDataSummary>> getImportedFilesMap() {
-		return new ContentManagerImportThreadServices(modelLayerFactory).readFileNameSHA1Index();
+	public interface ImportedFilesMap {
+
+		int size();
+
+		ContentVersionDataSummary get(String path);
+
+		Set<String> getAllPaths();
+	}
+
+	public ImportedFilesMap getImportedFilesMap() {
+		Map<String, String> map = new ContentManagerImportThreadServices(modelLayerFactory).readFileNameSHA1Index();
+
+		final Map<String, String> mapWithKeysTransformed;
+		final boolean containsBackSlashs = map.keySet().stream().anyMatch((path)->path.contains("[\\]"));
+		if (containsBackSlashs) {
+			mapWithKeysTransformed = new HashMap<>();
+
+			for(Map.Entry<String, String> e : map.entrySet()) {
+				String key = e.getKey().contains("[\\]") ? e.getKey().replace("\\", "/") : e.getKey();
+					mapWithKeysTransformed.put(key, e.getValue());
+			}
+		} else {
+			mapWithKeysTransformed = map;
+		}
+
+		return new ImportedFilesMap() {
+
+			@Override
+			public int size() {
+				return mapWithKeysTransformed.size();
+			}
+
+			@Override
+			public ContentVersionDataSummary get(String path) throws ContentManagerRuntimeException_NoSuchContent {
+				String key = containsBackSlashs && path.contains("[\\]") ? path.replace("\\", "/") : path;
+				String hash = mapWithKeysTransformed.get(key);
+
+				return hash == null ? null : ContentManager.this.getContentVersionSummary(hash).contentVersionDataSummary;
+			}
+
+			@Override
+			public Set<String> getAllPaths() {
+				return mapWithKeysTransformed.keySet();
+			}
+		};
 	}
 
 	public boolean convertPendingContentForPreview() {

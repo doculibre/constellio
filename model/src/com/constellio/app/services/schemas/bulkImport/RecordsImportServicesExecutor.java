@@ -179,7 +179,7 @@ public class RecordsImportServicesExecutor {
 	private MetadataSchemaTypes types;
 	private Language language;
 	private BulkImportResults importResults;
-	private Map<String, Factory<ContentVersionDataSummary>> importedFilesMap;
+	private ContentManager.ImportedFilesMap importedFilesMap;
 	private SkippedRecordsImport skippedRecordsImport;
 	private ConfigProvider configProvider;
 	ResolverCache resolverCache;
@@ -286,11 +286,7 @@ public class RecordsImportServicesExecutor {
 	private BulkImportResults run(ValidationErrors errors)
 			throws ValidationException {
 
-		importedFilesMap = new HashMap<>();
-		for (Map.Entry<String, Factory<ContentVersionDataSummary>> entry : contentManager.getImportedFilesMap().entrySet()) {
-			String key = entry.getKey().contains("[\\]") ? entry.getKey().replace("\\", "/") : entry.getKey();
-			importedFilesMap.put(key, entry.getValue());
-		}
+		importedFilesMap = contentManager.getImportedFilesMap();
 
 		importContentsFolder(importDataProvider.getImportedContents());
 		List<String> schemaTypesWithSecondPhaseImport = new ArrayList<>();
@@ -1201,16 +1197,28 @@ public class RecordsImportServicesExecutor {
 				if (version.getUrl().toLowerCase().startsWith("imported://")) {
 					String importedFilePath = IMPORTED_FILEPATH_CLEANER.replaceOn(
 							version.getUrl().substring("imported://".length()));
-					Factory<ContentVersionDataSummary> factory = importedFilesMap.get(importedFilePath);
 
-					if (factory == null) {
+					try {
+						contentVersionDataSummary  = importedFilesMap.get(importedFilePath);
+
+						if (contentVersionDataSummary == null) {
+							Map<String, Object> parameters = new HashMap<>();
+							parameters.put("fileName", contentImport.getFileName());
+							parameters.put("filePath", importedFilePath);
+							errors.add(RecordsImportServices.class, CONTENT_NOT_IMPORTED_ERROR, parameters);
+							return null;
+						}
+					} catch (ContentManagerRuntimeException_NoSuchContent e) {
 						Map<String, Object> parameters = new HashMap<>();
-						parameters.put("fileName", contentImport.getFileName());
-						parameters.put("filePath", importedFilePath);
-						errors.add(RecordsImportServices.class, CONTENT_NOT_IMPORTED_ERROR, parameters);
+						parameters.put("hash", e.getId());
+
+						if (modelLayerFactory.getDataLayerFactory().getContentsDao() instanceof FileSystemContentDao) {
+							parameters.put("filePath", ((FileSystemContentDao) modelLayerFactory.getDataLayerFactory().getContentsDao())
+									.getFileOf(e.getId()).getAbsolutePath());
+						}
+
+						errors.add(RecordsImportServices.class, HASH_NOT_FOUND_IN_VAULT, parameters);
 						return null;
-					} else {
-						contentVersionDataSummary = factory.get();
 					}
 
 				} else if (version.getUrl().toLowerCase().startsWith("hash:")) {

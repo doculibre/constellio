@@ -3,7 +3,6 @@ package com.constellio.model.services.contents;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.BigFileEntry;
 import com.constellio.data.utils.BigFileIterator;
-import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
@@ -11,6 +10,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -325,37 +325,28 @@ public class ContentManagerImportThreadServices {
 		}
 	}
 
-	public Map<String, Factory<ContentVersionDataSummary>> readFileNameSHA1Index() {
+	public Map<String, String> readFileNameSHA1Index() {
 		return readFileNameSHA1Index(indexProperties);
 	}
 
-	public Map<String, Factory<ContentVersionDataSummary>> readFileNameSHA1Index(File sha1Properties) {
+	public Map<String, String> readFileNameSHA1Index(File sha1Properties) {
 		if (!sha1Properties.exists()) {
 			return Collections.emptyMap();
 		}
-		Map<String, Factory<ContentVersionDataSummary>> map = new HashMap<>();
+		Map<String, String> map = new HashMap<>();
+
 		for (Map.Entry<String, String> entry : PropertyFileUtils.loadKeyValues(sha1Properties).entrySet()) {
-			final String value = entry.getValue();
-			map.put(entry.getKey(), new Factory<ContentVersionDataSummary>() {
-				@Override
-				public ContentVersionDataSummary get() {
-					return toContentVersionDataSummary(value);
-				}
-			});
+			map.put(entry.getKey(), StringUtils.substringBefore(entry.getValue(), ":"));
 		}
 		return map;
 	}
 
-	public static Map<String, Factory<ContentVersionDataSummary>> buildSHA1Map(File file) {
-		Map<String, Factory<ContentVersionDataSummary>> map = new LinkedHashMap<>();
+	public static Map<String, String> buildSHA1Map(File file) {
+
+		Map<String, String> map = new LinkedHashMap<>();
+
 		for (Map.Entry<String, String> entry : PropertyFileUtils.loadKeyValues(file).entrySet()) {
-			final String value = entry.getValue();
-			map.put(entry.getKey(), new Factory<ContentVersionDataSummary>() {
-				@Override
-				public ContentVersionDataSummary get() {
-					return toContentVersionDataSummary(value);
-				}
-			});
+			map.put(entry.getKey(), StringUtils.substringBefore(entry.getValue(), ":"));
 		}
 		return map;
 	}

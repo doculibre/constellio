@@ -290,7 +290,7 @@ public class RecordAutomaticMetadataServices {
 								stream = executorInCache.stream(query);
 
 							} else {
-								LOGGER.warn("Aggregated metadata '" + aggregatedMetadata.getCode() + "' should use cache for recalculation");
+								logImportantWarningOnce("Aggregated metadata '" + aggregatedMetadata.getCode() + "' should use cache for recalculation");
 								stream = searchServices.streamFromSolr(query);
 
 							}

@@ -258,7 +258,8 @@ public class SystemLogger {
 	static Set<String> importantWarningsLogged = new HashSet<>();
 
 	public static void logImportantWarningOnce(String message) {
-		if (!importantWarningsLogged.contains(message)) {
+		//Spamming them isn't better
+		if (importantWarningsLogged.size() < 50 && !importantWarningsLogged.contains(message)) {
 			synchronized (SystemLogger.class) {
 				if (!importantWarningsLogged.contains(message)) {
 					importantWarningsLogged.add(message);
