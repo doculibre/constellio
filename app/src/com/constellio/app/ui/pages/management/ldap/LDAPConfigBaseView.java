@@ -215,22 +215,30 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
 				presenter.setLDAPActive(!presenter.isLDAPActive());
-				ConfirmDialog confirmDialog = ConfirmDialog.getFactory().create(
-						presenter.isLDAPActive() ? $("ldap.authentication.inactive.caption") : $("ldap.authentication.active.caption"),
-						presenter.isLDAPActive() ? $("ldap.authentication.inactive.msg") : $("ldap.authentication.active.msg"),
-						$("OK"),
-						null,
-						null);
-				confirmDialog.getOkButton().addClickListener(new ClickListener() {
-					@Override
-					public void buttonClick(ClickEvent event) {
-					}
-				});
-				confirmDialog.show(UI.getCurrent(), new ConfirmDialog.Listener() {
-					@Override
-					public void onClose(ConfirmDialog dialog) {
-					}
-				}, true);
+				if (presenter.isLDAPActive()) {
+					ConfirmDialog confirmDialog = ConfirmDialog.getFactory().create(
+							presenter.isLDAPActive() ? $("ldap.authentication.active.caption") : $("ldap.authentication.inactive.caption"),
+							presenter.isLDAPActive() ? $("ldap.authentication.active.msg") : $("ldap.authentication.inactive.msg"),
+							$("OK"),
+							null,
+							null);
+					confirmDialog.getOkButton().addClickListener(new ClickListener() {
+						@Override
+						public void buttonClick(ClickEvent event) {
+						}
+					});
+					confirmDialog.getCancelButton().addClickListener(new ClickListener() {
+						@Override
+						public void buttonClick(ClickEvent event) {
+							activateLDAPCheckBox.setValue(!presenter.isLDAPActive());
+						}
+					});
+					confirmDialog.show(UI.getCurrent(), new ConfirmDialog.Listener() {
+						@Override
+						public void onClose(ConfirmDialog dialog) {
+						}
+					}, true);
+				}
 			}
 		});
 	}

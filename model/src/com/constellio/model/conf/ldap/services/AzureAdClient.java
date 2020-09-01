@@ -168,13 +168,24 @@ public class AzureAdClient {
 						ldapGroups.put(ldapGroup.getDistinguishedName(), ldapGroup);
 						//getGroupsParent(ldapGroup.getDistinguishedName(), ldapGroups, requestHelper);
 					}
-
-					for (JSONArray membersArray : azureRequestHelper.getGroupMembersResponse(ldapGroup.getDistinguishedName())) {
+					List<JSONArray> membersArrays = new ArrayList<>();
+					try {
+						membersArrays = azureRequestHelper.getGroupMembersResponse(ldapGroup.getDistinguishedName());
+					} catch (Exception ex) {
+						LOGGER.error("Error occured during get group " + ldapGroup.getDistinguishedName() + " members", ex);
+					}
+					for (JSONArray membersArray : membersArrays) {
 						for (int im = 0, membersCount = membersArray.length(); im < membersCount; im++) {
 							String objectUrl = membersArray.getJSONObject(im).optString("url");
 
 							if (objectUrl.endsWith("Microsoft.DirectoryServices.User")) {
-								JSONObject jsonObject = azureRequestHelper.getObjectResponseByUrl(objectUrl);
+								JSONObject jsonObject;
+								try {
+									jsonObject = azureRequestHelper.getObjectResponseByUrl(objectUrl);
+								} catch (Exception ex) {
+									LOGGER.error("Error occured during get object url " + objectUrl, ex);
+									continue;
+								}
 
 								LDAPUser ldapUser = buildLDAPUserFromJsonObject(jsonObject);
 
@@ -204,7 +215,7 @@ public class AzureAdClient {
 
 	public void getSubGroupsAndTheirUsers(LDAPGroup subgroup, final Map<String, LDAPGroup> ldapGroups,
 										  final Map<String, LDAPUser> ldapUsers) {
-		if(Toggle.ALLOW_LDAP_FETCH_SUB_GROUPS.isEnabled()) {
+		if (Toggle.ALLOW_LDAP_FETCH_SUB_GROUPS.isEnabled()) {
 			LOGGER.info("Getting groups and their members - start");
 
 			int pageNum = 1;
@@ -213,13 +224,24 @@ public class AzureAdClient {
 
 			if (ldapUserSyncConfiguration.isGroupAccepted(subgroup.getSimpleName())) {
 				ldapGroups.put(subgroup.getDistinguishedName(), subgroup);
-
-				for (JSONArray membersArray : azureRequestHelper.getGroupMembersResponse(subgroup.getDistinguishedName())) {
+				List<JSONArray> groupMembersResponse = new ArrayList<>();
+				try {
+					groupMembersResponse = azureRequestHelper.getGroupMembersResponse(subgroup.getDistinguishedName());
+				} catch (Exception ex) {
+					LOGGER.error("Error occured during get group " + subgroup.getDistinguishedName() + " members", ex);
+				}
+				for (JSONArray membersArray : groupMembersResponse) {
 					for (int im = 0, membersCount = membersArray.length(); im < membersCount; im++) {
 						String objectUrl = membersArray.getJSONObject(im).optString("url");
 
 						if (objectUrl.endsWith("Microsoft.DirectoryServices.User")) {
-							JSONObject jsonObject = azureRequestHelper.getObjectResponseByUrl(objectUrl);
+							JSONObject jsonObject;
+							try {
+								jsonObject = azureRequestHelper.getObjectResponseByUrl(objectUrl);
+							} catch (Exception ex) {
+								LOGGER.error("Error occured during get object url " + objectUrl, ex);
+								continue;
+							}
 
 							LDAPUser ldapUser = buildLDAPUserFromJsonObject(jsonObject);
 
@@ -298,7 +320,12 @@ public class AzureAdClient {
 			for (int iu = 0; iu < groupsPageSize; iu++) {
 				JSONObject jsonObject = userArray.getJSONObject(iu);
 				if (jsonObject.has("url")) {
-					jsonObject = azureRequestHelper.getObjectResponseByUrl(jsonObject.optString("url"));
+					try {
+						jsonObject = azureRequestHelper.getObjectResponseByUrl(jsonObject.optString("url"));
+					} catch (Exception e) {
+						LOGGER.error("Error occured during get object url " + jsonObject.optString("url"), e);
+						continue;
+					}
 				}
 
 				LDAPUser ldapUser = buildLDAPUserFromJsonObject(jsonObject);
@@ -311,12 +338,24 @@ public class AzureAdClient {
 					}
 					//}
 
-					for (JSONArray membershipsArray : azureRequestHelper.getUserGroupsResponse(ldapUser.getId())) {
+
+					List<JSONArray> userGroupsResponse = new ArrayList<>();
+					try {
+						userGroupsResponse = azureRequestHelper.getUserGroupsResponse(ldapUser.getId());
+					} catch (Exception e) {
+						LOGGER.error("Error occured during get user " + ldapUser.getName() + " groups", e);
+					}
+					for (JSONArray membershipsArray : userGroupsResponse) {
 						for (int im = 0, membershipsCount = membershipsArray.length(); im < membershipsCount; im++) {
 							String objectUrl = membershipsArray.getJSONObject(im).optString("url");
 
 							if (objectUrl.endsWith("Microsoft.DirectoryServices.Group")) {
-								jsonObject = azureRequestHelper.getObjectResponseByUrl(objectUrl);
+								try {
+									jsonObject = azureRequestHelper.getObjectResponseByUrl(objectUrl);
+								} catch (Exception e) {
+									LOGGER.error("Error occured during get object url " + objectUrl, e);
+									continue;
+								}
 
 								LDAPGroup ldapGroup = buildLDAPGroupFromJsonObject(jsonObject);
 
