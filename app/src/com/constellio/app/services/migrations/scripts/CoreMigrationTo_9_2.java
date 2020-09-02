@@ -125,7 +125,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 
 			transferglGroupStatusToCollectionGroup(collection, appLayerFactory.getModelLayerFactory(), ctx);
 			transferDomainsAndMsDelegatesFromCredentialsToUser(collection, appLayerFactory.getModelLayerFactory(), ctx);
-			deleteUnusedUsers(appLayerFactory, collection);
+			//deleteUnusedUsers(appLayerFactory, collection);
 		}
 	}
 
