@@ -48,7 +48,7 @@ public class CoreMigrationTo_8_3_1_AcceptanceTest extends ConstellioTest {
 
 		getCurrentTestSession().getFactoriesTestFeatures()
 				.givenSystemInState(getTestResourceFile("savestateWithSavedSearchToConvert.zip"))
-				.withPasswordsReset().withFakeEncryptionServices();
+				.withPasswordsResetAndDisableLDAPSync().withFakeEncryptionServices();
 
 		searchServices = getModelLayerFactory().newSearchServices();
 		manager = getModelLayerFactory().getMetadataSchemasManager();

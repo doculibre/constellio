@@ -20,7 +20,7 @@ public class CoreMigrationTo_9_1_AcceptanceTest extends ConstellioTest {
 		File state = new File(statesFolder, "given_system_in_8.3.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures()
-				.givenSystemInState(state).withPasswordsReset()
+				.givenSystemInState(state).withPasswordsResetAndDisableLDAPSync()
 				.withFakeEncryptionServices();
 
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);

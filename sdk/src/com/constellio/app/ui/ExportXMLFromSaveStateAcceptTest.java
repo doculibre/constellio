@@ -42,7 +42,7 @@ public class ExportXMLFromSaveStateAcceptTest extends ConstellioTest {
 		givenTransactionLogIsEnabled();
 
 		File exportFolder = prepareExportFolder();
-		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(saveState()).withPasswordsReset();
+		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(saveState()).withPasswordsResetAndDisableLDAPSync();
 
 		for (String collection : getModelLayerFactory().getCollectionsListManager().getCollections()) {
 			exportCollectionData(exportFolder, collection);

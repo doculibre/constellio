@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.records.GetRecordOptions.GET_BY_QUERY;
 import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static java.util.Arrays.asList;
@@ -134,7 +135,7 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		transaction2.add(record666.set(zeSchema.metadata("referenceToZeSchema"), null));
 		transaction2.setRecordFlushing(RecordsFlushing.LATER());
 		recordServices.execute(transaction2);
-		assertThat(getModelLayerFactory().newCachelessRecordServices().getDocumentById("000666").<String>get(zeSchema.metadata("referenceToZeSchema"))).isEqualTo("000042");
+		assertThat(getModelLayerFactory().newCachelessRecordServices().get("000666", GET_BY_QUERY).<String>get(zeSchema.metadata("referenceToZeSchema"))).isEqualTo("000042");
 
 		reindexingServices.reindexCollection(zeCollection, ReindexationMode.RECALCULATE);
 		assertThat(getModelLayerFactory().newCachelessRecordServices().getDocumentById("000666").<String>get(zeSchema.metadata("referenceToZeSchema"))).isNull();

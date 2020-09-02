@@ -18,7 +18,6 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Folder;
@@ -39,7 +38,6 @@ import static com.constellio.model.entities.security.global.AuthorizationModific
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DriverTest
 public class GetChildrenRequestAcceptTest extends ConstellioTest {
 
 	UserServices userServices;
@@ -72,9 +70,10 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 
 		taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 
-		users.setUp(userServices, zeCollection);
+
 
 		defineSchemasManager().using(zeCollectionSchemas);
+		users.setUp(userServices, zeCollection);
 
 		MetadataSchemasManager schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 

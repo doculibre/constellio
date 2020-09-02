@@ -13,6 +13,7 @@ import com.constellio.data.dao.services.replicationFactor.dto.ReplicationFactorT
 import com.constellio.data.dao.services.replicationFactor.dto.ReplicationFactorTransactionType;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.extensions.ReplicationFactorManagerExtension.TransactionReplayed;
+import com.constellio.data.utils.dev.Toggle;
 import com.mysql.jdbc.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.solr.common.SolrInputDocument;
@@ -106,7 +107,11 @@ public class ReplicationFactorTransactionReadService implements LeaderElectionMa
 		for (String recordId : transactionsByRecordIds.keySet()) {
 			long version = -1;
 			try {
-				version = getRecordDao().get(recordId).getVersion();
+				if (Toggle.NEW_GET_SERVICES.isEnabled()) {
+					version = getRecordDao().get(recordId).getVersion();
+				} else {
+					version = getRecordDao().realGet(recordId).getVersion();
+				}
 			} catch (NoSuchRecordWithId ignored) {
 			}
 

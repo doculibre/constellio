@@ -350,9 +350,9 @@ public class RecordServicesTest extends ConstellioTest {
 	public void givenInexistentIdWhenGetDocumentByIdThenThrowException()
 			throws Exception {
 
-		when(recordDao.get(theId, true)).thenThrow(RecordDaoException.NoSuchRecordWithId.class);
+		when(recordDao.realGet(theId, true)).thenThrow(RecordDaoException.NoSuchRecordWithId.class);
 
-		recordServices.getDocumentById(theId);
+		recordServices.get(theId);
 
 	}
 
@@ -919,8 +919,8 @@ public class RecordServicesTest extends ConstellioTest {
 		long currentFirstRecordDTOVersion = aLong();
 		when(currentFirstRecordDTO.getVersion()).thenReturn(currentFirstRecordDTOVersion);
 
-		when(recordDao.get(firstRecordId, true)).thenReturn(currentFirstRecordDTO);
-		when(recordDao.get(deletedRecordId, true)).thenThrow(NoSuchRecordWithId.class);
+		when(recordDao.realGet(firstRecordId, true)).thenReturn(currentFirstRecordDTO);
+		when(recordDao.realGet(deletedRecordId, true)).thenThrow(NoSuchRecordWithId.class);
 
 		recordServices.refresh(asList(firstRecord, deletedRecord, newRecord));
 

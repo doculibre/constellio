@@ -19,7 +19,6 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.Session;
@@ -55,7 +54,6 @@ import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_SET_CONTENT
 import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_UPDATE_PROPERTIES;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DriverTest
 public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisAllowableActionsAcceptanceTest.class);
@@ -84,10 +82,11 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		recordServices = getModelLayerFactory().newRecordServices();
 
-		users.setUp(userServices, zeCollection);
+
 
 		defineSchemasManager().using(zeCollectionSchemas.withContentMetadata());
 		zeCollectionSchemas.allSchemaTypesSupported(getAppLayerFactory());
+		users.setUp(userServices, zeCollection);
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy2(), metadataSchemasManager);
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {

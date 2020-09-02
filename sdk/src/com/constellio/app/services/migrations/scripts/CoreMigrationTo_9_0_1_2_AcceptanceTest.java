@@ -25,7 +25,7 @@ public class CoreMigrationTo_9_0_1_2_AcceptanceTest extends ConstellioTest {
 		File state = new File(statesFolder, "given_system_in_9.0.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures()
-				.givenSystemInState(state).withPasswordsReset()
+				.givenSystemInState(state).withPasswordsResetAndDisableLDAPSync()
 				.withFakeEncryptionServices();
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);

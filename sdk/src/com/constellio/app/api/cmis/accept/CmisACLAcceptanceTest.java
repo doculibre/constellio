@@ -16,7 +16,6 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.Session;
@@ -50,7 +49,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.Assert.fail;
 
-@DriverTest
 public class CmisACLAcceptanceTest extends ConstellioTest {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisACLAcceptanceTest.class);
@@ -90,10 +88,9 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 
 		taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 
-		users.setUp(userServices, zeCollection);
-
 		defineSchemasManager().using(zeCollectionSchemas);
 		zeCollectionSchemas.allSchemaTypesSupported(getAppLayerFactory());
+		users.setUp(userServices, zeCollection);
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy2(), metadataSchemasManager);
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy2(), metadataSchemasManager);
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {

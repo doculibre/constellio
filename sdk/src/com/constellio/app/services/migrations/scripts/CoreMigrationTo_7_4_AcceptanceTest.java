@@ -21,7 +21,7 @@ public class CoreMigrationTo_7_4_AcceptanceTest extends ConstellioTest {
 		givenBackgroundThreadsEnabled();
 
 		getCurrentTestSession().getFactoriesTestFeatures()
-				.givenSystemInState(getTestResourceFile("saveStateWithTemporaryMetadata.zip")).withPasswordsReset()
+				.givenSystemInState(getTestResourceFile("saveStateWithTemporaryMetadata.zip")).withPasswordsResetAndDisableLDAPSync()
 				.withFakeEncryptionServices();
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
 		assertThat(manager.getSchemaTypes(zeCollection).getSchema(Folder.DEFAULT_SCHEMA).getMetadata("temporaryMetadata"))

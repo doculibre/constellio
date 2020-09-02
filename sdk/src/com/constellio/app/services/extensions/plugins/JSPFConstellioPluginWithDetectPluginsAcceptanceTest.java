@@ -34,7 +34,7 @@ public class JSPFConstellioPluginWithDetectPluginsAcceptanceTest extends Constel
 		notAUnitItest = true;
 		File stateFile = getTestResourceFile("saveStateWithPlugins.zip");
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(stateFile).withFakeEncryptionServices()
-				.withPasswordsReset()
+				.withPasswordsResetAndDisableLDAPSync()
 				.withSDKPluginFolder();
 		pluginManager = (JSPFConstellioPluginManager) getAppLayerFactory().getPluginManager();
 		deletePreviousPluginsFolder();

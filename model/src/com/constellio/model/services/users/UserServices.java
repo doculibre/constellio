@@ -80,6 +80,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -947,7 +948,11 @@ public class UserServices {
 
 	public SystemWideUserInfos getUserByAzureUsername(String azureUsername) {
 		//TODO Improve performance
-		return streamUserInfos().filter(u -> azureUsername.equals(u.getAzureUsername())).findFirst().get();
+		try {
+			return streamUserInfos().filter(u -> azureUsername.equals(u.getAzureUsername())).findFirst().get();
+		} catch (NoSuchElementException e) {
+			throw new UserServicesRuntimeException_NoSuchUser(azureUsername);
+		}
 	}
 
 

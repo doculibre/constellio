@@ -11,13 +11,9 @@ import org.junit.Test;
 import java.io.File;
 import java.util.List;
 
-import static java.util.Arrays.asList;
 import com.constellio.model.services.collections.CollectionsListManager;
-import com.constellio.sdk.tests.ConstellioTest;
-import org.junit.Test;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,7 +26,7 @@ public class CoreMigrationTo_9_0_AcceptanceTest extends ConstellioTest {
 		File state = new File(statesFolder, "given_system_in_8.3.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures()
-				.givenSystemInState(state).withPasswordsReset()
+				.givenSystemInState(state).withPasswordsResetAndDisableLDAPSync()
 				.withFakeEncryptionServices();
 
 		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
@@ -51,7 +47,7 @@ public class CoreMigrationTo_9_0_AcceptanceTest extends ConstellioTest {
 		givenTransactionLogIsEnabled();
 
 		getCurrentTestSession().getFactoriesTestFeatures()
-				.givenSystemInState(getTestResourceFile("withoutNewCacheIdSaveState.zip")).withPasswordsReset()
+				.givenSystemInState(getTestResourceFile("withoutNewCacheIdSaveState.zip")).withPasswordsResetAndDisableLDAPSync()
 				.withFakeEncryptionServices();
 
 		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();

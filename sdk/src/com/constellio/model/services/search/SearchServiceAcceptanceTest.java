@@ -47,6 +47,7 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.TestUtils;
+import com.constellio.sdk.tests.annotations.IntermittentFailureTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
@@ -721,6 +722,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@IntermittentFailureTest
 	public void whenSearchingStartingWithTextRecordsReturningExactValueFieldThenValueReturned()
 			throws Exception {
 		defineSchemasManager().using(schema.withAMultivaluedLargeTextMetadata(multiValueConfigurator()));

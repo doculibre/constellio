@@ -22,7 +22,6 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.Session;
@@ -51,7 +50,6 @@ import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_CHILDRE
 import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_PROPERTIES;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DriverTest
 public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 
 	AuthorizationsServices authServices;

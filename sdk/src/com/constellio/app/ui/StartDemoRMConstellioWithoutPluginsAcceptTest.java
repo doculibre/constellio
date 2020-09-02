@@ -179,7 +179,7 @@ public class StartDemoRMConstellioWithoutPluginsAcceptTest extends ConstellioTes
 
 		givenTransactionLogIsEnabled();
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(
-				new File("/path/to/the/saveState.zip")).withPasswordsReset();
+				new File("/path/to/the/saveState.zip")).withPasswordsResetAndDisableLDAPSync();
 
 		newWebDriver(loggedAsUserInCollection("zeUser", "myCollection"));
 		waitUntilICloseTheBrowsers();

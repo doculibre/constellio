@@ -12,6 +12,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.IntermittentFailureTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.LocalDateTime;
@@ -71,6 +72,7 @@ public class RestApiWithMultiTenancyAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@IntermittentFailureTest
 	public void givenTwoTenantsThenRestApiRequestFromTenant1HostnameIsProcessedByTenant1() throws Exception {
 		FolderDto folderUpdate = FolderDto.builder()
 				.id(records.folder_A01)
@@ -87,6 +89,7 @@ public class RestApiWithMultiTenancyAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@IntermittentFailureTest
 	public void givenTwoTenantsThenRestApiRequestFromTenant2HostnameIsProcessedByTenant2() throws Exception {
 		FolderDto folderUpdate = FolderDto.builder()
 				.id(records.folder_A01)
@@ -103,6 +106,7 @@ public class RestApiWithMultiTenancyAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@IntermittentFailureTest
 	public void givenTwoTenantsAndTwoRequestsThenEachProcessedByCorrectTenant() throws Exception {
 		givenTwoTenantsThenRestApiRequestFromTenant1HostnameIsProcessedByTenant1();
 		givenTwoTenantsThenRestApiRequestFromTenant2HostnameIsProcessedByTenant2();

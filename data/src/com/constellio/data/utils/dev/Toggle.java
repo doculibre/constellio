@@ -13,6 +13,8 @@ public class Toggle {
 
 	public static boolean OFF_HEAP_ADDRESS_VALIDATOR = false;
 
+	public static AvailableToggle NEW_GET_SERVICES = newToggle(true);
+
 	public static AvailableToggle PUBLIC_TOKENS = newToggle(false);
 
 	public static AvailableToggle TEMP_FRANCIS = newToggle(true);

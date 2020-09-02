@@ -11,7 +11,6 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.junit.Before;
@@ -22,7 +21,6 @@ import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
-@DriverTest
 public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OldCmisAuthenticationAcceptanceTest.class);

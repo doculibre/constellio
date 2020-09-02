@@ -25,7 +25,7 @@ public class RMMigrationTo9_0_AcceptanceTest extends ConstellioTest {
 		File state = new File(statesFolder, "given_system_in_8.3.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures()
-				.givenSystemInState(state).withPasswordsReset()
+				.givenSystemInState(state).withPasswordsResetAndDisableLDAPSync()
 				.withFakeEncryptionServices();
 
 		ModelLayerFactory modelLayerFactory = getModelLayerFactory();

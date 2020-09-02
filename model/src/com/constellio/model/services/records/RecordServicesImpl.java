@@ -129,6 +129,15 @@ import static com.constellio.data.dao.dto.records.RecordDTOMode.CUSTOM;
 import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
+import static com.constellio.model.services.records.GetRecordOptions.DO_NOT_CALL_EXTENSIONS;
+import static com.constellio.model.services.records.GetRecordOptions.IN_COLLECTION;
+import static com.constellio.model.services.records.GetRecordOptions.RETURNING_SUMMARY;
+import static com.constellio.model.services.records.GetRecordOptions.SILENT_IF_DOES_NOT_EXIST;
+import static com.constellio.model.services.records.GetRecordOptions.USE_DATASTORE;
+import static com.constellio.model.services.records.GetRecordOptions.getCollection;
+import static com.constellio.model.services.records.GetRecordOptions.isCallingExtensions;
+import static com.constellio.model.services.records.GetRecordOptions.isThrowingExceptionIfDoesNotExist;
+import static com.constellio.model.services.records.GetRecordOptions.isWarningIfDoesNotExist;
 import static com.constellio.model.services.records.RecordUtils.invalidateTaxonomiesCache;
 import static com.constellio.model.services.records.RecordUtils.toPersistedSummaryRecordDTO;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
@@ -470,7 +479,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 		ids.addAll(transaction.getIdsToReindex());
 
-		List<Record> newVersions = realtimeGetRecordById(ids);
+		List<Record> newVersions = get(ids, SILENT_IF_DOES_NOT_EXIST, DO_NOT_CALL_EXTENSIONS);//realtimeGetRecordById(ids);
 
 		for (String id : transaction.getIdsToReindex()) {
 			Record newRecordVersion = null;
@@ -764,6 +773,15 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	@Override
 	public Record getRecordSummaryById(String collection, String id, boolean callExtensions) {
+
+		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
+			if (callExtensions) {
+				return get(id, RETURNING_SUMMARY, IN_COLLECTION(collection));
+			} else {
+				return get(id, RETURNING_SUMMARY, IN_COLLECTION(collection), DO_NOT_CALL_EXTENSIONS);
+			}
+		}
+
 		try {
 			//TODO Improve!!!!
 			RecordDTO recordDTO = dao(DataStore.RECORDS).get(id, callExtensions);
@@ -786,6 +804,15 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public Record getById(String dataStore, String id, boolean callExtensions) {
+
+		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
+			if (callExtensions) {
+				return get(id, USE_DATASTORE(dataStore));
+			} else {
+				return get(id, USE_DATASTORE(dataStore), DO_NOT_CALL_EXTENSIONS);
+			}
+		}
+
 		try {
 			RecordDTO recordDTO = dao(dataStore).get(id, callExtensions);
 			String collection = (String) recordDTO.getFields().get("collection_s");
@@ -803,7 +830,17 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 	}
 
-	public Record realtimeGetById(String dataStore, String id, Long version, boolean callExtensions) {
+	public Record realtimeGetById(String dataStore, String id, Long neverUsedVersion, boolean callExtensions) {
+
+		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
+			if (callExtensions) {
+				return get(id, USE_DATASTORE(dataStore));
+			} else {
+				return get(id, USE_DATASTORE(dataStore), DO_NOT_CALL_EXTENSIONS);
+			}
+		}
+
+
 		try {
 			RecordDTO recordDTO = dao(dataStore).realGet(id, callExtensions);
 			String collection = (String) recordDTO.getFields().get("collection_s");
@@ -821,8 +858,61 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 	}
 
+	public Record get(String id, GetRecordOptions... options) {
+
+		String dataStore = GetRecordOptions.getDataStore(options);
+		try {
+			RecordDTO recordDTO;
+
+			if (GetRecordOptions.isRealtimeGet(options)) {
+				recordDTO = dao(dataStore).realGet(id, isCallingExtensions(options));
+			} else {
+				recordDTO = dao(dataStore).get(id, isCallingExtensions(options));
+			}
+			String collection = getCollection(options);
+			if (collection == null) {
+				collection = (String) recordDTO.getFields().get("collection_s");
+			}
+			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
+			short typeId = metadataSchemasManager.getSchemaTypes(collectionInfo.getCollectionId()).getSchema(recordDTO.getSchemaCode()).getSchemaType().getId();
+			Record record = new RecordImpl(recordDTO, collectionInfo, typeId);
+
+			newAutomaticMetadataServices()
+					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
+							new Transaction(new RecordUpdateOptions()));
+
+			if (GetRecordOptions.isReturningSummary(options)) {
+				MetadataSchema schema = metadataSchemasManager.getSchemaOf(record);
+				record = toRecord(toPersistedSummaryRecordDTO(record, schema), false);
+
+			}
+
+			if (GetRecordOptions.isInsertingInCache(options)) {
+				insertInCache(record, WAS_OBTAINED);
+			}
+
+			return record;
+		} catch (NoSuchRecordWithId e) {
+			if (isThrowingExceptionIfDoesNotExist(options)) {
+				throw new RecordServicesRuntimeException.NoSuchRecordWithId(id, dataStore, e);
+
+			} else if (isWarningIfDoesNotExist(options)) {
+				LOGGER.warn("Record with id '" + id + "' does not exist in datastore '" + dataStore + "'");
+			}
+			return null;
+		}
+	}
 
 	public Record realtimeGetRecordSummaryById(String id, boolean callExtensions) {
+
+		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
+			if (callExtensions) {
+				return get(id, RETURNING_SUMMARY);
+			} else {
+				return get(id, RETURNING_SUMMARY, DO_NOT_CALL_EXTENSIONS);
+			}
+		}
+
 		try {
 			//TODO Improve!!!!
 			RecordDTO recordDTO = dao(DataStore.RECORDS).realGet(id, callExtensions);
@@ -842,6 +932,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			record = toRecord(summaryRecordDTO, false);
 
 			return record;
+
 
 		} catch (NoSuchRecordWithId e) {
 			throw new RecordServicesRuntimeException.NoSuchRecordWithId(id, DataStore.RECORDS, e);
@@ -864,6 +955,15 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public List<Record> realtimeGetRecordById(List<String> ids, boolean callExtensions) {
+
+		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
+			if (callExtensions) {
+				return get(ids);
+			} else {
+				return get(ids, DO_NOT_CALL_EXTENSIONS);
+			}
+		}
+
 		List<Record> records = new ArrayList<>();
 		for (RecordDTO recordDTO : recordDao.realGet(ids, callExtensions)) {
 			String collection = (String) recordDTO.getFields().get("collection_s");
@@ -901,21 +1001,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 		recordsCaches.insert(collection, insertedRecords, reason);
 
-	}
-
-	public List<Record> getRecordsById(String collection, List<String> ids, boolean callExtensions) {
-
-		List<Record> records = new ArrayList<>();
-
-		ids.forEach(id -> {
-			try {
-				records.add(getDocumentById(id, callExtensions));
-			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-				LOGGER.warn("Record with id '" + id + "' does not exist");
-			}
-		});
-
-		return records;
 	}
 
 	public void prepareRecords(Transaction transaction)
@@ -1727,7 +1812,14 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 			if (record != null && record.isSaved()) {
 				try {
-					RecordDTO recordDTO = recordDao.get(record.getId(), true);
+
+					RecordDTO recordDTO;
+
+					if (Toggle.NEW_GET_SERVICES.isEnabled()) {
+						recordDTO = recordDao.realGet(record.getId(), true);
+					} else {
+						recordDTO = recordDao.get(record.getId(), true);
+					}
 					((RecordImpl) record).refresh(recordDTO.getVersion(), recordDTO);
 				} catch (NoSuchRecordWithId noSuchRecordWithId) {
 					LOGGER.debug("Deleted record is disconnected");
@@ -2029,20 +2121,20 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	@Override
-	public void execute(MultiCollectionTransaction multiCollectionTransaction) throws RecordServicesException{
+	public void execute(MultiCollectionTransaction multiCollectionTransaction) throws RecordServicesException {
 
 		throw new UnsupportedOperationException("TODO : Should work, but not tested");
-//		for(Transaction transaction : multiCollectionTransaction.getTransactionMap().values()) {
-//			try {
-//				validateTransaction(transaction);
-//			} catch (ValidationException e) {
-//				throw new RecordServicesException.ValidationException(transaction, e.getErrors());
-//			}
-//		}
-//
-//		for(Transaction transaction : multiCollectionTransaction.getTransactionMap().values()) {
-//			execute(transaction);
-//		}
+		//		for(Transaction transaction : multiCollectionTransaction.getTransactionMap().values()) {
+		//			try {
+		//				validateTransaction(transaction);
+		//			} catch (ValidationException e) {
+		//				throw new RecordServicesException.ValidationException(transaction, e.getErrors());
+		//			}
+		//		}
+		//
+		//		for(Transaction transaction : multiCollectionTransaction.getTransactionMap().values()) {
+		//			execute(transaction);
+		//		}
 
 	}
 

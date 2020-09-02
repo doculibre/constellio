@@ -14,7 +14,6 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import org.apache.chemistry.opencmis.client.api.CmisObject;
@@ -44,7 +43,6 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-@DriverTest
 public class CmisSinglevalueContentManagementAcceptTest extends ConstellioTest {
 
 	private final String PDF_MIMETYPE = "application/pdf";

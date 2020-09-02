@@ -22,7 +22,7 @@ public class CoreMigrationTo_7_6_10_AcceptanceTest extends ConstellioTest {
 		givenTransactionLogIsEnabled();
 
 		getCurrentTestSession().getFactoriesTestFeatures()
-				.givenSystemInState(getTestResourceFile("saveStateWithContentToConvert.zip")).withPasswordsReset()
+				.givenSystemInState(getTestResourceFile("saveStateWithContentToConvert.zip")).withPasswordsResetAndDisableLDAPSync()
 				.withFakeEncryptionServices();
 
 		ContentDao contentDao = getDataLayerFactory().getContentsDao();

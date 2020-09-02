@@ -31,6 +31,8 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyVararg;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
@@ -352,9 +354,9 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 
 		assertThat(record.<String>get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(aString);
 		assertThat(record.<LocalDateTime>get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(anotherDate);
-		verify(recordServices).getById("records", idReferencedRecordWithAnotherDateValue, true);
-		verify(recordServices, never()).getById("records", idReferencedRecordWithoutValue, true);
-		verify(recordServices, never()).getById("records", idReferencedRecordWithAStringAndADateValue, true);
+		verify(recordServices).get(eq(idReferencedRecordWithAnotherDateValue), anyVararg());
+		verify(recordServices, never()).get(eq(idReferencedRecordWithoutValue), anyVararg());
+		verify(recordServices, never()).get(eq(idReferencedRecordWithAStringAndADateValue), anyVararg());
 
 	}
 
@@ -372,9 +374,9 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 
 		assertThat(record.<List<String>>get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(asList(aString, aString));
 		assertThat(record.<List<LocalDateTime>>get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(asList(anotherDate));
-		verify(recordServices).getById("records", idReferencedRecordWithAnotherDateValue, true);
-		verify(recordServices, never()).getById("records", idReferencedRecordWithoutValue, true);
-		verify(recordServices, never()).getById("records", idReferencedRecordWithAStringAndADateValue, true);
+		verify(recordServices).get(eq(idReferencedRecordWithAnotherDateValue), anyVararg());
+		verify(recordServices, never()).get(eq(idReferencedRecordWithoutValue), anyVararg());
+		verify(recordServices, never()).get(eq(idReferencedRecordWithAStringAndADateValue), anyVararg());
 
 	}
 
@@ -390,9 +392,9 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 
 		assertThat(record.<List<String>>get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(aStringList);
 		assertThat(record.<List<LocalDateTime>>get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(anotherDateList);
-		verify(recordServices).getById("records", idReferencedRecordWithAnotherDateValue, true);
-		verify(recordServices, never()).getById("records", idReferencedRecordWithoutValue, true);
-		verify(recordServices, never()).getById("records", idReferencedRecordWithAStringAndADateValue, true);
+		verify(recordServices).get(eq(idReferencedRecordWithAnotherDateValue), anyVararg());
+		verify(recordServices, never()).getById(eq(idReferencedRecordWithoutValue), anyVararg());
+		verify(recordServices, never()).getById(eq(idReferencedRecordWithAStringAndADateValue), anyVararg());
 
 	}
 

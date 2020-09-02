@@ -20,7 +20,9 @@ import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.ModificationImpactCalculatorResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -123,6 +125,21 @@ public interface RecordServices {
 		return getById(DataStore.RECORDS, id, callExtensions);
 	}
 
+	default List<Record> getRecordsById(String collection, List<String> ids, boolean callExtensions) {
+		//TODO Switch to new API
+		List<Record> records = new ArrayList<>();
+
+		ids.forEach(id -> {
+			try {
+				records.add(getDocumentById(id, callExtensions));
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				LoggerFactory.getLogger(RecordServices.class).warn("Record with id '" + id + "' does not exist");
+			}
+		});
+
+		return records;
+	}
+
 	Record getDocumentById(String id, User user, boolean callExtensions);
 
 	default Record getById(MetadataSchemaType schemaType, String id, boolean callExtensions) {
@@ -131,7 +148,24 @@ public interface RecordServices {
 
 	Record getById(String dataStore, String id, boolean callExtensions);
 
-	List<Record> getRecordsById(String collection, List<String> ids, boolean callExtensions);
+	default Record get(RecordId id, GetRecordOptions... options) {
+		return get(id == null ? null : id.stringValue(), options);
+	}
+
+	Record get(String id, GetRecordOptions... options);
+
+	default List<Record> get(List<String> ids, GetRecordOptions... options) {
+
+		List<Record> records = new ArrayList<>();
+		for (String id : ids) {
+			Record record = get(id, options);
+			if (record != null) {
+				records.add(record);
+			}
+		}
+		return records;
+
+	}
 
 	// --
 

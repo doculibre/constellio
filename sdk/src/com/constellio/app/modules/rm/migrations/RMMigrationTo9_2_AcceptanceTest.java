@@ -43,7 +43,7 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 		File state = new File(statesFolder, "given_system_in_9.0.3.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures()
-				.givenSystemInState(state).withPasswordsReset()
+				.givenSystemInState(state).withPasswordsResetAndDisableLDAPSync()
 				.withFakeEncryptionServices();
 
 		List<String> collections = getModelLayerFactory().getCollectionsListManager().getCollections();
@@ -231,7 +231,7 @@ public class RMMigrationTo9_2_AcceptanceTest extends ConstellioTest {
 		File state = new File(statesFolder, "given_system_in_9_0_3_ldap.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures()
-				.givenSystemInState(state).withPasswordsReset()
+				.givenSystemInState(state).withPasswordsResetAndDisableLDAPSync()
 				.withFakeEncryptionServices();
 
 		List<String> collections = getAppLayerFactory().getCollectionsManager().getCollectionCodes();

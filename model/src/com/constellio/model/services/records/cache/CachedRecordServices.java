@@ -1,6 +1,8 @@
 package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordId;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.MultiCollectionTransaction;
 import com.constellio.model.entities.records.Record;
@@ -15,6 +17,7 @@ import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.BaseRecordServices;
+import com.constellio.model.services.records.GetRecordOptions;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordLogicalDeleteOptions;
 import com.constellio.model.services.records.RecordModificationImpactHandler;
@@ -34,6 +37,13 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static com.constellio.data.dao.services.records.DataStore.RECORDS;
+import static com.constellio.model.services.records.GetRecordOptions.DO_NOT_CALL_EXTENSIONS;
+import static com.constellio.model.services.records.GetRecordOptions.IN_COLLECTION;
+import static com.constellio.model.services.records.GetRecordOptions.IN_SCHEMA_TYPE;
+import static com.constellio.model.services.records.GetRecordOptions.RETURNING_SUMMARY;
+import static com.constellio.model.services.records.GetRecordOptions.USE_DATASTORE;
+import static com.constellio.model.services.records.GetRecordOptions.getCollection;
+import static com.constellio.model.services.records.GetRecordOptions.getSchemaTypeCode;
 import static org.apache.calcite.sql.advise.SqlAdvisor.LOGGER;
 
 public class CachedRecordServices extends BaseRecordServices implements RecordServices {
@@ -55,17 +65,55 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public Record getDocumentById(String id) {
+		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
+			return get(id);
+		}
+
 		return getById(RECORDS, id);
 	}
 
 	@Override
 	public Record getById(String dataStore, String id, boolean callExtensions) {
+
+		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
+			if (callExtensions) {
+				return get(id, USE_DATASTORE(dataStore));
+			} else {
+				return get(id, USE_DATASTORE(dataStore), DO_NOT_CALL_EXTENSIONS);
+			}
+		}
+
 		Record record = RECORDS.equals(dataStore) ? getRecordsCache().getRecord(id) : null;
 		if (record == null) {
 			record = recordServices.getById(dataStore, id, callExtensions);
 		}
 		return record;
 	}
+
+	public Record get(String id, GetRecordOptions... options) {
+		String dataStore = GetRecordOptions.getDataStore(options);
+		Record record = null;
+		if (RECORDS.equals(dataStore)) {
+			record = getRecordsCache().getRecord(id, getCollection(options), getSchemaTypeCode(options));
+		}
+		if (record == null) {
+			record = recordServices.get(id, options);
+		}
+		return record;
+	}
+
+	public Record get(RecordId id, GetRecordOptions... options) {
+		String dataStore = GetRecordOptions.getDataStore(options);
+		Record record = null;
+		if (RECORDS.equals(dataStore)) {
+			record = getRecordsCache().getRecord(id, getCollection(options), getSchemaTypeCode(options));
+		}
+		if (record == null) {
+			record = recordServices.get(id, options);
+		}
+		return record;
+	}
+
 
 	public Record getById(MetadataSchemaType schemaType, String id, boolean callExtensions) {
 		RecordsCache cache = getRecordsCache().getCache(schemaType.getCollection());
@@ -77,12 +125,37 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
+	@Deprecated
+	/**
+	 * Version is never used!
+	 */
 	public Record realtimeGetRecordById(String id, Long version, boolean callExtensions) {
+		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
+			if (callExtensions) {
+				return get(id);
+			} else {
+				return get(id, DO_NOT_CALL_EXTENSIONS);
+			}
+		}
+
 		return realtimeGetById(RECORDS, id, version, callExtensions);
 	}
 
 	@Override
+	@Deprecated
+	/**
+	 * Version is never used
+	 */
+
 	public Record realtimeGetById(MetadataSchemaType schemaType, String id, Long version, boolean callExtensions) {
+		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
+			if (callExtensions) {
+				return get(id, IN_SCHEMA_TYPE(schemaType));
+			} else {
+				return get(id, IN_SCHEMA_TYPE(schemaType), DO_NOT_CALL_EXTENSIONS);
+			}
+		}
+
 		Record record = getRecordsCache().getRecord(id);
 		if (record == null || (version != null && record.getVersion() < version)) {
 			record = recordServices.realtimeGetById(schemaType, id, version, callExtensions);
@@ -91,7 +164,18 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
+	@Deprecated
+	/**
+	 * Version is never used
+	 */
 	public Record realtimeGetById(String dataStore, String id, Long version, boolean callExtensions) {
+		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
+			if (callExtensions) {
+				return get(id, USE_DATASTORE(dataStore));
+			} else {
+				return get(id, USE_DATASTORE(dataStore), DO_NOT_CALL_EXTENSIONS);
+			}
+		}
 		Record record = getRecordsCache().getRecord(id);
 		if (record == null || (version != null && record.getVersion() < version)) {
 			record = recordServices.realtimeGetById(dataStore, id, version, callExtensions);
@@ -101,6 +185,14 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public Record realtimeGetRecordSummaryById(String id, boolean callExtensions) {
+		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
+			if (callExtensions) {
+				return get(id, RETURNING_SUMMARY);
+			} else {
+				return get(id, RETURNING_SUMMARY, DO_NOT_CALL_EXTENSIONS);
+			}
+		}
+
 		Record record = getRecordsCache().getRecordSummary(id);
 		if (record == null) {
 			record = recordServices.realtimeGetRecordSummaryById(id, callExtensions);
@@ -110,6 +202,14 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public List<Record> realtimeGetRecordById(List<String> ids, boolean callExtensions) {
+		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
+			if (callExtensions) {
+				return get(ids);
+			} else {
+				return get(ids, DO_NOT_CALL_EXTENSIONS);
+			}
+		}
+
 		return null;
 	}
 
@@ -125,6 +225,15 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public Record getRecordSummaryById(String collection, String id, boolean callExtensions) {
+
+		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
+			if (callExtensions) {
+				return get(id, IN_COLLECTION(collection));
+			} else {
+				return get(id, IN_COLLECTION(collection), DO_NOT_CALL_EXTENSIONS);
+			}
+		}
+
 		Record foundRecord = getRecordsCache().getCache(collection).getSummary(id);
 		if (foundRecord == null) {
 			foundRecord = recordServices.getRecordSummaryById(collection, id, callExtensions);
@@ -136,6 +245,14 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	@Override
 	public List<Record> getRecordsById(String collection,
 									   List<String> ids, boolean callExtensions) {
+
+		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
+			if (callExtensions) {
+				return get(ids, IN_COLLECTION(collection));
+			} else {
+				return get(ids, IN_COLLECTION(collection), DO_NOT_CALL_EXTENSIONS);
+			}
+		}
 
 		List<Record> records = new ArrayList<>();
 

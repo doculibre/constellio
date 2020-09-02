@@ -9,7 +9,6 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Session;
@@ -19,7 +18,6 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DriverTest
 public class GetObjectByPathRequestAcceptTest extends ConstellioTest {
 
 	UserServices userServices;
@@ -47,10 +45,11 @@ public class GetObjectByPathRequestAcceptTest extends ConstellioTest {
 
 		taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 
-		users.setUp(userServices, zeCollection);
+
 
 		defineSchemasManager().using(zeCollectionSchemas);
 		CmisAcceptanceTestSetup.allSchemaTypesSupported(getAppLayerFactory());
+		users.setUp(userServices, zeCollection);
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);

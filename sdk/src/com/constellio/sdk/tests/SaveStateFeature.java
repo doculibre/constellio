@@ -60,7 +60,7 @@ public class SaveStateFeature {
 
 	public static File loadStateFrom(File file, File tempFolder, File settingsFolder, File contentFolder,
 									 File pluginsFolder,
-									 File tlogWorkFolder, boolean resetPasswords)
+									 File tlogWorkFolder, boolean resetPasswordsAndDisableLDAPSync)
 			throws Exception {
 
 		File folder;
@@ -78,7 +78,7 @@ public class SaveStateFeature {
 		File tempUnzipPluginsFolder = new File(folder, "plugins");
 		File tempUnzipTlogWorkFolder = new File(folder, "tlog-work");
 
-		if (resetPasswords) {
+		if (resetPasswordsAndDisableLDAPSync) {
 			changePasswordsToPassword(tempUnzipSettingsFolder);
 
 			File ldapConfigsFile = new File(tempUnzipSettingsFolder, "ldapConfigs.properties");

@@ -29,7 +29,6 @@ import com.constellio.data.services.tenant.TenantService;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TenantUtils;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -70,7 +69,7 @@ public class FactoriesTestFeatures {
 	private boolean backgroundThreadsEnabled = false;
 	private boolean checkRollback;
 	private List<String> loggingOfRecords = new ArrayList<>();
-	private boolean dummyPasswords;
+	private boolean dummyPasswordsAndDisableLDAPSync;
 
 	private File initialState;
 	private String privateKeySalt;
@@ -339,7 +338,7 @@ public class FactoriesTestFeatures {
 				@Override
 				public AppLayerFactory decorateAppServicesFactory(final AppLayerFactory appLayerFactory) {
 
-					if (dummyPasswords) {
+					if (dummyPasswordsAndDisableLDAPSync) {
 						appLayerFactory.add(new StatefulService() {
 							@Override
 							public void initialize() {
@@ -470,7 +469,7 @@ public class FactoriesTestFeatures {
 					File tempFolder = fileSystemTestFeatures.newTempFolder();
 					try {
 						File tempUnzipSettingsFolder = loadStateFrom(initialState, tempFolder, configManagerFolder, contentFolder,
-								pluginsFolder, tlogWorkFolder, dummyPasswords);
+								pluginsFolder, tlogWorkFolder, dummyPasswordsAndDisableLDAPSync);
 						decorator.importSettings(tempUnzipSettingsFolder);
 					} catch (Exception e) {
 						throw new RuntimeException(e);
@@ -586,8 +585,8 @@ public class FactoriesTestFeatures {
 		return this;
 	}
 
-	public FactoriesTestFeatures withPasswordsReset() {
-		this.dummyPasswords = true;
+	public FactoriesTestFeatures withPasswordsResetAndDisableLDAPSync() {
+		this.dummyPasswordsAndDisableLDAPSync = true;
 		return this;
 	}
 
