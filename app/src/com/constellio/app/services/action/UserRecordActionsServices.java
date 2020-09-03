@@ -31,32 +31,28 @@ public class UserRecordActionsServices {
 	}
 
 	public boolean isEditActionPossible(Record record, User user) {
-		return userServices.canAddOrModifyUserAndGroup()
-			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
+		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
 			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
 	}
 
 	public boolean isDisplayActionPossible(Record record, User user) {
-		return userServices.canAddOrModifyUserAndGroup()
-			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
+		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
 			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
 	}
 
 	public boolean isAddToGroupActionPossible(Record record, User user) {
-		return userServices.canAddOrModifyUserAndGroup()
-			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
+		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
 			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
 	}
 
 	public boolean isAddToCollectionActionPossible(Record record, User user) {
-		return userServices.canAddOrModifyUserAndGroup() && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_COLLECTIONS)
+		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_COLLECTIONS)
 			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
 			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
 	}
 
 	public boolean isChangeStatusActionPossible(Record record, User user) {
-		return userServices.canAddOrModifyUserAndGroup()
-			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
+		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
 			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
 	}
 
@@ -64,8 +60,7 @@ public class UserRecordActionsServices {
 		User targetUser = core.wrapUser(record);
 		UserCredential credential = userServices.getUserCredential(targetUser.getUsername());
 
-		return userServices.canAddOrModifyUserAndGroup()
-			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
+		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
 			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY)
 			   && credential.getSyncMode() == UserSyncMode.NOT_SYNCED;
 	}
@@ -74,27 +69,23 @@ public class UserRecordActionsServices {
 		User targetUser = core.wrapUser(record);
 		UserCredential credential = userServices.getUserCredential(targetUser.getUsername());
 
-		return userServices.canAddOrModifyUserAndGroup()
-			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
+		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
 			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY)
 			   && credential.getSyncMode() == UserSyncMode.SYNCED;
 	}
 
 	public boolean isManageSecurityActionPossible(Record record, User user) {
-		return userServices.canAddOrModifyUserAndGroup()
-			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
+		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
 			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
 	}
 
 	public boolean isManageRoleActionPossible(Record record, User user) {
-		return userServices.canAddOrModifyUserAndGroup()
-			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
+		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
 			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
 	}
 
 	public boolean isDeleteActionPossible(Record record, User user) {
-		return userServices.canAddOrModifyUserAndGroup()
-			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
+		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
 			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
 	}
 
@@ -107,8 +98,7 @@ public class UserRecordActionsServices {
 	}
 
 	public boolean isTransferPermissionActionPossible(Record record, User user) {
-		return userServices.canAddOrModifyUserAndGroup()
-			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
+		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
 			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
 	}
 }
