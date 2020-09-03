@@ -41,7 +41,7 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 		smtpMail = new File(conf, "smtpMail");
 		appProjectWebContent = new File(constellioApp, "WebContent");
 		languageProfiles = new File(constellio, "languageProfiles");
-		classesFolder = new File(webinf, "classes");
+		classesFolder = new File(constellio, "classes");
 		dict = new File(constellio, "dict");
 		i18n = new File(constellio, "resources_i18n");
 		settings = new File(conf, "settings");
