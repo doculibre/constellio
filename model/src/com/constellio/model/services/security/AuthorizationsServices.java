@@ -895,12 +895,18 @@ public class AuthorizationsServices {
 
 		Metadata principalsMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.PRINCIPALS);
 		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
-		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
-				.whereAnyCondition(
-						where(principalsMeta).isContainingText(userId),
-						where(principalsMeta).isContainingTextFromAny(groupIds)
-				).andWhere(sharedByMeta).isNotNull();
-
+		LogicalSearchCondition condition;
+		if (groupIds != null && !groupIds.isEmpty()) {
+			condition = from(schemas.authorizationDetails.schemaType())
+					.whereAnyCondition(
+							where(principalsMeta).isContainingText(userId),
+							where(principalsMeta).isContainingTextFromAny(groupIds)
+					).andWhere(sharedByMeta).isNotNull();
+		} else {
+			condition = from(schemas.authorizationDetails.schemaType())
+					.where(principalsMeta).isContainingText(userId)
+					.andWhere(sharedByMeta).isNotNull();
+		}
 
 		List<Record> recordsSharedToUser = searchServices.search(new LogicalSearchQuery(condition));
 
