@@ -108,11 +108,6 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public List<Record> realtimeGetRecordById(List<String> ids, boolean callExtensions) {
-		return null;
-	}
-
-	@Override
 	public Record getRecordByMetadata(Metadata metadata, String value) {
 		return recordServices.getRecordByMetadata(metadata, value);
 	}

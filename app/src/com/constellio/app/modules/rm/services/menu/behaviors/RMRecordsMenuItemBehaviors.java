@@ -583,13 +583,13 @@ public class RMRecordsMenuItemBehaviors {
 	}
 
 	public void checkInDocuments(List<String> recordIds, MenuItemActionBehaviorParams params) {
-		List<Document> documents = rm.getDocuments(recordIds);
+		List<Document> documents = rm.wrapDocuments(recordServices.realtimeGetRecordById(recordIds));
 		UpdateContentVersionWindowImpl uploadWindow =
 				createUpdateContentVersionWindow(documents, params);
 
 		boolean hasUpdate = false;
 		for (Document document : documents) {
-			if (!isSameVersion(document)) {
+			if (!isCheckedOutDocumentContentChanged(document)) {
 				hasUpdate = true;
 				break;
 			}
@@ -603,7 +603,7 @@ public class RMRecordsMenuItemBehaviors {
 		}
 	}
 
-	private boolean isSameVersion(Document document) {
+	private boolean isCheckedOutDocumentContentChanged(Document document) {
 		Content content = document.getContent();
 		return content != null && content.getCurrentVersion().getHash().equals(content.getCurrentCheckedOutVersion().getHash());
 	}

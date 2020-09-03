@@ -20,6 +20,7 @@ import com.constellio.model.services.schemas.ModificationImpactCalculatorRespons
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -100,7 +101,15 @@ public interface RecordServices {
 
 	Record realtimeGetRecordSummaryById(String id, boolean callExtensions);
 
-	List<Record> realtimeGetRecordById(List<String> ids, boolean callExtensions);
+	default List<Record> realtimeGetRecordById(List<String> ids, boolean callExtensions) {
+		List<Record> records = new ArrayList<>();
+
+		for (String id : ids) {
+			records.add(realtimeGetRecordById(id, callExtensions));
+		}
+
+		return records;
+	}
 
 	default Record realtimeGetRecordById(String id, boolean callExtensions) {
 		return realtimeGetRecordById(id, null, callExtensions);

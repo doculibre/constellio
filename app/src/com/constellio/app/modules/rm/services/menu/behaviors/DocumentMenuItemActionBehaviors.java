@@ -635,7 +635,7 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void checkIn(Document document, MenuItemActionBehaviorParams params) {
-		document = loadingFullRecordIfSummary(document);
+		document = rm.wrapDocument(recordServices.realtimeGetRecordById(document.getId()));
 		DocumentVO documentVO = getDocumentVO(params, document);
 		if (documentRecordActionsServices.isCheckInActionPossible(document.getWrappedRecord(), params.getUser())) {
 			UpdateContentVersionWindowImpl uploadWindow =
@@ -651,7 +651,7 @@ public class DocumentMenuItemActionBehaviors {
 							}
 						}
 					});
-			if (!isSameVersion(document)) {
+			if (!isCheckedOutDocumentContentChanged(document)) {
 				uploadWindow.open(false);
 			} else {
 				uploadWindow.saveWithSameVersion();
@@ -675,7 +675,7 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
-	private boolean isSameVersion(Document document) {
+	private boolean isCheckedOutDocumentContentChanged(Document document) {
 		Content content = document.getContent();
 		return content != null && content.getCurrentVersion().getHash().equals(content.getCurrentCheckedOutVersion().getHash());
 	}
