@@ -156,12 +156,12 @@ public class LogsTenantsAcceptTest extends ConstellioTest {
 	public void givenXMLConfigurationPlugin_whenInfoExceptionThrown_thenLog() {
 		TenantUtils.setTenant("1");
 		Logger logger = LogManager.getLogger(this.getClass());
-		logger.debug("Debug LOG4J log message Tenant 1");
+		logger.info("INFO LOG4J log message Tenant 1");
 		System.out.println("sout : Hello from tenant 1");
 		new RuntimeException("Exception from tenant 1").printStackTrace();
 
 		TenantUtils.setTenant("2");
-		logger.debug("Debug LOG4J log message Tenant 2");
+		logger.info("INFO LOG4J log message Tenant 2");
 		System.out.println("sout : Hello from tenant 2");
 
 		File logsFolder = new File(new FoldersLocator().getSDKProject(), "logs");
@@ -170,8 +170,8 @@ public class LogsTenantsAcceptTest extends ConstellioTest {
 		List<String> linesT01 = reverseLinesAndGetLastNumberOffLines(logsTenant1, 4);
 		List<String> linesT02 = reverseLinesAndGetLastNumberOffLines(logsTenant2, 4);
 
-		assertThat(linesT01.get(0)).contains("Debug LOG4J log message Tenant 1");
-		assertThat(linesT02.get(0)).contains("Debug LOG4J log message Tenant 2");
+		assertThat(linesT01.get(0)).contains("INFO LOG4J log message Tenant 1");
+		assertThat(linesT02.get(0)).contains("INFO LOG4J log message Tenant 2");
 		throw new RuntimeException("Exception from tenant 2");
 
 	}

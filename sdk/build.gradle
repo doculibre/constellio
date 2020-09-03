@@ -87,6 +87,15 @@ sourceSets {
     }
 }
 
+test {
+    testLogging {
+        showStandardStreams true
+        exceptionFormat "full"
+    }
+    // set logging manager for tests in order to use Log4j2 JUL implementation
+    systemProperty "java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager"
+}
+
 /*
 task buildSonarSourceset() {
     List projectsList = [":constellio:app", ":constellio:model", ":constellio:data"]
