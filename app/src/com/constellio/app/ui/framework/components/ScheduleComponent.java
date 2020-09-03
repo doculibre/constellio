@@ -11,6 +11,7 @@ import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.Table;
@@ -39,7 +40,7 @@ public class ScheduleComponent extends HorizontalLayout implements Property.Valu
 
 	private static final String HALF_HOUR_ROUNDED_SUFFIX = ":30";
 
-	private static final List<String> options = Arrays.asList(new String[]{"ldap.syncConfiguration.schedule.time", "ldap.syncConfiguration.durationBetweenExecution"});
+	private static final List<String> options = Arrays.asList(new String[]{"ldap.syncConfiguration.schedule.time", "ldap.syncConfiguration.durationBetweenExecution", "ldap.syncConfiguration.deactivateSynchroSchedule"});
 
 	private BeanItemContainer<TimeBean> timeBeanContainer = new BeanItemContainer<>(TimeBean.class);
 
@@ -53,6 +54,8 @@ public class ScheduleComponent extends HorizontalLayout implements Property.Valu
 
 	private Layout periodLayout;
 
+	private Layout deactivateSynchroLayout;
+
 	public ScheduleComponent(final List<String> timeList, final Duration period) {
 		setSizeFull();
 		addStyleName(ValoTheme.PANEL_BORDERLESS);
@@ -65,15 +68,20 @@ public class ScheduleComponent extends HorizontalLayout implements Property.Valu
 		periodLayout = buildPeriodComponent(period);
 		addComponent(periodLayout);
 
+		deactivateSynchroLayout = buildDeactivateSchedule(period);
+		addComponent(deactivateSynchroLayout);
+
 		if (CollectionUtils.isEmpty(timeList)) {
-			scheduleOptions.unselect(options.get(0));
+			scheduleOptions.select(options.get(2));
 			scheduleTimeLayout.setVisible(false);
+			periodLayout.setVisible(false);
 		} else {
 			scheduleOptions.select(options.get(0));
 		}
 
 		if (period == null) {
-			scheduleOptions.unselect(options.get(1));
+			scheduleOptions.select(options.get(2));
+			scheduleTimeLayout.setVisible(false);
 			periodLayout.setVisible(false);
 		} else {
 			scheduleOptions.select(options.get(1));
@@ -174,7 +182,7 @@ public class ScheduleComponent extends HorizontalLayout implements Property.Valu
 		}
 	}
 
-	private Layout buildPeriodComponent(final Duration peroid) {
+	private Layout buildPeriodComponent(final Duration period) {
 		final Layout horizontalLayout = new HorizontalLayout();
 
 		daysComponent = new TextField($("days"));
@@ -189,7 +197,18 @@ public class ScheduleComponent extends HorizontalLayout implements Property.Valu
 		//minComponent.addValidator(new IntegerRangeValidator($("com.vaadin.data.validator.IntegerRangeValidator"), 0, 59));
 		horizontalLayout.addComponent(minComponent);
 
-		setPeriod(peroid);
+		setPeriod(period);
+
+		return horizontalLayout;
+	}
+
+	private Layout buildDeactivateSchedule(final Duration period) {
+		final Layout horizontalLayout = new HorizontalLayout();
+		Label blankLabel = new Label("");
+		blankLabel.setHeight("1em");
+		horizontalLayout.addComponent(blankLabel);
+
+		setPeriod(period);
 
 		return horizontalLayout;
 	}
@@ -211,15 +230,24 @@ public class ScheduleComponent extends HorizontalLayout implements Property.Valu
 	@Override
 	public void valueChange(Property.ValueChangeEvent event) {
 		if (options.get(0).equals(event.getProperty().getValue())) {
+			deactivateSynchroLayout.setVisible(false);
 			scheduleTimeLayout.setVisible(true);
 
 			periodLayout.setVisible(false);
 			setPeriod(null);
-		} else {
+		} else if (options.get(1).equals(event.getProperty().getValue())) {
+			deactivateSynchroLayout.setVisible(false);
 			scheduleTimeLayout.setVisible(false);
 			setTimeList(null);
 
 			periodLayout.setVisible(true);
+		} else {
+			scheduleTimeLayout.setVisible(false);
+			periodLayout.setVisible(false);
+			setTimeList(null);
+			setPeriod(null);
+
+			deactivateSynchroLayout.setVisible(true);
 		}
 	}
 

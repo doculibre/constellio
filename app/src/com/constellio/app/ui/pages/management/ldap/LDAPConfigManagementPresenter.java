@@ -166,8 +166,7 @@ public class LDAPConfigManagementPresenter extends
 
 	public boolean isForceSynchVisible() {
 		return !modelLayerFactory.getLdapUserSyncManager().isSynchronizing() && getLDAPServerConfiguration()
-				.getLdapAuthenticationActive()
-			   && getLDAPUserSyncConfiguration().getDurationBetweenExecution() != null || CollectionUtils.isNotEmpty(getLDAPUserSyncConfiguration().getScheduleTime());
+				.getLdapAuthenticationActive();
 	}
 
 	public LDAPConfigManagementPresenter setLDAPActive(boolean active) {
