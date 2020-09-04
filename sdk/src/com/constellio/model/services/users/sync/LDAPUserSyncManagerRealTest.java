@@ -1250,6 +1250,46 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void whenUserAzureHasDifferentUsernameButSameDNThenUpdateUserInsteadOfCreateActivateAndDoNotChangeUsername() {
+
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		LDAPGroup caballeros = caballeros();
+		LDAPGroup pilotes = pilotes();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(chuck().addGroup(pilotes))
+				.add(caballeros, pilotes)
+				.build());
+		sync();
+
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(falseNicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(chuck().addGroup(pilotes))
+				.add(caballeros, pilotes)
+				.build());
+
+		sync();
+
+		//userCredential is to ldap
+		User nicolasSync = user("nicolas", businessCollection);
+		UserCredential userCredentialLocalUser = user("nicolas");
+
+		assertThat(userCredentialLocalUser.getDn()).isEqualTo("2143e922-0361-45a2-bc9a-7fd426c5e5bd");
+		assertThat(userCredentialLocalUser.getFirstName()).isEqualTo("Nicodas");
+		assertThat(nicolasSync.getLastName()).isEqualTo("Bégin");
+		assertThat(nicolasSync.getEmail()).isEqualTo("falsenicolas@doculibre.ca");
+
+	}
 	// ----- Utility methods
 
 	private void saveValidLDAPConfigWithEntrepriseCollectionSelected() {
@@ -1290,7 +1330,12 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 	private LDAPUser nicolas() {
 		return new LDAPUser().setEmail("nicolas@doculibre.ca").setFamilyName("Belisle")
-				.setName("Nicolas").setGivenName("Nicolas");
+				.setName("Nicolas").setGivenName("Nicolas").setId("2143e922-0361-45a2-bc9a-7fd426c5e5bd");
+	}
+
+	private LDAPUser falseNicolas() {
+		return new LDAPUser().setEmail("falsenicolas@doculibre.ca").setFamilyName("Bégin")
+				.setName("falseNicolas").setGivenName("Nicodas").setId("2143e922-0361-45a2-bc9a-7fd426c5e5bd");
 	}
 
 	private LDAPUser nicolas2() {

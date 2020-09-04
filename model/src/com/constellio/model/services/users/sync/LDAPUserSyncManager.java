@@ -292,7 +292,12 @@ public class LDAPUserSyncManager implements StatefulService {
 						userCredentialByDn = userServices.getUserCredentialByDN(ldapUser.getId());
 					} catch (UserServicesRuntimeException_NoSuchUser noSuchUser) {
 						previousUserCredential = userServices.getUserCredentialByDN(ldapUser.getId());
+						if(previousUserCredential != null  && !previousUserCredential.getUsername().equals(request.getUsername())){ //azure problem with changing username
+							ldapUser.setName(previousUserCredential.getUsername());
+							request = createUserCredentialsFromLdapUser(ldapUser, selectedCollectionsCodes);
+						}
 					}
+
 					if (previousUserCredential != null && userCredentialByDn != null
 						&& !previousUserCredential.getId().equals(userCredentialByDn.getId())) {
 						LOGGER.info("Two users with same DN but different username. Id: " + ldapUser.getId() + ", Usernames : " + previousUserCredential.getUsername() + " and " + userCredentialByDn.getUsername());
