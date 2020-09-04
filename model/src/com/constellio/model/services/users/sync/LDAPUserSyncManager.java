@@ -252,8 +252,8 @@ public class LDAPUserSyncManager implements StatefulService {
 		for (LDAPGroup ldapGroup : ldapGroups) {
 			if (parentRelationships.containsKey(ldapGroup.getDistinguishedName())
 				&& parentRelationships.get(ldapGroup.getDistinguishedName()) != null) {
-				GroupAddUpdateRequest group = userServices.request(ldapGroup.getDistinguishedName());
-				group.setParent(parentRelationships.get(ldapGroup.getDistinguishedName()));
+				GroupAddUpdateRequest group = userServices.request(ldapGroup.getDistinguishedName())
+						.ldapSyncRequest().setParent(parentRelationships.get(ldapGroup.getDistinguishedName()));
 				try {
 					userServices.execute(group);
 				} catch (Throwable e) {
