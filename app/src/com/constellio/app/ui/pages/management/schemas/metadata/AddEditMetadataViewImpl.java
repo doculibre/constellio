@@ -274,7 +274,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			this.setValueFields(value);
 		}
 
-		updateFields(formMetadataVO.getDataEntryType() == DataEntryType.MANUAL);
+		updateFields(formMetadataVO.getDataEntryType());
 	}
 
 	private void enableCorrectFields(MetadataValueType value, boolean inherited, boolean editMode, Boolean multivalue) {
@@ -375,7 +375,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 	private void dataEntryTypeChanged(DataEntryType type) {
 		if (type == DataEntryType.COPIED) {
-			updateFields(false);
+			updateFields(type);
 			dataEntryRef.select(null);
 			dataEntrySource.select(null);
 			dataEntrySource.setEnabled(false);
@@ -383,7 +383,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			valueType.addItem(MetadataValueType.ENUM);
 			valueType.setItemCaption(MetadataValueType.ENUM, $("ENUM"));
 		} else {
-			updateFields(true);
+			updateFields(type);
 
 			valueType.removeItem(MetadataValueType.ENUM);
 		}
@@ -416,25 +416,27 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				if (!multivalueType.isReadOnly()) {
 					multivalueType.setValue(source.isMultivalue());
 				}
-				updateFields(false);
+				updateFields(formMetadataVO.getDataEntryType());
 			}
 		}
 	}
 
-	private void updateFields(boolean isManualMode) {
-		dataEntryRef.setVisible(!isManualMode);
-		dataEntryRef.setRequired(!isManualMode);
-		dataEntrySource.setVisible(!isManualMode);
-		dataEntrySource.setRequired(!isManualMode);
+	private void updateFields(DataEntryType entryType) {
+		final boolean isCopied = entryType == DataEntryType.COPIED;
 
-		valueType.setEnabled(isManualMode);
-		multivalueType.setEnabled(isManualMode);
-		inputType.setEnabled(isManualMode);
-		inputMask.setEnabled(isManualMode);
-		refType.setEnabled(isManualMode);
-		requiredField.setEnabled(isManualMode);
-		defaultValueField.setEnabled(isManualMode);
-		displayType.setEnabled(isManualMode);
+		dataEntryRef.setVisible(isCopied);
+		dataEntryRef.setRequired(isCopied);
+		dataEntrySource.setVisible(isCopied);
+		dataEntrySource.setRequired(isCopied);
+
+		valueType.setEnabled(valueType.isEnabled() && !isCopied);
+		multivalueType.setEnabled(multivalueType.isEnabled() && !isCopied);
+		inputType.setEnabled(inputType.isEnabled() && !isCopied);
+		inputMask.setEnabled(inputMask.isEnabled() && !isCopied);
+		refType.setEnabled(refType.isEnabled() && !isCopied);
+		requiredField.setEnabled(requiredField.isEnabled() && !isCopied);
+		defaultValueField.setEnabled(defaultValueField.isEnabled() && !isCopied);
+		displayType.setEnabled(displayType.isEnabled() && !isCopied);
 	}
 
 	private MetadataForm newForm(final boolean editMode, final boolean inherited) {
@@ -478,6 +480,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			}
 		});
 		dataEntryGroup.setReadOnly(editMode);
+		dataEntryGroup.setVisible(!editMode);
 
 		dataEntryRef = new ComboBox();
 		dataEntryRef.setCaption($("AddEditMetadataView.dataEntryRef"));
