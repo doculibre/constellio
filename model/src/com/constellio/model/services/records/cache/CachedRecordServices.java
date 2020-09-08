@@ -38,12 +38,17 @@ import java.util.stream.Stream;
 
 import static com.constellio.data.dao.services.records.DataStore.RECORDS;
 import static com.constellio.model.services.records.GetRecordOptions.DO_NOT_CALL_EXTENSIONS;
+import static com.constellio.model.services.records.GetRecordOptions.EXPECTING_VERSION_HIGHER_OR_EQUAL_TO;
 import static com.constellio.model.services.records.GetRecordOptions.IN_COLLECTION;
 import static com.constellio.model.services.records.GetRecordOptions.IN_SCHEMA_TYPE;
 import static com.constellio.model.services.records.GetRecordOptions.RETURNING_SUMMARY;
 import static com.constellio.model.services.records.GetRecordOptions.USE_DATASTORE;
+import static com.constellio.model.services.records.GetRecordOptions.WARN_IF_DOES_NOT_EXIST;
 import static com.constellio.model.services.records.GetRecordOptions.getCollection;
+import static com.constellio.model.services.records.GetRecordOptions.getExpectedVersionHigherOrEqual;
 import static com.constellio.model.services.records.GetRecordOptions.getSchemaTypeCode;
+import static com.constellio.model.services.records.GetRecordOptions.isThrowingExceptionIfDoesNotExist;
+import static com.constellio.model.services.records.GetRecordOptions.isWarningIfDoesNotExist;
 import static org.apache.calcite.sql.advise.SqlAdvisor.LOGGER;
 
 public class CachedRecordServices extends BaseRecordServices implements RecordServices {
@@ -91,19 +96,51 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	public Record get(String id, GetRecordOptions... options) {
-		String dataStore = GetRecordOptions.getDataStore(options);
+
+		if (id == null) {
+			if (isThrowingExceptionIfDoesNotExist(options)) {
+				throw new RecordServicesRuntimeException.NoSuchRecordWithId(null, RECORDS, null);
+
+			} else if (isWarningIfDoesNotExist(options)) {
+				LOGGER.warn("Record with id '" + null + "' does not exist in datastore '" +  RECORDS + "'");
+			}
+			return null;
+		}
+
 		Record record = null;
-		if (RECORDS.equals(dataStore)) {
-			record = getRecordsCache().getRecord(id, getCollection(options), getSchemaTypeCode(options));
-		}
-		if (record == null) {
-			record = recordServices.get(id, options);
-		}
+			String dataStore = GetRecordOptions.getDataStore(options);
+
+			if (RECORDS.equals(dataStore)) {
+				if (GetRecordOptions.isReturningSummary(options)) {
+					record = getRecordsCache().getRecordSummary(id, getCollection(options), getSchemaTypeCode(options));
+				} else {
+					record = getRecordsCache().getRecord(id, getCollection(options), getSchemaTypeCode(options));
+				}
+			}
+
+			Long expectingVersionHigherOrEqual = getExpectedVersionHigherOrEqual(options);
+			if (record == null || (expectingVersionHigherOrEqual != null && record.getVersion() < expectingVersionHigherOrEqual)) {
+				record = recordServices.get(id, options);
+			}
+
 		return record;
 	}
 
 	public Record get(RecordId id, GetRecordOptions... options) {
+
 		String dataStore = GetRecordOptions.getDataStore(options);
+		if (id == null) {
+			if (isThrowingExceptionIfDoesNotExist(options)) {
+				throw new RecordServicesRuntimeException.NoSuchRecordWithId(null, dataStore, null);
+
+			} else if (isWarningIfDoesNotExist(options)) {
+				LOGGER.warn("Record with id '" + null + "' does not exist in datastore '" + dataStore + "'");
+			}
+			return null;
+		}
+
+
+
 		Record record = null;
 		if (RECORDS.equals(dataStore)) {
 			record = getRecordsCache().getRecord(id, getCollection(options), getSchemaTypeCode(options));
@@ -132,9 +169,9 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	public Record realtimeGetRecordById(String id, Long version, boolean callExtensions) {
 		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
 			if (callExtensions) {
-				return get(id);
+				return get(id, EXPECTING_VERSION_HIGHER_OR_EQUAL_TO(version));
 			} else {
-				return get(id, DO_NOT_CALL_EXTENSIONS);
+				return get(id, EXPECTING_VERSION_HIGHER_OR_EQUAL_TO(version), DO_NOT_CALL_EXTENSIONS);
 			}
 		}
 
@@ -150,9 +187,9 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	public Record realtimeGetById(MetadataSchemaType schemaType, String id, Long version, boolean callExtensions) {
 		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
 			if (callExtensions) {
-				return get(id, IN_SCHEMA_TYPE(schemaType));
+				return get(id, IN_SCHEMA_TYPE(schemaType), EXPECTING_VERSION_HIGHER_OR_EQUAL_TO(version));
 			} else {
-				return get(id, IN_SCHEMA_TYPE(schemaType), DO_NOT_CALL_EXTENSIONS);
+				return get(id, IN_SCHEMA_TYPE(schemaType), EXPECTING_VERSION_HIGHER_OR_EQUAL_TO(version), DO_NOT_CALL_EXTENSIONS);
 			}
 		}
 
@@ -171,9 +208,9 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	public Record realtimeGetById(String dataStore, String id, Long version, boolean callExtensions) {
 		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
 			if (callExtensions) {
-				return get(id, USE_DATASTORE(dataStore));
+				return get(id, USE_DATASTORE(dataStore), EXPECTING_VERSION_HIGHER_OR_EQUAL_TO(version));
 			} else {
-				return get(id, USE_DATASTORE(dataStore), DO_NOT_CALL_EXTENSIONS);
+				return get(id, USE_DATASTORE(dataStore), EXPECTING_VERSION_HIGHER_OR_EQUAL_TO(version), DO_NOT_CALL_EXTENSIONS);
 			}
 		}
 		Record record = getRecordsCache().getRecord(id);
@@ -248,9 +285,9 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
 			if (callExtensions) {
-				return get(ids, IN_COLLECTION(collection));
+				return get(ids, IN_COLLECTION(collection), WARN_IF_DOES_NOT_EXIST);
 			} else {
-				return get(ids, IN_COLLECTION(collection), DO_NOT_CALL_EXTENSIONS);
+				return get(ids, IN_COLLECTION(collection), WARN_IF_DOES_NOT_EXIST, DO_NOT_CALL_EXTENSIONS);
 			}
 		}
 
@@ -275,7 +312,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public <T extends Supplier<Record>> void refresh(List<T> records) {
+	public <T extends Supplier<Record>> void refresh(List < T > records) {
 		recordServices.refresh(records);
 	}
 

@@ -1,6 +1,7 @@
 package com.constellio.sdk.tests;
 
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.extensions.AfterGetByIdParams;
 import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
 
@@ -47,6 +48,14 @@ public class QueryCounter extends BigVaultServerExtension {
 		if (!isAlwaysExcludedQueryName(params.getQueryName()) && filter.apply(params)) {
 			queryCounter.incrementAndGet();
 			returnedResultsCounter.addAndGet(params.getReturnedResultsCount());
+		}
+	}
+
+	@Override
+	public void afterRealtimeGetById(AfterGetByIdParams params) {
+		queryCounter.incrementAndGet();
+		if (params.found()) {
+			returnedResultsCounter.addAndGet(1);
 		}
 	}
 

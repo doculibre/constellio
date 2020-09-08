@@ -80,7 +80,6 @@ import com.constellio.model.entities.records.wrappers.structure.ExternalAccessUr
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.structures.EmailAddress;
@@ -99,8 +98,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.security.AuthorizationsServices;
-import com.google.common.base.Strings;
-import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.shared.ui.MarginInfo;
@@ -115,7 +112,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -835,9 +831,7 @@ public class DocumentMenuItemActionBehaviors {
 
 		recordServices.execute(transaction);
 
-		if (StringUtil.isNotBlank(externalUserEmail)) {
-			sendExternalAccessMail(user, accessUrl, language, 1);
-		}
+		sendExternalAccessMail(user, accessUrl, language, 1);
 
 		return getUrlFromExternalAccess(accessUrl, language);
 	}

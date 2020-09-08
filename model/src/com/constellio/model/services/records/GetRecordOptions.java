@@ -48,6 +48,10 @@ public class GetRecordOptions {
 		return new SchemaTypeRecordServicesGetOptions(10, schemaType);
 	}
 
+	public static GetRecordOptions EXPECTING_VERSION_HIGHER_OR_EQUAL_TO(Long version) {
+		return new ExpectingVersionHigherOrEqualRecordServicesGetOptions(11, version);
+	}
+
 	public static class DataStoreRecordServicesGetOptions extends GetRecordOptions {
 		String dataStore;
 
@@ -120,6 +124,18 @@ public class GetRecordOptions {
 
 	public static boolean isRealtimeGet(GetRecordOptions... options) {
 		return options == null || Arrays.stream(options).noneMatch((o) -> o == GET_BY_QUERY);
+	}
+
+	public static Long getExpectedVersionHigherOrEqual(GetRecordOptions... options) {
+		Long version = null;
+		if (options != null) {
+			for (GetRecordOptions option : options) {
+				if (option instanceof ExpectingVersionHigherOrEqualRecordServicesGetOptions) {
+					version = ((ExpectingVersionHigherOrEqualRecordServicesGetOptions) option).version;
+				}
+			}
+		}
+		return version;
 	}
 
 	public static String getCollection(GetRecordOptions... options) {
@@ -196,5 +212,15 @@ public class GetRecordOptions {
 		}
 		return dataStore;
 	}
+
+	public static class ExpectingVersionHigherOrEqualRecordServicesGetOptions extends GetRecordOptions {
+		Long version;
+
+		private ExpectingVersionHigherOrEqualRecordServicesGetOptions(int value, Long version) {
+			super(value);
+			this.version = version;
+		}
+	}
+
 
 }

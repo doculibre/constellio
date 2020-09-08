@@ -1,10 +1,12 @@
 package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
+import com.constellio.data.extensions.AfterGetByIdParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import org.apache.solr.common.params.SolrParams;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class StatsBigVaultServerExtension extends BigVaultServerExtension {
@@ -28,6 +30,28 @@ public class StatsBigVaultServerExtension extends BigVaultServerExtension {
 			byIds.add(filterQueries[0].replace(GET_BY_ID_PREFIX, ""));
 		}
 		queries.add(solrParams);
+	}
+
+	@Override
+	public void afterRealtimeGetById(AfterGetByIdParams solrParams) {
+		byIds.add(solrParams.getId());
+		// FIXME create better solrParams ?
+		queries.add(new SolrParams() {
+			@Override
+			public String get(String param) {
+				return null;
+			}
+
+			@Override
+			public String[] getParams(String param) {
+				return new String[0];
+			}
+
+			@Override
+			public Iterator<String> getParameterNamesIterator() {
+				return null;
+			}
+		});
 	}
 
 	public void clear() {

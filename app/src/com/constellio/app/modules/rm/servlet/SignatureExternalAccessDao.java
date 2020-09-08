@@ -132,8 +132,8 @@ public class SignatureExternalAccessDao {
 		return pdfJSServices.getExternalViewerUrl(recordToAccess, metadata, user, locale, null, null, true);
 	}
 
-	public String createExternalSignatureUrl(String username, String documentId, String externalUserFullname,
-											 String externalUserEmail, String expirationDate, String language)
+	public void createExternalSignatureUrl(String username, String documentId, String externalUserFullname,
+										   String externalUserEmail, String expirationDate, String language)
 			throws SignatureExternalAccessServiceException {
 
 		if (StringUtils.isBlank(documentId)) {
@@ -178,10 +178,9 @@ public class SignatureExternalAccessDao {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, MISSING_EXTERNAL_USER_FULLNAME_PARAM);
 		}
 
-		// TODO --> Enable this validation when Teams will be ready to send external user email.
-		/*if (StringUtils.isBlank(externalUserEmail)) {
+		if (StringUtils.isBlank(externalUserEmail)) {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, MISSING_EXTERNAL_USER_EMAIL_PARAM);
-		}*/
+		}
 
 		if (StringUtils.isBlank(expirationDate)) {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, MISSING_DATE_PARAM);
@@ -199,7 +198,7 @@ public class SignatureExternalAccessDao {
 		}
 
 		try {
-			return documentMenuItemActionBehaviors.createExternalSignatureUrl(documentId, externalUserFullname,
+			documentMenuItemActionBehaviors.createExternalSignatureUrl(documentId, externalUserFullname,
 					externalUserEmail, convertedDate, language, user);
 		} catch (RecordServicesException e) {
 			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_BAD_REQUEST, CANNOT_SAVE_RECORD);

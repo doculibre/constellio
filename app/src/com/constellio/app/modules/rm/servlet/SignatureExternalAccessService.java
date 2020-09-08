@@ -46,15 +46,15 @@ public class SignatureExternalAccessService {
 		return dao.accessExternalSignature(accessId, token, language, ipAddress);
 	}
 
-	public String createExternalSignatureUrl(String authorization, String serviceKey, String documentId,
-											 String externalUserFullname, String externalUserEmail,
-											 String expirationDate, String language)
+	public void createExternalSignatureUrl(String authorization, String serviceKey, String documentId,
+										   String externalUserFullname, String externalUserEmail,
+										   String expirationDate, String language)
 			throws SignatureExternalAccessServiceException {
 
 		validateAuth(authorization, serviceKey);
 
 		SignatureExternalAccessDao dao = new SignatureExternalAccessDao(appLayerFactory);
-		return dao.createExternalSignatureUrl(getUsernameByServiceKey(serviceKey), documentId, externalUserFullname,
+		dao.createExternalSignatureUrl(getUsernameByServiceKey(serviceKey), documentId, externalUserFullname,
 				externalUserEmail, expirationDate, language);
 	}
 

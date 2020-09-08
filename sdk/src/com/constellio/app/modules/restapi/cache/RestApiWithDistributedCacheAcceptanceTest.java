@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 
+import static com.constellio.model.services.records.GetRecordOptions.GET_BY_QUERY;
 import static java.util.Arrays.asList;
 import static javax.ws.rs.client.Entity.entity;
 import static javax.ws.rs.core.MediaType.MULTIPART_FORM_DATA_TYPE;
@@ -85,7 +86,7 @@ public class RestApiWithDistributedCacheAcceptanceTest extends BaseDocumentRestf
 		recordServices2.update(recordServices2.getDocumentById(fakeDocument.getId()).set(Schemas.TITLE, "title2"));
 		waitForBatchProcess();
 
-		Record record = recordServices2.getDocumentById(fakeDocument.getId());
+		Record record = recordServices2.get(fakeDocument.getId(), GET_BY_QUERY);
 		String eTag = String.valueOf(record.getVersion());
 
 		record = recordServices.getDocumentById(fakeDocument.getId());

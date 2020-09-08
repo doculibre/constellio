@@ -20,8 +20,6 @@ import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
-import com.constellio.data.extensions.AfterQueryParams;
-import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Taxonomy;
@@ -45,6 +43,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesRuntimeException.TaxonomiesSearchServicesRuntimeException_CannotFilterNonPrincipalConceptWithWriteOrDeleteAccess;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.tests.QueryCounter;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.assertj.core.api.BooleanAssert;
@@ -61,7 +60,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
@@ -1817,20 +1815,7 @@ public class TaxonomiesSearchServices_LegacyCacheHandler_CachedLinkableTreesAcce
 
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
 
-		final AtomicInteger queryCount = new AtomicInteger();
-		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
-				.add(new BigVaultServerExtension() {
-
-					@Override
-					public void afterQuery(AfterQueryParams params) {
-
-						if (params.getQueryName() == null || !params.getQueryName().contains("*SDK*")) {
-							queryCount.incrementAndGet();
-						}
-					}
-				});
-
-
+		QueryCounter queryCount = new QueryCounter(getDataLayerFactory());
 		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryDebuggingMode(true);
 		recordServices.refresh(alice);
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X13, withWriteAccess)
@@ -1840,7 +1825,7 @@ public class TaxonomiesSearchServices_LegacyCacheHandler_CachedLinkableTreesAcce
 				.has(solrQueryCounts(2, 2, 2))
 				.has(secondSolrQueryCounts(2, 2, 2));
 		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(10000).setQueryDebuggingMode(false);
-		assertThat(queryCount.get()).isEqualTo(5);
+		assertThat(queryCount.newQueryCalls()).isEqualTo(5);
 	}
 
 	@Test

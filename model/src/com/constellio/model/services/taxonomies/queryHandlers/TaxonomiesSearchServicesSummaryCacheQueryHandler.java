@@ -215,7 +215,11 @@ public class TaxonomiesSearchServicesSummaryCacheQueryHandler
 	@NotNull
 	private LogicalSearchQuery queryReturningChildrenConcepts(MetadataSchemaType conceptSchemaType,
 															  Record nullableConcept) {
-		Metadata parentMetadata = conceptSchemaType.getAllParentReferencesTo(conceptSchemaType.getCode()).get(0);
+		List<Metadata> allParentReferencesTo = conceptSchemaType.getAllParentReferencesTo(conceptSchemaType.getCode());
+		if (allParentReferencesTo.isEmpty()) {
+			return LogicalSearchQuery.returningNoResults();
+		}
+		Metadata parentMetadata = allParentReferencesTo.get(0);
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);

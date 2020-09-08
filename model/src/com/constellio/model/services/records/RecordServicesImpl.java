@@ -861,7 +861,19 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public Record get(String id, GetRecordOptions... options) {
 
 		String dataStore = GetRecordOptions.getDataStore(options);
+
+		if (id == null) {
+			if (isThrowingExceptionIfDoesNotExist(options)) {
+				throw new RecordServicesRuntimeException.NoSuchRecordWithId(id, dataStore, null);
+
+			} else if (isWarningIfDoesNotExist(options)) {
+				LOGGER.warn("Record with id '" + id + "' does not exist in datastore '" + dataStore + "'");
+			}
+
+		}
+
 		try {
+
 			RecordDTO recordDTO;
 
 			if (GetRecordOptions.isRealtimeGet(options)) {
