@@ -12,7 +12,6 @@ import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
-import com.constellio.model.entities.enums.DecryptionVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
@@ -151,7 +150,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 					public EncryptionServices get() {
 						Key key = EncryptionKeyFactory.newApplicationKey("zePassword", "zeUltimateSalt");
 						try {
-							return new EncryptionServices(false, DecryptionVersion.VERSION2).withKey(key);
+							return new EncryptionServices(false).withKey(key);
 						} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
 							throw new RuntimeException(e);
 						}

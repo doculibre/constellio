@@ -8,7 +8,6 @@ import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConf
 import com.constellio.model.entities.enums.AutocompleteSplitCriteria;
 import com.constellio.model.entities.enums.BackgroundRecordsReindexingMode;
 import com.constellio.model.entities.enums.EmailTextFormat;
-import com.constellio.model.entities.enums.DecryptionVersion;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.enums.MemoryConsumptionLevel;
 import com.constellio.model.entities.enums.MetadataPopulatePriority;
@@ -184,7 +183,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration CALENDAR_COUNTRY;
 
 	public static final SystemConfiguration DEFAULT_TABLE_MODE;
-	public static final SystemConfiguration DECRYPTION_VERSION;
+	public static final SystemConfiguration IS_ENCRYPTION_MIGRATION_TO_UNIQUE_IV_DONE;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -371,7 +370,7 @@ public class ConstellioEIMConfigs {
 		add(SEARCH_USING_TERMS_IN_BQ = search.createBooleanTrueByDefault("searchUsingBQ").whichIsHidden());
 
 		add(DEFAULT_TABLE_MODE = others.createEnum("defaultTableMode", TableMode.class).withDefaultValue(TableMode.LIST));
-		add(DECRYPTION_VERSION = others.createEnum("decryptionVersion", DecryptionVersion.class).withDefaultValue(DecryptionVersion.VERSION1).whichIsHidden());
+		add(IS_ENCRYPTION_MIGRATION_TO_UNIQUE_IV_DONE = others.createBooleanFalseByDefault("encryptionMigrationToUniqueIVDone").whichIsHidden());
 	}
 
 	static void add(SystemConfiguration configuration) {

@@ -1,6 +1,5 @@
 package com.constellio.model.services.users;
 
-import com.constellio.model.entities.enums.DecryptionVersion;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -16,7 +15,7 @@ import static org.mockito.Mockito.when;
 public class FakeEncryptionServicesUtils extends EncryptionServices {
 	public FakeEncryptionServicesUtils()
 			throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
-		super(true, DecryptionVersion.VERSION2);
+		super(true);
 	}
 
 	@Override

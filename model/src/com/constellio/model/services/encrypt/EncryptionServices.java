@@ -2,12 +2,10 @@ package com.constellio.model.services.encrypt;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.dev.Toggle;
-import com.constellio.model.entities.enums.DecryptionVersion;
 import com.constellio.model.services.encrypt.EncryptionServicesRuntimeException.EncryptionServicesRuntimeException_InvalidKey;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -43,15 +41,10 @@ public class EncryptionServices {
 	byte[] iv = new byte[16];
 	boolean initialized = false;
 	boolean lostPreviousKey;
-	DecryptionVersion decryptionVersion;
 
-	public static EncryptionServices create(boolean lostPreviousKey, Key key, DecryptionVersion decryptionVersion) {
-		if(decryptionVersion == null) {
-			decryptionVersion = DecryptionVersion.VERSION1;
-		}
-
+	public static EncryptionServices create(boolean lostPreviousKey, Key key) {
 		try {
-			return new EncryptionServices(lostPreviousKey, decryptionVersion).withKey(key);
+			return new EncryptionServices(lostPreviousKey).withKey(key);
 		} catch (InvalidKeySpecException e) {
 			throw new EncryptionServicesRuntimeException_InvalidKey(e);
 		} catch (NoSuchAlgorithmException | IOException e) {
@@ -59,17 +52,12 @@ public class EncryptionServices {
 		}
 	}
 
-	public EncryptionServices(boolean lostPreviousKey, DecryptionVersion decryptionVersion) {
-		this.decryptionVersion = decryptionVersion;
+	public EncryptionServices(boolean lostPreviousKey) {
 		this.lostPreviousKey = lostPreviousKey;
 	}
 
 	public boolean isInitialized() {
 		return initialized;
-	}
-
-	public DecryptionVersion getDecryptionVersion() {
-		return decryptionVersion;
 	}
 
 	public EncryptionServices withKey(Key key)
@@ -241,22 +229,8 @@ public class EncryptionServices {
 		}
 	}
 
-	public Object decryptWithAppKeyVersion2(Object toDecrypt) {
-		return decryptVersion2(toDecrypt, key);
-	}
-
-	//
-	// Decrypt String or List<String>
-	//
-
 	public Object decryptWithAppKey(Object toDecrypt) {
-		if(decryptionVersion == DecryptionVersion.VERSION2) {
-			return decryptVersion2(toDecrypt, key);
-		} else if (decryptionVersion == DecryptionVersion.VERSION1) {
-			return decryptVersion1(toDecrypt);
-		}
-
-		throw new NotImplementedException();
+		return decryptVersion2(toDecrypt, key);
 	}
 
 	public Object decryptVersion2(Object toDecrypt, Object key) {

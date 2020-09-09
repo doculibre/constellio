@@ -17,7 +17,6 @@ import com.constellio.data.utils.Factory;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
-import com.constellio.model.entities.enums.DecryptionVersion;
 import com.constellio.model.entities.records.RecordEventDataSerializerExtension;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.background.ModelLayerBackgroundThreadsManager;
@@ -36,6 +35,7 @@ import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
+import com.constellio.model.services.factories.migration.SecurityMigrationService;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.logs.LogServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -236,9 +236,17 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		RecordsCachesDataStore memoryDataStore = new RecordsCachesDataStore(this);
 
+		this.emailConfigurationsManager = add(
+				new EmailConfigurationsManager(configManager, collectionsListManager, this, cacheManager));
+
+		this.recordMigrationsManager = add(new RecordMigrationsManager(this));
+
+		this.rolesManager = add(new RolesManager(this));
+
 		add(new StatefulService() {
 			@Override
 			public void initialize() {
+				new SecurityMigrationService(ModelLayerFactoryImpl.this).migrateIfRequired();
 				configureRecordsCacheHooks();
 			}
 
@@ -250,10 +258,9 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		this.recordsCaches = add(new EventsBusRecordsCachesImpl(this, fileSystemRecordsValuesCacheDataStore, memoryDataStore));
 
-		this.recordMigrationsManager = add(new RecordMigrationsManager(this));
 		this.batchProcessesController = add(
 				new BatchProcessController(this, modelLayerConfiguration.getNumberOfRecordsPerTask()));
-		this.rolesManager = add(new RolesManager(this));
+
 
 		languageDetectionManager = add(new LanguageDetectionManager(getFoldersLocator().getLanguageProfiles()));
 
@@ -269,8 +276,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 				ioServicesFactory.newHashingService(BASE64));
 		this.authenticationManager = new CombinedAuthenticationService(ldapConfigurationManager, ldapAuthenticationService,
 				passwordFileAuthenticationService, modelLayerExtensions);
-		this.emailConfigurationsManager = add(
-				new EmailConfigurationsManager(configManager, collectionsListManager, this, cacheManager));
+
 
 		this.emailTemplatesManager = add(
 				new EmailTemplatesManager(configManager, collectionsListManager, ioServicesFactory.newIOServices()));
@@ -607,11 +613,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 				this.applicationEncryptionKey = EncryptionKeyFactory.getApplicationKey(this);
 			}
 			try {
-				if(encryptionServices.getDecryptionVersion() == DecryptionVersion.VERSION2) {
-					encryptionServices.withKey(applicationEncryptionKey);
-				} else if (encryptionServices.getDecryptionVersion() == DecryptionVersion.VERSION1) {
-					encryptionServices.withKeyAndIV(applicationEncryptionKey);
-				}
+				encryptionServices.withKey(applicationEncryptionKey);
 			} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
 				throw new RuntimeException(e);
 			}
