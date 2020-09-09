@@ -5,6 +5,7 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection;
 
 public class SecurityMigrationService {
 	SystemConfigurationsManager systemConfigurationsManager;
@@ -21,6 +22,8 @@ public class SecurityMigrationService {
 			return false;
 		} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 			return true;
+		} catch (MetadataSchemasManagerRuntimeException_NoSuchCollection e) {
+			return false;
 		}
 	}
 
