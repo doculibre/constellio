@@ -2,10 +2,12 @@ package com.constellio.model.services.encrypt;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.enums.DecryptionVersion;
 import com.constellio.model.services.encrypt.EncryptionServicesRuntimeException.EncryptionServicesRuntimeException_InvalidKey;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -41,10 +43,15 @@ public class EncryptionServices {
 	byte[] iv = new byte[16];
 	boolean initialized = false;
 	boolean lostPreviousKey;
+	DecryptionVersion decryptionVersion;
 
-	public static EncryptionServices create(boolean lostPreviousKey, Key key) {
+	public static EncryptionServices create(boolean lostPreviousKey, Key key, DecryptionVersion decryptionVersion) {
+		if(decryptionVersion == null) {
+			decryptionVersion = DecryptionVersion.VERSION1;
+		}
+
 		try {
-			return new EncryptionServices(lostPreviousKey).withKey(key);
+			return new EncryptionServices(lostPreviousKey, decryptionVersion).withKey(key);
 		} catch (InvalidKeySpecException e) {
 			throw new EncryptionServicesRuntimeException_InvalidKey(e);
 		} catch (NoSuchAlgorithmException | IOException e) {
@@ -52,12 +59,17 @@ public class EncryptionServices {
 		}
 	}
 
-	public EncryptionServices(boolean lostPreviousKey) {
+	public EncryptionServices(boolean lostPreviousKey, DecryptionVersion decryptionVersion) {
+		this.decryptionVersion = decryptionVersion;
 		this.lostPreviousKey = lostPreviousKey;
 	}
 
 	public boolean isInitialized() {
 		return initialized;
+	}
+
+	public DecryptionVersion getDecryptionVersion() {
+		return decryptionVersion;
 	}
 
 	public EncryptionServices withKey(Key key)
@@ -191,20 +203,20 @@ public class EncryptionServices {
 	// Decrypt old String or List<String>
 	//
 
-	public String decryptWithOldWayAppKey(String encryptedText) {
-		return decryptWithOldWayAppKey(encryptedText, OLD_DEFAULT_ENCRYPTION_ALGORITHM);
+	public String decryptVersion1(String encryptedText) {
+		return decryptVersion1(encryptedText, OLD_DEFAULT_ENCRYPTION_ALGORITHM);
 	}
 
-	public Object decryptWithOldWayAppKey(Object encryptedText) {
+	public Object decryptVersion1(Object encryptedText) {
 		if (encryptedText instanceof String) {
-			return decryptWithOldWayAppKey((String) encryptedText);
+			return decryptVersion1((String) encryptedText);
 
 		} else if (encryptedText instanceof List) {
 			List<Object> list = (List<Object>) encryptedText;
 			List<Object> decryptedValues = new ArrayList<>();
 
 			for (Object item : list) {
-				decryptedValues.add(decryptWithOldWayAppKey(item));
+				decryptedValues.add(decryptVersion1(item));
 			}
 
 			return decryptedValues;
@@ -215,7 +227,7 @@ public class EncryptionServices {
 
 	}
 
-	public String decryptWithOldWayAppKey(String encryptedBase64, String algorithm) {
+	public String decryptVersion1(String encryptedBase64, String algorithm) {
 		try {
 			Cipher cipher = Cipher.getInstance(algorithm);
 			cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
@@ -229,15 +241,25 @@ public class EncryptionServices {
 		}
 	}
 
+	public Object decryptWithAppKeyVersion2(Object toDecrypt) {
+		return decryptVersion2(toDecrypt, key);
+	}
+
 	//
 	// Decrypt String or List<String>
 	//
 
 	public Object decryptWithAppKey(Object toDecrypt) {
-		return decrypt(toDecrypt, key);
+		if(decryptionVersion == DecryptionVersion.VERSION2) {
+			return decryptVersion2(toDecrypt, key);
+		} else if (decryptionVersion == DecryptionVersion.VERSION1) {
+			return decryptVersion1(toDecrypt);
+		}
+
+		throw new NotImplementedException();
 	}
 
-	public Object decrypt(Object toDecrypt, Object key) {
+	public Object decryptVersion2(Object toDecrypt, Object key) {
 		if (toDecrypt == null) {
 			return null;
 		}
@@ -246,20 +268,20 @@ public class EncryptionServices {
 			List<Object> list = (List<Object>) toDecrypt;
 			List<Object> decryptedValues = new ArrayList<>();
 			for (Object item : list) {
-				decryptedValues.add(decrypt(item, key));
+				decryptedValues.add(decryptVersion2(item, key));
 			}
 			return decryptedValues;
 		} else if (toDecrypt instanceof String) {
 			if(toDecrypt.equals("")) {
 				return "";
 			}
-			return decrypt((String) toDecrypt, key);
+			return decryptVersion2((String) toDecrypt, key);
 		}
 
 		throw new IllegalArgumentException("Unsupported element of class '" + toDecrypt.getClass().getName() + "'");
 	}
 
-	private String decrypt(String toDecrypt, Object key) {
+	private String decryptVersion2(String toDecrypt, Object key) {
 		try {
 			byte[] iv = new byte[16];
 			System.arraycopy(toDecrypt.getBytes(), 0, iv, 0, iv.length);
@@ -283,10 +305,10 @@ public class EncryptionServices {
 	//
 
 	public File decryptWithAppKey(File toDecrypt, File decryptedFile) {
-		return decrypt(toDecrypt, decryptedFile, key);
+		return decryptVersion2(toDecrypt, decryptedFile, key);
 	}
 
-	public File decrypt(File toDecrypt, File decryptedFile, Object key) {
+	public File decryptVersion2(File toDecrypt, File decryptedFile, Object key) {
 		if (toDecrypt == null) {
 			return null;
 		}

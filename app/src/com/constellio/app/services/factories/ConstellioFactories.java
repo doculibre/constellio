@@ -14,9 +14,11 @@ import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.data.utils.TenantUtils;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration;
+import com.constellio.model.entities.enums.DecryptionVersion;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerFactoryImpl;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -154,7 +156,13 @@ public class ConstellioFactories {
 						defaultFileSystemBaseFolder, propertyFile));
 		this.modelLayerConfiguration = decorator
 				.decorateModelLayerConfiguration(
-						new PropertiesModelLayerConfiguration(configs, dataLayerConfiguration, foldersLocator, propertyFile));
+						new PropertiesModelLayerConfiguration(configs, dataLayerConfiguration, foldersLocator, propertyFile, new Supplier<DecryptionVersion>() {
+							@Override
+							public DecryptionVersion get() {
+
+								return getModelLayerFactory().getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DECRYPTION_VERSION);
+							}
+						}));
 		this.appLayerConfiguration = decorator
 				.decorateAppLayerConfiguration(
 						new PropertiesAppLayerConfiguration(configs, modelLayerConfiguration, foldersLocator, propertyFile));

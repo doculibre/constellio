@@ -114,7 +114,7 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 		assertThat(encrypted).isNotEqualTo(original);
 
 		try {
-			String decrypted = (String) encryptionService.decrypt(encrypted, encryptionService.generateAESKey());
+			String decrypted = (String) encryptionService.decryptVersion2(encrypted, encryptionService.generateAESKey());
 			assertThat(decrypted).isNotEqualTo(original);
 		} catch (Exception ignored) {
 		}
@@ -128,7 +128,7 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 		assertThat(getFileChecksum(encrypted)).isNotEqualTo(getFileChecksum(original));
 
 		try {
-			File decrypted = encryptionService.decrypt(encrypted, new File(tempFolder.getPath() + "\\decrypted.txt"), encryptionService.generateAESKey());
+			File decrypted = encryptionService.decryptVersion2(encrypted, new File(tempFolder.getPath() + "\\decrypted.txt"), encryptionService.generateAESKey());
 			assertThat(getFileChecksum(decrypted)).isNotEqualTo(getFileChecksum(original));
 		} catch (Exception ignored) {
 		}
@@ -174,7 +174,7 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 		String encrypted = (String) encryptionService.encrypt(original, key);
 		assertThat(encrypted).isNotEqualTo(original);
 
-		String decrypted = (String) encryptionService.decrypt(encrypted, key);
+		String decrypted = (String) encryptionService.decryptVersion2(encrypted, key);
 		assertThat(decrypted).isEqualTo(original);
 	}
 
@@ -189,7 +189,7 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 		List<String> encrypted = (List<String>) encryptionService.encrypt(original, key);
 		assertThat(encrypted).isNotEqualTo(original);
 
-		List<String> decrypted = (List<String>) encryptionService.decrypt(encrypted, key);
+		List<String> decrypted = (List<String>) encryptionService.decryptVersion2(encrypted, key);
 		assertThat(decrypted).isEqualTo(original);
 	}
 
@@ -201,7 +201,7 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 		File encrypted = encryptionService.encrypt(original, new File(tempFolder.getPath() + "\\encrypted.txt"), key);
 		assertThat(getFileChecksum(encrypted)).isNotEqualTo(getFileChecksum(original));
 
-		File decrypted = encryptionService.decrypt(encrypted, new File(tempFolder.getPath() + "\\decrypted.txt"), key);
+		File decrypted = encryptionService.decryptVersion2(encrypted, new File(tempFolder.getPath() + "\\decrypted.txt"), key);
 		assertThat(getFileChecksum(decrypted)).isEqualTo(getFileChecksum(original));
 	}
 
@@ -247,7 +247,7 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 	public void whenDecryptingNullContentWithAES() {
 		Key key = encryptionService.generateAESKey();
 
-		Object decrypted = encryptionService.decrypt(null, key);
+		Object decrypted = encryptionService.decryptVersion2(null, key);
 		assertThat(decrypted).isNull();
 	}
 
@@ -255,7 +255,7 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 	public void whenDecryptingNullContentAsFileWithAES() {
 		Key key = encryptionService.generateAESKey();
 
-		Object decrypted = encryptionService.decrypt(null, null, key);
+		Object decrypted = encryptionService.decryptVersion2(null, null, key);
 		assertThat(decrypted).isNull();
 	}
 
@@ -264,7 +264,7 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 		String original = " www.java2s.com ";
 
 		try {
-			encryptionService.decrypt(original, null);
+			encryptionService.decryptVersion2(original, null);
 			fail("whenDecryptingWithAESWithNullKey should throw an exception");
 		} catch (Exception ignored) {
 		}
@@ -275,7 +275,7 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 		File original = getTestResourceFile("textFile.txt");
 
 		try {
-			encryptionService.decrypt(original, null, null);
+			encryptionService.decryptVersion2(original, null, null);
 			fail("whenDecryptingFileWithAESWithNullKey should throw an exception");
 		} catch (Exception ignored) {
 		}
@@ -289,7 +289,7 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 		assertThat(encrypted).isNotEqualTo(original);
 
 		try {
-			String decrypted = (String) encryptionService.decrypt(encrypted, encryptionService.generateAESKey());
+			String decrypted = (String) encryptionService.decryptVersion2(encrypted, encryptionService.generateAESKey());
 			assertThat(decrypted).isNotEqualTo(original);
 		} catch (Exception ignored) {
 		}
@@ -303,7 +303,7 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 		assertThat(getFileChecksum(encrypted)).isNotEqualTo(getFileChecksum(original));
 
 		try {
-			File decrypted = encryptionService.decrypt(encrypted, new File(tempFolder.getPath() + "\\decrypted.txt"), encryptionService.generateAESKey());
+			File decrypted = encryptionService.decryptVersion2(encrypted, new File(tempFolder.getPath() + "\\decrypted.txt"), encryptionService.generateAESKey());
 			assertThat(getFileChecksum(decrypted)).isNotEqualTo(getFileChecksum(original));
 		} catch (Exception ignored) {
 		}

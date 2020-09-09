@@ -200,6 +200,13 @@ public class MigrationServices {
 			throws ConstellioModulesManagerException_ModuleInstallationFailed, OptimisticLockingConfiguration {
 
 		List<String> collections = modelLayerFactory.getCollectionsListManager().getCollections();
+		if(collections.contains(SYSTEM_COLLECTION)) {
+			collections = new ArrayList<>(collections);
+			collections.remove(SYSTEM_COLLECTION);
+			collections.add(0, SYSTEM_COLLECTION);
+		}
+
+
 		for (String collection : collections) {
 			migrate(collection, toVersion, newModule);
 		}

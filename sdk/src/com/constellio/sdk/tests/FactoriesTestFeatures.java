@@ -29,6 +29,7 @@ import com.constellio.data.services.tenant.TenantService;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TenantUtils;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
+import com.constellio.model.entities.enums.DecryptionVersion;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -418,7 +419,7 @@ public class FactoriesTestFeatures {
 								@Override
 								public EncryptionServices get() {
 									try {
-										return new EncryptionServices(false).withKey(key);
+										return new EncryptionServices(false, DecryptionVersion.VERSION2).withKey(key);
 									} catch (Exception e) {
 										throw new RuntimeException(e);
 									}

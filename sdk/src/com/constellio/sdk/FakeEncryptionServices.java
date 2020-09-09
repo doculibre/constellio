@@ -1,5 +1,6 @@
 package com.constellio.sdk;
 
+import com.constellio.model.entities.enums.DecryptionVersion;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 
@@ -17,7 +18,7 @@ import static java.util.stream.Collectors.toList;
 public class FakeEncryptionServices extends EncryptionServices {
 
 	public FakeEncryptionServices() {
-		super(true);
+		super(true, DecryptionVersion.VERSION2);
 		try {
 			withKey(EncryptionKeyFactory.newApplicationKey("test", "test"));
 		} catch (NoSuchAlgorithmException e) {

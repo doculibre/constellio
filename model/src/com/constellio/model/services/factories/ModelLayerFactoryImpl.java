@@ -17,6 +17,7 @@ import com.constellio.data.utils.Factory;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
+import com.constellio.model.entities.enums.DecryptionVersion;
 import com.constellio.model.entities.records.RecordEventDataSerializerExtension;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.background.ModelLayerBackgroundThreadsManager;
@@ -606,7 +607,11 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 				this.applicationEncryptionKey = EncryptionKeyFactory.getApplicationKey(this);
 			}
 			try {
-				encryptionServices.withKey(applicationEncryptionKey);
+				if(encryptionServices.getDecryptionVersion() == DecryptionVersion.VERSION2) {
+					encryptionServices.withKey(applicationEncryptionKey);
+				} else if (encryptionServices.getDecryptionVersion() == DecryptionVersion.VERSION1) {
+					encryptionServices.withKeyAndIV(applicationEncryptionKey);
+				}
 			} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
 				throw new RuntimeException(e);
 			}

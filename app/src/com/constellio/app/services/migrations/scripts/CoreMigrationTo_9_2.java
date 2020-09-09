@@ -21,6 +21,7 @@ import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.conf.email.EmailServerConfiguration;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.constellio.model.entities.enums.DecryptionVersion;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Record.GetMetadataOption;
@@ -41,9 +42,11 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserSyncMode;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
@@ -94,9 +97,23 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory) throws Exception {
+		SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager();
 
-		migrate_1(collection, migrationResourcesProvider, appLayerFactory);
-		migrate_2(collection, migrationResourcesProvider, appLayerFactory);
+		try {
+			setDecrytionVersion(appLayerFactory.getModelLayerFactory(), systemConfigurationsManager, DecryptionVersion.VERSION1);
+			migrate_1(collection, migrationResourcesProvider, appLayerFactory);
+			migrate_2(collection, migrationResourcesProvider, appLayerFactory);
+			setDecrytionVersion(appLayerFactory.getModelLayerFactory(),systemConfigurationsManager, DecryptionVersion.VERSION2);
+		} catch (Exception e) {
+			setDecrytionVersion(appLayerFactory.getModelLayerFactory(),systemConfigurationsManager, DecryptionVersion.VERSION1);
+			throw e;
+		}
+	}
+
+	private void setDecrytionVersion(ModelLayerFactory modelLayerFactory, SystemConfigurationsManager systemConfigurationsManager,
+									 DecryptionVersion version1) {
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.DECRYPTION_VERSION, version1);
+		modelLayerFactory.resetEncryptionServices();
 	}
 
 	public void migrate_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
@@ -294,8 +311,10 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 							tx.add(user);
 						}
 					}
-					tx.setSkippingRequiredValuesValidation(true);
-					recordServices.executeWithImpactHandler(tx, new UnhandledRecordModificationImpactHandler());
+					if(tx.getRecords().size() > 0) {
+						tx.setSkippingRequiredValuesValidation(true);
+						recordServices.executeWithImpactHandler(tx, new UnhandledRecordModificationImpactHandler());
+					}
 				}
 			}.execute(from(schemas.user.schemaType()).returnAll());
 		}
@@ -328,8 +347,10 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 							tx.add(group);
 						}
 					}
-					tx.setSkippingRequiredValuesValidation(true);
-					recordServices.executeWithImpactHandler(tx, new UnhandledRecordModificationImpactHandler());
+					if(tx.getRecords().size() > 0) {
+						tx.setSkippingRequiredValuesValidation(true);
+						recordServices.executeWithImpactHandler(tx, new UnhandledRecordModificationImpactHandler());
+					}
 				}
 			}.execute(from(schemas.group.schemaType()).returnAll());
 		}
@@ -540,9 +561,6 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 		}
 	}
 
-
-	// ---------
-
 	public void migrate_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						  AppLayerFactory appLayerFactory)
 			throws Exception {
@@ -553,6 +571,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 		}
 
 		new EncryptionMigration_9_2_2(collection, appLayerFactory).doMigration();
+
 	}
 
 	class SchemaAlterationFor_9_2_2 extends MetadataSchemasAlterationHelper {
@@ -603,6 +622,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 				OLD_KEY.set(encryptionKey);
 			} catch (Throwable t) {
 				t.printStackTrace();
+				throw t;
 			}
 			//			modelLayerFactory.getDataLayerFactory().saveEncryptionKey();
 			modelLayerFactory.resetEncryptionServices();
@@ -610,7 +630,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			try {
 				boolean lostPrivateKey = Toggle.LOST_PRIVATE_KEY.isEnabled() || OLD_KEY.get() == null
 										 ||  modelLayerFactory.getConfiguration().isPreviousPrivateKeyLost();
-				EncryptionServices oldEncryptionServices = new EncryptionServices(lostPrivateKey);
+				EncryptionServices oldEncryptionServices = new EncryptionServices(lostPrivateKey, DecryptionVersion.VERSION1);
 				if (!lostPrivateKey) {
 					oldEncryptionServices.withKeyAndIV(OLD_KEY.get());
 				}
@@ -623,7 +643,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 
 
 				if (password != null && !password.equals("")) {
-					password = oldEncryptionServices.decryptWithOldWayAppKey(password);
+					password = oldEncryptionServices.decryptVersion1(password);
 
 					LDAPUserSyncConfiguration newLdapUserSyncConfiguration = new LDAPUserSyncConfiguration(ldapUserSyncConfiguration.getUser(), password, ldapUserSyncConfiguration.getUserFilter(), ldapUserSyncConfiguration.getGroupFilter(), ldapUserSyncConfiguration.getDurationBetweenExecution(),
 							ldapUserSyncConfiguration.getScheduleTime(), ldapUserSyncConfiguration.getGroupBaseContextList(),
@@ -654,10 +674,9 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			EmailConfigurationsManager emailConfigurationsManager = modelLayerFactory.getEmailConfigurationsManager();
 			EmailServerConfiguration emailServerConfiguration = emailConfigurationsManager.getEmailConfiguration(this.collection, false);
 
-
 			try {
-				boolean lostPrivateKey = Toggle.LOST_PRIVATE_KEY.isEnabled() || modelLayerFactory.getConfiguration().isPreviousPrivateKeyLost();
-				EncryptionServices oldEncryptionServices = new EncryptionServices(lostPrivateKey);
+				boolean lostPrivateKey = false;
+				EncryptionServices oldEncryptionServices = new EncryptionServices(lostPrivateKey, DecryptionVersion.VERSION1);
 				if (!lostPrivateKey) {
 					oldEncryptionServices.withKeyAndIV(OLD_KEY.get());
 				}
@@ -666,7 +685,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 				if (emailServerConfiguration != null) {
 					String password = emailServerConfiguration.getPassword();
 
-					String decriptedPassword = oldEncryptionServices.decryptWithOldWayAppKey(password);
+					String decriptedPassword = oldEncryptionServices.decryptVersion1(password);
 
 					String encryptedPassword = (String) newEncryptionServices.encryptWithAppKey(decriptedPassword);
 
@@ -693,7 +712,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 							continue;
 						}
 
-						LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(LogicalSearchQueryOperators.from(metadataSchema).whereAll(metadataToReEncrypt).isNotNull());
+						LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(LogicalSearchQueryOperators.from(metadataSchema).whereAny(metadataToReEncrypt).isNotNull());
 
 						SearchServices searchServices = modelLayerFactory.newSearchServices();
 						SearchResponseIterator<Record> searchResponseIterator = searchServices.recordsIterator(logicalSearchQuery, 1000);
@@ -709,8 +728,8 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 								boolean hasModifications = false;
 								for (Metadata currentMetadata : metadataToReEncrypt) {
 									hasModifications = true;
-									Object data = currentRecord.get(currentMetadata, GetMetadataOption.NO_DECRYPTION);
-									Object decriptedData = oldEncryptionServices.decryptWithOldWayAppKey(data);
+ 									Object data = currentRecord.get(currentMetadata, GetMetadataOption.NO_DECRYPTION);
+									Object decriptedData = oldEncryptionServices.decryptVersion1(data);
 									currentRecord.set(currentMetadata, SetMetadataOption.NO_DECRYPTION, decriptedData);
 								}
 

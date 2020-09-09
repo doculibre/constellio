@@ -4,22 +4,26 @@ import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.conf.PropertiesConfiguration;
 import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.enums.DecryptionVersion;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import org.joda.time.Duration;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class PropertiesModelLayerConfiguration extends PropertiesConfiguration implements ModelLayerConfiguration {
 
 	private final DataLayerConfiguration dataLayerConfiguration;
 	private final FoldersLocator foldersLocator;
 	private boolean batchProcessesEnabled = true;
+	private final Supplier<DecryptionVersion> encryptionServicesVersionProvider;
 
 	public PropertiesModelLayerConfiguration(Map<String, String> configs, DataLayerConfiguration dataLayerConfiguration,
-											 FoldersLocator foldersLocator, File constellioProperties) {
+											 FoldersLocator foldersLocator, File constellioProperties, Supplier<DecryptionVersion> encryptionServicesVersionProvider) {
 		super(configs, constellioProperties);
+		this.encryptionServicesVersionProvider = encryptionServicesVersionProvider;
 		this.dataLayerConfiguration = dataLayerConfiguration;
 		this.foldersLocator = foldersLocator;
 	}
@@ -35,7 +39,7 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 
 		public InMemoryModelLayerConfiguration(PropertiesModelLayerConfiguration nested) {
 			super(new HashMap<String, String>(nested.configs), nested.dataLayerConfiguration, nested.foldersLocator,
-					new File(""));
+					new File(""), nested.encryptionServicesVersionProvider);
 		}
 
 		@Override
@@ -265,7 +269,7 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 		return new Factory<EncryptionServices>() {
 			@Override
 			public EncryptionServices get() {
-				return new EncryptionServices(isPreviousPrivateKeyLost());
+				return new EncryptionServices(isPreviousPrivateKeyLost(), encryptionServicesVersionProvider.get());
 			}
 		};
 	}

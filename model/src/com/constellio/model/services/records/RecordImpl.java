@@ -229,7 +229,7 @@ public class RecordImpl implements Record {
 			getMetadataOption = NO_DECRYPTION;
 		}
 
-		get(metadata, getMetadataOption);
+ 		get(metadata, getMetadataOption);
 		validateMetadata(metadata);
 		if (!metadata.isMultivalue()) {
 			validateScalarValue(metadata, value);
@@ -249,7 +249,7 @@ public class RecordImpl implements Record {
 				convertedRecord = EnumWithSmallCodeUtils.toSmallCode((Enum<?>) value);
 			}
 
-		} else if (value instanceof List) {
+ 		} else if (value instanceof List) {
 			List<Object> convertedRecordList = new ArrayList<>();
 			for (Object item : (List) value) {
 				if (item instanceof Record) {
