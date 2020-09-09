@@ -31,7 +31,6 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
@@ -137,7 +136,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 
 		for (int i = 0; i < usersToEvaluate.size(); i++) {
 			User userToEvaluate = usersToEvaluate.get(i);
-			if(!userToEvaluate.getUsername().equals("admin")) {
+			if (!userToEvaluate.getUsername().equals("admin")) {
 
 				if (!userServices.hasUsedSystem(userToEvaluate)) {
 					userIdsToDelete.add(userToEvaluate.getWrappedRecord().getRecordDTO());
@@ -149,13 +148,13 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 			}
 		}
 
-		LOGGER.info("Deleting " + userIdsToDelete.size() +" users to delete in collection '" + collection + "'");
+		LOGGER.info("Deleting " + userIdsToDelete.size() + " users to delete in collection '" + collection + "'");
 		try {
 			appLayerFactory.getModelLayerFactory().getDataLayerFactory().newRecordDao().execute(
 					new TransactionDTO(RecordsFlushing.NOW()).withDeletedRecords(userIdsToDelete));
 
 		} catch (OptimisticLocking e) {
-			LOGGER.warn("Problem while deleting unused user, just cancelling",e);
+			LOGGER.warn("Problem while deleting unused user, just cancelling", e);
 		}
 
 		appLayerFactory.getModelLayerFactory().getRecordsCaches().getCache(collection)
@@ -286,7 +285,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 							tx.add(user);
 						}
 					}
-					if(tx.getRecords().size() > 0) {
+					if (tx.getRecords().size() > 0) {
 						tx.setSkippingRequiredValuesValidation(true);
 						recordServices.executeWithImpactHandler(tx, new UnhandledRecordModificationImpactHandler());
 					}
@@ -322,7 +321,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 							tx.add(group);
 						}
 					}
-					if(tx.getRecords().size() > 0) {
+					if (tx.getRecords().size() > 0) {
 						tx.setSkippingRequiredValuesValidation(true);
 						recordServices.executeWithImpactHandler(tx, new UnhandledRecordModificationImpactHandler());
 					}
@@ -382,46 +381,45 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 	}
 
 	private void physicallyRemoveGlobalGroup(ModelLayerFactory modelLayerFactory) throws Exception {
-//		RecordDeleteServices recordServices = new RecordDeleteServices(modelLayerFactory);
-//		SearchServices searchServices = modelLayerFactory.newSearchServices();
-//		SchemasRecordsServices systemSchemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
-//
-//		new ActionExecutorInBatch(searchServices, "Removing global groups", 250) {
-//			@Override
-//			public void doActionOnBatch(List<Record> records)
-//					throws Exception {
-//				for (Record record : records) {
-//					GlobalGroup globalGroup = systemSchemas.wrapOldGlobalGroup(record);
-//					recordServices.physicallyDeleteNoMatterTheStatus(globalGroup, User.GOD, new RecordPhysicalDeleteOptions());
-//				}
-//			}
-//		}.execute(from(systemSchemas.globalGroupSchemaType()).returnAll());
-//
-//		new ActionExecutorInBatch(searchServices, "Removing groups (system group schema)", 250) {
-//			@Override
-//			public void doActionOnBatch(List<Record> records)
-//					throws Exception {
-//				for (Record record : records) {
-//					recordServices.logicallyDelete(record, User.GOD);
-//				}
-//			}
-//		}.execute(from(systemSchemas.group.schemaType()).returnAll());
+		//		RecordDeleteServices recordServices = new RecordDeleteServices(modelLayerFactory);
+		//		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		//		SchemasRecordsServices systemSchemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+		//
+		//		new ActionExecutorInBatch(searchServices, "Removing global groups", 250) {
+		//			@Override
+		//			public void doActionOnBatch(List<Record> records)
+		//					throws Exception {
+		//				for (Record record : records) {
+		//					GlobalGroup globalGroup = systemSchemas.wrapOldGlobalGroup(record);
+		//					recordServices.physicallyDeleteNoMatterTheStatus(globalGroup, User.GOD, new RecordPhysicalDeleteOptions());
+		//				}
+		//			}
+		//		}.execute(from(systemSchemas.globalGroupSchemaType()).returnAll());
+		//
+		//		new ActionExecutorInBatch(searchServices, "Removing groups (system group schema)", 250) {
+		//			@Override
+		//			public void doActionOnBatch(List<Record> records)
+		//					throws Exception {
+		//				for (Record record : records) {
+		//					recordServices.logicallyDelete(record, User.GOD);
+		//				}
+		//			}
+		//		}.execute(from(systemSchemas.group.schemaType()).returnAll());
 
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 
 
-
 		SchemasRecordsServices schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 		List<RecordDTO> groupsToDelete = searchServices.search(new LogicalSearchQuery(from(schemas.globalGroupSchemaType()).returnAll()))
-				.stream().map(r->r.getRecordDTO()).collect(toList());
+				.stream().map(r -> r.getRecordDTO()).collect(toList());
 
-		LOGGER.info("Deleting " + groupsToDelete.size() +" global groups");
+		LOGGER.info("Deleting " + groupsToDelete.size() + " global groups");
 		try {
 			modelLayerFactory.getDataLayerFactory().newRecordDao().execute(
 					new TransactionDTO(RecordsFlushing.NOW()).withDeletedRecords(groupsToDelete));
 
 		} catch (OptimisticLocking e) {
-			LOGGER.warn("Problem while deleting unused user, just cancelling",e);
+			LOGGER.warn("Problem while deleting unused user, just cancelling", e);
 		}
 
 		modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION)

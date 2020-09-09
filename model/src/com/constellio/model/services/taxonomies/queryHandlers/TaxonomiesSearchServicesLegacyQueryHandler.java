@@ -29,7 +29,7 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.constellio.model.utils.Lazy;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import org.apache.commons.lang.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.Collections;

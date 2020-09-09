@@ -183,7 +183,6 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration CALENDAR_COUNTRY;
 
 	public static final SystemConfiguration DEFAULT_TABLE_MODE;
-	public static final SystemConfiguration IS_ENCRYPTION_MIGRATION_TO_UNIQUE_IV_DONE;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -370,7 +369,6 @@ public class ConstellioEIMConfigs {
 		add(SEARCH_USING_TERMS_IN_BQ = search.createBooleanTrueByDefault("searchUsingBQ").whichIsHidden());
 
 		add(DEFAULT_TABLE_MODE = others.createEnum("defaultTableMode", TableMode.class).withDefaultValue(TableMode.LIST));
-		add(IS_ENCRYPTION_MIGRATION_TO_UNIQUE_IV_DONE = others.createBooleanFalseByDefault("encryptionMigrationToUniqueIVDone").whichIsHidden());
 	}
 
 	static void add(SystemConfiguration configuration) {
