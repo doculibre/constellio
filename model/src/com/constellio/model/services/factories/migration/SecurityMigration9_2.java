@@ -162,7 +162,7 @@ public class SecurityMigration9_2 {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			new RuntimeException(e);
+			throw new RuntimeException(e);
 		}
 	}
 }
