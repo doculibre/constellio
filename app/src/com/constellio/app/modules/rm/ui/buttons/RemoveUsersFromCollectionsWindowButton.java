@@ -11,12 +11,15 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotRemoveUserFromSyncedCollection;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.collections.CollectionUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
@@ -38,9 +41,10 @@ public class RemoveUsersFromCollectionsWindowButton extends WindowButton {
 	private UserServices userServices;
 
 	private CollectionSelectOptionField collectionsField;
+	private Button deleteButton;
 
 	public RemoveUsersFromCollectionsWindowButton(List<User> users, MenuItemActionBehaviorParams params) {
-		super($("CollectionSecurityManagement.removeToCollections"), $("CollectionSecurityManagement.removeToCollections"),
+		super($("CollectionSecurityManagement.removeFromCollection"), $("CollectionSecurityManagement.removeFromCollection"),
 				WindowConfiguration.modalDialog("550px", "300px"));
 
 		this.users = users;
@@ -91,13 +95,21 @@ public class RemoveUsersFromCollectionsWindowButton extends WindowButton {
 
 			}
 		};
+
+		collectionsField.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				updateDeleteButtonAvailability();
+			}
+		});
+
 		return collectionsField;
 	}
 
 	private Component buildButtonLayout() {
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 
-		Button deleteButton = new DeleteButton(null, $("CollectionSecurityManagement.delete"), false) {
+		deleteButton = new DeleteButton(null, $("CollectionSecurityManagement.delete"), false) {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
 				try {
@@ -114,6 +126,8 @@ public class RemoveUsersFromCollectionsWindowButton extends WindowButton {
 		};
 		deleteButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
+		updateDeleteButtonAvailability();
+
 		Button cancelButton = new Button($("cancel"));
 		cancelButton.addClickListener(new ClickListener() {
 			@Override
@@ -126,6 +140,11 @@ public class RemoveUsersFromCollectionsWindowButton extends WindowButton {
 		buttonsLayout.addStyleName(BUTTONS_LAYOUT);
 		buttonsLayout.setSpacing(true);
 		return buttonsLayout;
+	}
+
+	private void updateDeleteButtonAvailability() {
+		boolean isCollectionSelected = !CollectionUtils.isEmpty(collectionsField.getSelectedValues());
+		deleteButton.setEnabled(isCollectionSelected);
 	}
 
 	private void showStopSyncDialog() {

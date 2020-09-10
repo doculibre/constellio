@@ -8,11 +8,14 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,6 +35,7 @@ public class AddUsersToCollectionsWindowButton extends WindowButton {
 	private UserServices userServices;
 
 	private CollectionSelectOptionField collectionsField;
+	private Button saveButton;
 
 	public AddUsersToCollectionsWindowButton(List<User> users, MenuItemActionBehaviorParams params) {
 		super($("CollectionSecurityManagement.addToCollections"), $("CollectionSecurityManagement.addToCollections"),
@@ -87,18 +91,28 @@ public class AddUsersToCollectionsWindowButton extends WindowButton {
 				this.setItemEnabled(collection, false);
 			}
 		};
+
+		collectionsField.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				updateSaveButtonAvailability();
+			}
+		});
+
 		return collectionsField;
 	}
 
 	private Component buildButtonLayout() {
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 
-		Button saveButton = new Button($("save"));
+		saveButton = new Button($("save"));
 		saveButton.addStyleName(SAVE_BUTTON);
 		saveButton.addStyleName(BUTTON_PRIMARY);
 		saveButton.addClickListener((ClickListener) event -> {
 			executeAction();
 		});
+
+		updateSaveButtonAvailability();
 
 		Button cancelButton = new Button($("cancel"));
 		cancelButton.addClickListener(new ClickListener() {
@@ -112,6 +126,11 @@ public class AddUsersToCollectionsWindowButton extends WindowButton {
 		buttonsLayout.addStyleName(BUTTONS_LAYOUT);
 		buttonsLayout.setSpacing(true);
 		return buttonsLayout;
+	}
+
+	private void updateSaveButtonAvailability() {
+		boolean isCollectionSelected = !CollectionUtils.isEmpty(collectionsField.getSelectedValues());
+		saveButton.setEnabled(isCollectionSelected);
 	}
 
 	private void executeAction() {

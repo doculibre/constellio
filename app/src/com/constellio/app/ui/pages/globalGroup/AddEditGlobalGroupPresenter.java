@@ -167,4 +167,7 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_GROUPS);
 	}
 
+	public String getCollectionTitle(String collection) {
+		return appLayerFactory.getCollectionsManager().getCollection(collection).getTitle();
+	}
 }

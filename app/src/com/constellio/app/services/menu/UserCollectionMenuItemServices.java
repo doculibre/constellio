@@ -62,7 +62,7 @@ public class UserCollectionMenuItemServices {
 				if (!filteredActionTypes.contains(USER_EDIT.name())) {
 					MenuItemAction menuItemAction = buildMenuItemAction(USER_EDIT.name(),
 							isMenuItemActionPossible(USER_EDIT.name(), userRecords.get(0), user, params),
-							$("CollectionSecurityManagement.edit"), FontAwesome.EDIT, -1, 150,
+							$("CollectionSecurityManagement.edit"), FontAwesome.EDIT, -1, 200,
 							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(userRecords.get(0), params));
 					menuItemActions.add(menuItemAction);
 				}
@@ -70,7 +70,7 @@ public class UserCollectionMenuItemServices {
 				if (!filteredActionTypes.contains(USER_MANAGE_SECURITY.name())) {
 					MenuItemAction menuItemAction = buildMenuItemAction(USER_MANAGE_SECURITY.name(),
 							isMenuItemActionPossible(USER_MANAGE_SECURITY.name(), userRecords.get(0), user, params),
-							$("CollectionSecurityManagement.manageSecurity"), FontAwesome.LOCK, -1, 450,
+							$("CollectionSecurityManagement.manageSecurity"), FontAwesome.LOCK, -1, 300,
 							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).manageSecurity(userRecords.get(0), params));
 					menuItemActions.add(menuItemAction);
 				}
@@ -78,7 +78,7 @@ public class UserCollectionMenuItemServices {
 				if (!filteredActionTypes.contains(USER_MANAGE_ROLES.name())) {
 					MenuItemAction menuItemAction = buildMenuItemAction(USER_MANAGE_ROLES.name(),
 							isMenuItemActionPossible(USER_MANAGE_ROLES.name(), userRecords.get(0), user, params),
-							$("CollectionSecurityManagement.manageRoles"), FontAwesome.USER_SECRET, -1, 500,
+							$("CollectionSecurityManagement.manageRoles"), FontAwesome.USER_SECRET, -1, 400,
 							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).manageRoles(userRecords.get(0), params));
 
 					menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
@@ -89,8 +89,8 @@ public class UserCollectionMenuItemServices {
 				if (!filteredActionTypes.contains(USER_CREDENTIAL_GENERATE_TOKEN.name())) {
 					MenuItemAction menuItemAction = buildMenuItemAction(USER_CREDENTIAL_GENERATE_TOKEN.name(),
 							isMenuItemActionPossible(USER_CREDENTIAL_GENERATE_TOKEN.name(), userRecords.get(0), user, params),
-							$("DisplayUserCredentialView.generateTokenButton"), null, -1, 200,
-							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).generateToken(params));
+							$("DisplayUserCredentialView.generateTokenButton"), null, -1, 500,
+							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).generateToken(userRecords.get(0), params));
 
 					menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
 
@@ -100,23 +100,15 @@ public class UserCollectionMenuItemServices {
 				if (!filteredActionTypes.contains(USER_TRANSFER_PERMISSION.name())) {
 					menuItemActions.add(buildMenuItemAction(USER_TRANSFER_PERMISSION.name(),
 							isMenuItemActionPossible(USER_TRANSFER_PERMISSION.name(), userRecords.get(0), user, params),
-							$("TransferPermissionsButton.title"), FontAwesome.EXCHANGE, -1, 250,
+							$("TransferPermissionsButton.title"), FontAwesome.EXCHANGE, -1, 600,
 							(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).transferPermission(userRecords.get(0), params)));
 				}
-			}
-
-			if (!filteredActionTypes.contains(USER_ADD_TO_GROUP.name())) {
-				MenuItemAction menuItemAction = buildMenuItemAction(USER_ADD_TO_GROUP.name(),
-						isMenuItemActionPossible(USER_ADD_TO_GROUP.name(), userRecords.get(0), user, params),
-						$("CollectionSecurityManagement.addToGroup"), FontAwesome.USERS, -1, 200,
-						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).addToGroup(userRecords, params));
-				menuItemActions.add(menuItemAction);
 			}
 
 			if (!filteredActionTypes.contains(USER_ADD_TO_COLLECTION.name())) {
 				MenuItemAction menuItemAction = buildMenuItemAction(USER_ADD_TO_COLLECTION.name(),
 						isMenuItemActionPossible(USER_ADD_TO_COLLECTION.name(), userRecords.get(0), user, params),
-						$("CollectionSecurityManagement.addToCollections"), FontAwesome.LOCATION_ARROW, -1, 300,
+						$("CollectionSecurityManagement.addToCollections"), FontAwesome.LOCATION_ARROW, -1, 700,
 						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).addToCollection(userRecords, params));
 				menuItemActions.add(menuItemAction);
 			}
@@ -124,30 +116,38 @@ public class UserCollectionMenuItemServices {
 			if (!filteredActionTypes.contains(USER_DELETE.name())) {
 				MenuItemAction menuItemAction = buildMenuItemAction(USER_DELETE.name(),
 						isMenuItemActionPossible(USER_DELETE.name(), userRecords.get(0), user, params),
-						$("CollectionSecurityManagement.delete"), FontAwesome.TRASH_O, -1, 325,
+						$("CollectionSecurityManagement.removeFromCollection"), FontAwesome.MINUS_CIRCLE, -1, 750,
 						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).delete(userRecords, params));
 				menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
+				menuItemActions.add(menuItemAction);
+			}
+
+			if (!filteredActionTypes.contains(USER_ADD_TO_GROUP.name())) {
+				MenuItemAction menuItemAction = buildMenuItemAction(USER_ADD_TO_GROUP.name(),
+						isMenuItemActionPossible(USER_ADD_TO_GROUP.name(), userRecords.get(0), user, params),
+						$("CollectionSecurityManagement.addToGroup"), FontAwesome.USERS, -1, 800,
+						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).addToGroup(userRecords, params));
 				menuItemActions.add(menuItemAction);
 			}
 
 			if (!filteredActionTypes.contains(USER_CHANGE_STATUS.name())) {
 				menuItemActions.add(buildMenuItemAction(USER_CHANGE_STATUS.name(),
 						isMenuItemActionPossible(USER_CHANGE_STATUS.name(), userRecords.get(0), user, params),
-						$("CollectionSecurityManagement.changeStatus"), FontAwesome.FLAG, -1, 350,
+						$("CollectionSecurityManagement.changeStatus"), FontAwesome.FLAG, -1, 900,
 						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).changeStatus(userRecords, params)));
 			}
 
 			if (!filteredActionTypes.contains(USER_SYNCHRONIZE.name())) {
 				menuItemActions.add(buildMenuItemAction(USER_SYNCHRONIZE.name(),
 						isMenuItemActionPossible(USER_SYNCHRONIZE.name(), userRecords.get(0), user, params),
-						$("CollectionSecurityManagement.synchronize"), FontAwesome.CLOUD, -1, 375,
+						$("CollectionSecurityManagement.synchronize"), FontAwesome.CLOUD, -1, 1000,
 						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).synchronize(userRecords, params, true)));
 			}
 
 			if (!filteredActionTypes.contains(USER_DESYNCHRONIZE.name())) {
 				menuItemActions.add(buildMenuItemAction(USER_DESYNCHRONIZE.name(),
 						isMenuItemActionPossible(USER_DESYNCHRONIZE.name(), userRecords.get(0), user, params),
-						$("CollectionSecurityManagement.desynchronize"), FontAwesome.EJECT, -1, 400,
+						$("CollectionSecurityManagement.desynchronize"), FontAwesome.EJECT, -1, 1100,
 						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).synchronize(userRecords, params, false)));
 			}
 		}

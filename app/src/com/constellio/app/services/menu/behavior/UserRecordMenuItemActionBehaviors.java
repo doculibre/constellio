@@ -5,7 +5,6 @@ import com.constellio.app.modules.rm.ui.buttons.AddUsersToGroupsWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.ChangeUsersStatusWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.RemoveUsersFromCollectionsWindowButton;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.TransferPermissionsButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -130,12 +129,11 @@ public class UserRecordMenuItemActionBehaviors {
 		transferUserPermissions.click();
 	}
 
-	public void generateToken(MenuItemActionBehaviorParams params) {
+	public void generateToken(User user, MenuItemActionBehaviorParams params) {
 		WindowButton windowButton = new WindowButton($("DisplayUserCredentialView.generateTokenButton"),
 				$("DisplayUserCredentialView.generateToken")) {
 			@Override
 			protected Component buildWindowContent() {
-				UserVO userCredentialVO = (UserVO) params.getRecordVO();
 				//				final BaseIntegerField durationField = new BaseIntegerField($("DisplayUserCredentialView.Duration"));
 				final TextField durationField = new TextField($("DisplayUserCredentialView.Duration"));
 
@@ -154,7 +152,7 @@ public class UserRecordMenuItemActionBehaviors {
 
 				//
 				final Label label = new Label($("DisplayUserCredentialView.serviceKey"));
-				final Label labelValue = new Label(getServiceKey(userCredentialVO.getUsername()));
+				final Label labelValue = new Label(getServiceKey(user.getUsername()));
 				final HorizontalLayout horizontalLayoutServiceKey = new HorizontalLayout();
 				horizontalLayoutServiceKey.setSpacing(true);
 				horizontalLayoutServiceKey.addComponents(label, labelValue);
@@ -181,9 +179,9 @@ public class UserRecordMenuItemActionBehaviors {
 						try {
 							if (durationField.getValue() != null) {
 								durationValue = Integer.valueOf(durationField.getValue());
-								String serviceKey = getServiceKey(userCredentialVO.getUsername());
+								String serviceKey = getServiceKey(user.getUsername());
 								labelValue.setValue(serviceKey);
-								String token = generateToken(userCredentialVO.getUsername(), (String) unitTimeCombobox.getValue(),
+								String token = generateToken(user.getUsername(), (String) unitTimeCombobox.getValue(),
 										durationValue);
 								tokenValue.setValue(token);
 								String constellioUrl = getConstellioUrl();

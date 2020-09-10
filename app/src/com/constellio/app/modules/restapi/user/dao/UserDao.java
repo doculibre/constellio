@@ -17,6 +17,7 @@ import com.constellio.model.services.contents.ContentImplRuntimeException;
 import com.constellio.model.services.contents.ContentManager.ContentVersionDataSummaryResponse;
 import com.constellio.model.services.contents.ContentManagerRuntimeException;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 
 import java.io.InputStream;
@@ -31,8 +32,8 @@ public class UserDao extends BaseDao {
 	}
 
 	public UsersByCollectionDto getUsersByCollection(String username) {
-		UserCredential userCredentials = userServices.getUser(username);
-		List<String> codes = userCredentials.getCollections();
+		SystemWideUserInfos userInfos = userServices.getUserInfos(username);
+		List<String> codes = userInfos.getCollections();
 
 		List<UserInCollectionDto> usersByCollection = new ArrayList<>();
 		for (String code : codes) {

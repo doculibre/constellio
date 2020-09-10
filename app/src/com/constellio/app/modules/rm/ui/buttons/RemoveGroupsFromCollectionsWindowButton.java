@@ -10,12 +10,15 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.collections.CollectionUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
@@ -38,6 +41,7 @@ public class RemoveGroupsFromCollectionsWindowButton extends WindowButton {
 	private final LDAPConfigurationManager ldapConfigurationManager;
 
 	private CollectionSelectOptionField collectionsField;
+	private Button deleteButton;
 
 	public RemoveGroupsFromCollectionsWindowButton(List<Group> groups, MenuItemActionBehaviorParams params) {
 		super($("CollectionSecurityManagement.removeToCollections"), $("CollectionSecurityManagement.removeToCollections"),
@@ -92,13 +96,21 @@ public class RemoveGroupsFromCollectionsWindowButton extends WindowButton {
 
 			}
 		};
+
+		collectionsField.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				updateDeleteButtonAvailability();
+			}
+		});
+
 		return collectionsField;
 	}
 
 	private Component buildButtonLayout() {
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 
-		Button deleteButton = new DeleteButton(null, $("CollectionSecurityManagement.delete"), false) {
+		deleteButton = new DeleteButton(null, $("CollectionSecurityManagement.delete"), false) {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
 				if (canDoAction()) {
@@ -115,6 +127,8 @@ public class RemoveGroupsFromCollectionsWindowButton extends WindowButton {
 		};
 		deleteButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
+		updateDeleteButtonAvailability();
+
 		Button cancelButton = new Button($("cancel"));
 		cancelButton.addClickListener(new ClickListener() {
 			@Override
@@ -127,6 +141,11 @@ public class RemoveGroupsFromCollectionsWindowButton extends WindowButton {
 		buttonsLayout.addStyleName(BUTTONS_LAYOUT);
 		buttonsLayout.setSpacing(true);
 		return buttonsLayout;
+	}
+
+	private void updateDeleteButtonAvailability() {
+		boolean isCollectionSelected = !CollectionUtils.isEmpty(collectionsField.getSelectedValues());
+		deleteButton.setEnabled(isCollectionSelected);
 	}
 
 	private boolean canDoAction() {

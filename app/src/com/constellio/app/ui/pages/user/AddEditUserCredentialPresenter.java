@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.user;
 
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
@@ -15,10 +16,13 @@ import com.constellio.model.services.security.authentification.AuthenticationSer
 import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserAlreadyExists;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -80,6 +84,10 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 		}
 
 		try {
+			if (!entity.getUsername().equals(this.username) && getUserInfos(entity.getUsername()) != null) {
+				throw new UserServicesRuntimeException_UserAlreadyExists(entity.getUsername());
+			}
+
 			if (!isLDAPAuthentication() && !isEditMode() || entity.getPassword() != null && !entity.getPassword().isEmpty()) {
 				authenticationService.changePassword(entity.getUsername(), entity.getPassword());
 			}
@@ -283,5 +291,55 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 
 	public boolean isPasswordChangeEnabled() {
 		return !User.ADMIN.equals(username) || new ConstellioEIMConfigs(modelLayerFactory).isAdminPasswordChangeEnabled();
+	}
+
+	public String getCollectionTitle(String collection) {
+		return appLayerFactory.getCollectionsManager().getCollection(collection).getTitle();
+	}
+
+	private SystemWideUserInfos getUserInfos(String username) {
+		try {
+			return userServices.getUserInfos(username);
+		} catch (UserServicesRuntimeException_NoSuchUser e) {
+			return null;
+		}
+	}
+
+	public void validateUsername(String username) {
+		SystemWideUserInfos userInfos = getUserInfos(username);
+		if (userInfos != null && !username.equals(this.username)) {
+			List<String> collections = userInfos.getCollections();
+			if (collections.contains(collection)) {
+				showAlreadyUsedDialog();
+			} else {
+				showAddToCollectionDialog(username);
+			}
+		}
+	}
+
+	private void showAlreadyUsedDialog() {
+		view.showMessage($("AddEditUserCredentialView.usernameAlredyExists"));
+		view.resetUsername();
+	}
+
+	private void showAddToCollectionDialog(String username) {
+		ConfirmDialog.show(ConstellioUI.getCurrent(), $("CollectionSecurityManagement.addToCollections"),
+				$("UserCredentialView.addToCollectionMessage"), $("Ok"), $("cancel"),
+				(ConfirmDialog.Listener) dialog -> {
+					if (dialog.isConfirmed()) {
+						addToCollection(username);
+					} else {
+						view.resetUsername();
+					}
+				});
+	}
+
+	private void addToCollection(String username) {
+		UserAddUpdateRequest userAddUpdateRequest = userServices.addUpdate(username);
+		userAddUpdateRequest.addToCollections(collection);
+		userServices.execute(userAddUpdateRequest);
+
+		view.showMessage($("CollectionSecurityManagement.addedUserToCollections"));
+		view.navigate().to().previousView();
 	}
 }

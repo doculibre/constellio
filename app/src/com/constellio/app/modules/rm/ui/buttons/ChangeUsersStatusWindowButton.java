@@ -12,6 +12,8 @@ import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -45,10 +47,11 @@ public class ChangeUsersStatusWindowButton extends WindowButton {
 
 	private OptionGroup statusField;
 	private CollectionSelectOptionField collectionsField;
+	private Button saveButton;
 
 	public ChangeUsersStatusWindowButton(List<User> users, MenuItemActionBehaviorParams params) {
 		super($("CollectionSecurityManagement.changeStatus"), $("CollectionSecurityManagement.changeStatus"),
-				WindowConfiguration.modalDialog("550px", "500px"));
+				WindowConfiguration.modalDialog("400px", "420px"));
 
 		this.users = users;
 		this.params = params;
@@ -91,9 +94,10 @@ public class ChangeUsersStatusWindowButton extends WindowButton {
 		statusField.setId("enumStatus");
 		statusField.setMultiSelect(false);
 
-		for (Object enumObject : UserCredentialStatus.class.getEnumConstants()) {
+		for (UserCredentialStatus enumObject : UserCredentialStatus.class.getEnumConstants()) {
 			String statusValue = enumObject.toString();
 			statusField.addItem(statusValue);
+			statusField.setItemCaption(statusValue, $("UserCredentialView.status." + enumObject.getCode()));
 		}
 
 		UserCredentialStatus commonStatus = users.get(0).getStatus();
@@ -107,6 +111,13 @@ public class ChangeUsersStatusWindowButton extends WindowButton {
 		if (commonStatus != null) {
 			statusField.select(commonStatus.toString());
 		}
+
+		statusField.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				updateSaveButtonAvailability();
+			}
+		});
 
 		return statusField;
 	}
@@ -127,13 +138,21 @@ public class ChangeUsersStatusWindowButton extends WindowButton {
 
 			}
 		};
+
+		collectionsField.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				updateSaveButtonAvailability();
+			}
+		});
+
 		return collectionsField;
 	}
 
 	private Component buildButtonLayout() {
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 
-		Button saveButton = new Button($("save"));
+		saveButton = new Button($("save"));
 		saveButton.addStyleName(SAVE_BUTTON);
 		saveButton.addStyleName(BUTTON_PRIMARY);
 		saveButton.addClickListener((ClickListener) event -> {
@@ -143,6 +162,8 @@ public class ChangeUsersStatusWindowButton extends WindowButton {
 				showStopSyncDialog();
 			}
 		});
+
+		updateSaveButtonAvailability();
 
 		Button cancelButton = new Button($("cancel"));
 		cancelButton.addClickListener(new ClickListener() {
@@ -165,6 +186,12 @@ public class ChangeUsersStatusWindowButton extends WindowButton {
 			}
 		}
 		return false;
+	}
+
+	private void updateSaveButtonAvailability() {
+		boolean isCollectionSelected = !CollectionUtils.isEmpty(collectionsField.getSelectedValues());
+		boolean isStatusSelected = statusField.getValue() != null;
+		saveButton.setEnabled(isCollectionSelected && isStatusSelected);
 	}
 
 	private void showStopSyncDialog() {

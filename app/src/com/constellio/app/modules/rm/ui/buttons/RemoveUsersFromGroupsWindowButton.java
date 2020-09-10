@@ -25,11 +25,14 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotChangeAssignmentOfSyncedUserToSyncedGroup;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
+import org.apache.commons.collections.CollectionUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
@@ -58,6 +61,7 @@ public class RemoveUsersFromGroupsWindowButton extends WindowButton {
 
 	private UserSelectionAddRemoveFieldImpl usersField;
 	private CollectionSelectOptionField collectionsField;
+	private Button saveButton;
 
 	public RemoveUsersFromGroupsWindowButton(List<Group> groups, MenuItemActionBehaviorParams params) {
 		super($("CollectionSecurityManagement.removeUserToGroups"), $("CollectionSecurityManagement.removeUserToGroups"),
@@ -100,6 +104,14 @@ public class RemoveUsersFromGroupsWindowButton extends WindowButton {
 	private UserSelectionAddRemoveFieldImpl buildUserSelectionField() {
 		RecordVODataProvider groupDataProvider = getUserDataProvider(params.getView().getSessionContext());
 		usersField = new UserSelectionAddRemoveFieldImpl(appLayerFactory, groupDataProvider.getIterator());
+
+		usersField.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				updateSaveButtonAvailability();
+			}
+		});
+
 		return usersField;
 	}
 
@@ -144,13 +156,21 @@ public class RemoveUsersFromGroupsWindowButton extends WindowButton {
 
 			}
 		};
+
+		collectionsField.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				updateSaveButtonAvailability();
+			}
+		});
+
 		return collectionsField;
 	}
 
 	private Component buildButtonLayout() {
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 
-		Button saveButton = new Button($("save"));
+		saveButton = new Button($("save"));
 		saveButton.addStyleName(SAVE_BUTTON);
 		saveButton.addStyleName(BUTTON_PRIMARY);
 		saveButton.addClickListener((ClickListener) event -> {
@@ -160,6 +180,8 @@ public class RemoveUsersFromGroupsWindowButton extends WindowButton {
 				showStopSyncDialog();
 			}
 		});
+
+		updateSaveButtonAvailability();
 
 		Button cancelButton = new Button($("cancel"));
 		cancelButton.addClickListener(new ClickListener() {
@@ -173,6 +195,12 @@ public class RemoveUsersFromGroupsWindowButton extends WindowButton {
 		buttonsLayout.addStyleName(BUTTONS_LAYOUT);
 		buttonsLayout.setSpacing(true);
 		return buttonsLayout;
+	}
+
+	private void updateSaveButtonAvailability() {
+		boolean isCollectionSelected = !CollectionUtils.isEmpty(collectionsField.getSelectedValues());
+		boolean isUserSelected = !CollectionUtils.isEmpty(usersField.getValue());
+		saveButton.setEnabled(isCollectionSelected && isUserSelected);
 	}
 
 	private void showStopSyncDialog() {

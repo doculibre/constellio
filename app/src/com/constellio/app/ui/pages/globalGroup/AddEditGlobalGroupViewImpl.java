@@ -100,6 +100,7 @@ public class AddEditGlobalGroupViewImpl extends BaseViewImpl implements AddEditG
 		collectionsField.setMultiSelect(true);
 		for (String collection : presenter.getAllCollections()) {
 			collectionsField.addItem(collection);
+			collectionsField.setItemCaption(collection, presenter.getCollectionTitle(collection));
 			if (globalGroupVO.getCollections() != null && globalGroupVO.getCollections().contains(collection)) {
 				collectionsField.select(collection);
 			}
