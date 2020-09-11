@@ -1883,7 +1883,8 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 				.has(solrQueryCounts(1, 2, 0))
 				.has(secondSolrQueryCounts(1, 2, 0));
 		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(10000).setQueryDebuggingMode(false);
-		assertThat(getByIdCount.countNewCalls()).isEqualTo(queryCount.newQueryCalls()).isEqualTo(1);
+		assertThat(getByIdCount.countNewCalls()).isEqualTo(1);
+		assertThat(queryCount.newQueryCalls()).isEqualTo(0);
 	}
 
 	@Test

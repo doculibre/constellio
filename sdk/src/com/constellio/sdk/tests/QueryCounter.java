@@ -14,6 +14,8 @@ public class QueryCounter extends BigVaultServerExtension {
 	private AtomicInteger queryCounter = new AtomicInteger();
 	private AtomicInteger returnedResultsCounter = new AtomicInteger();
 
+	private boolean countingGetByIdsAsQueries;
+
 	public QueryCounter(DataLayerFactory dataLayerFactory, Class<?> occuringFrom) {
 		this.filter = (AfterQueryParams p) -> {
 			for (StackTraceElement stackLine : Thread.currentThread().getStackTrace()) {
@@ -24,6 +26,11 @@ public class QueryCounter extends BigVaultServerExtension {
 			return false;
 		};
 		dataLayerFactory.getExtensions().getSystemWideExtensions().bigVaultServerExtension.add(this);
+	}
+
+	public QueryCounter setCountingGetByIdsAsQueries(boolean countingGetByIdsAsQueries) {
+		this.countingGetByIdsAsQueries = countingGetByIdsAsQueries;
+		return this;
 	}
 
 	public QueryCounter(DataLayerFactory dataLayerFactory, final String name) {
@@ -53,9 +60,11 @@ public class QueryCounter extends BigVaultServerExtension {
 
 	@Override
 	public void afterRealtimeGetById(AfterGetByIdParams params) {
-		queryCounter.incrementAndGet();
-		if (params.found()) {
-			returnedResultsCounter.addAndGet(1);
+		if (countingGetByIdsAsQueries) {
+			queryCounter.incrementAndGet();
+			if (params.found()) {
+				returnedResultsCounter.addAndGet(1);
+			}
 		}
 	}
 

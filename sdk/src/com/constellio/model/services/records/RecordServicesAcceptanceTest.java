@@ -2513,7 +2513,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		Record record2 = tx.add(newRecord(zeSchema).set(zeSchema.metadata("m1"), "v3").set(zeSchema.metadata("m2"), "v4"));
 		execute(tx);
 
-		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), getClass());
+		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), getClass()).setCountingGetByIdsAsQueries(true);
 
 
 		Record record3 = newRecord(anotherSchema).set(anotherSchema.metadata("ref"), record1);
@@ -2587,7 +2587,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		Record record2 = tx.add(newRecord(zeSchema).set(zeSchema.metadata("m1"), "v3").set(zeSchema.metadata("m2"), "v4"));
 		execute(tx);
 
-		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), getClass());
+		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), getClass()).setCountingGetByIdsAsQueries(true);
 
 
 		Record record3 = newRecord(anotherSchema).set(anotherSchema.metadata("ref"), record1);
