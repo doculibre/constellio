@@ -196,7 +196,10 @@ public class EncryptionServices {
 	}
 
 	public Object decryptVersion1(Object encryptedText) {
-		if (encryptedText instanceof String) {
+
+		if (encryptedText == null) {
+			return null;
+		} else if (encryptedText instanceof String) {
 			return decryptVersion1((String) encryptedText);
 
 		} else if (encryptedText instanceof List) {
