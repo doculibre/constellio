@@ -368,18 +368,11 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	}
 
 	private ConstellioMenuButton buildButton(final NavigationItem navigationItem) {
-		//		Button button = new Button();
 		Button button = navigationItem.buildButton(this);
 
 		if (navigationItem.getFontAwesome() != null) {
 			button.setIcon(navigationItem.getFontAwesome());
 		}
-		//		button.addClickListener(new ClickListener() {
-		//			@Override
-		//			public void buttonClick(ClickEvent event) {
-		//				navigationItem.activate(navigate());
-		//			}
-		//		});
 		ConstellioMenuButton constellioMenuButton = new ConstellioMenuButton(navigationItem.getViewGroup(), button) {
 			@Override
 			public String getBadge() {
