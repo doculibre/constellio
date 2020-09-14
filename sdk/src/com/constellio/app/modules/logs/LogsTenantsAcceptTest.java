@@ -2,20 +2,29 @@ package com.constellio.app.modules.logs;
 
 
 import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.io.concurrent.exception.FileNotFoundException;
 import com.constellio.data.utils.TenantUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.input.ReversedLinesFileReader;
 import org.apache.commons.logging.LogFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.appender.RollingFileAppender;
+import org.apache.logging.log4j.core.appender.routing.RoutingAppender;
+import org.apache.logging.log4j.core.config.AppenderControl;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,16 +51,9 @@ public class LogsTenantsAcceptTest extends ConstellioTest {
 		logger.info("Info log message");
 		logger.error("Error log message tenant 2");
 
-		File logsFolder = new File(new FoldersLocator().getSDKProject(), "logs");
-		File logsTenant1Folder = new File(logsFolder, "T01");
-		File logsTenant2Folder = new File(logsFolder, "T02");
-
-		assertThat(logsFolder.exists()).isTrue();
-		assertThat(logsTenant1Folder.exists()).isTrue();
-		assertThat(logsTenant2Folder.exists()).isTrue();
-
-		File logsTenant1 = new File(logsTenant1Folder, "constellio.log");
-		File logsTenant2 = new File(logsTenant2Folder, "constellio.log");
+		//File logsFolder = getLogsLocation("Routing",logger);
+		File logsTenant1 = getLogsLocation("Routing", logger, "T01");
+		File logsTenant2 = getLogsLocation("Routing", logger, "T02");
 
 		assertThat(logsTenant1.exists()).isTrue();
 		assertThat(logsTenant2.exists()).isTrue();
@@ -85,9 +87,8 @@ public class LogsTenantsAcceptTest extends ConstellioTest {
 		slf4Logger.error("Error slf4 log message Tenant 2");
 		logger.error("Error LOG4J log message Tenant 2");
 
-		File logsFolder = new File(new FoldersLocator().getSDKProject(), "logs");
-		File logsTenant1 = new File(logsFolder, "T01/constellio.log");
-		File logsTenant2 = new File(logsFolder, "T02/constellio.log");
+		File logsTenant1 = getLogsLocation("Routing", logger, "T01");
+		File logsTenant2 = getLogsLocation("Routing", logger, "T02");
 
 		List<String> linesT01 = reverseLinesAndGetLastNumberOffLines(logsTenant1, 8);
 		List<String> linesT02 = reverseLinesAndGetLastNumberOffLines(logsTenant2, 8);
@@ -102,7 +103,7 @@ public class LogsTenantsAcceptTest extends ConstellioTest {
 		assertThat(linesT02.get(4)).contains("Error Apache commons log message Tenant 2");
 
 		//JDK cannot log unless we pass -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager
-		if(System.getProperty("java.util.logging.manager").equals("org.apache.logging.log4j.jul.LogManager")) {
+		if (System.getProperty("java.util.logging.manager").equals("org.apache.logging.log4j.jul.LogManager")) {
 			assertThat(linesT01.get(6)).contains("SEVERE JDK log message Tenant 1");
 			assertThat(linesT02.get(6)).contains("SEVERE JDK log message Tenant 2");
 		}
@@ -137,9 +138,8 @@ public class LogsTenantsAcceptTest extends ConstellioTest {
 		logger.info("Info LOG4J log message Tenant 2");
 		logger.warn("WARN LOG4J log message Tenant 2");
 
-		File logsFolder = new File(new FoldersLocator().getSDKProject(), "logs");
-		File logsTenant1 = new File(logsFolder, "T01/constellio.log");
-		File logsTenant2 = new File(logsFolder, "T02/constellio.log");
+		File logsTenant1 = getLogsLocation("Routing", logger, "T01");
+		File logsTenant2 = getLogsLocation("Routing", logger, "T02");
 
 		List<String> linesT01 = reverseLinesAndGetLastNumberOffLines(logsTenant1, 4);
 		List<String> linesT02 = reverseLinesAndGetLastNumberOffLines(logsTenant2, 4);
@@ -164,9 +164,8 @@ public class LogsTenantsAcceptTest extends ConstellioTest {
 		logger.info("INFO LOG4J log message Tenant 2");
 		System.out.println("sout : Hello from tenant 2");
 
-		File logsFolder = new File(new FoldersLocator().getSDKProject(), "logs");
-		File logsTenant1 = new File(logsFolder, "T01/constellio.log");
-		File logsTenant2 = new File(logsFolder, "T02/constellio.log");
+		File logsTenant1 = getLogsLocation("Routing", logger, "T01");
+		File logsTenant2 = getLogsLocation("Routing", logger, "T02");
 		List<String> linesT01 = reverseLinesAndGetLastNumberOffLines(logsTenant1, 4);
 		List<String> linesT02 = reverseLinesAndGetLastNumberOffLines(logsTenant2, 4);
 
@@ -206,7 +205,7 @@ public class LogsTenantsAcceptTest extends ConstellioTest {
 		String line = null;
 		int i = 0;// just in case
 		try {
-			object = new ReversedLinesFileReader(file);
+			object = new ReversedLinesFileReader(file, Charset.defaultCharset());
 			while (num > 0) {
 				line = object.readLine();
 				while ((line == null || line.isEmpty()) && i < 10) {
@@ -227,6 +226,28 @@ public class LogsTenantsAcceptTest extends ConstellioTest {
 		}
 
 		return lines;
+	}
+
+	private File getLogsLocation(String name, Logger log, String tenantName) {
+		if (tenantName == null || tenantName.equals("")) {
+			tenantName = "default";
+		}
+		org.apache.logging.log4j.core.Logger loggerImpl = (org.apache.logging.log4j.core.Logger) log;
+		Appender appender = loggerImpl.getAppenders().get(name);
+		// Unfortunately, File is no longer an option to return, here.
+		if (appender instanceof RollingFileAppender) {
+			return new File(((RollingFileAppender) appender).getFileName());
+		} else if (appender instanceof RoutingAppender) {
+			Map<String, AppenderControl> appenderss = ((RoutingAppender) appender).getAppenders();
+			Appender appenderTenant = appenderss.get(tenantName).getAppender();
+			if (appenderTenant instanceof RollingFileAppender) {
+				return new File(((RollingFileAppender) appenderTenant).getFileName());
+			} else {
+				return new File(((FileAppender) appender).getFileName());
+			}
+		} else {
+			return new File(((FileAppender) appender).getFileName());
+		}
 	}
 
 }
