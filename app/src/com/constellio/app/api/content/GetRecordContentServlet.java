@@ -93,6 +93,8 @@ public class GetRecordContentServlet extends HttpServlet {
 		Metadata contentMetadata = schema.get(metadataCode);
 		Content content = record.get(contentMetadata);
 
+
+		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory);
 		SystemWideUserInfos userCredentials = authenticator.authenticate(request);
 		if (userCredentials == null && accessId == null) {
 			throw new ServletException("User not authenticated");
