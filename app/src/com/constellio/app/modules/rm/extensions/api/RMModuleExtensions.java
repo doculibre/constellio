@@ -319,7 +319,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isViewOrAddAuthorizationActionPossibleOnFolder(final Folder folder, final User user) {
-		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
+		return user.hasReadAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isViewOrAddAuthorizationActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
