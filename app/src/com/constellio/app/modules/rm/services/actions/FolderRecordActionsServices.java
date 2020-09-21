@@ -183,11 +183,19 @@ public class FolderRecordActionsServices {
 			   rmModuleExtensions.isCreateDecommissioningListActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
-	public boolean isViewOrAddAuthorizationActionPossible(Record record, User user) {
-		return ((user.has(RMPermissionsTo.VIEW_FOLDER_AUTHORIZATIONS).on(record) && user.hasReadAccess().on(record))
-				|| (isEditActionPossible(record, user) && user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(record) && user.hasWriteAndDeleteAccess().on(record))) &&
-			   !record.isLogicallyDeleted() &&
-			   rmModuleExtensions.isViewOrAddAuthorizationActionPossibleOnFolder(rm.wrapFolder(record), user);
+	// linkTo
+
+	public boolean isAddAuthorizationActionPossible(Record record, User user) {
+		boolean caseEdit = isEditActionPossible(record, user) &&
+						   user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(record) &&
+						   user.hasWriteAndDeleteAccess().on(record) &&
+						   !record.isLogicallyDeleted() &&
+						   rmModuleExtensions.isAddAuthorizationActionPossibleOnFolder(rm.wrapFolder(record), user);
+		boolean caseRead = user.has(RMPermissionsTo.VIEW_FOLDER_AUTHORIZATIONS).on(record) &&
+						   user.hasReadAccess().on(record) &&
+						   !record.isLogicallyDeleted() &&
+						   rmModuleExtensions.isAddAuthorizationActionPossibleOnFolder(rm.wrapFolder(record), user);
+		return caseEdit || caseRead;
 	}
 
 	public boolean isShareActionPossible(Record record, User user) {

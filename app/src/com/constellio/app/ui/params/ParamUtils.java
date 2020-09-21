@@ -36,6 +36,7 @@ public class ParamUtils {
 		} else if (path.startsWith("!")) {
 			path = path.substring(1);
 		}
+
 		path = urlDecode(path);
 		String paramsStr = null;
 		int indexOfEquals = path.indexOf("=");
@@ -118,6 +119,8 @@ public class ParamUtils {
 	private static String urlDecode(String text) {
 		try {
 			return URLDecoder.decode(text, "UTF-8");
+		} catch (IllegalArgumentException e) {
+			return text;
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);
 		}

@@ -1334,14 +1334,14 @@ public class RecordServicesImpl extends BaseRecordServices {
 			if (!record.isModified(Schemas.CREATED_BY) && !userGroupOrCollection && hasCreatedByMetadata) {
 				record.set(Schemas.CREATED_BY, currentUserId);
 			}
-			if (!record.isModified(Schemas.CREATED_ON)) {
+			if (!record.isModified(Schemas.CREATED_ON) || record.get(Schemas.CREATED_ON) == null) {
 				record.set(Schemas.CREATED_ON, now);
 			}
 			boolean hasModifiedByMetadata = metadataSchema.hasMetadataWithCode(Schemas.MODIFIED_BY.getLocalCode());
 			if (!record.isModified(Schemas.MODIFIED_BY) && !userGroupOrCollection && hasModifiedByMetadata) {
 				record.set(Schemas.MODIFIED_BY, record.get(Schemas.CREATED_BY));
 			}
-			if (!record.isModified(Schemas.MODIFIED_ON)) {
+			if (!record.isModified(Schemas.MODIFIED_ON) || record.get(Schemas.MODIFIED_ON) == null) {
 				record.set(Schemas.MODIFIED_ON, record.get(Schemas.CREATED_ON));
 			}
 		} else {

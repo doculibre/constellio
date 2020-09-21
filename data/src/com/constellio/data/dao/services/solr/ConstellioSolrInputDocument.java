@@ -16,6 +16,9 @@ public class ConstellioSolrInputDocument extends SolrInputDocument {
 	@Override
 	public void setField(String name, Object value) {
 		value = convertEmptyToNull(value);
+		if (name.endsWith("_i") && (value instanceof String) && ((String) value).contains(".")) {
+			value = "" + Double.valueOf((String) value).intValue();
+		}
 		if (value == null) {
 			super.remove(name);
 		} else {
@@ -28,6 +31,9 @@ public class ConstellioSolrInputDocument extends SolrInputDocument {
 	public void addField(String name, Object value) {
 
 		value = convertEmptyToNull(value);
+		if (name.endsWith("_i") && (value instanceof String) && ((String) value).contains(".")) {
+			value = "" + Double.valueOf((String) value).intValue();
+		}
 
 		if (value == null) {
 			super.remove(name);
