@@ -36,8 +36,10 @@ public class CoreMigrationTo_9_2_11 extends MigrationHelper implements Migration
 			MetadataSchemaBuilder externalAccessUrlSchema =
 					typesBuilder.getSchemaType(ExternalAccessUrl.SCHEMA_TYPE).getDefaultSchema();
 
-			externalAccessUrlSchema.createUndeletable(ExternalAccessUrl.EMAIL)
-					.setType(MetadataValueType.STRING);
+			if (!externalAccessUrlSchema.hasMetadata(ExternalAccessUrl.EMAIL)) {
+				externalAccessUrlSchema.createUndeletable(ExternalAccessUrl.EMAIL)
+						.setType(MetadataValueType.STRING);
+			}
 		}
 	}
 }

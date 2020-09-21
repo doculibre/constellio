@@ -1,6 +1,7 @@
 package com.constellio.model.services.factories.migration;
 
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.email.BaseEmailServerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.conf.email.EmailServerConfiguration;
@@ -37,22 +38,24 @@ public class SecurityMigration9_2 {
 	}
 
 	public void migrateAllCollections() {
-		List<String> collectionList = this.modelLayerFactory.getCollectionsListManager().getCollections();
+		if (!Toggle.LOST_PRIVATE_KEY.isEnabled()) {
+			List<String> collectionList = this.modelLayerFactory.getCollectionsListManager().getCollections();
 
-		Key encryptionKey = EncryptionKeyFactory.getApplicationKey(modelLayerFactory);
+			Key encryptionKey = EncryptionKeyFactory.getApplicationKey(modelLayerFactory);
 
-		if (collectionList.contains(Collection.SYSTEM_COLLECTION)) {
-			collectionList = new ArrayList<>(collectionList);
-			collectionList.remove(Collection.SYSTEM_COLLECTION);
-			collectionList.add(0, Collection.SYSTEM_COLLECTION);
+			if (collectionList.contains(Collection.SYSTEM_COLLECTION)) {
+				collectionList = new ArrayList<>(collectionList);
+				collectionList.remove(Collection.SYSTEM_COLLECTION);
+				collectionList.add(0, Collection.SYSTEM_COLLECTION);
+			}
+
+			systemCollectionMigration(encryptionKey);
+			for (String collection : collectionList) {
+				doAnyCollectionMigration(collection, encryptionKey);
+			}
+
+			modelLayerFactory.resetEncryptionServices();
 		}
-
-		systemCollectionMigration(encryptionKey);
-		for (String collection : collectionList) {
-			doAnyCollectionMigration(collection, encryptionKey);
-		}
-
-		modelLayerFactory.resetEncryptionServices();
 	}
 
 	public void systemCollectionMigration(Key oldKey) {
