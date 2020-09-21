@@ -190,11 +190,11 @@ public class FolderRecordActionsServices {
 						   user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(record) &&
 						   user.hasWriteAndDeleteAccess().on(record) &&
 						   !record.isLogicallyDeleted() &&
-						   rmModuleExtensions.isAddAuthorizationActionPossibleOnFolder(rm.wrapFolder(record), user);
+						   rmModuleExtensions.isViewOrAddAuthorizationActionPossibleOnFolder(rm.wrapFolder(record), user);
 		boolean caseRead = user.has(RMPermissionsTo.VIEW_FOLDER_AUTHORIZATIONS).on(record) &&
 						   user.hasReadAccess().on(record) &&
 						   !record.isLogicallyDeleted() &&
-						   rmModuleExtensions.isAddAuthorizationActionPossibleOnFolder(rm.wrapFolder(record), user);
+						   rmModuleExtensions.isViewOrAddAuthorizationActionPossibleOnFolder(rm.wrapFolder(record), user);
 		return caseEdit || caseRead;
 	}
 

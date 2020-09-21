@@ -259,7 +259,7 @@ public class FolderMenuItemServices {
 			case FOLDER_COPY:
 				return folderRecordActionsServices.isCopyActionPossible(record, user);
 			case FOLDER_VIEW_OR_MANAGE_AUTHORIZATION:
-				return folderRecordActionsServices.isViewOrAddAuthorizationActionPossible(record, user);
+				return folderRecordActionsServices.isAddAuthorizationActionPossible(record, user);
 			case FOLDER_SHARE:
 				return folderRecordActionsServices.isShareActionPossible(record, user);
 			case FOLDER_UNSHARE:
