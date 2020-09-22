@@ -805,8 +805,11 @@ public class RecordDeleteServices {
 			boolean mayBeReferencedOutsideHierarchy = false;
 			for (MetadataSchemaType schemaType : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
 
-				List<Metadata> referencesMetadata = schemaType.getDefaultSchema().getMetadatas()
-						.onlyReferencesToType(aHierarchyRecord.getTypeCode()).onlyNonParentReferences();
+				List<Metadata> referencesMetadata = new ArrayList<>();
+				for (MetadataSchema metadataSchema : schemaType.getAllSchemas()) {
+					referencesMetadata.addAll(metadataSchema.getMetadatas()
+							.onlyReferencesToType(aHierarchyRecord.getTypeCode()).onlyNonParentReferences());
+				}
 				mayBeReferencedOutsideHierarchy |= !referencesMetadata.isEmpty();
 			}
 
