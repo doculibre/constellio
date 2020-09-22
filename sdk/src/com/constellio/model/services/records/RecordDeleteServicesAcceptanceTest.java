@@ -2,6 +2,8 @@ package com.constellio.model.services.records;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
+import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -38,6 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -46,6 +49,11 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
 	private static final String CUSTOM_TASK_SCHEMA_LOCAL_CODE = "zTaskSchema";
 	private static final String CUSTOM_TASK_NEW_METADATA = "zTaskMeta";
+	private static final String CUSTOM_FOLDER_SCHEMA_LOCAL_CODE = "zFolderSchema";
+	private static final String CUSTOM_FOLDER_NEW_METADATA = "zFolderMeta";
+	private static final String CUSTOM_VALUELIST_SCHEMA = "ddvValueListTest";
+	private static final String CUSTOM_VALUELIST_NEW_METADATA = "zValueListMeta";
+
 	TrashServices trashServices;
 	Users users = new Users();
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -61,6 +69,8 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 	Folder parentFolderInCategory_A, subFolder_B;
 	Task taskReferencesFolderB;
 	private MetadataSchema customTaskSchema;
+	private MetadataSchema customFolderSchema;
+	private MetadataSchema customValueSchema;
 	private Metadata zMeta;
 
 	private Folder folder, folder2;
@@ -88,6 +98,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		deleteService = new RecordDeleteServices(recordDao, getModelLayerFactory());
 
 		createCustomTaskSchema();
+		createCustomFolderSchema();
 		initTests();
 
 		folder = records.newFolderWithValuesAndId("fakeFolder");
@@ -103,6 +114,64 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		recordServices.add(document3);
 
 		queryCounter = new QueryCounter(getDataLayerFactory(), "RecordDeleteServicesAcceptanceTest");
+	}
+
+	private void createCustomFolderSchema() {
+		getModelLayerFactory()
+				.getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+
+				ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(types);
+				MetadataSchemaTypeBuilder valueListSchemaType = builder
+						.createValueListItemSchema(CUSTOM_VALUELIST_SCHEMA, null, ValueListItemSchemaTypeBuilderOptions.codeMetadataFacultative());
+
+				MetadataSchemaBuilder defaultSchema = valueListSchemaType.getDefaultSchema();
+				defaultSchema.create(CUSTOM_VALUELIST_NEW_METADATA).setType(MetadataValueType.STRING);
+
+				MetadataSchemaTypeBuilder foldersSchemaType = types.getSchemaType(Folder.SCHEMA_TYPE);
+				MetadataSchemaBuilder foldersSchema = foldersSchemaType.createCustomSchema(CUSTOM_FOLDER_SCHEMA_LOCAL_CODE);
+
+				foldersSchema.create(CUSTOM_FOLDER_NEW_METADATA).setType(MetadataValueType.REFERENCE)
+						.defineReferencesTo(defaultSchema);
+			}
+		});
+		customFolderSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
+				.getSchemaType(Folder.SCHEMA_TYPE).getSchema(CUSTOM_FOLDER_SCHEMA_LOCAL_CODE);
+		customValueSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
+				.getSchemaType(CUSTOM_VALUELIST_SCHEMA).getDefaultSchema();
+	}
+
+	@Test
+	public void givenReferencedMetadataWhenLogicallyThenPhysicallyDeletedThenError()
+			throws Exception {
+
+		Record valueTest = new TestRecord(customValueSchema, "testValueId")
+				.set(customValueSchema.get(Schemas.TITLE_CODE), "titre de test Value")
+				.set(customValueSchema.get(CUSTOM_VALUELIST_NEW_METADATA), "valeure texte contenue");
+
+		Transaction transaction = new Transaction();
+		transaction.add(valueTest);
+		recordServices.execute(transaction);
+
+		Transaction tr = new Transaction();
+
+		Record folder3 = new TestRecord(customFolderSchema, "folder3")
+				.set(customFolderSchema.get(Schemas.TITLE_CODE), "folder3")
+				.set(customFolderSchema.get(Folder.ADMINISTRATIVE_UNIT_ENTERED), "unitId_10")
+				.set(customFolderSchema.get(Folder.CATEGORY_ENTERED), category)
+				.set(customFolderSchema.get(Folder.RETENTION_RULE_ENTERED), "ruleId_1")
+				.set(customFolderSchema.get(Folder.COPY_STATUS_ENTERED), PRINCIPAL)
+				.set(customFolderSchema.get(CUSTOM_FOLDER_NEW_METADATA), valueTest.getId())
+				.set(customFolderSchema.get(Folder.OPENING_DATE), date(2000, 10, 4));
+
+		tr.add(folder3);
+		recordServices.execute(tr);
+
+
+		assertThat(deleteService.validateLogicallyThenPhysicallyDeletable(valueTest, users.adminIn(zeCollection)).isEmpty()).isFalse();
+		assertThat(deleteService.validateLogicallyDeletable(valueTest, users.adminIn(zeCollection)).isEmpty()).isTrue();
+
 	}
 
 	private void createCustomTaskSchema() {
