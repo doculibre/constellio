@@ -41,17 +41,18 @@ public class SchemaRecordMenuItemServices {
 					$("editWithIcon"), null, -1, 100,
 					(ids) -> new SchemaRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(record, params)));
 		}
-		if (!excludedActionTypes.contains(SCHEMA_RECORD_DELETE.name())) {
-			menuItemActions.add(buildMenuItemAction(SCHEMA_RECORD_DELETE.name(),
-					isMenuItemActionPossible(SCHEMA_RECORD_DELETE.name(), record, user, params),
-					$("deleteWithIcon"), null, -1, 100,
-					(ids) -> new SchemaRecordMenuItemActionBehaviors(collection, appLayerFactory).delete(record, params)));
-		}
+
 		if (!excludedActionTypes.contains(SCHEMA_RECORD_SEQUENCES.name())) {
 			menuItemActions.add(buildMenuItemAction(SCHEMA_RECORD_SEQUENCES.name(),
 					isMenuItemActionPossible(SCHEMA_RECORD_SEQUENCES.name(), record, user, params),
 					$("DisplaySchemaRecordView.sequences"), null, -1, 200,
 					(ids) -> new SchemaRecordMenuItemActionBehaviors(collection, appLayerFactory).sequences(record, params)));
+		}
+		if (!excludedActionTypes.contains(SCHEMA_RECORD_DELETE.name())) {
+			menuItemActions.add(buildMenuItemAction(SCHEMA_RECORD_DELETE.name(),
+					isMenuItemActionPossible(SCHEMA_RECORD_DELETE.name(), record, user, params),
+					$("deleteWithIcon"), null, -1, Integer.MAX_VALUE,
+					(ids) -> new SchemaRecordMenuItemActionBehaviors(collection, appLayerFactory).delete(record, params)));
 		}
 
 		return menuItemActions;

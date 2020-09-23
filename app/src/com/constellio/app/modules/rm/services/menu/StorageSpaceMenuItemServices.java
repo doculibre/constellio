@@ -59,17 +59,6 @@ public class StorageSpaceMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!filteredActionTypes.contains(STORAGE_SPACE_DELETE.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(STORAGE_SPACE_DELETE.name(),
-					isMenuItemActionPossible(STORAGE_SPACE_DELETE.name(), storageSpace, user, params),
-					$("StorageSpaceMenuItemServices.delete"), FontAwesome.TRASH_O, -1, 500,
-					(ids) -> new StorageSpaceMenuItemActionBehaviors(collection, appLayerFactory).delete(storageSpace, params));
-
-			menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
-
-			menuItemActions.add(menuItemAction);
-		}
-
 		if (!filteredActionTypes.contains(STORAGE_SPACE_CONSULT_LINK.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(STORAGE_SPACE_CONSULT_LINK.name(),
 					isMenuItemActionPossible(STORAGE_SPACE_CONSULT_LINK.name(), storageSpace, user, params),
@@ -83,6 +72,17 @@ public class StorageSpaceMenuItemServices {
 					isMenuItemActionPossible(STORAGE_SPACE_GENERATE_REPORT.name(), storageSpace, user, params),
 					$("SearchView.metadataReportTitle"), null, -1, 700,
 					(ids) -> new StorageSpaceMenuItemActionBehaviors(collection, appLayerFactory).generateReport(storageSpace, params));
+			menuItemActions.add(menuItemAction);
+		}
+
+		if (!filteredActionTypes.contains(STORAGE_SPACE_DELETE.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(STORAGE_SPACE_DELETE.name(),
+					isMenuItemActionPossible(STORAGE_SPACE_DELETE.name(), storageSpace, user, params),
+					$("StorageSpaceMenuItemServices.delete"), FontAwesome.TRASH_O, -1, Integer.MAX_VALUE,
+					(ids) -> new StorageSpaceMenuItemActionBehaviors(collection, appLayerFactory).delete(storageSpace, params));
+
+			menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
+
 			menuItemActions.add(menuItemAction);
 		}
 

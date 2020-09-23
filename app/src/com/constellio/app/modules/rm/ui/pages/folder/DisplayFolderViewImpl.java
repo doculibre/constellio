@@ -128,7 +128,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private RMModuleExtensions rmModuleExtensions;
 	private boolean dragNDropAllowed;
 	private boolean dragRowsEnabled;
-	private Button displayFolderButton, editFolderButton, addDocumentButton;
+	private Button displayFolderButton, editFolderButton, addDocumentButton, addSubfolderButton;
 	private Label borrowedLabel;
 	private StringAutocompleteField<String> searchField;
 	private SearchButton searchButton;
@@ -351,7 +351,23 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		return editFolderButton;
 	}
 
-	private Button newAddDocumentButton() {
+	private Button newAddSubfolderButton() {
+		BaseButton addSubfolderButton;
+		if (!presenter.isLogicallyDeleted()) {
+			addSubfolderButton = new AddButton($("DisplayFolderView.addSubFolder")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.addSubfolderButtonClicked();
+				}
+			};
+			addSubfolderButton.setCaptionVisibleOnMobile(false);
+		} else {
+			addSubfolderButton = null;
+		}
+		return addSubfolderButton;
+	}
+
+	private Button newAddAddDocumentButton() {
 		BaseButton addDocumentButton;
 		if (!presenter.isLogicallyDeleted()) {
 			addDocumentButton = new AddButton($("DisplayFolderView.addDocument")) {
@@ -360,7 +376,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					presenter.addDocumentButtonClicked();
 				}
 			};
-			addDocumentButton.setIcon(FontAwesome.FILE_O);
+			addSubfolderButton.setIcon(FontAwesome.FILE_O);
 			addDocumentButton.setCaptionVisibleOnMobile(false);
 		} else {
 			addDocumentButton = null;
@@ -368,11 +384,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		return addDocumentButton;
 	}
 
+
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		if (!presenter.isLogicallyDeleted()) {
-			addDocumentButton = newAddDocumentButton();
-
+			addSubfolderButton = newAddSubfolderButton();
+			addDocumentButton = newAddAddDocumentButton();
 			displayFolderButton = newDisplayFolderButton();
 			editFolderButton = newEditFolderButton();
 		}
@@ -380,6 +397,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		List<String> excludedActionTypes = new ArrayList<String>() {{
 			add(FolderMenuItemActionType.FOLDER_DISPLAY.name());
 			add(FolderMenuItemActionType.FOLDER_EDIT.name());
+			add(FolderMenuItemActionType.FOLDER_ADD_SUBFOLDER.name());
 			add(FolderMenuItemActionType.FOLDER_ADD_DOCUMENT.name());
 		}};
 
@@ -777,6 +795,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			if (editFolderButton != null) {
 				quickActionMenuButtons.add(editFolderButton);
 			}
+			if (addSubfolderButton != null) {
+				quickActionMenuButtons.add(addSubfolderButton);
+			}
 			if (addDocumentButton != null) {
 				quickActionMenuButtons.add(addDocumentButton);
 			}
@@ -834,6 +855,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	public void setAddDocumentButtonState(ComponentState state) {
 		addDocumentButton.setVisible(state.isVisible());
 		addDocumentButton.setEnabled(state.isEnabled());
+		dragNDropAllowed = state.isEnabled();
+	}
+
+	@Override
+	public void setAddSubfolderButtonState(ComponentState state) {
+		addSubfolderButton.setVisible(state.isVisible());
+		addSubfolderButton.setEnabled(state.isEnabled());
 		dragNDropAllowed = state.isEnabled();
 	}
 

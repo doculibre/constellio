@@ -56,7 +56,7 @@ public class ContainerMenuItemServices {
 		if (!filteredActionTypes.contains(CONTAINER_CONSULT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_CONSULT.name(),
 					isMenuItemActionPossible(CONTAINER_CONSULT.name(), container, user, params),
-					$("DisplayContainerView.consult"), FontAwesome.SEARCH, -1, 100,
+					$("DisplayContainerView.consult"), FontAwesome.SEARCH, -1, 1,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).consult(container, params));
 			menuItemActions.add(menuItemAction);
 		}
@@ -64,7 +64,7 @@ public class ContainerMenuItemServices {
 		if (!filteredActionTypes.contains(CONTAINER_EDIT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_EDIT.name(),
 					isMenuItemActionPossible(CONTAINER_EDIT.name(), container, user, params),
-					$("DisplayContainerView.edit"), FontAwesome.EDIT, -1, 150,
+					$("DisplayContainerView.edit"), FontAwesome.EDIT, -1, 20,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(container, params));
 			menuItemActions.add(menuItemAction);
 		}
@@ -72,7 +72,7 @@ public class ContainerMenuItemServices {
 		if (!filteredActionTypes.contains(CONTAINER_SLIP.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_SLIP.name(),
 					isMenuItemActionPossible(CONTAINER_SLIP.name(), container, user, params),
-					$("DisplayContainerView.slip"), FontAwesome.PRINT, -1, 200,
+					$("DisplayContainerView.slip"), FontAwesome.PRINT, -1, 30,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).report(container, params));
 			menuItemActions.add(menuItemAction);
 		}
@@ -80,76 +80,53 @@ public class ContainerMenuItemServices {
 		if (!filteredActionTypes.contains(CONTAINER_LABELS.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_LABELS.name(),
 					isMenuItemActionPossible(CONTAINER_LABELS.name(), container, user, params),
-					$("SearchView.printLabels"), FontAwesome.PRINT, -1, 300,
+					$("SearchView.printLabels"), FontAwesome.PRINT, -1, 35,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).printLabel(container, params));
 			menuItemActions.add(menuItemAction);
-		}
-
-		if (!filteredActionTypes.contains(CONTAINER_CHECK_IN.name())) {
-			menuItemActions.add(buildMenuItemAction(CONTAINER_CHECK_IN.name(),
-					isMenuItemActionPossible(CONTAINER_CHECK_IN.name(), container, user, params),
-					$("DisplayContainerView.checkIn"), null, -1, 325,
-					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).checkIn(container, params)));
-		}
-
-		if (!filteredActionTypes.contains(CONTAINER_RETURN_REMAINDER.name())) {
-			menuItemActions.add(buildMenuItemAction(CONTAINER_RETURN_REMAINDER.name(),
-					isMenuItemActionPossible(CONTAINER_RETURN_REMAINDER.name(), container, user, params),
-					$("SendReturnReminderEmailButton.reminderReturn"), null, -1, 350,
-					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).sendReturnRemainder(container, params)));
 		}
 
 		if (!filteredActionTypes.contains(CONTAINER_ADD_TO_CART.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_ADD_TO_CART.name(),
 					isMenuItemActionPossible(CONTAINER_ADD_TO_CART.name(), container, user, params),
-					$("DisplayContainerView.addToCart"), FontAwesome.STAR, -1, 400,
+					$("DisplayContainerView.addToCart"), FontAwesome.STAR, -1, 40,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).addToCart(container, params));
-			menuItemActions.add(menuItemAction);
-		}
-
-		if (!filteredActionTypes.contains(CONTAINER_DELETE.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_DELETE.name(),
-					isMenuItemActionPossible(CONTAINER_DELETE.name(), container, user, params),
-					$("DisplayContainerView.delete"), FontAwesome.TRASH_O, -1, 500,
-					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).delete(container, params));
-
-			menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
-
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(CONTAINER_CONSULT_LINK.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_CONSULT_LINK.name(),
 					isMenuItemActionPossible(CONTAINER_CONSULT_LINK.name(), container, user, params),
-					$("consultationLink"), FontAwesome.LINK, -1, 510,
+					$("consultationLink"), FontAwesome.LINK, -1, 45,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).getConsultationLink(container, params));
-			menuItemActions.add(menuItemAction);
-		}
-
-		if (!filteredActionTypes.contains(CONTAINER_EMPTY_THE_BOX.name())) {
-			// confirm message
-			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_EMPTY_THE_BOX.name(),
-					isMenuItemActionPossible(CONTAINER_EMPTY_THE_BOX.name(), container, user, params),
-					$("DisplayContainerView.empty"), null, -1, 600,
-					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).empty(container, params));
-
-			menuItemAction.setConfirmMessage($("DisplayContainerView.confirmEmpty"));
-
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(CONTAINER_BORROW.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_BORROW.name(),
 					isMenuItemActionPossible(CONTAINER_BORROW.name(), container, user, params),
-					$("DisplayFolderView.borrow"), null, -1, 300,
+					$("DisplayFolderView.borrow"), null, -1, 65,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).borrow(container, params));
 			menuItemActions.add(menuItemAction);
+		}
+
+		if (!filteredActionTypes.contains(CONTAINER_CHECK_IN.name())) {
+			menuItemActions.add(buildMenuItemAction(CONTAINER_CHECK_IN.name(),
+					isMenuItemActionPossible(CONTAINER_CHECK_IN.name(), container, user, params),
+					$("DisplayContainerView.checkIn"), null, -1, 66,
+					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).checkIn(container, params)));
+		}
+
+		if (!filteredActionTypes.contains(CONTAINER_RETURN_REMAINDER.name())) {
+			menuItemActions.add(buildMenuItemAction(CONTAINER_RETURN_REMAINDER.name(),
+					isMenuItemActionPossible(CONTAINER_RETURN_REMAINDER.name(), container, user, params),
+					$("SendReturnReminderEmailButton.reminderReturn"), null, -1, 70,
+					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).sendReturnRemainder(container, params)));
 		}
 
 		if (!filteredActionTypes.contains(CONTAINER_GENERATE_REPORT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_GENERATE_REPORT.name(),
 					isMenuItemActionPossible(CONTAINER_GENERATE_REPORT.name(), container, user, params),
-					$("SearchView.metadataReportTitle"), null, -1, 700,
+					$("SearchView.metadataReportTitle"), null, -1, 75,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).generateReport(container, params));
 			menuItemActions.add(menuItemAction);
 		}
@@ -157,7 +134,7 @@ public class ContainerMenuItemServices {
 		if (!filteredActionTypes.contains(CONTAINER_ADD_TO_SELECTION.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_ADD_TO_SELECTION.name(),
 					isMenuItemActionPossible(CONTAINER_ADD_TO_SELECTION.name(), container, user, params),
-					$("addToOrRemoveFromSelection.add"), FontAwesome.SHOPPING_BASKET, -1, 1200,
+					$("addToOrRemoveFromSelection.add"), FontAwesome.SHOPPING_BASKET, -1, 80,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).addToSelection(container, params));
 
 			menuItemActions.add(menuItemAction);
@@ -166,8 +143,31 @@ public class ContainerMenuItemServices {
 		if (!filteredActionTypes.contains(CONTAINER_REMOVE_FROM_SELECTION.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_REMOVE_FROM_SELECTION.name(),
 					isMenuItemActionPossible(CONTAINER_REMOVE_FROM_SELECTION.name(), container, user, params),
-					$("addToOrRemoveFromSelection.remove"), FontAwesome.SHOPPING_BASKET, -1, 1300,
+					$("addToOrRemoveFromSelection.remove"), FontAwesome.SHOPPING_BASKET, -1, 81,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).removeToSelection(container, params));
+
+			menuItemActions.add(menuItemAction);
+		}
+
+		if (!filteredActionTypes.contains(CONTAINER_EMPTY_THE_BOX.name())) {
+			// confirm message
+			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_EMPTY_THE_BOX.name(),
+					isMenuItemActionPossible(CONTAINER_EMPTY_THE_BOX.name(), container, user, params),
+					$("DisplayContainerView.empty"), null, -1, Integer.MAX_VALUE-1,
+					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).empty(container, params));
+
+			menuItemAction.setConfirmMessage($("DisplayContainerView.confirmEmpty"));
+
+			menuItemActions.add(menuItemAction);
+		}
+
+		if (!filteredActionTypes.contains(CONTAINER_DELETE.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_DELETE.name(),
+					isMenuItemActionPossible(CONTAINER_DELETE.name(), container, user, params),
+					$("DisplayContainerView.delete"), FontAwesome.TRASH_O, -1, Integer.MAX_VALUE,
+					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).delete(container, params));
+
+			menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
 
 			menuItemActions.add(menuItemAction);
 		}

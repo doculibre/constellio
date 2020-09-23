@@ -18,7 +18,7 @@ public class AzureADServices implements LDAPServices {
 	@Override
 	public void authenticateUser(LDAPServerConfiguration ldapServerConfiguration, String user, String password)
 			throws CouldNotConnectUserToLDAP {
-		new AzureAdClient(ldapServerConfiguration, null).authenticate(user, password);
+		new AzureAdClient(ldapServerConfiguration).authenticate(user, password);
 	}
 
 	@Override

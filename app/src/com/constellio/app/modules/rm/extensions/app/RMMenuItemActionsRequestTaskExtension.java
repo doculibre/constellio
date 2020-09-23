@@ -103,21 +103,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 								.command((ids) -> borrowRequest(params))
 								.recordsLimit(1)
 								.group(1)
-								.priority(3000)
-								.build());
-					}
-
-					if (!params.getExcludedActionTypes().contains(REQUEST_BORROW_EXTENSION_BUTTON.name())) {
-						boolean isRequestBorrowExtensionActionPossible = isExtensionRequestActionPossible(record, user);
-
-						params.getMenuItemActions().add(MenuItemAction.builder()
-								.type(REQUEST_BORROW_EXTENSION_BUTTON.name())
-								.state(toState(isRequestBorrowExtensionActionPossible))
-								.caption($("RMRequestTaskButtonExtension.borrowExtensionRequest"))
-								.command((ids) -> borrowExtensionRequested(params))
-								.recordsLimit(1)
-								.group(1)
-								.priority(3002)
+								.priority(1700)
 								.build());
 					}
 
@@ -131,7 +117,21 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 								.command((ids) -> reactivationRequested(params))
 								.recordsLimit(1)
 								.group(1)
-								.priority(3004)
+								.priority(1900)
+								.build());
+					}
+
+					if (!params.getExcludedActionTypes().contains(REQUEST_BORROW_EXTENSION_BUTTON.name())) {
+						boolean isRequestBorrowExtensionActionPossible = isExtensionRequestActionPossible(record, user);
+
+						params.getMenuItemActions().add(MenuItemAction.builder()
+								.type(REQUEST_BORROW_EXTENSION_BUTTON.name())
+								.state(toState(isRequestBorrowExtensionActionPossible))
+								.caption($("RMRequestTaskButtonExtension.borrowExtensionRequest"))
+								.command((ids) -> borrowExtensionRequested(params))
+								.recordsLimit(1)
+								.group(1)
+								.priority(2000)
 								.build());
 					}
 				}
@@ -152,7 +152,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 							.command((ids) -> returnRequest(params))
 							.recordsLimit(1)
 							.group(-1)
-							.priority(3006)
+							.priority(2050)
 							.build());
 				}
 			}

@@ -46,6 +46,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
+import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
@@ -80,6 +81,7 @@ import com.constellio.model.entities.records.wrappers.structure.ExternalAccessUr
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.structures.EmailAddress;
@@ -106,6 +108,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.extern.slf4j.Slf4j;
@@ -390,6 +393,46 @@ public class DocumentMenuItemActionBehaviors {
 		moveInFolderButton.click();
 	}
 
+	public void renameContent(final Document document, final MenuItemActionBehaviorParams params) {
+		WindowButton renameContentButton = new WindowButton($("DocumentContextMenu.renameContent"), $("DocumentContextMenu.renameContent"),
+				WindowConfiguration.modalDialog("40%", "100px")) {
+			@Override
+			protected Component buildWindowContent() {
+				final TextField title = new BaseTextField();
+				String contentTitle = document.getContent().getCurrentVersion().getFilename();
+				title.setValue(contentTitle);
+				title.setWidth("100%");
+
+				Button save = new BaseButton($("DisplayDocumentView.renameContentConfirm")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						renameContentButtonClicked(document, params, title.getValue());
+						getWindow().close();
+					}
+				};
+				save.addStyleName(ValoTheme.BUTTON_PRIMARY);
+				save.addStyleName(BaseForm.SAVE_BUTTON);
+
+				Button cancel = new BaseButton($("DisplayDocumentView.renameContentCancel")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						getWindow().close();
+					}
+				};
+
+				HorizontalLayout form = new HorizontalLayout(title, save, cancel);
+				form.setExpandRatio(title, 1);
+				form.setSpacing(true);
+				form.setWidth("95%");
+
+				VerticalLayout layout = new VerticalLayout(form);
+				layout.setSizeFull();
+
+				return layout;
+			}
+		};
+		renameContentButton.click();
+	}
 
 	public void publish(Document document, MenuItemActionBehaviorParams params) {
 
@@ -1019,6 +1062,36 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
+	private void renameContentButtonClicked(Document document, MenuItemActionBehaviorParams params,
+											String newContentTitle) {
+		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA,
+				params.getView().getConstellioFactories(), params.getView().getSessionContext());
+		if (document != null) {
+			document = renameContentButtonClicked(document, newContentTitle);
+			presenterUtils.addOrUpdate(document.getWrappedRecord());
+			params.getView().updateUI();
+			//			navigateToDisplayDocument(document.getId(), params.getFormParams());
+		}
+	}
+
+	private Document renameContentButtonClicked(Document document, String newName) {
+		boolean isManualEntry = rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL;
+		if (document.getContent().getCurrentVersion().getFilename().equals(document.getTitle())) {
+			if (isManualEntry && !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
+					.getPopulateConfigs().isAddOnly()) {
+				document.setTitle(newName);
+			}
+		} else if (FilenameUtils.removeExtension(document.getContent().getCurrentVersion().getFilename())
+				.equals(document.getTitle())) {
+			if (isManualEntry && !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
+					.getPopulateConfigs().isAddOnly()) {
+				document.setTitle(FilenameUtils.removeExtension(newName));
+			}
+		}
+
+		document.getContent().renameCurrentVersion(newName);
+		return document;
+	}
 
 	private ValidationErrors validateDeleteDocumentPossibleExtensively(Record record, User user) {
 		ValidationErrors validationErrors = new ValidationErrors();

@@ -180,7 +180,7 @@ public class LogsTenantsAcceptTest extends ConstellioTest {
 		String line = null;
 		int i = 0;// just in case
 		try {
-			object = new ReversedLinesFileReader(file);
+			object = new ReversedLinesFileReader(file,Charset.defaultCharset());
 			line = object.readLine();
 			while ((line == null || line.isEmpty()) && i < 10) {
 				i++;

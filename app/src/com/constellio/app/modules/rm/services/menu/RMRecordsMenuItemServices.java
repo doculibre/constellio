@@ -562,7 +562,7 @@ public class RMRecordsMenuItemServices {
 				break;
 			case RMRECORDS_BORROW_REQUEST:
 				menuItemAction = buildMenuItemAction(RMRECORDS_BORROW_REQUEST, state,
-						$("RMRequestTaskButtonExtension.borrowRequest"), null, -1, 720,
+						$("RMRequestTaskButtonExtension.borrowRequest"), null, -1, 610,
 						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).checkOutRequest(ids, params));
 				break;
@@ -580,7 +580,7 @@ public class RMRecordsMenuItemServices {
 				break;
 			case RMRECORDS_RETURN_REQUEST:
 				menuItemAction = buildMenuItemAction(RMRECORDS_RETURN_REQUEST, state,
-						$("RMRequestTaskButtonExtension.returnRequest"), null, -1, 760,
+						$("RMRequestTaskButtonExtension.returnRequest"), null, -1, 800,
 						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).checkInRequest(ids, params));
 				break;
@@ -610,7 +610,7 @@ public class RMRecordsMenuItemServices {
 				break;
 			case RMRECORDS_BATCH_DELETE:
 				menuItemAction = buildMenuItemAction(RMRECORDS_BATCH_DELETE, state,
-						$("deleteWithIcon"), null, -1, 1000,
+						$("deleteWithIcon"), null, -1, Integer.MAX_VALUE,
 						getRecordsLimit(actionType), (ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).batchDelete(ids, params));
 				break;
 			case RMRECORDS_CREATE_TASK:

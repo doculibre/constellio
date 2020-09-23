@@ -59,8 +59,16 @@ public class TaskMenuItemServices {
 		if (!filteredActionTypes.contains(TASK_EDIT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(TASK_EDIT.name(),
 					isMenuItemActionPossible(TASK_EDIT.name(), task, user, params),
-					$("DisplayTaskView.modifyTask"), FontAwesome.EDIT, -1, 100,
+					$("DisplayTaskView.modifyTask"), FontAwesome.EDIT, -1, 110,
 					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).edit(task, params));
+			menuItemActions.add(menuItemAction);
+		}
+
+		if (!filteredActionTypes.contains(TASK_CREATE_SUB_TASK.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(TASK_CREATE_SUB_TASK.name(),
+					isMenuItemActionPossible(TASK_CREATE_SUB_TASK.name(), task, user, params),
+					$("DisplayTaskView.createSubTask"), null, -1, 120,
+					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).createSubTask(task, params));
 			menuItemActions.add(menuItemAction);
 		}
 
@@ -79,46 +87,44 @@ public class TaskMenuItemServices {
 					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).autoAssign(task, params));
 			menuItemActions.add(menuItemAction);
 		}
-		if (!filteredActionTypes.contains(TASK_COMPLETE.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(TASK_COMPLETE.name(),
-					isMenuItemActionPossible(TASK_COMPLETE.name(), task, user, params),
-					$("DisplayTaskView.completeTask"), null, -1, 300,
-					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).complete(task, params));
-			menuItemActions.add(menuItemAction);
-		}
-		if (!filteredActionTypes.contains(TASK_CLOSE.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(TASK_CLOSE.name(),
-					isMenuItemActionPossible(TASK_CLOSE.name(), task, user, params),
-					$("DisplayTaskView.closeTask"), null, -1, 400,
-					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).close(task, params));
-			menuItemActions.add(menuItemAction);
-		}
-		if (!filteredActionTypes.contains(TASK_CREATE_SUB_TASK.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(TASK_CREATE_SUB_TASK.name(),
-					isMenuItemActionPossible(TASK_CREATE_SUB_TASK.name(), task, user, params),
-					$("DisplayTaskView.createSubTask"), null, -1, 500,
-					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).createSubTask(task, params));
-			menuItemActions.add(menuItemAction);
-		}
-		if (!filteredActionTypes.contains(TASK_DELETE.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(TASK_DELETE.name(),
-					isMenuItemActionPossible(TASK_DELETE.name(), task, user, params),
-					$("DisplayTaskView.deleteTask"), FontAwesome.TRASH_O, -1, 600,
-					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).delete(task, params));
-			menuItemActions.add(menuItemAction);
-		}
+
 		if (!filteredActionTypes.contains(TASK_GENERATE_REPORT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(TASK_GENERATE_REPORT.name(),
 					isMenuItemActionPossible(TASK_GENERATE_REPORT.name(), task, user, params),
-					$("SearchView.metadataReportTitle"), null, -1, 700,
+					$("SearchView.metadataReportTitle"), null, -1, 300,
 					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).generateReport(task, params));
 			menuItemActions.add(menuItemAction);
 		}
+
 		if (!filteredActionTypes.contains(TASK_SHARE.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(TASK_SHARE.name(),
 					isMenuItemActionPossible(TASK_SHARE.name(), task, user, params),
-					$("DisplayTaskView.share"), FontAwesome.PAPER_PLANE_O, -1, 700,
+					$("DisplayTaskView.share"), FontAwesome.PAPER_PLANE_O, -1, 500,
 					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).shareTask(task, params));
+			menuItemActions.add(menuItemAction);
+		}
+
+		if (!filteredActionTypes.contains(TASK_COMPLETE.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(TASK_COMPLETE.name(),
+					isMenuItemActionPossible(TASK_COMPLETE.name(), task, user, params),
+					$("DisplayTaskView.completeTask"), null, -1, 600,
+					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).complete(task, params));
+			menuItemActions.add(menuItemAction);
+		}
+
+		if (!filteredActionTypes.contains(TASK_CLOSE.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(TASK_CLOSE.name(),
+					isMenuItemActionPossible(TASK_CLOSE.name(), task, user, params),
+					$("DisplayTaskView.closeTask"), null, -1, Integer.MAX_VALUE-1,
+					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).close(task, params));
+			menuItemActions.add(menuItemAction);
+		}
+
+		if (!filteredActionTypes.contains(TASK_DELETE.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(TASK_DELETE.name(),
+					isMenuItemActionPossible(TASK_DELETE.name(), task, user, params),
+					$("DisplayTaskView.deleteTask"), FontAwesome.TRASH_O, -1, Integer.MAX_VALUE,
+					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).delete(task, params));
 			menuItemActions.add(menuItemAction);
 		}
 

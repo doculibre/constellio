@@ -14,6 +14,7 @@ import org.vaadin.peter.contextmenu.ContextMenu;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
@@ -23,6 +24,7 @@ public class MenuItemFactory {
 
 	public void buildContextMenu(ContextMenu rootMenu, List<MenuItemAction> menuItemActions,
 								 final MenuItemRecordProvider recordProvider) {
+		menuItemActions.sort(Comparator.comparing(MenuItemAction::getPriority));
 		for (MenuItemAction menuItemAction : menuItemActions) {
 			ContextMenuItem menuItem = rootMenu.addItem(menuItemAction.getCaption(), menuItemAction.getIcon());
 			if (!Strings.isNullOrEmpty(menuItemAction.getConfirmMessage())) {
@@ -52,6 +54,7 @@ public class MenuItemFactory {
 
 	public void buildMenuBar(final MenuItem rootItem, final List<MenuItemAction> menuItemActions,
 							 final MenuItemRecordProvider recordProvider, final CommandCallback callback) {
+		menuItemActions.sort(Comparator.comparing(MenuItemAction::getPriority));
 		for (final MenuItemAction menuItemAction : menuItemActions) {
 			Command menuItemCommand;
 			if (menuItemAction.getCommand() != null) {
@@ -78,6 +81,7 @@ public class MenuItemFactory {
 										   final MenuItemRecordProvider recordProvider,
 										   final CommandCallback callback) {
 		List<Button> actionButtons = new ArrayList<>();
+		menuItemActions.sort(Comparator.comparing(MenuItemAction::getPriority));
 		for (MenuItemAction menuItemAction : menuItemActions) {
 			final BaseButton actionButton = new BaseButton(menuItemAction.getCaption(), menuItemAction.getIcon()) {
 				@Override

@@ -63,6 +63,12 @@ public class AzureAdClient {
 
 	private LDAPUserSyncConfiguration ldapUserSyncConfiguration;
 
+	public AzureAdClient(final LDAPServerConfiguration ldapServerConfiguration) {
+		this.ldapServerConfiguration = ldapServerConfiguration;
+		this.ldapUserSyncConfiguration = null;
+		azureRequestHelper=null;
+	}
+
 	public AzureAdClient(final LDAPServerConfiguration ldapServerConfiguration,
 						 final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		this.ldapServerConfiguration = ldapServerConfiguration;

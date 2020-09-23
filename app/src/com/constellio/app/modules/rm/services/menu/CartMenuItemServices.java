@@ -69,15 +69,6 @@ public class CartMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!excludedActionTypes.contains(CART_BATCH_DELETE.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(CART_BATCH_DELETE.name(),
-					isMenuItemActionPossible(CART_BATCH_DELETE.name(), cart, user, params),
-					$(DeleteButton.CAPTION), FontAwesome.TRASH_O, -1, 1000,
-					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).batchDelete(cart, params));
-
-			menuItemActions.add(menuItemAction);
-		}
-
 		if (!excludedActionTypes.contains(CART_EMPTY.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_EMPTY.name(),
 					isMenuItemActionPossible(CART_EMPTY.name(), cart, user, params),
@@ -99,6 +90,15 @@ public class CartMenuItemServices {
 					isMenuItemActionPossible(CART_DECOMMISSIONING_LIST.name(), cart, user, params),
 					$("CartView.decommissioningList"), FontAwesome.LIST_ALT, -1, 1300,
 					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).decommission(cart, params));
+			menuItemActions.add(menuItemAction);
+		}
+
+		if (!excludedActionTypes.contains(CART_BATCH_DELETE.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(CART_BATCH_DELETE.name(),
+					isMenuItemActionPossible(CART_BATCH_DELETE.name(), cart, user, params),
+					$(DeleteButton.CAPTION), FontAwesome.TRASH_O, -1, Integer.MAX_VALUE-1,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).batchDelete(cart, params));
+
 			menuItemActions.add(menuItemAction);
 		}
 

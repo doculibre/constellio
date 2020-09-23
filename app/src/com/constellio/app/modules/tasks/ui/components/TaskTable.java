@@ -413,22 +413,6 @@ public class TaskTable extends VerticalLayout {
 				});
 			}
 
-			if (presenter.isReadByUser(taskVO)) {
-				rootItem.addItem($("TaskTable.markAsUnread"), FontAwesome.EYE_SLASH, new Command() {
-					@Override
-					public void menuSelected(MenuItem selectedItem) {
-						presenter.setReadByUser(taskVO, false);
-					}
-				});
-			} else {
-				rootItem.addItem($("TaskTable.markAsRead"), FontAwesome.EYE, new Command() {
-					@Override
-					public void menuSelected(MenuItem selectedItem) {
-						presenter.setReadByUser(taskVO, true);
-					}
-				});
-			}
-
 			if (presenter.isCompleteButtonEnabled(taskVO)) {
 				rootItem.addItem($("TaskTable.complete"), FontAwesome.CHECK_CIRCLE_O, new Command() {
 					@Override
@@ -454,6 +438,16 @@ public class TaskTable extends VerticalLayout {
 					}
 				});
 			}
+
+			if (presenter.isCloseButtonEnabled(taskVO)) {
+				rootItem.addItem($("TaskTable.close"), FontAwesome.TIMES_CIRCLE_O, new Command() {
+					@Override
+					public void menuSelected(MenuItem selectedItem) {
+						presenter.closeButtonClicked(taskVO);
+					}
+				});
+			}
+
 			rootItem.addItem($("DisplayTaskView.share"), FontAwesome.PAPER_PLANE_O, new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
@@ -495,6 +489,22 @@ public class TaskTable extends VerticalLayout {
 				}
 			});
 
+			if (presenter.isReadByUser(taskVO)) {
+				rootItem.addItem($("TaskTable.markAsUnread"), FontAwesome.EYE_SLASH, new Command() {
+					@Override
+					public void menuSelected(MenuItem selectedItem) {
+						presenter.setReadByUser(taskVO, false);
+					}
+				});
+			} else {
+				rootItem.addItem($("TaskTable.markAsRead"), FontAwesome.EYE, new Command() {
+					@Override
+					public void menuSelected(MenuItem selectedItem) {
+						presenter.setReadByUser(taskVO, true);
+					}
+				});
+			}
+
 			if (presenter.isAutoAssignButtonEnabled(taskVO)) {
 				rootItem.addItem($("TaskTable.autoAssignTask"), FontAwesome.HAND_O_RIGHT, new Command() {
 					@Override
@@ -504,11 +514,11 @@ public class TaskTable extends VerticalLayout {
 				});
 			}
 
-			if (presenter.isCloseButtonEnabled(taskVO)) {
-				rootItem.addItem($("TaskTable.close"), FontAwesome.TIMES_CIRCLE_O, new Command() {
+			if (presenter.isMetadataReportAllowed(taskVO)) {
+				rootItem.addItem($("TaskTable.reportMetadata"), FontAwesome.LIST_ALT, new Command() {
 					@Override
 					public void menuSelected(MenuItem selectedItem) {
-						presenter.closeButtonClicked(taskVO);
+						presenter.generateReportButtonClicked(taskVO);
 					}
 				});
 			}
@@ -529,15 +539,6 @@ public class TaskTable extends VerticalLayout {
 						presenter.deleteButtonClicked(taskVO);
 					}
 				}).setEnabled(presenter.isDeleteButtonEnabled(taskVO));
-			}
-
-			if (presenter.isMetadataReportAllowed(taskVO)) {
-				rootItem.addItem($("TaskTable.reportMetadata"), FontAwesome.LIST_ALT, new Command() {
-					@Override
-					public void menuSelected(MenuItem selectedItem) {
-						presenter.generateReportButtonClicked(taskVO);
-					}
-				});
 			}
 		}
 	}

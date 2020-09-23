@@ -90,17 +90,6 @@ public class GroupCollectionMenuItemServices {
 				menuItemActions.add(menuItemAction);
 			}
 
-			if (!filteredActionTypes.contains(GROUP_REMOVE_FROM_COLLECTION.name())) {
-				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_REMOVE_FROM_COLLECTION.name(),
-						isMenuItemActionPossible(GROUP_REMOVE_FROM_COLLECTION.name(), groupRecords.get(0), user, params),
-						$("CollectionSecurityManagement.removeFromCollection"), FontAwesome.MINUS_CIRCLE, -1, 600,
-						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).removeFromCollection(groupRecords, params));
-
-				menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
-
-				menuItemActions.add(menuItemAction);
-			}
-
 			if (!filteredActionTypes.contains(GROUP_ADD_USER.name())) {
 				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_ADD_USER.name(),
 						isMenuItemActionPossible(GROUP_ADD_USER.name(), groupRecords.get(0), user, params),
@@ -114,6 +103,17 @@ public class GroupCollectionMenuItemServices {
 						isMenuItemActionPossible(GROUP_REMOVE_USER.name(), groupRecords.get(0), user, params),
 						$("CollectionSecurityManagement.removeUser"), FontAwesome.LONG_ARROW_DOWN, -1, 800,
 						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).removeUser(groupRecords, params));
+
+				menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
+
+				menuItemActions.add(menuItemAction);
+			}
+
+			if (!filteredActionTypes.contains(GROUP_REMOVE_FROM_COLLECTION.name())) {
+				MenuItemAction menuItemAction = buildMenuItemAction(GROUP_REMOVE_FROM_COLLECTION.name(),
+						isMenuItemActionPossible(GROUP_REMOVE_FROM_COLLECTION.name(), groupRecords.get(0), user, params),
+						$("CollectionSecurityManagement.removeFromCollection"), FontAwesome.MINUS_CIRCLE, -1, Integer.MAX_VALUE,
+						(ids) -> new GroupRecordMenuItemActionBehaviors(collection, appLayerFactory).removeFromCollection(groupRecords, params));
 
 				menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
 

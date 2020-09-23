@@ -630,6 +630,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			User user = getCurrentUser();
 			view.setDisplayButtonState(getDisplayButtonState(user, folder));
 			view.setEditButtonState(getEditButtonState(user, folder));
+			view.setAddSubfolderButtonState(getAddSubFolderButtonState(user, folder));
 			view.setAddDocumentButtonState(getAddDocumentButtonState(user, folder));
 			view.setBorrowedMessage(getBorrowMessageState(folder));
 		}
@@ -699,6 +700,28 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 							.has(RMPermissionsTo.CREATE_SEMIACTIVE_DOCUMENT).on(folder));
 				}
 				return ComponentState.visibleIf(user.has(RMPermissionsTo.CREATE_SEMIACTIVE_DOCUMENT).on(folder));
+			}
+			return ComponentState.ENABLED;
+		}
+		return ComponentState.INVISIBLE;
+	}
+
+	ComponentState getAddSubFolderButtonState(User user, Folder folder) {
+		if (user.hasWriteAccess().on(folder) &&
+			user.has(RMPermissionsTo.CREATE_SUB_FOLDERS).on(folder)) {
+			if (folder.getPermissionStatus().isInactive()) {
+				if (folder.getBorrowed() != null && folder.getBorrowed()) {
+					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
+							.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_INACTIVE_FOLDERS).on(folder));
+				}
+				return ComponentState.visibleIf(user.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_INACTIVE_FOLDERS).on(folder));
+			}
+			if (folder.getPermissionStatus().isSemiActive()) {
+				if (folder.getBorrowed() != null && folder.getBorrowed()) {
+					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(folder) && user
+							.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_SEMIACTIVE_FOLDERS).on(folder));
+				}
+				return ComponentState.visibleIf(user.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_SEMIACTIVE_FOLDERS).on(folder));
 			}
 			return ComponentState.ENABLED;
 		}
@@ -787,6 +810,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void addDocumentButtonClicked() {
 		navigate().to(RMViews.class).addDocument(summaryFolderVO.getId());
+	}
+
+	public void addSubfolderButtonClicked() {
+		navigate().to(RMViews.class).addFolder(summaryFolderVO.getId());
 	}
 
 	public void navigateToSelf() {

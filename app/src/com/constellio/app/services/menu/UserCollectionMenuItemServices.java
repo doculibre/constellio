@@ -113,15 +113,6 @@ public class UserCollectionMenuItemServices {
 				menuItemActions.add(menuItemAction);
 			}
 
-			if (!filteredActionTypes.contains(USER_DELETE.name())) {
-				MenuItemAction menuItemAction = buildMenuItemAction(USER_DELETE.name(),
-						isMenuItemActionPossible(USER_DELETE.name(), userRecords.get(0), user, params),
-						$("CollectionSecurityManagement.removeFromCollection"), FontAwesome.MINUS_CIRCLE, -1, 750,
-						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).delete(userRecords, params));
-				menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
-				menuItemActions.add(menuItemAction);
-			}
-
 			if (!filteredActionTypes.contains(USER_ADD_TO_GROUP.name())) {
 				MenuItemAction menuItemAction = buildMenuItemAction(USER_ADD_TO_GROUP.name(),
 						isMenuItemActionPossible(USER_ADD_TO_GROUP.name(), userRecords.get(0), user, params),
@@ -149,6 +140,15 @@ public class UserCollectionMenuItemServices {
 						isMenuItemActionPossible(USER_DESYNCHRONIZE.name(), userRecords.get(0), user, params),
 						$("CollectionSecurityManagement.desynchronize"), FontAwesome.EJECT, -1, 1100,
 						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).synchronize(userRecords, params, false)));
+			}
+
+			if (!filteredActionTypes.contains(USER_DELETE.name())) {
+				MenuItemAction menuItemAction = buildMenuItemAction(USER_DELETE.name(),
+						isMenuItemActionPossible(USER_DELETE.name(), userRecords.get(0), user, params),
+						$("CollectionSecurityManagement.removeFromCollection"), FontAwesome.MINUS_CIRCLE, -1, Integer.MAX_VALUE,
+						(ids) -> new UserRecordMenuItemActionBehaviors(collection, appLayerFactory).delete(userRecords, params));
+				menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
+				menuItemActions.add(menuItemAction);
 			}
 		}
 

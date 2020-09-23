@@ -44,6 +44,8 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void setAddDocumentButtonState(ComponentState state);
 
+	void setAddSubfolderButtonState(ComponentState state);
+
 	void setBorrowedMessage(String borrowedMessage);
 
 	void refreshFolderContentTab();
