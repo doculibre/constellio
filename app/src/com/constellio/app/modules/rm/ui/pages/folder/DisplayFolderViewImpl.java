@@ -376,7 +376,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					presenter.addDocumentButtonClicked();
 				}
 			};
-			addSubfolderButton.setIcon(FontAwesome.FILE_O);
+			addDocumentButton.setIcon(FontAwesome.FILE_O);
 			addDocumentButton.setCaptionVisibleOnMobile(false);
 		} else {
 			addDocumentButton = null;
