@@ -10,8 +10,8 @@ import com.constellio.data.dao.services.bigVault.solr.SolrCloudUtils;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 
 import java.util.HashMap;
@@ -78,7 +78,7 @@ public class CollectionManagementPresenter extends BasePresenter<CollectionManag
 		String collection = dataProvider.getRecordVO(index).getCode();
 
 		UserServices userServices = modelLayerFactory.newUserServices();
-		UserCredential userCredential = userServices.getUserCredential(getCurrentUser().getUsername());
+		SystemWideUserInfos userCredential = userServices.getUserInfos(getCurrentUser().getUsername());
 
 		boolean hasDeleteAccess = userCredential.isSystemAdmin();
 		if (!hasDeleteAccess && userCredential.getCollections().contains(collection)) {

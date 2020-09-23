@@ -27,7 +27,6 @@ import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -289,9 +288,8 @@ public class AuthorizationsServices {
 						}
 					} else if (principalRecord.getSchemaCode().equals(User.SCHEMA_TYPE + "_default")) {
 						User user = new User(principalRecord, types, roles);
-						UserCredential userCredential = modelLayerFactory.newUserServices().getUserCredential(user.getUsername());
 
-						if (userCredential.getStatus() == UserCredentialStatus.ACTIVE) {
+						if (user.getStatus() == UserCredentialStatus.ACTIVE) {
 							users.add(user);
 						}
 					}

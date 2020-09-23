@@ -109,16 +109,8 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return credentialSchema().getMetadata(UserCredential.AZURE_USERNAME);
 	}
 
-	public Metadata credentialStatus() {
-		return credentialSchema().getMetadata(UserCredential.STATUS);
-	}
-
 	public Metadata syncStatus() {
 		return credentialSchema().getMetadata(UserCredential.SYNC_MODE);
-	}
-
-	public Metadata credentialCollections() {
-		return credentialSchema().getMetadata(UserCredential.COLLECTIONS);
 	}
 
 	public Metadata credentialTokenKeys() {
@@ -127,10 +119,6 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 
 	public Metadata credentialTokenExpirations() {
 		return credentialSchema().getMetadata(UserCredential.TOKEN_EXPIRATIONS);
-	}
-
-	public Metadata credentialGroups() {
-		return credentialSchema().getMetadata(UserCredential.GLOBAL_GROUPS);
 	}
 
 	public Metadata credentialServiceKey() {

@@ -3,8 +3,6 @@ package com.constellio.app.api;
 import com.constellio.app.ui.pages.base.VaadinSessionContext;
 import com.constellio.data.utils.AuthCache;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
@@ -89,8 +87,8 @@ public class HttpServletRequestAuthenticator {
 		Principal userPrincipal = (Principal) request.getSession().getAttribute(VaadinSessionContext.USER_PRINCIPAL_ATTRIBUTE);
 		if (userPrincipal != null) {
 			String username = userPrincipal.getName();
-			UserCredential userCredential = userServices.getUserCredential(username);
-			if (userCredential.getStatus() == UserCredentialStatus.ACTIVE) {
+			SystemWideUserInfos userCredential = userServices.getNullableUserInfos(username);
+			if (userCredential != null && userCredential.isActiveInAnyCollection()) {
 				return userServices.getUserInfos(username);
 			}
 		}

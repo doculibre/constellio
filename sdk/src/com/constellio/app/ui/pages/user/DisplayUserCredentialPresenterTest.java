@@ -7,7 +7,7 @@ import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
 import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
 import com.constellio.model.entities.security.global.SystemWideGroup;
-import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
@@ -37,7 +37,7 @@ public class DisplayUserCredentialPresenterTest extends ConstellioTest {
 	@Mock DisplayUserCredentialView userCredentialView;
 	@Mock UserServices userServices;
 	@Mock CoreViews navigator;
-	@Mock UserCredential dakotaCredential, newDakotaCredential;
+	@Mock SystemWideUserInfos dakotaCredential, newDakotaCredential;
 	@Mock SystemWideGroup heroesGlobalGroup;
 	@Mock GlobalGroupVODataProvider globalGroupVODataProvider;
 	@Mock UserCredentialVO dakotaCredentialVO;
@@ -64,7 +64,7 @@ public class DisplayUserCredentialPresenterTest extends ConstellioTest {
 
 		givenBreadCrumbAndParameters();
 
-		when(userServices.getUserCredential(DAKOTA_INDIEN)).thenReturn(dakotaCredential);
+		when(userServices.getUserInfos(DAKOTA_INDIEN)).thenReturn(dakotaCredential);
 		when(presenter.newUserCredentialToVOBuilder()).thenReturn(voBuilder);
 		when(voBuilder.build(dakotaCredential)).thenReturn(dakotaCredentialVO);
 		when(dakotaCredentialVO.getUsername()).thenReturn(DAKOTA_INDIEN);

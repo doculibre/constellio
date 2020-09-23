@@ -17,7 +17,7 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.users.SystemWideUserInfos;
 
 import java.util.List;
 
@@ -78,7 +78,7 @@ public class CartDao extends BaseDao {
 			throws Exception {
 
 		// Delete "My cart" content
-		UserCredential userCredentials = userServices.getUser(username);
+		SystemWideUserInfos userCredentials = userServices.getUserInfos(username);
 		List<String> collections = userCredentials.getCollections();
 		for (String collection : collections) {
 			User user = getUserByUsername(username, collection);

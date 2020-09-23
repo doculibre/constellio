@@ -180,7 +180,7 @@ public class LegacyLDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		ldapUserSyncManager.synchronizeIfPossible();
 		globalGroup = userServices.getGroup(group);
 		assertThat(globalGroup.getCollections()).containsOnly(zeCollection);
-		UserCredential userInGroup = userServices.getUser("bfay");
+		SystemWideUserInfos userInGroup = userServices.getUserInfos("bfay");
 		assertThat(userInGroup.getCollections()).containsOnly(zeCollection);
 	}
 
@@ -189,13 +189,13 @@ public class LegacyLDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		LDAPUserSyncManager ldapUserSyncManager = getModelLayerFactory().getLdapUserSyncManager();
 
 		ldapUserSyncManager.synchronizeIfPossible();
-		UserCredential bfay = userServices.getUser("bfay");
+		SystemWideUserInfos bfay = userServices.getUserInfos("bfay");
 		assertThat(bfay.getCollections()).isEmpty();
 		userServices.execute(bfay.getUsername(), (req) -> req.addToCollection(zeCollection));
-		bfay = userServices.getUser("bfay");
+		bfay = userServices.getUserInfos("bfay");
 		assertThat(bfay.getCollections()).containsOnly(zeCollection);
 		ldapUserSyncManager.synchronizeIfPossible();
-		bfay = userServices.getUser("bfay");
+		bfay = userServices.getUserInfos("bfay");
 		assertThat(bfay.getCollections()).containsOnly(zeCollection);
 	}
 
@@ -214,7 +214,7 @@ public class LegacyLDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 
 		globalGroup = userServices.getGroup(group);
 		assertThat(globalGroup.getCollections()).containsOnly(zeCollection, businessCollection);
-		UserCredential userInGroup = userServices.getUser("bfay");
+		SystemWideUserInfos userInGroup = userServices.getUserInfos("bfay");
 		assertThat(userInGroup.getCollections()).containsOnly(zeCollection, businessCollection);
 	}
 
@@ -223,16 +223,16 @@ public class LegacyLDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		LDAPUserSyncManager ldapUserSyncManager = getModelLayerFactory().getLdapUserSyncManager();
 
 		ldapUserSyncManager.synchronizeIfPossible();
-		UserCredential bfay = userServices.getUser("bfay");
+		SystemWideUserInfos bfay = userServices.getUserInfos("bfay");
 		assertThat(bfay.getCollections()).isEmpty();
 		userServices.execute(bfay.getUsername(), (req) -> req.addToCollection(zeCollection));
-		bfay = userServices.getUser("bfay");
+		bfay = userServices.getUserInfos("bfay");
 		assertThat(bfay.getCollections()).containsOnly(zeCollection);
 
 		saveValidLDAPConfigWithEntrepriseCollectionSelected();
 		ldapUserSyncManager.synchronizeIfPossible();
 
-		bfay = userServices.getUser("bfay");
+		bfay = userServices.getUserInfos("bfay");
 		assertThat(bfay.getCollections()).containsOnly(zeCollection, businessCollection);
 	}
 
@@ -248,7 +248,6 @@ public class LegacyLDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 
 		ldapUserSyncManager.synchronizeIfPossible();
 		UserCredential bfay = userServices.getUser("bfay");
-		assertThat(bfay.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
 	}
 
 	@Test
@@ -304,7 +303,6 @@ public class LegacyLDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 
 		ldapUserSyncManager.synchronizeIfPossible();
 		UserCredential userCredentials = userServices.getUser(inactiveUserInLDAP);
-		assertThat(userCredentials.getStatus()).isEqualTo(UserCredentialStatus.DISABLED);
 
 		com.constellio.model.services.users.UserAddUpdateRequest userCredential = addUpdateUserCredential(inactiveUserInLDAP, inactiveUserInLDAP, inactiveUserInLDAP,
 				inactiveUserInLDAP + "@doculibre.com", asList(new String[]{}), asList(new String[]{}),
@@ -336,8 +334,8 @@ public class LegacyLDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		assertThat(currentGroups).containsOnly(groupB, groupA);
 
 		ldapUserSyncManager.synchronizeIfPossible();
-		UserCredential bfay = userServices.getUser("bfay");
-		currentGroups = bfay.getGlobalGroups();
+		SystemWideUserInfos bfay = userServices.getUserInfos("bfay");
+		currentGroups = bfay.getGroupCodesInAnyCollection();
 		assertThat(currentGroups).containsOnly(groupB, groupC);
 	}
 
@@ -523,7 +521,7 @@ public class LegacyLDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		ldapUserSyncManager.synchronizeIfPossible();
 
 		// Then
-		UserCredential myUserCredential = userServices.getUser(myUsername);
-		assertThat(new TreeSet<>(myUserCredential.getGlobalGroups())).isEqualTo(new TreeSet<>(Arrays.asList(new String[]{"CN=B,OU=Fonct1,OU=Groupes,DC=test,DC=doculibre,DC=ca", "CN=C,OU=Fonct1,OU=Groupes,DC=test,DC=doculibre,DC=ca", myLocalGroupCode})));
+		SystemWideUserInfos myUserCredential = userServices.getUserInfos(myUsername);
+		assertThat(new TreeSet<>(myUserCredential.getGroupCodesInAnyCollection())).isEqualTo(new TreeSet<>(Arrays.asList(new String[]{"CN=B,OU=Fonct1,OU=Groupes,DC=test,DC=doculibre,DC=ca", "CN=C,OU=Fonct1,OU=Groupes,DC=test,DC=doculibre,DC=ca", myLocalGroupCode})));
 	}
 }

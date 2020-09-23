@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import static java.util.Arrays.asList;
-
 public class UserCredential extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "userCredential";
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
@@ -159,42 +157,6 @@ public class UserCredential extends RecordWrapper {
 		return this;
 	}
 
-	public List<String> getCollections() {
-		return getList(COLLECTIONS);
-	}
-
-	public UserCredential setCollections(List<String> collections) {
-		set(COLLECTIONS, collections);
-		return this;
-	}
-
-	public UserCredential setCollections(String... collections) {
-		set(COLLECTIONS, asList(collections));
-		return this;
-	}
-
-	public List<String> getGlobalGroups() {
-		return getList(GLOBAL_GROUPS);
-	}
-
-	public UserCredential setGlobalGroups(List<String> globalGroups) {
-		set(GLOBAL_GROUPS, globalGroups);
-		return this;
-	}
-
-	public UserCredential setGroups(String... groups) {
-		return setGlobalGroups(asList(groups));
-	}
-
-	public UserCredentialStatus getStatus() {
-		return get(STATUS);
-	}
-
-	public UserCredential setStatus(UserCredentialStatus status) {
-		set(STATUS, status);
-		return this;
-	}
-
 	public UserSyncMode getSyncMode() {
 		return get(SYNC_MODE);
 	}
@@ -226,10 +188,6 @@ public class UserCredential extends RecordWrapper {
 		return get(DN);
 	}
 
-	public boolean isActiveUser() {
-		return getStatus() == UserCredentialStatus.ACTIVE || getStatus() == null;
-	}
-
 	public UserCredential setDn(String dn) {
 		set(DN, dn);
 		return this;
@@ -251,24 +209,6 @@ public class UserCredential extends RecordWrapper {
 		return get(ADDRESS);
 	}
 
-	public UserCredential removeCollection(String collection) {
-		List<String> collections = new ArrayList<>(getCollections());
-		collections.remove(collection);
-		return setCollections(collections);
-	}
-
-	public UserCredential addGlobalGroup(String newGroup) {
-		List<String> groups = new ArrayList<>(getGlobalGroups());
-		groups.add(newGroup);
-		return setGlobalGroups(groups);
-	}
-
-	public UserCredential removeGlobalGroup(String removedGroup) {
-		List<String> groups = new ArrayList<>(getGlobalGroups());
-		groups.remove(removedGroup);
-		return setGlobalGroups(groups);
-	}
-
 	public UserCredential addAccessToken(String token, LocalDateTime dateTime) {
 		Map<String, LocalDateTime> tokens = getAccessTokens();
 		tokens.put(token, dateTime);
@@ -281,14 +221,6 @@ public class UserCredential extends RecordWrapper {
 		return setAccessTokens(tokens);
 	}
 
-
-	public UserCredential addCollection(String collection) {
-		List<String> collections = new ArrayList<>(getCollections());
-		if (!collections.contains(collection)) {
-			collections.add(collection);
-		}
-		return setCollections(collections);
-	}
 
 	public UserCredential setSystemAdminEnabled() {
 		return setSystemAdmin(true);

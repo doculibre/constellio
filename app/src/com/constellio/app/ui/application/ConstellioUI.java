@@ -29,11 +29,10 @@ import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.annotations.Theme;
 import com.vaadin.event.UIEvents.PollListener;
@@ -184,9 +183,9 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		if (userPrincipal != null) {
 			String username = userPrincipal.getName();
 
-			UserCredential userCredential = userServices.getUserCredential(username);
-			if (userCredential != null && userCredential.getStatus() == UserCredentialStatus.ACTIVE) {
-				List<String> collections = userCredential != null ? userCredential.getCollections() : new ArrayList<String>();
+			SystemWideUserInfos userCredential = userServices.getNullableUserInfos(username);
+			if (userCredential != null && userCredential.isActiveInAnyCollection()) {
+				List<String> collections = userCredential.getCollections();
 
 				String lastCollection = null;
 				User userInLastCollection = null;

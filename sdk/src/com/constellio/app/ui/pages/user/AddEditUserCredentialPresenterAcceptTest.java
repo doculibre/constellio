@@ -2,7 +2,7 @@ package com.constellio.app.ui.pages.user;
 
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
@@ -34,7 +34,8 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 	@Mock AddEditUserCredentialView userCredentialView;
 	MockedNavigation navigator;
 	UserServices userServices;
-	UserCredential dakotaCredential, newUserCredential;
+	SystemWideUserInfos dakotaCredential;
+	SystemWideUserInfos newUserCredential;
 	UserCredentialVO dakotaCredentialVO, newUserCredentialVO;
 	AddEditUserCredentialPresenter presenter;
 	SessionContext sessionContext;
@@ -105,9 +106,9 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 
 		presenter.saveButtonClicked(dakotaCredentialVO);
 
-		dakotaCredential = userServices.getUserCredential(DAKOTA);
+		dakotaCredential = userServices.getUserInfos(DAKOTA);
 		assertThat(dakotaCredential.getFirstName()).isEqualTo("Dakota1");
-		assertThat(dakotaCredential.getGlobalGroups()).containsOnly(HEROES);
+		assertThat(dakotaCredential.getGroupCodesInAnyCollection()).containsOnly(HEROES);
 		assertThat(dakotaCredential.getCollections()).containsOnly(zeCollection, "otherCollection");
 		assertThat(dakotaCredential.getLastName()).isEqualTo("Lindien1");
 		assertThat(dakotaCredential.getEmail()).isEqualTo("dakota1@constellio.com");
@@ -130,10 +131,10 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 
 		presenter.saveButtonClicked(dakotaCredentialVO);
 
-		dakotaCredential = userServices.getUserCredential(DAKOTA);
+		dakotaCredential = userServices.getUserInfos(DAKOTA);
 		verify(userCredentialView, never()).navigate();
 		assertThat(dakotaCredential.getFirstName()).isEqualTo("Dakota");
-		assertThat(dakotaCredential.getGlobalGroups()).containsOnly(HEROES);
+		assertThat(dakotaCredential.getGroupCodesInAnyCollection()).containsOnly(HEROES);
 		assertThat(dakotaCredential.getCollections()).containsOnly(zeCollection);
 		assertThat(dakotaCredential.getLastName()).isEqualTo("L'Indien");
 		assertThat(dakotaCredential.getEmail()).isEqualTo("dakota@doculibre.com");
@@ -158,9 +159,9 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 
 		presenter.saveButtonClicked(newUserCredentialVO);
 
-		newUserCredential = userServices.getUserCredential("user");
+		newUserCredential = userServices.getUserInfos("user");
 		assertThat(newUserCredential.getFirstName()).isEqualTo("User");
-		assertThat(newUserCredential.getGlobalGroups()).containsOnly(HEROES);
+		assertThat(newUserCredential.getGroupCodesInAnyCollection()).containsOnly(HEROES);
 		assertThat(newUserCredential.getCollections()).containsOnly(zeCollection, "otherCollection");
 		assertThat(newUserCredential.getLastName()).isEqualTo("lastName");
 		assertThat(newUserCredential.getEmail()).isEqualTo("user@constellio.com");
@@ -231,9 +232,9 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 
 		presenter.saveButtonClicked(newUserCredentialVO);
 
-		newUserCredential = userServices.getUserCredential("user");
+		newUserCredential = userServices.getUserInfos("user");
 		assertThat(newUserCredential.getFirstName()).isEqualTo("User");
-		assertThat(newUserCredential.getGlobalGroups()).containsOnly(HEROES);
+		assertThat(newUserCredential.getGroupCodesInAnyCollection()).containsOnly(HEROES);
 		assertThat(newUserCredential.getCollections()).containsOnly(zeCollection, "otherCollection");
 		assertThat(newUserCredential.getLastName()).isEqualTo("lastName");
 		assertThat(newUserCredential.getEmail()).isEqualTo("user@constellio.com");

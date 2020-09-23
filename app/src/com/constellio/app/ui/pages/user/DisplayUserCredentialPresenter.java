@@ -13,6 +13,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 
@@ -45,7 +46,7 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 	}
 
 	public UserCredentialVO getUserCredentialVO(String username) {
-		UserCredential userCredential = userServices.getUserCredential(username);
+		SystemWideUserInfos userCredential = userServices.getUserInfos(username);
 		UserCredentialToVOBuilder voBuilder = newUserCredentialToVOBuilder();
 		return voBuilder.build(userCredential);
 	}

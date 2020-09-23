@@ -768,6 +768,10 @@ public class UserServices {
 
 	}
 
+	public SystemWideUserInfos getNullableUserInfos(String username) {
+		UserCredential userCredential = getUserCredential(username);
+		return userCredential == null ? null : toSystemWideUserInfos(userCredential);
+	}
 
 	public SystemWideUserInfos getUserInfos(String username) {
 		UserCredential userCredential = getUserCredential(username);
@@ -928,7 +932,7 @@ public class UserServices {
 
 		if (user == null) {
 
-			UserCredential userCredential = getUser(username);
+			SystemWideUserInfos userCredential = getUserInfos(username);
 			// Case insensitive
 			username = userCredential.getUsername();
 			if (!userCredential.getCollections().contains(collection)) {
@@ -1595,8 +1599,7 @@ public class UserServices {
 
 					boolean includedUser;
 					if (onlyActiveUsersAndGroups) {
-						UserCredential userCredential = userServices.getUserCredential(aUser.getUsername());
-						includedUser = userCredential.getStatus() == UserCredentialStatus.ACTIVE;
+						includedUser = aUser.getStatus() == ACTIVE;
 
 					} else {
 						includedUser = true;
@@ -1630,12 +1633,13 @@ public class UserServices {
 
 
 	public com.constellio.model.services.users.UserAddUpdateRequest addUpdate(String username) {
-		UserCredential userCredential = getUserCredential(username);
+		SystemWideUserInfos userCredential = getNullableUserInfos(username);
 		com.constellio.model.services.users.UserAddUpdateRequest request;
+		//TODO Francis : This was using old methods!
 		if (userCredential == null) {
 			request = new com.constellio.model.services.users.UserAddUpdateRequest(cleanUsername(username), Collections.emptyList(), Collections.emptyList());
 		} else {
-			request = new com.constellio.model.services.users.UserAddUpdateRequest(username, userCredential.getCollections(), userCredential.getGlobalGroups());
+			request = new com.constellio.model.services.users.UserAddUpdateRequest(username, userCredential.getCollections(),userCredential.getGroupCodesInAnyCollection());
 
 		}
 		return request;

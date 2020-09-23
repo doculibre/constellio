@@ -120,6 +120,10 @@ public class SystemWideUserInfos {
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}
 
+	public List<String> getGroupCodesInAnyCollection() {
+		return new ArrayList<>(groupCodes.keySet());
+	}
+
 	public List<String> getGroupIds(String collection) {
 		List<String> groupIdsList = groupIds.get(collection);
 		return groupIdsList == null ? Collections.emptyList() : groupIdsList;

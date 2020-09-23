@@ -21,7 +21,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
@@ -31,6 +30,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.security.authentification.AuthenticationService;
+import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
@@ -81,10 +81,10 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();
 		LoggingServices loggingServices = modelLayerFactory.newLoggingServices();
 
-		UserCredential userCredential = userServices.getUserCredential(enteredUsername);
-		String username = userCredential != null ? userCredential.getUsername() : enteredUsername;
-		List<String> collections = userCredential != null ? userServices.getUserInfos(username).getCollections() : new ArrayList<String>();
-		if (userCredential != null && userCredential.getStatus() == UserCredentialStatus.ACTIVE && authenticationService
+		SystemWideUserInfos systemWideUserInfos = userServices.getNullableUserInfos(enteredUsername);
+		String username = systemWideUserInfos != null ? systemWideUserInfos.getUsername() : enteredUsername;
+		List<String> collections = systemWideUserInfos != null ? userServices.getUserInfos(username).getCollections() : new ArrayList<String>();
+		if (systemWideUserInfos != null && systemWideUserInfos.isActiveInAnyCollection() && authenticationService
 				.authenticate(username, password)) {
 			if (!collections.isEmpty()) {
 				String lastCollection = null;
@@ -124,6 +124,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 						LOGGER.error("Unable to update user : " + username, e);
 					}
 					*/
+					UserCredential userCredential = userServices.getUser(username);
 					if (!userCredential.hasAgreedToPrivacyPolicy() && getPrivacyPolicyConfigValue() != null) {
 						view.popPrivacyPolicyWindow(modelLayerFactory, userInLastCollection, lastCollection);
 					} else if (hasLastAlertPermission(userInLastCollection) && !userCredential.hasReadLastAlert() && getLastAlertConfigValue() != null) {
