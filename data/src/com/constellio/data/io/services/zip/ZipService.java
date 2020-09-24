@@ -226,7 +226,7 @@ public class ZipService {
 		prevalidateFile(zippedFile);
 
 		try {
-			zipOutputStream.putNextEntry(new ZipEntry(getRelativePath(zippedFile.getAbsolutePath(), parent) + "/"));
+			zipOutputStream.putNextEntry(new ZipEntry(getRelativePath(zippedFile.getAbsolutePath(), parent)));
 
 		} catch (IOException e) {
 			throw new ZipServiceException.CannotAddFileToZipException(zippedFile, e);
@@ -265,7 +265,10 @@ public class ZipService {
 	}
 
 	private String getRelativePath(String filePath, String startPath) {
-		return filePath.replace(startPath + File.separator, "");
+		String relativePath = filePath.replace(startPath + File.separator, "");
+		String relativePathWithForcedForwardSlashes = relativePath.replace("\\", "/");
+
+		return relativePathWithForcedForwardSlashes;
 	}
 
 }
