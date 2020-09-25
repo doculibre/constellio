@@ -202,11 +202,11 @@ public class CartWindowButton extends WindowButton {
 	}
 
 	private void addToCartRequested(String cartId, BaseView baseView) {
-		if (rm.numberOfDocumentsInFavoritesReachesLimit(cartId, documentRecordCount)) {
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(cartId, rm.getListRecordsIds(records))) {
 			baseView.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
-		} else if (rm.numberOfFoldersInFavoritesReachesLimit(cartId, folderRecordCount)) {
+		} else if (rm.numberOfFoldersInFavoritesReachesLimit(cartId, rm.getListRecordsIds(records))) {
 			baseView.showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
-		} else if (rm.numberOfContainersInFavoritesReachesLimit(cartId, containerRecordCount)) {
+		} else if (rm.numberOfContainersInFavoritesReachesLimit(cartId, rm.getListRecordsIds(records))) {
 			baseView.showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
 		} else {
 			for (Record record : records) {
@@ -247,11 +247,11 @@ public class CartWindowButton extends WindowButton {
 	}
 
 	private void addToDefaultCart(MenuItemActionBehaviorParams params) {
-		if (rm.numberOfDocumentsInFavoritesReachesLimit(params.getUser().getId(), 1)) {
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(params.getUser().getId(), rm.getListRecordsIds(records))) {
 			params.getView().showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
-		} else if (rm.numberOfFoldersInFavoritesReachesLimit(params.getUser().getId(), folderRecordCount)) {
+		} else if (rm.numberOfFoldersInFavoritesReachesLimit(params.getUser().getId(), rm.getListRecordsIds(records))) {
 			params.getView().showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
-		} else if (rm.numberOfContainersInFavoritesReachesLimit(params.getUser().getId(), containerRecordCount)) {
+		} else if (rm.numberOfContainersInFavoritesReachesLimit(params.getUser().getId(), rm.getListRecordsIds(records))) {
 			params.getView().showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
 		} else {
 			for (Record record : records) {

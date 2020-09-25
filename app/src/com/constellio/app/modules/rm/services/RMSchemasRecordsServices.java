@@ -64,6 +64,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.TreeSet;
 
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.entities.schemas.Schemas.VISIBLE_IN_TREES;
@@ -962,22 +963,37 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return resultListFolder;
 	}
 
-	public boolean numberOfFoldersInFavoritesReachesLimit(String cartId, int size) {
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
+	public List<String> getListRecordsIds(List<Record> newRecords) {
+		List<String> recordsIds = new ArrayList<>();
+		for (Record record : newRecords) {
+			recordsIds.add(record.getId());
+		}
+		return recordsIds;
+	}
+
+	public boolean numberOfFoldersInFavoritesReachesLimit(String cartId, List<String> newRecordsIds) {
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(folder.schemaType()).where(folder.favorites()).isEqualTo(cartId));
-		return searchServices.getResultsCount(logicalSearchQuery) + size > NUMBER_OF_RECORDS_IN_CART_LIMIT;
+		return numberOfItemsInFavoritesReachesLimit(newRecordsIds, logicalSearchQuery);
 	}
 
-	public boolean numberOfContainersInFavoritesReachesLimit(String cartId, int size) {
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
+	public boolean numberOfContainersInFavoritesReachesLimit(String cartId, List<String> newRecordsIds) {
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(containerRecord.schemaType()).where(containerRecord.favorites()).isEqualTo(cartId));
-		return searchServices.getResultsCount(logicalSearchQuery) + size > NUMBER_OF_RECORDS_IN_CART_LIMIT;
+		return numberOfItemsInFavoritesReachesLimit(newRecordsIds, logicalSearchQuery);
 	}
 
-	public boolean numberOfDocumentsInFavoritesReachesLimit(String cartId, int size) {
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
+	public boolean numberOfDocumentsInFavoritesReachesLimit(String cartId, List<String> newRecordsIds) {
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(document.schemaType()).where(document.favorites()).isEqualTo(cartId));
-		return searchServices.getResultsCount(logicalSearchQuery) + size > NUMBER_OF_RECORDS_IN_CART_LIMIT;
+		return numberOfItemsInFavoritesReachesLimit(newRecordsIds, logicalSearchQuery);
+	}
+
+	private boolean numberOfItemsInFavoritesReachesLimit(List<String> newRecordsIds,
+														 LogicalSearchQuery logicalSearchQuery) {
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		List<String> alreadyAdded = searchServices.searchRecordIds(logicalSearchQuery);
+		Set<String> finalFavoritesSet = new TreeSet<>();
+		finalFavoritesSet.addAll(alreadyAdded);
+		finalFavoritesSet.addAll(newRecordsIds);
+		return finalFavoritesSet.size() > NUMBER_OF_RECORDS_IN_CART_LIMIT;
 	}
 
 	public UserFunctionChecker getUsersWithFunction(UserFunction userFunction) {

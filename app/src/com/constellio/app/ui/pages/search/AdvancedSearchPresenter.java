@@ -290,7 +290,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	private void addFoldersToCart(String cartId, List<Record> records) {
-		if (rm().numberOfFoldersInFavoritesReachesLimit(cartId, records.size())) {
+		if (rm().numberOfFoldersInFavoritesReachesLimit(cartId, rm().getListRecordsIds(records))) {
 			view.showMessage("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders");
 		} else {
 			for (Record record : records) {
@@ -300,7 +300,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	private void addDocumentsToCart(String cartId, List<Record> records) {
-		if (rm().numberOfDocumentsInFavoritesReachesLimit(cartId, records.size())) {
+		if (rm().numberOfDocumentsInFavoritesReachesLimit(cartId, rm().getListRecordsIds(records))) {
 			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
 		} else {
 			for (Record record : records) {
@@ -310,7 +310,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	private void addContainersToCart(String cartId, List<Record> records) {
-		if (rm().numberOfContainersInFavoritesReachesLimit(cartId, records.size())) {
+		if (rm().numberOfContainersInFavoritesReachesLimit(cartId, rm().getListRecordsIds(records))) {
 			view.showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
 		} else {
 			for (Record record : records) {
