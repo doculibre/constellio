@@ -74,6 +74,10 @@ public class CartWindowButton extends WindowButton {
 	private int folderRecordCount = 0;
 	private int containerRecordCount = 0;
 
+	private List<String> documentRecordIds = new ArrayList<>();
+	private List<String> folderRecordIds = new ArrayList<>();
+	private List<String> containerRecordIds = new ArrayList<>();
+
 	public CartWindowButton(Record record, MenuItemActionBehaviorParams params, AddedRecordType addedRecordType) {
 		this(Collections.singletonList(record), params, addedRecordType);
 	}
@@ -95,10 +99,13 @@ public class CartWindowButton extends WindowButton {
 		records.forEach(r -> {
 			if (r.isOfSchemaType(Document.SCHEMA_TYPE)) {
 				documentRecordCount++;
+				documentRecordIds.add(r.getId());
 			} else if (r.isOfSchemaType(Folder.SCHEMA_TYPE)) {
 				folderRecordCount++;
+				folderRecordIds.add(r.getId());
 			} else if (r.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
 				containerRecordCount++;
+				containerRecordIds.add(r.getId());
 			}
 		});
 	}
@@ -202,11 +209,11 @@ public class CartWindowButton extends WindowButton {
 	}
 
 	private void addToCartRequested(String cartId, BaseView baseView) {
-		if (rm.numberOfDocumentsInFavoritesReachesLimit(cartId, rm.getListRecordsIds(records))) {
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(cartId, documentRecordIds)) {
 			baseView.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
-		} else if (rm.numberOfFoldersInFavoritesReachesLimit(cartId, rm.getListRecordsIds(records))) {
+		} else if (rm.numberOfFoldersInFavoritesReachesLimit(cartId, folderRecordIds)) {
 			baseView.showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
-		} else if (rm.numberOfContainersInFavoritesReachesLimit(cartId, rm.getListRecordsIds(records))) {
+		} else if (rm.numberOfContainersInFavoritesReachesLimit(cartId, containerRecordIds)) {
 			baseView.showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
 		} else {
 			for (Record record : records) {
@@ -247,11 +254,11 @@ public class CartWindowButton extends WindowButton {
 	}
 
 	private void addToDefaultCart(MenuItemActionBehaviorParams params) {
-		if (rm.numberOfDocumentsInFavoritesReachesLimit(params.getUser().getId(), rm.getListRecordsIds(records))) {
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(params.getUser().getId(), documentRecordIds)) {
 			params.getView().showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
-		} else if (rm.numberOfFoldersInFavoritesReachesLimit(params.getUser().getId(), rm.getListRecordsIds(records))) {
+		} else if (rm.numberOfFoldersInFavoritesReachesLimit(params.getUser().getId(), folderRecordIds)) {
 			params.getView().showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
-		} else if (rm.numberOfContainersInFavoritesReachesLimit(params.getUser().getId(), rm.getListRecordsIds(records))) {
+		} else if (rm.numberOfContainersInFavoritesReachesLimit(params.getUser().getId(), containerRecordIds)) {
 			params.getView().showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
 		} else {
 			for (Record record : records) {
