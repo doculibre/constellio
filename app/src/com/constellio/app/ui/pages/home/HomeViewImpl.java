@@ -57,6 +57,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -98,11 +99,14 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefre
 		tabSheet.addStyleName("records-management");
 
 		Map<String, Tab> tabsByCode = new HashMap<>();
-		for (PageItem item : tabs) {
+		for (Iterator it = tabs.iterator(); it.hasNext(); ) {
+			PageItem item = (PageItem) it.next();
 			if (!(item instanceof CustomItem) || presenter.isCustomItemVisible((CustomItem) item)) {
 				Tab tab = tabSheet.addTab(new PlaceHolder(), $("HomeView.tab." + item.getCode()));
 				tab.setVisible(isTabVisible(tab));
 				tabsByCode.put(item.getCode(), tab);
+			} else {
+				it.remove();
 			}
 		}
 
