@@ -129,7 +129,7 @@ public class BaseTable extends Table implements SelectionComponent {
 
 	private void init() {
 		addStyleName("base-table");
-		if (isSelectColumn()) {
+		if (isSelectColumn() && addGeneratedSelectColumn()) {
 			addGeneratedColumn(SELECT_PROPERTY_ID, newSelectColumnGenerator());
 			columnGeneratorsAdded = true;
 
@@ -294,6 +294,10 @@ public class BaseTable extends Table implements SelectionComponent {
 
 	public boolean isSelectColumn() {
 		return false;
+	}
+
+	public boolean addGeneratedSelectColumn() {
+		return true;
 	}
 
 	public boolean isButtonsColumn() {

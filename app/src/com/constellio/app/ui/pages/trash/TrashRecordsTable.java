@@ -57,6 +57,11 @@ public class TrashRecordsTable extends SelectionTableAdapter {
 			}
 
 			@Override
+			public boolean addGeneratedSelectColumn() {
+				return false;
+			}
+
+			@Override
 			public boolean isButtonsColumn() {
 				return true;
 			}
