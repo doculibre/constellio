@@ -52,7 +52,7 @@ public class HomePresenter extends BasePresenter<HomeView> {
 
 	public HomePresenter(HomeView view) {
 		super(view);
-		tabItems = navigationConfig().getFragments(HomeView.TABS);
+		tabItems = new ArrayList<>(navigationConfig().getFragments(HomeView.TABS));
 		refreshablePageItem = navigationConfig().getRefreshable(HomeView.TABS);
 	}
 
