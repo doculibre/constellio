@@ -4,6 +4,8 @@ import com.constellio.app.modules.restapi.ace.AceService;
 import com.constellio.app.modules.restapi.ace.dao.AceDao;
 import com.constellio.app.modules.restapi.cart.CartService;
 import com.constellio.app.modules.restapi.cart.dao.CartDao;
+import com.constellio.app.modules.restapi.category.CategoryService;
+import com.constellio.app.modules.restapi.category.dao.CategoryDao;
 import com.constellio.app.modules.restapi.collection.CollectionService;
 import com.constellio.app.modules.restapi.collection.dao.CollectionDao;
 import com.constellio.app.modules.restapi.document.DocumentService;
@@ -41,6 +43,7 @@ public class RestApiBinder extends AbstractBinder {
 		bind(UserService.class).to(UserService.class);
 		bind(CartService.class).to(CartService.class);
 		bind(RecordService.class).to(RecordService.class);
+		bind(CategoryService.class).to(CategoryService.class);
 
 		bind(DocumentAdaptor.class).to(DocumentAdaptor.class);
 		bind(FolderAdaptor.class).to(FolderAdaptor.class);
@@ -56,6 +59,7 @@ public class RestApiBinder extends AbstractBinder {
 		bind(UserDao.class).to(UserDao.class);
 		bind(CartDao.class).to(CartDao.class);
 		bind(RecordDao.class).to(RecordDao.class);
+		bind(CategoryDao.class).to(CategoryDao.class);
 	}
 
 }

@@ -9,12 +9,16 @@ import com.constellio.app.modules.restapi.folder.dao.FolderDao;
 import com.constellio.app.modules.restapi.folder.dto.FolderDto;
 import com.constellio.app.modules.restapi.resource.adaptor.ResourceAdaptor;
 import com.constellio.app.modules.restapi.resource.service.ResourceService;
+import com.constellio.app.modules.restapi.validation.ValidationService;
+import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import org.apache.commons.lang.StringUtils;
 
 import javax.inject.Inject;
+import java.util.List;
 import java.util.Set;
 
 import static com.constellio.app.modules.restapi.core.util.ListUtils.isNullOrEmpty;
@@ -28,6 +32,27 @@ public class FolderService extends ResourceService {
 	private FolderAdaptor folderAdaptor;
 	@Inject
 	private AceService aceService;
+	@Inject
+	private ValidationService validationService;
+
+	public List<FolderDto> search(String host, String token, String serviceKey, String collection, String expression)
+			throws Exception {
+		validationService.validateHost(host);
+		validationService.validateToken(token, serviceKey);
+
+		User user;
+		try {
+			user = getUserByServiceKey(serviceKey, collection);
+		} catch (Exception e) {
+			throw new UnauthenticatedUserException();
+		}
+
+		if (StringUtils.isBlank(expression)) {
+			throw new RequiredParameterException("expression");
+		}
+
+		return folderDao.search(user, expression);
+	}
 
 	public FolderDto get(String host, String id, String serviceKey, String method, String date, int expiration,
 						 String signature, Set<String> filters) throws Exception {

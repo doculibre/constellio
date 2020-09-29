@@ -5,6 +5,7 @@ import com.constellio.app.modules.restapi.core.exception.InvalidParameterCombina
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
 import com.constellio.app.modules.restapi.core.exception.ParametersMustMatchException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
+import com.constellio.app.modules.restapi.core.util.AuthorizationUtils;
 import com.constellio.app.modules.restapi.core.util.CustomHttpHeaders;
 import com.constellio.app.modules.restapi.core.util.HttpMethods;
 import com.constellio.app.modules.restapi.folder.dto.FolderDto;
@@ -35,6 +36,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.List;
 import java.util.Set;
 
 @Path("folders")
@@ -43,6 +45,33 @@ public class FolderRestfulService extends ResourceRestfulService {
 
 	@Inject
 	private FolderService folderService;
+
+	@GET
+	@Path("search")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Operation(summary = "Search folders", description = "Search for a list of folders")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Folder"))),
+			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
+	public Response search(
+			@Parameter(required = true, description = "The search expression used to filter results")
+			@QueryParam("expression") String expression,
+			@Parameter(required = true, description = "Collection") @QueryParam("collection") String collection,
+			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
+			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
+			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
+
+		validateAuthentication(authentication);
+		validateRequiredParameter(serviceKey, "serviceKey");
+		validateRequiredParameter(expression, "expression");
+		validateRequiredParameter(collection, "collection");
+
+		String token = AuthorizationUtils.getToken(authentication);
+		List<FolderDto> folders = folderService.search(host, token, serviceKey, collection, expression);
+		return Response.ok(folders).build();
+	}
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)

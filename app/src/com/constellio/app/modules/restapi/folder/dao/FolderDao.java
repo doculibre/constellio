@@ -25,6 +25,7 @@ import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
+import com.constellio.app.ui.framework.data.AutocompleteQuery;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.frameworks.extensions.SingleValueExtension;
 import com.constellio.data.utils.LangUtils;
@@ -34,9 +35,12 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -48,6 +52,31 @@ import java.util.List;
 public class FolderDao extends ResourceDao {
 
 	private static final Logger LOGGER = Logger.getLogger(FolderDao.class);
+
+	public List<FolderDto> search(User user, String expression) throws Exception {
+		SystemConfigurationsManager configsManager = modelLayerFactory.getSystemConfigurationsManager();
+
+		AutocompleteQuery query = AutocompleteQuery.builder()
+				.appLayerFactory(appLayerFactory)
+				.schemaTypeCode(Folder.SCHEMA_TYPE)
+				.hasSecurity(true)
+				.expression(expression)
+				.user(user).writeAccessRequired(true)
+				.startRow(0).rowCount(configsManager.getValue(ConstellioEIMConfigs.AUTOCOMPLETE_SIZE))
+				.metadataFilter(ReturnedMetadatasFilter.onlyMetadatas(Schemas.IDENTIFIER, Schemas.TITLE))
+				.build();
+
+		List<Record> results = searchServices.search(query.searchQuery());
+		return folderToDto(results);
+	}
+
+	private List<FolderDto> folderToDto(List<Record> folders) {
+		List<FolderDto> results = new ArrayList<>();
+		for (Record folder : folders) {
+			results.add(FolderDto.builder().id(folder.getId()).title(folder.getTitle()).build());
+		}
+		return results;
+	}
 
 	public Record createFolder(User user, MetadataSchema folderSchema, FolderDto folderDto, String flush)
 			throws Exception {

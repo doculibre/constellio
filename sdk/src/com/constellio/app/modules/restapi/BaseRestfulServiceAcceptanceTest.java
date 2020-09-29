@@ -55,6 +55,7 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 	protected String token = "bobToken", expiredToken = "expiredToken", fakeToken = "fakeToken";
 	protected String dateFormat, dateTimeFormat;
 	protected String sasquatchServiceKey = "sasquatchKey", sasquatchToken = "sasquatchToken";
+	protected String adminServiceKey = "adminKey", adminToken = "adminToken";
 	protected LocalDateTime fakeDate = new LocalDateTime();
 	protected LocalDateTime fakeDate2 = (new LocalDateTime()).minusDays(1);
 	protected String fakeMetadata1 = "USRMetadata1", fakeMetadata2 = "USRMetadata2";
@@ -109,6 +110,8 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 				.addAccessToken(expiredToken, TimeProvider.getLocalDateTime().minusDays(1)));
 		userServices.execute(users.sasquatchAddUpdateRequest().setServiceKey(sasquatchServiceKey)
 				.addAccessToken(sasquatchToken, TimeProvider.getLocalDateTime().plusYears(1)));
+		userServices.execute(users.adminAddUpdateRequest().setServiceKey(adminServiceKey)
+				.addAccessToken(adminToken, TimeProvider.getLocalDateTime().plusYears(1)));
 
 		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 
