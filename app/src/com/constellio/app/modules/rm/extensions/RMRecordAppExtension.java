@@ -307,14 +307,20 @@ public class RMRecordAppExtension extends RecordAppExtension {
 				result = new ThemeResource("images/icons/64/document_64.png");
 			}
 		} else if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			ThemeResource iconResource = (ThemeResource) FileIconUtils.getIconForRecordVO(recordVO);
-			String resourceId = iconResource.getResourceId();
-			resourceId = resourceId.replace(".png", "_64.png");
-			result = new ThemeResource(resourceId);
+			result = getThumbnail64Ressource(recordVO);
+		} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			result = getThumbnail64Ressource(recordVO);
 		} else {
 			result = null;
 		}
 		return result;
+	}
+
+	private ThemeResource getThumbnail64Ressource(RecordVO recordVO) {
+		ThemeResource iconResource = (ThemeResource) FileIconUtils.getIconForRecordVO(recordVO);
+		String resourceId = iconResource.getResourceId();
+		resourceId = resourceId.replace(".png", "_64.png");
+		return new ThemeResource(resourceId);
 	}
 
 }
