@@ -32,28 +32,35 @@ public class FileExifUtils implements Serializable {
 				BufferedImage image = transformImage(bufferedImage, getExifTransformation(imageInformation));
 				ImageIO.write(image, "jpeg", new File(file.getPath()));
 			} catch (MetadataException e) {
-				LOGGER.error("Image metadata could not be read");
+				LOGGER.warn("Image metadata could not be read");
 			} catch (FileNotFoundException e) {
-				LOGGER.error("File not found during image correction");
+				LOGGER.warn("File not found during image correction");
 			} catch (IOException e) {
-				LOGGER.error("Image could not be opened during image correction");
+				LOGGER.warn("Image could not be opened during image correction");
 			} catch (ImageProcessingException e) {
-				LOGGER.error("Image could not be Processed or rendered");
+				LOGGER.warn("Image could not be Processed or rendered");
+			} catch (EmptyJpegDirectoryException e) {
+				LOGGER.warn("Image has no jpeg directory");
 			}
 		}
 	}
 
 	public static ImageInformation readImageInformation(File inputStream)
-			throws IOException, MetadataException, ImageProcessingException {
+			throws IOException, MetadataException, ImageProcessingException, EmptyJpegDirectoryException {
 		Metadata metadata = ImageMetadataReader.readMetadata(inputStream);
 		Directory directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
 		JpegDirectory jpegDirectory = metadata.getFirstDirectoryOfType(JpegDirectory.class);
 
 		int orientation = 1;
 		try {
-			orientation = directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
+			if (directory != null) {
+				orientation = directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
+			}
 		} catch (MetadataException me) {
 			LOGGER.warn("Could not get orientation");
+		}
+		if (jpegDirectory == null) {
+			throw new EmptyJpegDirectoryException("Jpeg directory empty");
 		}
 		int width = jpegDirectory.getImageWidth();
 		int height = jpegDirectory.getImageHeight();
@@ -124,6 +131,13 @@ public class FileExifUtils implements Serializable {
 
 		public String toString() {
 			return String.format("%dx%d,%d", this.width, this.height, this.orientation);
+		}
+	}
+
+	private static class EmptyJpegDirectoryException extends Exception {
+
+		public EmptyJpegDirectoryException(String errorMessage) {
+			super(errorMessage);
 		}
 	}
 }
