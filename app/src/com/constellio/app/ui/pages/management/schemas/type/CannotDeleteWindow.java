@@ -33,6 +33,7 @@ public class CannotDeleteWindow extends VerticalLayout {
 
 	private void buildWindowConponents() {
 		setSpacing(true);
+		setMargin(true);
 		addStyleName("CannotDeleteWindow");
 
 		okButton = new Button("Ok");
