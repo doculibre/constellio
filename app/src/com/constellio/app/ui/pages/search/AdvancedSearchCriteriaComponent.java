@@ -384,17 +384,16 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 			for (MetadataVO metadata : presenter.getCopiedMetadataAllowedInCriteria(criterion.getMetadataCode())) {
 				comboBox.addItem(metadata.getCode());
-				comboBox.setItemCaption(metadata.getCode(), metadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale()));
+				MetadataVO sourceMetadata = presenter.getCopiedSourceMetadata(metadata);
+				comboBox.setItemCaption(metadata.getCode(), sourceMetadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale()));
 			}
 			comboBox.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
 					criterion.setValue(comboBox.getValue());
 					if (comboBox.getValue() != null) {
-						Criterion subCriterion;
-						if (criterion.getEndValue() != null) {
-							subCriterion = (Criterion) criterion.getEndValue();
-						} else {
+						Criterion subCriterion = (Criterion) criterion.getEndValue();
+						if (subCriterion == null || !subCriterion.getMetadataCode().equals(criterion.getValue())) {
 							subCriterion = new Criterion(criterion.getSchemaType());
 							MetadataVO copiedMetadataVO = presenter.getMetadataVO((String) comboBox.getValue());
 							String enumClassName = null;
@@ -1035,6 +1034,10 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 		default List<MetadataVO> getCopiedMetadataAllowedInCriteria(String referenceCode) {
 			return getMetadataAllowedInCriteria();
+		}
+
+		default MetadataVO getCopiedSourceMetadata(MetadataVO copiedMetadata) {
+			return null;
 		}
 
 		Map<String, String> getMetadataSchemasList(String schemaTypeCode);

@@ -53,8 +53,11 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.SearchEventServices;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -114,8 +117,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private boolean refreshSelectionPanel;
 	private Map<String, String> deselectedRecordsWithSchema;
 
-	//private Map<String, Set<String>> metadataAllowedInCriteria = new HashMap<>();
-	private Map<String, Set<String>> copiedMetadataAllowedInCriteria = new HashMap<>();
+	private Map<String, Map<String, Set<String>>> copiedMetadataAllowedInCriteria = new HashMap<>();
 	private Map<String, Map<String, Set<String>>> metadataAllowedInCriteria = new HashMap<>();
 
 	public ConstellioHeaderPresenter(ConstellioHeader header) {
@@ -362,53 +364,112 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 	@Override
 	public boolean isSeparateCopiedMetadata() {
-		//		return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SHOW_COPIED_METADATA_SEPARATELY_IN_SEARCH);
-		return false;
+		return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SHOW_COPIED_METADATA_SEPARATELY_IN_SEARCH);
 	}
+
 
 	@Override
 	public List<MetadataVO> getMetadataAllowedInCriteria() {
+		return getMetadataAllowedInCriteria(null);
+	}
 
+	@Override
+	public List<MetadataVO> getCopiedMetadataAllowedInCriteria(String referenceCode) {
+		return getMetadataAllowedInCriteria(referenceCode);
+	}
+
+	private List<MetadataVO> getMetadataAllowedInCriteria(String referenceCode) {
+		boolean isCopiedMode = StringUtils.isNotBlank(referenceCode);
 		MetadataSchemaType schemaType = types().getSchemaType(schemaTypeCode);
+		Map<String, Set<String>> metadataCodesBySchema = getCachedMetadataAllowedInCriteria(
+				isCopiedMode ? copiedMetadataAllowedInCriteria : metadataAllowedInCriteria);
+		String key = isCopiedMode ? referenceCode : schemaCode;
 
-		String key = schemaTypeCode + "_" + showDeactivatedMetadatas;
-		Map<String, Set<String>> metadataCodesBySchema = metadataAllowedInCriteria.get(key);
-		if (metadataCodesBySchema == null) {
-			metadataCodesBySchema = new HashMap<>();
-			metadataAllowedInCriteria.put(key, metadataCodesBySchema);
-		}
-
-		Set<String> metadataCodes = metadataCodesBySchema.get(schemaCode);
+		Set<String> metadataCodes = metadataCodesBySchema.get(key);
 		if (metadataCodes == null) {
 			metadataCodes = new HashSet<>();
-			metadataCodesBySchema.put(schemaCode, metadataCodes);
+			metadataCodesBySchema.put(key, metadataCodes);
 
-			List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
-					.setNumberOfRows(0)
-					.setCondition(generateFromForMetadataAllowedInCriteria(schemaType).returnAll())
-					.addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
-					.getFieldFacetValues("schema_s");
-
-			if (schema_s != null) {
-				for (FacetValue facetValue : schema_s) {
-					if (facetValue.getQuantity() > 0) {
-						String schema = facetValue.getValue();
-						for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
-							if (!metadata.getLocalCode().equals(SCHEMA.getLocalCode())) {
-								if (showDeactivatedMetadatas || metadata.isEnabled()) {
-									metadataCodes.add(metadata.getLocalCode());
-								}
-							}
+			for (Metadata metadata : getMetadatasWithRecords(schemaType)) {
+				if (!metadata.getLocalCode().equals(SCHEMA.getLocalCode())) {
+					if (canShowMetadata(metadata, referenceCode)) {
+						if (metadata.getInheritance() != null) {
+							metadataCodes.add(metadata.getInheritance().getLocalCode());
+						} else {
+							metadataCodes.add(metadata.getLocalCode());
 						}
 					}
 				}
 			}
 		}
 
+		return getFilteredMetadatas(schemaType, metadataCodes, isCopiedMode);
+	}
+
+	private Map<String, Set<String>> getCachedMetadataAllowedInCriteria(Map<String, Map<String, Set<String>>> cache) {
+		String key = schemaTypeCode + "_" + showDeactivatedMetadatas;
+		Map<String, Set<String>> metadataCodesBySchema = cache.get(key);
+		if (metadataCodesBySchema == null) {
+			metadataCodesBySchema = new HashMap<>();
+			cache.put(key, metadataCodesBySchema);
+		}
+		return metadataCodesBySchema;
+	}
+
+	private List<Metadata> getMetadatasWithRecords(MetadataSchemaType schemaType) {
+		List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
+				.setNumberOfRows(0)
+				.setCondition(generateFromForMetadataAllowedInCriteria(schemaType).returnAll())
+				.addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
+				.getFieldFacetValues("schema_s");
+
+		List<Metadata> metadatas = new ArrayList<>();
+		if (schema_s != null) {
+			for (FacetValue facetValue : schema_s) {
+				if (facetValue.getQuantity() > 0) {
+					String schema = facetValue.getValue();
+					metadatas.addAll(types().getSchema(schema).getMetadatas());
+				}
+			}
+		}
+
+		return metadatas;
+	}
+
+	private OngoingLogicalSearchCondition generateFromForMetadataAllowedInCriteria(MetadataSchemaType type) {
+		if (StringUtils.isBlank(schemaCode)) {
+			return from(type);
+		} else {
+			return from(type.getSchema(schemaCode));
+		}
+	}
+
+	private boolean canShowMetadata(Metadata metadata, String referenceCode) {
+		if (!showDeactivatedMetadatas && !metadata.isEnabled()) {
+			return false;
+		}
+
+		boolean isCopiedMode = StringUtils.isNotBlank(referenceCode);
+		boolean isCopiedMetadata = metadata.getDataEntry().getType() == DataEntryType.COPIED;
+
+		if (isCopiedMode) {
+			if (isCopiedMetadata) {
+				CopiedDataEntry dataEntry = (CopiedDataEntry) metadata.getDataEntry();
+				return dataEntry.getReferenceMetadata().equals(referenceCode);
+			}
+
+			return false;
+		}
+
+		return !isCopiedMetadata || !isSeparateCopiedMetadata();
+	}
+
+	private List<MetadataVO> getFilteredMetadatas(MetadataSchemaType schemaType, Set<String> metadataCodes,
+												  boolean isCopiedMode) {
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
+		MetadataSchemaToVOBuilder schemaBuilder = new MetadataSchemaToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
-		//		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), header.getSessionContext()));
 		List<Metadata> allMetadatas;
 		if (StringUtils.isBlank(schemaCode)) {
 			allMetadatas = schemaType.getAllMetadataIncludingInheritedOnes();
@@ -430,7 +491,12 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 									ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode());
 				if ((visibleForUserAndInAdvancedSearch && condition) || SCHEMA.getLocalCode().equals(metadata.getLocalCode())) {
 					metadatasAddedToResults.add(metadata.getLocalCode());
-					MetadataVO metadataVO = builder.build(metadata, header.getSessionContext());
+
+					MetadataSchemaVO schemaVO = null;
+					if (isCopiedMode) {
+						schemaVO = schemaBuilder.build(metadata.getSchema(), VIEW_MODE.SEARCH, header.getSessionContext());
+					}
+					MetadataVO metadataVO = builder.build(metadata, schemaVO, header.getSessionContext());
 					result.add(metadataVO);
 				}
 			}
@@ -439,12 +505,21 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		return result;
 	}
 
-	private OngoingLogicalSearchCondition generateFromForMetadataAllowedInCriteria(MetadataSchemaType type) {
-		if (StringUtils.isBlank(schemaCode)) {
-			return from(type);
-		} else {
-			return from(type.getSchema(schemaCode));
-		}
+	@Override
+	public MetadataVO getCopiedSourceMetadata(MetadataVO copiedMetadata) {
+		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(copiedMetadata.getCollection());
+		MetadataSchema schema = types.getSchema(copiedMetadata.getSchema().getCode());
+
+		Metadata metadata = schema.getMetadata(copiedMetadata.getCode());
+		CopiedDataEntry dataEntry = (CopiedDataEntry) metadata.getDataEntry();
+
+		Metadata referenceMetadata = schema.getMetadata(dataEntry.getReferenceMetadata());
+		Metadata sourceMetadata = types.getSchemaType(referenceMetadata.getReferencedSchemaTypeCode()).
+				getDefaultSchema().getMetadata(dataEntry.getCopiedMetadata());
+
+		MetadataToVOBuilder builder = new MetadataToVOBuilder();
+		return builder.build(sourceMetadata, header.getSessionContext());
 	}
 
 	private boolean isMetadataVisibleForUser(Metadata metadata, User currentUser) {
