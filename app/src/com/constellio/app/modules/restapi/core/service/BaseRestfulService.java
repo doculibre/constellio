@@ -1,8 +1,10 @@
 package com.constellio.app.modules.restapi.core.service;
 
+import com.constellio.app.modules.restapi.RestApiConfigs;
 import com.constellio.app.modules.restapi.core.exception.InvalidAuthenticationException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.util.AuthorizationUtils;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.google.common.base.Strings;
 
 public abstract class BaseRestfulService {
@@ -22,6 +24,12 @@ public abstract class BaseRestfulService {
 		if (parameter == null) {
 			throw new RequiredParameterException(parameterName);
 		}
+	}
+
+	protected boolean areExperimentalServicesEnabled() {
+		// temporarily solution until rest api v2
+		return new RestApiConfigs(ConstellioFactories.getInstance().getAppLayerFactory())
+				.areExperimentalServicesEnabled();
 	}
 
 }

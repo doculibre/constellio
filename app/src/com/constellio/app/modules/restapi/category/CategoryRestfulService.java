@@ -3,6 +3,7 @@ package com.constellio.app.modules.restapi.category;
 import com.constellio.app.modules.restapi.category.dto.CategoryDto;
 import com.constellio.app.modules.restapi.core.util.AuthorizationUtils;
 import com.constellio.app.modules.restapi.resource.service.ResourceRestfulService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -20,8 +21,10 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.util.List;
 
+@Hidden
 @Path("categories")
 @Tag(name = "categories")
 public class CategoryRestfulService extends ResourceRestfulService {
@@ -45,7 +48,9 @@ public class CategoryRestfulService extends ResourceRestfulService {
 			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
 			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
-
+		if (!areExperimentalServicesEnabled()) {
+			return Response.status(Status.METHOD_NOT_ALLOWED).build();
+		}
 		validateAuthentication(authentication);
 		validateRequiredParameter(serviceKey, "serviceKey");
 		validateRequiredParameter(expression, "expression");

@@ -11,6 +11,7 @@ import com.constellio.app.modules.restapi.core.util.HttpMethods;
 import com.constellio.app.modules.restapi.folder.dto.FolderDto;
 import com.constellio.app.modules.restapi.resource.service.ResourceRestfulService;
 import com.google.common.base.Strings;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -36,6 +37,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.util.List;
 import java.util.Set;
 
@@ -49,6 +51,7 @@ public class FolderRestfulService extends ResourceRestfulService {
 	@GET
 	@Path("search")
 	@Produces(MediaType.APPLICATION_JSON)
+	@Hidden
 	@Operation(summary = "Search folders", description = "Search for a list of folders")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Folder"))),
@@ -62,7 +65,9 @@ public class FolderRestfulService extends ResourceRestfulService {
 			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
 			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
-
+		if (!areExperimentalServicesEnabled()) {
+			return Response.status(Status.METHOD_NOT_ALLOWED).build();
+		}
 		validateAuthentication(authentication);
 		validateRequiredParameter(serviceKey, "serviceKey");
 		validateRequiredParameter(expression, "expression");

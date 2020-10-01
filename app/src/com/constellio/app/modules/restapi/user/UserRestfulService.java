@@ -8,6 +8,7 @@ import com.constellio.app.modules.restapi.user.dto.UserCredentialsDto;
 import com.constellio.app.modules.restapi.user.dto.UsersByCollectionDto;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.google.common.base.Strings;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -32,8 +33,11 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 
+// IMPORTANT : hidden from swagger doc, only used by teams
+@Hidden
 @Path("user")
 @Tag(name = "user")
 public class UserRestfulService extends BaseRestfulService {
@@ -46,7 +50,7 @@ public class UserRestfulService extends BaseRestfulService {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Operation(summary = "Get user credentials", description = "Return the user credentials. (Only id at the moment)")
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(ref = "UserCredential"))),
+			@ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(ref = "UserCredentials"))),
 			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
@@ -54,7 +58,9 @@ public class UserRestfulService extends BaseRestfulService {
 			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
 			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
-
+		if (!areExperimentalServicesEnabled()) {
+			return Response.status(Status.METHOD_NOT_ALLOWED).build();
+		}
 		validateAuthentication(authentication);
 		validateRequiredParameter(serviceKey, "serviceKey");
 
@@ -66,9 +72,9 @@ public class UserRestfulService extends BaseRestfulService {
 	@GET
 	@Path("credentials/collections")
 	@Produces(MediaType.APPLICATION_JSON)
-	@Operation(summary = "Get collections for this user", description = "Return a list of user by collection.")
+	@Operation(summary = "Get collections for this user", description = "Return a list of collections by user.")
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(ref = "User"))),
+			@ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(ref = "UserCollections"))),
 			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
@@ -76,7 +82,9 @@ public class UserRestfulService extends BaseRestfulService {
 			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
 			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
-
+		if (!areExperimentalServicesEnabled()) {
+			return Response.status(Status.METHOD_NOT_ALLOWED).build();
+		}
 		validateAuthentication(authentication);
 		validateRequiredParameter(serviceKey, "serviceKey");
 
@@ -101,7 +109,9 @@ public class UserRestfulService extends BaseRestfulService {
 			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
 			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
-
+		if (!areExperimentalServicesEnabled()) {
+			return Response.status(Status.METHOD_NOT_ALLOWED).build();
+		}
 		validateAuthentication(authentication);
 		validateRequiredParameter(serviceKey, "serviceKey");
 
@@ -133,7 +143,9 @@ public class UserRestfulService extends BaseRestfulService {
 			@Parameter(schema = @Schema(type = "string", format = "binary")) @FormDataParam("file") InputStream fileStream,
 			@Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileHeader,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
-
+		if (!areExperimentalServicesEnabled()) {
+			return Response.status(Status.METHOD_NOT_ALLOWED).build();
+		}
 		validateAuthentication(authentication);
 		validateRequiredParameter(serviceKey, "serviceKey");
 
@@ -162,7 +174,9 @@ public class UserRestfulService extends BaseRestfulService {
 			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
 			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
-
+		if (!areExperimentalServicesEnabled()) {
+			return Response.status(Status.METHOD_NOT_ALLOWED).build();
+		}
 		validateAuthentication(authentication);
 		validateRequiredParameter(serviceKey, "serviceKey");
 
@@ -188,7 +202,9 @@ public class UserRestfulService extends BaseRestfulService {
 			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
 			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
-
+		if (!areExperimentalServicesEnabled()) {
+			return Response.status(Status.METHOD_NOT_ALLOWED).build();
+		}
 		validateAuthentication(authentication);
 		validateRequiredParameter(serviceKey, "serviceKey");
 
@@ -220,7 +236,9 @@ public class UserRestfulService extends BaseRestfulService {
 			@Parameter(schema = @Schema(type = "string", format = "binary")) @FormDataParam("file") InputStream fileStream,
 			@Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileHeader,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
-
+		if (!areExperimentalServicesEnabled()) {
+			return Response.status(Status.METHOD_NOT_ALLOWED).build();
+		}
 		validateAuthentication(authentication);
 		validateRequiredParameter(serviceKey, "serviceKey");
 
@@ -249,7 +267,9 @@ public class UserRestfulService extends BaseRestfulService {
 			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
 			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
-
+		if (!areExperimentalServicesEnabled()) {
+			return Response.status(Status.METHOD_NOT_ALLOWED).build();
+		}
 		validateAuthentication(authentication);
 		validateRequiredParameter(serviceKey, "serviceKey");
 

@@ -19,12 +19,14 @@ public class RestApiConfigs {
 
 	public static final SystemConfiguration REST_API_URLS;
 	public static final SystemConfiguration CORS_ALLOWED_ORIGINS;
+	public static final SystemConfiguration EXPERIMENTAL_SERVICES;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(ConstellioRestApiModule.ID, "others");
 
 		add(REST_API_URLS = others.createString("restApiUrls"));
 		add(CORS_ALLOWED_ORIGINS = others.createString("corsAllowedOrigins").whichRequiresReboot());
+		add(EXPERIMENTAL_SERVICES = others.createBooleanFalseByDefault("experimentalServices").whichIsHidden());
 	}
 
 	public RestApiConfigs(AppLayerFactory appLayerFactory) {
@@ -51,6 +53,10 @@ public class RestApiConfigs {
 
 	public String getCorsAllowedOrigins() {
 		return manager.getValue(RestApiConfigs.CORS_ALLOWED_ORIGINS);
+	}
+
+	public boolean areExperimentalServicesEnabled() {
+		return manager.getValue(RestApiConfigs.EXPERIMENTAL_SERVICES);
 	}
 
 	private static void add(SystemConfiguration configuration) {

@@ -3,6 +3,7 @@ package com.constellio.app.modules.restapi.collection;
 import com.constellio.app.modules.restapi.collection.dto.CollectionDto;
 import com.constellio.app.modules.restapi.core.service.BaseRestfulService;
 import com.constellio.app.modules.restapi.core.util.AuthorizationUtils;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -21,8 +22,11 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.util.List;
 
+// IMPORTANT : hidden from swagger doc, only used by teams
+@Hidden
 @Path("collections")
 @Tag(name = "collections")
 public class CollectionRestfulService extends BaseRestfulService {
@@ -42,7 +46,9 @@ public class CollectionRestfulService extends BaseRestfulService {
 			@Parameter(required = true, description = "Service key") @QueryParam("serviceKey") String serviceKey,
 			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
-
+		if (!areExperimentalServicesEnabled()) {
+			return Response.status(Status.METHOD_NOT_ALLOWED).build();
+		}
 		validateAuthentication(authentication);
 		validateRequiredParameter(serviceKey, "serviceKey");
 

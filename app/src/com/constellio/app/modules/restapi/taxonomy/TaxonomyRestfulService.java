@@ -5,6 +5,7 @@ import com.constellio.app.modules.restapi.core.service.BaseRestfulService;
 import com.constellio.app.modules.restapi.core.util.AuthorizationUtils;
 import com.constellio.app.modules.restapi.taxonomy.dto.TaxonomyDto;
 import com.constellio.app.modules.restapi.taxonomy.dto.TaxonomyNodeDto;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -24,9 +25,12 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.util.List;
 import java.util.Set;
 
+// IMPORTANT : hidden from swagger doc, only used by teams
+@Hidden
 @Path("taxonomies")
 @Tag(name = "taxonomies")
 public class TaxonomyRestfulService extends BaseRestfulService {
@@ -50,7 +54,9 @@ public class TaxonomyRestfulService extends BaseRestfulService {
 			@Parameter(name = "user", description = "Username of the user") @QueryParam("user") String username,
 			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
-
+		if (!areExperimentalServicesEnabled()) {
+			return Response.status(Status.METHOD_NOT_ALLOWED).build();
+		}
 		validateAuthentication(authentication);
 		validateRequiredParameter(collection, "collection");
 		validateRequiredParameter(serviceKey, "serviceKey");
@@ -82,7 +88,9 @@ public class TaxonomyRestfulService extends BaseRestfulService {
 			@Parameter(name = "requireWriteAccess", description = "Indicates if only nodes with write access are returned") @QueryParam("writeAccess") Boolean requireWriteAccess,
 			@Parameter(required = true, description = "Bearer {token}") @HeaderParam(HttpHeaders.AUTHORIZATION) String authentication,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
-
+		if (!areExperimentalServicesEnabled()) {
+			return Response.status(Status.METHOD_NOT_ALLOWED).build();
+		}
 		validateAuthentication(authentication);
 		validateRequiredParameter(id, "id");
 		validateRequiredParameter(collection, "collection");
