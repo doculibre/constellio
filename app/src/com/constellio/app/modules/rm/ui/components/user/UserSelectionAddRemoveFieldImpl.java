@@ -9,6 +9,7 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.vaadin.data.Property;
 import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.ComboBox;
@@ -85,6 +86,12 @@ public class UserSelectionAddRemoveFieldImpl extends ListAddRemoveField<String, 
 			comboBox.addItem(user.getId());
 			comboBox.setItemCaption(user.getId(), userTitles.get(user.getId()));
 		}
+		comboBox.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(Property.ValueChangeEvent event) {
+				tryAdd();
+			}
+		});
 		return comboBox;
 	}
 

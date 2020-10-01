@@ -6,6 +6,7 @@ import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.model.entities.records.Record;
+import com.vaadin.data.Property;
 import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.ComboBox;
@@ -64,6 +65,12 @@ public class GroupSelectionAddRemoveFieldImpl extends ListAddRemoveField<String,
 			comboBox.addItem(group.getId());
 			comboBox.setItemCaption(group.getId(), group.getTitle());
 		}
+		comboBox.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(Property.ValueChangeEvent event) {
+				tryAdd();
+			}
+		});
 		return comboBox;
 	}
 
