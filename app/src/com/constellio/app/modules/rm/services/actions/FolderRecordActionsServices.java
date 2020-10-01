@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.services.actions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -16,6 +17,7 @@ import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -285,6 +287,13 @@ public class FolderRecordActionsServices {
 	}
 
 	public boolean isPrintLabelActionPossible(Record record, User user) {
+		List<LabelTemplate> labelTemplates = new ArrayList<>();
+		labelTemplates.addAll(appLayerFactory.getLabelTemplateManager().listExtensionTemplates(Folder.SCHEMA_TYPE));
+		labelTemplates.addAll(appLayerFactory.getLabelTemplateManager().listTemplates(Folder.SCHEMA_TYPE));
+		if (labelTemplates.size() < 1) {
+			return false;
+		}
+
 		Folder folder = rm.wrapFolder(record);
 		if (hasUserReadAccess(record, user) && rmModuleExtensions.isPrintLabelActionPossibleOnFolder(folder, user)) {
 			if (folder.getPermissionStatus().isInactive()) {

@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -135,6 +136,13 @@ public class ContainerRecordActionsServices {
 	}
 
 	public boolean isPrintLabelActionPossible(Record record, User user) {
+		List<LabelTemplate> labelTemplates = new ArrayList<>();
+		labelTemplates.addAll(appLayerFactory.getLabelTemplateManager().listExtensionTemplates(ContainerRecord.SCHEMA_TYPE));
+		labelTemplates.addAll(appLayerFactory.getLabelTemplateManager().listTemplates(ContainerRecord.SCHEMA_TYPE));
+		if (labelTemplates.size() < 1) {
+			return false;
+		}
+
 		return user.hasReadAccess().on(record)
 			   && rmModuleExtensions.isLabelsActionPossibleOnContainerRecord(rm.wrapContainerRecord(record), user)
 			   && canPrintReports();

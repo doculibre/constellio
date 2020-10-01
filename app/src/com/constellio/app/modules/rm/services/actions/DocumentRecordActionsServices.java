@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -33,6 +34,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentRecordActionsServices {
 
+	private AppLayerFactory appLayerFactory;
 	private RMSchemasRecordsServices rm;
 	private RMModuleExtensions rmModuleExtensions;
 	private AuthorizationsServices authorizationService;
@@ -47,6 +49,7 @@ public class DocumentRecordActionsServices {
 	public static final String EML_FILE_EXT = "eml";
 
 	public DocumentRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
+		this.appLayerFactory = appLayerFactory;
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.collection = collection;
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
@@ -158,8 +161,14 @@ public class DocumentRecordActionsServices {
 			   !document.isPublished();
 	}
 
-
 	public boolean isPrintLabelActionPossible(Record record, User user) {
+		List<LabelTemplate> labelTemplates = new ArrayList<>();
+		labelTemplates.addAll(appLayerFactory.getLabelTemplateManager().listExtensionTemplates(Document.SCHEMA_TYPE));
+		labelTemplates.addAll(appLayerFactory.getLabelTemplateManager().listTemplates(Document.SCHEMA_TYPE));
+		if (labelTemplates.size() < 1) {
+			return false;
+		}
+
 		Document document = rm.wrapDocument(record);
 		return user.hasReadAccess().on(record) &&
 			   !record.isLogicallyDeleted() &&

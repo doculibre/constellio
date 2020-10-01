@@ -701,7 +701,7 @@ public class RMRecordsMenuItemServices {
 		RMRECORDS_CREATE_SIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_SEND_EMAIL(singletonList(Document.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_CREATE_PDF(singletonList(Document.SCHEMA_TYPE), 100000, true),
-		RMRECORDS_PRINT_LABEL(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
+		RMRECORDS_PRINT_LABEL(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, false),
 		RMRECORDS_BORROW(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, false),
 		RMRECORDS_BORROW_REQUEST(asList(Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, false),
 		RMRECORDS_RETURN(asList(Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, false),
