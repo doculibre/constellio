@@ -1,6 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -74,7 +73,6 @@ public class RecordDisplay extends BaseDisplay {
 				if (displayComponent != null) {
 					MetadataVO metadataVO = metadataValue.getMetadata();
 					String tabCaption = getTabCaption(metadataVO);
-					String tabCode = getTabCode(metadataVO);
 
 					MetadataVO metadata = metadataValue.getMetadata();
 					String caption = metadata.getLabel(locale);
@@ -89,7 +87,7 @@ public class RecordDisplay extends BaseDisplay {
 					displayComponent.setId(valueId);
 					displayComponent.addStyleName(valueId);
 
-					captionsAndComponents.add(new CaptionAndComponent(captionLabel, displayComponent, tabCaption, tabCode));
+					captionsAndComponents.add(new CaptionAndComponent(captionLabel, displayComponent, tabCaption));
 				}
 			}
 		}
@@ -98,12 +96,6 @@ public class RecordDisplay extends BaseDisplay {
 
 	private static String getTabCaption(MetadataVO metadataVO) {
 		return metadataVO.getMetadataGroup();
-	}
-
-	private static String getTabCode(MetadataVO metadataVO) {
-		SchemasDisplayManager schemasDisplayManager = ConstellioFactories.getInstance().getAppLayerFactory().getMetadataSchemasDisplayManager();
-		MetadataDisplayConfig metadataDisplayConfig = schemasDisplayManager.getMetadata(metadataVO.getCollection(), metadataVO.getCode());
-		return metadataDisplayConfig.getMetadataGroupCode();
 	}
 
 	public final RecordVO getRecordVO() {

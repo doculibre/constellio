@@ -136,10 +136,9 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 			Label captionLabel = captionAndComponent.captionLabel;
 			Component displayComponent = captionAndComponent.displayComponent;
 			String tabCaption = captionAndComponent.tabCaption;
-			String tabCode = captionAndComponent.tabCode;
 			captionLabel.addStyleName(STYLE_CAPTION);
 			displayComponent.addStyleName(STYLE_VALUE);
-			addToDefaultLayoutOrTabSheet(captionLabel, displayComponent, tabCaption, tabCode);
+			addToDefaultLayoutOrTabSheet(captionLabel, displayComponent, tabCaption);
 		}
 	}
 	
@@ -151,8 +150,7 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 		return mainLayout;
 	}
 
-	private void addToDefaultLayoutOrTabSheet(Label captionLabel, Component displayComponent, String tabCaption,
-											  String tabCode) {
+	private void addToDefaultLayoutOrTabSheet(Label captionLabel, Component displayComponent, String tabCaption) {
 		VerticalLayout layout;
 		if (useTabSheet) {
 			if (StringUtils.isBlank(tabCaption)) {
@@ -176,11 +174,11 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 
 				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 
-				List<String> tabCodeToIgnore = appLayerFactory.getExtensions().
+				List<String> tabCaptionToIgnore = appLayerFactory.getExtensions().
 						forCollection(ConstellioUI.getCurrentSessionContext()
-								.getCurrentCollection()).getTabSheetCodeToHideInDisplayAndForm();
+								.getCurrentCollection()).getTabSheetCaptionToHideInDisplayAndForm();
 
-				if (tabCodeToIgnore.contains(tabCode)) {
+				if (tabCaptionToIgnore.contains(tabCaption)) {
 					Tab tab = tabSheet.getTab(panel);
 					tab.setVisible(false);
 					tab.setEnabled(false);
@@ -236,18 +234,15 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 
 		public String tabCaption;
 
-		public String tabCode;
-
 		public CaptionAndComponent(Label captionLabel, Component displayComponent) {
-			this(captionLabel, displayComponent, null, null);
+			this(captionLabel, displayComponent, null);
 		}
 
-		public CaptionAndComponent(Label captionLabel, Component displayComponent, String tabCaption, String tabCode) {
+		public CaptionAndComponent(Label captionLabel, Component displayComponent, String tabCaption) {
 			super();
 			this.captionLabel = captionLabel;
 			this.displayComponent = displayComponent;
 			this.tabCaption = tabCaption;
-			this.tabCode = tabCode;
 		}
 
 	}

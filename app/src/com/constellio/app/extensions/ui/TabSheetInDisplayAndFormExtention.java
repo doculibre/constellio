@@ -11,7 +11,7 @@ public class TabSheetInDisplayAndFormExtention {
 	}
 
 
-	public List<String> getTabSheetCodeToHide(
+	public List<String> getTabSheetCaptionToHide(
 			TabSheetInDisplayAndFormExtentionParams baseFormExtentionTabActionToHideParams) {
 		return Collections.emptyList();
 	}
