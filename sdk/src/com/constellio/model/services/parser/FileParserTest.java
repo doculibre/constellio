@@ -18,7 +18,6 @@ import org.mockito.Mock;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
-import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -75,7 +74,7 @@ public class FileParserTest extends ConstellioTest {
 			throws Exception {
 		doReturn(forkParser).when(forkParsers).getForkParser();
 		doReturn(new HashMap<String, Object>()).when(fileParserWithForkProcess)
-				.getPropertiesHashMap(any(Metadata.class), anyString(), any(Dimension.class));
+				.getPropertiesHashMap(any(Metadata.class), anyString());
 
 		fileParserWithForkProcess.parse(inputStreamFactory, 42);
 
@@ -88,7 +87,7 @@ public class FileParserTest extends ConstellioTest {
 			throws Exception {
 		doReturn(autoDetectParser).when(fileParserWithoutForkProcess).newAutoDetectParser();
 		doReturn(new HashMap<String, Object>()).when(fileParserWithoutForkProcess)
-				.getPropertiesHashMap(any(Metadata.class), anyString(), any(Dimension.class));
+				.getPropertiesHashMap(any(Metadata.class), anyString());
 
 		fileParserWithoutForkProcess.parse(inputStreamFactory, 42);
 		verify(autoDetectParser, times(1))

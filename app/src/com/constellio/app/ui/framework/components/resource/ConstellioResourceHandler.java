@@ -307,7 +307,7 @@ public class ConstellioResourceHandler implements RequestHandler {
 			try {
 				ParsedContent parsedContent = ConstellioFactories.getInstance().getModelLayerFactory().getContentManager()
 						.getParsedContent(hash);
-				return ImageUtils.isImageOversized((Double) parsedContent.getProperties().get("height"));
+				return ImageUtils.isImageOversized(Double.parseDouble((String) parsedContent.getProperties().get(org.apache.tika.metadata.Metadata.IMAGE_LENGTH.getName())));
 			} catch (ContentManagerException_ContentNotParsed contentManagerException_contentNotParsed) {
 				return false;
 			}

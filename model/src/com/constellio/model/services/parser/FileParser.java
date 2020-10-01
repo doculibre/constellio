@@ -4,7 +4,6 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.io.streamFactories.StreamFactoryWithFilename;
 import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
-import com.constellio.data.utils.ImageUtils;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -41,7 +40,6 @@ import org.apache.tika.parser.pdf.PDFParserConfig;
 import org.apache.tika.parser.pdf.PDFParserConfig.OCR_STRATEGY;
 import org.apache.tika.sax.BodyContentHandler;
 
-import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -181,7 +179,6 @@ public class FileParser {
 		BodyContentHandler handler = new BodyContentHandler(maxParsedContentLengthInKO * 1000);
 		Metadata metadata = new Metadata();
 
-		Dimension dimension = null;
 		InputStream inputStream = null;
 		try {
 			inputStream = inputStreamFactory.create(READ_STREAM_FOR_PARSING_WITH_TIKA);
@@ -197,11 +194,6 @@ public class FileParser {
 				}
 				parser.parse(inputStream, handler, metadata, configureParseContext(parser, ocr));
 			}
-			String type = metadata.get(Metadata.CONTENT_TYPE);
-			if (type != null && type.startsWith("image")) {
-				dimension = ImageUtils.getImageDimension(inputStream);
-			}
-
 		} catch (Throwable t) {
 			if (!t.getClass().getSimpleName().equals("WriteLimitReachedException")) {
 				String detectedMimetype = metadata.get(Metadata.CONTENT_TYPE);
@@ -217,7 +209,7 @@ public class FileParser {
 		//parsedContent = patternForChar.matcher(parsedContent).replaceAll("");
 		parsedContent = patternForSpaceAndReturn.matcher(parsedContent).replaceAll("");
 		String language = detectLanguage ? languageDetectionManager.tryDetectLanguage(parsedContent) : null;
-		Map<String, Object> properties = getPropertiesHashMap(metadata, type, dimension);
+		Map<String, Object> properties = getPropertiesHashMap(metadata, type);
 		Map<String, List<String>> styles = null;
 		try {
 			styles = getStylesDoc(inputStreamFactory, type);
@@ -284,7 +276,6 @@ public class FileParser {
 		Metadata metadata = new Metadata();
 
 		InputStream inputStream = null;
-		Dimension dimension = null;
 		try {
 			inputStream = inputStreamFactory.create(READ_STREAM_FOR_PARSING_WITH_TIKA);
 			if (forkParserEnabled) {
@@ -299,7 +290,6 @@ public class FileParser {
 				}
 				parser.parse(inputStream, handler, metadata, configureParseContext(parser, ocr));
 			}
-			dimension = ImageUtils.getImageDimension(inputStream);
 		} catch (Throwable t) {
 			if (!t.getClass().getSimpleName().equals("WriteLimitReachedException")) {
 				String detectedMimetype = metadata.get(Metadata.CONTENT_TYPE);
@@ -313,7 +303,7 @@ public class FileParser {
 		String type = metadata.get(Metadata.CONTENT_TYPE);
 		String parsedContent = handler.toString().trim();
 		String language = detectLanguage ? languageDetectionManager.tryDetectLanguage(parsedContent) : null;
-		Map<String, Object> properties = getPropertiesHashMap(metadata, type, dimension);
+		Map<String, Object> properties = getPropertiesHashMap(metadata, type);
 		Map<String, List<String>> styles = null;
 		try {
 			styles = getStylesDoc(inputStreamFactory, type);
@@ -323,7 +313,7 @@ public class FileParser {
 		return new ParsedContent(parsedContent, language, type, length, properties, styles);
 	}
 
-	protected Map<String, Object> getPropertiesHashMap(Metadata metadata, String mimeType, Dimension dimension) {
+	protected Map<String, Object> getPropertiesHashMap(Metadata metadata, String mimeType) {
 		HashMap<String, Object> properties = new HashMap<>();
 		for (String propertyName : metadata.names()) {
 			addPropertyTo(properties, metadata, propertyName, propertyName);
@@ -336,11 +326,6 @@ public class FileParser {
 		} else {
 			addCommentsTo(properties, metadata, "Comments", TikaCoreProperties.COMMENTS, "[\r]");
 			addPropertyTo(properties, metadata, "Company", "Company");
-		}
-
-		if (dimension != null && mimeType.startsWith("image")) {
-			properties.put("width", dimension.width);
-			properties.put("height", dimension.height);
 		}
 
 		return properties;
