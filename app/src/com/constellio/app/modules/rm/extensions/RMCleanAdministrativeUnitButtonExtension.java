@@ -64,7 +64,7 @@ public class RMCleanAdministrativeUnitButtonExtension extends PagesComponentsExt
 						RecordVO currentConcept = taxonomyView.getCurrentConcept();
 						User currentUser = getCurrentUser(view);
 						if (currentConcept != null && AdministrativeUnit.SCHEMA_TYPE.equals(currentConcept.getSchema().getTypeCode())) {
-							actionMenuButtons.add(buildNewMenuButton(currentConcept, currentUser));
+							actionMenuButtons.add(buildNewMenuButton(currentConcept, currentUser, taxonomyView));
 						}
 					}
 				});
@@ -72,11 +72,14 @@ public class RMCleanAdministrativeUnitButtonExtension extends PagesComponentsExt
 		}
 	}
 
-	private Button buildNewMenuButton(final RecordVO currentConcept, final User currentUser) {
+	private Button buildNewMenuButton(final RecordVO currentConcept, final User currentUser,
+									  final TaxonomyManagementViewImpl view) {
 		return new CleanAdministrativeUnitButton($("TaxonomyManagementView.cleanAdministrativeUnit")) {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
 				cleanAdministrativeUnitButtonClicked(currentConcept, currentUser);
+				view.showMessage($("TaxonomyManagementView.administrativeUnitCleaned"));
+				view.refresh();
 			}
 		};
 	}

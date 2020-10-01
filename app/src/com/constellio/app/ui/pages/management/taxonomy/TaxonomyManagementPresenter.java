@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.records.RecordUtils.parentPaths;
 
 public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagementView> {
@@ -222,6 +223,10 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		return taxonomy;
 	}
 
+	public void refresh() {
+		view.navigate().to().taxonomyManagement(taxonomyCode, conceptId);
+	}
+
 	public void displayButtonClicked(RecordVO recordVO) {
 		view.navigate().to().taxonomyManagement(taxonomy.getCode(), recordVO.getId());
 	}
@@ -237,12 +242,13 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 					view.getSessionContext());
 			try {
 				utils.delete(utils.toRecord(recordVO), null, true);
+				view.showMessage($("TaxonomyManagementView.deleted"));
 			} catch (OptimisticLockException e) {
 				LOGGER.error(e.getMessage());
 				view.showErrorMessage(e.getMessage());
 			}
 			if (recordVO.getId().equals(conceptId)) {
-				backButtonClicked();
+				view.navigate().to().taxonomyManagement(taxonomyCode);
 			} else {
 				view.refreshTable();
 			}

@@ -88,6 +88,10 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 		presenter.forParams(event.getParameters());
 	}
 
+	public void refresh() {
+		presenter.refresh();
+	}
+
 	@Override
 	protected void afterViewAssembled(ViewChangeEvent event) {
 		presenter.viewAssembled();
