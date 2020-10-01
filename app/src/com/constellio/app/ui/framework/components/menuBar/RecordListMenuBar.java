@@ -128,6 +128,8 @@ public class RecordListMenuBar extends BaseMenuBar {
 						// Recursive call
 						buildMenuItems();
 					}
+
+					RecordListMenuBar.this.actionExecuted(menuItemAction);
 				}
 
 			});
@@ -135,6 +137,10 @@ public class RecordListMenuBar extends BaseMenuBar {
 		} else {
 			this.setVisible(false);
 		}
+	}
+
+	protected void actionExecuted(MenuItemAction menuItemAction) {
+		// Do nothing, but the method is overridden for specific case.
 	}
 
 	private boolean isAtLeastOneActionVisible(List<MenuItemAction> menuItemActions) {

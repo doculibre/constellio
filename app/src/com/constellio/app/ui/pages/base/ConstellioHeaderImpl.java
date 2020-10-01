@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.base;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
@@ -86,6 +87,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CREATE_TASK;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
@@ -726,7 +728,14 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		};
 
 		List<String> excludedActionTypes = Arrays.asList(RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION.name());
-		RecordListMenuBar recordListMenuBar = new RecordListMenuBar(recordProvider, $("ConstellioHeader.selectionActions"), excludedActionTypes);
+		RecordListMenuBar recordListMenuBar = new RecordListMenuBar(recordProvider, $("ConstellioHeader.selectionActions"), excludedActionTypes) {
+			@Override
+			protected void actionExecuted(MenuItemAction menuItemAction) {
+				if (menuItemAction.getType().equals(RMRECORDS_CREATE_TASK.name())) {
+					closeWindow();
+				}
+			}
+		};
 		return recordListMenuBar;
 	}
 
