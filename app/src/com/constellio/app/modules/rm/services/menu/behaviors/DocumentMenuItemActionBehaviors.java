@@ -679,47 +679,6 @@ public class DocumentMenuItemActionBehaviors {
 					.newAuthorizationsServices().execute(toAuthorizationDeleteRequest(authorization, user));
 		}
 	}
-	public void renameContent(final Document document, final MenuItemActionBehaviorParams params) {
-		WindowButton renameContentButton = new WindowButton($("DocumentContextMenu.renameContent"), $("DocumentContextMenu.renameContent"),
-				WindowConfiguration.modalDialog("40%", "100px")) {
-			@Override
-			protected Component buildWindowContent() {
-				final TextField title = new BaseTextField();
-				String contentTitle = document.getContent().getCurrentVersion().getFilename();
-				title.setValue(contentTitle);
-				title.setWidth("100%");
-
-				Button save = new BaseButton($("DisplayDocumentView.renameContentConfirm")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						renameContentButtonClicked(document, params, title.getValue());
-						getWindow().close();
-					}
-				};
-				save.addStyleName(ValoTheme.BUTTON_PRIMARY);
-				save.addStyleName(BaseForm.SAVE_BUTTON);
-
-				Button cancel = new BaseButton($("DisplayDocumentView.renameContentCancel")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						getWindow().close();
-					}
-				};
-
-				HorizontalLayout form = new HorizontalLayout(title, save, cancel);
-				form.setExpandRatio(title, 1);
-				form.setSpacing(true);
-				form.setWidth("95%");
-
-				VerticalLayout layout = new VerticalLayout(form);
-				layout.setSizeFull();
-
-				return layout;
-			}
-		};
-		renameContentButton.click();
-	}
-
 
 	private AuthorizationModificationRequest toAuthorizationModificationRequest(Authorization authorization,
 																				String recordId, User user) {
