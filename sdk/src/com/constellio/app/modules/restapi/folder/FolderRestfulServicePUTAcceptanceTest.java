@@ -45,6 +45,7 @@ import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.google.common.collect.Lists;
 import org.joda.time.LocalDate;
@@ -1105,17 +1106,17 @@ public class FolderRestfulServicePUTAcceptanceTest extends BaseFolderRestfulServ
 
 	@Test
 	public void testUpdateFolderWithParentPhysicallyDeleted() throws Exception {
-		Record record = recordServices.getDocumentById(records.folder_C51);
+		Record record = recordServices.getDocumentById(records.folder_A01);
 		recordServices.logicallyDelete(record, User.GOD);
-		recordServices.physicallyDelete(record, User.GOD);
+		recordServices.physicallyDelete(record, User.GOD, new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
 
-		minFolderToUpdate.setParentFolderId(records.folder_C51);
+		minFolderToUpdate.setParentFolderId(records.folder_A01);
 		Response response = doPutQuery(minFolderToUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-				.isEqualTo(i18n.$(new RecordNotFoundException(records.folder_C51).getValidationError()));
+				.isEqualTo(i18n.$(new RecordNotFoundException(records.folder_A01).getValidationError()));
 	}
 
 	@Test
