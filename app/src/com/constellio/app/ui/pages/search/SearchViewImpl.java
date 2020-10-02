@@ -60,7 +60,7 @@ import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptAll;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.lazyloadwrapper.LazyLoadWrapper;
-import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
@@ -106,7 +106,9 @@ import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
-public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView, DropHandler, BrowserWindowResizeListener {
+public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView, DropHandler, BrowserWindowResizeListener, ViewChangeListener {
+
+	public static final String LAST_SELECTED_TAB = "lastSelectedTab";
 
 	public static final String FACET_BOX_STYLE = "facet-box";
 	public static final String FACET_TITLE_STYLE = "facet-title";
@@ -142,17 +144,19 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private List<SelectionChangeListener> selectionChangeListenerStorage = new ArrayList<>();
 	private boolean facetsOpened;
 	private TabSheet resultTabSheet;
-	private boolean hideFacette;
+	private boolean hideFacet;
 
 	@Override
 	public void attach() {
 		super.attach();
 		Page.getCurrent().addBrowserWindowResizeListener(this);
+		ConstellioUI.getCurrent().getNavigator().addViewChangeListener(this);
 	}
 
 	@Override
 	public void detach() {
 		Page.getCurrent().removeBrowserWindowResizeListener(this);
+		ConstellioUI.getCurrent().getNavigator().removeViewChangeListener(this);
 		super.detach();
 	}
 
@@ -412,19 +416,40 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			resultTabSheet.addSelectedTabChangeListener(new SelectedTabChangeListener() {
 				@Override
 				public void selectedTabChange(SelectedTabChangeEvent event) {
-					Component currentTab = event.getTabSheet().getSelectedTab();
-					hideFacette = currentTab != constellioTab.getComponent();
-					facetsSliderPanel.setVisible(!hideFacette);
+					TabSheet currentTabSheet = event.getTabSheet();
+					Component currentTabComponent = currentTabSheet.getSelectedTab();
+					Tab currentTab = currentTabSheet.getTab(currentTabComponent);
+					ConstellioUI.getCurrent().setAttribute(LAST_SELECTED_TAB, currentTabSheet.getTabPosition(currentTab));
 
-					if (currentTab instanceof BaseViewImpl) {
-						((BaseViewImpl) currentTab).enter(null);
+					hideFacet = currentTabComponent != constellioTab.getComponent();
+					facetsSliderPanel.setVisible(!hideFacet);
+
+					if (currentTabComponent instanceof BaseViewImpl) {
+						((BaseViewImpl) currentTabComponent).enter(null);
 					}
-
 				}
 			});
 
+			Integer lastTabIndex = ConstellioUI.getCurrent().getAttribute(LAST_SELECTED_TAB);
+			if (lastTabIndex != null && lastTabIndex <= resultTabSheet.getComponentCount() - 1) {
+				resultTabSheet.setSelectedTab(lastTabIndex);
+			}
 			resultsArea.addComponent(resultTabSheet);
 		}
+	}
+
+	@Override
+	public boolean beforeViewChange(ViewChangeEvent event) {
+		if (!(event.getNewView() instanceof SearchView)) {
+			ConstellioUI.getCurrent().setAttribute(LAST_SELECTED_TAB, null);
+		}
+
+		return true;
+	}
+
+	@Override
+	public void afterViewChange(ViewChangeEvent event) {
+
 	}
 
 	@Override
@@ -453,7 +478,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			facetsSliderPanel.setHeightUndefined();
 		}
 		presenter.setPageNumber(1);
-		facetsSliderPanel.setVisible(!hideFacette && (dataProvider.size() > 0 || !facetSelections.isEmpty()));
+		facetsSliderPanel.setVisible(!hideFacet && (dataProvider.size() > 0 || !facetSelections.isEmpty()));
 	}
 
 	@Override
@@ -556,7 +581,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 		});
 		facetsSliderPanel.setHeight("800px");
-		facetsSliderPanel.setVisible(!hideFacette);
+		facetsSliderPanel.setVisible(!hideFacet);
 		facetsSliderPanel.setImmediate(true);
 
 		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsSliderPanel);
@@ -1248,5 +1273,5 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		}
 		return nestedView;
 	}
-	
+
 }
