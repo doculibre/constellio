@@ -110,6 +110,21 @@ public class CollectionManagementViewImpl extends BaseViewImpl
 					public boolean isEnabled() {
 						return super.isEnabled() && presenter.isDeletePossible(provider, (Integer) itemId);
 					}
+
+					@Override
+					protected String getConfirmDialogMessage() {
+						return $("CollectionManagementView.confirmDialogMessage");
+					}
+
+					@Override
+					protected String getConfirmDialogOKCaption() {
+						return $("accept");
+					}
+
+					@Override
+					protected String getConfirmDialogCancelCaption() {
+						return $("cancel");
+					}
 				};
 				button.addStyleName(DELETE_BUTTON_STYLE);
 				if (!button.isEnabled()) {
