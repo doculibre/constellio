@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.decommissioning.ContainerDetailTableGenerator;
 import com.constellio.app.modules.rm.ui.components.decommissioning.DecomApprobationRequestWindowButton;
 import com.constellio.app.modules.rm.ui.components.decommissioning.DecomValidationRequestWindowButton;
+import com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTable;
 import com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator;
 import com.constellio.app.modules.rm.ui.components.decommissioning.ValidationsGenerator;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
@@ -813,7 +814,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			container.setItemSorter(buildItemSorter());
 		}
 
-		BaseTable table = new BaseTable("DecommissioningListView.folderTable",
+		FolderDetailTable table = new FolderDetailTable("DecommissioningListView.folderTable",
 				$("DecommissioningListView.folderDetails", container.size()), container);
 		table.setPageLength(container.size());
 		table.setWidth("100%");

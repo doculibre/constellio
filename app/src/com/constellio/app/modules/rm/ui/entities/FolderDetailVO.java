@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 
 import java.io.Serializable;
+import java.util.Map;
 
 public class FolderDetailVO implements Serializable {
 	private String folderId;
@@ -20,6 +21,7 @@ public class FolderDetailVO implements Serializable {
 	private boolean reversedSort;
 	private boolean selected;
 	private Double linearSize;
+	private Map<String, Object> summaryMetadatasMap;
 
 	public String getFolderId() {
 		return folderId;
@@ -132,5 +134,13 @@ public class FolderDetailVO implements Serializable {
 
 	public void setFolderComponent(FolderComponent folderComponent) {
 		this.folderComponent = folderComponent;
+	}
+
+	public Map<String, Object> getSummaryMetadatasMap() {
+		return summaryMetadatasMap;
+	}
+
+	public void setSummaryMetadatasMap(Map<String, Object> summaryMetadatasMap) {
+		this.summaryMetadatasMap = summaryMetadatasMap;
 	}
 }

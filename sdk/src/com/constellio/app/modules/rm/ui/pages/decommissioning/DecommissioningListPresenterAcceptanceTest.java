@@ -152,7 +152,7 @@ public class DecommissioningListPresenterAcceptanceTest extends ConstellioTest {
 		foldersWithSize.put(records.folder_A03, 70D);
 		foldersWithSize.put(records.folder_A04, 30D);
 
-		FolderDetailToVOBuilder folderBuilder = new FolderDetailToVOBuilder(rm);
+		FolderDetailToVOBuilder folderBuilder = new FolderDetailToVOBuilder(rm, recordServices);
 		FolderDetailVO folder1 = folderBuilder.build(decommissioningList.getFolderDetailWithType(records.folder_A01), FolderComponent.PACKAGEABLE_FOLDER_COMPONENT);
 		folder1.setLinearSize(40D);
 		FolderDetailVO folder2 = folderBuilder.build(decommissioningList.getFolderDetailWithType(records.folder_A02), FolderComponent.PACKAGEABLE_FOLDER_COMPONENT);

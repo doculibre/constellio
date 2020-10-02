@@ -52,6 +52,7 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
@@ -802,7 +803,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	FolderDetailToVOBuilder folderDetailToVOBuilder() {
 		if (folderDetailToVOBuilder == null) {
-			folderDetailToVOBuilder = new FolderDetailToVOBuilder(rmRecordsServices());
+			folderDetailToVOBuilder = new FolderDetailToVOBuilder(rmRecordsServices(), recordServices());
 		}
 		return folderDetailToVOBuilder;
 	}
@@ -1253,5 +1254,17 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public List<Metadata> getUserSummaryMetadatas() {
+		List<Metadata> summaryMetadatas = rmRecordsServices.folderSchemaType().getDefaultSchema().getSummaryMetadatas();
+		MetadataSchemaTypes metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+		List<Metadata> userSummaryMetadata = new ArrayList<>();
+		for (Metadata metadata : summaryMetadatas) {
+			if (getCurrentUser().hasGlobalAccessToMetadata(metadataSchemasManager.getMetadata(metadata.getCode()))) {
+				userSummaryMetadata.add(metadata);
+			}
+		}
+		return userSummaryMetadata;
 	}
 }

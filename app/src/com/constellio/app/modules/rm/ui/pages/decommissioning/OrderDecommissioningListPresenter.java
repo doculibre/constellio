@@ -190,7 +190,7 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 
 	FolderDetailToVOBuilder folderDetailToVOBuilder() {
 		if (folderDetailToVOBuilder == null) {
-			folderDetailToVOBuilder = new FolderDetailToVOBuilder(rmRecordsServices());
+			folderDetailToVOBuilder = new FolderDetailToVOBuilder(rmRecordsServices(), recordServices());
 		}
 		return folderDetailToVOBuilder;
 	}
