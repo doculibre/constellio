@@ -261,6 +261,15 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 	}
 
 	@Override
+	protected String getSchemaCode(Object propertyId) {
+		if (propertyId instanceof MetadataVO) {
+			MetadataVO metadataVO = (MetadataVO) propertyId;
+			return metadataVO.getSchema().getCode();
+		}
+		return null;
+	}
+
+	@Override
 	protected List<String> getOrderedTabCaptions(RecordVO recordVO) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		Locale currentLocale = sessionContext.getCurrentLocale();

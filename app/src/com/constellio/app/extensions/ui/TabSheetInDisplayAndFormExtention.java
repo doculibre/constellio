@@ -8,8 +8,12 @@ import java.util.List;
 public class TabSheetInDisplayAndFormExtention {
 	@Getter
 	public static class TabSheetInDisplayAndFormExtentionParams {
-	}
+		String schemaCode;
 
+		public TabSheetInDisplayAndFormExtentionParams(String schemaCode) {
+			this.schemaCode = schemaCode;
+		}
+	}
 
 	public List<String> getTabSheetCaptionToHide(
 			TabSheetInDisplayAndFormExtentionParams baseFormExtentionTabActionToHideParams) {

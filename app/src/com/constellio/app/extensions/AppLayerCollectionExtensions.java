@@ -1076,11 +1076,11 @@ public class AppLayerCollectionExtensions {
 		return userFolderExtensions.getBooleanValue(true, (behavior -> behavior.isFileActionPossible(new UserFolderExtensionActionPossibleParams(userFolder, user))));
 	}
 
-	public List<String> getTabSheetCaptionToHideInDisplayAndForm() {
+	public List<String> getTabSheetCaptionToHideInDisplayAndForm(String schemaCode) {
 		List<String> actionTabToIgnore = new ArrayList<>();
 
 		for (TabSheetInDisplayAndFormExtention tabSheetInDisplayAndFormExtention : tabSheetCaptionToHide) {
-			actionTabToIgnore.addAll(tabSheetInDisplayAndFormExtention.getTabSheetCaptionToHide(new TabSheetInDisplayAndFormExtentionParams()));
+			actionTabToIgnore.addAll(tabSheetInDisplayAndFormExtention.getTabSheetCaptionToHide(new TabSheetInDisplayAndFormExtentionParams(schemaCode)));
 		}
 
 		return actionTabToIgnore;

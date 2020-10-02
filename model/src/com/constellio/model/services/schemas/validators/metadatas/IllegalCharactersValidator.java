@@ -13,7 +13,8 @@ import java.util.regex.Pattern;
 public class IllegalCharactersValidator implements RecordMetadataValidator<String> {
 
 	private static final String MUST_NOT_CONTAINS_ILLEGAL_CHARACTERS = "illegalCharactersNotAllowed";
-	private static final Pattern ILLEGAL_CHARACTERS = Pattern.compile("[\\\\/*:?”&<>|#]");
+	// do not add any "custom" character here
+	public static final Pattern ILLEGAL_CHARACTERS = Pattern.compile("[\\\\/*:?”&<>|]");
 
 	@Override
 	public void validate(Metadata metadata, String value, ConfigProvider configProvider,

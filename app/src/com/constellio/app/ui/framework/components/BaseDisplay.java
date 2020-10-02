@@ -138,7 +138,7 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 			String tabCaption = captionAndComponent.tabCaption;
 			captionLabel.addStyleName(STYLE_CAPTION);
 			displayComponent.addStyleName(STYLE_VALUE);
-			addToDefaultLayoutOrTabSheet(captionLabel, displayComponent, tabCaption);
+			addToDefaultLayoutOrTabSheet(captionLabel, displayComponent, tabCaption, captionAndComponent.linkedSchemaCode);
 		}
 	}
 	
@@ -150,7 +150,8 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 		return mainLayout;
 	}
 
-	private void addToDefaultLayoutOrTabSheet(Label captionLabel, Component displayComponent, String tabCaption) {
+	private void addToDefaultLayoutOrTabSheet(Label captionLabel, Component displayComponent, String tabCaption,
+											  String linkedSchemaCode) {
 		VerticalLayout layout;
 		if (useTabSheet) {
 			if (StringUtils.isBlank(tabCaption)) {
@@ -176,7 +177,7 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 
 				List<String> tabCaptionToIgnore = appLayerFactory.getExtensions().
 						forCollection(ConstellioUI.getCurrentSessionContext()
-								.getCurrentCollection()).getTabSheetCaptionToHideInDisplayAndForm();
+								.getCurrentCollection()).getTabSheetCaptionToHideInDisplayAndForm(linkedSchemaCode);
 
 				if (tabCaptionToIgnore.contains(tabCaption)) {
 					Tab tab = tabSheet.getTab(panel);
@@ -228,21 +229,25 @@ public class BaseDisplay extends CustomComponent implements BrowserWindowResizeL
 	
 	public static class CaptionAndComponent implements Serializable {
 
-		public Label captionLabel;
+		private Label captionLabel;
 
-		public Component displayComponent;
+		private Component displayComponent;
 
-		public String tabCaption;
+		private String tabCaption;
+
+		private String linkedSchemaCode;
 
 		public CaptionAndComponent(Label captionLabel, Component displayComponent) {
-			this(captionLabel, displayComponent, null);
+			this(captionLabel, displayComponent, null, null);
 		}
 
-		public CaptionAndComponent(Label captionLabel, Component displayComponent, String tabCaption) {
+		public CaptionAndComponent(Label captionLabel, Component displayComponent, String tabCaption,
+								   String linkedSchemaCode) {
 			super();
 			this.captionLabel = captionLabel;
 			this.displayComponent = displayComponent;
 			this.tabCaption = tabCaption;
+			this.linkedSchemaCode = linkedSchemaCode;
 		}
 
 	}

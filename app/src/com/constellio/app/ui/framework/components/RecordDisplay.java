@@ -87,7 +87,7 @@ public class RecordDisplay extends BaseDisplay {
 					displayComponent.setId(valueId);
 					displayComponent.addStyleName(valueId);
 
-					captionsAndComponents.add(new CaptionAndComponent(captionLabel, displayComponent, tabCaption));
+					captionsAndComponents.add(new CaptionAndComponent(captionLabel, displayComponent, tabCaption, recordVO.getSchemaCode()));
 				}
 			}
 		}

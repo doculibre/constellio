@@ -111,7 +111,15 @@ public interface RecordServices {
 
 	Record realtimeGetRecordSummaryById(String id, boolean callExtensions);
 
-	List<Record> realtimeGetRecordById(List<String> ids, boolean callExtensions);
+	default List<Record> realtimeGetRecordById(List<String> ids, boolean callExtensions) {
+		List<Record> records = new ArrayList<>();
+
+		for (String id : ids) {
+			records.add(realtimeGetRecordById(id, callExtensions));
+		}
+
+		return records;
+	}
 
 	default Record realtimeGetRecordById(String id, boolean callExtensions) {
 		return realtimeGetRecordById(id, null, callExtensions);

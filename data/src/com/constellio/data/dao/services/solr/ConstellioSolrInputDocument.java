@@ -16,11 +16,17 @@ public class ConstellioSolrInputDocument extends SolrInputDocument {
 	@Override
 	public void setField(String name, Object value) {
 		value = convertEmptyToNull(value);
-
 		if (value == null) {
 			super.remove(name);
 		} else {
 			validate(name, value);
+			if (name.endsWith("_i") && (value instanceof Map)) {
+				Object originalValue = ((Map) value).get("set");
+				if (originalValue instanceof String && ((String) originalValue).contains(".")) {
+					String convertedValue = "" + Double.valueOf((String) originalValue).intValue();
+					((Map<String, String>) value).put("set", convertedValue);
+				}
+			}
 			if (name.endsWith("_i") && (value instanceof String) && ((String) value).contains(".")) {
 				value = "" + Double.valueOf((String) value).intValue();
 			}
@@ -37,6 +43,13 @@ public class ConstellioSolrInputDocument extends SolrInputDocument {
 			super.remove(name);
 		} else {
 			validate(name, value);
+			if (name.endsWith("_i") && (value instanceof Map)) {
+				Object originalValue = ((Map) value).get("set");
+				if (originalValue instanceof String && ((String) originalValue).contains(".")) {
+					String convertedValue = "" + Double.valueOf((String) originalValue).intValue();
+					((Map<String, String>) value).put("set", convertedValue);
+				}
+			}
 			if (name.endsWith("_i") && (value instanceof String) && ((String) value).contains(".")) {
 				value = "" + Double.valueOf((String) value).intValue();
 			}
