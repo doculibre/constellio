@@ -1596,13 +1596,11 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio {
-
 @media screen and (max-width: 480px) {
 	.notifications.v-window {
 		right: 13px;
 	}
 }
-
 }
 
 .constellio .v-context-menu {
@@ -5040,6 +5038,7 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 6px;
 
 
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -5079,6 +5078,7 @@ div.v-layout.v-horizontal.v-widget {
 	height: 31px;
 	border-radius: 4px;
 	padding: 6px;
+
 
 
 	-webkit-transition: box-shadow 180ms, border 180ms;
@@ -5122,6 +5122,7 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 6px;
 
 
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -5161,6 +5162,7 @@ div.v-layout.v-horizontal.v-widget {
 	height: 59px;
 	border-radius: 4px;
 	padding: 6px;
+
 
 
 	-webkit-transition: box-shadow 180ms, border 180ms;
@@ -5919,6 +5921,7 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 3px 7px;
 
 
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -6031,6 +6034,7 @@ div.v-layout.v-horizontal.v-widget {
 	height: 31px;
 	border-radius: 4px;
 	padding: 3px 8px;
+
 
 
 	-webkit-transition: box-shadow 180ms, border 180ms;
@@ -6152,6 +6156,7 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 5px 10px;
 
 
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -6265,6 +6270,7 @@ div.v-layout.v-horizontal.v-widget {
 	height: 59px;
 	border-radius: 4px;
 	padding: 7px 12px;
+
 
 
 	-webkit-transition: box-shadow 180ms, border 180ms;
@@ -6764,6 +6770,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-menubar > .v-menubar-menuitem-selected {
 	color: #ecf2f8;
+
 
 
 	border-radius: 0;
@@ -14897,6 +14904,12 @@ div.v-layout.v-horizontal.v-widget {
 	padding-bottom: 10px;
 }
 
+.constellio .base-window .v-scrollable .remove-side-padding {
+	overflow: hidden !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+}
+
 .constellio .base-window .v-scrollable .base-window-content {
 	overflow-y: auto;
 	padding-left: 5px;
@@ -16555,7 +16568,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="801-1100px"] .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar-layout .action-menu-bar {
 	top: inherit;
-	right: -18px;
+	right: -22px;
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .v-slot-suggestions-summary-results {

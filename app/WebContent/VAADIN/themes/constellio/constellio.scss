@@ -2059,6 +2059,12 @@ $popup-view-z-index: 3;
 
 	.base-window {
 		.v-scrollable {
+			.remove-side-padding {
+				overflow: hidden !important;
+				padding-left: 0 !important;
+				padding-right: 0 !important;
+			}
+
 
 			.base-window-content {
 				overflow-y: auto;
