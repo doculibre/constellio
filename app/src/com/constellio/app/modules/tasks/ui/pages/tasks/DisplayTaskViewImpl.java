@@ -68,12 +68,16 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 		recordDisplayLayout.addComponent(recordDisplay);
 		recordDisplayLayout.setId(RECORD_DISPLAY_LAYOUT_ID);
 
-		subTasks = new CustomComponent();
-		subTasks.setId(SUB_TASKS_ID);
+
 
 		tabSheet = new TabSheet();
 		tabSheet.addTab(recordDisplayLayout, $("DisplayTaskView.tabs.metadata"));
-		tabSheet.addTab(subTasks, $("DisplayTaskView.tabs.subtasks", presenter.getSubTaskCount()));
+
+		if(!presenter.isTaskModel()) {
+			subTasks = new CustomComponent();
+			subTasks.setId(SUB_TASKS_ID);
+			tabSheet.addTab(subTasks, $("DisplayTaskView.tabs.subtasks", presenter.getSubTaskCount()));
+		}
 
 		eventsComponent = new CustomComponent();
 		tabSheet.addTab(eventsComponent, $("DisplayTaskView.tabs.logs"));
@@ -126,9 +130,13 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		return new RecordVOActionButtonFactory(
-				presenter.getTaskVO(),
-				Arrays.asList(TaskItemActionType.TASK_CONSULT.name(), TaskItemActionType.TASK_EDIT.name())).build();
+		if(!presenter.isTaskModel()) {
+			return new RecordVOActionButtonFactory(
+					presenter.getTaskVO(),
+					Arrays.asList(TaskItemActionType.TASK_CONSULT.name(), TaskItemActionType.TASK_EDIT.name())).build();
+		} else {
+			return new ArrayList<>();
+		}
 	}
 
 	@Override

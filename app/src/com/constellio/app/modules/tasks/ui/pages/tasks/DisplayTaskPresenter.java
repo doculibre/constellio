@@ -430,15 +430,21 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 
 	public void selectInitialTabForUser() {
 		String previousSelectedTab = getPreviousSelectedTab();
-		if (previousSelectedTab != null && DisplayTaskView.SUB_TASKS_ID.equals(previousSelectedTab)) {
+		if (!isTaskModel() && previousSelectedTab != null && DisplayTaskView.SUB_TASKS_ID.equals(previousSelectedTab)) {
 			view.selectTasksTab();
 		} else {
 			view.selectMetadataTab();
 		}
 	}
 
+	public boolean isTaskModel() {
+		return Boolean.TRUE.equals(this.taskVO.isTaskModel());
+	}
+
 	public void viewAssembled() {
-		view.setSubTasks(subTaskDataProvider);
+		if(!isTaskModel()) {
+			view.setSubTasks(subTaskDataProvider);
+		}
 		view.setEvents(eventsDataProvider);
 	}
 

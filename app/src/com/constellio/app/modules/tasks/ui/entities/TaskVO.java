@@ -61,7 +61,7 @@ public class TaskVO extends RecordVO {
 		return get(DUE_DATE);
 	}
 
-	public boolean isTaskModel() {
+	public Boolean isTaskModel() {
 		return get(IS_MODEL);
 	}
 
