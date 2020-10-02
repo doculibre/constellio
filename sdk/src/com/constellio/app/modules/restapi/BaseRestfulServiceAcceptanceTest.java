@@ -89,6 +89,7 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioRestApiModule().withAllTest(users)
 				.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
 		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
+		givenConfig(RestApiConfigs.EXPERIMENTAL_SERVICES, true);
 
 		dateFormat = getModelLayerFactory().getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_FORMAT);
 		dateTimeFormat = getModelLayerFactory().getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_TIME_FORMAT);
