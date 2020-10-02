@@ -45,7 +45,6 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_REMOVE_TO_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_RENAME_CONTENT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_RETURN_REMAINDER;
-import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_RETURN_REMAINDER;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_SHARE_DOCUMENT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UNPUBLISH;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UNSHARE;
@@ -129,7 +128,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_RETURN_REMAINDER.name())) {
 			menuItemActions.add(buildMenuItemAction(DOCUMENT_RETURN_REMAINDER.name(),
 					isMenuItemActionPossible(DOCUMENT_RETURN_REMAINDER.name(), document, user, params),
-					$("SendReturnReminderEmailButton.reminderReturn"), null, -1, 50,
+					$("SendReturnReminderEmailButton.reminderReturn"), FontAwesome.PAPER_PLANE, -1, 50,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).sendReturnRemainder(document, params)));
 		}
 

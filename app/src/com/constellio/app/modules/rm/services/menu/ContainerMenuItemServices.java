@@ -119,7 +119,7 @@ public class ContainerMenuItemServices {
 		if (!filteredActionTypes.contains(CONTAINER_RETURN_REMAINDER.name())) {
 			menuItemActions.add(buildMenuItemAction(CONTAINER_RETURN_REMAINDER.name(),
 					isMenuItemActionPossible(CONTAINER_RETURN_REMAINDER.name(), container, user, params),
-					$("SendReturnReminderEmailButton.reminderReturn"), null, -1, 70,
+					$("SendReturnReminderEmailButton.reminderReturn"), FontAwesome.PAPER_PLANE, -1, 70,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).sendReturnRemainder(container, params)));
 		}
 

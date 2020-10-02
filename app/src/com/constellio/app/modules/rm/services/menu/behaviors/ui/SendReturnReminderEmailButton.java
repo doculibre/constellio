@@ -20,6 +20,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.vaadin.server.FontAwesome;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -56,6 +57,7 @@ public class SendReturnReminderEmailButton extends BaseButton {
 		schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 
 		buildParameters(previewReturnDate);
+		setIcon(FontAwesome.PAPER_PLANE);
 		setCaption($("SendReturnReminderEmailButton.reminderReturn"));
 	}
 

@@ -586,7 +586,7 @@ public class RMRecordsMenuItemServices {
 				break;
 			case RMRECORDS_RETURN_REMAINDER:
 				menuItemAction = buildMenuItemAction(RMRECORDS_RETURN_REMAINDER, state,
-						$("SendReturnReminderEmailButton.reminderReturn"), null, -1, 780,
+						$("SendReturnReminderEmailButton.reminderReturn"), FontAwesome.PAPER_PLANE, -1, 780,
 						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).sendReturnRemainder(ids, params));
 				break;
