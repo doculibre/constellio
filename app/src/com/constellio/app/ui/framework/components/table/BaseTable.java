@@ -296,6 +296,10 @@ public class BaseTable extends Table implements SelectionComponent {
 		return false;
 	}
 
+	public boolean isColumnGeneratorsAdded() {
+		return columnGeneratorsAdded;
+	}
+
 	public boolean addGeneratedSelectColumn() {
 		return true;
 	}
@@ -450,7 +454,7 @@ public class BaseTable extends Table implements SelectionComponent {
 
 	@Override
 	public void setVisibleColumns(Object... visibleColumns) {
-		if ((isSelectColumn() || isIndexColumn() || isMenuBarColumn() || isButtonsColumn()) && columnGeneratorsAdded) {
+		if ((isSelectColumn() || isIndexColumn() || isMenuBarColumn() || isButtonsColumn()) && isColumnGeneratorsAdded()) {
 			List<Object> visibleColumnsList = new ArrayList<>(Arrays.asList(visibleColumns));
 			if (isIndexColumn() && visibleColumnsList.contains(INDEX_PROPERTY_ID)) {
 				int columnIndex = isRightToLeft() ? columnIndex = visibleColumnsList.size() - 1 : 0;

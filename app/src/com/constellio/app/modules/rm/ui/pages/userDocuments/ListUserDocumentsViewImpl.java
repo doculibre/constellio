@@ -59,6 +59,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	public static final String STYLE_NAME = "user-documents";
 	public static final String STYLE_LAYOUT = STYLE_NAME + "-layout";
 	public static final String TABLE_STYLE_NAME = STYLE_NAME + "-table";
+	private static final String BUTTONS_PROPERTY_ID = "buttons";
 
 	List<RecordVODataProvider> dataProviders;
 
@@ -145,7 +146,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		multiFileUpload.setWidth("100%");
 
 		userContentContainer = new RecordVOLazyContainer(dataProviders);
-		buttonsContainer = new ButtonsContainer<RecordVOLazyContainer>(userContentContainer);
+		buttonsContainer = new ButtonsContainer<RecordVOLazyContainer>(userContentContainer, BUTTONS_PROPERTY_ID);
 
 		if (presenter.isDisplayButtonVisible()) {
 			buttonsContainer.addButton(new ContainerButton() {
@@ -201,12 +202,32 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 				}
 				return style;
 			}
+
+			@Override
+			public boolean isSelectColumn() {
+				return true;
+			}
+
+			@Override
+			public boolean addGeneratedSelectColumn() {
+				return false;
+			}
+
+			@Override
+			public boolean isColumnGeneratorsAdded() {
+				return true;
+			}
+
+			@Override
+			public boolean isButtonsColumn() {
+				return true;
+			}
 		};
 		userContentTable.setContainerDataSource(buttonsContainer);
 		userContentTable.setWidth("100%");
 		userContentTable.addStyleName(TABLE_STYLE_NAME);
 		userContentTable.setItemCaptionMode(ItemCaptionMode.PROPERTY);
-		userContentTable.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
+		userContentTable.setColumnHeader(BUTTONS_PROPERTY_ID, "");
 
 		userContentSelectTableAdapter = new RecordVOSelectionTableAdapter(userContentTable) {
 			@Override

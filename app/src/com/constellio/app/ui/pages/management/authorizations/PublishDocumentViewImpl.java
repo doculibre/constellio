@@ -2,12 +2,12 @@ package com.constellio.app.ui.pages.management.authorizations;
 
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.data.fieldgroup.PropertyId;
@@ -29,8 +29,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocumentView {
 
 	private final PublishDocumentPresenter presenter;
-	private RecordVO record;
-	MenuItemActionBehaviorParams params;
+	private RecordVO recordVO;
+	private BaseView view;
 	private boolean deleteButtonVisible;
 
 	@PropertyId("publishingStartDate") private JodaDateField publishStartDate;
@@ -40,22 +40,22 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 		presenter = new PublishDocumentPresenter(this);
 	}
 
-	public PublishDocumentViewImpl(MenuItemActionBehaviorParams params) {
-		this.params = params;
-		this.record = params.getRecordVO();
+	public PublishDocumentViewImpl(BaseView view, RecordVO recordVO) {
+		this.view = view;
+		this.recordVO = recordVO;
 		presenter = new PublishDocumentPresenter(this);
 	}
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		if (event != null) {
-			record = presenter.forRequestParams(event.getParameters()).getRecordVO();
+			recordVO = presenter.forRequestParams(event.getParameters()).getRecordVO();
 		}
 	}
 
 	@Override
 	protected String getTitle() {
-		return $("PublishDocumentView.viewTitle", record.getTitle());
+		return $("PublishDocumentView.viewTitle", recordVO.getTitle());
 	}
 
 	@Override
@@ -74,12 +74,12 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 		vertical.setSpacing(false);
 		buildDateFields();
 
-		Label label = new Label($("PublishDocumentView.viewTitle", record.getTitle()));
+		Label label = new Label($("PublishDocumentView.viewTitle", recordVO.getTitle()));
 		label.addStyleName("h1");
 		label.setCaptionAsHtml(true);
 
 		BaseForm baseForm = new BaseForm<DocumentVO>(
-				new DocumentVO(record), this, publishStartDate, publishEndDate) {
+				new DocumentVO(recordVO), this, publishStartDate, publishEndDate) {
 
 			@Override
 			protected String getSaveButtonCaption() {
@@ -89,11 +89,11 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 			@Override
 			protected void saveButtonClick(DocumentVO documentVO) {
 				try {
-					Document document = presenter.publishDocument(record.getId(), publishStartDate.getValue(), publishEndDate.getValue());
+					Document document = presenter.publishDocument(recordVO.getId(), publishStartDate.getValue(), publishEndDate.getValue());
 					closeWindow();
 					linkToDocument(document);
-					params.getView().refreshActionMenu();
-					params.getView().partialRefresh();
+					view.refreshActionMenu();
+					view.partialRefresh();
 				} catch (RecordServicesException e) {
 					closeWindow();
 				}

@@ -78,7 +78,7 @@ public class AddGroupsToCollectionsWindowButton extends WindowButton {
 			@Override
 			protected boolean isCommonCollection(String collection) {
 				for (Group group : groups) {
-					if (!userServices.getGroup(group.getCode()).getCollections().contains(collection)) {
+					if (!userServices.getGroup(group.getCode()).getCollections().contains(collection) || userServices.getGroupInCollection(group.getCode(), collection).isLogicallyDeletedStatus()) {
 						return false;
 					}
 				}

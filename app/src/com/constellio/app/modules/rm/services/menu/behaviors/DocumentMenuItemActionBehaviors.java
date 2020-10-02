@@ -38,6 +38,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
@@ -435,14 +436,15 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void publish(Document document, MenuItemActionBehaviorParams params) {
-
 		document = loadingFullRecordIfSummary(document);
 		document.setPublished(true);
+		RecordVO updatedRecordVO = getUpdatedRecordVO(params, document.getWrappedRecord());
+
 		Button publishButton = new WindowButton($("DisplayDocumentView.publish"),
 				$("DisplayDocumentView.publish"), new WindowConfiguration(true, true, "350px", "490px")) {
 			@Override
 			protected Component buildWindowContent() {
-				return new PublishDocumentViewImpl(params) {
+				return new PublishDocumentViewImpl(params.getView(), updatedRecordVO) {
 					@Override
 					protected boolean isBreadcrumbsVisible() {
 						return false;
@@ -452,6 +454,16 @@ public class DocumentMenuItemActionBehaviors {
 		};
 		publishButton.click();
 		updateSearchResultClicked(document.getWrappedRecord());
+	}
+
+	private RecordVO getUpdatedRecordVO(MenuItemActionBehaviorParams params, Record recordToBaseVoOff) {
+		BaseView view = params.getView();
+		VIEW_MODE viewMode = params.getRecordVO().getViewMode();
+		return getUpdatedRecordVO(recordToBaseVoOff, view, viewMode);
+	}
+
+	private RecordVO getUpdatedRecordVO(Record recordToBaseVoOff, BaseView view, VIEW_MODE viewMode) {
+		return new RecordToVOBuilder().build(recordToBaseVoOff, viewMode, view.getSessionContext());
 	}
 
 	public void createPdf(Document document, MenuItemActionBehaviorParams params) {
@@ -1121,7 +1133,7 @@ public class DocumentMenuItemActionBehaviors {
 
 	private Document loadingFullRecordIfSummary(Document document) {
 		if (document.isSummary()) {
-			return rm.getDocument(document.getId());
+			return rm.wrapDocument(recordServices.realtimeGetRecordById(document.getId()));
 		} else {
 			return document;
 		}
