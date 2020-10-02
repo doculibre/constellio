@@ -11,6 +11,8 @@ import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuH
 import com.constellio.app.ui.framework.components.menuBar.RecordMenuBarHandler;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOViewChangeListener;
+import com.constellio.app.ui.framework.externals.ExternalWebSignIn.CreateExternalWebSignInCallbackURLParameters;
+import com.constellio.app.ui.framework.externals.ExternalWebSignIn.ExternalWebSignInResponse;
 import com.constellio.app.ui.handlers.ConstellioErrorHandler;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -23,6 +25,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.pages.base.VaadinSessionContext;
+import com.constellio.app.ui.pages.externals.ExternalSignInSuccessViewImpl;
 import com.constellio.app.ui.pages.login.LoginViewImpl;
 import com.constellio.app.ui.pages.setup.ConstellioSetupViewImpl;
 import com.constellio.app.ui.util.ResponsiveUtils;
@@ -47,6 +50,7 @@ import com.vaadin.server.RequestHandler;
 import com.vaadin.server.Responsive;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinService;
+import com.vaadin.server.VaadinServletService;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TooltipConfiguration;
@@ -259,12 +263,32 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 			}
 			if (currentUserVO != null) {
 				// Authenticated user
-				mainLayout = new MainLayoutImpl(appLayerFactory);
-				//				if (isRightToLeft()) {
-				//					mainLayout.addStyleName("right-to-left");
-				//				}
 
-				setContent(mainLayout);
+				ExternalWebSignInResponse externalWebSignInResponse = sessionContext.getExternalWebSignInResponse();
+				if(externalWebSignInResponse != null) {
+
+					String externalWebSignCallback = externalWebSignInResponse
+							.createCallbackURL(new CreateExternalWebSignInCallbackURLParameters(
+									sessionContext,
+									VaadinServletService.getCurrentServletRequest(),
+									currentUserVO.getUsername()));
+
+					if (externalWebSignCallback != null) {
+						sessionContext.setExternalWebSignInResponse(null);
+						Page.getCurrent().open(externalWebSignCallback, null);
+
+						setContent(new ExternalSignInSuccessViewImpl());
+					}
+				}else{
+					mainLayout = new MainLayoutImpl(appLayerFactory);
+					//				if (isRightToLeft()) {
+					//					mainLayout.addStyleName("right-to-left");
+					//				}
+
+					setContent(mainLayout);
+				}
+
+
 
 				Navigator navigator = getNavigator();
 				navigator.addViewChangeListener(new ViewChangeListener() {

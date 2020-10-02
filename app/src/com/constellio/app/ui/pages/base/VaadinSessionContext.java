@@ -12,12 +12,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class VaadinSessionContext extends BaseSessionContext {
 
 	public static final String CURRENT_USER_ATTRIBUTE = VaadinSessionContext.class.getName() + ".currentUser";
 	public static final String CURRENT_COLLECTION_ATTRIBUTE = VaadinSessionContext.class.getName() + ".currentCollection";
 	public static final String USER_PRINCIPAL_ATTRIBUTE = VaadinSessionContext.class.getName() + ".userPrincipal";
+	public static final String EXTERNAL_WEB_SIGN_IN_RESPONSE = VaadinSessionContext.class.getName() + ".externalWebSignInResponseUrl";
 	public static final String FORCED_SIGN_OUT_ATTRIBUTE = VaadinSessionContext.class.getName() + ".forcedSignOut";
 	public static final String SELECTED_RECORD_IDS_ATTRIBUTE = VaadinSessionContext.class.getName() + ".selectedRecordIds";
 	public static final String SELECTED_RECORD_SCHEMA_TYPE_CODES_ATTRIBUTE = VaadinSessionContext.class.getName() + ".selectedRecordSchemaTypeCodes";
@@ -82,6 +85,16 @@ public class VaadinSessionContext extends BaseSessionContext {
 	@Override
 	public Principal getUserPrincipal() {
 		return (Principal) getAttribute(USER_PRINCIPAL_ATTRIBUTE);
+	}
+
+	@Override
+	public ExternalWebSignInResponse getExternalWebSignInResponse() {
+		return (ExternalWebSignInResponse) getAttribute(EXTERNAL_WEB_SIGN_IN_RESPONSE);
+	}
+
+	@Override
+	public void setExternalWebSignInResponse(ExternalWebSignInResponse response) {
+		setAttribute(EXTERNAL_WEB_SIGN_IN_RESPONSE, response);
 	}
 
 	@Override

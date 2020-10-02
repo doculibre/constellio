@@ -140,6 +140,7 @@ public class ConstellioMenuPresenter implements Serializable {
 		sessionContext.setCurrentCollection(null);
 		sessionContext.setCurrentUser(null);
 		sessionContext.setForcedSignOut(true);
+		sessionContext.setExternalWebSignInResponse(null);
 		sessionContext.clearSelectedRecordIds();
 		constellioMenu.updateUIContent();
 	}

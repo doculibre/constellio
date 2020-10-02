@@ -21,7 +21,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
+import static com.constellio.app.ui.pages.base.VaadinSessionContext.EXTERNAL_WEB_SIGN_IN_RESPONSE;
 import static java.util.Arrays.asList;
 
 public class FakeSessionContext extends BaseSessionContext {
@@ -256,6 +258,16 @@ public class FakeSessionContext extends BaseSessionContext {
 	@Override
 	public Principal getUserPrincipal() {
 		return userPrincipal;
+	}
+
+	@Override
+	public ExternalWebSignInResponse getExternalWebSignInResponse() {
+		return (ExternalWebSignInResponse) getAttribute(EXTERNAL_WEB_SIGN_IN_RESPONSE);
+	}
+
+	@Override
+	public void setExternalWebSignInResponse(ExternalWebSignInResponse response) {
+		setAttribute(EXTERNAL_WEB_SIGN_IN_RESPONSE, response);
 	}
 
 	public void setUserPrincipal(Principal userPrincipal) {

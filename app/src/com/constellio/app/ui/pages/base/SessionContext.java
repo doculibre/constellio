@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.base;
 
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.externals.ExternalWebSignIn;
 
 import java.io.Serializable;
 import java.security.Principal;
@@ -8,7 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public interface SessionContext extends Serializable {
+public interface SessionContext extends Serializable, ExternalWebSignIn {
 
 	<T extends Object> T getAttribute(String key);
 

@@ -252,6 +252,16 @@ public class ConstellioAgentUtils {
 		return addConstellioProtocol(agentSmbURL, request);
 	}
 
+	public static String getAgentURLForWebAuthenticationCompleted(HttpServletRequest request, String username,
+																  String token) {
+		return addConstellioProtocol(
+				new StringBuilder(getAgentBaseURL(request))
+						.append("/").append(username)
+						.append("/").append(token)
+						.append("/").append("agentLogin").toString());
+	}
+
+
 	private static String getResourcePath(RecordVO recordVO, ContentVersionVO contentVersionVO,
 										  SessionContext sessionContext) {
 		String resourcePath;
@@ -328,6 +338,7 @@ public class ConstellioAgentUtils {
 
 		return resourcePath;
 	}
+
 
 	private static final MetadataSchemaTypes types(SessionContext sessionContext) {
 		String collectionName = sessionContext.getCurrentCollection();

@@ -12,9 +12,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.CURRENT_COLLECTION_ATTRIBUTE;
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.CURRENT_USER_ATTRIBUTE;
+import static com.constellio.app.ui.pages.base.VaadinSessionContext.EXTERNAL_WEB_SIGN_IN_RESPONSE;
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.FORCED_SIGN_OUT_ATTRIBUTE;
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.SELECTED_RECORD_IDS_ATTRIBUTE;
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.SELECTED_RECORD_SCHEMA_TYPE_CODES_ATTRIBUTE;
@@ -83,6 +85,16 @@ public class HttpSessionContext extends BaseSessionContext {
 	@Override
 	public Principal getUserPrincipal() {
 		return (Principal) getAttribute(USER_PRINCIPAL_ATTRIBUTE);
+	}
+
+	@Override
+	public ExternalWebSignInResponse getExternalWebSignInResponse() {
+		return (ExternalWebSignInResponse) getAttribute(EXTERNAL_WEB_SIGN_IN_RESPONSE);
+	}
+
+	@Override
+	public void setExternalWebSignInResponse(ExternalWebSignInResponse response) {
+		setAttribute(EXTERNAL_WEB_SIGN_IN_RESPONSE, response);
 	}
 
 	@Override
