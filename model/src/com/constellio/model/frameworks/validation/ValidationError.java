@@ -1,9 +1,11 @@
 package com.constellio.model.frameworks.validation;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 public class ValidationError implements Serializable {
@@ -114,6 +116,9 @@ public class ValidationError implements Serializable {
 					sb.append(labelsEntry.getKey() + "=" + labelsEntry.getValue());
 					firstLabel = false;
 				}
+			} else if (entryValue instanceof List) {
+				String recordsMessage = StringUtils.join((List<?>) entryValue, ",");
+				sb.append("\n\t" + entry.getKey() + "=" + recordsMessage);
 			}
 		}
 		return sb.toString();

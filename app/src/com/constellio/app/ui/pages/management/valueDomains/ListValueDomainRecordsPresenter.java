@@ -16,6 +16,7 @@ import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
@@ -159,7 +160,7 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 
 			try {
 				enableLinkedSchema(record);
-			} catch (IllegalArgumentException ignored) {
+			} catch (IllegalArgumentException | NoSuchMetadata ignored) {
 			}
 			view.refreshTables();
 		}
