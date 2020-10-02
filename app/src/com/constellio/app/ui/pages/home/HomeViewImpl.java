@@ -381,9 +381,16 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefre
 
 				Component compositionRoot = placeHolder.getCompositionRoot();
 				compositionRoot.setHeightUndefined();
-				if (compositionRoot instanceof ViewableRecordItemTablePanel) {
-					ViewableRecordItemTablePanel tablePanel = (ViewableRecordItemTablePanel) compositionRoot;
 
+				ViewableRecordItemTablePanel tablePanel = null;
+				if (compositionRoot instanceof ViewableRecordItemTablePanel) {
+					tablePanel = (ViewableRecordItemTablePanel) compositionRoot;
+				} else if (compositionRoot instanceof TabSheet &&
+						   ((TabSheet) compositionRoot).getSelectedTab() instanceof ViewableRecordItemTablePanel) {
+					tablePanel = (ViewableRecordItemTablePanel) ((TabSheet) compositionRoot).getSelectedTab();
+				}
+
+				if (tablePanel != null) {
 					tablePanel.setHeightUndefined();
 
 					RecordVOLazyContainer recordVOLazyContainer = (RecordVOLazyContainer) tablePanel.getRecordVOContainer();

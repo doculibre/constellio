@@ -394,7 +394,7 @@ public class RMNavigationConfiguration implements Serializable {
 				return new CheckedOutDocumentsTable(appLayerFactory, sessionContext).getDataProvider();
 			}
 		});
-		config.add(HomeView.TABS, new SharedItemsTables(SHARED_ITEMS) {
+		config.addRefreshablePageItem(HomeView.TABS, new SharedItemsTables(SHARED_ITEMS) {
 			@Override
 			public Map<String, RecordVODataProvider> getDataProvider(AppLayerFactory appLayerFactory,
 																	 SessionContext sessionContext) {
