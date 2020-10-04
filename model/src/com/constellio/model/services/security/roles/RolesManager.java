@@ -153,7 +153,7 @@ public class RolesManager implements StatefulService, OneXMLConfigPerCollectionM
 	private void validate(String collection, boolean updateValidation, Role role)
 			throws RolesManagerRuntimeException_Validation {
 		ValidationErrors validationErrors = new ValidationErrors();
-		new RoleValidator(getAllRoles(collection), updateValidation).validate(role, validationErrors);
+		new RoleValidator(getAllRoles(collection), updateValidation).validate(role, validationErrors, false);
 		if (!validationErrors.getValidationErrors().isEmpty()) {
 			throw new RolesManagerRuntimeException_Validation(validationErrors);
 		}

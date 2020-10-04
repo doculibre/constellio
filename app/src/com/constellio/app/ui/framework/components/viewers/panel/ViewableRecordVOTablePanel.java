@@ -44,6 +44,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
@@ -60,6 +61,7 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
+import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.shared.ui.dd.VerticalDropLocation;
 import com.vaadin.ui.AbstractSelect.AbstractSelectTargetDetails;
 import com.vaadin.ui.Alignment;
@@ -690,6 +692,12 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					}
 					return recordVO;
 				}
+
+				@Override
+				public void containerItemSetChange(ItemSetChangeEvent event) {
+					super.containerItemSetChange(event);
+					scrollToTop();
+				}
 			};
 			viewableRecordVOTable.setWidth("100%");
 			if (recordVOContainer instanceof PreLoader) {
@@ -752,6 +760,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 						recordVO = super.getRecordVOForTitleColumn(item);
 					}
 					return recordVO;
+				}
+
+				@Override
+				public boolean isContextMenuPossible() {
+					return false;
 				}
 
 				@Override
@@ -820,7 +833,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		resultsTable.addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
-				rowClicked(event);
+				if (ResponsiveUtils.isMobile() || event.getButton() == MouseButton.LEFT) {
+					rowClicked(event);
+				}
 			}
 		});
 		for (ItemClickListener listener : itemClickListeners) {
@@ -940,6 +955,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				setQuickActionButtonsVisible(false);
 			}
 		}
+//		String rowScrollStyleClass = "viewer-results-table-row-" + recordVOContainer.indexOfId(itemId);
+//		JavaScript.getCurrent().execute("document.getElementById('" + rowScrollStyleClass + "').scrollIntoView();");
 	}
 
 	boolean isSelected(Object itemId) {

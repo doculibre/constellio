@@ -24,7 +24,6 @@ public abstract class LazyLoadComponent extends CustomComponent {
 				ConstellioUI.getCurrent().access(new Runnable() {
 					@Override
 					public void run() {
-						System.out.println("Loaded! Accessing...");
 						setCompositionRoot(lazyLoadedComponent);
 					}
 				});

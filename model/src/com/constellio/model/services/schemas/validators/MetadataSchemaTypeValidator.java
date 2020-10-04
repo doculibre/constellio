@@ -19,7 +19,7 @@ public class MetadataSchemaTypeValidator implements Validator<MetadataSchemaType
 	//TODO Valider que 2 métadonnées de profil custom sans héritage ne peuvent avoir le même nom
 
 	@Override
-	public void validate(MetadataSchemaType schemaType, ValidationErrors validationErrors) {
+	public void validate(MetadataSchemaType schemaType, ValidationErrors validationErrors, boolean skipNonEssential) {
 		validateDefaultSchema(schemaType.getDefaultSchema(), validationErrors);
 		for (MetadataSchema customSchema : schemaType.getCustomSchemas()) {
 			validateCustomSchema(customSchema, validationErrors);

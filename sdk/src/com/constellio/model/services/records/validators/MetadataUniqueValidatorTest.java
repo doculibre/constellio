@@ -68,7 +68,7 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 	public void givenNonUniqueMetadataThenNotValidated() {
 		when(metadata.isUniqueValue()).thenReturn(false);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		verify(record, never()).isModified(metadata);
 		verify(searchServices, never()).hasResults(any(LogicalSearchQuery.class));
@@ -80,7 +80,7 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 		when(record.isModified(metadata)).thenReturn(false);
 		when(record.get(metadata)).thenReturn(zeValue);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		verify(searchServices, never()).hasResults(any(LogicalSearchQuery.class));
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
@@ -91,7 +91,7 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 		when(record.isModified(metadata)).thenReturn(true);
 		when(record.get(metadata)).thenReturn(null);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		verify(searchServices, never()).hasResults(any(LogicalSearchQuery.class));
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
@@ -105,7 +105,7 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 		when(record.isModified(metadata)).thenReturn(true);
 		when(record.get(metadata)).thenReturn(zeValue);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 		assertThat(query.getValue().getCondition()).isEqualTo(
@@ -120,7 +120,7 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 		when(record.get(metadata)).thenReturn(zeValue);
 		when(metadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).hasSize(1);
 		assertThat(validationErrors.getValidationErrors().get(0).getCode()).isEqualTo(NON_UNIQUE_METADATA);
@@ -133,7 +133,7 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 		when(record.isModified(metadata)).thenReturn(true);
 		when(record.get(metadata)).thenReturn("");
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		verify(searchServices, never()).hasResults(any(LogicalSearchQuery.class));
 		assertThat(validationErrors.getValidationErrors()).isEmpty();

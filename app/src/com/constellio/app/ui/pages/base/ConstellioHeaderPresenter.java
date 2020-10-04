@@ -758,7 +758,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		updateSelectionButton();
 	}
 
-	public void clearSelectionButtonClicked() {
+	public void clearSelection() {
 		SessionContext sessionContext = header.getSessionContext();
 		List<String> selectedRecordIds = new ArrayList<>(sessionContext.getSelectedRecordIds());
 		for (String id : deselectedRecordsWithSchema.keySet()) {

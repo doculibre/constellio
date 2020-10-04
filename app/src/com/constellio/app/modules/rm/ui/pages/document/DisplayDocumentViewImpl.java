@@ -690,15 +690,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		com.vaadin.ui.JavaScript.eval("setTimeout(function () { if(typeof resetToCurrentValues  === \"function\") { resetToCurrentValues(); }}, 650)");
 	}
 
-	@Override
-	protected Component buildActionMenu(ViewChangeEvent event) {
-		Component actionMenu = super.buildActionMenu(event);
-		if (!nestedView && actionMenuBarLayout != null) {
-			actionMenuBarLayout.addStyleName("not-nested-action-menu-bar-layout");
-		}
-		return actionMenu;
-	}
-
 	public void setDisplayDocumentButtonState(ComponentState state) {
 		displayDocumentButton.setVisible(state.isVisible());
 		displayDocumentButton.setEnabled(state.isVisible());
@@ -738,8 +729,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					public void close() {
 						super.close();
 						presenter.updateWindowClosed();
-						presenter.updateContentVersions();
-						versionTable.refreshRowCache();
+//						presenter.updateContentVersions();
+//						versionTable.refreshRowCache();
 					}
 				};
 			}
@@ -946,7 +937,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 					@Override
 					public boolean isVisible() {
-						return super.isVisible() && getSessionContext().getCurrentUser().getId().equals(authorization.getSharedBy());
+						return super.isVisible() && presenter.getUser().getId().equals(authorization.getSharedBy());
 					}
 				};
 				button.setVisible(inherited || !authorization.isSynched());

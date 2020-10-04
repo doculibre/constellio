@@ -36,7 +36,6 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 		setModal(true);
 		setWidth("70%");
 		setHeight("360px");
-		setZIndex(null);
 
 		newFileComponent = new NewFileComponent();
 

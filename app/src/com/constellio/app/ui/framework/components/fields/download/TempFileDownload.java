@@ -22,7 +22,7 @@ public class TempFileDownload implements Serializable {
 
 	private URLConnection con;
 
-	public TempFileDownload(URL url) throws InvalidWarUrl, IOException {
+	public TempFileDownload(URL url) throws InvalidWarUrlException, IOException {
 		super();
 		this.fileURL = url;
 
@@ -31,7 +31,7 @@ public class TempFileDownload implements Serializable {
 		try {
 			con = fileURL.openConnection();
 		} catch (IOException ex) {
-			throw new InvalidWarUrl(
+			throw new InvalidWarUrlException(
 					String.format("Connexion impossible vers <%s>.", url.toString())
 			);
 		}
@@ -43,7 +43,7 @@ public class TempFileDownload implements Serializable {
 				long fileSize = Long.parseLong(con.getHeaderFields().get("Content-Length").get(0));
 
 				if (fileSize <= 0) {
-					throw new InvalidWarUrl(
+					throw new InvalidWarUrlException(
 							String.format("Taille du war égale ou inférieur à zéro. %d " +
 										  "(Si égale à -1, elle est indisponible.)", fileSize)
 					);
@@ -59,7 +59,7 @@ public class TempFileDownload implements Serializable {
 			}
 		}
 
-		throw new InvalidWarUrl("Unexpected error during war download.");
+		throw new InvalidWarUrlException("Unexpected error during war download.");
 	}
 
 	public TempFileDownload(String fileName, String mimeType, long length, File file) {
@@ -81,7 +81,13 @@ public class TempFileDownload implements Serializable {
 		return this.con;
 	}
 
+	public final String getFilePath() {
+		return fileName;
+	}
+
 	public final String getFileName() {
+		String[] strList = fileName.split("/");
+		String fileName = strList[strList.length - 1];
 		return fileName;
 	}
 

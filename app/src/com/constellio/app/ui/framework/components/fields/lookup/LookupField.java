@@ -1,5 +1,24 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.Query;
+import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.QueryFactory;
+
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -59,24 +78,6 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.Query;
-import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.QueryFactory;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class LookupField<T extends Serializable> extends CustomField<Object> {
 
@@ -108,7 +109,6 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 	 * The component should receive focus (if {@link Focusable}) when attached.
 	 */
 	private boolean delayedFocus;
-	private Integer windowZIndex;
 	private boolean multiValue;
 	private boolean itemInformation = false;
 
@@ -150,14 +150,6 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 
 	public ConverterWithCache getNiceTitleItemConverter() {
 		return new ConverterWithCache(new RecordIdToDescriptionContent());
-	}
-
-	public final Integer getWindowZIndex() {
-		return windowZIndex;
-	}
-
-	public final void setWindowZIndex(Integer windowZIndex) {
-		this.windowZIndex = windowZIndex;
 	}
 
 	public int getTreeBufferSize() {
@@ -427,7 +419,6 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 		lookupWindowButton.setIcon(new ThemeResource("images/icons/actions/view.png"));
 		lookupWindowButton.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
 		lookupWindowButton.addStyleName(OPEN_WINDOW_BUTTON_STYLE_NAME);
-		lookupWindowButton.setZIndex(windowZIndex);
 		return lookupWindowButton;
 	}
 

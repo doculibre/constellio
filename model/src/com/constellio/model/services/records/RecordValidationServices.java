@@ -76,7 +76,7 @@ public class RecordValidationServices {
 										 List<Metadata> metadatas)
 			throws RecordServicesException.ValidationException {
 		ValidationErrors validationErrors = new ValidationErrors();
-		new CyclicHierarchyValidator(schemaTypes, metadatas, recordProvider).validate(record, validationErrors);
+		new CyclicHierarchyValidator(schemaTypes, metadatas, recordProvider).validate(record, validationErrors, false);
 
 		if (!validationErrors.getValidationErrors().isEmpty()) {
 			throw new RecordServicesException.ValidationException(record, validationErrors);
@@ -145,27 +145,27 @@ public class RecordValidationServices {
 		if (!transaction.isSkipReferenceValidation()) {
 			new AllowedReferencesValidator(schemaTypes, metadatas, recordProvider,
 					transaction.isSkippingReferenceToLogicallyDeletedValidation())
-					.validate(record, validationErrors);
+					.validate(record, validationErrors, false);
 		}
 		boolean skipMeasurementUnit = transaction.getRecordUpdateOptions().isSkippingMeasurementUnitValidation();
 
-		new MetadataValueTypeValidator(metadatas).validate(record, validationErrors);
+		new MetadataValueTypeValidator(metadatas).validate(record, validationErrors, false);
 		if (!transaction.isSkippingRequiredValuesValidation()) {
 			boolean skipUSRMetadatas = transaction.getRecordUpdateOptions().isSkipUSRMetadatasRequirementValidations();
 			new ValueRequirementValidator(metadatas, skipUSRMetadatas, recordAutomaticMetadataServices, afterCalculate)
-					.validate(record, validationErrors);
+					.validate(record, validationErrors, false);
 		}
-		new MetadataUnmodifiableValidator(metadatas).validate(record, validationErrors);
+		new MetadataUnmodifiableValidator(metadatas).validate(record, validationErrors, false);
 		if (transaction.getRecordUpdateOptions() == null || transaction.getRecordUpdateOptions().isUnicityValidationsEnabled()) {
-			new MetadataUniqueValidator(metadatas, schemaTypes, searchService).validate(record, validationErrors);
+			new MetadataUniqueValidator(metadatas, schemaTypes, searchService).validate(record, validationErrors, false);
 		}
-		new MetadataChildOfValidator(metadatas, schemaTypes).validate(record, validationErrors);
+		new MetadataChildOfValidator(metadatas, schemaTypes).validate(record, validationErrors, false);
 		if (transaction.getRecordUpdateOptions() == null || !transaction.getRecordUpdateOptions()
 				.isSkipMaskedMetadataValidations()) {
-			newMaskedMetadataValidator(metadatas).validate(record, validationErrors);
+			newMaskedMetadataValidator(metadatas).validate(record, validationErrors, false);
 		}
 
-		newDateMetadataValidator(metadatas).validate(record, validationErrors);
+		newDateMetadataValidator(metadatas).validate(record, validationErrors, false);
 
 		return validationErrors;
 	}
@@ -201,7 +201,7 @@ public class RecordValidationServices {
 	ValidationErrors validateUsingSecurityValidatorsReturningErrors(Record record, Transaction transaction) {
 		final ValidationErrors validationErrors = new ValidationErrors();
 
-		new RecordPermissionValidator(transaction, authorizationServices).validate(record, validationErrors);
+		new RecordPermissionValidator(transaction, authorizationServices).validate(record, validationErrors, false);
 
 		return validationErrors;
 	}
@@ -227,7 +227,7 @@ public class RecordValidationServices {
 				validationErrors.add(validatorClass, code, parameters);
 			}
 		};
-		validator.validate(metadata, value, configProvider, validationErrorsWithFailedMetadataParameters);
+		validator.validate(new RecordMetadataValidatorParams(metadata, value, configProvider, validationErrorsWithFailedMetadataParameters, false));
 	}
 
 	private void callSchemaValidator(Record record, MetadataSchemaTypes types, final MetadataSchema schema,
@@ -243,7 +243,7 @@ public class RecordValidationServices {
 
 		RecordValidatorParams params = new RecordValidatorParams(record, types, schema, validator,
 				validationErrorsWithExtraParams,
-				configProvider, recordProvider, searchService);
+				configProvider, recordProvider, searchService, false);
 
 		validator.validate(params);
 	}

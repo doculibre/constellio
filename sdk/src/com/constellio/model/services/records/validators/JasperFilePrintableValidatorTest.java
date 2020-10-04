@@ -3,6 +3,7 @@ package com.constellio.model.services.records.validators;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordMetadataValidatorParams;
 import com.constellio.model.services.schemas.validators.JasperFilePrintableValidator;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
@@ -42,7 +43,7 @@ public class JasperFilePrintableValidatorTest extends ConstellioTest {
 	public void givenCorrectValueReturnsEmptyValidationError() {
 		validationErrors = new ValidationErrors();
 
-		validator.validate(null, correctContentName, null, validationErrors);
+		validator.validate(new RecordMetadataValidatorParams(null, correctContentName, null, validationErrors, false));
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 	}
@@ -51,7 +52,7 @@ public class JasperFilePrintableValidatorTest extends ConstellioTest {
 	public void givenIncorrectValueReturnsValidationErrors() {
 		validationErrors = new ValidationErrors();
 
-		validator.validate(null, incorrectValue, null, validationErrors);
+		validator.validate(new RecordMetadataValidatorParams(null, incorrectValue, null, validationErrors, false));
 
 		assertThat(validationErrors.getValidationErrors()).hasSize(1);
 		assertThat(validationErrors.getValidationErrors().get(0).getValidatorClass()).isEqualTo(JasperFilePrintableValidator.class);

@@ -1,9 +1,22 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.joda.time.LocalDateTime;
+
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.IconButton;
-import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.converters.BaseStringToDoubleConverter;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToUtilConverter;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -38,19 +51,6 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.joda.time.LocalDateTime;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public class AdvancedSearchCriteriaComponent extends Table {
 	public static final String LEFT_PARENS_FIELD = "leftParensField";
@@ -353,7 +353,6 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			String firstAllowedSchema = !allowedSchemas.isEmpty() ? allowedSchemas.iterator().next() : null;
 
 			final LookupRecordField field = new LookupRecordField(allowedSchemaType, firstAllowedSchema, true);
-			field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX);
 			field.setWidth("100%");
 			field.addValueChangeListener(new ValueChangeListener() {
 				@Override
@@ -539,7 +538,6 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		private Component buildHierarchyValueCriterion(final Criterion criterion) {
 			//getPathField
 			final PathLookupField lookup = new PathLookupField(criterion.getSchemaType());
-			lookup.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX);
 			lookup.setValue((String) criterion.getValue());
 
 			lookup.addValueChangeListener(new ValueChangeListener() {

@@ -1,5 +1,7 @@
 package com.constellio.app.ui.framework.components.fields.download;
 
+import com.vaadin.server.ErrorMessage;
+import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
 
 import java.io.BufferedInputStream;
@@ -9,26 +11,26 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class DownloadingThread extends Thread {
+public class DownloadThread extends Thread {
 
-	final private FileDownloadHandler fileDownloadHandler;
-	final private UI baseFileDownloadUi;
+	final private ProgressBar fileDownloadHandler;
 	final private URLConnection con;
 	final private TempFileDownload tempFileDownload;
+	final private BaseDownloadField baseDownloadField;
 	final private UI baseDownloadFieldUi;
 	final private AtomicBoolean pageEnded = new AtomicBoolean(false);
 
 	final static long TRANSFER_BYTES_AT_ONCE = 1024 * 1024;
 
-	DownloadingThread(FileDownloadHandler fileDownloadHandler,
-					  URLConnection con,
-					  TempFileDownload tempFileDownload,
-					  UI baseDownloadFieldUi, UI baseFileDownloadUi) {
+	DownloadThread(ProgressBar fileDownloadHandler,
+				   URLConnection con,
+				   TempFileDownload tempFileDownload,
+				   BaseDownloadField baseDownloadField) {
 		this.fileDownloadHandler = fileDownloadHandler;
-		this.baseFileDownloadUi = baseFileDownloadUi;
 		this.con = con;
 		this.tempFileDownload = tempFileDownload;
-		this.baseDownloadFieldUi = baseDownloadFieldUi;
+		this.baseDownloadFieldUi = baseDownloadField.getUI();
+		this.baseDownloadField = baseDownloadField;
 	}
 
 	public void setPageEnded(boolean flag) {
@@ -38,8 +40,8 @@ public class DownloadingThread extends Thread {
 	private boolean checkValidityAndAccess(Runnable run) {
 		boolean result = false;
 
-		if (baseDownloadFieldUi.isAttached() && baseFileDownloadUi.isAttached()) {
-			baseFileDownloadUi.access(run);
+		if (baseDownloadFieldUi.isAttached() && baseDownloadFieldUi.isAttached()) {
+			baseDownloadFieldUi.access(run);
 			result = true;
 		}
 		return result;
@@ -61,7 +63,7 @@ public class DownloadingThread extends Thread {
 				final long progress = offset + TRANSFER_BYTES_AT_ONCE;
 
 				Runnable tmp = () -> {
-					fileDownloadHandler.onProgress(new DownloadEvent(tempFileDownload, progress));
+					fileDownloadHandler.setValue(progress * 1.0f / fileSize);
 				};
 
 				if (checkValidityAndAccess(tmp) == false) {
@@ -71,19 +73,38 @@ public class DownloadingThread extends Thread {
 
 			if (pageEnded.get() == false) {
 				baseDownloadFieldUi.access(() -> {
-					fileDownloadHandler.downloadFinished(new DownloadEvent(tempFileDownload, fileSize));
+					fileDownloadHandler.setValue(1.0f);
+					baseDownloadField.setValue(tempFileDownload);
 				});
 			} else {
 				checkValidityAndAccess(() -> {
-					fileDownloadHandler.downloadFailed(
-							new DownloadEvent(tempFileDownload, new Exception("Undefined error on download.")));
+					fileDownloadHandler.setComponentError(new ErrorMessage() {
+						@Override
+						public ErrorLevel getErrorLevel() {
+							return null;
+						}
+
+						@Override
+						public String getFormattedHtmlMessage() {
+							return "Undefined error on download.";
+						}
+					});
 				});
 			}
 
 		} catch (Exception ex) {
 			checkValidityAndAccess(() -> {
-				fileDownloadHandler.downloadFailed(
-						new DownloadEvent(tempFileDownload, ex));
+				fileDownloadHandler.setComponentError(new ErrorMessage() {
+					@Override
+					public ErrorLevel getErrorLevel() {
+						return null;
+					}
+
+					@Override
+					public String getFormattedHtmlMessage() {
+						return ex.getMessage();
+					}
+				});
 			});
 		}
 	}

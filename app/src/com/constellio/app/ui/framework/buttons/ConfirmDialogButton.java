@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.buttons;
 
+import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.data.dao.services.Stats;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.UI;
@@ -121,6 +122,7 @@ public abstract class ConfirmDialogButton extends IconButton {
 					cancelCaption,
 					closeListener);
 		}
+		confirmDialog.addStyleName("confirmdialog-window");
 		if (isRightToLeft()) {
 			confirmDialog.addStyleName("right-to-left");
 		}

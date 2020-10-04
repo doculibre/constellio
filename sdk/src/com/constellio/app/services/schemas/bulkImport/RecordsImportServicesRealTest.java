@@ -21,7 +21,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -45,6 +44,7 @@ import com.constellio.model.services.contents.UserSerializedContentFactory;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.ContentImportVersion;
+import com.constellio.model.services.records.RecordMetadataValidatorParams;
 import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
@@ -3089,10 +3089,10 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	public static class NoZMetadataValidator implements RecordMetadataValidator<String> {
 
 		@Override
-		public void validate(Metadata metadata, String value, ConfigProvider configProvider,
-							 ValidationErrors validationErrors) {
+		public void validate(RecordMetadataValidatorParams metadataValidatorParams) {
+			String value = (String) metadataValidatorParams.getValue();
 			if (value != null && value.contains("p")) {
-				validationErrors.add(NoZMetadataValidator.class, "noP");
+				metadataValidatorParams.getValidationErrors().add(NoZMetadataValidator.class, "noP");
 			}
 		}
 	}

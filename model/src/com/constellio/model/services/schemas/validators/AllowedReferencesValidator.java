@@ -44,7 +44,7 @@ public class AllowedReferencesValidator implements Validator<Record> {
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public void validate(Record record, ValidationErrors validationErrors) {
+	public void validate(Record record, ValidationErrors validationErrors, boolean skipNonEssential) {
 		Record wasRecord = null;
 		if (record.isSaved()) {
 			wasRecord = record.getCopyOfOriginalRecord();

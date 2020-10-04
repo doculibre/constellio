@@ -22,13 +22,17 @@ public abstract class RecordInModificationBeforeSaveEvent extends BaseConsumable
 
 	ValidationErrors validationErrors;
 
+	private final boolean skipValidationsIfNotEssential;
+
 	public RecordInModificationBeforeSaveEvent(Record record, MetadataList modifiedMetadatas, User transactionUser,
-											   boolean singleRecordTransaction, ValidationErrors validationErrors) {
+											   boolean singleRecordTransaction, ValidationErrors validationErrors,
+											   boolean skipValidationsIfNotEssential) {
 		this.record = record;
 		this.modifiedMetadatas = modifiedMetadatas;
 		this.transactionUser = transactionUser;
 		this.singleRecordTransaction = singleRecordTransaction;
 		this.validationErrors = validationErrors;
+		this.skipValidationsIfNotEssential = skipValidationsIfNotEssential;
 	}
 
 	public Record getRecord() {
@@ -85,4 +89,8 @@ public abstract class RecordInModificationBeforeSaveEvent extends BaseConsumable
 	}
 
 	public abstract void recalculateRecord(List<String> metadatas);
+
+	public boolean isSkipValidationsIfNotEssential() {
+		return skipValidationsIfNotEssential;
+	}
 }

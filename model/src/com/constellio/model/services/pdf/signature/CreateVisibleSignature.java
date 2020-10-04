@@ -347,7 +347,7 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 	 */
 	public static File signDocument(String keystorePath, String keystorePin, String docToSignPath,
 									String visualSignaturePath,
-									PdfAnnotation signature)
+									PdfAnnotation signature, String location, String reason, boolean externalSignature)
 			throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableKeyException {
 
 		File ksFile = new File(keystorePath);
@@ -371,8 +371,8 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 			// page is 1-based here
 			signing.setVisibleSignDesigner(docToSignPath, signature.getPosition(), imageStream, page);
 		}
-		signing.setVisibleSignatureProperties(signature.getUsername(), null, null, 0, page, true);
-		signing.setExternalSigning(false);
+		signing.setVisibleSignatureProperties(signature.getUsername(), location, reason, 0, page, true);
+//		signing.setExternalSigning(externalSignature);
 		signing.signPDF(documentFile, signedDocumentFile, null);
 
 		return signedDocumentFile;

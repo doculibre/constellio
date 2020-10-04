@@ -33,7 +33,7 @@ public class CyclicHierarchyValidator implements Validator<Record> {
 	}
 
 	@Override
-	public void validate(Record record, ValidationErrors validationErrors) {
+	public void validate(Record record, ValidationErrors validationErrors, boolean skipNonEssential) {
 		for (Metadata metadata : metadatas) {
 
 			if (metadata.getType() == MetadataValueType.REFERENCE && record.isModified(metadata)

@@ -1,9 +1,7 @@
 package com.constellio.model.services.schemas.validators;
 
-import com.constellio.model.entities.schemas.ConfigProvider;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
-import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordMetadataValidatorParams;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,12 +9,12 @@ import java.util.Map;
 public class EmailValidator implements RecordMetadataValidator<String> {
 
 	@Override
-	public void validate(Metadata metadata, String email, ConfigProvider configProvider,
-						 ValidationErrors validationErrors) {
+	public void validate(RecordMetadataValidatorParams recordMetadataValidatorParams) {
+		String email = (String) recordMetadataValidatorParams.getValue();
 		if (email != null && !isValid(email)) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put("EMAIL", email);
-			validationErrors.add(getClass(), "INVALID_EMAIL", parameters);
+			recordMetadataValidatorParams.getValidationErrors().add(getClass(), "INVALID_EMAIL", parameters);
 		}
 	}
 

@@ -82,7 +82,7 @@ public class MetadataValueTypeValidatorTest extends ConstellioTest {
 		when(record.get(dateMetadata)).thenReturn(aDateValue);
 		when(record.get(referenceMetadata)).thenReturn(aReferenceValue);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 	}
@@ -95,7 +95,7 @@ public class MetadataValueTypeValidatorTest extends ConstellioTest {
 		when(record.get(dateMetadata)).thenReturn(aNumberValue);
 		when(record.get(referenceMetadata)).thenReturn(aDateValue);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).hasSize(5);
 	}
@@ -115,7 +115,7 @@ public class MetadataValueTypeValidatorTest extends ConstellioTest {
 		when(dateMetadata.isMultivalue()).thenReturn(true);
 		when(referenceMetadata.isMultivalue()).thenReturn(true);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).hasSize(0);
 	}
@@ -135,7 +135,7 @@ public class MetadataValueTypeValidatorTest extends ConstellioTest {
 		when(dateMetadata.isMultivalue()).thenReturn(true);
 		when(referenceMetadata.isMultivalue()).thenReturn(true);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).hasSize(5);
 	}

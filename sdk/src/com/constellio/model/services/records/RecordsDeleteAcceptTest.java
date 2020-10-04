@@ -5,7 +5,6 @@ import com.carrotsearch.junitbenchmarks.annotation.LabelType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -2078,10 +2077,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 	public static class InvalidMetadataValidator implements RecordMetadataValidator<String> {
 		@Override
-		public void validate(Metadata metadata, String value, ConfigProvider configProvider,
-							 ValidationErrors validationErrors) {
+		public void validate(RecordMetadataValidatorParams recordMetadataValidatorParams) {
+			String value = (String) recordMetadataValidatorParams.getValue();
 			if (value.equals("test")) {
-				validationErrors.add(getClass(), "test");
+				recordMetadataValidatorParams.getValidationErrors().add(getClass(), "test");
 			}
 		}
 	}

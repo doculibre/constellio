@@ -4,7 +4,7 @@ import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementServiceException.CannotSaveOldPlugins;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.AppManagementServiceRuntimeException_SameVersionsInDifferentFolders;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.CannotConnectToServer;
-import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFound;
+import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFoundException;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileVersionMustBeHigher;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.InvalidPluginJarException;
@@ -151,7 +151,7 @@ public class AppManagementService {
 		File tempFolder = fileService.newTemporaryFolder(TEMP_DEPLOY_FOLDER);
 
 		if (!warFile.exists()) {
-			throw new WarFileNotFound();
+			throw new WarFileNotFoundException();
 		}
 
 		String task = "Updating web application using war '" + warFile.getAbsolutePath() + "' with size " + warFile.length();

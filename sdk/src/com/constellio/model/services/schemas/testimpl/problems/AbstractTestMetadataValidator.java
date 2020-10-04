@@ -1,15 +1,12 @@
 package com.constellio.model.services.schemas.testimpl.problems;
 
-import com.constellio.model.entities.schemas.ConfigProvider;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
-import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordMetadataValidatorParams;
 
 public abstract class AbstractTestMetadataValidator implements RecordMetadataValidator<String> {
 
 	@Override
-	public void validate(Metadata metadata, String value, ConfigProvider configProvider,
-						 ValidationErrors validationErrors) {
+	public void validate(RecordMetadataValidatorParams recordMetadataValidatorParams) {
 		throw new UnsupportedOperationException("TODO");
 	}
 

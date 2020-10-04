@@ -73,7 +73,7 @@ public class MetadataChildOfValidatorTest extends ConstellioTest {
 	public void givenChildOfMetadataAndOneNotNullParentThenNoError() {
 		when(schema.getParentReferences()).thenReturn(validParents);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 	}
@@ -82,7 +82,7 @@ public class MetadataChildOfValidatorTest extends ConstellioTest {
 	public void givenChildOfMetadataAndTwoNotNullParentThenError() {
 		when(schema.getParentReferences()).thenReturn(invalidParents);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).isNotEmpty();
 		assertThat(validationErrors.getValidationErrors().get(0).getCode()).isEqualTo(MULTIPLE_PARENTS);

@@ -64,4 +64,6 @@ public interface ConstellioHeader extends Serializable {
 	BaseView getCurrentView();
 
 	void setCurrentCollectionQuietly();
+
+	void removeItems(List<String> ids);
 }

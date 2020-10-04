@@ -27,7 +27,7 @@ public class DateMetadataValidator implements Validator<Record> {
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public void validate(Record record, ValidationErrors validationErrors) {
+	public void validate(Record record, ValidationErrors validationErrors, boolean skipNonEssential) {
 		for (Metadata metadata : metadatas) {
 			if (metadata.getType().isDateOrDateTime() && record.isModified(metadata)) {
 				validateMetadata(validationErrors, metadata, record.get(metadata));

@@ -1,5 +1,10 @@
 package com.constellio.app.ui.framework.buttons;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.server.Resource;
@@ -10,11 +15,6 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.ui.themes.ValoTheme;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 public abstract class WindowButton extends BaseButton implements Button.ClickListener {
 
 	public static final String STYLE_NAME = "window-button";
@@ -24,7 +24,6 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 	private String windowCaption;
 	private final WindowConfiguration configuration;
 	private BaseWindow window;
-	private Integer zIndex;
 
 	private List<CloseListener> closeListeners = new ArrayList<>();
 
@@ -87,9 +86,6 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 						((BaseViewImpl) windowContent).enter(null);
 					}
 					window.setContent(windowContent);
-					if (zIndex != null) {
-						window.setZIndex(zIndex);
-					}
 
 					for (CloseListener listener : closeListeners) {
 						window.addCloseListener(listener);
@@ -126,14 +122,6 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 
 	public final Window getWindow() {
 		return window;
-	}
-
-	public final Integer getZIndex() {
-		return zIndex;
-	}
-
-	public final void setZIndex(Integer zIndex) {
-		this.zIndex = zIndex;
 	}
 
 	public void setWindowCaption(String caption) {

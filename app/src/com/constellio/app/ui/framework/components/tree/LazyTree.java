@@ -1,5 +1,16 @@
 package com.constellio.app.ui.framework.components.tree;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.peter.contextmenu.ContextMenu;
+
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
@@ -10,6 +21,7 @@ import com.vaadin.data.Container;
 import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
+import com.vaadin.data.util.HierarchicalContainer;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.event.ContextClickEvent;
 import com.vaadin.event.ItemClickEvent;
@@ -33,16 +45,6 @@ import com.vaadin.ui.Tree.TreeDragMode;
 import com.vaadin.ui.TreeTable;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.peter.contextmenu.ContextMenu;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class LazyTree<T extends Serializable> extends CustomField<Object> {
 
@@ -907,12 +909,42 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		void fireItemSetChange();
 
 	}
+	
+	private class LazyTreeHierarchicalContainer extends HierarchicalContainer {
+		
+		private boolean removingItem = false;
+
+		@Override
+		public boolean removeItem(Object itemId) throws UnsupportedOperationException {
+			boolean removed;
+			removingItem = true;
+			try {
+				removed = super.removeItem(itemId);
+			} finally {
+				removingItem = false;
+			}
+			return removed;
+		}
+
+		@Override
+		public boolean setParent(Object itemId, Object newParentId) {
+			boolean parentSet;
+			if (!(removingItem && newParentId == null)) {
+				parentSet = super.setParent(itemId, newParentId);
+			} else {
+				parentSet = false;
+			}
+			return parentSet;
+		}
+		
+	}
 
 	private class TreeComponent extends Tree implements BaseTreeComponent {
 
 		private BaseTreeComponentHelper baseTreeComponentHelper;
 
 		private TreeComponent() {
+			super(null, new LazyTreeHierarchicalContainer());
 			baseTreeComponentHelper = new BaseTreeComponentHelper() {
 				@Override
 				protected void defaultContainerItemSetChange(ItemSetChangeEvent event) {
@@ -1006,8 +1038,9 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 	private class TreeTableComponent extends TreeTable implements BaseTreeComponent {
 
 		private BaseTreeComponentHelper baseTreeComponentHelper;
-
+		
 		private TreeTableComponent() {
+			super(null, new LazyTreeHierarchicalContainer());
 			setWidth("100%");
 			baseTreeComponentHelper = new BaseTreeComponentHelper() {
 				@Override

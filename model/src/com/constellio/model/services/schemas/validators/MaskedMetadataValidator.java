@@ -28,7 +28,7 @@ public class MaskedMetadataValidator implements Validator<Record> {
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public void validate(Record record, ValidationErrors validationErrors) {
+	public void validate(Record record, ValidationErrors validationErrors, boolean skipNonEssential) {
 		for (Metadata metadata : metadatas) {
 			if (StringUtils.isNotBlank(metadata.getInputMask())) {
 				Object value = record.get(metadata);

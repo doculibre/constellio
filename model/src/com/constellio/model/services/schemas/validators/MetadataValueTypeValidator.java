@@ -29,7 +29,7 @@ public class MetadataValueTypeValidator implements Validator<Record> {
 	}
 
 	@Override
-	public void validate(Record record, ValidationErrors validationErrors) {
+	public void validate(Record record, ValidationErrors validationErrors, boolean skipNonEssential) {
 		for (Metadata metadata : metadatas) {
 			Object value = record.get(metadata);
 			if (value != null) {

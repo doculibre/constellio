@@ -1,5 +1,35 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS;
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.VIEW_FOLDER_AUTHORIZATIONS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
+import static com.constellio.model.services.contents.ContentFactory.isFilename;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.util.ClientUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
@@ -61,6 +91,7 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.app.ui.pages.search.SearchPresenterService;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.KeySetMap;
@@ -109,34 +140,6 @@ import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.constellio.model.utils.Lazy;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.util.ClientUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS;
-import static com.constellio.app.modules.rm.constants.RMPermissionsTo.VIEW_FOLDER_AUTHORIZATIONS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
-import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
-import static com.constellio.model.services.contents.ContentFactory.isFilename;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFolderView> {
 
@@ -973,14 +976,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			}
 		} else if (existingDocument.getNumFound() > 0) {
 			StringBuilder message = new StringBuilder();
-			boolean refreshDocument = false;
 
 			while (existingDocument.hasNext()) {
 				Record currentRecord = existingDocument.next();
 				Content content = currentRecord.get(rmSchemasRecordsServices.document.content());
 				ContentVersion contentVersion = content.getCurrentVersion();
 				if (contentVersion.getHash() != null && !uploadedContentVO.getHash().equals(contentVersion.getHash())) {
-					refreshDocument = true;
 					if (!hasWritePermission(currentRecord)) {
 						message.append($("displayFolderView.noWritePermission", currentRecord) + "</br>");
 					} else if (isCheckedOutByOtherUser(currentRecord)) {
@@ -996,12 +997,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			if (message.length() > 0) {
 				view.showErrorMessage(message.toString());
 			}
-
-			if (refreshDocument) {
-				//documentsDataProvider.fireDataRefreshEvent();
-			}
 		}
 		folderContentDataProvider.fireDataRefreshEvent();
+		view.refreshFolderContentTab();
 	}
 
 	private boolean hasWritePermission(Record record) {
@@ -1187,8 +1185,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		};
 	}
 
-	public void refreshDocuments() {
+	public void uploadWindowClosed() {
 		//documentsDataProvider.fireDataRefreshEvent();
+		folderContentDataProvider.fireDataRefreshEvent();
 		view.refreshFolderContentTab();
 	}
 

@@ -1,5 +1,30 @@
 package com.constellio.app.modules.rm.services.menu.behaviors;
 
+import static com.constellio.app.ui.framework.clipboard.CopyToClipBoard.copyConsultationLinkToClipBoard;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+
+import org.apache.commons.io.IOUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.api.extensions.params.EmailMessageParams;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -52,10 +77,9 @@ import com.constellio.app.ui.framework.buttons.ContainersButton;
 import com.constellio.app.ui.framework.buttons.ContainersButton.ContainersAssigner;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
-import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
-import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
@@ -107,31 +131,8 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static com.constellio.app.ui.framework.clipboard.CopyToClipBoard.copyConsultationLinkToClipBoard;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 @Slf4j
 public class RMRecordsMenuItemBehaviors {
@@ -191,7 +192,6 @@ public class RMRecordsMenuItemBehaviors {
 				verticalLayout.setMargin(new MarginInfo(true, true, false, true));
 				final LookupFolderField field = new LookupFolderField(true);
 				field.focus();
-				field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
 				verticalLayout.addComponent(field);
 				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
@@ -231,7 +231,6 @@ public class RMRecordsMenuItemBehaviors {
 				verticalLayout.setMargin(new MarginInfo(true, true, false, true));
 				final LookupFolderField field = new LookupFolderField(true);
 				field.focus();
-				field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
 				verticalLayout.addComponent(field);
 				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
@@ -710,15 +709,19 @@ public class RMRecordsMenuItemBehaviors {
 
 		SessionContext sessionContext = view.getSessionContext();
 		boolean someElementsNotRemoved = false;
+		List<String> recordIdsRemoved = new ArrayList<>();
 		for (String selectedRecordId : recordIds) {
 			Record record = recordServices.getDocumentById(selectedRecordId);
 
 			if (asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE).contains(record.getTypeCode())) {
 				sessionContext.removeSelectedRecordId(selectedRecordId, record.getTypeCode());
+				recordIdsRemoved.add(selectedRecordId);
 			} else {
 				someElementsNotRemoved = true;
 			}
 		}
+
+		ConstellioUI.getCurrent().getHeader().removeItems(recordIdsRemoved);
 
 		if (someElementsNotRemoved) {
 			view.showErrorMessage($("ConstellioHeader.selection.cannotRemoveRecords"));

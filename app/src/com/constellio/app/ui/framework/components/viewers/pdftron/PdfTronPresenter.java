@@ -17,6 +17,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
+import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.FileService;
@@ -27,9 +28,11 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.ExternalAccessUser;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -46,14 +49,16 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
 
 import javax.xml.bind.DatatypeConverter;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -319,28 +324,21 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 	}
 
 	private boolean canEditContent() {
-		boolean canEditContent;
-		Record record = rm.getModelLayerFactory().newRecordServices().getDocumentById(recordId);
-		if (Document.SCHEMA_TYPE.equals(SchemaUtils.getSchemaTypeCode(record.getSchemaCode()))) {
-			Document document = rm.getDocument(recordId);
-			Content content = document.getContent();
-			canEditContent = content != null &&
-							 (content.getCheckoutUserId() == null || content.getCheckoutUserId().equals(getCurrentUser().getId()));
-		} else {
-			canEditContent = false;
-		}
-		return canEditContent;
+		Document document = rm.getDocument(recordId);
+		Content content = document.getContent();
+		return content != null &&
+			   (content.getCheckoutUserId() == null || content.getCheckoutUserId().equals(getCurrentUser().getId()));
 	}
 
 	public String getSignatureImageData() {
 		UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-		SystemWideUserInfos userCredentials = userServices.getUserInfos(currentUser.getUsername());
+		UserCredential userCredentials = userServices.getUser(currentUser.getUsername());
 		return getImageData(userCredentials.getElectronicSignature());
 	}
 
 	public String getInitialsImageData() {
 		UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-		SystemWideUserInfos userCredentials = userServices.getUserInfos(currentUser.getUsername());
+		UserCredential userCredentials = userServices.getUser(currentUser.getUsername());
 		return getImageData(userCredentials.getElectronicInitials());
 	}
 
@@ -401,7 +399,11 @@ public class PdfTronPresenter implements CopyAnnotationsOfOtherVersionPresenter 
 			}
 
 			try {
-				signedDocument = CreateVisibleSignature.signDocument(keystorePath, keystorePass, filePath, signaturePath, signature);
+				User user = getCurrentUser();
+				String location = user.getLastIPAddress();
+				String reason = $("pdf.signatureReason", signature.getUsername(), LocalDateTime.now().toString(DateFormatUtils.getDateTimeFormat()), location);
+				boolean externalSignature = user instanceof ExternalAccessUser;
+				signedDocument = CreateVisibleSignature.signDocument(keystorePath, keystorePass, filePath, signaturePath, signature, location, reason, externalSignature);
 				filePath = signedDocument.getPath();
 			} catch (Exception e) {
 				throw new PdfSignatureException_CannotSignDocumentException(e);

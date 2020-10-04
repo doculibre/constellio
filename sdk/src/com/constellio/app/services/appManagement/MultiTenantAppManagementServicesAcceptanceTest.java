@@ -2,7 +2,7 @@ package com.constellio.app.services.appManagement;
 
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
-import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFound;
+import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFoundException;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.InvalidJarsTest;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -366,7 +366,7 @@ public class MultiTenantAppManagementServicesAcceptanceTest extends ConstellioTe
 
 	}
 
-	@Test(expected = WarFileNotFound.class)
+	@Test(expected = WarFileNotFoundException.class)
 	public void givenWarIsNotUploadedThenCannotUpload()
 			throws Exception {
 

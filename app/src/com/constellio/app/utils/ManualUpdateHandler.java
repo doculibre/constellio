@@ -3,7 +3,7 @@ package com.constellio.app.utils;
 import com.constellio.app.api.extensions.UpdateModeExtension.UpdateModeHandler;
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
-import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFound;
+import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFoundException;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -39,12 +39,12 @@ public class ManualUpdateHandler implements UpdateModeHandler {
 
 	@Override
 	public Component buildUpdatePanel() {
-		ManualUploadPanel manualUploadPanel = new ManualUploadPanel();
-		DragAndDropWrapper dragAndDropWrapper = new DragAndDropWrapper(manualUploadPanel);
+		ManualUpdatePanel manualUpdatePanel = new ManualUpdatePanel();
+		DragAndDropWrapper dragAndDropWrapper = new DragAndDropWrapper(manualUpdatePanel);
 		dragAndDropWrapper.setSizeFull();
-		dragAndDropWrapper.setDropHandler(manualUploadPanel.uploadField);
+		dragAndDropWrapper.setDropHandler(manualUpdatePanel.uploadField);
 		return dragAndDropWrapper;
-		
+
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -57,17 +57,17 @@ public class ManualUpdateHandler implements UpdateModeHandler {
 		this.appLayerFactory = appLayerFactory;
 	}
 
-	private class ManualUploadPanel extends VerticalLayout {
+	private class ManualUpdatePanel extends VerticalLayout {
 
 		private BaseUploadField uploadField;
-		private Button uploadButton;
+		private Button updateButton;
 		private BaseDownloadField downloadField;
 
 
-		private ManualUploadPanel() {
+		private ManualUpdatePanel() {
 			setWidth("100%");
-			setHeight("450px");
-			setSpacing(true);
+			setHeight("600px");
+			setSpacing(false);
 
 			uploadField = new BaseUploadField();
 			uploadField.setMultiValue(false);
@@ -77,7 +77,10 @@ public class ManualUpdateHandler implements UpdateModeHandler {
 				public void valueChange(ValueChangeEvent event) {
 					TempFileUpload tempUpload = (TempFileUpload) uploadField.getValue();
 					TempFileDownload tempDownload = (TempFileDownload) downloadField.getValue();
-					uploadButton.setEnabled(tempUpload != null || tempDownload != null);
+					if (tempUpload != null) {
+						downloadField.setValue(null);
+					}
+					updateButton.setEnabled(tempUpload != null || tempDownload != null);
 				}
 			});
 
@@ -88,11 +91,14 @@ public class ManualUpdateHandler implements UpdateModeHandler {
 				public void valueChange(ValueChangeEvent event) {
 					TempFileDownload tempDownload = (TempFileDownload) downloadField.getValue();
 					TempFileUpload tempUpload = (TempFileUpload) uploadField.getValue();
-					uploadButton.setEnabled(tempUpload != null || tempDownload != null);
+					if (tempDownload != null) {
+						uploadField.setValue(null);
+					}
+					updateButton.setEnabled(tempUpload != null || tempDownload != null);
 				}
 			});
 
-			uploadButton = new BaseButton($("UpdateManagerViewImpl.updateButton")) {
+			updateButton = new BaseButton($("UpdateManagerViewImpl.updateButton")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					TempFileUpload tempUpload = (TempFileUpload) uploadField.getValue();
@@ -105,7 +111,7 @@ public class ManualUpdateHandler implements UpdateModeHandler {
 							} else if (tempDownload != null) {
 								uploadedFile = tempDownload.getTempFile();
 							} else {
-								throw new WarFileNotFound();
+								throw new WarFileNotFoundException();
 							}
 
 							File warFile = appLayerFactory.getModelLayerFactory().getFoldersLocator()
@@ -119,7 +125,7 @@ public class ManualUpdateHandler implements UpdateModeHandler {
 								view.showRestartRequiredPanel();
 							} catch (AppManagementServiceException ase) {
 								view.showErrorMessage($("UpdateManagerViewImpl.error.file"));
-							} catch (WarFileNotFound e) {
+							} catch (WarFileNotFoundException e) {
 								view.showErrorMessage($("UpdateManagerViewImpl.error.upload"));
 							} finally {
 								view.closeProgressPopup();
@@ -140,11 +146,11 @@ public class ManualUpdateHandler implements UpdateModeHandler {
 					}
 				}
 			};
-			uploadButton.setEnabled(false);
-			uploadButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+			updateButton.setEnabled(false);
+			updateButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
-			addComponents(uploadField, downloadField, uploadButton);
-			setComponentAlignment(uploadButton, Alignment.MIDDLE_RIGHT);
+			addComponents(uploadField, downloadField, updateButton);
+			setComponentAlignment(updateButton, Alignment.MIDDLE_RIGHT);
 		}
 
 	}

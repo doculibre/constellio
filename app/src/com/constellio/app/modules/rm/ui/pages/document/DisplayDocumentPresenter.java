@@ -276,6 +276,8 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				view.setRecordVO(documentVO);
 				presenterUtils.setRecordVO(documentVO);
 				presenterUtils.updateActionsComponent();
+				updateContentVersions();
+				view.refreshActionMenu();
 				if ((lastKnownCheckoutUserId != null && currentCheckoutUserId == null)
 					|| ObjectUtils.notEqual(lastKnownLength, currentLength)) {
 					view.refreshContentViewer();
@@ -383,6 +385,8 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public void updateWindowClosed() {
 		presenterUtils.updateWindowClosed();
+		updateContentVersions();
+		view.refreshActionMenu();
 	}
 
 	public String getDocumentTitle() {

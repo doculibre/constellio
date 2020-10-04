@@ -14,17 +14,19 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -269,7 +271,7 @@ public class PdfDocumentCertifyService {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public void certifyAndSign(String fileAsStr, List<PdfAnnotation> signatures)
+	public void certifyAndSign(String fileAsStr, List<PdfAnnotation> signatures, String location, String reason, boolean externalSignature)
 			throws PdfSignatureException {
 
 		String filePath = createTempFileFromBase64("docToSign.pdf", fileAsStr);
@@ -311,7 +313,7 @@ public class PdfDocumentCertifyService {
 			}
 
 			try {
-				signedDocument = CreateVisibleSignature.signDocument(keystoreFile.getAbsolutePath(), keystorePass, filePath, signaturePath, signature);
+				signedDocument = CreateVisibleSignature.signDocument(keystoreFile.getAbsolutePath(), keystorePass, filePath, signaturePath, signature, location, reason, externalSignature);
 				filePath = signedDocument.getPath();
 			} catch (Exception e) {
 				throw new PdfSignatureException_CannotSignDocumentException(e);
@@ -341,7 +343,7 @@ public class PdfDocumentCertifyService {
 
 		try {
 			RecordServices recordServices = modelLayerFactory.newRecordServices();
-			recordServices.update(document);
+			recordServices.update(document, new RecordUpdateOptions().setRecordsFlushing(RecordsFlushing.NOW));
 		} catch (RecordServicesException e) {
 			throw new PdfSignatureException_CannotSaveNewVersionException(e);
 		}

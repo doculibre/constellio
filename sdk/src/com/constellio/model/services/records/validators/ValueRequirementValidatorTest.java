@@ -88,7 +88,7 @@ public class ValueRequirementValidatorTest extends ConstellioTest {
 		when(record.get(requiredMetadata1)).thenReturn(aBooleanValue);
 		when(record.get(requiredMetadata2)).thenReturn(aNumberValue);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 	}
@@ -99,7 +99,7 @@ public class ValueRequirementValidatorTest extends ConstellioTest {
 		when(record.get(requiredMetadata1)).thenReturn(null);
 		when(record.get(requiredMetadata2)).thenReturn(null);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).hasSize(2);
 	}
@@ -112,7 +112,7 @@ public class ValueRequirementValidatorTest extends ConstellioTest {
 		when(record.get(optionalMetadata)).thenReturn(null);
 		when(optionalMetadata.isMultivalue()).thenReturn(true);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 	}
@@ -125,7 +125,7 @@ public class ValueRequirementValidatorTest extends ConstellioTest {
 		when(record.get(optionalMetadata)).thenReturn(aListStringValues);
 		when(optionalMetadata.isMultivalue()).thenReturn(true);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 	}
@@ -138,7 +138,7 @@ public class ValueRequirementValidatorTest extends ConstellioTest {
 		when(record.get(optionalMetadata)).thenReturn(aStringValue);
 		when(optionalMetadata.isMultivalue()).thenReturn(false);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 	}
@@ -151,7 +151,7 @@ public class ValueRequirementValidatorTest extends ConstellioTest {
 		when(record.get(optionalMetadata)).thenReturn(null);
 		when(optionalMetadata.isMultivalue()).thenReturn(false);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 	}
@@ -164,7 +164,7 @@ public class ValueRequirementValidatorTest extends ConstellioTest {
 		when(record.get(optionalMetadata)).thenReturn(anEmptyList);
 		when(optionalMetadata.isMultivalue()).thenReturn(true);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 	}
@@ -178,7 +178,7 @@ public class ValueRequirementValidatorTest extends ConstellioTest {
 		when(requiredMetadata1.isMultivalue()).thenReturn(true);
 		when(requiredMetadata1.getLabelsByLanguageCodes()).thenReturn(asMap("fr", "ze French label"));
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).hasSize(1);
 		assertThat(validationErrors.getValidationErrors().get(0).getCode()).isEqualTo(

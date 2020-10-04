@@ -879,6 +879,7 @@ public class DecommissioningService {
 		Transaction transaction = new Transaction();
 		transaction.setUser(currentUser);
 		Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
+		transaction.setOptions(new RecordUpdateOptions().setSkipValidationsIfNotEssential(true));
 		recordServices.execute(transaction);
 		return duplicatedFolder;
 	}
@@ -886,13 +887,15 @@ public class DecommissioningService {
 	public void validateDuplicateStructure(Folder folder, User currentUser, boolean forceTitleDuplication)
 			throws RecordServicesException {
 		Transaction transaction = new Transaction();
-		Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
+		transaction.setOptions(new RecordUpdateOptions().setSkipValidationsIfNotEssential(true));
+		duplicateStructureAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
 		recordServices.prepareRecords(transaction);
 	}
 
 	public Folder duplicateStructureAndDocuments(Folder folder, User currentUser, boolean forceTitleDuplication) {
 
 		Transaction transaction = new Transaction();
+		transaction.setOptions(new RecordUpdateOptions().setSkipValidationsIfNotEssential(true));
 		Folder duplicatedFolder = duplicateStructureAndDocumentsAndAddToTransaction(folder, currentUser, transaction,
 				forceTitleDuplication);
 		try {

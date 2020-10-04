@@ -18,11 +18,13 @@ public class RecordValidatorParams {
 	final ConfigProvider configProvider;
 	final RecordProvider recordProvider;
 	final SearchServices searchServices;
+	final boolean skipNonEssential;
 
 	public RecordValidatorParams(Record record, MetadataSchemaTypes types,
 								 MetadataSchema schema, RecordValidator validator,
 								 ValidationErrors validationErrors, ConfigProvider configProvider,
-								 RecordProvider recordProvider, SearchServices searchServices) {
+								 RecordProvider recordProvider, SearchServices searchServices,
+								 boolean skipNonEssential) {
 		this.record = record;
 		this.types = types;
 		this.schema = schema;
@@ -31,6 +33,7 @@ public class RecordValidatorParams {
 		this.configProvider = configProvider;
 		this.recordProvider = recordProvider;
 		this.searchServices = searchServices;
+		this.skipNonEssential = skipNonEssential;
 	}
 
 	public Record getValidatedRecord() {

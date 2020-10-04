@@ -39,14 +39,18 @@ public class AppRecordExtension extends RecordExtension {
 	public void recordInCreationBeforeSave(RecordInCreationBeforeSaveEvent event) {
 		Record recordToValidate = event.getRecord();
 
-		recordMetadataWithMaxlenghtValidation(event.getValidationErrors(), recordToValidate);
+		if (!event.isSkipValidationsIfNotEssential()) {
+			recordMetadataWithMaxlenghtValidation(event.getValidationErrors(), recordToValidate);
+		}
 	}
 
 	@Override
 	public void recordInModificationBeforeSave(RecordInModificationBeforeSaveEvent event) {
 		Record recordToValidate = event.getRecord();
 
-		recordMetadataWithMaxlenghtValidation(event.getValidationErrors(), recordToValidate);
+		if (!event.isSkipValidationsIfNotEssential()) {
+			recordMetadataWithMaxlenghtValidation(event.getValidationErrors(), recordToValidate);
+		}
 	}
 
 	private void recordMetadataWithMaxlenghtValidation(ValidationErrors validationErrors,

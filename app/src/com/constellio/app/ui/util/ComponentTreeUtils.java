@@ -1,13 +1,14 @@
 package com.constellio.app.ui.util;
 
-import com.vaadin.ui.Component;
-import com.vaadin.ui.ComponentContainer;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.SingleComponentContainer;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import com.vaadin.ui.Component;
+import com.vaadin.ui.ComponentContainer;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.HasComponents;
+import com.vaadin.ui.SingleComponentContainer;
 
 /**
  * Adapted from https://vaadin.com/forum/#!/thread/217291/217290
@@ -39,6 +40,30 @@ public class ComponentTreeUtils {
 		final List<T> matches = new ArrayList<T>();
 		traverse(component, new FindByClass<T>(clazz, matches));
 		return matches;
+	}
+	
+	public static boolean removeFromParent(Component component) {
+		boolean removed;
+		
+		if (component != null) {
+			HasComponents parent = component.getParent();
+			if (parent != null) {
+				removed = false;
+				for (Iterator<Component> it = parent.iterator(); it.hasNext();) {
+					if (it.next().equals(component)) {
+						it.remove();
+						removed = true;
+						break;
+					}
+				}
+			} else {
+				removed = false;
+			}
+		} else {
+			removed = false;
+		}
+		
+		return removed;
 	}
 
 	/**

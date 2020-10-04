@@ -1,9 +1,7 @@
 package com.constellio.app.modules.es.services.mapping;
 
-import com.constellio.model.entities.schemas.ConfigProvider;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
-import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordMetadataValidatorParams;
 
 import java.util.List;
 
@@ -13,17 +11,16 @@ public class ConnectorFieldValidator implements RecordMetadataValidator<List<Con
 	public static final String ID_HAS_NO_COLON = "idMustContainTheSchemaType";
 
 	@Override
-	public void validate(Metadata metadata, List<ConnectorField> values, ConfigProvider configProvider,
-						 ValidationErrors validationErrors) {
-
+	public void validate(RecordMetadataValidatorParams recordMetadataValidatorParams) {
+		List<ConnectorField> values = (List<ConnectorField>) recordMetadataValidatorParams.getValue();
 		for (ConnectorField value : values) {
 
 			if (value.getId() == null || value.getLabel() == null || value.getType() == null) {
-				validationErrors.add(ConnectorFieldValidator.class, MISSING_REQUIRED_ATTRIBUTE);
+				recordMetadataValidatorParams.getValidationErrors().add(ConnectorFieldValidator.class, MISSING_REQUIRED_ATTRIBUTE);
 			}
 
 			if (value.getId().split(":").length != 2) {
-				validationErrors.add(ConnectorFieldValidator.class, ID_HAS_NO_COLON);
+				recordMetadataValidatorParams.getValidationErrors().add(ConnectorFieldValidator.class, ID_HAS_NO_COLON);
 			}
 
 		}

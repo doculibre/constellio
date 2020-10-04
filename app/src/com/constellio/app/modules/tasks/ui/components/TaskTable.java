@@ -1,5 +1,27 @@
 package com.constellio.app.modules.tasks.ui.components;
 
+import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
+import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+import static com.vaadin.ui.themes.ValoTheme.LABEL_BOLD;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.tepi.filtertable.FilterGenerator;
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
@@ -20,7 +42,6 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseUpdatableContentVersionPresenter;
-import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
@@ -77,25 +98,6 @@ import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.Tree;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.tepi.filtertable.FilterGenerator;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
-
-import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
-import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.vaadin.ui.themes.ValoTheme.LABEL_BOLD;
 
 public class TaskTable extends VerticalLayout {
 
@@ -354,6 +356,29 @@ public class TaskTable extends VerticalLayout {
 					}
 				}
 				return super.toColumnId(propertyId);
+			}
+
+			@Override
+			public void manage(Table table, String tableId) {
+				super.manage(table, tableId);
+				List<Object> visibleColumnsList = new ArrayList<>(Arrays.asList(table.getVisibleColumns()));
+				List<Object> newVisibleColumns = new ArrayList<>();
+				Object starredByUsersColumn = null;
+				for (Object visibleColumn : visibleColumnsList) {
+					if ((visibleColumn instanceof MetadataVO) && ((MetadataVO) visibleColumn).codeMatches(Task.STARRED_BY_USERS)) {
+						starredByUsersColumn = visibleColumn;
+					} else if (!(visibleColumn instanceof MetadataVO) || ((MetadataVO) visibleColumn).codeMatches(Schemas.TITLE.getLocalCode())) {
+						newVisibleColumns.add(visibleColumn);
+					}
+				}
+				if (starredByUsersColumn != null) {
+					if (isRightToLeft()) {
+						newVisibleColumns.add(starredByUsersColumn);
+					} else {
+						newVisibleColumns.add(0, starredByUsersColumn);
+					}
+				}
+				table.setVisibleColumns(newVisibleColumns.toArray(new Object[0]));
 			}
 		};
 	}
@@ -764,7 +789,6 @@ public class TaskTable extends VerticalLayout {
 					final LookupFolderField folderField = new LookupFolderField(true);
 					folderField.setCaption($("TaskTable.details.addDocuments.folder"));
 					folderField.focus();
-					folderField.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
 					folderField.setValue(getDefaultFolderId());
 
 					formLayout.addComponents(uploadField, folderField);

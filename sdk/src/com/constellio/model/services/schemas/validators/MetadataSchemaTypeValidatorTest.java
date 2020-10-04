@@ -73,7 +73,7 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 	public void whenValidatingSchemaTypeThenAllSchemasValidated() {
 		doNothing().when(validator).validateReferenceMetadata(any(Metadata.class), eq(validationErrors));
 
-		validator.validate(schemaType, validationErrors);
+		validator.validate(schemaType, validationErrors, false);
 
 		verify(validator, times(1)).validateDefaultSchema(defaultSchema, validationErrors);
 		verify(validator, times(1)).validateCustomSchema(customSchema1, validationErrors);

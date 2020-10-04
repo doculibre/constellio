@@ -1,12 +1,25 @@
 package com.constellio.app.ui.application;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
+import java.lang.reflect.InvocationTargetException;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.joda.time.LocalDateTime;
+import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.dialogs.DefaultConfirmDialogFactory;
+
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.sso.SSOServices;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
-import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuHandler;
 import com.constellio.app.ui.framework.components.menuBar.RecordMenuBarHandler;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
@@ -57,19 +70,6 @@ import com.vaadin.ui.TooltipConfiguration;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.joda.time.LocalDateTime;
-import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.dialogs.DefaultConfirmDialogFactory;
-
-import java.lang.reflect.InvocationTargetException;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 @SuppressWarnings("serial")
 @Theme("constellio")
@@ -107,12 +107,6 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 					confirmDialog.addStyleName("confirm-dialog");
 					confirmDialog.setContentMode(ConfirmDialog.ContentMode.HTML);
 					confirmDialog.setResizable(true);
-					confirmDialog.addAttachListener(new AttachListener() {
-						@Override
-						public void attach(AttachEvent event) {
-							BaseWindow.executeZIndexAdjustJavascript(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
-						}
-					});
 					return confirmDialog;
 				}
 			});
@@ -489,6 +483,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		} else {
 			restorePollingInterval = false;
 		}
+
 		Thread thread = new Thread() {
 			@Override
 			public void run() {

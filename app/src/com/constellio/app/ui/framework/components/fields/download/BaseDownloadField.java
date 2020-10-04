@@ -3,32 +3,21 @@ package com.constellio.app.ui.framework.components.fields.download;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
-import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.containers.ButtonsContainer;
-import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
-import com.vaadin.data.Item;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.vaadin.data.Property;
-import com.vaadin.data.util.IndexedContainer;
-import com.vaadin.data.util.ObjectProperty;
-import com.vaadin.data.util.converter.Converter;
 import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window.CloseEvent;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +26,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
 
 @SuppressWarnings("serial")
 public class BaseDownloadField extends CustomField<Object> {
@@ -48,15 +36,13 @@ public class BaseDownloadField extends CustomField<Object> {
 
 	private VerticalLayout mainLayout;
 
-	private BaseFileDownload fileDownload;
+	private com.vaadin.ui.ProgressBar fileDownload;
 
 	private BaseTextField downloadTextField;
 
 	private BaseButton downloadButton;
 
-	private ButtonsContainer<IndexedContainer> fileUploadsContainer;
-
-	private Table fileDownloadsTable;
+	private I18NHorizontalLayout downloadedFileName;
 
 	private Map<Object, Component> itemCaptions = new HashMap<>();
 
@@ -64,146 +50,80 @@ public class BaseDownloadField extends CustomField<Object> {
 
 	private boolean isViewOnly;
 
-	private DownloadingThread dlThread;
+	private DownloadThread dlThread;
 
 	public BaseDownloadField() {
-		this(true, false);
-	}
-
-	public BaseDownloadField(boolean haveDeleteButton, boolean isViewOnly) {
 		super();
-
-		this.isViewOnly = isViewOnly;
 
 		setSizeFull();
 
 		mainLayout = new VerticalLayout();
 		mainLayout.addStyleName(STYLE_NAME + "d-layout");
 		mainLayout.setSizeFull();
-		mainLayout.setSpacing(true);
+		mainLayout.setSpacing(false);
 
-		fileDownload = new BaseFileDownload() {
-			@Override
-			protected void onDownloadWindowClosed(CloseEvent e) {
-				BaseDownloadField.this.onDownloadWindowClosed(e);
-			}
-
-			@SuppressWarnings("unchecked")
-			@Override
-			protected void handleFile(File file, String fileName, String mimeType, long length) {
-				try {
-					file.deleteOnExit();
-					TempFileDownload newTempFileDownload = new TempFileDownload(fileName, mimeType, length, file);
-					Object newConvertedValue;
-					Converter<Object, Object> converter = BaseDownloadField.this.getConverter();
-					if (converter != null) {
-						newConvertedValue = converter.convertToModel(newTempFileDownload, Object.class, getLocale());
-					} else {
-						newConvertedValue = newTempFileDownload;
-					}
-
-					closeUploadWindow();
-					if (!newConvertedValue.equals(getConvertedValue())) {
-						deleteTempFiles();
-						BaseDownloadField.this.setValue(newConvertedValue);
-					} else if (fireValueChangeWhenEqual()) {
-						fireValueChange(true);
-					}
-
-				} catch (Throwable t) {
-					t.printStackTrace();
-
-					throw t;
-				}
-			}
-
-		};
+		fileDownload = new com.vaadin.ui.ProgressBar();
 		fileDownload.setWidth("100%");
 		fileDownload.addStyleName(STYLE_NAME + "-filedownload");
+
+		downloadedFileName = new I18NHorizontalLayout();
 
 		addValueChangeListener(new ValueChangeListener() {
 			@SuppressWarnings("unchecked")
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
-				List<Object> listValue;
-				Object newValue = BaseDownloadField.this.getValue();
-				if (newValue instanceof List) {
-					listValue = (List<Object>) newValue;
-				} else {
-					listValue = new ArrayList<Object>();
-					if (newValue != null) {
-						listValue.add(newValue);
-					}
-				}
-
+				TempFileDownload newValue = (TempFileDownload) BaseDownloadField.this.getValue();
 				itemCaptions.clear();
-				fileUploadsContainer.removeAllItems();
-				for (Object listValueElement : listValue) {
-					Object itemId = listValueElement;
-					fileUploadsContainer.addItem(itemId);
-					Item listValueElementItem = fileUploadsContainer.getItem(itemId);
-					Component itemCaption = newItemCaption(itemId);
-					listValueElementItem.getItemProperty(CAPTION_PROPERTY_ID).setValue(itemCaption);
-					itemCaptions.put(itemId, itemCaption);
-				}
-			}
-		});
-
-		fileUploadsContainer = new ButtonsContainer<>(new IndexedContainer() {
-			public Property<?> getContainerProperty(final Object itemId, Object propertyId) {
-				if (itemId != null && CAPTION_PROPERTY_ID.equals(propertyId)) {
-					Component itemCaption = newItemCaption(itemId);
-					return new ObjectProperty<Component>(itemCaption, Component.class);
+				downloadedFileName.setCaption("");
+				if (newValue != null) {
+					downloadedFileName.setCaption(newValue.getFileName());
+					downloadedFileName.getComponent(0).setVisible(true);
 				} else {
-					return super.getContainerProperty(itemId, propertyId);
+					downloadedFileName.getComponent(0).setVisible(false);
+				}
+				if (dlThread != null) {
+					dlThread.interrupt();
+					dlThread = null;
 				}
 			}
 		});
-		fileUploadsContainer.addContainerProperty(CAPTION_PROPERTY_ID, Component.class, null);
 
-		if (haveDeleteButton) {
-			fileUploadsContainer.addButton(new ContainerButton() {
-				@Override
-				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-					DeleteButton deleteButton = new DeleteButton() {
-						@SuppressWarnings("unchecked")
-						@Override
-						protected void confirmButtonClick(ConfirmDialog dialog) {
-							if (itemId instanceof TempFileDownload) {
-								TempFileDownload tempFileDownload = (TempFileDownload) itemId;
-								tempFileDownload.delete();
-							} else {
-								deleteTempFile(itemId);
-							}
-							BaseDownloadField.this.setValue(null);
-						}
-					};
-					deleteButton.setReadOnly(BaseDownloadField.this.isReadOnly());
-					deleteButton.setEnabled(BaseDownloadField.this.isEnabled());
-					deleteButton.setVisible(isDeleteLink(itemId));
-					return deleteButton;
+		DeleteButton deleteButton = new DeleteButton() {
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				Object itemId = BaseDownloadField.this.getValue();
+
+				if (itemId instanceof TempFileDownload) {
+					TempFileDownload tempFileDownload = (TempFileDownload) itemId;
+					tempFileDownload.delete();
+				} else {
+					deleteTempFile(itemId);
 				}
-			});
-		}
-		fileDownloadsTable = new BaseTable(getClass().getName());
-		fileDownloadsTable.setContainerDataSource(fileUploadsContainer);
-		fileDownloadsTable.setPageLength(0);
-		fileDownloadsTable.setWidth("100%");
-		fileDownloadsTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
-		fileDownloadsTable.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 47);
-		fileDownloadsTable.addStyleName(STYLE_NAME + "-table");
+				BaseDownloadField.this.setValue(null);
+				fileDownload.setValue(0.0f);
+				if (dlThread != null) {
+					dlThread.interrupt();
+					dlThread = null;
+				}
+			}
+		};
 
+		deleteButton.setReadOnly(BaseDownloadField.this.isReadOnly());
+		deleteButton.setEnabled(BaseDownloadField.this.isEnabled());
+		deleteButton.setVisible(false);
+
+		downloadedFileName.addComponent(deleteButton);
 
 		downloadTextField = new BaseTextField();
 		downloadTextField.setInputPrompt("https://www.example.com/constellio.war");
-		downloadTextField.setEnabled(!isViewOnly);
+		downloadTextField.setEnabled(true);
 		downloadTextField.setValue("");
 		downloadTextField.setWidth("100%");
 		downloadTextField.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
 				if (downloadTextField.getValue() != null && !downloadTextField.getValue().equals("")) {
-					downloadButton.setEnabled(true && !isViewOnly);
+					downloadButton.setEnabled(true);
 				}
 			}
 		});
@@ -218,15 +138,19 @@ public class BaseDownloadField extends CustomField<Object> {
 						TempFileDownload tempFileDownload = new TempFileDownload(testingUrl);
 						URLConnection successOnHeaders = tempFileDownload.getCon();
 
-						fileDownload.getHandler().filesQueued(asList(tempFileDownload));
-						fileDownload.getHandler().downloadStarted(new DownloadEvent(tempFileDownload));
+						fileDownload.setIndeterminate(false);
+						fileDownload.setValue(0.0f);
 
-						dlThread = new DownloadingThread(fileDownload.getHandler(), successOnHeaders, tempFileDownload, BaseDownloadField.this.getUI(), fileDownload.getUI());
+						dlThread = new DownloadThread(fileDownload, successOnHeaders, tempFileDownload, BaseDownloadField.this);
 						dlThread.start();
 					}
-				} catch (InvalidWarUrl | IOException ex) {
+				} catch (InvalidWarUrlException | IOException ex) {
 					Logger.getLogger(getClass().getName()).log(Level.FINE,
 							"Download failed", ex);
+					if (dlThread != null) {
+						dlThread.interrupt();
+						dlThread = null;
+					}
 				}
 
 			}
@@ -234,12 +158,11 @@ public class BaseDownloadField extends CustomField<Object> {
 		downloadButton.setEnabled(false);
 		downloadButton.setWidth("33%");
 
-		downloadTextField.setVisible(!isViewOnly);
-		downloadButton.setVisible(!isViewOnly);
-		fileDownload.setVisible(false);
-		fileDownloadsTable.setVisible(!isViewOnly);
+		downloadTextField.setVisible(true);
+		downloadButton.setVisible(true);
+		fileDownload.setVisible(true);
 
-		mainLayout.addComponents(downloadTextField, downloadButton, fileDownload, fileDownloadsTable);
+		mainLayout.addComponents(downloadTextField, downloadButton, fileDownload, downloadedFileName);
 	}
 
 	protected void onDownloadWindowClosed(CloseEvent e) {
@@ -295,7 +218,7 @@ public class BaseDownloadField extends CustomField<Object> {
 		String itemCaption;
 		if (itemId instanceof TempFileDownload) {
 			TempFileDownload tempFileDownload = (TempFileDownload) itemId;
-			itemCaption = tempFileDownload.getFileName();
+			itemCaption = tempFileDownload.getFilePath();
 		} else {
 			itemCaption = itemId.toString();
 		}
@@ -346,14 +269,6 @@ public class BaseDownloadField extends CustomField<Object> {
 			throws SourceException {
 		super.discard();
 		deleteTempFiles();
-	}
-
-	public final String getDropZoneCaption() {
-		return fileDownload.getDropZoneCaption();
-	}
-
-	public final void setDropZoneCaption(String dropZoneCaption) {
-		fileDownload.setDropZoneCaption(dropZoneCaption);
 	}
 
 	public boolean fireValueChangeWhenEqual() {

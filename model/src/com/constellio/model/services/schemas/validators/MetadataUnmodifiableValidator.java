@@ -22,7 +22,7 @@ public class MetadataUnmodifiableValidator implements Validator<Record> {
 	}
 
 	@Override
-	public void validate(Record record, ValidationErrors validationErrors) {
+	public void validate(Record record, ValidationErrors validationErrors, boolean skipNonEssential) {
 
 		for (Metadata metadata : metadatas) {
 			if (metadata.isUnmodifiable()) {

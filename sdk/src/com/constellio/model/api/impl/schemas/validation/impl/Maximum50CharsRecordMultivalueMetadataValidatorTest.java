@@ -3,6 +3,7 @@ package com.constellio.model.api.impl.schemas.validation.impl;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordMetadataValidatorParams;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,7 +41,7 @@ public class Maximum50CharsRecordMultivalueMetadataValidatorTest extends Constel
 	@Test
 	public void whenValueHasMoreThan50CharacterThenAddValidationMessage()
 			throws Exception {
-		validator.validate(metadata, valuesOf51Character, configProvider, validationErrors);
+		validator.validate(new RecordMetadataValidatorParams(metadata, valuesOf51Character, configProvider, validationErrors, false));
 
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("maxSize", "50");
@@ -53,7 +54,7 @@ public class Maximum50CharsRecordMultivalueMetadataValidatorTest extends Constel
 	@Test
 	public void whenValueHas50CharacterThenNoValidationMessage()
 			throws Exception {
-		validator.validate(metadata, valuesOf50Character, configProvider, validationErrors);
+		validator.validate(new RecordMetadataValidatorParams(metadata, valuesOf50Character, configProvider, validationErrors, false));
 
 		verifyZeroInteractions(validationErrors);
 		verifyZeroInteractions(metadata);
@@ -62,7 +63,7 @@ public class Maximum50CharsRecordMultivalueMetadataValidatorTest extends Constel
 	@Test
 	public void whenValuesEmptyThenNoValidationMessage()
 			throws Exception {
-		validator.validate(metadata, emptyValues, configProvider, validationErrors);
+		validator.validate(new RecordMetadataValidatorParams(metadata, emptyValues, configProvider, validationErrors, false));
 
 		verifyZeroInteractions(validationErrors);
 		verifyZeroInteractions(metadata);

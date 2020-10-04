@@ -1,5 +1,22 @@
 package com.constellio.app.modules.rm.ui.util;
 
+import static com.constellio.app.utils.HttpRequestUtils.isLocalhost;
+import static com.constellio.app.utils.HttpRequestUtils.isMacOsX;
+import static com.constellio.app.utils.HttpRequestUtils.isWindows;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.extensions.api.AgentExtension.AgentUrlExtension.GetAgentUrlParams;
@@ -35,28 +52,13 @@ import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Page;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.server.VaadinServletService;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-
-import static com.constellio.app.utils.HttpRequestUtils.isLocalhost;
-import static com.constellio.app.utils.HttpRequestUtils.isMacOsX;
-import static com.constellio.app.utils.HttpRequestUtils.isWindows;
 
 public class ConstellioAgentUtils {
 
 	public static final String URL_SEP = "agentURLSep";
 
 	public static final String AGENT_DOWNLOAD_URL = "http://constellio.com/agent/";
-
+	
 	public static boolean isAgentSupported() {
 		return isAgentSupported(null);
 	}
@@ -154,6 +156,7 @@ public class ConstellioAgentUtils {
 	public static String getAgentURL(RecordVO recordVO, ContentVersionVO contentVersionVO, HttpServletRequest request,
 									 SessionContext sessionContext, AppLayerFactory appLayerFactory) {
 		String agentURL;
+		request = ensureRequest(request);
 		if (recordVO != null && contentVersionVO != null && isAgentSupported(request)) {
 			// FIXME Should not obtain ConstellioFactories through singleton
 			if (appLayerFactory == null) {
@@ -173,9 +176,6 @@ public class ConstellioAgentUtils {
 				RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions()
 						.forCollection(recordVO.getRecord().getCollection()).forModule(ConstellioRMModule.ID);
 				if (rmModuleExtensions.getAgentExtensions().getAgentUrlExtension().getValue() != null) {
-					if (request == null) {
-						request = VaadinServletService.getCurrentServletRequest();
-					}
 					User user = userServices.getUserInCollection(userVO.getUsername(), recordVO.getRecord().getCollection());
 					String url = rmModuleExtensions.getAgentExtensions().getAgentUrlExtension().getValue()
 							.getAgentUrl(new GetAgentUrlParams(user, recordVO.getId(), request));
@@ -225,13 +225,18 @@ public class ConstellioAgentUtils {
 	public static String getAgentSmbURL(RecordVO recordVO, MetadataVO metadataVO) {
 		return getAgentSmbURL(recordVO, metadataVO, null);
 	}
+	
+	private static HttpServletRequest ensureRequest(HttpServletRequest request) {
+		if (request == null) {
+			request = VaadinServletService.getCurrentServletRequest();
+		}
+		return request;
+	}
 
 	public static String getAgentSmbURL(RecordVO recordVO, MetadataVO metadataVO, HttpServletRequest request) {
 		String agentSmbURL;
 
-		if (request == null) {
-			request = VaadinServletService.getCurrentServletRequest();
-		}
+		request = ensureRequest(request);
 		//		String passthroughPath;
 		//		if (isWindows(request)) {
 		//			passthroughPath = StringUtils.replace(smbPath, "/", "\\");
@@ -396,7 +401,7 @@ public class ConstellioAgentUtils {
 		LicenseInfo licenseInfo = appManagementService.getLicenseInfo();
 		return licenseInfo != null && licenseInfo.getExpirationDate().isAfter(new LocalDate());
 	}
-
+	
 	public static void main(String[] args)
 			throws Exception {
 		URI location = new URI("http://constellio.doculibre.com/#!agentSetup");

@@ -43,7 +43,6 @@ public class RMDocumentPathCriterionExtension extends SearchCriterionExtension {
 
 	private Component buildComponentForDocumentPath(final Criterion criterion) {
 		final PathLookupField lookup = new PathLookupField(Folder.SCHEMA_TYPE);
-		lookup.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX);
 		lookup.setValue((String) criterion.getValue());
 
 		lookup.addValueChangeListener(new ValueChangeListener() {

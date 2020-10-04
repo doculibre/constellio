@@ -1,14 +1,15 @@
 package com.constellio.app.ui.framework.components.fields.list;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
 import com.vaadin.data.util.ItemSorter;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, LookupRecordField> {
 
@@ -148,4 +149,5 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 		}
 		return super.getItemSorter();
 	}
+
 }

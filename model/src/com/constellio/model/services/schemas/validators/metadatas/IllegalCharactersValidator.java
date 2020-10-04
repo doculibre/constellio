@@ -1,10 +1,9 @@
 package com.constellio.model.services.schemas.validators.metadatas;
 
 import com.constellio.model.entities.schemas.ConfigProvider;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordMetadataValidatorParams;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,12 +16,12 @@ public class IllegalCharactersValidator implements RecordMetadataValidator<Strin
 	public static final Pattern ILLEGAL_CHARACTERS = Pattern.compile("[\\\\/*:?”&<>|]");
 
 	@Override
-	public void validate(Metadata metadata, String value, ConfigProvider configProvider,
-						 ValidationErrors validationErrors) {
-		if (value != null && !isValid(value, configProvider)) {
+	public void validate(RecordMetadataValidatorParams recordMetadataValidatorParams) {
+		String value = (String) recordMetadataValidatorParams.getValue();
+		if (value != null && !isValid(value, recordMetadataValidatorParams.getConfigProvider())) {
 			Map<String, Object> params = new HashMap<>();
-			params.put(METADATA_LABEL, metadata.getLabelsByLanguageCodes());
-			validationErrors.add(getClass(), MUST_NOT_CONTAINS_ILLEGAL_CHARACTERS, params);
+			params.put(METADATA_LABEL, recordMetadataValidatorParams.getMetadata().getLabelsByLanguageCodes());
+			recordMetadataValidatorParams.getValidationErrors().add(getClass(), MUST_NOT_CONTAINS_ILLEGAL_CHARACTERS, params);
 		}
 	}
 

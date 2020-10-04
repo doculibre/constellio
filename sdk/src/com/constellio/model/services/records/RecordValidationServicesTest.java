@@ -124,9 +124,9 @@ public class RecordValidationServicesTest extends ConstellioTest {
 
 		services.validateSchemaUsingCustomSchemaValidator(record, recordProvider, transaction);
 
-		verify(validator1).validate(eq(firstMetadata), eq(aStringValue), any(ConfigProvider.class), any(ValidationErrors.class));
-		verify(validator2).validate(eq(secondMetadata), eq(aStringValue), any(ConfigProvider.class), any(ValidationErrors.class));
-		verify(validator3).validate(eq(thirdMetadata), eq(aStringValue), any(ConfigProvider.class), any(ValidationErrors.class));
+		verify(validator1).validate(new RecordMetadataValidatorParams(eq(firstMetadata), eq(aStringValue), any(ConfigProvider.class), any(ValidationErrors.class), any(Boolean.class)));
+		verify(validator2).validate(new RecordMetadataValidatorParams(eq(secondMetadata), eq(aStringValue), any(ConfigProvider.class), any(ValidationErrors.class), any(Boolean.class)));
+		verify(validator3).validate(new RecordMetadataValidatorParams(eq(thirdMetadata), eq(aStringValue), any(ConfigProvider.class), any(ValidationErrors.class), any(Boolean.class)));
 	}
 
 }

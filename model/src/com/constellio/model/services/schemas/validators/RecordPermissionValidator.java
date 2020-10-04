@@ -26,7 +26,7 @@ public class RecordPermissionValidator implements Validator<Record> {
 	}
 
 	@Override
-	public void validate(Record record, ValidationErrors validationErrors) {
+	public void validate(Record record, ValidationErrors validationErrors, boolean skipNonEssential) {
 		if (transaction.getUser() != null && record.isDirty()
 			&& !(record.isModified(Schemas.LOGICALLY_DELETED_STATUS) || record.isModified(Schemas.LOGICALLY_DELETED_ON))) {
 			if (!authorizationsServices.canWrite(transaction.getUser(), record)) {

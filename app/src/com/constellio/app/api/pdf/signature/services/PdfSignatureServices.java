@@ -1,5 +1,6 @@
 package com.constellio.app.api.pdf.signature.services;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException;
 import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException.PdfSignatureException_CannotCreateTempFileException;
 import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException.PdfSignatureException_CannotReadKeystoreFileException;
@@ -10,11 +11,12 @@ import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException.Pdf
 import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException.PdfSignatureException_CannotSignDocumentException;
 import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException.PdfSignatureException_NothingToSignException;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.util.DateFormatUtils;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -177,7 +179,7 @@ public class PdfSignatureServices {
 						PDImageXObject pdImage = PDImageXObject.createFromFile(initialsFile.getAbsolutePath(), doc);
 					   
 						//Creating the PDPageContentStream object
-						try (PDPageContentStream contents = new PDPageContentStream(doc, page, PDPageContentStream.AppendMode.APPEND, true)) {
+						try (PDPageContentStream contents = new PDPageContentStream(doc, page, PDPageContentStream.AppendMode.APPEND, true, true)) {
 							//Drawing the image in the PDF document
 							Rectangle imagePosition = notSignedAnnotation.getPosition();
 							float adjustedY = (float) (imagePosition.getY() - imagePosition.getHeight());
@@ -212,7 +214,10 @@ public class PdfSignatureServices {
 						String keystorePath = keystoreFile.getAbsolutePath();
 						String docToSignFilePath = docToSignFile.getAbsolutePath();
 						String signaturePath = signatureFile.getAbsolutePath();
-						newDocumentVersionFile = CreateVisibleSignature.signDocument(keystorePath, keystorePass, docToSignFilePath, signaturePath, signature);
+						String location = user.getLastIPAddress();
+						String reason = $("pdf.signatureReason", signature.getUsername(), LocalDateTime.now().toString(DateFormatUtils.getDateTimeFormat()), location);
+						boolean externalSignature = user instanceof ExternalAccessUser;
+						newDocumentVersionFile = CreateVisibleSignature.signDocument(keystorePath, keystorePass, docToSignFilePath, signaturePath, signature, location, reason, externalSignature);
 						tempFiles.add(docToSignFile);
 						docToSignFile = newDocumentVersionFile;
 					} catch (Exception e) {
@@ -236,7 +241,7 @@ public class PdfSignatureServices {
 			throws PdfSignatureException {
 		UserServices userServices = modelLayerFactory.newUserServices();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
-
+		
 		Content content = record.get(metadata);
 		ContentVersion currentVersion = content.getCurrentVersion();
 
@@ -264,7 +269,7 @@ public class PdfSignatureServices {
 		} else {
 			uploadUser = user;
 		}
-
+		
 		String oldFilename = currentVersion.getFilename();
 		String substring = oldFilename.substring(0, oldFilename.lastIndexOf('.'));
 		String newFilename = substring + ".pdf";

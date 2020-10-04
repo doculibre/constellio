@@ -13,7 +13,6 @@ public class UserDocumentsWindow extends BaseWindow implements DropHandler {
 	private ListUserDocumentsViewImpl view;
 
 	public UserDocumentsWindow() {
-		setZIndex(null);
 		setWidth("80%");
 		setHeight("80%");
 		center();

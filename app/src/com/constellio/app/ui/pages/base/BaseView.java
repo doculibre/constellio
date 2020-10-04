@@ -47,11 +47,12 @@ public interface BaseView extends ViewComponent, ConfirmDialogShower {
 	void runAsync(Runnable runnable);
 
 	void runAsync(Runnable runnable, int pollIntervall);
+	
+	void doWhileRunningAsync(Runnable runnable);
 
 	void openURL(String url);
 
 	void refreshActionMenu();
-
 
 	public interface ViewEnterListener extends Serializable {
 

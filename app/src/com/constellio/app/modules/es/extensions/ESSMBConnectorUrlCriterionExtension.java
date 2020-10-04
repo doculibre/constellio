@@ -59,7 +59,6 @@ public class ESSMBConnectorUrlCriterionExtension extends SearchCriterionExtensio
 
 	private Component buildComponentForParentConnectorUrl(final Criterion criterion) {
 		final SMBParentConnectorUrlLookupField value = new SMBParentConnectorUrlLookupField();
-		value.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX);
 		value.setWidth("100%");
 		value.setValue((String) criterion.getValue());
 		value.addValueChangeListener(new Property.ValueChangeListener() {

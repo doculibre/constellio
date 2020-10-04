@@ -86,7 +86,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	private List<Button> actionMenuButtons;
 	private List<Button> quickActionButtons = new ArrayList<>();
 	private Map<Button, MenuItem> actionMenuButtonsAndItems = new HashMap<>();
-	protected I18NHorizontalLayout actionMenuBarLayout;
+//	protected I18NHorizontalLayout actionMenuBarLayout;
 
 	private List<ViewEnterListener> viewEnterListeners = new ArrayList<>();
 
@@ -295,10 +295,12 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	public void refreshActionMenu() {
 		statCompiler().log(() -> {
-			if (actionMenu != null) {
-				Component oldActionMenu = actionMenu;
-				actionMenu = buildActionMenu(null);
-				replaceComponent(oldActionMenu, actionMenu);
+			if (this.actionMenu != null) {
+				Component oldActionMenu = this.actionMenu;
+				Component placeHolder = new Label("");
+				replaceComponent(oldActionMenu, placeHolder);
+				this.actionMenu = buildActionMenu(null);
+				replaceComponent(placeHolder, this.actionMenu);
 			}
 		});
 	}
@@ -376,7 +378,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	}
 
 	protected boolean isActionMenuBar() {
-		return false;
+		return true;
 	}
 
 	protected String getTitle() {
@@ -388,7 +390,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	}
 
 	protected MenuBar newActionMenuBar() {
-		actionMenuButtonsAndItems.clear();
+		this.actionMenuButtonsAndItems.clear();
 
 		String menuBarCaption = getActionMenuBarCaption();
 		if (menuBarCaption == null) {
@@ -432,6 +434,13 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	protected boolean alwaysUseLayoutForActionMenu() {
 		return false;
 	}
+	
+	private I18NHorizontalLayout newActionMenuBarLayout() {
+		I18NHorizontalLayout actionMenuBarLayout = new I18NHorizontalLayout();
+		actionMenuBarLayout.addStyleName("action-menu-bar-layout");
+		actionMenuBarLayout.setSpacing(true);
+		return actionMenuBarLayout;
+	}
 
 	/**
 	 * Adapted from https://vaadin.com/forum#!/thread/8150555/8171634
@@ -441,17 +450,33 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	 */
 	protected Component buildActionMenu(ViewChangeEvent event) {
 		Component result;
-		actionMenuButtons = buildActionMenuButtons(event);
+		
+		if (this.menuBar != null) {
+			ComponentTreeUtils.removeFromParent(this.menuBar);
+		}
+		if (this.quickActionButtons != null) {
+			for (Button quickActionButton : this.quickActionButtons) {
+				ComponentTreeUtils.removeFromParent(quickActionButton);
+			}
+		}
+		if (this.actionMenuButtons != null) {
+			for (Button actionMenuButton : this.actionMenuButtons) {
+				ComponentTreeUtils.removeFromParent(actionMenuButton);
+			}
+		}
+		
+		this.actionMenuButtons = buildActionMenuButtons(event);
 		for (ActionMenuButtonsDecorator actionMenuButtonsDecorator : actionMenuButtonsDecorators) {
 			actionMenuButtonsDecorator.decorate(this, actionMenuButtons);
 		}
 
+		I18NHorizontalLayout actionMenuBarLayout = newActionMenuBarLayout();
 		if (isOnlyQuickMenuActionVisible()) {
 			List<Button> quickActionButtons = getQuickActionMenuButtons();
 			if (quickActionButtons != null && !quickActionButtons.isEmpty()) {
-				int visibleButtons = addQuickActionButton(quickActionButtons);
+				int visibleActionButtons = addVisibleQuickActionButtons(actionMenuBarLayout, quickActionButtons);
 
-				if (visibleButtons > 0) {
+				if (visibleActionButtons > 0) {
 					result = actionMenuBarLayout;
 				} else {
 					result = null;
@@ -459,14 +484,14 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			} else {
 				result = null;
 			}
-		} else if (actionMenuButtons == null || actionMenuButtons.isEmpty()) {
+		} else if (this.actionMenuButtons == null || this.actionMenuButtons.isEmpty()) {
 			result = null;
 		} else {
 			if (isActionMenuBar()) {
-				menuBar = newActionMenuBar();
-				quickActionButtons = getQuickActionMenuButtons();
-				if (quickActionButtons != null && !quickActionButtons.isEmpty()) {
-					int quickActionVisibleButtonsCount = addQuickActionButton(quickActionButtons);
+				this.menuBar = newActionMenuBar();
+				this.quickActionButtons = getQuickActionMenuButtons();
+				if (this.quickActionButtons != null && !this.quickActionButtons.isEmpty()) {
+					int quickActionVisibleButtonsCount = addVisibleQuickActionButtons(actionMenuBarLayout, this.quickActionButtons);
 
 					if (quickActionVisibleButtonsCount == 0) {
 						result = menuBar;
@@ -478,11 +503,6 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 					if (!alwaysUseLayoutForActionMenu()) {
 						result = menuBar;
 					} else {
-						if (actionMenuBarLayout == null) {
-							actionMenuBarLayout = new I18NHorizontalLayout();
-							actionMenuBarLayout.addStyleName("action-menu-bar-layout");
-							actionMenuBarLayout.setSpacing(true);
-						}
 						actionMenuBarLayout.addComponent(menuBar);
 						result = actionMenuBarLayout;
 					}
@@ -519,11 +539,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		return result;
 	}
 
-	private int addQuickActionButton(List<Button> quickActionButtons) {
-		actionMenuBarLayout = new I18NHorizontalLayout();
-		actionMenuBarLayout.addStyleName("action-menu-bar-layout");
-		actionMenuBarLayout.setSpacing(true);
-
+	private int addVisibleQuickActionButtons(I18NHorizontalLayout actionMenuBarLayout, List<Button> quickActionButtons) {
 		int visibleButtons = 0;
 		for (Button quickActionButton : quickActionButtons) {
 			if (quickActionButton.isVisible()) {
@@ -538,13 +554,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	}
 
 	public void setQuickActionButtonsVisible(boolean visible) {
-		if (actionMenuBarLayout != null) {
-			for (int i = 0; i < actionMenuBarLayout.getComponentCount(); i++) {
-				Component actionButtonComponent = actionMenuBarLayout.getComponent(i);
-				if (actionButtonComponent.getStyleName() != null && actionButtonComponent.getStyleName().contains("action-menu-bar-button")) {
-					actionButtonComponent.setVisible(visible);
-				}
-			}
+		for (Button quickActionButton : this.quickActionButtons) {
+			quickActionButton.setVisible(visible);
 		}
 	}
 
@@ -561,7 +572,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		boolean hasAtLeastOneActionAvailable = false;
 		for (Button actionMenuButton : actionMenuButtonsAndItems.keySet()) {
 			MenuItem actionMenuItem = actionMenuButtonsAndItems.get(actionMenuButton);
-			boolean isButtonVisible = actionMenuButton.isVisible() && actionMenuButton.isEnabled() && !quickActionButtons.contains(actionMenuButton);
+			boolean isButtonVisible = actionMenuButton.isVisible() && actionMenuButton.isEnabled() && !this.quickActionButtons.contains(actionMenuButton);
 			actionMenuItem.setVisible(isButtonVisible);
 			hasAtLeastOneActionAvailable = hasAtLeastOneActionAvailable || isButtonVisible;
 		}
@@ -762,6 +773,11 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	@Override
 	public void runAsync(final Runnable runnable, final int pollInterval) {
 		ConstellioUI.getCurrent().runAsync(runnable, pollInterval, this);
+	}
+
+	@Override
+	public void doWhileRunningAsync(Runnable runnable) {
+		ConstellioUI.getCurrent().access(runnable);
 	}
 
 	@Override

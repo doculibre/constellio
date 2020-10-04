@@ -99,6 +99,7 @@ public abstract class DeleteWithJustificationButton extends WindowButton {
 		layout.setComponentAlignment(buttons, Alignment.MIDDLE_CENTER);
 		layout.setSpacing(true);
 		//		layout.setSizeFull();
+		layout.addStyleName("delete-with-justification-window-content");
 		return layout;
 	}
 

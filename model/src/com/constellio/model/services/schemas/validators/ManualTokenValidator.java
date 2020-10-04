@@ -1,9 +1,7 @@
 package com.constellio.model.services.schemas.validators;
 
-import com.constellio.model.entities.schemas.ConfigProvider;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
-import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordMetadataValidatorParams;
 
 import java.util.HashMap;
 import java.util.List;
@@ -14,16 +12,15 @@ import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
 public class ManualTokenValidator implements RecordMetadataValidator<List<String>> {
 
 	@Override
-	public void validate(Metadata metadata, List<String> tokens, ConfigProvider configProvider,
-						 ValidationErrors validationErrors) {
-
+	public void validate(RecordMetadataValidatorParams recordMetadataValidatorParams) {
+		List<String> tokens = (List<String>) recordMetadataValidatorParams.getValue();
 		if (tokens != null) {
 			for (String token : tokens) {
 				if (token != null && !token.equals(PUBLIC_TOKEN)) {
 					if (!token.startsWith("r") && !token.startsWith("w") && !token.startsWith("d")) {
 						Map<String, Object> parameters = new HashMap<>();
 						parameters.put("invalidToken", token);
-						validationErrors.add(getClass(), "tokenMustStartWith_R_W_OR_D", parameters);
+						recordMetadataValidatorParams.getValidationErrors().add(getClass(), "tokenMustStartWith_R_W_OR_D", parameters);
 					}
 				}
 			}

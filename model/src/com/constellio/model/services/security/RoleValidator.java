@@ -27,7 +27,7 @@ public class RoleValidator implements Validator<Role> {
 	}
 
 	@Override
-	public void validate(Role role, ValidationErrors validationErrors) {
+	public void validate(Role role, ValidationErrors validationErrors, boolean skipNonEssential) {
 		this.validate(role.getCode(), validationErrors);
 	}
 

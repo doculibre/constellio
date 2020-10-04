@@ -227,7 +227,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 			@Override
 			protected void onUploadWindowClosed(CloseEvent e) {
-				presenter.refreshDocuments();
+				presenter.uploadWindowClosed();
 			}
 		};
 		uploadField.addStyleName("display-folder-upload-field");
@@ -594,6 +594,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			});
 			viewerPanel.addStyleName("folder-content-table");
+			viewerPanel.setAllItemsVisible(folderContentDataProvider.size() <= 100);
 
 			if (!nestedView && (folderContentDataProvider.size() > 0 || !folderContentDataProvider.getFieldFacetValues().isEmpty())) {
 				if (facetsSliderPanel != null && facetsSliderPanel.getParent() != null) {

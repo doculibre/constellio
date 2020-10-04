@@ -65,6 +65,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.ContentImportVersion;
 import com.constellio.model.services.records.ImportContent;
 import com.constellio.model.services.records.RecordCachesServices;
+import com.constellio.model.services.records.RecordMetadataValidatorParams;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
@@ -878,7 +879,7 @@ public class RecordsImportServicesExecutor {
 				DecoratedValidationsErrors decoratedErrors = new DecoratedValidationsErrors(new ValidationErrors());
 
 				for (RecordMetadataValidator validator : metadata.getValidators()) {
-					validator.validate(metadata, convertedValue, configProvider, decoratedErrors);
+					validator.validate(new RecordMetadataValidatorParams(metadata, convertedValue, configProvider, decoratedErrors, false));
 				}
 
 				if (metadata.getInputMask() != null) {

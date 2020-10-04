@@ -1,5 +1,16 @@
 package com.constellio.app.modules.rm.ui.components.document;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
+import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -31,18 +42,6 @@ import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
-import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
-import static org.apache.ignite.internal.util.lang.GridFunc.asList;
 
 @Deprecated
 public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> implements Serializable {

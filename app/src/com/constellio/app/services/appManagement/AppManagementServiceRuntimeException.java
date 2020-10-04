@@ -18,9 +18,9 @@ public class AppManagementServiceRuntimeException extends RuntimeException {
 		super(message, cause);
 	}
 
-	public static class WarFileNotFound extends AppManagementServiceRuntimeException {
+	public static class WarFileNotFoundException extends AppManagementServiceRuntimeException {
 
-		public WarFileNotFound() {
+		public WarFileNotFoundException() {
 			super("No uploaded war files");
 		}
 	}

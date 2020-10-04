@@ -121,7 +121,6 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	private RecordListMenuBar selectionActionMenuBar;
 	private BaseTable selectionTable;
 	private int selectionCount;
-	private BaseButton clearSelectionButton;
 
 	private Boolean delayedSelectionButtonEnabled;
 	private BaseView currentView;
@@ -668,16 +667,6 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			item.getItemProperty("recordId").setValue(referenceDisplay);
 		}
 
-		clearSelectionButton = new BaseButton($("ConstellioHeader.clearSelection"), FontAwesome.TRASH_O) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.clearSelectionButtonClicked();
-			}
-		};
-		clearSelectionButton.setCaptionVisibleOnPhone(false);
-		clearSelectionButton.setCaptionVisibleOnTablet(true);
-		clearSelectionButton.addStyleName(ValoTheme.BUTTON_LINK);
-
 		Component selectDeselectAllToggleButton = selectionTable.newSelectDeselectAllToggleButton();
 		selectDeselectAllToggleButton.addStyleName(ValoTheme.BUTTON_LINK);
 
@@ -687,8 +676,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		selectionPanelTopLayout.setSpacing(true);
 
 		selectionActionMenuBar = buildSelectionPanelMenuBar();
-		selectionPanelTopLayout.addComponents(selectDeselectAllToggleButton, clearSelectionButton, selectionActionMenuBar);
-		selectionPanelTopLayout.setComponentAlignment(clearSelectionButton, Alignment.TOP_RIGHT);
+		selectionPanelTopLayout.addComponents(selectDeselectAllToggleButton, selectionActionMenuBar);
 		selectionPanelTopLayout.setComponentAlignment(selectionActionMenuBar, Alignment.TOP_RIGHT);
 
 		I18NHorizontalLayout buttonsLayout = new I18NHorizontalLayout();
@@ -1004,7 +992,6 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	@Override
 	public void refreshActionButtons() {
 		selectionActionMenuBar.buildMenuItems();
-		clearSelectionButton.setVisible(!presenter.getSelectedRecords().isEmpty());
 	}
 
 	public void updateRecords() {
@@ -1051,5 +1038,10 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			showAdvancedSearchButton.setVisible(false);
 		}
 		lastPhoneMode = ResponsiveUtils.isPhone();
+	}
+
+	@Override
+	public void removeItems(List<String> ids) {
+		this.removeRecordsFromPanel(ids);
 	}
 }

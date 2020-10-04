@@ -52,6 +52,8 @@ public class RecordUpdateOptions {
 
 	boolean skipUserAccessValidation = false;
 
+	private boolean skipValidationsIfNotEssential = false;
+
 	public RecordUpdateOptions() {
 
 	}
@@ -334,6 +336,15 @@ public class RecordUpdateOptions {
 
 	public RecordUpdateOptions setRepopulate(boolean repopulate) {
 		this.repopulate = repopulate;
+		return this;
+	}
+
+	public boolean isSkipValidationsIfNotEssential() {
+		return skipValidationsIfNotEssential;
+	}
+
+	public RecordUpdateOptions setSkipValidationsIfNotEssential(boolean skipValidationsIfNotEssential) {
+		this.skipValidationsIfNotEssential = skipValidationsIfNotEssential;
 		return this;
 	}
 }

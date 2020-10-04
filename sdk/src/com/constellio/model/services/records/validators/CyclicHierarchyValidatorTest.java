@@ -130,7 +130,7 @@ public class CyclicHierarchyValidatorTest extends ConstellioTest {
 
 		ValidationErrors validationErrors = new ValidationErrors();
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 	}
@@ -142,7 +142,7 @@ public class CyclicHierarchyValidatorTest extends ConstellioTest {
 
 		ValidationErrors validationErrors = new ValidationErrors();
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).hasSize(1);
 		assertThat(validationErrors.getValidationErrors().get(0).getCode())
@@ -156,7 +156,7 @@ public class CyclicHierarchyValidatorTest extends ConstellioTest {
 
 		ValidationErrors validationErrors = new ValidationErrors();
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 	}
@@ -169,7 +169,7 @@ public class CyclicHierarchyValidatorTest extends ConstellioTest {
 
 		ValidationErrors validationErrors = new ValidationErrors();
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 

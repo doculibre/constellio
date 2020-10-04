@@ -61,7 +61,7 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest exte
 		when(record.get(modificationDate)).thenReturn(dateBefore);
 
 		RecordValidatorParams params = new RecordValidatorParams(record, types, schema, validator, validationErrors,
-				configProvider, recordProvider, searchServices);
+				configProvider, recordProvider, searchServices, false);
 		validator.validate(params);
 
 		Map<String, Object> parameters = new HashMap<>();
@@ -79,7 +79,7 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest exte
 		when(record.get(modificationDate)).thenReturn(date);
 
 		RecordValidatorParams params = new RecordValidatorParams(record, types, schema, validator, validationErrors,
-				configProvider, recordProvider, searchServices);
+				configProvider, recordProvider, searchServices, false);
 		validator.validate(params);
 
 		verifyZeroInteractions(validationErrors);
@@ -92,7 +92,7 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest exte
 		when(record.get(modificationDate)).thenReturn(dateAfter);
 
 		RecordValidatorParams params = new RecordValidatorParams(record, types, schema, validator, validationErrors,
-				configProvider, recordProvider, searchServices);
+				configProvider, recordProvider, searchServices, false);
 		validator.validate(params);
 
 		verifyZeroInteractions(validationErrors);

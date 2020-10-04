@@ -76,8 +76,6 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 			setWidth("750px");
 		}
 		
-		setZIndex(null);
-
 		mainLayout = new VerticalLayout();
 		mainLayout.setSpacing(true);
 		mainLayout.setWidth("100%");

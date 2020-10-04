@@ -43,7 +43,7 @@ public class MetadataUniqueValidator implements Validator<Record> {
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public void validate(Record record, ValidationErrors validationErrors) {
+	public void validate(Record record, ValidationErrors validationErrors, boolean skipNonEssential) {
 		if (!record.isActive()) {
 			return;
 		}

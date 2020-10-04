@@ -2067,7 +2067,8 @@ $popup-view-z-index: 3;
 
 
 			.base-window-content {
-				overflow-y: auto;
+				/*overflow-y: auto;*/
+				
 				padding-left: 5px;
 				padding-right: 5px;
 			}
@@ -2102,6 +2103,10 @@ $popup-view-z-index: 3;
 
             .header-selection-panel {
             	overflow-y: hidden;
+            }
+            
+            .delete-with-justification-window-content {
+            	padding-bottom: 10px;
             }
 		}
 	}
@@ -2226,9 +2231,14 @@ $popup-view-z-index: 3;
 			width: 400px;
 		}
 	}
+	
+	.view-window {
+		z-index: 9999 !important;
+	}
 
 	.v-popupview-popup-header-popup {
 		width: 100%;
+		z-index: 9998 !important;
 
 		.header-popup-content-wrapper {
 			position: absolute;
@@ -2514,6 +2524,10 @@ $popup-view-z-index: 3;
 	.v-table-row-textRed {
 		color: red;
 	}
+	
+	.confirmdialog-window {
+		z-index: 30000 !important;
+	}
 
 	.confirm-dialog-info {
 		background-image: url('images/icons/dialog/information.png');
@@ -2747,10 +2761,10 @@ $popup-view-z-index: 3;
   		.close-button-viewer-metadata-layout {
 		    position: relative;
   		}
-
+  		
   		.close-viewer-button {
   			position: relative;
-  			top: -2px;
+  			top: -36px;
   			z-index: 12;
   			color: #197de1;
   			font-size: 24px;
@@ -2798,6 +2812,14 @@ $popup-view-z-index: 3;
 		}
 
   		.viewable-record-table {
+  			
+  			.v-scrollable {
+  				overflow-y: auto !important;
+  			}
+  			
+  			.v-table-body-noselection {
+  				height: initial !important;
+  			}
 			.v-table-cell-content {
 				border: none;
 			}
@@ -3476,9 +3498,9 @@ $popup-view-z-index: 3;
 					}
 
 				    .action-menu-layout {
-						width: 250px;
-						border: 1px solid #3a434d;
-						border-radius: 4px;
+					    width: 225px;
+					    border: 1px solid #3a434d;
+					    border-radius: 4px;
 
 						.v-button {
 							padding-left: 8px;
@@ -3519,7 +3541,8 @@ $popup-view-z-index: 3;
 				    .action-menu-bar {
 				    	z-index: 2000;
 				    	position: absolute;
-				    	right: -20px;
+				    	right: 0px;
+				    	top: 0px;
 
 			  			.v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
 							content: "";
@@ -3566,7 +3589,7 @@ $popup-view-z-index: 3;
 
 						.v-slot-main-component {
 							position: relative;
-							top: 44px;
+							top: 20px;
 							overflow-x: hidden;
 						}
 
@@ -3825,15 +3848,12 @@ $popup-view-z-index: 3;
 		.action-menu-bar-layout {
 			position: absolute;
 			right: 20px;
-	    }
-
-	    .not-nested-action-menu-bar-layout {
-	    	margin-top: -30px;
+			margin-top: -24px;
+			margin-bottom: -24px;
 	    }
 
 		.viewable-record-table-panel {
 			.action-menu-bar-layout {
-				top: 10px;
 				right: 50px;
 			}
 		}
@@ -3847,6 +3867,10 @@ $popup-view-z-index: 3;
 				}
 			}
 		}
+
+	    .v-panel-content-content-view-wrapper {
+	    	overflow-x: hidden;	    	
+	    }
 
   		.search-result-record-folder, .search-result-record-task, .search-result-record-containerRecord {
 	  		.search-result-title {
@@ -3862,7 +3886,7 @@ $popup-view-z-index: 3;
 
 	    .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar-layout .action-menu-bar {
           top: inherit;
-          right: -18px;
+          right: -22px;
         }
 
 		.v-slot-suggestions-summary-results {
@@ -4019,10 +4043,6 @@ $popup-view-z-index: 3;
 		.action-menu-bar-layout {
 			position: absolute;
 			right: 20px;
-	    }
-
-	    .not-nested-action-menu-bar-layout {
-	    	margin-top: -30px;
 	    }
 
 		.viewable-record-table-panel {
@@ -4950,10 +4970,6 @@ $popup-view-z-index: 3;
 
 			.v-caption-action-menu-bar {
 				display: none;
-			}
-
-			.not-nested-action-menu-bar-layout {
-				float: left;
 			}
 
 		    .action-menu-bar {

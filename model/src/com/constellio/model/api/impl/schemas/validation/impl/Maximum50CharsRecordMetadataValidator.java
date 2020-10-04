@@ -1,9 +1,7 @@
 package com.constellio.model.api.impl.schemas.validation.impl;
 
-import com.constellio.model.entities.schemas.ConfigProvider;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
-import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordMetadataValidatorParams;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,13 +13,13 @@ public class Maximum50CharsRecordMetadataValidator implements RecordMetadataVali
 	public static final String VALUE_LENGTH_TOO_LONG = "valueLengthTooLong";
 
 	@Override
-	public void validate(Metadata metadata, String value, ConfigProvider configProvider,
-						 ValidationErrors validationErrors) {
+	public void validate(RecordMetadataValidatorParams recordMetadataValidatorParams) {
+		String value = (String) recordMetadataValidatorParams.getValue();
 		if (value != null && value.length() > 50) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(MAX_SIZE, "50");
 			parameters.put(WAS_SIZE, "" + value.length());
-			validationErrors.add(getClass(), VALUE_LENGTH_TOO_LONG, parameters);
+			recordMetadataValidatorParams.getValidationErrors().add(getClass(), VALUE_LENGTH_TOO_LONG, parameters);
 		}
 	}
 

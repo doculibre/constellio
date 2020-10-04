@@ -47,7 +47,7 @@ public class RecordPermissionValidatorTest extends ConstellioTest {
 	public void givenWriteAccessThenNoError() {
 		given(authorizationsServices.canWrite(user, record)).willReturn(true);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 	}
@@ -58,7 +58,7 @@ public class RecordPermissionValidatorTest extends ConstellioTest {
 		when(record.isDirty()).thenReturn(true);
 		when(record.isModified(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(false);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).isNotEmpty();
 		assertThat(validationErrors.getValidationErrors().get(0).getCode()).isEqualTo(UNAUTHORIZED);
@@ -69,7 +69,7 @@ public class RecordPermissionValidatorTest extends ConstellioTest {
 		given(authorizationsServices.canWrite(user, record)).willReturn(false);
 		when(record.isDirty()).thenReturn(false);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 	}
@@ -80,7 +80,7 @@ public class RecordPermissionValidatorTest extends ConstellioTest {
 		when(record.isDirty()).thenReturn(true);
 		when(record.isModified(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 	}
@@ -89,7 +89,7 @@ public class RecordPermissionValidatorTest extends ConstellioTest {
 	public void givenNullUserThenNoError() {
 		given(transaction.getUser()).willReturn(null);
 
-		validator.validate(record, validationErrors);
+		validator.validate(record, validationErrors, false);
 
 		given(authorizationsServices.canWrite(user, record)).willReturn(true);
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
