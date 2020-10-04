@@ -466,16 +466,13 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		User businessPhil = user("philippe", businessCollection);
 		User zePhil = user("philippe", zeCollection);
-		User extraPhil = user("philippe", extraCollection);
 		Group businessCaballeros = group("caballeros", businessCollection);
 		Group zeCaballeros = group("caballeros", zeCollection);
-		Group extraCaballeros = group("caballeros", extraCollection);
 		Group businessPilotes = group("pilotes", businessCollection);
 		Group zePilotes = group("pilotes", zeCollection);
 
 		assertThat(businessPhil.getUserGroups()).containsAll(asList(businessCaballeros.getId(), businessPilotes.getId()));
 		assertThat(zePhil.getUserGroups()).containsAll(asList(zeCaballeros.getId(), zePilotes.getId()));
-		assertThat(extraPhil.getUserGroups()).containsOnly(extraCaballeros.getId());
 	}
 
 	/**
@@ -515,16 +512,12 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		User businessNic = user("nicolas", businessCollection);
 		User zeNic = user("nicolas", zeCollection);
-		User extraNic = user("nicolas", extraCollection);
 
 		Group businessPilotes = group("pilotes", businessCollection);
 		Group zePilotes = group("pilotes", zeCollection);
-		Group extraPilotes = group("pilotes", extraCollection);
-		Group extraCaballeros = group("caballeros", extraCollection);
 
 		assertThat(businessNic.getUserGroups()).containsOnly(businessPilotes.getId());
 		assertThat(zeNic.getUserGroups()).containsOnly(zePilotes.getId());
-		assertThat(extraNic.getUserGroups()).containsAll(asList(extraCaballeros.getId(), extraPilotes.getId()));
 	}
 
 	/**
@@ -606,7 +599,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		userServices.execute(userAddUpdateRequestBusiness);
 
 		this.ldapUserSyncConfiguration =
-				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(zeCollection, extraCollection));
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(zeCollection, extraCollection, businessCollection));
 		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
 		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
 		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
@@ -626,7 +619,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		Group localPilotes = group("pilotes", businessCollection);
 		Group localCaballeros = group("caballeros", businessCollection);
 
-		assertThat(businessNic.getUserGroups()).containsAll(asList(localHeroes.getId(), localPilotes.getId(), localCaballeros.getId()));
+		assertThat(businessNic.getUserGroups()).containsAll(asList(localHeroes.getId(), localPilotes.getId()));
 	}
 
 	/**
@@ -768,7 +761,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		sync();
 
 		this.ldapUserSyncConfiguration =
-				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection));
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection));
 		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
 		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
 		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
@@ -1075,6 +1068,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
 		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
 		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+		//createLocalChuck(true,asList(zeCollection));
 
 		LDAPGroup caballeros = caballeros();
 		LDAPGroup pilotes = pilotes();
@@ -1090,6 +1084,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		userToUpdate.setJobTitle("actor");
 
 		modelLayerFactory.newRecordServices().update(userToUpdate);
+		User localUserTest = user(chuckNorris, zeCollection);
 
 		sync();
 
@@ -1115,11 +1110,16 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		}
 		assertThat(importedUser3).isNull();
 
-		//zecollection has chuck, the local one
-		User localUser = user(chuckNorris, zeCollection);
+		//zecollection has no chuck
+		User localUser = null;
+		try {
+			localUser = user(chuckNorris, zeCollection);
+		} catch (Exception e) {
+		}
+
 		UserCredential userCredentialLocalUser = user(chuckNorris);
 		//assertThat(localUser.getLastName()).isEqualTo("Norris");
-		assertThat(localUser).isNotNull();
+		assertThat(localUser).isNull();
 		assertThat(userCredentialLocalUser.getSyncMode()).isEqualTo(UserSyncMode.SYNCED); //credential is still replaced
 		assertThat(userCredentialLocalUser.getEmail()).isEqualTo("chuckofldap@doculibre.ca"); //credential is still replaced
 
@@ -1211,6 +1211,8 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
 		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
 
+		//createLocalChuck(true,asList(zeCollection));
+
 		LDAPGroup caballeros = caballeros();
 		LDAPGroup pilotes = pilotes();
 		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
@@ -1234,19 +1236,15 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		//userCredential is to ldap
 		User localUserBusiness = user(chuck, businessCollection);
-		User localUserZeCollection = user(chuck, zeCollection);
 		User localUserExtra = user(chuck, extraCollection);
 		UserCredential userCredentialLocalUser = user(chuck);
 		assertThat(userCredentialLocalUser.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
-		assertThat(localUserZeCollection.getEmail()).isEqualTo("chuckofldap@doculibre.ca");
 		assertThat(localUserExtra.getEmail()).isEqualTo("chuckofldap@doculibre.ca");
 		assertThat(localUserBusiness.getEmail()).isEqualTo("chuckofldap@doculibre.ca");
 		assertThat(localUserBusiness.getFirstName()).isEqualTo("Chuck");
 		assertThat(localUserExtra.getFirstName()).isEqualTo("Chuck");
-		assertThat(localUserZeCollection.getFirstName()).isEqualTo("Chuck");
 		assertThat(localUserBusiness.getLastName()).isEqualTo("Norris ldap");
 		assertThat(localUserExtra.getLastName()).isEqualTo("Norris ldap");
-		assertThat(localUserZeCollection.getLastName()).isEqualTo("Norris ldap");
 
 	}
 
@@ -1378,6 +1376,14 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		modelLayerFactory.newUserServices().createUser("dusty", (req) ->
 				req.setNameEmail("Dusty", "le Chien", "dusty@constellio.com")
+						.setStatusForAllCollections(isActive ? UserCredentialStatus.ACTIVE : UserCredentialStatus.DISABLED)
+						.addToCollections(collections));
+	}
+
+	private void createLocalChuck(boolean isActive, List<String> collections) {
+
+		modelLayerFactory.newUserServices().createUser("chuck", (req) ->
+				req.setNameEmail("chuck", "Norris", "chucknorris@constellio.com")
 						.setStatusForAllCollections(isActive ? UserCredentialStatus.ACTIVE : UserCredentialStatus.DISABLED)
 						.addToCollections(collections));
 	}
