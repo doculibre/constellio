@@ -2649,6 +2649,25 @@ $popup-view-z-index: 3;
 			}
 		}
 	}
+	
+	.display-folder-view.nested-view-false {
+		.v-slot-action-menu-bar-layout {
+    		position: relative;
+			top: -10px;
+		}
+		
+		.nested-view-true {
+			.v-slot-action-menu-bar-layout {
+    			position: unset;
+				top: initial;
+			}
+			
+		}
+		
+		.v-slot-close-button-viewer-metadata-layout {
+			top: -40px;
+		}
+	}
 
 	.cart-view {
 		.v-slot-action-menu-bar {
@@ -2764,7 +2783,7 @@ $popup-view-z-index: 3;
   		
   		.close-viewer-button {
   			position: relative;
-  			top: -36px;
+  			top: 0px;
   			z-index: 12;
   			color: #197de1;
   			font-size: 24px;
@@ -3589,7 +3608,7 @@ $popup-view-z-index: 3;
 
 						.v-slot-main-component {
 							position: relative;
-							top: 20px;
+							top: 32px;
 							overflow-x: hidden;
 						}
 
@@ -3848,8 +3867,7 @@ $popup-view-z-index: 3;
 		.action-menu-bar-layout {
 			position: absolute;
 			right: 20px;
-			margin-top: -24px;
-			margin-bottom: -24px;
+			top: 12px;
 	    }
 
 		.viewable-record-table-panel {

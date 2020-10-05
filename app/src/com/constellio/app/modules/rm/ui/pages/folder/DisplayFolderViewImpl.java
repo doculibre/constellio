@@ -214,8 +214,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
+		addStyleName("display-folder-view");
+		addStyleName("nested-view-" + nestedView);
+		
 		mainLayout = new VerticalLayout();
-		mainLayout.addStyleName("display-folder-view");
+		mainLayout.addStyleName("display-folder-view-main-layout");
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 
@@ -958,6 +961,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	protected boolean isActionMenuBar() {
 		return true;
+	}
+
+	@Override
+	protected String getActionMenuBarCaption() {
+		return null;
 	}
 
 	@Override

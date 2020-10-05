@@ -386,7 +386,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	}
 
 	protected String getActionMenuBarCaption() {
-		return null;
+		return $("actions");
 	}
 
 	protected MenuBar newActionMenuBar() {

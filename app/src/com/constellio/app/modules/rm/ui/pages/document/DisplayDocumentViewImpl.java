@@ -272,8 +272,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		addStyleName("display-document-view");
+		addStyleName("nested-view-" + nestedView);
 
 		mainLayout = new VerticalLayout();
+		mainLayout.addStyleName("display-document-view-main-layout");
 		mainLayout.setSizeFull();
 
 		borrowedLabel = new Label();
@@ -823,6 +825,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	protected boolean isActionMenuBar() {
 		return true;
+	}
+
+	@Override
+	protected String getActionMenuBarCaption() {
+		return null;
 	}
 
 	@Override

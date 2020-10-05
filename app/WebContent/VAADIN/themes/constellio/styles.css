@@ -15397,6 +15397,20 @@ div.v-layout.v-horizontal.v-widget {
 	top: 8px;
 }
 
+.constellio .display-folder-view.nested-view-false .v-slot-action-menu-bar-layout {
+	position: relative;
+	top: -10px;
+}
+
+.constellio .display-folder-view.nested-view-false .nested-view-true .v-slot-action-menu-bar-layout {
+	position: unset;
+	top: initial;
+}
+
+.constellio .display-folder-view.nested-view-false .v-slot-close-button-viewer-metadata-layout {
+	top: -40px;
+}
+
 .constellio .cart-view .v-slot-action-menu-bar {
 	position: relative;
 	right: 20px;
@@ -15494,7 +15508,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .viewable-record-table-panel .close-viewer-button {
 	position: relative;
-	top: -36px;
+	top: 0px;
 	z-index: 12;
 	color: #197de1;
 	font-size: 24px;
@@ -16234,7 +16248,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .viewer-metadata-panel .v-slot-main-component {
 	position: relative;
-	top: 20px;
+	top: 32px;
 	overflow-x: hidden;
 }
 
@@ -16432,8 +16446,7 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-ui[width-range~="1101px-"] .action-menu-bar-layout {
 	position: absolute;
 	right: 20px;
-	margin-top: -24px;
-	margin-bottom: -24px;
+	top: 12px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .viewable-record-table-panel .action-menu-bar-layout {
