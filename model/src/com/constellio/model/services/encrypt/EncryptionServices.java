@@ -233,7 +233,14 @@ public class EncryptionServices {
 	}
 
 	public Object decryptWithAppKey(Object toDecrypt) {
-		return decryptVersion2(toDecrypt, key);
+		try {
+			return decryptVersion2(toDecrypt, key);
+		} catch (RuntimeException e) {
+			if (lostPreviousKey || Toggle.LOST_PRIVATE_KEY.isEnabled()) {
+				return toDecrypt;
+			}
+			throw e;
+		}
 	}
 
 	public Object decryptVersion2(Object toDecrypt, Object key) {
@@ -249,7 +256,7 @@ public class EncryptionServices {
 			}
 			return decryptedValues;
 		} else if (toDecrypt instanceof String) {
-			if(toDecrypt.equals("")) {
+			if (toDecrypt.equals("")) {
 				return "";
 			}
 			return decryptVersion2((String) toDecrypt, key);
@@ -273,6 +280,9 @@ public class EncryptionServices {
 			System.arraycopy(decryptedText, 16, result, 0, result.length);
 			return new String(result);
 		} catch (Exception e) {
+			if (lostPreviousKey || Toggle.LOST_PRIVATE_KEY.isEnabled()) {
+				return toDecrypt;
+			}
 			throw new RuntimeException("Cannot decrypt '" + toDecrypt + "'", e);
 		}
 	}
