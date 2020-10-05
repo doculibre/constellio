@@ -43,6 +43,11 @@ public class VersionsComparator implements Comparator<String> {
 			versionTwo = versionTwo.replace("rc.", "rc").replace("rc", "rc.");
 		}
 
+		versionOne = versionOne.replace("(LTS)", "").replace("(SLT)", "")
+				.replace("LTS", "").replace("SLT", "").replace(" ", "");
+		versionTwo = versionTwo.replace("(LTS)", "").replace("(SLT)", "")
+				.replace("LTS", "").replace("SLT", "").replace(" ", "");
+
 		String[] version1VersionAndSubVersion = versionOne.split("-");
 		String[] version2VersionAndSubVersion = versionTwo.split("-");
 

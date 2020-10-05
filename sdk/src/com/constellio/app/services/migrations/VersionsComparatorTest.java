@@ -79,4 +79,23 @@ public class VersionsComparatorTest extends ConstellioTest {
 		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("5.1.1.1.0", "5.1.0.1")).isFalse();
 		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("5.1.1.1.0", "5.1.0.1.0")).isFalse();
 	}
+
+
+	@Test
+	public void whenComparingWithLTSKeywordThenNotImportant()
+			throws Exception {
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("9.2", "9.2 LTS")).isTrue();
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("9.2", "9.2 (LTS)")).isTrue();
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("9.2 LTS", "9.2")).isTrue();
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("9.2 (LTS)", "9.2")).isTrue();
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("9.2.1", "9.2 LTS")).isFalse();
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("9.2.1", "9.2 (LTS)")).isFalse();
+
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("9.2 LTS RC1", "9.2 (LTS)")).isTrue();
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("9.2 (LTS)", "9.2 LTS RC1")).isFalse();
+
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("9.2 LTS RC1", "9.2 RC2")).isTrue();
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("9.2 RC2", "9.2 LTS RC1")).isTrue();
+
+	}
 }
