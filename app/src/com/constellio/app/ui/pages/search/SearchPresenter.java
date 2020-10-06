@@ -2,8 +2,10 @@ package com.constellio.app.ui.pages.search;
 
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
+import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
+import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;
@@ -369,8 +371,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		Capsule match = null;
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
-			match = CapsuleUtils
-					.findCapsule(collection, currentLocale.getLanguage(), getUserSearchExpression(), getSearchQuery());
+			try {
+				match = CapsuleUtils
+						.findCapsule(collection, currentLocale.getLanguage(), getUserSearchExpression(), getSearchQuery());
+			} catch(Throwable t) {
+				LOGGER.warn("Unexpected exception while finding capsules",t);
+			}
 		}
 
 		return match;
@@ -707,7 +713,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		//		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(
 		//				schemasDisplayManager.getReturnedFieldsForSearch(collection)));
-		if (modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
+		if (modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized() && hasOnlyCachedResults()) {
 			query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
 		} else {
 			query.setReturnedMetadatas(ReturnedMetadatasFilter.allExceptContentAndLargeText());
@@ -748,6 +754,17 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			Metadata metadata = getMetadata(sortCriterion);
 			return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
 		}
+	}
+
+	private boolean hasOnlyCachedResults() {
+		//TODO Find better fix
+
+		if (modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).hasType(ConnectorInstance.SCHEMA_TYPE)) {
+			ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
+			return  ! searchServices().hasResults(new LogicalSearchQuery(from(es.connectorInstance.schemaType()).returnAll()));
+		}
+
+		 return true;
 	}
 
 	protected String filteredSolrOperatorsInUserSearchExpression() {

@@ -193,11 +193,17 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		int searchResultIndex = startIndex;
 		for (Record recordId : subListOfRecords) {
 			Record recordSummary = null;
+
 			boolean recordNotFound = false;
-			try {
-				recordSummary = modelLayerFactory.newRecordServices().realtimeGetRecordSummaryById(recordId.getId());
-			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-				recordNotFound = true;
+			if (query.getReturnedMetadatas().isOnlyId()) {
+
+				try {
+					recordSummary = modelLayerFactory.newRecordServices().realtimeGetRecordSummaryById(recordId.getId());
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					recordNotFound = true;
+				}
+			} else {
+				recordSummary = recordId;
 			}
 			if (!recordNotFound) {
 				RecordVO recordVO = voBuilder.build(recordSummary, VIEW_MODE.SEARCH, sessionContext);

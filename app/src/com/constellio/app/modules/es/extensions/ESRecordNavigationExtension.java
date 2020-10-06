@@ -259,5 +259,5 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 	public String getViewHrefTag(NavigationParams navigationParams) {
 		return null;
 	}
-	
+
 }
