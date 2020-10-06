@@ -196,7 +196,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 
 	@Override
 	protected boolean isActionMenuBar() {
-		return false;
+		return true;
 	}
 
 	@Override

@@ -1,29 +1,38 @@
 package com.constellio.app.modules.rm.ui.components.decommissioning;
 
-import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
-import com.constellio.model.entities.structures.TableProperties;
-import com.vaadin.data.Container;
-import com.vaadin.ui.Table;
+import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.CHECKBOX;
+import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.FOLDER;
+import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.FOLDER_ID;
+import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.ORDER;
+import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.VALIDATION_CHECKBOX;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.CHECKBOX;
-import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.FOLDER;
-import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.FOLDER_ID;
-import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.ORDER;
-import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.VALIDATION_CHECKBOX;
-import static org.apache.ignite.internal.util.lang.GridFunc.asList;
+import com.constellio.app.ui.framework.components.table.BaseTable;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
+import com.constellio.model.entities.structures.TableProperties;
+import com.vaadin.data.Container;
+import com.vaadin.ui.Table;
 
 public class FolderDetailTable extends BaseTable {
+	
+	private List<String> generatedColumnIds = new ArrayList<>();
 
 	public FolderDetailTable(String tableId, String caption, Container container) {
 		super(tableId, caption, container);
 		setPageLength(container.size());
 		setWidth("100%");
+	}
+
+	@Override
+	public void addGeneratedColumn(Object id, ColumnGenerator generatedColumn) {
+		super.addGeneratedColumn(id, generatedColumn);
+		if (id instanceof String && !generatedColumnIds.contains((String) id)) {
+			generatedColumnIds.add((String) id);
+		}
 	}
 
 	@Override
@@ -37,7 +46,7 @@ public class FolderDetailTable extends BaseTable {
 				if (userVisibleColumns != null) {
 					defaultVisibleColumnIds.addAll(userVisibleColumns);
 				} else {
-					defaultVisibleColumnIds.addAll(asList(CHECKBOX, ORDER, VALIDATION_CHECKBOX, FOLDER_ID, FOLDER));
+					defaultVisibleColumnIds.addAll(generatedColumnIds);
 				}
 				table.setColumnCollapsible(CHECKBOX, false);
 				return defaultVisibleColumnIds;
@@ -50,8 +59,10 @@ public class FolderDetailTable extends BaseTable {
 				Collection<?> propertyIds = Arrays.asList(table.getVisibleColumns());
 				for (Object propertyId : propertyIds) {
 					String columnId = toColumnId(propertyId);
-					boolean visible = visibleIds.contains(columnId);
-					table.setColumnCollapsed(propertyId, !visible);
+					if (table.isColumnCollapsible(propertyId)) {
+						boolean visible = visibleIds.contains(columnId);
+						table.setColumnCollapsed(propertyId, !visible);
+					}
 				}
 			}
 

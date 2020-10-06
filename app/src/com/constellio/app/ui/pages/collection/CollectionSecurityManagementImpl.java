@@ -219,4 +219,9 @@ public class CollectionSecurityManagementImpl extends BaseViewImpl implements Co
 		return true;
 	}
 
+	@Override
+	protected String getActionMenuBarCaption() {
+		return getQuickActionMenuButtons().isEmpty() ? super.getActionMenuBarCaption() : null;
+	}
+
 }

@@ -49,6 +49,7 @@ public class XmlReportGenerator extends AbstractXmlGenerator {
 		for (int i = 0; i < parameters.getNumberOfCopies(); i++) {
 			Record[] recordsElement = parameters.isParametersUsingIds() ? getRecordFromIds(parameters.getSchemaCode(), parameters.getIdsOfElement()) : parameters.getRecordsElements();
 			for (Record recordElement : recordsElement) {
+				recordElement = getRecordServices().getDocumentById(recordElement.getId());
 				Element xmlSingularElement = new Element(XML_EACH_RECORD_ELEMENTS);
 				xmlSingularElement.setAttribute("schemaCode", recordElement.getSchemaCode());
 

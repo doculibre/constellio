@@ -96,7 +96,7 @@ public class PdfJSServices {
 		}
 		boolean disableSignature = !isSignaturePossible(record, metadata, user);
 
-		String metadataCode = metadata.getCode();
+
 		if (urlPrefix == null) {
 			urlPrefix = "../../../../../";
 		}
@@ -104,6 +104,7 @@ public class PdfJSServices {
 			urlPrefix = StringUtils.substringBeforeLast(urlPrefix, "/");
 		}
 		if (contentPreviewPath == null && record != null) {
+			String metadataCode = metadata.getCode();
 			StringBuilder contentPreviewParams = new StringBuilder();
 			contentPreviewParams.append("recordId=" + record.getId());
 			contentPreviewParams.append("&metadataCode=" + metadataCode);

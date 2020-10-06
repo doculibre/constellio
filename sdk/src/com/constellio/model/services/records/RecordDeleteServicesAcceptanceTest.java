@@ -54,6 +54,8 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 	private static final String CUSTOM_TASK_NEW_METADATA = "zTaskMeta";
 	private static final String CUSTOM_FOLDER_SCHEMA_LOCAL_CODE = "zFolderSchema";
 	private static final String CUSTOM_FOLDER_NEW_METADATA = "zFolderMeta";
+	private static final String CUSTOM_DOCUMENT_SCHEMA_LOCAL_CODE = "zDocumentSchema";
+	private static final String CUSTOM_DOCUMENT_NEW_METADATA = "zDocumentMeta";
 	private static final String CUSTOM_VALUELIST_SCHEMA = "ddvValueListTest";
 	private static final String CUSTOM_VALUELIST_NEW_METADATA = "zValueListMeta";
 
@@ -73,6 +75,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 	Task taskReferencesFolderB;
 	private MetadataSchema customTaskSchema;
 	private MetadataSchema customFolderSchema;
+	private MetadataSchema customDocumentSchema;
 	private MetadataSchema customValueSchema;
 	private Metadata zMeta;
 
@@ -154,10 +157,18 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
 				foldersSchema.create(CUSTOM_FOLDER_NEW_METADATA).setType(MetadataValueType.REFERENCE)
 						.defineReferencesTo(defaultSchema);
+
+				MetadataSchemaTypeBuilder documentsSchemaType = types.getSchemaType(Document.SCHEMA_TYPE);
+				MetadataSchemaBuilder documentsSchema = documentsSchemaType.createCustomSchema(CUSTOM_DOCUMENT_SCHEMA_LOCAL_CODE);
+
+				documentsSchema.create(CUSTOM_DOCUMENT_NEW_METADATA).setType(MetadataValueType.REFERENCE)
+						.defineReferencesTo(defaultSchema);
 			}
 		});
 		customFolderSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
 				.getSchemaType(Folder.SCHEMA_TYPE).getSchema(CUSTOM_FOLDER_SCHEMA_LOCAL_CODE);
+		customDocumentSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
+				.getSchemaType(Document.SCHEMA_TYPE).getSchema(CUSTOM_DOCUMENT_SCHEMA_LOCAL_CODE);
 		customValueSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
 				.getSchemaType(CUSTOM_VALUELIST_SCHEMA).getDefaultSchema();
 	}
@@ -175,6 +186,29 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		taskReferencesFolderB = tasks.wrapTask(tasks.create(customTaskSchema, "taskReferencesFolderB"));
 		transaction.add(taskReferencesFolderB.set(zMeta.getLocalCode(), subFolder_B).setTitle("zTask"));
 		recordServices.execute(transaction);
+	}
+
+	@Test
+	public void givenfolderReferencedByDocumentWhenLogicallyThenPhysicallyDeletedThenOk()
+			throws RecordServicesException {
+		TestRecord folder = new TestRecord(customFolderSchema)
+				.set(customFolderSchema.get(Schemas.TITLE_CODE), "Dad")
+				.set(customFolderSchema.get(Folder.ADMINISTRATIVE_UNIT_ENTERED), "unitId_10")
+				.set(customFolderSchema.get(Folder.CATEGORY_ENTERED), category)
+				.set(customFolderSchema.get(Folder.RETENTION_RULE_ENTERED), "ruleId_1")
+				.set(customFolderSchema.get(Folder.COPY_STATUS_ENTERED), PRINCIPAL)
+				.set(customFolderSchema.get(Folder.OPENING_DATE), date(2000, 10, 4));
+		TestRecord document = new TestRecord(customDocumentSchema)
+				.set(customDocumentSchema.get(Document.TITLE), "Dad's doc")
+				.set(customDocumentSchema.get(Document.FOLDER), folder);
+
+		recordServices.execute(new Transaction(folder, document));
+
+		List<ValidationError> validationErrors = deleteService
+				.validateLogicallyThenPhysicallyDeletable(folder, users.adminIn(zeCollection), new RecordPhysicalDeleteOptions())
+				.getValidationErrors();
+
+		assertThat(validationErrors.isEmpty()).isTrue();
 	}
 
 	@Test

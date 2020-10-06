@@ -58,11 +58,6 @@ public abstract class CommentsLayout extends VerticalLayout {
 
 		if (addCommentButtonVisible()) {
 			Component addCommentsComponent = newCommentComponent($("RecordCommentsDisplayImpl.addComment"), $("RecordCommentsDisplayImpl.addComment"), FontAwesome.PLUS, null);
-			addCommentsComponent.addStyleName("task-details-add-comment-button");
-			addCommentsComponent.addStyleName(ValoTheme.BUTTON_LINK);
-			addCommentsComponent.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
-			addCommentsComponent.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-
 			addComponent(addCommentsComponent);
 			setComponentAlignment(addCommentsComponent, Alignment.TOP_RIGHT);
 		}
@@ -130,7 +125,7 @@ public abstract class CommentsLayout extends VerticalLayout {
 	}
 
 	protected Component newCommentComponent(String caption, String windowCaption, Resource icon, Comment comment) {
-		WindowButton addEditCommentButton = new WindowButton(caption, windowCaption, WindowConfiguration.modalDialog("400px", "280px")) {
+		WindowButton addEditCommentButton = new WindowButton(caption, windowCaption, WindowConfiguration.modalDialog("400px", "260px")) {
 			@Override
 			protected Component buildWindowContent() {
 				if (comment == null) {
@@ -139,10 +134,12 @@ public abstract class CommentsLayout extends VerticalLayout {
 				} else {
 					return newCommentForm(comment, getWindow(), true);
 				}
-
 			}
 		};
 		addEditCommentButton.setIcon(icon);
+		addEditCommentButton.addStyleName("task-details-add-comment-button");
+		addEditCommentButton.addStyleName(ValoTheme.BUTTON_LINK);
+		addEditCommentButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		addEditCommentButton.setCaptionVisibleOnMobile(false);
 		addEditCommentButton.addExtension(new NiceTitle(caption));
 		return addEditCommentButton;
@@ -168,6 +165,7 @@ public abstract class CommentsLayout extends VerticalLayout {
 				window.close();
 			}
 		};
+		commentForm.addStyleName("comment-form");
 		return commentForm;
 	}
 

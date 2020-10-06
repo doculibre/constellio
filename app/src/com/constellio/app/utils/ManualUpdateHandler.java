@@ -63,7 +63,6 @@ public class ManualUpdateHandler implements UpdateModeHandler {
 		private Button updateButton;
 		private BaseDownloadField downloadField;
 
-
 		private ManualUpdatePanel() {
 			setWidth("100%");
 			setHeight("600px");

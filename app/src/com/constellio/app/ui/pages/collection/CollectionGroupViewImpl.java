@@ -105,6 +105,11 @@ public class CollectionGroupViewImpl extends BaseViewImpl implements CollectionG
 	}
 
 	@Override
+	protected String getActionMenuBarCaption() {
+		return getQuickActionMenuButtons().isEmpty() ? super.getActionMenuBarCaption() : null;
+	}
+
+	@Override
 	protected ClickListener getBackButtonClickListener() {
 		return new ClickListener() {
 			@Override

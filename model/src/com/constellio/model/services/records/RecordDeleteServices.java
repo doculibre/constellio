@@ -782,10 +782,13 @@ public class RecordDeleteServices {
 			int referencesTotal = modelLayerFactory.getRecordUsageCounterHookRetriever(record.getCollection())
 					.countRecordsReferencing(record);
 
-			MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record);
-			int referencesInHierarchy = (int) recordsHierarchy.stream()
-					.filter(childRecord -> childRecord.getParentId(schema) != null && childRecord.getParentId(schema).equals(record.getId()))
-					.count();
+			int referencesInHierarchy = 0;
+			for (Record recordHierarchy : recordsHierarchy) {
+				MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(recordHierarchy);
+				if (recordHierarchy.getParentId(schema) != null && recordHierarchy.getParentId(schema).equals(record.getId())) {
+					referencesInHierarchy++;
+				}
+			}
 
 			return referencesTotal > referencesInHierarchy;
 		} else {

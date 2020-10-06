@@ -246,7 +246,6 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		return null;
 	}
 
-
 	@Override
 	public void setBorrowedMessage(String borrowedMessage) {
 		if (borrowedMessage != null) {

@@ -69,6 +69,11 @@ public class RecordTriggerManagerViewImpl extends BaseViewImpl implements Record
 	}
 
 	@Override
+	protected String getActionMenuBarCaption() {
+		return null;
+	}
+
+	@Override
 	public String getTitle() {
 		return $("RecordTriggerManagerViewImpl.title", recordTitle);
 	}

@@ -89,6 +89,11 @@ public class CollectionGroupRolesViewImpl extends BaseViewImpl implements Collec
 	}
 
 	@Override
+	protected String getActionMenuBarCaption() {
+		return getQuickActionMenuButtons().isEmpty() ? super.getActionMenuBarCaption() : null;
+	}
+
+	@Override
 	protected List<Button> getQuickActionMenuButtons() {
 		List<Button> quickActionMenuButtons = new ArrayList<>();
 		List<Button> actionMenuButtons = getActionMenuButtons();

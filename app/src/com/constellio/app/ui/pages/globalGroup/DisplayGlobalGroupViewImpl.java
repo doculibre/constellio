@@ -421,6 +421,11 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 	}
 
 	@Override
+	protected String getActionMenuBarCaption() {
+		return null;
+	}
+
+	@Override
 	public void refreshTable() {
 		Table newSubGroupTable = buildSubGroupTable();
 		Table newUserTable = buildUserTable();

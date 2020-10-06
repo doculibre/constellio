@@ -1,13 +1,17 @@
 package com.constellio.app.modules.rm.extensions.api;
 
-import com.constellio.data.frameworks.extensions.SingleValueExtension;
-import com.constellio.model.entities.records.wrappers.User;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+
+import javax.servlet.http.HttpServletRequest;
+
+import com.constellio.data.frameworks.extensions.SingleValueExtension;
+import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
+import com.constellio.model.entities.records.wrappers.User;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @Getter
 public class AgentExtension {
@@ -17,6 +21,8 @@ public class AgentExtension {
 	private SingleValueExtension<AgentGetPassthroughPathExtension> agentGetPassthroughPathExtension = new SingleValueExtension<>();
 
 	private SingleValueExtension<AgentGetCheckedOutDocumentsExtension> agentGetCheckedOutDocumentsExtension = new SingleValueExtension<>();
+
+	private VaultBehaviorsList<AgentClientConfigExtension> agentClientConfigExtensions = new VaultBehaviorsList<>();
 
 	public abstract static class AgentUrlExtension {
 
@@ -55,6 +61,18 @@ public class AgentExtension {
 		public static class GetCheckedOutDocumentsParams {
 			private User user;
 			private String collection;
+		}
+
+	}
+
+	public abstract static class AgentClientConfigExtension {
+
+		public abstract void addClientConfigs(AgentClientConfigParams params);
+
+		@AllArgsConstructor
+		@Getter
+		public static class AgentClientConfigParams {
+			private Properties agentConfigs;
 		}
 
 	}

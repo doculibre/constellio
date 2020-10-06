@@ -190,7 +190,7 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 
 	@Override
 	protected boolean isActionMenuBar() {
-		return nestedView || isInWindow;
+		return true;
 	}
 
 	@Override

@@ -1,5 +1,16 @@
 package com.constellio.app.ui.framework.components.fields.download;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -10,22 +21,10 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window.CloseEvent;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public class BaseDownloadField extends CustomField<Object> {
@@ -36,15 +35,15 @@ public class BaseDownloadField extends CustomField<Object> {
 
 	private VerticalLayout mainLayout;
 
-	private com.vaadin.ui.ProgressBar fileDownload;
+	private ProgressBar downloadProgressBar;
 
 	private BaseTextField downloadTextField;
 
 	private BaseButton downloadButton;
+	
+	private Label downloadedFileNameLabel;
 
-	private I18NHorizontalLayout downloadedFileName;
-
-	private Map<Object, Component> itemCaptions = new HashMap<>();
+	private I18NHorizontalLayout downloadedFileNameLayout;
 
 	private ViewChangeListener viewChangeListener;
 
@@ -55,38 +54,23 @@ public class BaseDownloadField extends CustomField<Object> {
 	public BaseDownloadField() {
 		super();
 
-		setSizeFull();
+		setWidth("100%");
 
 		mainLayout = new VerticalLayout();
 		mainLayout.addStyleName(STYLE_NAME + "d-layout");
-		mainLayout.setSizeFull();
-		mainLayout.setSpacing(false);
+		mainLayout.setWidth("100%");
+		mainLayout.setSpacing(true);
 
-		fileDownload = new com.vaadin.ui.ProgressBar();
-		fileDownload.setWidth("100%");
-		fileDownload.addStyleName(STYLE_NAME + "-filedownload");
+		downloadProgressBar = new ProgressBar();
+		downloadProgressBar.setWidth("100%");
+		downloadProgressBar.addStyleName(STYLE_NAME + "-filedownload");
+		downloadProgressBar.setVisible(false);
 
-		downloadedFileName = new I18NHorizontalLayout();
-
-		addValueChangeListener(new ValueChangeListener() {
-			@SuppressWarnings("unchecked")
-			@Override
-			public void valueChange(Property.ValueChangeEvent event) {
-				TempFileDownload newValue = (TempFileDownload) BaseDownloadField.this.getValue();
-				itemCaptions.clear();
-				downloadedFileName.setCaption("");
-				if (newValue != null) {
-					downloadedFileName.setCaption(newValue.getFileName());
-					downloadedFileName.getComponent(0).setVisible(true);
-				} else {
-					downloadedFileName.getComponent(0).setVisible(false);
-				}
-				if (dlThread != null) {
-					dlThread.interrupt();
-					dlThread = null;
-				}
-			}
-		});
+		downloadedFileNameLayout = new I18NHorizontalLayout();
+		downloadedFileNameLayout.setSpacing(true);
+		downloadedFileNameLayout.setVisible(false);
+		
+		downloadedFileNameLabel = new Label();
 
 		DeleteButton deleteButton = new DeleteButton() {
 			@Override
@@ -100,24 +84,39 @@ public class BaseDownloadField extends CustomField<Object> {
 					deleteTempFile(itemId);
 				}
 				BaseDownloadField.this.setValue(null);
-				fileDownload.setValue(0.0f);
+				downloadProgressBar.setValue(0.0f);
 				if (dlThread != null) {
 					dlThread.interrupt();
 					dlThread = null;
 				}
 			}
 		};
-
-		deleteButton.setReadOnly(BaseDownloadField.this.isReadOnly());
-		deleteButton.setEnabled(BaseDownloadField.this.isEnabled());
 		deleteButton.setVisible(false);
 
-		downloadedFileName.addComponent(deleteButton);
+		addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(Property.ValueChangeEvent event) {
+				TempFileDownload newValue = (TempFileDownload) BaseDownloadField.this.getValue();
+				if (newValue != null) {
+					downloadedFileNameLabel.setValue(newValue.getFileName());
+					downloadedFileNameLayout.setVisible(true);
+					deleteButton.setVisible(true);
+				} else {
+					downloadedFileNameLayout.setVisible(false);
+					deleteButton.setVisible(false);
+				}
+				if (dlThread != null) {
+					dlThread.interrupt();
+					dlThread = null;
+				}
+			}
+		});
+
+		downloadedFileNameLayout.addComponents(downloadedFileNameLabel, deleteButton);
 
 		downloadTextField = new BaseTextField();
 		downloadTextField.setInputPrompt("https://www.example.com/constellio.war");
-		downloadTextField.setEnabled(true);
-		downloadTextField.setValue("");
+		downloadTextField.setImmediate(true);
 		downloadTextField.setWidth("100%");
 		downloadTextField.addValueChangeListener(new ValueChangeListener() {
 			@Override
@@ -131,6 +130,7 @@ public class BaseDownloadField extends CustomField<Object> {
 		downloadButton = new BaseButton($("UpdateManagerViewImpl.downloadWar")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
+				downloadProgressBar.setVisible(true);
 				try {
 					if (dlThread == null) {
 						URL testingUrl = new URL(downloadTextField.getValue());
@@ -138,10 +138,10 @@ public class BaseDownloadField extends CustomField<Object> {
 						TempFileDownload tempFileDownload = new TempFileDownload(testingUrl);
 						URLConnection successOnHeaders = tempFileDownload.getCon();
 
-						fileDownload.setIndeterminate(false);
-						fileDownload.setValue(0.0f);
+						downloadProgressBar.setIndeterminate(false);
+						downloadProgressBar.setValue(0.0f);
 
-						dlThread = new DownloadThread(fileDownload, successOnHeaders, tempFileDownload, BaseDownloadField.this);
+						dlThread = new DownloadThread(downloadProgressBar, successOnHeaders, tempFileDownload, BaseDownloadField.this);
 						dlThread.start();
 					}
 				} catch (InvalidWarUrlException | IOException ex) {
@@ -152,17 +152,12 @@ public class BaseDownloadField extends CustomField<Object> {
 						dlThread = null;
 					}
 				}
-
 			}
 		};
 		downloadButton.setEnabled(false);
 		downloadButton.setWidth("33%");
 
-		downloadTextField.setVisible(true);
-		downloadButton.setVisible(true);
-		fileDownload.setVisible(true);
-
-		mainLayout.addComponents(downloadTextField, downloadButton, fileDownload, downloadedFileName);
+		mainLayout.addComponents(downloadTextField, downloadButton, downloadProgressBar, downloadedFileNameLayout);
 	}
 
 	protected void onDownloadWindowClosed(CloseEvent e) {
@@ -206,36 +201,8 @@ public class BaseDownloadField extends CustomField<Object> {
 		return tempFileDownload;
 	}
 
-	protected Component getItemCaption(Object itemId) {
-		return itemCaptions.get(itemId);
-	}
-
-	protected Map<Object, Component> getItemCaptions() {
-		return Collections.unmodifiableMap(itemCaptions);
-	}
-
-	protected Component newItemCaption(Object itemId) {
-		String itemCaption;
-		if (itemId instanceof TempFileDownload) {
-			TempFileDownload tempFileDownload = (TempFileDownload) itemId;
-			itemCaption = tempFileDownload.getFilePath();
-		} else {
-			itemCaption = itemId.toString();
-		}
-		return new Label(itemCaption);
-	}
-
-	@Override
-	public void setInternalValue(Object newValue) {
-		super.setInternalValue(newValue);
-	}
-
 	protected void deleteTempFile(Object itemId) {
 
-	}
-
-	protected boolean isDeleteLink(Object itemId) {
-		return true;
 	}
 
 	@Override

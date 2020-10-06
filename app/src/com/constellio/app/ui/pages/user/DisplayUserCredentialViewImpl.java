@@ -347,6 +347,11 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		return true;
 	}
 
+	@Override
+	protected String getActionMenuBarCaption() {
+		return null;
+	}
+
 	protected boolean alwaysUseLayoutForActionMenu() {
 		return true;
 	}

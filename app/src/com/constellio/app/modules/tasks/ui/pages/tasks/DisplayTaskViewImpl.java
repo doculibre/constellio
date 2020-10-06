@@ -114,6 +114,11 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 	}
 
 	@Override
+	protected String getActionMenuBarCaption() {
+		return null;
+	}
+
+	@Override
 	protected boolean isBreadcrumbsVisible() {
 		return !nestedView && !inWindow;
 	}
