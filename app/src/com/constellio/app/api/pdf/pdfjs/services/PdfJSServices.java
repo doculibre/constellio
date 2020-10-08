@@ -314,12 +314,16 @@ public class PdfJSServices {
 	}
 
 	public PdfJSAnnotations getAnnotations(Record record, Metadata metadata, User user) throws IOException {
+		Content content = record.get(metadata);
+		ContentVersion contentVersion = content.getCurrentVersion();
+		return getAnnotations(record, metadata, contentVersion, user);
+	}
+
+	public PdfJSAnnotations getAnnotations(Record record, Metadata metadata, ContentVersion contentVersion, User user) throws IOException {
 		PdfJSAnnotations result;
 
 		IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
 
-		Content content = record.get(metadata);
-		ContentVersion contentVersion = content.getCurrentVersion();
 		String hash = contentVersion.getHash();
 		String id = record.getId();
 		String version = contentVersion.getVersion();
@@ -339,12 +343,17 @@ public class PdfJSServices {
 			throws IOException {
 		Content content = record.get(metadata);
 		ContentVersion contentVersion = content.getCurrentVersion();
+		saveAnnotations(record, metadata, contentVersion, user, annotations);
+	}	
+
+	public void saveAnnotations(Record record, Metadata metadata, ContentVersion contentVersion, User user, PdfJSAnnotations annotations)
+			throws IOException {
 		String hash = contentVersion.getHash();
 		String id = record.getId();
 		String version = contentVersion.getVersion();
 
 		String newAnnotationsVersion;
-		PdfJSAnnotations existingAnnotations = getAnnotations(record, metadata, user);
+		PdfJSAnnotations existingAnnotations = getAnnotations(record, metadata, contentVersion, user);
 		if (existingAnnotations != null) {
 			String existingVersion = existingAnnotations.getVersion();
 			//			if (!existingVersion.equals(annotations.getVersion())) {
@@ -369,6 +378,7 @@ public class PdfJSServices {
 	public void signAndCertifyPdf(Record record, Metadata metadata, User user, PdfJSAnnotations annotations)
 			throws PdfSignatureException, InvalidPasswordException, IOException {
 		IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
 
 		if (isSignaturePossible(record, metadata, user)) {
 			Content content = record.get(metadata);
@@ -411,7 +421,6 @@ public class PdfJSServices {
 					ExternalAccessUrl externalAccess = externalUser.getExternalAccessUrl();
 					externalAccess.setStatus(ExternalAccessUrlStatus.TO_CLOSE);
 
-					RecordServices recordServices = modelLayerFactory.newRecordServices();
 					try {
 						recordServices.update(externalAccess);
 					} catch (RecordServicesException e) {

@@ -200,6 +200,7 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 		boolean atLeastOneRecordSelected = presenter.atLeastOneRecordSelected();
 		this.restoreSelectionButton.setEnabled(atLeastOneRecordSelected);
 		this.deleteSelectionButton.setEnabled(atLeastOneRecordSelected);
+		refreshActionMenu();
 	}
 
 	private void replaceDeletedRecordsTypeAndCountComponents() {

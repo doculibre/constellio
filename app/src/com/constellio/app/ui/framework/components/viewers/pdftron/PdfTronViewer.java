@@ -44,6 +44,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;
@@ -109,9 +110,10 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		this.recordId = recordId;
 		this.contentVersion = contentVersion;
 		String filename = contentVersion.getFileName();
+		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(filename));
 		ConstellioUI current = ConstellioUI.getCurrent();
 
-		if (ArrayUtils.contains(PdfTronViewer.SUPPORTED_EXTENTION, FilenameUtils.getExtension(filename))) {
+		if (ArrayUtils.contains(PdfTronViewer.SUPPORTED_EXTENTION, extension)) {
 			this.documentContentResource = ConstellioResourceHandler.createResource(recordId, metadataCode, contentVersion.getVersion(), filename, ResourceType.NORMAL, false, contentVersion.getContentId());
 		} else {
 			ContentManager contentManager = getAppLayerFactory().getModelLayerFactory().getContentManager();

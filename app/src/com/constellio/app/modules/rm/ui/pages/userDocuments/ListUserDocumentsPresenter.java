@@ -278,13 +278,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 	public void deleteButtonClicked(RecordVO userContentVO, boolean refreshUI) {
 		User currentUser = getCurrentUser();
 		String schemaTypeCode = userContentVO.getSchema().getTypeCode();
-		Record record = null;
-		try {
-			record = toRecord(userContentVO);
-		} catch (OptimisticLockException e) {
-			LOGGER.error(e.getMessage());
-			view.showErrorMessage(e.getMessage());
-		}
+		Record record = userContentVO.getRecord();
 
 		if (UserFolder.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			this.setSchemaCode(UserFolder.DEFAULT_SCHEMA);

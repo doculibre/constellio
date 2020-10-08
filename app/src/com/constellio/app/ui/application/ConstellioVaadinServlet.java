@@ -1,5 +1,21 @@
 package com.constellio.app.ui.application;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.utils.TenantUtils.EMPTY_TENANT_ID;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.HttpHeaders;
+
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.dao.services.Stats;
 import com.constellio.data.dao.services.Stats.CallStatCompiler;
@@ -12,22 +28,8 @@ import com.vaadin.server.SystemMessages;
 import com.vaadin.server.SystemMessagesInfo;
 import com.vaadin.server.SystemMessagesProvider;
 import com.vaadin.server.VaadinServlet;
+
 import lombok.extern.slf4j.Slf4j;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.HttpHeaders;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.data.utils.TenantUtils.EMPTY_TENANT_ID;
 
 @SuppressWarnings("serial")
 @WebServlet(value = "/*", asyncSupported = true)
@@ -38,6 +40,7 @@ public class ConstellioVaadinServlet extends VaadinServlet {
 	private TenantService tenantService = TenantService.getInstance();
 	private Set<String> initializedTenantIds = new HashSet<>();
 	private Map<String, Thread> initThreadByTenantId = new HashMap<>();
+	private static ThreadLocal<HttpServletRequest> threadRequest = new ThreadLocal<>();
 
 	@Override
 	public void init(ServletConfig servletConfig)
@@ -68,50 +71,55 @@ public class ConstellioVaadinServlet extends VaadinServlet {
 		}
 	}
 
-
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		if (handleContextRootWithoutSlash(request, response)) {
-			return;
-		}
+		try {
+			threadRequest.set(request);
 
-		boolean supportingTenants = tenantService.isSupportingTenants();
-
-		boolean staticResourceRequest = isStaticResourceRequest(request);
-		if (!staticResourceRequest) {
-			String host = request.getHeader(HttpHeaders.HOST);
-			TenantProperties tenant = tenantService.getTenantByHostname(host);
-			String tenantId = tenant != null ? "" + tenant.getId() : null;
-
-			if (supportingTenants && tenantId == null) {
-				throw new RuntimeException("No Tenant found for host " + host);
+			if (handleContextRootWithoutSlash(request, response)) {
+				return;
 			}
 
-			if (tenantId == null) {
-				tenantId = EMPTY_TENANT_ID;
+			boolean supportingTenants = tenantService.isSupportingTenants();
+
+			boolean staticResourceRequest = isStaticResourceRequest(request);
+			if (!staticResourceRequest) {
+				String host = request.getHeader(HttpHeaders.HOST);
+				TenantProperties tenant = tenantService.getTenantByHostname(host);
+				String tenantId = tenant != null ? "" + tenant.getId() : null;
+
+				if (supportingTenants && tenantId == null) {
+					throw new RuntimeException("No Tenant found for host " + host);
+				}
+
+				if (tenantId == null) {
+					tenantId = EMPTY_TENANT_ID;
+				}
+
+				if (!initializedTenantIds.contains(tenantId)) {
+					try {
+						initThreadByTenantId.get(tenantId).join();
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+				}
+
+				ConstellioFactories.getInstance().onRequestStarted();
 			}
 
-			if (!initializedTenantIds.contains(tenantId)) {
-				try {
-					initThreadByTenantId.get(tenantId).join();
-				} catch (InterruptedException e) {
-					throw new RuntimeException(e);
+			CallStatCompiler statCompiler = Stats.compilerFor("Unknown");
+			long start = statCompiler.start();
+			try {
+				super.service(request, response);
+			} finally {
+				statCompiler.stop(start);
+				if (!staticResourceRequest) {
+					ConstellioFactories.getInstance().onRequestEnded();
 				}
 			}
-
-			ConstellioFactories.getInstance().onRequestStarted();
-		}
-
-		CallStatCompiler statCompiler = Stats.compilerFor("Unknown");
-		long start = statCompiler.start();
-		try {
-			super.service(request, response);
 		} finally {
-			statCompiler.stop(start);
-			if (!staticResourceRequest) {
-				ConstellioFactories.getInstance().onRequestEnded();
-			}
+			threadRequest.set(null);
 		}
 	}
 
@@ -158,9 +166,12 @@ public class ConstellioVaadinServlet extends VaadinServlet {
 		});
 	}
 
-
 	public static ConstellioVaadinServlet getCurrent() {
 		return (ConstellioVaadinServlet) VaadinServlet.getCurrent();
+	}
+	
+	public static HttpServletRequest getCurrentHttpServletRequest() {
+		return threadRequest.get();
 	}
 
 }

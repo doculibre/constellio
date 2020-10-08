@@ -27,6 +27,7 @@ import com.constellio.app.services.appManagement.AppManagementService.LicenseInf
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.ConstellioVaadinServlet;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -229,6 +230,9 @@ public class ConstellioAgentUtils {
 	private static HttpServletRequest ensureRequest(HttpServletRequest request) {
 		if (request == null) {
 			request = VaadinServletService.getCurrentServletRequest();
+		}
+		if (request == null) {
+			request = ConstellioVaadinServlet.getCurrentHttpServletRequest();
 		}
 		return request;
 	}

@@ -278,12 +278,12 @@ public class PdfSignatureServices {
 		try {
 			InputStream signedStream = new FileInputStream(signedPdf);
 			version = contentManager.upload(signedStream, new ContentManager.UploadOptions(newFilename)).getContentVersionDataSummary();
-			contentManager.createMajor(uploadUser, newFilename, version);
 		} catch (IOException e) {
 			throw new PdfSignatureException_CannotReadSignedFileException(e);
 		}
 
 		content.updateContentWithName(uploadUser, version, true, newFilename);
+		record.set(metadata, content);
 
 		try {
 			recordServices.update(record, uploadUser);

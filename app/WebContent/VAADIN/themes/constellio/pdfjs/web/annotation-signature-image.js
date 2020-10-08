@@ -24,7 +24,8 @@ SignatureImageAnnotation.prototype.getBakeInfoI10nKey = function() {
 };
 
 SignatureImageAnnotation.prototype.isBindIfBaked = function() {
-	return this.isSignature();
+	//return this.isSignature();
+	return false;
 };
 
 SignatureImageAnnotation.prototype.toJSON = function() {

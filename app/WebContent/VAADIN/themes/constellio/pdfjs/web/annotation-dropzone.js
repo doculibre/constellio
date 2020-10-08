@@ -87,9 +87,12 @@ AnnotationDropZoneManager.prototype.refreshAnnotations = function() {
 		var annotation = annotations[annotationKey];
 		if (annotation) {
 			if (annotation.isAttached()) {
-				annotation.remove();
+				var dropZone = $(this.dropZoneSelector);
+				var annotationElement = annotation.getHtmlElement();
+				dropZone.append(annotationElement);
+			} else {
+				this.loadAnnotation(annotation);
 			}
-			this.loadAnnotation(annotation);
 		}
 	}
 };	

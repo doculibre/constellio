@@ -96,6 +96,11 @@ public class PermissionsManagementViewImpl extends BaseViewImpl implements Permi
 	}
 
 	@Override
+	protected boolean isActionMenuBar() {
+		return false;
+	}
+
+	@Override
 	public void setSaveAndRevertButtonStatus(boolean enabled) {
 		save.setEnabled(enabled);
 		revert.setEnabled(enabled);
