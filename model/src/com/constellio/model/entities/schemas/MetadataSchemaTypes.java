@@ -1,6 +1,6 @@
 package com.constellio.model.entities.schemas;
 
-import com.constellio.data.utils.KeySetMap;
+import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
@@ -53,7 +53,7 @@ public class MetadataSchemaTypes implements Serializable {
 	private final MetadataNetwork metadataNetwork;
 
 	private final CollectionInfo collectionInfo;
-	private final Map<String, Set<MetadataSchemaType>> classifiedSchemaTypes;
+	private final Map<String, List<MetadataSchemaType>> classifiedSchemaTypes;
 
 
 	public MetadataSchemaTypes(CollectionInfo collectionInfo, int version, List<MetadataSchemaType> schemaTypes,
@@ -91,9 +91,10 @@ public class MetadataSchemaTypes implements Serializable {
 		return schemaTypes;
 	}
 
-	private static Map<String, Set<MetadataSchemaType>> buildClassifiedSchemaTypes(
+	private static Map<String, List<MetadataSchemaType>> buildClassifiedSchemaTypes(
 			List<MetadataSchemaType> schemaTypes) {
-		KeySetMap<String, MetadataSchemaType> listMap = new KeySetMap<>();
+		KeyListMap<String, MetadataSchemaType> classifiedSchemaTypes = new KeyListMap<>();
+		KeyListMap<String, String> classifiedSchemaTypesCodes = new KeyListMap<>();
 
 		for (MetadataSchemaType type : schemaTypes) {
 			for (MetadataSchemaType anotherType : schemaTypes) {
@@ -101,7 +102,11 @@ public class MetadataSchemaTypes implements Serializable {
 					for (Metadata metadata : anotherType.getDefaultSchema().getMetadatas()) {
 						if ((metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship())
 							&& type.getCode().equals(metadata.getReferencedSchemaTypeCode())) {
-							listMap.add(type.getCode(), anotherType);
+							if (!classifiedSchemaTypesCodes.contains(type.getCode(), anotherType.getCode())) {
+								classifiedSchemaTypesCodes.add(type.getCode(), anotherType.getCode());
+								classifiedSchemaTypes.add(type.getCode(), anotherType);
+							}
+
 						}
 					}
 
@@ -111,7 +116,10 @@ public class MetadataSchemaTypes implements Serializable {
 					for (Metadata metadata : anotherType.getDefaultSchema().getMetadatas()) {
 						if ((metadata.isChildOfRelationship()) && type.getCode().equals(metadata.getReferencedSchemaTypeCode())
 							&& type.getCode().equals("folder")) {
-							listMap.add(type.getCode(), anotherType);
+							if (!classifiedSchemaTypesCodes.contains(type.getCode(), anotherType.getCode())) {
+								classifiedSchemaTypesCodes.add(type.getCode(), anotherType.getCode());
+								classifiedSchemaTypes.add(type.getCode(), anotherType);
+							}
 						}
 					}
 
@@ -119,7 +127,7 @@ public class MetadataSchemaTypes implements Serializable {
 			}
 		}
 
-		return listMap.getNestedMap();
+		return classifiedSchemaTypes.getNestedMap();
 	}
 
 
@@ -134,7 +142,7 @@ public class MetadataSchemaTypes implements Serializable {
 	}
 
 	public List<MetadataSchemaType> getClassifiedSchemaTypesIn(String schemaTypeCode) {
-		Set<MetadataSchemaType> types = classifiedSchemaTypes.get(schemaTypeCode);
+		List<MetadataSchemaType> types = classifiedSchemaTypes.get(schemaTypeCode);
 		return types == null ? Collections.emptyList() : new ArrayList<>(types);
 	}
 
