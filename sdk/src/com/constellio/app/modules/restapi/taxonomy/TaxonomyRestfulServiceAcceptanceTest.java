@@ -473,6 +473,8 @@ public class TaxonomyRestfulServiceAcceptanceTest extends BaseRestfulServiceAcce
 	public void testGetTaxonomyNodesWithWriteAccessParams() {
 		authorizationsServices.add(AuthorizationAddRequest.authorizationForUsers(users.bobIn(zeCollection))
 				.givingNegativeWriteAccess().on("00000000103"));
+		queryCounter.reset();
+		commitCounter.reset();
 
 		Response response = buildNodesQuery("A01")
 				.queryParam("serviceKey", serviceKey).queryParam("collection", zeCollection)

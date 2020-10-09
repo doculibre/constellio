@@ -85,7 +85,7 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
 		Response response = doDeleteQuery();
 		assertThat(response.getStatus()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
 		assertThat(commitCounter.newCommitsCall()).hasSize(9);
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(2);
 
 		try {
 			recordServices.getDocumentById(id);

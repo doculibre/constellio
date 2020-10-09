@@ -273,7 +273,7 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		Response response = doPostQuery(fullFolderToAdd);
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(fullFolderToAdd.getDirectAces().size());
 		assertThat(commitCounter.newCommitsCall()).hasSize(fullFolderToAdd.getDirectAces().size());
 
 		FolderDto folder = response.readEntity(FolderDto.class);
@@ -1103,7 +1103,7 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		Response response = doPostQuery(null);
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(2);
 
 		Folder sourceFolder = records.getFolder_A01();
 		FolderDto folderDto = response.readEntity(FolderDto.class);
@@ -1147,7 +1147,7 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		Response response = doPostQuery(minFolderToCopy);
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(2);
 
 		FolderDto folderDto = response.readEntity(FolderDto.class);
 		assertThat(folderDto.getId()).isNotNull().isNotEmpty();
@@ -1189,7 +1189,7 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		Response response = doPostQuery(minFolderToAdd);
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(2);
 
 		FolderDto folderDto = response.readEntity(FolderDto.class);
 		assertThat(folderDto.getId()).isNotNull().isNotEmpty();
@@ -1231,7 +1231,7 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		Response response = doPostQuery(null);
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(2 * 2);
 
 		FolderDto folderDto = response.readEntity(FolderDto.class);
 		assertThat(folderDto.getId()).isNotNull().isNotEmpty();

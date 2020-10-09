@@ -189,7 +189,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		Response response = doPatchQuery(folderUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(2);
 		assertThat(commitCounter.newCommitsCall()).hasSize(4);
 
 		FolderDto folder = response.readEntity(FolderDto.class);

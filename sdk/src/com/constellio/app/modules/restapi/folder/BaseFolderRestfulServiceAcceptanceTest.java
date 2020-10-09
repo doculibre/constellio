@@ -25,8 +25,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.sdk.tests.CommitCounter;
-import com.constellio.sdk.tests.QueryCounter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.joda.time.LocalDate;
 import org.junit.Before;
@@ -74,8 +72,8 @@ public class BaseFolderRestfulServiceAcceptanceTest extends BaseRestfulServiceAc
 		givenConfig(RestApiConfigs.REST_API_URLS, "localhost:7070; localhost2");
 		givenTimeIs(fakeDate);
 
-		commitCounter = new CommitCounter(getDataLayerFactory());
-		queryCounter = new QueryCounter(getDataLayerFactory());
+		queryCounter.reset();
+		commitCounter.reset();
 	}
 
 	protected List<String> getMediumTypesCode(List<String> mediumTypeIds) {

@@ -235,7 +235,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 		Response response = doPatchQuery(docUpdate, null);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(2);
 		assertThat(commitCounter.newCommitsCall()).hasSize(4);
 
 		DocumentDto doc = response.readEntity(DocumentDto.class);

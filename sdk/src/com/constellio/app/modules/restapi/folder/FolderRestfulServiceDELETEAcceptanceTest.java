@@ -52,6 +52,8 @@ public class FolderRestfulServiceDELETEAcceptanceTest extends BaseFolderRestfulS
 		rootFolder = createFolder(records.folder_A04, "rootFolder");
 		subFolder1 = createFolder(rootFolder.getId(), "subFolder1");
 		subFolder2 = createFolder(rootFolder.getId(), "subFolder2");
+		queryCounter.reset();
+		commitCounter.reset();
 	}
 
 	@Test
@@ -126,7 +128,7 @@ public class FolderRestfulServiceDELETEAcceptanceTest extends BaseFolderRestfulS
 		physical = "true";
 		Response response = doDeleteQuery();
 		assertThat(response.getStatus()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(2);
 
 		try {
 			recordServices.getDocumentById(id);
@@ -142,7 +144,7 @@ public class FolderRestfulServiceDELETEAcceptanceTest extends BaseFolderRestfulS
 		physical = "true";
 		Response response = doDeleteQuery();
 		assertThat(response.getStatus()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(3);
 
 		try {
 			recordServices.getDocumentById(rootFolder.getId());

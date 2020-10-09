@@ -216,7 +216,7 @@ public class FolderRestfulServicePUTAcceptanceTest extends BaseFolderRestfulServ
 		Response response = doPutQuery(fullFolderToUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(1);
 		assertThat(commitCounter.newCommitsCall()).hasSize(fullFolderToUpdate.getDirectAces().size());
 
 		FolderDto folder = response.readEntity(FolderDto.class);

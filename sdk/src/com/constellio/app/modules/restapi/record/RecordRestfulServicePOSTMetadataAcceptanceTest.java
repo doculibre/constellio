@@ -316,6 +316,8 @@ public class RecordRestfulServicePOSTMetadataAcceptanceTest extends BaseRestfulS
 		Record record = recordServices.getDocumentById(folderId);
 		User bobUser = userServices.getUserInCollection(bob, record.getCollection());
 		authorizationsServices.add(authorizationForUsers(bobUser).on(record).givingNegativeReadWriteAccess());
+		queryCounter.reset();
+		commitCounter.reset();
 
 		Response response = webTarget.queryParam("serviceKey", serviceKey)
 				.queryParam("id", folderId).request()

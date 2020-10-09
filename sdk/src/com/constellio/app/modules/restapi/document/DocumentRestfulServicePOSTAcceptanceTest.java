@@ -141,7 +141,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 				.post(entity(buildMultiPart(fullDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(fullDocumentToAdd.getDirectAces().size());
 		assertThat(commitCounter.newCommitsCall()).hasSize(fullDocumentToAdd.getDirectAces().size());
 
 		DocumentDto doc = response.readEntity(DocumentDto.class);
