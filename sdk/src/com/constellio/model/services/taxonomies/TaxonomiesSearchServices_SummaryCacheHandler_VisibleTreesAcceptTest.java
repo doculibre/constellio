@@ -460,6 +460,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void whenNavigatingByIntervalThenGetGoodResults()
 			throws Exception {
 
