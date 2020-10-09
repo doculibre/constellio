@@ -921,7 +921,9 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		User currentUser = getCurrentUser();
 		Document document = rmSchemasRecordsServices.newDocument();
 		document.setCreatedBy(currentUser.getId());
-		document.setAuthor(currentUser.getFirstName() + " " + currentUser.getLastName());
+		if(isAddView() && newFileAtStart) {
+			document.setAuthor(currentUser.getFirstName() + " " + currentUser.getLastName());
+		}
 		return document;
 	}
 
