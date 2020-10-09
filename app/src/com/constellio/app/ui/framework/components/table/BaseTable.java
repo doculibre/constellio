@@ -129,15 +129,18 @@ public class BaseTable extends Table implements SelectionComponent {
 
 	private void init() {
 		addStyleName("base-table");
-		if (isSelectColumn() && addGeneratedSelectColumn()) {
-			addGeneratedColumn(SELECT_PROPERTY_ID, newSelectColumnGenerator());
+		if (isSelectColumn()) {
 			columnGeneratorsAdded = true;
 
-			setMultiSelect(true);
-			addSelectionChangeListener(selectionManager = newSelectionManager());
-			setColumnHeader(SELECT_PROPERTY_ID, "");
-			setColumnWidth(SELECT_PROPERTY_ID, SELECT_PROPERTY_WIDTH);
-			setColumnCollapsible(SELECT_PROPERTY_ID, false);
+			if (addGeneratedSelectColumn()) {
+				addGeneratedColumn(SELECT_PROPERTY_ID, newSelectColumnGenerator());
+
+				setMultiSelect(true);
+				addSelectionChangeListener(selectionManager = newSelectionManager());
+				setColumnHeader(SELECT_PROPERTY_ID, "");
+				setColumnWidth(SELECT_PROPERTY_ID, SELECT_PROPERTY_WIDTH);
+				setColumnCollapsible(SELECT_PROPERTY_ID, false);
+			}
 		}
 
 		if (isIndexColumn()) {
@@ -296,10 +299,6 @@ public class BaseTable extends Table implements SelectionComponent {
 		return false;
 	}
 
-	public boolean isColumnGeneratorsAdded() {
-		return columnGeneratorsAdded;
-	}
-
 	public boolean addGeneratedSelectColumn() {
 		return true;
 	}
@@ -454,7 +453,7 @@ public class BaseTable extends Table implements SelectionComponent {
 
 	@Override
 	public void setVisibleColumns(Object... visibleColumns) {
-		if ((isSelectColumn() || isIndexColumn() || isMenuBarColumn() || isButtonsColumn()) && isColumnGeneratorsAdded()) {
+		if ((isSelectColumn() || isIndexColumn() || isMenuBarColumn() || isButtonsColumn()) && columnGeneratorsAdded) {
 			List<Object> visibleColumnsList = new ArrayList<>(Arrays.asList(visibleColumns));
 			if (isIndexColumn() && visibleColumnsList.contains(INDEX_PROPERTY_ID)) {
 				int columnIndex = isRightToLeft() ? columnIndex = visibleColumnsList.size() - 1 : 0;
