@@ -83,6 +83,10 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 		try {
 			while (lineIsEmpty()) {
 				lineToParse++;
+
+				if (lineToParse == sheet.getRows()) {
+					return null;
+				}
 			}
 
 			return parseRecord();

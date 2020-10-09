@@ -7,6 +7,7 @@ import com.constellio.data.io.services.facades.FileService;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.SystemWideUserInfos;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +31,14 @@ public class ConstellioUploadContentInVaultServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws IOException {
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory());
-		SystemWideUserInfos user = authenticator.authenticate(request);
+		SystemWideUserInfos user = null;
+
+		if (request.getHeader(authenticator.USER_SERVICE_KEY) != null) {
+			user = authenticator.authenticate(request);
+		} else {
+			user = authenticator.authenticateUsingUsername(request);
+		}
+
 		if (user == null) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 		} else {
@@ -38,8 +46,6 @@ public class ConstellioUploadContentInVaultServlet extends HttpServlet {
 				responseOutputStream.writeObject(handle(request));
 			}
 		}
-
-
 	}
 
 	@NotNull
@@ -47,14 +53,20 @@ public class ConstellioUploadContentInVaultServlet extends HttpServlet {
 		Map<String, Object> outParams = new HashMap<>();
 		try (InputStream inputStream = request.getInputStream()) {
 			FileService fileService = ConstellioFactories.getInstance().getIoServicesFactory().newFileService();
-			String filename = request.getHeader("fileName");
+			/*
+			 Keep the getName on fileName since old batchImport client's (1.9 and prior) will have the value of the absolute path for this header.
+			 Not filtering the fileName could cause corruption of the file if it's uploaded on the same machine as the original one
+			 or the file won't be able to be written since the file path will contain another file path in it.
+			 ex: C:/dev/constellio/ConstellioUploadContentInVaultServlet.tempFiletempFile_764b86ca-098a-11eb-8280-75c6ca41bf6a.C:\Users\Joe\Desktop\Secret.pdf
+			 */
+			String filename = FilenameUtils.getName(request.getHeader("fileName"));
 			File tempFile = fileService.newTemporaryFile("ConstellioUploadContentInVaultServlet.tempFile", filename);
 			try {
 				try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(tempFile))) {
 					IOUtils.copy(inputStream, outputStream);
 				}
-				outParams.put("result", respond(tempFile));
 
+				outParams.put("result", respond(tempFile));
 			} finally {
 				fileService.deleteQuietly(tempFile);
 			}

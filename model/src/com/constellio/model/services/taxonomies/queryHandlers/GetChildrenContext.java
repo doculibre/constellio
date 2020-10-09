@@ -344,14 +344,12 @@ public class GetChildrenContext {
 	}
 
 	public Metadata getTaxonomyClassificationMetadata(MetadataSchemaType classifiedType) {
-
-
 		for (Metadata metadata : classifiedType.getDefaultSchema().getMetadatas()) {
 			if ((metadata.getType() == MetadataValueType.REFERENCE)
 				&& fromType.getCode().equals(metadata.getReferencedSchemaTypeCode())
 				&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
 				&& (metadata.isChildOfRelationship() || metadata.isTaxonomyRelationship())
-			) {
+				&& !metadata.getLocalCode().startsWith("USR")) {
 				return metadata;
 			}
 		}

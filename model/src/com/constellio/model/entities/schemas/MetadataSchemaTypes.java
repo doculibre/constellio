@@ -1,6 +1,6 @@
 package com.constellio.model.entities.schemas;
 
-import com.constellio.data.utils.KeyListMap;
+import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
@@ -53,7 +53,7 @@ public class MetadataSchemaTypes implements Serializable {
 	private final MetadataNetwork metadataNetwork;
 
 	private final CollectionInfo collectionInfo;
-	private final Map<String, List<MetadataSchemaType>> classifiedSchemaTypes;
+	private final Map<String, Set<MetadataSchemaType>> classifiedSchemaTypes;
 
 
 	public MetadataSchemaTypes(CollectionInfo collectionInfo, int version, List<MetadataSchemaType> schemaTypes,
@@ -91,9 +91,9 @@ public class MetadataSchemaTypes implements Serializable {
 		return schemaTypes;
 	}
 
-	private static Map<String, List<MetadataSchemaType>> buildClassifiedSchemaTypes(
+	private static Map<String, Set<MetadataSchemaType>> buildClassifiedSchemaTypes(
 			List<MetadataSchemaType> schemaTypes) {
-		KeyListMap<String, MetadataSchemaType> listMap = new KeyListMap<>();
+		KeySetMap<String, MetadataSchemaType> listMap = new KeySetMap<>();
 
 		for (MetadataSchemaType type : schemaTypes) {
 			for (MetadataSchemaType anotherType : schemaTypes) {
@@ -134,8 +134,8 @@ public class MetadataSchemaTypes implements Serializable {
 	}
 
 	public List<MetadataSchemaType> getClassifiedSchemaTypesIn(String schemaTypeCode) {
-		List<MetadataSchemaType> types = classifiedSchemaTypes.get(schemaTypeCode);
-		return types == null ? Collections.emptyList() : types;
+		Set<MetadataSchemaType> types = classifiedSchemaTypes.get(schemaTypeCode);
+		return types == null ? Collections.emptyList() : new ArrayList<>(types);
 	}
 
 	public CollectionInfo getCollectionInfo() {

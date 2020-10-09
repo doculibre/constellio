@@ -337,7 +337,9 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 
 		List<RetentionRuleDocumentType> documentTypeList = new ArrayList<>();
 		for (Map<String, String> documentType : documentTypes) {
-			documentTypeList.add(buildDocumentType(documentTypeResolver, documentType));
+			if (!(documentType.get(CODE).isEmpty() && (documentType.get(ARCHIVISTIC_STATUS) == null))) {
+				documentTypeList.add(buildDocumentType(documentTypeResolver, documentType));
+			}
 		}
 
 		retentionRule.setDocumentTypesDetails(documentTypeList);
@@ -497,6 +499,14 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 
 		if (!documentType.get(CODE).isEmpty()) {
 			retentionRuleDocumentType.setDocumentTypeId(resolver.getDocumentTypeByCode(documentType.get(CODE)));
+		}
+
+		if ((!documentType.get(CODE).isEmpty()) && (documentType.get(ARCHIVISTIC_STATUS) == null)) {
+			throw new RuntimeException("Invalid disposal type: archivisticStatus is empty but code exists.");
+		}
+
+		if (documentType.get(CODE).isEmpty() && (documentType.get(ARCHIVISTIC_STATUS) != null)) {
+			throw new RuntimeException("Invalid disposal type: code is empty but archivisticStatus is defined.");
 		}
 
 		DisposalType disposalType = disposalTypeFromString(documentType.get(ARCHIVISTIC_STATUS).toUpperCase());
