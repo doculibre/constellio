@@ -682,28 +682,6 @@ public class RecordServicesTest extends ConstellioTest {
 						.getSolrQuery(params));
 	}
 
-	@Test(expected = RecordServicesException.UnresolvableOptimisticLockingConflict.class)
-	public void givenOneDocumentCannotBeMergedWhenMergingThenException()
-			throws Exception {
-
-		when(firstRecord.isSaved()).thenReturn(true);
-		when(secondRecord.isSaved()).thenReturn(true);
-		when(thirdRecord.isSaved()).thenReturn(true);
-
-		List<Record> modifiedRecords = Arrays.asList((Record) newFirstRecordVersion, newSecondRecordVersion);
-
-		Transaction transaction = new Transaction();
-		transaction.addUpdate(asList((Record) firstRecord, secondRecord, thirdRecord));
-
-		doThrow(RecordServicesException.UnresolvableOptimisticLockingConflict.class).when(secondRecord).merge(
-				eq(newSecondRecordVersion), any(MetadataSchema.class));
-		when(searchServices.search(any(LogicalSearchQuery.class))).thenReturn(modifiedRecords);
-
-		OptimisticLocking optimisticLocking = mock(OptimisticLocking.class);
-		when(optimisticLocking.getId()).thenReturn("zeId");
-		recordServices.mergeRecords(transaction, optimisticLocking);
-	}
-
 	@Test
 	public void whenRefreshRecordsThenRefreshRecords()
 			throws Exception {

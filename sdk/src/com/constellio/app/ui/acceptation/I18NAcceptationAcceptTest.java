@@ -384,7 +384,11 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 				missingKeys.add(key);
 			}
 		}
+
+		missingKeys.remove("ENUM");
 	}
+
+
 
 	private void addIfNoValue(String title) {
 		if (title.startsWith("init.")) {
