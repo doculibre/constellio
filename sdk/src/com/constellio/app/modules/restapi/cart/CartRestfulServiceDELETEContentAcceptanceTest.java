@@ -89,7 +89,7 @@ public class CartRestfulServiceDELETEContentAcceptanceTest extends BaseRestfulSe
 				.delete();
 
 		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(4);
 		assertThat(commitCounter.newCommitsCall()).isNotEmpty();
 
 		folder = rm.getFolder(records.folder_A11);
@@ -112,7 +112,7 @@ public class CartRestfulServiceDELETEContentAcceptanceTest extends BaseRestfulSe
 				.delete();
 
 		assertThat(response.getStatus()).isEqualTo(Status.NO_CONTENT.getStatusCode());
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(4);
 		assertThat(commitCounter.newCommitsCall()).isNotEmpty();
 
 		cart = rm.getCart(cart.getId());

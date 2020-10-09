@@ -30,8 +30,6 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import java.io.File;
 
-import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
-import static com.constellio.sdk.tests.QueryCounter.ON_COLLECTION;
 import static java.util.Arrays.asList;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
@@ -78,7 +76,7 @@ public class BaseDocumentRestfulServiceAcceptanceTest extends BaseRestfulService
 		id = fakeDocument.getId();
 
 		commitCounter = new CommitCounter(getDataLayerFactory());
-		queryCounter = new QueryCounter(getDataLayerFactory(), ON_COLLECTION(SYSTEM_COLLECTION));
+		queryCounter = new QueryCounter(getDataLayerFactory());
 	}
 
 	protected void uploadFakeFile() throws Exception {

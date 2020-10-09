@@ -335,7 +335,7 @@ public class RecordRestfulServiceGETMetadataAcceptanceTest extends BaseRestfulSe
 				.queryParam("id", folderId)
 				.queryParam("metadataCode", Folder.TITLE).request()
 				.header(HttpHeaders.HOST, host).header(HttpHeaders.AUTHORIZATION, "Bearer ".concat(token)).get();
-		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(1);
 		assertThat(commitCounter.newCommitsCall().isEmpty());
 
 		assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());

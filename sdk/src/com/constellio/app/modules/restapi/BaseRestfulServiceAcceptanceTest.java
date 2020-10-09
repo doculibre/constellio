@@ -43,9 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.sdk.tests.QueryCounter.ON_COLLECTION;
 import static java.util.Arrays.asList;
 
 public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
@@ -119,7 +117,7 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 		searchServices = getModelLayerFactory().newSearchServices();
 
 		commitCounter = new CommitCounter(getDataLayerFactory());
-		queryCounter = new QueryCounter(getDataLayerFactory(), ON_COLLECTION(SYSTEM_COLLECTION));
+		queryCounter = new QueryCounter(getDataLayerFactory());
 	}
 
 	protected <T> void addUsrMetadata(String id, final String schemaCode, final MetadataValueType type,

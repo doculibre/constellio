@@ -33,8 +33,6 @@ import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Locale;
 
-import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
-import static com.constellio.sdk.tests.QueryCounter.ON_COLLECTION;
 import static java.util.Arrays.asList;
 import static javax.ws.rs.core.Response.Status;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -81,7 +79,7 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
 		webTarget = newWebTarget("v1/urls");
 
 		commitCounter = new CommitCounter(getDataLayerFactory());
-		queryCounter = new QueryCounter(getDataLayerFactory(), ON_COLLECTION(SYSTEM_COLLECTION));
+		queryCounter = new QueryCounter(getDataLayerFactory());
 	}
 
 	@Test

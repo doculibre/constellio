@@ -35,8 +35,6 @@ import javax.ws.rs.HttpMethod;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
-import static com.constellio.sdk.tests.QueryCounter.ON_COLLECTION;
 import static java.util.Arrays.asList;
 
 public class BaseFolderRestfulServiceAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
@@ -77,7 +75,7 @@ public class BaseFolderRestfulServiceAcceptanceTest extends BaseRestfulServiceAc
 		givenTimeIs(fakeDate);
 
 		commitCounter = new CommitCounter(getDataLayerFactory());
-		queryCounter = new QueryCounter(getDataLayerFactory(), ON_COLLECTION(SYSTEM_COLLECTION));
+		queryCounter = new QueryCounter(getDataLayerFactory());
 	}
 
 	protected List<String> getMediumTypesCode(List<String> mediumTypeIds) {
