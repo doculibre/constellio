@@ -4,13 +4,11 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,8 +52,8 @@ public class JSPFConstellioPluginWithDetectPluginsAcceptanceTest extends Constel
 		}
 	}
 
-	@Test
-	@SlowTest
+	//@Test
+	//@SlowTest
 	public void givenInvalidModuleWhenDetectPluginsThenPluginWithAdequateErrorStatus() {
 		givenConfig(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER, false);
 

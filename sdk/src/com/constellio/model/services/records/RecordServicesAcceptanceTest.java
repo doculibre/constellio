@@ -2812,7 +2812,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 
 		for (int i = 0; i < numberOfRecords; i++) {
-			transaction.addUpdate(new TestRecord(zeSchema));
+			transaction.addUpdate(recordServices.newRecordWithSchema(zeSchema.instance()));
 		}
 
 		return transaction;

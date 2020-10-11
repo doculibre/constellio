@@ -2,6 +2,7 @@ package com.constellio.app.services.guide;
 
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.IntermittentFailureTest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,12 +39,14 @@ public class GuideManagerAcceptanceTest extends ConstellioTest {
 
 
 	@Test
+	@IntermittentFailureTest
 	public void givenCustomUrlDefinedWhenFetchingGuideUrlThenReturnCustomUrl() {
 		String returnedUrl = guideManager.getPropertyValue(DEFAULT_LANGUAGE, CUSTOM_PROPERTY_KEY_THAT_EXISTS);
 		assertThat(returnedUrl.equals(CUSTOM_URL));
 	}
 
 	@Test
+	@IntermittentFailureTest
 	public void givenPageWithNoCustomUrlDefinedWhenFetchingGuideUrlThenReturnDefaultUrl() {
 		String CUSTOM_PROPERTY_KEY_THAT_DOESNT_EXIST = "clé qui n'existe pas";
 		String returnedUrl = guideManager.getPropertyValue(DEFAULT_LANGUAGE, CUSTOM_PROPERTY_KEY_THAT_DOESNT_EXIST);
