@@ -54,6 +54,8 @@ public class RecordUpdateOptions {
 
 	private boolean skipValidationsIfNotEssential = false;
 
+	private boolean replaceIllegalCharactersIfException = false;
+
 	public RecordUpdateOptions() {
 
 	}
@@ -345,6 +347,15 @@ public class RecordUpdateOptions {
 
 	public RecordUpdateOptions setSkipValidationsIfNotEssential(boolean skipValidationsIfNotEssential) {
 		this.skipValidationsIfNotEssential = skipValidationsIfNotEssential;
+		return this;
+	}
+
+	public boolean isReplacingIllegalCharactersIfException() {
+		return replaceIllegalCharactersIfException;
+	}
+
+	public RecordUpdateOptions setReplacingIllegalCharactersIfException(boolean replaceIllegalCharactersIfException) {
+		this.replaceIllegalCharactersIfException = replaceIllegalCharactersIfException;
 		return this;
 	}
 }

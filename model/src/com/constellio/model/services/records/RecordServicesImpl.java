@@ -123,6 +123,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.constellio.data.dao.dto.records.RecordDTOMode.CUSTOM;
@@ -141,6 +142,7 @@ import static com.constellio.model.services.records.GetRecordOptions.isWarningIf
 import static com.constellio.model.services.records.RecordUtils.invalidateTaxonomiesCache;
 import static com.constellio.model.services.records.RecordUtils.toPersistedSummaryRecordDTO;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
+import static com.constellio.model.services.schemas.validators.metadatas.IllegalCharactersValidator.ILLEGAL_CHARACTERS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.utils.MaskUtils.format;
@@ -1086,9 +1088,20 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 
 		boolean validations = transaction.getRecordUpdateOptions().isValidationsEnabled();
+		boolean validateIllegalCharacter = validations && newConfigProvider()
+				.get(ConstellioEIMConfigs.ENABLE_ILLEGAL_CHARACTERS_VALIDATION).equals(Boolean.TRUE);
+		boolean isReplacingIllegalCharacters = validateIllegalCharacter && options.isReplacingIllegalCharactersIfException();
 		ParsedContentProvider parsedContentProvider = new ParsedContentProvider(modelFactory.getContentManager(),
 				transaction.getParsedContentCache());
 		for (Record record : transaction.getRecords()) {
+			if (isReplacingIllegalCharacters) {
+				boolean isTitleModified = record.isDirty()
+										  && (!record.isSaved() || isTitleModified(record.getModifiedMetadataList(types)));
+				if (isTitleModified && StringUtils.isNotBlank(record.getTitle())) {
+					String adaptedTitle = ILLEGAL_CHARACTERS.matcher(record.getTitle()).replaceAll("_").trim();
+					record.set(Schemas.TITLE, adaptedTitle);
+				}
+			}
 			if (transaction.getRecordUpdateOptions().isRepopulate()) {
 				recordPopulateServices.populate(record, parsedContentProvider);
 			}
@@ -2106,6 +2119,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 		newAutomaticMetadataServices().updateAutomaticMetadatas(
 				(RecordImpl) record.get(), newRecordProviderWithoutPreloadedRecords(), TransactionRecordsReindexation.ALL(),
 				new Transaction(new RecordUpdateOptions()));
+	}
+
+	private boolean isTitleModified(List<Metadata> modifiedMetadatas) {
+		List<String> metadataCodes = modifiedMetadatas.stream().map(Metadata::getLocalCode)
+				.collect(Collectors.toList());
+		return metadataCodes.contains(Schemas.TITLE.getLocalCode());
 	}
 
 	@Override
