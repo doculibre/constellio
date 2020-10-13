@@ -216,6 +216,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		}
 	}
 
+	public static String getSDKProperty(String propName) {
+		return sdkPropertiesLoader.getSDKProperties().get(propName);
+	}
+
 	protected void givenWaitForBatchProcessAfterTestIsDisabled() {
 		getCurrentTestSession().getBatchProcessTestFeature().waitForBatchProcessAfterTest = false;
 	}
@@ -1724,6 +1728,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected void assumeFileSystemConfigs() {
 		assumeTrue(sdkProperties.get("dao.settings.type").equals("filesystem"));
+	}
+
+	protected void assumeExternalResourcesConfigured() {
+		assumeTrue(sdkProperties.get("external.resources") != null && new File(sdkProperties.get("external.resources")).exists());
 	}
 
 	protected void assumeZookeeperConfigs() {

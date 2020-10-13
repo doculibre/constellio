@@ -135,6 +135,9 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		File sipFile = buildSIPWithDocuments("document1", "document2");
 		System.out.println(sipFile.getAbsolutePath());
 
+		//Uncommment to update resource file
+		//FileUtils.copyFile(sipFile, getTestResourceFile("sip1.zip"));
+
 		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip1.zip"), "bag-info.txt"));
 
 	}
@@ -158,6 +161,9 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		File sipFile = buildSIPWithDocuments("theEmailId");
 		System.out.println(sipFile.getAbsolutePath());
+
+		//Uncommment to update resource file
+		//FileUtils.copyFile(sipFile, getTestResourceFile("sip2.zip"));
 
 		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip2.zip"), "bag-info.txt"));
 
@@ -372,6 +378,10 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		File tempFolder1 = new File(tempFolder, "events.zip");
 		System.out.println(tempFolder1.getAbsolutePath());
+
+		//Uncommment to update resource file
+		//FileUtils.copyFile(tempFolder1, getTestResourceFile("events1.zip"));
+
 		assertThat(tempFolder1).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("events1.zip"), "bag-info.txt", "manifest-sha256.txt", "tagmanifest-sha256.txt"));
 	}
 
