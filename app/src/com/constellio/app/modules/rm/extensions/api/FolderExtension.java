@@ -45,6 +45,12 @@ public abstract class FolderExtension {
 		return user.hasWriteAccess().on(folder);
 	}
 
+	protected boolean hasDeleteAccess(FolderExtensionActionPossibleParams params) {
+		Folder folder = params.getFolder();
+		User user = params.getUser();
+		return user.hasDeleteAccess().on(folder);
+	}
+
 	public ExtensionBooleanResult isReturnActionPossible(FolderExtensionActionPossibleParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}

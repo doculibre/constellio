@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.EmailParsingServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
@@ -412,7 +413,19 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			};
 			return;
 		}
-		save(record);
+		
+		boolean permissionToSave;
+		if (!addView) {
+			DocumentRecordActionsServices documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
+			permissionToSave = documentRecordActionsServices.isEditActionPossible(record, getCurrentUser());
+		} else {
+			permissionToSave = true;
+		}
+		if (permissionToSave) {
+			save(record);
+		} else {
+			view.showErrorMessage($("AddEditDocumentView.noPermissionToSaveDocument"));
+		}
 	}
 
 	public void save(Record record) {
@@ -938,7 +951,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	@Override
 	public boolean hasPageAccess(User user) {
 		if (addView) {
-			throw new NotImplementedException("Dans le moment les fenetre supporte seulement le mode modifier");
+			throw new NotImplementedException("Cannot use add mode in a window");
 		} else {
 			return hasRestrictedRecordAccess(id, getCurrentUser(), recordServices().getDocumentById(id));
 		}

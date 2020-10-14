@@ -1,5 +1,25 @@
 package com.constellio.app.api.pdf.pdfjs.services;
 
+import static com.constellio.data.utils.dev.Toggle.ENABLE_SIGNATURE;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.Base64;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
+import org.json.JSONObject;
+
 import com.constellio.app.api.pdf.pdfjs.servlets.CertifyPdfJSSignaturesServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSAnnotationsConfigServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSAnnotationsServlet;
@@ -10,11 +30,13 @@ import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSSignatureServlet;
 import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException;
 import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException.PdfSignatureException_CannotSignDocumentException;
 import com.constellio.app.api.pdf.signature.services.PdfSignatureServices;
+import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -36,26 +58,8 @@ import com.constellio.model.services.pdf.pdfjs.PdfJSAnnotations;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
+
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
-import org.json.JSONObject;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
-import static com.constellio.data.utils.dev.Toggle.ENABLE_SIGNATURE;
 
 @Slf4j
 public class PdfJSServices {
@@ -206,20 +210,32 @@ public class PdfJSServices {
 	@SuppressWarnings("rawtypes")
 	public boolean isSignaturePossible(Record record, Metadata metadata, User user) {
 		boolean signaturePossible;
-		if (ENABLE_SIGNATURE.isEnabled() && record != null && user.hasWriteAccess().on(record)) {
-			Content content = record.get(metadata);
-			if (content == null || content.isCheckedOut()) {
-				signaturePossible = false;
+		if (ENABLE_SIGNATURE.isEnabled() && record != null) {
+			String collection = record.getCollection();
+			boolean editPossible;
+			if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+				DocumentRecordActionsServices documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
+				editPossible = documentRecordActionsServices.isEditActionPossible(record, user);
 			} else {
-				StreamFactory keystore = appLayerFactory.getModelLayerFactory()
-						.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE);
-				if (keystore != null) {
-					signaturePossible = true;
+				editPossible = user.hasWriteAccess().on(record);
+			}
+			if (editPossible) {
+				Content content = record.get(metadata);
+				if (content == null || content.isCheckedOut()) {
+					signaturePossible = false;
 				} else {
-					FoldersLocator foldersLocator = new FoldersLocator();
-					File keystoreFile = foldersLocator.getKeystoreFile();
-					signaturePossible = keystoreFile.exists();
+					StreamFactory keystore = appLayerFactory.getModelLayerFactory()
+							.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE);
+					if (keystore != null) {
+						signaturePossible = true;
+					} else {
+						FoldersLocator foldersLocator = new FoldersLocator();
+						File keystoreFile = foldersLocator.getKeystoreFile();
+						signaturePossible = keystoreFile.exists();
+					}
 				}
+			} else {
+				signaturePossible = false;
 			}
 		} else {
 			signaturePossible = false;

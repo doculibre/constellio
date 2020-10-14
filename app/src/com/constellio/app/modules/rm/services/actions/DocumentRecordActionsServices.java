@@ -353,7 +353,7 @@ public class DocumentRecordActionsServices {
 					.on(record);
 			Document document = rm.wrapDocument(record);
 			if (isCheckInPossible(user, document) || (permissionToReturnOtherUsersDocuments && isContentCheckedOut(document))) {
-				return true;
+				return rmModuleExtensions.isCheckInActionPossibleOnDocument(document, user);
 			}
 		}
 		return false;
@@ -370,7 +370,7 @@ public class DocumentRecordActionsServices {
 		if (user.hasWriteAccess().on(record)) {
 			if (isCheckOutPossible(document) && modelLayerCollectionExtensions.isRecordModifiableBy(record, user) && !modelLayerCollectionExtensions
 					.isModifyBlocked(record, user)) {
-				return true;
+				return rmModuleExtensions.isCheckOutActionPossibleOnDocument(document, user);
 			}
 		}
 		return false;

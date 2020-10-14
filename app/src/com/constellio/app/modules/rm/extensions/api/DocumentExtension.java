@@ -27,6 +27,14 @@ public abstract class DocumentExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
+	public ExtensionBooleanResult isCheckOutActionPossible(DocumentExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+	public ExtensionBooleanResult isCheckInActionPossible(DocumentExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
 	public ExtensionBooleanResult isCopyActionPossible(DocumentExtensionActionPossibleParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
@@ -91,11 +99,16 @@ public abstract class DocumentExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
-
 	protected boolean hasWriteAccess(DocumentExtensionActionPossibleParams params) {
 		Document document = params.getDocument();
 		User user = params.getUser();
 		return user.hasWriteAccess().on(document);
+	}
+
+	protected boolean hasDeleteAccess(DocumentExtensionActionPossibleParams params) {
+		Document document = params.getDocument();
+		User user = params.getUser();
+		return user.hasDeleteAccess().on(document);
 	}
 
 	public ExtensionBooleanResult isAddAuthorizationActionPossible(

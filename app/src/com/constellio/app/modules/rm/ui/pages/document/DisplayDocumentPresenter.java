@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
@@ -74,7 +75,9 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static java.util.Arrays.asList;
 
 public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> implements SecurityWithNoUrlParamSupport {
+	
 	private transient RecordServices recordServices;
+	private DocumentRecordActionsServices documentRecordActionsServices;
 
 	protected DocumentToVOBuilder voBuilder;
 	protected ContentVersionToVOBuilder contentVersionVOBuilder;
@@ -105,6 +108,8 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		this.nestedView = nestedView;
 		this.inWindow = inWindow;
 		initTransientObjects();
+		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
+		
 		presenterUtils = new DocumentActionsPresenterUtils<DisplayDocumentView>(view) {
 			@Override
 			public void updateActionsComponent() {
@@ -128,6 +133,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 					view.setDownloadDocumentButtonState(ComponentState.INVISIBLE);
 					view.setOpenDocumentButtonState(ComponentState.INVISIBLE);
 				}
+				view.setEditDocumentButtonState(ComponentState.visibleIf(hasWritePermission()));
 				view.refreshMetadataDisplay();
 				updateContentVersions();
 			}
@@ -204,7 +210,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 		Record record = getRecord(id);
 		document = rm.wrapDocument(record);
-		hasWriteAccess = getCurrentUser().hasWriteAccess().on(record);
+		hasWriteAccess = documentRecordActionsServices.isEditActionPossible(record, getCurrentUser());
 
 		documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
 		view.setRecordVO(documentVO);

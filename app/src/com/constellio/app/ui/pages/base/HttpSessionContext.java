@@ -1,19 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import com.constellio.app.ui.entities.UserVO;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.CURRENT_COLLECTION_ATTRIBUTE;
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.CURRENT_USER_ATTRIBUTE;
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.EXTERNAL_WEB_SIGN_IN_RESPONSE;
@@ -22,6 +8,20 @@ import static com.constellio.app.ui.pages.base.VaadinSessionContext.SELECTED_REC
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.SELECTED_RECORD_SCHEMA_TYPE_CODES_ATTRIBUTE;
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.USER_PRINCIPAL_ATTRIBUTE;
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.VISITED_ATTRIBUTE;
+
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import com.constellio.app.ui.entities.UserVO;
 
 public class HttpSessionContext extends BaseSessionContext {
 

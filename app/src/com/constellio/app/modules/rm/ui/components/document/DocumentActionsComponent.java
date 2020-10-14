@@ -40,6 +40,9 @@ public interface DocumentActionsComponent extends ViewComponent {
 	default void setDownloadDocumentButtonState(ComponentState state) {
 	}
 
+	default void setEditDocumentButtonState(ComponentState state) {
+	}
+
 	void setBorrowedMessage(String borrowedMessageKey, String... args);
 
 	void openAgentURL(String agentURL);

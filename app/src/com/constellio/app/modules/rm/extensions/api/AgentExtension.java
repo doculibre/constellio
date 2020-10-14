@@ -20,8 +20,6 @@ public class AgentExtension {
 
 	private SingleValueExtension<AgentGetPassthroughPathExtension> agentGetPassthroughPathExtension = new SingleValueExtension<>();
 
-	private SingleValueExtension<AgentGetCheckedOutDocumentsExtension> agentGetCheckedOutDocumentsExtension = new SingleValueExtension<>();
-
 	private VaultBehaviorsList<AgentClientConfigExtension> agentClientConfigExtensions = new VaultBehaviorsList<>();
 
 	public abstract static class AgentUrlExtension {
@@ -48,19 +46,6 @@ public class AgentExtension {
 			private User user;
 			private String recordId;
 			private String metadataCode;
-		}
-
-	}
-
-	public abstract static class AgentGetCheckedOutDocumentsExtension {
-
-		public abstract List<Map<String, String>> getCheckedOutDocuments(GetCheckedOutDocumentsParams params);
-
-		@AllArgsConstructor
-		@Getter
-		public static class GetCheckedOutDocumentsParams {
-			private User user;
-			private String collection;
 		}
 
 	}

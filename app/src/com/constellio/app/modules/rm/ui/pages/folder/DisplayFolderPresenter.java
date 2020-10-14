@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.util.ClientUtils;
@@ -41,6 +40,7 @@ import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.EmailParsingServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
@@ -91,7 +91,6 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.app.ui.pages.search.SearchPresenterService;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.KeySetMap;
@@ -175,6 +174,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private User user;
 	transient SearchPresenterService service;
 	private SchemaPresenterUtils presenterUtilsForDocument;
+	private FolderRecordActionsServices folderRecordActionsServices;
 
 	protected RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 
@@ -237,6 +237,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), collection);
 		List<MetadataSchemaType> types = Arrays.asList(getFoldersSchemaType(), getDocumentsSchemaType());
 		service = new SearchPresenterService(collection, user, modelLayerFactory, types);
+		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 	}
 
 	public RecordVODataProvider getFolderContentDataProvider() {
@@ -679,56 +680,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	ComponentState getEditButtonState(User user, Folder folder) {
-		if (isNotBlank(folder.getLegacyId()) && !user.has(RMPermissionsTo.MODIFY_IMPORTED_FOLDERS).on(folder)) {
-			return ComponentState.INVISIBLE;
-		}
-		return ComponentState.visibleIf(user.hasWriteAccess().on(folder)
-										&& !extensions.isModifyBlocked(folder.getWrappedRecord(), user) && extensions
-												.isRecordModifiableBy(folder.getWrappedRecord(), user));
+		return ComponentState.visibleIf(folderRecordActionsServices.isEditActionPossible(folder.getWrappedRecord(), user));
 	}
 
 	ComponentState getAddDocumentButtonState(User user, Folder folder) {
-		if (user.hasWriteAccess().on(folder) &&
-			user.has(RMPermissionsTo.CREATE_DOCUMENTS).on(folder)) {
-			if (folder.getPermissionStatus().isInactive()) {
-				if (folder.getBorrowed() != null && folder.getBorrowed()) {
-					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
-							.has(RMPermissionsTo.CREATE_INACTIVE_DOCUMENT).on(folder));
-				}
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.CREATE_INACTIVE_DOCUMENT).on(folder));
-			}
-			if (folder.getPermissionStatus().isSemiActive()) {
-				if (folder.getBorrowed() != null && folder.getBorrowed()) {
-					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(folder) && user
-							.has(RMPermissionsTo.CREATE_SEMIACTIVE_DOCUMENT).on(folder));
-				}
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.CREATE_SEMIACTIVE_DOCUMENT).on(folder));
-			}
-			return ComponentState.ENABLED;
-		}
-		return ComponentState.INVISIBLE;
+		return ComponentState.visibleIf(folderRecordActionsServices.isAddDocumentActionPossible(folder.getWrappedRecord(), user));
 	}
 
 	ComponentState getAddSubFolderButtonState(User user, Folder folder) {
-		if (user.hasWriteAccess().on(folder) &&
-			user.has(RMPermissionsTo.CREATE_SUB_FOLDERS).on(folder)) {
-			if (folder.getPermissionStatus().isInactive()) {
-				if (folder.getBorrowed() != null && folder.getBorrowed()) {
-					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
-							.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_INACTIVE_FOLDERS).on(folder));
-				}
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_INACTIVE_FOLDERS).on(folder));
-			}
-			if (folder.getPermissionStatus().isSemiActive()) {
-				if (folder.getBorrowed() != null && folder.getBorrowed()) {
-					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(folder) && user
-							.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_SEMIACTIVE_FOLDERS).on(folder));
-				}
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_SEMIACTIVE_FOLDERS).on(folder));
-			}
-			return ComponentState.ENABLED;
-		}
-		return ComponentState.INVISIBLE;
+		return ComponentState.visibleIf(folderRecordActionsServices.isAddSubFolderActionPossible(folder.getWrappedRecord(), user));
 	}
 
 	private MetadataSchemaType getFoldersSchemaType() {

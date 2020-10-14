@@ -31,6 +31,7 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.EnterViewListener;
+import com.constellio.app.ui.pages.base.HttpSessionContext;
 import com.constellio.app.ui.pages.base.InitUIListener;
 import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.base.MainLayoutImpl;
@@ -257,32 +258,28 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 			}
 			if (currentUserVO != null) {
 				// Authenticated user
-
-				ExternalWebSignInResponse externalWebSignInResponse = sessionContext.getExternalWebSignInResponse();
-				if(externalWebSignInResponse != null) {
-
+				// FIXME Using actual HTTP session so that this mechanic can work even when a FakeSessionContext is used 
+				HttpSessionContext httpSessionContext = new HttpSessionContext(ConstellioVaadinServlet.getCurrentHttpServletRequest()); 
+				ExternalWebSignInResponse externalWebSignInResponse = httpSessionContext.getExternalWebSignInResponse();
+				if (externalWebSignInResponse != null) {
 					String externalWebSignCallback = externalWebSignInResponse
 							.createCallbackURL(new CreateExternalWebSignInCallbackURLParameters(
-									sessionContext,
+									httpSessionContext,
 									VaadinServletService.getCurrentServletRequest(),
 									currentUserVO.getUsername()));
 
 					if (externalWebSignCallback != null) {
-						sessionContext.setExternalWebSignInResponse(null);
+						httpSessionContext.setExternalWebSignInResponse(null);
 						Page.getCurrent().open(externalWebSignCallback, null);
-
 						setContent(new ExternalSignInSuccessViewImpl());
 					}
-				}else{
+				} else {
 					mainLayout = new MainLayoutImpl(appLayerFactory);
 					//				if (isRightToLeft()) {
 					//					mainLayout.addStyleName("right-to-left");
 					//				}
-
 					setContent(mainLayout);
 				}
-
-
 
 				Navigator navigator = getNavigator();
 				navigator.addViewChangeListener(new ViewChangeListener() {

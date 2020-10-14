@@ -12,6 +12,7 @@ import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
@@ -388,7 +389,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		schemaPresenterUtils.fillRecordUsingRecordVO(record, getFolderVO(), false);
 		Folder folder = rmSchemas().wrapFolder(record);
 		if (!canSaveFolder(folder, getCurrentUser())) {
-			view.showMessage($("AddEditDocumentView.noPermissionToSaveDocument"));
+			view.showMessage($("AddEditFolderView.noPermissionToSaveFolder"));
 			return;
 		} else if (Boolean.TRUE.equals(folder.getBorrowed())) {
 			String borrowingUserId = folder.getBorrowUser();
@@ -1137,8 +1138,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	private boolean canSaveFolder(Folder folder, User user) {
+		FolderRecordActionsServices folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		if (!addView) {
-			return true;
+			return folderRecordActionsServices.isEditActionPossible(folder.getWrappedRecord(), user);
 		}
 
 		if (folder.getParentFolder() == null) {
@@ -1151,14 +1153,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 
 		Folder parent = rmSchemas().getFolder(folder.getParentFolder());
-		switch (parent.getPermissionStatus()) {
-			case ACTIVE:
-				return user.has(RMPermissionsTo.CREATE_SUB_FOLDERS).on(parent);
-			case SEMI_ACTIVE:
-				return user.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_SEMIACTIVE_FOLDERS).on(parent);
-			default:
-				return user.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_INACTIVE_FOLDERS).on(parent);
-		}
+		return folderRecordActionsServices.isAddSubFolderActionPossible(parent.getWrappedRecord(), user);
 	}
 
 	private DecommissioningService decommissioningService() {
