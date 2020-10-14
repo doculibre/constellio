@@ -127,7 +127,8 @@ public class PdfGeneratorAsyncAcceptanceTest extends ConstellioTest {
 			String s = "La racine du mot « grenouille » vient du latin rana";
 			String parsedContextExtract = parsedContentText.substring(parsedContentText.indexOf("La racine du mot"));
 			//assertThat(parsedContextExtract).contains(s);
-			assertThat(parsedContentText).contains("La racine du mot « grenouille » vient du latin rana");
+			assertThat(parsedContentText.replace("\u00a0", " ")).contains("La racine du mot « grenouille » vient du latin rana");
+
 		}
 	}
 }

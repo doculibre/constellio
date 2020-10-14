@@ -1,7 +1,7 @@
 package com.constellio.app.ui.acceptation;
 
-import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.model.entities.Language;
 import com.constellio.sdk.dev.tools.CompareI18nKeys;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -30,7 +30,7 @@ public class ArabicI18NAcceptationAcceptTest extends ConstellioTest {
 	@Test
 	public void ensureArabicAndFrenchLanguageFilesHaveSameKeys()
 			throws Exception {
-		assumeArabicLabelsValidated();
+		//		assumeArabicLabelsValidated();
 		ListComparisonResults<String> results = CompareI18nKeys.compare(Language.Arabic);
 
 		if (!results.getNewItems().isEmpty() || !results.getRemovedItems().isEmpty()) {
@@ -43,7 +43,7 @@ public class ArabicI18NAcceptationAcceptTest extends ConstellioTest {
 	@Test
 	public void ensureArabicAndFrenchLanguageCoreFilesHaveSameKeys()
 			throws Exception {
-		assumeArabicLabelsValidated();
+		//		assumeArabicLabelsValidated();
 
 		StringBuilder stringBuilder = new StringBuilder();
 		FoldersLocator foldersLocator = new FoldersLocator();
@@ -70,7 +70,7 @@ public class ArabicI18NAcceptationAcceptTest extends ConstellioTest {
 	@Test
 	public void ensureArabicAndFrenchLanguageEsFilesHaveSameKeys()
 			throws Exception {
-		assumeArabicLabelsValidated();
+		//		assumeArabicLabelsValidated();
 
 		StringBuilder stringBuilder = new StringBuilder();
 		FoldersLocator foldersLocator = new FoldersLocator();
@@ -87,7 +87,7 @@ public class ArabicI18NAcceptationAcceptTest extends ConstellioTest {
 	@Test
 	public void ensureArabicAndFrenchLanguageRmFilesHaveSameKeys()
 			throws Exception {
-		assumeArabicLabelsValidated();
+		//		assumeArabicLabelsValidated();
 
 		StringBuilder stringBuilder = new StringBuilder();
 		FoldersLocator foldersLocator = new FoldersLocator();
@@ -113,7 +113,7 @@ public class ArabicI18NAcceptationAcceptTest extends ConstellioTest {
 	@Test
 	public void ensureArabicAndFrenchLanguageRobotsFilesHaveSameKeys()
 			throws Exception {
-		assumeArabicLabelsValidated();
+		//		assumeArabicLabelsValidated();
 
 		StringBuilder stringBuilder = new StringBuilder();
 		FoldersLocator foldersLocator = new FoldersLocator();
@@ -131,7 +131,7 @@ public class ArabicI18NAcceptationAcceptTest extends ConstellioTest {
 	@Test
 	public void ensureArabicAndFrenchLanguageTasksFilesHaveSameKeys()
 			throws Exception {
-		assumeArabicLabelsValidated();
+		//		assumeArabicLabelsValidated();
 
 		StringBuilder stringBuilder = new StringBuilder();
 		FoldersLocator foldersLocator = new FoldersLocator();
@@ -151,7 +151,7 @@ public class ArabicI18NAcceptationAcceptTest extends ConstellioTest {
 	@Test
 	public void ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys()
 			throws Exception {
-		assumeArabicLabelsValidated();
+		//		assumeArabicLabelsValidated();
 		StringBuilder stringBuilder = new StringBuilder();
 		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("core", stringBuilder);
 		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("es", stringBuilder);
@@ -159,7 +159,7 @@ public class ArabicI18NAcceptationAcceptTest extends ConstellioTest {
 		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("rm", stringBuilder);
 		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("robots", stringBuilder);
 		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("tasks", stringBuilder);
-		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("sharepointGraphAPI", stringBuilder);
+		//		ensureArabicAndFrenchLanguageMigrationFilesHaveSameKeys("sharepointGraphAPI", stringBuilder);
 
 		String finalComparisonMessage = stringBuilder.toString();
 		if (!finalComparisonMessage.isEmpty()) {

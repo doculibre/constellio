@@ -1,14 +1,13 @@
 package com.constellio.sdk.dev.tools;
 
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -88,15 +87,13 @@ public class CompareI18nKeys {
 		return LangUtils.compare(defaultKeys, englishKeys);
 	}
 
-	public static ListComparisonResults<String> compareKeys(File i18nArabicFile, File i18nFrenchFile)
-			throws Exception {
+	public static ListComparisonResults<String> compareKeys(File i18nArabicFile, File i18nFrenchFile) {
 		List<String> defaultKeys = loadI18nKeysWithValue(i18nFrenchFile);
 		List<String> arabicKeys = loadI18nKeysWithValue(i18nArabicFile);
 		return LangUtils.compare(defaultKeys, arabicKeys);
 	}
 
-	private static List<String> loadI18nKeysWithValue(File file)
-			throws IOException {
+	private static List<String> loadI18nKeysWithValue(File file) {
 		List<String> keys = new ArrayList<>();
 
 		Map<String, String> properties = PropertyFileUtils.loadKeyValues(file);

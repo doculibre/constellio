@@ -95,7 +95,14 @@ public class WebsitesUtils {
 			resourcesDir = new File(new FoldersLocator().getSDKProject(), "sdk-resources");
 		}
 		String pathInResourcesDir = WebsitesUtils.class.getName().replace(".", File.separator) + File.separator + name;
-		return new File(resourcesDir, pathInResourcesDir);
+		File file = new File(resourcesDir, pathInResourcesDir);
+
+		if (!file.exists()) {
+			resourcesDir = new File(new FoldersLocator().getSDKProject(), "sdk-resources");
+			file = new File(resourcesDir, pathInResourcesDir);
+		}
+
+		return file;
 	}
 
 }
