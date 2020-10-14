@@ -575,16 +575,6 @@ public class RMModuleExtensions implements ModuleExtensions {
 		});
 	}
 
-	public boolean isCheckOutActionPossibleOnDocument(Document document, User user) {
-		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true, behavior ->
-				behavior.isCheckOutActionPossible(new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
-	}
-
-	public boolean isCheckInActionPossibleOnDocument(Document document, User user) {
-		return user.hasWriteAccess().on(document) && documentExtensions.getBooleanValue(true, behavior ->
-				behavior.isCheckInActionPossible(new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
-	}
-
 	public boolean isConsultLinkActionPossibleOnDocument(Document document, User user) {
 		return documentExtensions.getBooleanValue(true, (behavior -> behavior.isConsultLinkActionPossible(document, user)));
 	}

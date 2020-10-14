@@ -350,7 +350,7 @@ public class DocumentRecordActionsServices {
 	public boolean isCheckInActionPossible(Record record, User user) {
 		if (user.hasWriteAccess().on(record)) {
 			Document document = rm.wrapDocument(record);
-			if (isCheckInPossible(user, document) && rmModuleExtensions.isCheckInActionPossibleOnDocument(document, user) && isContentCheckedOut(document)) {
+			if (isCheckInPossible(user, document) && rmModuleExtensions.isCheckInActionPossibleOnDocument(document, user)) {
 				return true;
 			}
 		}
@@ -361,7 +361,7 @@ public class DocumentRecordActionsServices {
 		boolean permissionToReturnOtherUsersDocuments = user.has(RMPermissionsTo.RETURN_OTHER_USERS_DOCUMENTS)
 				.on(document.getWrappedRecord());
 		boolean email = isEmail(document);
-		return !email && document.getContent() != null &&
+		return !email && document.getContent() != null && isContentCheckedOut(document) &&
 			   (isCurrentUserBorrower(user, document.getContent()) || permissionToReturnOtherUsersDocuments);
 	}
 
@@ -370,10 +370,10 @@ public class DocumentRecordActionsServices {
 
 		if (user.hasWriteAccess().on(record)) {
 			if (isCheckOutPossible(document) &&
-				rmModuleExtensions.isCheckOutActionPossibleOnDocument(rm.wrapDocument(record), user) &&
+				rmModuleExtensions.isCheckOutActionPossibleOnDocument(document, user) &&
 				modelLayerCollectionExtensions.isRecordModifiableBy(record, user) && !modelLayerCollectionExtensions
 					.isModifyBlocked(record, user)) {
-				return rmModuleExtensions.isCheckOutActionPossibleOnDocument(document, user);
+				return true;
 			}
 		}
 		return false;

@@ -131,14 +131,6 @@ public abstract class DocumentExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
-	public ExtensionBooleanResult isCheckOutActionPossible(DocumentExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
-	}
-
-	public ExtensionBooleanResult isCheckInActionPossible(DocumentExtensionActionPossibleParams params) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
-	}
-
 	public static class DocumentExtensionActionPossibleParams {
 		private Document document;
 		private User user;
