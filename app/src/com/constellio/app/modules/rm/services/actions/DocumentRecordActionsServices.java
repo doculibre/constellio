@@ -349,26 +349,29 @@ public class DocumentRecordActionsServices {
 
 	public boolean isCheckInActionPossible(Record record, User user) {
 		if (user.hasWriteAccess().on(record)) {
-			boolean permissionToReturnOtherUsersDocuments = user.has(RMPermissionsTo.RETURN_OTHER_USERS_DOCUMENTS)
-					.on(record);
 			Document document = rm.wrapDocument(record);
-			if (isCheckInPossible(user, document) || (permissionToReturnOtherUsersDocuments && isContentCheckedOut(document))) {
-				return rmModuleExtensions.isCheckInActionPossibleOnDocument(document, user);
+			if (isCheckInPossible(user, document) && rmModuleExtensions.isCheckInActionPossibleOnDocument(document, user) && isContentCheckedOut(document)) {
+				return true;
 			}
 		}
 		return false;
 	}
 
 	private boolean isCheckInPossible(User user, Document document) {
+		boolean permissionToReturnOtherUsersDocuments = user.has(RMPermissionsTo.RETURN_OTHER_USERS_DOCUMENTS)
+				.on(document.getWrappedRecord());
 		boolean email = isEmail(document);
-		return !email && document.getContent() != null && isCurrentUserBorrower(user, document.getContent());
+		return !email && document.getContent() != null &&
+			   (isCurrentUserBorrower(user, document.getContent()) || permissionToReturnOtherUsersDocuments);
 	}
 
 	public boolean isCheckOutActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);
 
 		if (user.hasWriteAccess().on(record)) {
-			if (isCheckOutPossible(document) && modelLayerCollectionExtensions.isRecordModifiableBy(record, user) && !modelLayerCollectionExtensions
+			if (isCheckOutPossible(document) &&
+				rmModuleExtensions.isCheckOutActionPossibleOnDocument(rm.wrapDocument(record), user) &&
+				modelLayerCollectionExtensions.isRecordModifiableBy(record, user) && !modelLayerCollectionExtensions
 					.isModifyBlocked(record, user)) {
 				return rmModuleExtensions.isCheckOutActionPossibleOnDocument(document, user);
 			}
