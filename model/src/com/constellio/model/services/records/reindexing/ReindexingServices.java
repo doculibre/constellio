@@ -180,8 +180,12 @@ public class ReindexingServices {
 						}
 
 						for (Map.Entry<String, Long> entry : dataLayerFactory.getSequencesManager().getSequences().entrySet()) {
-							RecordDTO sequence = recordDao.get("seq_" + entry.getKey());
-							records.add(sequence);
+							try {
+								RecordDTO sequence = recordDao.realGet("seq_" + entry.getKey());
+								records.add(sequence);
+							} catch(Throwable t) {
+								t.printStackTrace();
+							}
 						}
 
 						try {
