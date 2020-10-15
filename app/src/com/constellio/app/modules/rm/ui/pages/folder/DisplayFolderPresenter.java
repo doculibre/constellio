@@ -347,6 +347,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		view.setFolderContent(folderContentDataProvider);
 		view.setTasks(tasksDataProvider);
+		
+		if (folderContentDataProvider.size() < 15) {
+			// Ugly workaround to avoid long grey zone under table
+			view.setAllContentItemsVisible(true);
+		}
 
 		if (hasCurrentUserPermissionToViewEvents()) {
 			eventsDataProvider = getEventsDataProvider();

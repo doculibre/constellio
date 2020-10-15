@@ -154,6 +154,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private TabSheet.SelectedTabChangeListener selectedTabChangeListener;
 
+	private boolean allContentItemsVisible;
+
 	public DisplayFolderViewImpl() {
 		this(null, false, false);
 	}
@@ -597,7 +599,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			});
 			viewerPanel.addStyleName("folder-content-table");
-			viewerPanel.setAllItemsVisible(folderContentDataProvider.size() <= 100);
+			viewerPanel.setAllItemsVisible(this.allContentItemsVisible);
 
 			if (!nestedView && (folderContentDataProvider.size() > 0 || !folderContentDataProvider.getFieldFacetValues().isEmpty())) {
 				if (facetsSliderPanel != null && facetsSliderPanel.getParent() != null) {
@@ -1142,6 +1144,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		if (viewerPanel != null) {
 			viewerPanel.closePanel();
 		}
+	}
+
+	@Override
+	public void setAllContentItemsVisible(boolean visible) {
+		this.allContentItemsVisible = visible;
 	}
 	
 }

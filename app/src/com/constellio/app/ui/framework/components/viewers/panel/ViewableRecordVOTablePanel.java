@@ -1,5 +1,20 @@
 package com.constellio.app.ui.framework.components.viewers.panel;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.peter.contextmenu.ContextMenu;
+
 import com.constellio.app.api.extensions.params.SchemaDisplayParams;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.ui.ViewableRecordVOTablePanelExtension.ViewableRecordVOTablePanelExtensionParams;
@@ -70,8 +85,6 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.JavaScript;
-import com.vaadin.ui.JavaScriptFunction;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Table;
@@ -81,22 +94,8 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
-import elemental.json.JsonArray;
+
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.peter.contextmenu.ContextMenu;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 //@com.vaadin.annotations.JavaScript({ "theme://jquery/jquery-2.1.4.min.js" })
 @Slf4j
@@ -324,6 +323,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	public void setAllItemsVisible(boolean allItemsVisible) {
 		this.allItemsVisible = allItemsVisible;
+		adjustResultsTableHeight();
+	}
+	
+	private void adjustResultsTableHeight() {
 		if (allItemsVisible && (table != null && (tableMode == TableMode.TABLE || !isPagedInListMode()))) {
 			table.setPageLength(table.size());
 		}
@@ -537,45 +540,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		//		adjustHeight();
 	}
 
-	private void adjustHeight() {
-		if (closeButtonViewerMetadataLayout.isVisible()) {
-			ConstellioUI.getCurrent().runAsync(new Runnable() {
-				@Override
-				public void run() {
-					ConstellioUI.getCurrent().access(new Runnable() {
-						@Override
-						public void run() {
-							final String functionId = "zeFunction";
-							JavaScript.getCurrent().addFunction(functionId,
-									new JavaScriptFunction() {
-										@Override
-										public void call(JsonArray arguments) {
-											if (StringUtils.isNotBlank(arguments.getString(0))) {
-												int tableBodyWrapperHeight = Integer.parseInt(StringUtils.removeEnd(arguments.getString(0), "px"));
-												int metadataPanelHeight = Integer.parseInt(StringUtils.removeEnd(arguments.getString(1), "px"));
-												int adjustedHeight = Math.max(tableBodyWrapperHeight, metadataPanelHeight) + 400;
-												ViewableRecordVOTablePanel.this.setHeight(adjustedHeight + "px");
-											}
-										}
-									});
-
-							StringBuilder js = new StringBuilder();
-							//							js.append("setTimeout(function() { ");
-							//							js.append("try { ");
-							js.append("  var tableBodyWrapperHeight =  document.getElementById('" + getId() + "').getElementsByClassName('v-table-body-wrapper')[0].style.height;");
-							js.append("  var metadataPanelHeight = document.getElementById('" + viewerMetadataPanel.getId() + "').getElementsByClassName('v-tabsheet-tabsheetpanel')[0].style.height;");
-							js.append(functionId + "(tableBodyWrapperHeight, metadataPanelHeight);");
-							//							js.append("console.info(tableBodyWrapperHeight + ', ' + metadataPanelHeight);");
-							//							js.append("} catch (err) { log.error(err.message); } ");
-							//							js.append(" }, 100);");
-							JavaScript.getCurrent().execute(js.toString());
-						}
-					});
-				}
-			}, 10, this);
-		}
-	}
-
 	protected boolean isShowThumbnailCol() {
 		return true;
 	}
@@ -697,6 +661,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				public void containerItemSetChange(ItemSetChangeEvent event) {
 					super.containerItemSetChange(event);
 					scrollToTop();
+					if (!isPaged() && allItemsVisible) {
+						adjustResultsTableHeight();
+					}
 				}
 			};
 			viewableRecordVOTable.setWidth("100%");

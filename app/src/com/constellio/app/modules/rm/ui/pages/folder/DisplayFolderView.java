@@ -86,4 +86,6 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void setDragRowsEnabled(boolean enabled);
 	
+	void setAllContentItemsVisible(boolean visible);
+	
 }
