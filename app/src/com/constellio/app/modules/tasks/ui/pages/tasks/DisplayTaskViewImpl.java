@@ -1,7 +1,7 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType;
-import com.constellio.app.modules.tasks.ui.components.TaskTable;
+import com.constellio.app.modules.tasks.ui.components.ExpandableTaskTable;
 import com.constellio.app.modules.tasks.ui.components.breadcrumb.TaskBreadcrumbTrail;
 import com.constellio.app.modules.tasks.ui.components.display.TaskDisplayFactory;
 import com.constellio.app.ui.entities.RecordVO;
@@ -133,7 +133,7 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 	@Override
 	public void setSubTasks(RecordVODataProvider dataProvider) {
-		Component table = new TaskTable(dataProvider, presenter);
+		Component table = new ExpandableTaskTable(dataProvider, presenter);
 		tabSheet.replaceComponent(subTasks, table);
 		subTasks = table;
 	}

@@ -20,7 +20,7 @@ import com.constellio.app.modules.tasks.data.trees.TaskFoldersTreeNodesDataProvi
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
+import com.constellio.app.modules.tasks.ui.components.ExpandableTaskTable.TaskPresenter;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;

@@ -1,14 +1,19 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
-import com.constellio.app.modules.tasks.ui.components.TaskTable;
-import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskDetailsComponentFactory;
+import com.constellio.app.modules.tasks.ui.components.ExpandableTaskTable;
+import com.constellio.app.modules.tasks.ui.components.ExpandableTaskTable.TaskDetailsComponentFactory;
+import com.constellio.app.modules.tasks.ui.components.FilterTableAdapter;
+import com.constellio.app.modules.tasks.ui.components.LegacyTaskTable;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.table.DemoFilterDecorator;
+import com.constellio.app.ui.framework.components.table.DemoFilterGenerator;
 import com.constellio.app.ui.framework.components.tabs.IdTabSheet;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.data.Property;
 import com.vaadin.navigator.ViewChangeListener;
@@ -240,33 +245,31 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		}
 
 		VerticalLayout layout = getEmptiedSelectedTab(tabSheet);
-		TaskTable taskTable = new TaskTable(provider, presenter);
-		taskTable.setFilterGenerator(filterGenerator);
-		taskTable.setTaskDetailsComponentFactory(taskDetailsComponentFactory);
+		Component taskTable = null;
+		if (Toggle.SHOW_LEGACY_TASK_TABLE.isEnabled()) {
+			LegacyTaskTable unfilteredTable = new LegacyTaskTable(provider, presenter);
+			unfilteredTable.setTaskDetailsComponentFactory(taskDetailsComponentFactory);
 
-		//		FilterTableAdapter tableAdapter = new FilterTableAdapter(taskTable.getTable(), new DemoFilterDecorator(), new DemoFilterGenerator());
-		//
-		//		// cas uniquement pour l'exemple
-		//		tableAdapter.setFilterFieldVisible("menuBar", false);
-		//		tableAdapter.setFilterBarVisible(true);
+			FilterTableAdapter tableAdapter;
+			if (filterGenerator == null) {
+				tableAdapter = new FilterTableAdapter(unfilteredTable, new DemoFilterDecorator(), new DemoFilterGenerator());
+			} else {
+				tableAdapter = new FilterTableAdapter(unfilteredTable, new DemoFilterDecorator(), filterGenerator);
+			}
 
+			// cas uniquement pour l'exemple
+			tableAdapter.setFilterFieldVisible("menuBar", false);
+			tableAdapter.setFilterBarVisible(true);
 
-		//		String starredByUserCode = Task.DEFAULT_SCHEMA + "_" + Task.STARRED_BY_USERS;
-		//		String workflouwExecutionCode = Task.DEFAULT_SCHEMA + "_" + "linkedWorkflowExecution";
-		//		String titleCode = Task.DEFAULT_SCHEMA + "_" + Task.TITLE;
-		//		for(Object visibleColumn : taskTable.getVisibleColumns()){
-		//			if (visibleColumn instanceof MetadataVO) {
-		//				if (starredByUserCode.equals(((MetadataVO) visibleColumn).getCode()) || workflouwExecutionCode.equals(((MetadataVO) visibleColumn).getCode())) {
-		//					tableAdapter.setColumnExpandRatio(visibleColumn, 1);
-		//				}
-		//				if(titleCode.equals(((MetadataVO)visibleColumn).getCode())){
-		//					tableAdapter.setColumnExpandRatio(visibleColumn, 0);
-		//				}
-		//			}
-		//		}
+			taskTable = tableAdapter;
+		} else {
+			ExpandableTaskTable expandableTaskTable = new ExpandableTaskTable(provider, presenter);
+			expandableTaskTable.setFilterGenerator(filterGenerator);
+
+			taskTable = expandableTaskTable;
+		}
 
 		layout.addComponent(taskTable);
-		//layout.addComponent(new BaseFilteringTable());
 	}
 
 	//	@Override

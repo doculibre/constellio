@@ -1,32 +1,18 @@
 package com.constellio.app.ui.framework.components.table;
 
-import com.constellio.app.ui.framework.components.table.BaseFilteringTable.State;
 import com.vaadin.data.Container;
-import com.vaadin.data.Container.Filter;
 import com.vaadin.data.util.IndexedContainer;
-import com.vaadin.data.util.filter.Compare;
-import com.vaadin.server.Resource;
-import com.vaadin.server.ThemeResource;
-import com.vaadin.shared.ui.datefield.Resolution;
-import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
-import org.tepi.filtertable.FilterDecorator;
-import org.tepi.filtertable.FilterGenerator;
 import org.tepi.filtertable.FilterTable;
-import org.tepi.filtertable.numberfilter.NumberFilterPopupConfig;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Locale;
 import java.util.Random;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class BaseFilteringTable extends CustomComponent {
 
@@ -126,168 +112,3 @@ public class BaseFilteringTable extends CustomComponent {
 	}
 }
 
-class DemoFilterGenerator implements FilterGenerator {
-
-	@Override
-	public Filter generateFilter(Object propertyId, Object value) {
-		if ("id".equals(propertyId)) {
-			/* Create an 'equals' filter for the ID field */
-			if (value != null && value instanceof String) {
-				try {
-					return new Compare.Equal(propertyId,
-							Integer.parseInt((String) value));
-				} catch (NumberFormatException ignored) {
-					// If no integer was entered, just generate default filter
-				}
-			}
-		}
-		// For other properties, use the default filter
-		return null;
-	}
-
-	@Override
-	public Filter generateFilter(Object propertyId, Field<?> originatingField) {
-		Object value = originatingField.getValue();
-		return generateFilter(propertyId, value);
-	}
-
-	@Override
-	public AbstractField<?> getCustomFilterComponent(Object propertyId) {
-		return null;
-	}
-
-	@Override
-	public void filterRemoved(Object propertyId) {
-	}
-
-	@Override
-	public void filterAdded(Object propertyId, Class<? extends Filter> filterType, Object value) {
-	}
-
-	@Override
-	public Filter filterGeneratorFailed(Exception reason, Object propertyId, Object value) {
-		return null;
-	}
-
-}
-
-class DemoFilterDecorator implements FilterDecorator {
-
-	@Override
-	public String getEnumFilterDisplayName(Object propertyId, Object value) {
-		if ("state".equals(propertyId)) {
-			State state = (State) value;
-			switch (state) {
-				case CREATED:
-					return "Order has been created";
-				case PROCESSING:
-					return "Order is being processed";
-				case PROCESSED:
-					return "Order has been processed";
-				case FINISHED:
-					return "Order is delivered";
-			}
-		}
-		// returning null will output default value
-		return null;
-	}
-
-	@Override
-	public Resource getEnumFilterIcon(Object propertyId, Object value) {
-		if ("state".equals(propertyId)) {
-			State state = (State) value;
-			switch (state) {
-				case CREATED:
-					return new ThemeResource("../runo/icons/16/document.png");
-				case PROCESSING:
-					return new ThemeResource("../runo/icons/16/reload.png");
-				case PROCESSED:
-					return new ThemeResource("../runo/icons/16/ok.png");
-				case FINISHED:
-					return new ThemeResource("../runo/icons/16/globe.png");
-			}
-		}
-		return null;
-	}
-
-	@Override
-	public String getBooleanFilterDisplayName(Object propertyId, boolean value) {
-		if ("validated".equals(propertyId)) {
-			return value ? "Validated" : "Not validated";
-		}
-		// returning null will output default value
-		return null;
-	}
-
-	@Override
-	public Resource getBooleanFilterIcon(Object propertyId, boolean value) {
-		if ("validated".equals(propertyId)) {
-			return value ? new ThemeResource("../runo/icons/16/ok.png")
-						 : new ThemeResource("../runo/icons/16/cancel.png");
-		}
-		return null;
-	}
-
-	@Override
-	public Locale getLocale() {
-		// will use the application locale
-		return null;
-	}
-
-	@Override
-	public String getFromCaption() {
-		return ":"+$("StatisticsView.startDate");
-	}
-
-	@Override
-	public String getToCaption() {
-		return ":"+$("StatisticsView.endDate");
-	}
-
-	@Override
-	public String getSetCaption() {
-		// use default caption
-		return null;
-	}
-
-	@Override
-	public String getClearCaption() {
-		return null;
-	}
-
-	@Override
-	public boolean isTextFilterImmediate(Object propertyId) {
-		return false;
-	}
-
-	@Override
-	public int getTextChangeTimeout(Object propertyId) {
-		return 0;
-	}
-
-	@Override
-	public Resolution getDateFieldResolution(Object propertyId) {
-		return null;
-	}
-
-	@Override
-	public String getDateFormatPattern(Object propertyId) {
-		return null;
-	}
-
-	@Override
-	public String getAllItemsVisibleString() {
-		return null;
-	}
-
-	@Override
-	public NumberFilterPopupConfig getNumberFilterPopupConfig() {
-		return null;
-	}
-
-	@Override
-	public boolean usePopupForNumericProperty(Object propertyId) {
-		return false;
-	}
-
-}

@@ -139,6 +139,8 @@ public class Toggle {
 	public static AvailableToggle ENABLE_SIGNATURE = newToggle(false);
 
 
+	public static AvailableToggle SHOW_LEGACY_TASK_TABLE = newToggle(false);
+
 
 	// ------------------------------------------------
 
