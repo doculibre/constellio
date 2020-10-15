@@ -48,6 +48,9 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	public static final String RECOVERY_FOLDER = "vaultrecoveryfolder";
 	private static final String COPY_RECEIVED_STREAM_TO_FILE = "FileSystemContentDao-CopyReceivedStreamToFile";
 
+	@VisibleForTesting
+	DataLayerFactory dataLayerFactory;
+
 	IOServices ioServices;
 
 	@VisibleForTesting
@@ -73,6 +76,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	}
 
 	public FileSystemContentDao(DataLayerFactory dataLayerFactory, List<String> subVaults) {
+		this.dataLayerFactory = dataLayerFactory;
 		this.ioServices = dataLayerFactory.getIOServicesFactory().newIOServices();
 		this.configuration = dataLayerFactory.getDataLayerConfiguration();
 		this.extensions = dataLayerFactory.getExtensions().getSystemWideExtensions();
@@ -89,12 +93,10 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 			createRootRecoveryDirectory();
 		}
 		this.subvaults = subVaults;
-
-		testCaseSensivityIfNeeded(dataLayerFactory);
 	}
 
 
-	private void testCaseSensivityIfNeeded(DataLayerFactory dataLayerFactory) {
+	private void testCaseSensivityIfNeeded() {
 		boolean isDistribuedAndLeader = dataLayerFactory.isDistributed() &&
 										dataLayerFactory.getLeaderElectionService().isCurrentNodeLeader();
 		boolean isNotDistribued = !dataLayerFactory.isDistributed();
@@ -227,7 +229,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	@Override
 	public void initialize() {
-
+		testCaseSensivityIfNeeded();
 	}
 
 	@Override
