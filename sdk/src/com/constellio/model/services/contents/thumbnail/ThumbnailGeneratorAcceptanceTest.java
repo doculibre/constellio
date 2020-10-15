@@ -73,8 +73,10 @@ public class ThumbnailGeneratorAcceptanceTest extends ConstellioTest {
 
     @Test(expected=UnsupportedOperationException.class)
     public void testUnsupportedMimeTypeThrowsException() throws Exception {
-        thumbnailGenerator.generate(
-                new FileInputStream(newTempFileWithContent("test.txt", "Test")), MimeTypes.MIME_TEXT_PLAIN);
+
+        try (InputStream in = new FileInputStream(newTempFileWithContent("test.txt", "Test"))) {
+            thumbnailGenerator.generate(in, MimeTypes.MIME_TEXT_PLAIN);
+        }
     }
 
     @Test(expected=UnsupportedOperationException.class)
@@ -98,14 +100,15 @@ public class ThumbnailGeneratorAcceptanceTest extends ConstellioTest {
 
         long sum = 0;
         for (int i = 0; i < tries; i++) {
-            InputStream stream = new FileInputStream(file);
+            try (InputStream stream = new FileInputStream(file)) {
 
-            long t0 = System.currentTimeMillis();
-            this.filename = filename;
-            thumbnail = thumbnailGenerator.generate(stream, mimeType);
-            sum += time(t0);
+                long t0 = System.currentTimeMillis();
+                this.filename = filename;
+                thumbnail = thumbnailGenerator.generate(stream, mimeType);
+                sum += time(t0);
 
-            //ImageIO.write(thumbnail, "png", new File(filename));
+                //ImageIO.write(thumbnail, "png", new File(filename));
+            }
         }
         average(sum, tries);
     }

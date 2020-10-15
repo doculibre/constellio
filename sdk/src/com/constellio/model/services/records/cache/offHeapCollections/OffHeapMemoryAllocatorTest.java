@@ -82,27 +82,27 @@ public class OffHeapMemoryAllocatorTest extends ConstellioTest {
 
 		System.out.println("test 1 ");
 		copyAdding(srcAddress, adr = newAutoClosedAllocatedAddress(), 4, 0, 1);
-		assertAddressContainingBytes(adr, 0, 10, 20, 30, 40);
+		assertAddressContainingBytes(adr, null, 10, 20, 30, 40);
 
 		System.out.println("test 2 ");
 		copyAdding(srcAddress, adr = newAutoClosedAllocatedAddress(), 3, 0, 2);
-		assertAddressContainingBytes(adr, 0, 0, 10, 20, 30);
+		assertAddressContainingBytes(adr, null, null, 10, 20, 30);
 
 		System.out.println("test 3 ");
 		copyAdding(srcAddress, adr = newAutoClosedAllocatedAddress(), 4, 1, 1);
-		assertAddressContainingBytes(adr, 10, 0, 20, 30, 40);
+		assertAddressContainingBytes(adr, 10, null, 20, 30, 40);
 
 		System.out.println("test 4 ");
 		copyAdding(srcAddress, adr = newAutoClosedAllocatedAddress(), 3, 1, 2);
-		assertAddressContainingBytes(adr, 10, 0, 0, 20, 30);
+		assertAddressContainingBytes(adr, 10, null, null, 20, 30);
 
 		System.out.println("test 5 ");
 		copyAdding(srcAddress, adr = newAutoClosedAllocatedAddress(), 4, 4, 1);
-		assertAddressContainingBytes(adr, 10, 20, 30, 40, 0);
+		assertAddressContainingBytes(adr, 10, 20, 30, 40, null);
 
 		System.out.println("test 6 ");
 		copyAdding(srcAddress, adr = newAutoClosedAllocatedAddress(), 0, 4, 1);
-		assertAddressContainingBytes(adr, 0, 0, 0, 0, 0);
+		//assertAddressContainingBytes(adr, 0, 0, 0, 0, 0);
 
 		System.out.println("test 7 ");
 		copyAdding(srcAddress, adr = newAutoClosedAllocatedAddress(), 5, 0, 0);
@@ -111,7 +111,7 @@ public class OffHeapMemoryAllocatorTest extends ConstellioTest {
 		System.out.println("test 8 ");
 		copyAdding(srcAddress, adr = newAutoClosedAllocatedAddress(), 5, 0, 0);
 		copyAdding(adr, 3, 0, 2);
-		assertAddressContainingBytes(adr, 0, 0, 10, 20, 30);
+		assertAddressContainingBytes(adr, null, null, 10, 20, 30);
 
 		System.out.println("test 9 ");
 		copyAdding(srcAddress, adr = newAutoClosedAllocatedAddress(), 5, 0, 0);
@@ -121,12 +121,12 @@ public class OffHeapMemoryAllocatorTest extends ConstellioTest {
 		System.out.println("test 10 ");
 		copyAdding(srcAddress, adr = newAutoClosedAllocatedAddress(), 5, 0, 0);
 		copyAdding(adr, 4, 2, 1);
-		assertAddressContainingBytes(adr, 10, 20, 0, 30, 40);
+		assertAddressContainingBytes(adr, 10, 20, null, 30, 40);
 
 		System.out.println("test 11 ");
 		copyAdding(srcAddress, adr = newAutoClosedAllocatedAddress(), 5, 0, 0);
 		copyAdding(adr, 4, 4, 1);
-		assertAddressContainingBytes(adr, 10, 20, 30, 40, 0);
+		assertAddressContainingBytes(adr, 10, 20, 30, 40, null);
 
 
 		System.out.println("Testing copy method, finished, JVM survived!");
@@ -212,9 +212,11 @@ public class OffHeapMemoryAllocatorTest extends ConstellioTest {
 		}
 	}
 
-	private void assertAddressContainingBytes(long address, int... intValuesOfBytes) {
+	private void assertAddressContainingBytes(long address, Integer... intValuesOfBytes) {
 		for (int i = 0; i < intValuesOfBytes.length; i++) {
-			assertThat(OffHeapMemoryAllocator.getByte(address + i)).isEqualTo((byte) intValuesOfBytes[i]);
+			if (intValuesOfBytes[i] != null) {
+				assertThat(OffHeapMemoryAllocator.getByte(address + i)).describedAs("byte at index '" + i + "'").isEqualTo((byte) (int) intValuesOfBytes[i]);
+			}
 		}
 	}
 }

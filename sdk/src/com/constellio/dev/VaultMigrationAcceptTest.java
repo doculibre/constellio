@@ -349,7 +349,8 @@ public class VaultMigrationAcceptTest extends ConstellioTest {
 
 		StringBuilderActionLogger logger = new StringBuilderActionLogger();
 		script.execute(logger, new ScriptParameterValues(new HashMap<ScriptParameter, Object>()));
-		assertThat(logger.getReport()).isEqualTo(getTestResourceContent("verificationOK.txt"));
+		assertThat(logger.getReport().replace("\n", "").replace("\r", "")).isEqualTo(
+				getTestResourceContent("verificationOK.txt").replace("\n", "").replace("\r", ""));
 	}
 
 }
