@@ -1136,9 +1136,13 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			folderForm.setFieldVisible(dynamicFieldMetadata, visible);
 		}
 	}
+	
+	FolderRecordActionsServices newFolderRecordActionsServices() {
+		return new FolderRecordActionsServices(collection, appLayerFactory);
+	} 
 
 	private boolean canSaveFolder(Folder folder, User user) {
-		FolderRecordActionsServices folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
+		FolderRecordActionsServices folderRecordActionsServices = newFolderRecordActionsServices();
 		if (!addView) {
 			return folderRecordActionsServices.isEditActionPossible(folder.getWrappedRecord(), user);
 		}

@@ -3,12 +3,15 @@ package com.constellio.app.modules.rm.ui.pages.folder;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
@@ -55,6 +58,7 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 	MetadataSchemasManager metadataSchemasManager;
 	RecordServices recordServices;
 	UserServices userServices;
+	@Mock FolderRecordActionsServices folderRecordActionsServices;
 
 	@Before
 	public void setUp()
@@ -82,6 +86,7 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 		when(view.navigate()).thenReturn(navigator);
 
 		presenter = spy(new AddEditFolderPresenter(view, null));
+		when(presenter.newFolderRecordActionsServices()).thenReturn(folderRecordActionsServices);
 
 		doNothing().when(presenter).navigateToFolderDisplay(any(String.class));
 
@@ -134,6 +139,8 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 
 	@Test
 	public void givenEditedFolderInNewContainerWithEnoughSizeThanNoErrorMessage() {
+		when(folderRecordActionsServices.isEditActionPossible(any(Record.class), any(User.class))).thenReturn(true);
+		
 		presenter.forParams("");
 		FolderVO folderVO = buildFolderVO();
 		folderVO.setLinearSize(50.0);
@@ -152,6 +159,8 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 
 	@Test
 	public void givenEditedFolderInNewContainerWithoutEnoughSizeThanErrorThrown() {
+		when(folderRecordActionsServices.isEditActionPossible(any(Record.class), any(User.class))).thenReturn(true);
+		
 		presenter.forParams("");
 		FolderVO folderVO = buildFolderVO();
 		folderVO.setLinearSize(50.0);
@@ -170,6 +179,8 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 
 	@Test
 	public void givenEditedFolderInOldContainerWithEnoughSizeThanNoErrorMessage() {
+		when(folderRecordActionsServices.isEditActionPossible(any(Record.class), any(User.class))).thenReturn(true);
+		
 		presenter.forParams("testBoite100");
 		FolderVO folderVO = buildFolderVO();
 		folderVO.setLinearSize(50.0);
@@ -188,6 +199,8 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 
 	@Test
 	public void givenEditedFolderInOldContainerWithoutEnoughSizeThanErrorThrown() {
+		when(folderRecordActionsServices.isEditActionPossible(any(Record.class), any(User.class))).thenReturn(true);
+		
 		presenter.forParams("testBoite100");
 		FolderVO folderVO = buildFolderVO();
 		folderVO.setLinearSize(50.0);
