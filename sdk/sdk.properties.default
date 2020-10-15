@@ -22,14 +22,16 @@ dao.contents.type=filesystem
 dao.settings.type=filesystem
 
 # === RUN/SKIP TESTS CONFIGURATION ===
-skip.slowtests=true
+skip.slowtests=false
 skip.uitests=true
 skip.drivertests=true
 skip.loadtests=true
 skip.internettests=true
 skip.indevelopment=true
+skip.importtests=true
 skip.testsWithGradle=false
 
+external.resources=/path/to/external/resources
 
 tests.whitelist=
 tests.blacklist=

@@ -1,5 +1,6 @@
 package com.constellio.sdk.tests;
 
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.sdk.tests.annotations.CloudTest;
 import com.constellio.sdk.tests.annotations.DoNotRunOnIntegrationServer;
 import com.constellio.sdk.tests.annotations.DriverTest;
@@ -13,12 +14,16 @@ import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.PerformanceTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.annotations.UiTest;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Method;
@@ -29,6 +34,8 @@ import java.util.Map;
 import static java.util.Arrays.asList;
 
 public class SkipTestsRule implements TestRule {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(SkipTestsRule.class);
 
 	String currentTestName;
 	boolean isUnitMode;
@@ -85,6 +92,28 @@ public class SkipTestsRule implements TestRule {
 			this.skipUI = skipAllTests || "true".equals(properties.get("skip.uitests"));
 			this.whiteList = getFilterList("tests.whitelist", properties);
 			this.blackList = getFilterList("tests.blacklist", properties);
+
+			File excludedTests = new File(new FoldersLocator().getPluginsSDKProject(), "ignored-tests.txt");
+			if (excludedTests.exists()) {
+				try {
+					List<String> lines = FileUtils.readLines(excludedTests, "UTF-8");
+
+					for (String line : lines) {
+						line = line.trim();
+						if (whiteList == null || !whiteList.contains(line)) {
+							if (!blackList.contains(line)) {
+								blackList.add(line);
+							}
+						}
+					}
+
+				} catch (Throwable t) {
+					LOGGER.warn("Error while reading ignored-tests.txt", t);
+				}
+			} else {
+				LOGGER.warn("ignored-tests.txt does not exist");
+			}
+
 			this.skipCloud = !"cloud".equals(properties.get("dao.records.type"));
 			this.skipIgnite = !"ignite".equals(properties.get("dao.cache"));
 
