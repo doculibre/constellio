@@ -90,7 +90,7 @@ $popup-view-z-index: 3;
 	.v-slot-setup-panel {
 		overflow-y: auto;
 	}
-
+	
 	.popupContent {
 		div[class*="v-filterselect-"] {
 			opacity: 1.0;
@@ -2785,13 +2785,23 @@ $popup-view-z-index: 3;
 		    position: relative;
   		}
   		
+  		.v-slot-close-viewer-button {
+  			line-height: initial;
+  		}
+  		
   		.close-viewer-button {
   			position: relative;
-  			top: -4px;
+  			top: 2px;
   			z-index: 12;
   			color: #197de1;
   			font-size: 24px;
+  			height: initial;
   		}
+  		
+     	/* IE10+ CSS styles go here */
+     	_:-ms-lang(x), .close-viewer-button {
+     		top: -6px;
+     	}
 
   		.table-buttons-layout {
 			border-bottom: 1px solid rgb(213, 213, 213);
@@ -2812,27 +2822,33 @@ $popup-view-z-index: 3;
   			}
   		}
 
-		.viewable-record-table-drag .viewer-results-table-thumbnail .v-table-cell-wrapper {
-			position:relative;
+		.viewable-record-table-drag {
+			.v-table-body {
+				box-shadow: initial;
+			}
+			
+			.viewer-results-table-thumbnail .v-table-cell-wrapper {
+				position:relative;
 
-    		&:before {
-			    position:absolute;
-    			content: "\F0C9";
-			    font-family: FontAwesome;
-			    top: 24px;
-			    left: -8px;
-				width: 4px;
-    		}
+    			&:before {
+			    	position:absolute;
+    				content: "\F0C9";
+			    	font-family: FontAwesome;
+			    	top: 24px;
+			    	left: -8px;
+					width: 4px;
+    			}
 
-    		&:hover:before {
-    			cursor: move;
-    		}
+    			&:hover:before {
+	    			cursor: move;
+    			}
 
-    		img {
-    			margin-left: 2px;
-    		}
+    			img {
+	    			margin-left: 2px;
+    			}
 
-		}
+			}
+		}	
 
   		.viewable-record-table {
   			
@@ -3600,7 +3616,7 @@ $popup-view-z-index: 3;
 
 					.viewer-metadata-panel {
 						position: relative;
-						top: -48px;
+						top: -40px;
 
 						.action-menu-bar {
 							right: -20px;
@@ -3614,6 +3630,7 @@ $popup-view-z-index: 3;
 							position: relative;
 							top: 32px;
 							overflow-x: hidden;
+							overflow-y: hidden;
 						}
 
 						.v-ddwrapper {

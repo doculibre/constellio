@@ -231,7 +231,7 @@ public class BaseTable extends Table implements SelectionComponent {
 	}
 
 	protected void scrollToTop() {
-		JavaScript.getCurrent().execute("document.getElementById('" + getId() + "').scrollIntoView();");
+		JavaScript.getCurrent().execute("setTimeout(function() {document.getElementById('" + getId() + "').scrollIntoView();}, 100);");
 	}
 
 	//	public void addRefreshRenderedCellsEventListener(RefreshRenderedCellsEvent refreshRenderedCellsEvent) {

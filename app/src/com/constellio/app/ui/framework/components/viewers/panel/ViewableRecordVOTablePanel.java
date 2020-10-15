@@ -656,13 +656,14 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					}
 					return recordVO;
 				}
-
+				
 				@Override
 				public void containerItemSetChange(ItemSetChangeEvent event) {
 					super.containerItemSetChange(event);
-					scrollToTop();
 					if (!isPaged() && allItemsVisible) {
 						adjustResultsTableHeight();
+//					} else {
+//						scrollToTop();
 					}
 				}
 			};

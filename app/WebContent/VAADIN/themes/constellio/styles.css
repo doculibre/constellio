@@ -15510,12 +15510,21 @@ div.v-layout.v-horizontal.v-widget {
 	position: relative;
 }
 
+.constellio .viewable-record-table-panel .v-slot-close-viewer-button {
+	line-height: initial;
+}
+
 .constellio .viewable-record-table-panel .close-viewer-button {
 	position: relative;
-	top: -4px;
+	top: 2px;
 	z-index: 12;
 	color: #197de1;
 	font-size: 24px;
+	height: initial;
+}
+
+.constellio .viewable-record-table-panel _:-ms-lang(x), .constellio .viewable-record-table-panel .close-viewer-button {
+	top: -6px;
 }
 
 .constellio .viewable-record-table-panel .table-buttons-layout {
@@ -15533,6 +15542,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .viewable-record-table-panel .viewable-record-table-table-mode .v-table-row-nullviewer-results-table-tableMode {
 	cursor: pointer;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table-drag .v-table-body {
+	box-shadow: initial;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table-drag .viewer-results-table-thumbnail .v-table-cell-wrapper {
@@ -16243,7 +16256,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .viewer-metadata-panel {
 	position: relative;
-	top: -48px;
+	top: -40px;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .viewer-metadata-panel .action-menu-bar {
@@ -16254,6 +16267,7 @@ div.v-layout.v-horizontal.v-widget {
 	position: relative;
 	top: 32px;
 	overflow-x: hidden;
+	overflow-y: hidden;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .main-component-wrapper .viewer-metadata-panel .v-ddwrapper {
