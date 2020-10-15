@@ -101,6 +101,9 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 			String ipAddress = request.getRemoteAddr();
 			user = new ExternalAccessUser(tempUserRecord, types, roles, externalAccessUrl, ipAddress);
 		} else {
+//			HttpSessionContext httpSessionContext = new HttpSessionContext(request);
+//			UserVO userVO = httpSessionContext.getCurrentUser();
+//			user = userVO != null ? getUser(userVO.getUsername(), collection) : null;
 			user = null;
 		}
 		if (user != null) {
