@@ -55,8 +55,8 @@ public class SkipTestsRule implements TestRule {
 	boolean skipIgnite;
 	private boolean inDevelopmentTest;
 	private boolean mainTest;
-	private List<String> whiteList;
-	private List<String> blackList;
+	private static List<String> whiteList;
+	private static List<String> blackList;
 	private Class<? extends AbstractConstellioTest> currentTestClass;
 	private static String firstClassname;
 	private static String firstTestname;
@@ -71,9 +71,6 @@ public class SkipTestsRule implements TestRule {
 		Map<String, String> systemProperties = bean.getSystemProperties();
 
 		sunJavaCommand = systemProperties.get("sun.java.command");
-		this.whiteList = new ArrayList<>();
-		this.blackList = new ArrayList<>();
-
 		this.isUnitMode = isUnitMode;
 		if (!isUnitMode) {
 			Map<String, String> properties = sdkPropertiesLoader.getSDKProperties();
@@ -90,29 +87,41 @@ public class SkipTestsRule implements TestRule {
 			this.skipTestsWithGradle = skipAllTests || !("false".equals(properties.get("skip.testsWithGradle")));
 			this.runPerformance = "true".equals(properties.get("run.performancetests"));
 			this.skipUI = skipAllTests || "true".equals(properties.get("skip.uitests"));
-			this.whiteList = getFilterList("tests.whitelist", properties);
-			this.blackList = getFilterList("tests.blacklist", properties);
 
-			File excludedTests = new File(new FoldersLocator().getPluginsSDKProject(), "ignored-tests.txt");
-			if (excludedTests.exists()) {
+			if (whiteList != null) {
 				try {
-					List<String> lines = FileUtils.readLines(excludedTests, "UTF-8");
+					File excludedTests = new File(new FoldersLocator().getPluginsSDKProject(), "ignored-tests.txt");
+					whiteList = new ArrayList<>();
+					blackList = new ArrayList<>();
 
-					for (String line : lines) {
-						line = line.trim();
-						if (whiteList == null || !whiteList.contains(line)) {
-							if (!blackList.contains(line)) {
-								blackList.add(line);
+
+					this.whiteList = getFilterList("tests.whitelist", properties);
+					this.blackList = getFilterList("tests.blacklist", properties);
+
+					if (excludedTests.exists()) {
+						try {
+							List<String> lines = FileUtils.readLines(excludedTests, "UTF-8");
+
+							for (String line : lines) {
+								line = line.trim();
+								if (whiteList == null || !whiteList.contains(line)) {
+									if (!blackList.contains(line)) {
+										blackList.add(line);
+									}
+								}
 							}
-						}
-					}
 
+						} catch (Throwable t) {
+							LOGGER.warn("Error while reading ignored-tests.txt", t);
+						}
+					} else {
+						LOGGER.warn("ignored-tests.txt does not exist");
+					}
 				} catch (Throwable t) {
-					LOGGER.warn("Error while reading ignored-tests.txt", t);
+
 				}
-			} else {
-				LOGGER.warn("ignored-tests.txt does not exist");
 			}
+
 
 			this.skipCloud = !"cloud".equals(properties.get("dao.records.type"));
 			this.skipIgnite = !"ignite".equals(properties.get("dao.cache"));
@@ -349,7 +358,7 @@ public class SkipTestsRule implements TestRule {
 	}
 
 	private boolean isClassFiltered(Class<?> testClass) {
-		if (!whiteList.isEmpty()) {
+		if (whiteList != null && !whiteList.isEmpty()) {
 			for (String whiteFilter : whiteList) {
 				if (isFilteredBy(testClass, whiteFilter)) {
 					for (String blackFilter : blackList) {
@@ -362,7 +371,7 @@ public class SkipTestsRule implements TestRule {
 			}
 
 			return true;
-		} else if (!blackList.isEmpty()) {
+		} else if (blackList != null && !blackList.isEmpty()) {
 			for (String blackFilter : blackList) {
 				if (isFilteredBy(testClass, blackFilter)) {
 					return true;

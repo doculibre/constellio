@@ -195,8 +195,13 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			throws Exception {
 		//-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager
 		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
-		System.setProperty("log4j.configurationFile", new FoldersLocator().getSDKProject().getAbsolutePath() +
-													  File.separator + "log4j2.xml");
+
+		try {
+			System.setProperty("log4j.configurationFile", new FoldersLocator().getSDKProject().getAbsolutePath() +
+														  File.separator + "log4j2.xml");
+		} catch(Throwable t) {
+			t.printStackTrace();
+		}
 
 		PluginManager.addPackage("com.constellio.app.services.factories");
 		log = LogManager.getLogger(AbstractConstellioTest.class);
