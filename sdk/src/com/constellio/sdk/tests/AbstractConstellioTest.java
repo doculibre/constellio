@@ -78,6 +78,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.plugins.util.PluginManager;
@@ -1712,6 +1713,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected void assumeNotSolrCloud() {
 		assumeTrue("http".equals(sdkProperties.get("dao.records.type")));
+	}
+
+	protected void assumeNotWindows() {
+		assumeTrue(!SystemUtils.IS_OS_WINDOWS);
 	}
 
 	protected void assumeSolrSearch() {

@@ -14,7 +14,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServices;
-import com.constellio.sdk.tests.AbstractConstellioTest;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
@@ -78,7 +77,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 	public void createReportLabelAndAssignData()
 			throws Exception {
 		String title = "test REcords 1";
-		File file = getFile("Avery_5162_Vide.jasper");
+		File file = getTestResourceFile("Avery_5162_Vide.jasper");
 		ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file.getAbsolutePath()), "Etiquette")
 				.getContentVersionDataSummary();
 		Content c = contentManager.createSystemContent("test-" + LocalDate.now() + ".jasper", upload);
@@ -103,7 +102,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 	public void createRecordsLabelAndAssignData()
 			throws Exception {
 		String title = "Test records 2";
-		File file = getFile("Avery_5162_Vide.jasper");
+		File file = getTestResourceFile("Avery_5162_Vide.jasper");
 		ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file.getAbsolutePath()), "Etiquette")
 				.getContentVersionDataSummary();
 		Content c = contentManager.createSystemContent("test-" + LocalDate.now() + ".jasper", upload);
@@ -466,12 +465,6 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 		}
 	}
 
-	private static File getFile(String name) {
-		File resourcesDir = AbstractConstellioTest.getResourcesDir();
-		String pathInResourcesDir =
-				ReportsRecordsAcceptTest.class.getName().replace(".", File.separator) + File.separator + name;
-		return new File(resourcesDir, pathInResourcesDir);
-	}
 
 	/**
 	 * Collect each name and each value of every metadata of the XML files.

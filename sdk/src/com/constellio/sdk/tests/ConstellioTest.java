@@ -3,6 +3,7 @@ package com.constellio.sdk.tests;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.InclassToggle;
+import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.dev.Toggle.AvailableToggle;
 import com.constellio.model.entities.records.Record;

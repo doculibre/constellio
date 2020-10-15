@@ -714,8 +714,10 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 	public void whenIndexingAWebSiteWithDuplicatedPagesThenDoNot()
 			throws Exception {
 
+		assumeNotWindows();
 		givenTestWebsiteInState1();
 		givenDataSet1Connector();
+
 
 		// *
 		// * ----------------- Fully fetching website in version 1 --------------

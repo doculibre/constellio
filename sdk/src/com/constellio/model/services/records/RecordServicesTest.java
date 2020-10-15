@@ -36,6 +36,7 @@ import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModifications;
 import com.constellio.model.services.encrypt.EncryptionServices;
@@ -135,6 +136,7 @@ public class RecordServicesTest extends ConstellioTest {
 	@Mock RecordMigrationsManager recordMigrationsManager;
 	@Mock ConstellioEIMConfigs systemConfigs;
 	ModelLayerExtensions extensions = new ModelLayerExtensions();
+	@Mock SystemConfigurationsManager systemConfigurationsManager;
 
 	long firstVersion = anInteger();
 	long secondVersion = anInteger();
@@ -270,6 +272,8 @@ public class RecordServicesTest extends ConstellioTest {
 		when(modelFactory.getExtensions()).thenReturn(extensions);
 		when(modelFactory.getRecordMigrationsManager()).thenReturn(recordMigrationsManager);
 		when(modelFactory.getSystemConfigs()).thenReturn(systemConfigs);
+		when(modelFactory.getSystemConfigurationsManager()).thenReturn(systemConfigurationsManager);
+		when(systemConfigurationsManager.getValue(ConstellioEIMConfigs.ENABLE_ILLEGAL_CHARACTERS_VALIDATION)).thenReturn(false);
 
 		when(systemConfigs.getFileExtensionsExcludedFromParsing()).thenReturn(new HashSet<String>());
 
