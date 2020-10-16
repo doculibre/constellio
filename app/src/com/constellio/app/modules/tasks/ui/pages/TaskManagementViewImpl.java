@@ -8,8 +8,8 @@ import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
-import com.constellio.app.ui.framework.components.table.DemoFilterDecorator;
-import com.constellio.app.ui.framework.components.table.DemoFilterGenerator;
+import com.constellio.app.ui.framework.components.table.TaskTableFilterDecorator;
+import com.constellio.app.ui.framework.components.table.TaskTableFilterGenerator;
 import com.constellio.app.ui.framework.components.tabs.IdTabSheet;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -252,9 +252,9 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 
 			FilterTableAdapter tableAdapter;
 			if (filterGenerator == null) {
-				tableAdapter = new FilterTableAdapter(unfilteredTable, new DemoFilterDecorator(), new DemoFilterGenerator());
+				tableAdapter = new FilterTableAdapter(unfilteredTable, new TaskTableFilterDecorator(), new TaskTableFilterGenerator());
 			} else {
-				tableAdapter = new FilterTableAdapter(unfilteredTable, new DemoFilterDecorator(), filterGenerator);
+				tableAdapter = new FilterTableAdapter(unfilteredTable, new TaskTableFilterDecorator(), filterGenerator);
 			}
 
 			// cas uniquement pour l'exemple

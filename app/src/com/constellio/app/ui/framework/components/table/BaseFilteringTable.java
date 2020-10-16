@@ -42,8 +42,8 @@ public class BaseFilteringTable extends CustomComponent {
 	private FilterTable buildFilterTable() {
 		FilterTable filterTable = new FilterTable();
 		filterTable.setSizeFull();
-		filterTable.setFilterDecorator(new DemoFilterDecorator());
-		filterTable.setFilterGenerator(new DemoFilterGenerator());
+		filterTable.setFilterDecorator(new TaskTableFilterDecorator());
+		filterTable.setFilterGenerator(new TaskTableFilterGenerator());
 		filterTable.setContainerDataSource(buildContainer());
 		filterTable.setFilterBarVisible(true);
 		return filterTable;

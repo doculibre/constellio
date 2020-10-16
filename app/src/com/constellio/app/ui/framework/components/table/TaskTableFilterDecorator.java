@@ -11,7 +11,7 @@ import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class DemoFilterDecorator implements FilterDecorator {
+public class TaskTableFilterDecorator implements FilterDecorator {
 
 	@Override
 	public String getEnumFilterDisplayName(Object propertyId, Object value) {

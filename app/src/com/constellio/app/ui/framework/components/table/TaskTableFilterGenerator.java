@@ -6,7 +6,7 @@ import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.Field;
 import org.tepi.filtertable.FilterGenerator;
 
-public class DemoFilterGenerator implements FilterGenerator {
+public class TaskTableFilterGenerator implements FilterGenerator {
 
 	@Override
 	public Filter generateFilter(Object propertyId, Object value) {
