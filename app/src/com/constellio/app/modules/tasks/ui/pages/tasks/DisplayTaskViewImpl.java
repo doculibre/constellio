@@ -1,7 +1,10 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType;
-import com.constellio.app.modules.tasks.ui.components.TaskTable;
+import com.constellio.app.modules.tasks.ui.components.ExpandableTaskTable;
+import com.constellio.app.modules.tasks.ui.components.ExpandableTaskTable.TaskDetailsComponentFactory;
+import com.constellio.app.modules.tasks.ui.components.FilterTableAdapter;
+import com.constellio.app.modules.tasks.ui.components.LegacyTaskTable;
 import com.constellio.app.modules.tasks.ui.components.breadcrumb.TaskBreadcrumbTrail;
 import com.constellio.app.modules.tasks.ui.components.display.TaskDisplayFactory;
 import com.constellio.app.ui.entities.RecordVO;
@@ -9,11 +12,14 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.components.table.TaskTableFilterDecorator;
+import com.constellio.app.ui.framework.components.table.TaskTableFilterGenerator;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -22,6 +28,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
+import org.tepi.filtertable.FilterGenerator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,6 +44,8 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 	private TabSheet tabSheet;
 	private RecordDisplay recordDisplay;
 	private VerticalLayout recordDisplayLayout;
+	private FilterGenerator filterGenerator;
+	private TaskDetailsComponentFactory taskDetailsComponentFactory;
 	private boolean nestedView = false;
 	private boolean inWindow = false;
 
@@ -133,9 +142,31 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 	@Override
 	public void setSubTasks(RecordVODataProvider dataProvider) {
-		Component table = new TaskTable(dataProvider, presenter);
-		tabSheet.replaceComponent(subTasks, table);
-		subTasks = table;
+		Component newSubTaskTable = null;
+		if (Toggle.SHOW_LEGACY_TASK_TABLE.isEnabled()) {
+			LegacyTaskTable unfilteredTable = new LegacyTaskTable(dataProvider, presenter);
+			unfilteredTable.setTaskDetailsComponentFactory(taskDetailsComponentFactory);
+
+			FilterTableAdapter tableAdapter;
+			if (filterGenerator == null) {
+				tableAdapter = new FilterTableAdapter(unfilteredTable, new TaskTableFilterDecorator(), new TaskTableFilterGenerator());
+			} else {
+				tableAdapter = new FilterTableAdapter(unfilteredTable, new TaskTableFilterDecorator(), filterGenerator);
+			}
+
+			// cas uniquement pour l'exemple
+			tableAdapter.setFilterFieldVisible("menuBar", false);
+			tableAdapter.setFilterBarVisible(true);
+
+			newSubTaskTable = tableAdapter;
+		} else {
+			ExpandableTaskTable expandableTaskTable = new ExpandableTaskTable(dataProvider, presenter);
+
+			newSubTaskTable = expandableTaskTable;
+		}
+
+		tabSheet.replaceComponent(subTasks, newSubTaskTable);
+		subTasks = newSubTaskTable;
 	}
 
 	@Override
@@ -210,5 +241,13 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 	public RecordVO getCurrentTask() {
 		return presenter.getTaskVO();
+	}
+
+	public void setFilterGenerator(FilterGenerator filterGenerator) {
+		this.filterGenerator = filterGenerator;
+	}
+
+	public void setTaskDetailsComponentFactory(TaskDetailsComponentFactory taskDetailsComponentFactory) {
+		this.taskDetailsComponentFactory = taskDetailsComponentFactory;
 	}
 }

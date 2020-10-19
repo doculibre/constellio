@@ -590,215 +590,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	private BaseTable buildResultsTable() {
 		BaseTable resultsTable;
 		if (tableMode == TableMode.LIST) {
-			ViewableRecordVOContainer viewableRecordVOContainer = new ViewableRecordVOContainer(recordVOContainer) {
-				@Override
-				protected Component getRecordDisplay(Object itemId) {
-					Component recordDisplay = ViewableRecordVOTablePanel.this.newSearchResultComponent(itemId);
-					if (recordDisplay == null) {
-						recordDisplay = super.getRecordDisplay(itemId);
-					}
-					return recordDisplay;
-				}
-
-				@Override
-				protected boolean isShowThumbnailCol() {
-					return ViewableRecordVOTablePanel.this.isShowThumbnailCol();
-				}
-			};
-
-			final ViewableRecordVOTable viewableRecordVOTable = new ViewableRecordVOTable(viewableRecordVOContainer) {
-				@Override
-				public boolean isSelectColumn() {
-					return ViewableRecordVOTablePanel.this.isSelectColumn();
-				}
-
-				@Override
-				public boolean isDragColumn() {
-					return ViewableRecordVOTablePanel.this.isRowDragSupported();
-				}
-
-				@Override
-				protected SelectionManager newSelectionManager() {
-					SelectionManager selectionManager = ViewableRecordVOTablePanel.this.newSelectionManager();
-					if (selectionManager == null) {
-						selectionManager = super.newSelectionManager();
-					}
-					SelectionManager finalSelectionManager = createSelectionManagerWithSelectedCountCaption(selectionManager);
-					return finalSelectionManager;
-				}
-
-				@Override
-				protected MenuBar newMenuBar(Object itemId) {
-					if (isNewMenuBarDefined()) {
-						Item item = getItem(itemId);
-						RecordVO recordVO = getRecordVOForTitleColumn(item);
-
-						return ViewableRecordVOTablePanel.this.newMenuBar(recordVO);
-					} else {
-						return super.newMenuBar(itemId);
-					}
-				}
-
-				@Override
-				public boolean isUnknownEnd() {
-					return ViewableRecordVOTablePanel.this.isUnknownEnd();
-				}
-
-				private SelectionManager createSelectionManagerWithSelectedCountCaption(
-						SelectionManager selectionManager) {
-					final SelectionManager finalSelectionManager = selectionManager;
-					SelectionManager selectionManagerWithSelectedCount = new SelectionManager() {
-						@Override
-						public List<Object> getAllSelectedItemIds() {
-							return finalSelectionManager.getAllSelectedItemIds();
-						}
-
-						@Override
-						public boolean isAllItemsSelected() {
-							return finalSelectionManager.isAllItemsSelected();
-						}
-
-						@Override
-						public boolean isAllItemsDeselected() {
-							return finalSelectionManager.isAllItemsDeselected();
-						}
-
-						@Override
-						public boolean isSelected(Object itemId) {
-							return finalSelectionManager.isSelected(itemId);
-						}
-
-						@Override
-						public void selectionChanged(SelectionChangeEvent event) {
-							finalSelectionManager.selectionChanged(event);
-							setSelectedCountCaption(getSelectedSize());
-						}
-					};
-					return selectionManagerWithSelectedCount;
-				}
-
-				@Override
-				public boolean isPaged() {
-					return ViewableRecordVOTablePanel.this.isPagedInListMode();
-				}
-
-				@Override
-				protected RecordVO getRecordVOForTitleColumn(Item item) {
-					RecordVO recordVO = ViewableRecordVOTablePanel.this.getRecordVOForTitleColumn(item);
-					if (recordVO == null) {
-						recordVO = super.getRecordVOForTitleColumn(item);
-					}
-					return recordVO;
-				}
-			};
-			viewableRecordVOTable.setWidth("100%");
-			if (recordVOContainer instanceof PreLoader) {
-				viewableRecordVOTable.setPreLoader((PreLoader) recordVOContainer);
-			}
-
-			resultsTable = viewableRecordVOTable;
-			resultsTable.setContainerDataSource(new ContainerAdapter(viewableRecordVOContainer) {
-				@Override
-				public Property getContainerProperty(Object itemId, Object propertyId) {
-					Property result = super.getContainerProperty(itemId, propertyId);
-					Object propertyValue = result.getValue();
-					if (propertyValue instanceof SearchResultDisplay) {
-						SearchResultDisplay searchResultDisplay = (SearchResultDisplay) propertyValue;
-						for (ClickListener clickListener : searchResultDisplay.getClickListeners()) {
-							searchResultDisplay.removeClickListener(clickListener);
-						}
-					}
-					//					if (propertyValue instanceof Component) {
-					//						List<ReferenceDisplay> referenceDisplays = ComponentTreeUtils.getChildren((Component) propertyValue, ReferenceDisplay.class);
-					//						for (ReferenceDisplay referenceDisplay : referenceDisplays) {
-					//							for (Object listenerObject : new ArrayList<>(referenceDisplay.getListeners(ClickEvent.class))) {
-					//								referenceDisplay.removeClickListener((ClickListener) listenerObject);
-					//							}
-					//						}
-					//						List<ConstellioAgentLink> constellioAgentLinks = ComponentTreeUtils.getChildren((Component) propertyValue, ConstellioAgentLink.class);
-					//						for (ConstellioAgentLink constellioAgentLink : constellioAgentLinks) {
-					//							for (Object listenerObject : new ArrayList<>(constellioAgentLink.getAgentLink().getListeners(ClickEvent.class))) {
-					//								constellioAgentLink.getAgentLink().removeClickListener((ClickListener) listenerObject);
-					//							}
-					//						}
-					//					}
-					return new ObjectProperty<>(propertyValue);
-				}
-			});
-
-			resultsTable.setSelectable(true);
-			resultsTable.setMultiSelect(false);
-			if (!resultsTable.isPaged() && allItemsVisible) {
-				resultsTable.setPageLength(resultsTable.size());
-			}
-			if (isIndexVisible()) {
-				addStyleName("viewable-record-table-panel-with-index");
-			}
+			resultsTable = buildListModeComponent();
 		} else {
-			resultsTable = new RecordVOTable(recordVOContainer) {
-				@Override
-				public String getTableId() {
-					String tableId = super.getTableId();
-					if (tableId == null) {
-						tableId = getClass().getName() + ".tableMode";
-					}
-					return tableId;
-				}
-
-				@Override
-				protected RecordVO getRecordVOForTitleColumn(Item item) {
-					RecordVO recordVO = ViewableRecordVOTablePanel.this.getRecordVOForTitleColumn(item);
-					if (recordVO == null) {
-						recordVO = super.getRecordVOForTitleColumn(item);
-					}
-					return recordVO;
-				}
-
-				@Override
-				public boolean isSelectColumn() {
-					return ViewableRecordVOTablePanel.this.isSelectColumn();
-				}
-
-				@Override
-				public boolean isIndexColumn() {
-					return ViewableRecordVOTablePanel.this.isIndexVisible();
-				}
-
-				@Override
-				protected SelectionManager newSelectionManager() {
-					SelectionManager selectionManager = ViewableRecordVOTablePanel.this.newSelectionManager();
-					if (selectionManager == null) {
-						selectionManager = super.newSelectionManager();
-					}
-					return selectionManager;
-				}
-
-				@Override
-				public boolean isPaged() {
-					// Never paged in table mode
-					return false;
-				}
-
-				@Override
-				public boolean isMenuBarColumn() {
-					return ViewableRecordVOTablePanel.this.isMenuBarColumn();
-				}
-			};
-			resultsTable.setWidth("100%");
-			resultsTable.addStyleName("viewable-record-table-table-mode");
-
-			if (!tableModeVisibleColumns.isEmpty()) {
-				resultsTable.setVisibleColumns(tableModeVisibleColumns.toArray(new Object[0]));
-			}
-			for (Object propertyId : tableModeColumnHeaders.keySet()) {
-				resultsTable.setColumnHeader(propertyId, tableModeColumnHeaders.get(propertyId));
-			}
-			for (Object propertyId : tableModeColumnExpandRatios.keySet()) {
-				resultsTable.setColumnExpandRatio(propertyId, tableModeColumnExpandRatios.get(propertyId));
-			}
-			if (allItemsVisible) {
-				resultsTable.setPageLength(resultsTable.size());
-			}
+			resultsTable = buildTableModeComponent();
 		}
 
 		final CellStyleGenerator cellStyleGenerator = resultsTable.getCellStyleGenerator();
@@ -835,6 +629,228 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		if (isRowDragSupported()) {
 			resultsTable.setDragMode(TableDragMode.ROW);
 			resultsTable.setDropHandler(this);
+		}
+
+		return resultsTable;
+	}
+
+	protected BaseTable buildListModeComponent() {
+		BaseTable resultsTable;
+
+		ViewableRecordVOContainer viewableRecordVOContainer = new ViewableRecordVOContainer(recordVOContainer) {
+			@Override
+			protected Component getRecordDisplay(Object itemId) {
+				Component recordDisplay = ViewableRecordVOTablePanel.this.newSearchResultComponent(itemId);
+				if (recordDisplay == null) {
+					recordDisplay = super.getRecordDisplay(itemId);
+				}
+				return recordDisplay;
+			}
+
+			@Override
+			protected boolean isShowThumbnailCol() {
+				return ViewableRecordVOTablePanel.this.isShowThumbnailCol();
+			}
+		};
+
+		final ViewableRecordVOTable viewableRecordVOTable = new ViewableRecordVOTable(viewableRecordVOContainer) {
+			@Override
+			public boolean isSelectColumn() {
+				return ViewableRecordVOTablePanel.this.isSelectColumn();
+			}
+
+			@Override
+			public boolean isDragColumn() {
+				return ViewableRecordVOTablePanel.this.isRowDragSupported();
+			}
+
+			@Override
+			protected SelectionManager newSelectionManager() {
+				SelectionManager selectionManager = ViewableRecordVOTablePanel.this.newSelectionManager();
+				if (selectionManager == null) {
+					selectionManager = super.newSelectionManager();
+				}
+				SelectionManager finalSelectionManager = createSelectionManagerWithSelectedCountCaption(selectionManager);
+				return finalSelectionManager;
+			}
+
+			@Override
+			protected MenuBar newMenuBar(Object itemId) {
+				if (isNewMenuBarDefined()) {
+					Item item = getItem(itemId);
+					RecordVO recordVO = getRecordVOForTitleColumn(item);
+
+					return ViewableRecordVOTablePanel.this.newMenuBar(recordVO);
+				} else {
+					return super.newMenuBar(itemId);
+				}
+			}
+
+			@Override
+			public boolean isUnknownEnd() {
+				return ViewableRecordVOTablePanel.this.isUnknownEnd();
+			}
+
+			private SelectionManager createSelectionManagerWithSelectedCountCaption(
+					SelectionManager selectionManager) {
+				final SelectionManager finalSelectionManager = selectionManager;
+				SelectionManager selectionManagerWithSelectedCount = new SelectionManager() {
+					@Override
+					public List<Object> getAllSelectedItemIds() {
+						return finalSelectionManager.getAllSelectedItemIds();
+					}
+
+					@Override
+					public boolean isAllItemsSelected() {
+						return finalSelectionManager.isAllItemsSelected();
+					}
+
+					@Override
+					public boolean isAllItemsDeselected() {
+						return finalSelectionManager.isAllItemsDeselected();
+					}
+
+					@Override
+					public boolean isSelected(Object itemId) {
+						return finalSelectionManager.isSelected(itemId);
+					}
+
+					@Override
+					public void selectionChanged(SelectionChangeEvent event) {
+						finalSelectionManager.selectionChanged(event);
+						setSelectedCountCaption(getSelectedSize());
+					}
+				};
+				return selectionManagerWithSelectedCount;
+			}
+
+			@Override
+			public boolean isPaged() {
+				return ViewableRecordVOTablePanel.this.isPagedInListMode();
+			}
+
+			@Override
+			protected RecordVO getRecordVOForTitleColumn(Item item) {
+				RecordVO recordVO = ViewableRecordVOTablePanel.this.getRecordVOForTitleColumn(item);
+				if (recordVO == null) {
+					recordVO = super.getRecordVOForTitleColumn(item);
+				}
+				return recordVO;
+			}
+		};
+		viewableRecordVOTable.setWidth("100%");
+		if (recordVOContainer instanceof PreLoader) {
+			viewableRecordVOTable.setPreLoader((PreLoader) recordVOContainer);
+		}
+
+		resultsTable = viewableRecordVOTable;
+		resultsTable.setContainerDataSource(new ContainerAdapter(viewableRecordVOContainer) {
+			@Override
+			public Property getContainerProperty(Object itemId, Object propertyId) {
+				Property result = super.getContainerProperty(itemId, propertyId);
+				Object propertyValue = result.getValue();
+				if (propertyValue instanceof SearchResultDisplay) {
+					SearchResultDisplay searchResultDisplay = (SearchResultDisplay) propertyValue;
+					for (ClickListener clickListener : searchResultDisplay.getClickListeners()) {
+						searchResultDisplay.removeClickListener(clickListener);
+					}
+				}
+				//					if (propertyValue instanceof Component) {
+				//						List<ReferenceDisplay> referenceDisplays = ComponentTreeUtils.getChildren((Component) propertyValue, ReferenceDisplay.class);
+				//						for (ReferenceDisplay referenceDisplay : referenceDisplays) {
+				//							for (Object listenerObject : new ArrayList<>(referenceDisplay.getListeners(ClickEvent.class))) {
+				//								referenceDisplay.removeClickListener((ClickListener) listenerObject);
+				//							}
+				//						}
+				//						List<ConstellioAgentLink> constellioAgentLinks = ComponentTreeUtils.getChildren((Component) propertyValue, ConstellioAgentLink.class);
+				//						for (ConstellioAgentLink constellioAgentLink : constellioAgentLinks) {
+				//							for (Object listenerObject : new ArrayList<>(constellioAgentLink.getAgentLink().getListeners(ClickEvent.class))) {
+				//								constellioAgentLink.getAgentLink().removeClickListener((ClickListener) listenerObject);
+				//							}
+				//						}
+				//					}
+				return new ObjectProperty<>(propertyValue);
+			}
+		});
+
+		resultsTable.setSelectable(true);
+		resultsTable.setMultiSelect(false);
+		if (!resultsTable.isPaged() && allItemsVisible) {
+			resultsTable.setPageLength(resultsTable.size());
+		}
+		if (isIndexVisible()) {
+			addStyleName("viewable-record-table-panel-with-index");
+		}
+
+		return resultsTable;
+	}
+
+	protected BaseTable buildTableModeComponent() {
+		BaseTable resultsTable;
+
+		resultsTable = new RecordVOTable(recordVOContainer) {
+			@Override
+			public String getTableId() {
+				String tableId = super.getTableId();
+				if (tableId == null) {
+					tableId = getClass().getName() + ".tableMode";
+				}
+				return tableId;
+			}
+
+			@Override
+			protected RecordVO getRecordVOForTitleColumn(Item item) {
+				RecordVO recordVO = ViewableRecordVOTablePanel.this.getRecordVOForTitleColumn(item);
+				if (recordVO == null) {
+					recordVO = super.getRecordVOForTitleColumn(item);
+				}
+				return recordVO;
+			}
+
+			@Override
+			public boolean isSelectColumn() {
+				return ViewableRecordVOTablePanel.this.isSelectColumn();
+			}
+
+			@Override
+			public boolean isIndexColumn() {
+				return ViewableRecordVOTablePanel.this.isIndexVisible();
+			}
+
+			@Override
+			protected SelectionManager newSelectionManager() {
+				SelectionManager selectionManager = ViewableRecordVOTablePanel.this.newSelectionManager();
+				if (selectionManager == null) {
+					selectionManager = super.newSelectionManager();
+				}
+				return selectionManager;
+			}
+
+			@Override
+			public boolean isPaged() {
+				// Never paged in table mode
+				return false;
+			}
+
+			@Override
+			public boolean isMenuBarColumn() {
+				return ViewableRecordVOTablePanel.this.isMenuBarColumn();
+			}
+		};
+		resultsTable.setWidth("100%");
+		resultsTable.addStyleName("viewable-record-table-table-mode");
+
+		if (!tableModeVisibleColumns.isEmpty()) {
+			resultsTable.setVisibleColumns(tableModeVisibleColumns.toArray(new Object[0]));
+		}
+		for (Object propertyId : tableModeColumnHeaders.keySet()) {
+			resultsTable.setColumnHeader(propertyId, tableModeColumnHeaders.get(propertyId));
+		}
+		for (Object propertyId : tableModeColumnExpandRatios.keySet()) {
+			resultsTable.setColumnExpandRatio(propertyId, tableModeColumnExpandRatios.get(propertyId));
+		}
+		if (allItemsVisible) {
+			resultsTable.setPageLength(resultsTable.size());
 		}
 
 		return resultsTable;

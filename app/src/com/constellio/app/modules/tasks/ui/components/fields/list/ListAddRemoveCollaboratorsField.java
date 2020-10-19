@@ -42,12 +42,14 @@ public class ListAddRemoveCollaboratorsField extends ListAddRemoveField<TaskColl
 
 	private void init() {
 		taskCollaboratorItem = new ArrayList<>();
-		List<Boolean> writeAuthorizations = taskVO.get(Task.TASK_COLLABORATORS_WRITE_AUTHORIZATIONS);
-		List<String> collaboratorsIds = taskVO.get(Task.TASK_COLLABORATORS);
-		for (int i = 0; i < collaboratorsIds.size(); i++) {
-			Boolean writeAuthorization = writeAuthorizations.get(i);
-			String collaboratorId = collaboratorsIds.get(i);
-			taskCollaboratorItem.add(new TaskCollaboratorItem(collaboratorId, writeAuthorization));
+		if (taskVO != null) {
+			List<Boolean> writeAuthorizations = taskVO.get(Task.TASK_COLLABORATORS_WRITE_AUTHORIZATIONS);
+			List<String> collaboratorsIds = taskVO.get(Task.TASK_COLLABORATORS);
+			for (int i = 0; i < collaboratorsIds.size(); i++) {
+				Boolean writeAuthorization = writeAuthorizations.get(i);
+				String collaboratorId = collaboratorsIds.get(i);
+				taskCollaboratorItem.add(new TaskCollaboratorItem(collaboratorId, writeAuthorization));
+			}
 		}
 		setValue(taskCollaboratorItem);
 	}
