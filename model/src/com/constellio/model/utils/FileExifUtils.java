@@ -1,4 +1,4 @@
-package com.constellio.app.ui.util;
+package com.constellio.model.utils;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
@@ -7,8 +7,6 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.jpeg.JpegDirectory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -18,34 +16,42 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.Serializable;
+import java.net.URLConnection;
 
-public class FileExifUtils implements Serializable {
+public class FileExifUtils implements java.io.Serializable {
 
-	private static Logger LOGGER = LoggerFactory.getLogger(FileExifUtils.class);
+	private static org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(FileExifUtils.class);
+
+	public static void correctRotationOnImage(File file) {
+
+		String type = URLConnection.guessContentTypeFromName(file.getName());
+		correctRotationOnImage(file, type);
+	}
 
 	public static void correctRotationOnImage(File file, String type) {
-		if (type != null && type.contains("jpeg")) {
-			try {
+
+		try {
+			if (type != null && type.contains("jpeg")) {
 				ImageInformation imageInformation = readImageInformation(file);
 				BufferedImage bufferedImage = ImageIO.read(new FileInputStream(file));
 				BufferedImage image = transformImage(bufferedImage, getExifTransformation(imageInformation));
 				ImageIO.write(image, "jpeg", new File(file.getPath()));
-			} catch (MetadataException e) {
-				LOGGER.warn("Image metadata could not be read");
-			} catch (FileNotFoundException e) {
-				LOGGER.warn("File not found during image correction");
-			} catch (IOException e) {
-				LOGGER.warn("Image could not be opened during image correction");
-			} catch (ImageProcessingException e) {
-				LOGGER.warn("Image could not be Processed or rendered");
-			} catch (EmptyJpegDirectoryException e) {
-				LOGGER.warn("Image has no jpeg directory");
 			}
+		} catch (MetadataException e) {
+			LOGGER.warn("Image metadata could not be read");
+		} catch (FileNotFoundException e) {
+			LOGGER.warn("File not found during image correction");
+		} catch (IOException e) {
+			LOGGER.warn("Image could not be opened during image correction");
+		} catch (ImageProcessingException e) {
+			LOGGER.warn("Image could not be Processed or rendered");
+		} catch (EmptyJpegDirectoryException e) {
+			LOGGER.warn("Image has no jpeg directory");
 		}
+
 	}
 
-	public static ImageInformation readImageInformation(File inputStream)
+	public static ImageInformation readImageInformation(java.io.File inputStream)
 			throws IOException, MetadataException, ImageProcessingException, EmptyJpegDirectoryException {
 		Metadata metadata = ImageMetadataReader.readMetadata(inputStream);
 		Directory directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);

@@ -71,6 +71,7 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.utils.FileExifUtils;
 import com.constellio.model.utils.MimeTypes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -592,7 +593,6 @@ public class ContentManager implements StatefulService {
 
 	public ContentVersionDataSummary upload(File file)
 			throws FileNotFoundException {
-
 		InputStream inputStream = ioServices.newBufferedFileInputStream(file, READ_FILE_TO_UPLOAD);
 
 		try {
@@ -654,6 +654,7 @@ public class ContentManager implements StatefulService {
 
 			//saveContent(hash, closeableInputStreamFactory);
 			long length = closeableInputStreamFactory.length();
+			FileExifUtils.correctRotationOnImage(closeableInputStreamFactory.getTempFile(), mimeType);
 			saveContent(hash, closeableInputStreamFactory);
 			return new ContentVersionDataSummaryResponse(duplicate,
 					new ContentVersionDataSummary(hash, mimeType, length), parsedContent);

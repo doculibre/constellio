@@ -4,7 +4,6 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.ClickableNotification;
-import com.constellio.app.ui.util.FileExifUtils;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.data.utils.dev.Toggle;
@@ -219,8 +218,6 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 					removeProgressBar(progressBars.remove(0));
 				}
 				File file = receiver.getFile();
-
-				FileExifUtils.correctRotationOnImage(receiver.getFile(), event.getMimeType());
 
 				handleFile(file, event.getFileName(), event.getMimeType(),
 						event.getBytesReceived());
@@ -494,8 +491,6 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 						if (isInterrupted) {
 							emptyFilesName.add(html5File.getFileName());
 						} else {
-							FileExifUtils.correctRotationOnImage(receiver.getFile(), html5File.getType());
-
 							handleFile(receiver.getFile(), html5File.getFileName(),
 									html5File.getType(), html5File.getFileSize());
 							receiver.setValue(null);
