@@ -191,7 +191,7 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 		newComments.add(0, newComment);
 		task.setComments(newComments);
 		try {
-			recordServices.update(task.getWrappedRecord());
+			recordServices.update(task.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 			added = true;
 		} catch (RecordServicesException e) {
 			added = false;
@@ -235,10 +235,11 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 		Task task = tasksSchemasRecordsServices.getTask(taskVO.getId());
 		task.setComments(newComments);
 		try {
+			RecordUpdateOptions recordUpdateOptions = RecordUpdateOptions.validationExceptionSafeOptions();
 			if (eimConfigs.isAddCommentsWhenReadAuthorization()) {
-				recordServices().update(task, new RecordUpdateOptions().setSkipUserAccessValidation(true));
+				recordServices().update(task, recordUpdateOptions.setSkipUserAccessValidation(true));
 			} else {
-				recordServices().update(task);
+				recordServices().update(task, recordUpdateOptions);
 			}
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
