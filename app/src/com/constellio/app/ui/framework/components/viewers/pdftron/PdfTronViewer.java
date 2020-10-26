@@ -22,21 +22,9 @@ import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLEx
 import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_XMLParsingException;
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.server.Page;
-import com.vaadin.server.Resource;
-import com.vaadin.server.ResourceReference;
-import com.vaadin.server.VaadinRequest;
-import com.vaadin.server.VaadinResponse;
-import com.vaadin.server.VaadinSession;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.JavaScriptFunction;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
+import com.vaadin.server.*;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Notification.Type;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +32,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;
@@ -109,9 +98,10 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		this.recordId = recordId;
 		this.contentVersion = contentVersion;
 		String filename = contentVersion.getFileName();
+		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(filename));
 		ConstellioUI current = ConstellioUI.getCurrent();
 
-		if (ArrayUtils.contains(PdfTronViewer.SUPPORTED_EXTENTION, FilenameUtils.getExtension(filename))) {
+		if (ArrayUtils.contains(PdfTronViewer.SUPPORTED_EXTENTION, extension)) {
 			this.documentContentResource = ConstellioResourceHandler.createResource(recordId, metadataCode, contentVersion.getVersion(), filename, ResourceType.NORMAL, false, contentVersion.getContentId());
 		} else {
 			ContentManager contentManager = getAppLayerFactory().getModelLayerFactory().getContentManager();

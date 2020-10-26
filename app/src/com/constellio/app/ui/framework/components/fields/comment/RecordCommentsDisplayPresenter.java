@@ -122,11 +122,11 @@ public class RecordCommentsDisplayPresenter implements Serializable {
 		Record record = presenterUtils.getRecord(recordId);
 
 		record.set(metadata, newComments);
+		RecordUpdateOptions recordUpdateOptions = RecordUpdateOptions.validationExceptionSafeOptions();
 		if (eimConfigs.isAddCommentsWhenReadAuthorization()) {
-			RecordUpdateOptions recordUpdateOptions = new RecordUpdateOptions();
 			presenterUtils.addOrUpdate(record, recordUpdateOptions.setSkipUserAccessValidation(true));
 		} else {
-			presenterUtils.addOrUpdate(record);
+			presenterUtils.addOrUpdate(record, recordUpdateOptions);
 		}
 		editor.setComments(comments = newComments);
 	}
