@@ -8,7 +8,6 @@ import com.constellio.app.ui.framework.components.BaseForm.FieldAndPropertyId;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.app.ui.util.ResponsiveUtils;
-import com.constellio.model.frameworks.validation.ValidationException;
 import com.jgoodies.common.base.Strings;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -33,6 +32,12 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class UpdateContentVersionWindowImpl extends BaseWindow implements UpdateContentVersionWindow, DropHandler {
+
+	public interface ValidateFileName {
+		boolean isValid(String fileName);
+
+		String getErrorMessage();
+	}
 
 	private boolean checkingIn;
 
@@ -64,18 +69,22 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 
 	private boolean isCancel = false;
 
+	private ValidateFileName validateFileName;
+
 	public UpdateContentVersionWindowImpl(Map<RecordVO, MetadataVO> records) {
-		this(records, false);
+		this(records, false, null);
 	}
 
-	public UpdateContentVersionWindowImpl(Map<RecordVO, MetadataVO> records, boolean isEditView) {
+	public UpdateContentVersionWindowImpl(Map<RecordVO, MetadataVO> records, boolean isEditView,
+										  ValidateFileName validateFileName) {
 		setModal(true);
 		if (ResponsiveUtils.isPhone()) {
 			setWidth("90%");
 		} else {
 			setWidth("750px");
 		}
-		
+
+		this.validateFileName = validateFileName;
 		setZIndex(null);
 
 		mainLayout = new VerticalLayout();
@@ -158,17 +167,22 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 				}
 
 				@Override
-				protected void saveButtonClick(RecordVO viewObject)
-						throws ValidationException {
+				protected void saveButtonClick(RecordVO viewObject) {
 					Boolean bMajorVersion;
 					if (nullValue.equals(majorVersion)) {
 						bMajorVersion = null;
 					} else {
 						bMajorVersion = (Boolean) majorVersion;
 					}
+
 					newVersionVO = (ContentVersionVO) uploadField.getValue();
-					presenter.contentVersionSaved(newVersionVO, bMajorVersion);
-					close();
+
+					if (UpdateContentVersionWindowImpl.this.validateFileName != null && UpdateContentVersionWindowImpl.this.validateFileName.isValid(newVersionVO.getFileName())) {
+						showErrorMessage(UpdateContentVersionWindowImpl.this.validateFileName.getErrorMessage());
+					} else {
+						presenter.contentVersionSaved(newVersionVO, bMajorVersion);
+						close();
+					}
 				}
 
 				@Override

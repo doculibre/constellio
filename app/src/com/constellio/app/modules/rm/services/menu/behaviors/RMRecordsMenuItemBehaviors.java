@@ -59,6 +59,7 @@ import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl.ValidateFileName;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.app.ui.i18n.i18n;
@@ -127,6 +128,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.constellio.app.modules.rm.services.menu.behaviors.util.DocumentUtil.getEmailDocumentFileNameValidator;
 import static com.constellio.app.ui.framework.clipboard.CopyToClipBoard.copyConsultationLinkToClipBoard;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
@@ -611,12 +613,19 @@ public class RMRecordsMenuItemBehaviors {
 	private UpdateContentVersionWindowImpl createUpdateContentVersionWindow(List<Document> documents,
 																			MenuItemActionBehaviorParams params) {
 		final Map<RecordVO, MetadataVO> recordMap = new HashMap<>();
+
+		ValidateFileName validateFileName = null;
+
 		for (Document document : documents) {
 			RecordVO recordVO = getDocumentVO(params, document);
 			recordMap.put(recordVO, recordVO.getMetadata(Document.CONTENT));
+
+			if (validateFileName == null) {
+				validateFileName = getEmailDocumentFileNameValidator(document.getSchemaCode());
+			}
 		}
 
-		return new UpdateContentVersionWindowImpl(recordMap) {
+		return new UpdateContentVersionWindowImpl(recordMap, false, validateFileName) {
 			@Override
 			public void close() {
 				super.close();

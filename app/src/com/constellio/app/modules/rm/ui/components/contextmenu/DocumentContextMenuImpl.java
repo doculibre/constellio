@@ -15,6 +15,7 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl.ValidateFileName;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
 import com.constellio.app.ui.framework.containers.RefreshableContainer;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -42,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.app.modules.rm.services.menu.behaviors.util.DocumentUtil.getEmailDocumentFileNameValidator;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentContextMenuImpl extends RecordContextMenu implements DocumentContextMenu {
@@ -196,7 +198,10 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	private void initUploadWindow() {
 		Map<RecordVO, MetadataVO> record = new HashMap<>();
 		record.put(recordVO, recordVO.getMetadata(Document.CONTENT));
-		updateWindow = new UpdateContentVersionWindowImpl(record) {
+
+		ValidateFileName validateFileName = getEmailDocumentFileNameValidator(recordVO.getSchemaCode());
+
+		updateWindow = new UpdateContentVersionWindowImpl(record, false, validateFileName) {
 			@Override
 			public void close() {
 				super.close();

@@ -38,6 +38,7 @@ import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail
 import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl.ValidateFileName;
 import com.constellio.app.ui.framework.components.diff.DiffPanel;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
@@ -104,6 +105,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS;
+import static com.constellio.app.modules.rm.services.menu.behaviors.util.DocumentUtil.getEmailDocumentFileNameValidator;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.DisplayMode.PRINCIPALS;
 
@@ -733,7 +735,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			if (documentVO != null) {
 				Map<RecordVO, MetadataVO> record = new HashMap<>();
 				record.put(documentVO, documentVO.getMetadata(Document.CONTENT));
-				uploadWindow = new UpdateContentVersionWindowImpl(record) {
+
+				ValidateFileName validateFileName = getEmailDocumentFileNameValidator(documentVO.getSchemaCode());
+
+				uploadWindow = new UpdateContentVersionWindowImpl(record, false, validateFileName) {
 					@Override
 					public void close() {
 						super.close();

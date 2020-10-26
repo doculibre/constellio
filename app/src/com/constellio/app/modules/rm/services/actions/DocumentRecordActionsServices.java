@@ -266,10 +266,9 @@ public class DocumentRecordActionsServices {
 	}
 
 	private boolean isUploadPossible(Document document, User user) {
-		boolean email = isEmail(document);
 		boolean checkedOut = isContentCheckedOut(document);
 		boolean borrower = isCurrentUserBorrower(user, document.getContent());
-		return !email && (!checkedOut || borrower);
+		return (!checkedOut || borrower);
 	}
 
 	protected boolean isCurrentUserBorrower(User currentUser, Content content) {

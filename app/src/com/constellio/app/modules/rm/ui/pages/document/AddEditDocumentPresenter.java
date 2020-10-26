@@ -406,12 +406,18 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			return;
 		}
 
+		Content content = document.getContent();
+		if (content != null && Email.SCHEMA.equals(document.getSchema().getCode()) && !rmSchemas().isEmail(content.getCurrentVersion().getFilename())) {
+			view.showErrorMessage($("Document.onlyMsgAndEmlDocumentAreAccepted"));
+			return;
+		}
+
 		if (addViewWithCopy) {
 			setRecordContent(record, documentVO);
 		}
 		RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		if (newFile && rmConfigs.areDocumentCheckedOutAfterCreation()) {
-			document.getContent().checkOut(getCurrentUser());
+			content.checkOut(getCurrentUser());
 		}
 		LocalDateTime time = TimeProvider.getLocalDateTime();
 		if (isAddView()) {
@@ -425,7 +431,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(currentContentFilename));
 			if (currentTitle.endsWith("." + extension) &&
 				(isAddView() || !document.getSchema().getMetadata(Schemas.TITLE_CODE).getPopulateConfigs().isAddOnly())) {
-				document.getContent().renameCurrentVersion(currentTitle);
+				content.renameCurrentVersion(currentTitle);
 			}
 		}
 		addOrUpdate(record, RecordsFlushing.WITHIN_SECONDS(modelLayerFactory.getSystemConfigs().getTransactionDelay()));
