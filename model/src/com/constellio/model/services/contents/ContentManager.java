@@ -178,7 +178,7 @@ public class ContentManager implements StatefulService {
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.icapService = icapService;
-		this.thumbnailGenerator = new ThumbnailGenerator();
+		this.thumbnailGenerator = new ThumbnailGenerator(ioServices);
 		this.conversionManager = modelLayerFactory.getDataLayerFactory().getConversionManager();
 		this.dataLayerSystemExtensions = modelLayerFactory.getDataLayerFactory().getExtensions().getSystemWideExtensions();
 	}
