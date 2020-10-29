@@ -67,9 +67,10 @@ public class WizardConnectorInstancePresenter extends AddEditConnectorInstancePr
 		ConnectorInstance<?> connectorInstance = esSchemasRecordsServices.wrapConnectorInstance(record);
 
 		try {
-			validateConnectionInfoAreValid(recordVO);
+			validateConnectionInfoAreValid(record);
 		} catch (Exception e) {
 			view.showErrorMessage(e.getMessage());
+			e.printStackTrace();
 			return;
 		}
 
@@ -79,8 +80,12 @@ public class WizardConnectorInstancePresenter extends AddEditConnectorInstancePr
 	}
 
 	public void validateConnectionInfoAreValid(RecordVO recordVO) {
-		String schemaCode = recordVO.getSchema().getCode();
 		Record record = toRecord(recordVO);
+		validateConnectionInfoAreValid(record);
+	}
+
+	public void validateConnectionInfoAreValid(Record record) {
+		String schemaCode = recordVO.getSchema().getCode();
 
 		ConnectorUtil.ConnectionStatusResult connectonStatusResult = ConnectorUtil
 				.testAuthentication(schemaCode, record, esSchemasRecordsServices);
