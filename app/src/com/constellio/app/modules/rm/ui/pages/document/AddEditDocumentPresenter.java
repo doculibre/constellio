@@ -26,6 +26,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMObject;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -287,7 +288,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 		String fileName = contentVersion.getFilename();
 		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
-		if ("eml".equals(extension) || "msg".equals(extension)) {
+		if (isEmailSchemaActive() && ("eml".equals(extension) || "msg".equals(extension))) {
 			InputStream messageInputStream = contentVersionVO.getInputStreamProvider().getInputStream("populateFromUserDocument");
 			Email email = new EmailParsingServices(rmSchemasRecordsServices).newEmail(fileName, messageInputStream);
 			documentVO = voBuilder.build(email.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
@@ -518,10 +519,10 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			ContentVersionVO contentVersionVO = contentField.getFieldValue();
 			if (contentVersionVO != null && isAddView()) {
 				String fileName = contentVersionVO.getFileName();
-				if (rmSchemasRecordsServices.isEmail(fileName)) {
-					String recordIdForEmailSchema = rmSchemasRecordsServices.getRecordIdForEmailSchema();
-					if (!recordIdForEmailSchema.equals(recordIdForDocumentType)) {
-						documentTypeField.setFieldValue(recordIdForEmailSchema);
+				if (isEmailSchemaActive() && rmSchemasRecordsServices.isEmail(fileName)) {
+					String recordSchemaId = rmSchemasRecordsServices.getRecordIdForEmailSchema();
+					if (!recordSchemaId.equals(recordIdForDocumentType)) {
+						documentTypeField.setFieldValue(recordSchemaId);
 						contentVersionVO.setMajorVersion(true);
 						setVisible(contentField, false);
 						setVisible(documentTypeField, false);
@@ -802,7 +803,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 							document.setContent(content);
 							String filename = contentVersionVO.getFileName();
 							String extension = StringUtils.lowerCase(FilenameUtils.getExtension(filename));
-							if ("eml".equals(extension) || "msg".equals(extension)) {
+
+							if (isEmailSchemaActive() && ("eml".equals(extension) || "msg".equals(extension))) {
 								IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 								InputStream inputStream = null;
 								try {
@@ -869,6 +871,17 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 					copyRuleField.setFieldChoices(documentVO.<CopyRetentionRuleInRule>getList(Document.APPLICABLE_COPY_RULES));
 				}
 			}
+		}
+	}
+
+	private boolean isEmailSchemaActive() {
+		MetadataSchema emailSchema = rmSchemasRecordsServices.emailSchema();
+
+		if (emailSchema.isActive()) {
+			DocumentType emailDocumentType = rmSchemasRecordsServices.getEmailDocumentSchema();
+			return !emailDocumentType.getWrappedRecord().isLogicallyDeleted();
+		} else {
+			return false;
 		}
 	}
 

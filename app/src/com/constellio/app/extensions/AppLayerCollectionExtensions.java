@@ -243,6 +243,7 @@ public class AppLayerCollectionExtensions {
 	//Key : schema type code
 	//Values : record's code
 	public KeyListMap<String, String> lockedRecords = new KeyListMap<>();
+	public KeyListMap<String, String> physicallyLockedRecords = new KeyListMap<>();
 
 	public <T extends ModuleExtensions> T forModule(String moduleId) {
 		return (T) moduleExtensionsMap.get(moduleId);

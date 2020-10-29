@@ -256,6 +256,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//KEEP
 	public String getRecordIdForEmailSchema() {
+		return getEmailDocumentSchema().getId();
+	}
+
+	public DocumentType getEmailDocumentSchema() {
 		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		MetadataSchemaTypes types = getTypes();
@@ -266,7 +270,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 				.isEqualTo(Email.SCHEMA);
 		DocumentType emailDocumentType = new DocumentType(
 				searchServices.search(new LogicalSearchQuery().setCondition(condition)).get(0), types);
-		return emailDocumentType.getId();
+		return emailDocumentType;
 	}
 
 	//KEEP

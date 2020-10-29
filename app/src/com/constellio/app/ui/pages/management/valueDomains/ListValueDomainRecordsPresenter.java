@@ -17,6 +17,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
@@ -98,6 +99,13 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 	public void deleteButtonClicked(RecordVO recordVO) {
 		Record record = getRecord(recordVO.getId());
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
+
+		ValidationErrors physicallyDeletable = recordServices.validateLogicallyThenPhysicallyDeletable(record, User.GOD);
+
+		if (!physicallyDeletable.isEmpty()) {
+			view.showErrorMessage(MessageUtils.toMessage(physicallyDeletable));
+			return;
+		}
 
 		if (record.isActive()) {
 			try {

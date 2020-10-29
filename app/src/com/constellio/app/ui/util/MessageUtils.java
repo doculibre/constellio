@@ -102,7 +102,7 @@ public class MessageUtils {
 		}
 	}
 
-	private static String toMessage(ValidationErrors validationErrors) {
+	public static String toMessage(ValidationErrors validationErrors) {
 
 		StringBuilder stringBuilder = new StringBuilder();
 
