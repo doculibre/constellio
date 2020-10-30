@@ -963,20 +963,26 @@ public class ContentManager implements StatefulService {
 		ContentDao contentDao = getContentDao();
 
 		if (mimeType.startsWith("image/")) {
-			Dimension dimension = ImageUtils.getImageDimension(contentDao.getFileOf(hash));
+			try {
+				Dimension dimension = ImageUtils.getImageDimension(contentDao.getFileOf(hash));
 
-			boolean tiffSupported = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().areTiffFilesConvertedForPreview();
-			if (((tiffSupported && mimeType.equals(MimeTypes.MIME_IMAGE_TIFF)) || dimension.getHeight() > 1080) &&
-				!contentDao.isDocumentExisting(hash + ".jpegConversion")) {
-				try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
-					File convertedJPEGFile =
-							conversionManager.convertToJPEG(inputStream, dimension, mimeType, filename, tempFolder);
-					contentDao.moveFileToVault(hash + ".jpegConversion", convertedJPEGFile, ONLY_IF_INEXISTING);
-					LOGGER.info("Generated a JPEG conversion for content '" + filename + "' with hash '" + hash + "'");
-				} catch (Throwable t) {
-					LOGGER.warn("Cannot generate JPEG conversion for content '" + filename + "' with hash '" + hash + "'", t);
-					return false;
+
+				boolean tiffSupported = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().areTiffFilesConvertedForPreview();
+				if (((tiffSupported && mimeType.equals(MimeTypes.MIME_IMAGE_TIFF)) || dimension.getHeight() > 1080) &&
+					!contentDao.isDocumentExisting(hash + ".jpegConversion")) {
+					try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
+						File convertedJPEGFile =
+								conversionManager.convertToJPEG(inputStream, dimension, mimeType, filename, tempFolder);
+						contentDao.moveFileToVault(hash + ".jpegConversion", convertedJPEGFile, ONLY_IF_INEXISTING);
+						LOGGER.info("Generated a JPEG conversion for content '" + filename + "' with hash '" + hash + "'");
+					} catch (Throwable t) {
+						LOGGER.warn("Cannot generate JPEG conversion for content '" + filename + "' with hash '" + hash + "'", t);
+						return false;
+					}
 				}
+			} catch (Throwable t) {
+				LOGGER.warn("Cannot generate JPEG conversion for content '" + filename + "' with hash '" + hash + "'", t);
+				return false;
 			}
 		} else if (!mimeType.startsWith("application/pdf") && !contentDao.isDocumentExisting(hash + ".preview")) {
 			try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
