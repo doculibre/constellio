@@ -97,7 +97,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		Map.Entry<MetadataVO, Field> decisionField = buildDecisionField(recordVO, taskFieldFactory, mainLayout);
 		Field acceptedField = buildAcceptedField(recordVO, taskFieldFactory, mainLayout);
 		Field reasonField = buildReasonField(recordVO, taskFieldFactory, mainLayout);
-		Field descriptionField = null; //Field descriptionField = buildDescriptionField(recordVO, taskFieldFactory, mainLayout);
+		Field descriptionField = buildDescriptionField(recordVO, taskFieldFactory, mainLayout);
 		Field commentField = buildCommentField(decisionField, recordVO, taskFieldFactory, mainLayout);
 
 		Map<MetadataVO, Field> uncompletedRequiredFields = buildUncompletedRequiredFields(recordVO, taskFieldFactory, mainLayout);
@@ -452,6 +452,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			descriptionField = taskFieldFactory.build(recordVO.getMetadata(RequestTask.DESCRIPTION), recordVO.getId());
 			descriptionField.setCaption(recordVO.getMetadata(Task.DESCRIPTION).getLabel());
 			descriptionField.setValue(description);
+			descriptionField.setReadOnly(true);
 			fieldLayout.addComponent(descriptionField);
 		} else {
 			descriptionField = null;
