@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.ui.components;
 
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
@@ -11,7 +12,11 @@ import org.tepi.filtertable.FilterDecorator;
 import org.tepi.filtertable.FilterGenerator;
 import org.tepi.filtertable.FilterTable;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public class FilterTableAdapter extends FilterTable {
 	private final Table adaptedTable;
@@ -38,8 +43,33 @@ public class FilterTableAdapter extends FilterTable {
 			addGeneratedColumn(propertyId.toString(), new ColumnGeneratorAdapter(adaptedTable, adaptedTable.getColumnGenerator(propertyId.toString())));
 		}
 
+		String[] columnsHeaders = adaptedTable.getColumnHeaders();
+
+		/*Rearange columns to set the menu bar at the end*/
+		ArrayList<String> columnHeadersAsList = new ArrayList<>(Arrays.asList(columnsHeaders));
+		ArrayList<Object> visibleColumnsAsList = new ArrayList<>(Arrays.asList(visibleColumns));
+		if (visibleColumnsAsList.contains(BaseTable.MENUBAR_PROPERTY_ID)) {
+			int indexMenuBar = visibleColumnsAsList.indexOf(BaseTable.MENUBAR_PROPERTY_ID);
+			String menubarHeader = columnHeadersAsList.get(indexMenuBar);
+			Object menubar = visibleColumnsAsList.get(indexMenuBar);
+
+			columnHeadersAsList.remove(indexMenuBar);
+			visibleColumnsAsList.remove(indexMenuBar);
+
+			if (isRightToLeft()) {
+				columnHeadersAsList.add(0, menubarHeader);
+				visibleColumnsAsList.add(0, menubar);
+			} else {
+				columnHeadersAsList.add(menubarHeader);
+				visibleColumnsAsList.add(menubar);
+			}
+		}
+
+		columnsHeaders = columnHeadersAsList.toArray(new String[0]);
+		visibleColumns = visibleColumnsAsList.toArray();
+
 		setVisibleColumns(visibleColumns);
-		setColumnHeaders(adaptedTable.getColumnHeaders());
+		setColumnHeaders(columnsHeaders);
 
 		setColumnReorderingAllowed(adaptedTable.isColumnReorderingAllowed());
 		setColumnCollapsingAllowed(adaptedTable.isColumnCollapsingAllowed());
