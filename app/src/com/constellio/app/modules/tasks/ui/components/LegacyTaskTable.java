@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.ui.components;
 
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.ExpandableTaskTable.TaskDetailsComponentFactory;
 import com.constellio.app.modules.tasks.ui.components.ExpandableTaskTable.TaskMenuBar;
@@ -9,6 +10,7 @@ import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsDisplayImpl;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
@@ -129,7 +131,26 @@ public class LegacyTaskTable extends RecordVOTable implements TaskTable {
 				}
 			};
 		} else {
-			return super.buildMetadataComponent(itemId, metadataValue, recordVO);
+			Component component = super.buildMetadataComponent(itemId, metadataValue, recordVO);
+
+			if (component instanceof RecordCommentsDisplayImpl) {
+
+
+				RecordCommentsDisplayImpl recordCommentsDisplayImpl = (RecordCommentsDisplayImpl) component;
+				recordCommentsDisplayImpl.setForcedReadOnly(true);
+
+				if (taskDetailsComponentFactory != null) {
+
+					List<Comment> consolidatedComments = taskDetailsComponentFactory.getAdditionalCommentsProvider().apply(recordVO);
+
+					if (consolidatedComments != null) {
+						recordCommentsDisplayImpl.setComments(consolidatedComments);
+					}
+				}
+
+			}
+
+			return component;
 		}
 	}
 

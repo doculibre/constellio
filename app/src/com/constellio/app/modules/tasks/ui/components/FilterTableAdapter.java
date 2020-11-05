@@ -1,6 +1,5 @@
 package com.constellio.app.modules.tasks.ui.components;
 
-import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsDisplayImpl;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
@@ -112,18 +111,7 @@ public class FilterTableAdapter extends FilterTable {
 
 	@Override
 	public Property getContainerProperty(Object itemId, Object propertyId) {
-		Property property = adaptedTable.getContainerProperty(itemId, propertyId);
-
-		if (property != null) {
-			Object value = property.getValue();
-			if (value instanceof RecordCommentsDisplayImpl) {
-				RecordCommentsDisplayImpl recordCommentsDisplayImpl = (RecordCommentsDisplayImpl) value;
-				recordCommentsDisplayImpl.setForcedReadOnly(true);
-				//recordCommentsDisplayImpl.setReadOnly(true);
-			}
-		}
-
-		return property;
+		return adaptedTable.getContainerProperty(itemId, propertyId);
 	}
 
 	@Override

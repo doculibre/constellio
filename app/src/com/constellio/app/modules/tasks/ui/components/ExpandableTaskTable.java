@@ -91,6 +91,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
 import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
@@ -584,6 +585,7 @@ public class ExpandableTaskTable extends VerticalLayout implements TaskTable {
 		Component newTaskDetailsComponent(ExpandableTaskTable taskTable, Object itemId, RecordVO taskVO,
 										  boolean expanded);
 
+		Function<RecordVO, List<Comment>> getAdditionalCommentsProvider();
 	}
 
 	public class TaskDetailsComponent extends VerticalLayout {
