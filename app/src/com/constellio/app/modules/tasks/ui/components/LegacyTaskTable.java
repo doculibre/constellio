@@ -92,6 +92,8 @@ public class LegacyTaskTable extends RecordVOTable implements TaskTable {
 			}
 		});
 		setColumnHeader(MENUBAR_COLUMN_ID, "");
+		setColumnWidth(MENUBAR_COLUMN_ID, 40);
+
 		return records;
 	}
 
