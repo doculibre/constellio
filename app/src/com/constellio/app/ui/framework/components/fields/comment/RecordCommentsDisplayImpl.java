@@ -39,15 +39,20 @@ public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implem
 
 	private RecordCommentsDisplayPresenter presenter;
 
+	private boolean isForcedReadOnly;
+	private static final boolean IS_FORCED_READ_ONLY_DEFAULT = false;
+
 	public RecordCommentsDisplayImpl(RecordVO recordVO, String metadataCode) {
 		this.recordVO = recordVO;
 		this.metadataCode = metadataCode;
+		this.isForcedReadOnly = IS_FORCED_READ_ONLY_DEFAULT;
 		init();
 	}
 
 	public RecordCommentsDisplayImpl(String recordId, String metadataCode) {
 		this.recordId = recordId;
 		this.metadataCode = metadataCode;
+		this.isForcedReadOnly = IS_FORCED_READ_ONLY_DEFAULT;
 		init();
 	}
 
@@ -121,19 +126,20 @@ public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implem
 
 			@Override
 			protected boolean deleteButtonVisible(Comment comment) {
-				return !isReadOnly() && presenter.commentCreatedByCurrentUser(comment);
+				return !isForcedReadOnly && !isReadOnly() && presenter.commentCreatedByCurrentUser(comment);
 			}
 
 			@Override
 			protected boolean editButtonVisible(Comment comment) {
-				return !isReadOnly() && presenter.commentCreatedByCurrentUser(comment);
+				return !isForcedReadOnly && !isReadOnly() && presenter.commentCreatedByCurrentUser(comment);
 			}
 
 			@Override
 			protected boolean addCommentButtonVisible() {
-				return presenter.addButtonVisible();
+				return !isForcedReadOnly && !isReadOnly() && presenter.addButtonVisible();
 			}
 		};
+
 		return commentsLayout;
 	}
 
@@ -159,5 +165,13 @@ public class RecordCommentsDisplayImpl extends CustomField<List<Comment>> implem
 	@Override
 	public ConstellioFactories getConstellioFactories() {
 		return ConstellioFactories.getInstance();
+	}
+
+	public void setForcedReadOnly(boolean forcedReadOnly) {
+		isForcedReadOnly = forcedReadOnly;
+	}
+
+	public boolean isForcedReadOnly() {
+		return isForcedReadOnly;
 	}
 }

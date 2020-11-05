@@ -62,14 +62,17 @@ public abstract class CommentsLayout extends VerticalLayout {
 			addCommentsComponent.addStyleName(ValoTheme.BUTTON_LINK);
 			addCommentsComponent.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
 			addCommentsComponent.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-			
+
 			addComponent(addCommentsComponent);
 			setComponentAlignment(addCommentsComponent, Alignment.TOP_RIGHT);
+		} else {
+			addComponent(createEmptyLineInsteadOfAddButton());
 		}
 
-		final Label noCommentLabel = new Label($("RecordCommentsDisplayImpl.noComment"));
-		noCommentLabel.addStyleName("record-no-comment");
 		if (comments.isEmpty()) {
+			final Label noCommentLabel = new Label($("RecordCommentsDisplayImpl.noComment"));
+			noCommentLabel.addStyleName("record-no-comment");
+
 			addComponent(noCommentLabel);
 		}
 		for (Comment comment : comments) {
@@ -127,6 +130,14 @@ public abstract class CommentsLayout extends VerticalLayout {
 		Label messageLabel = new Label(message, ContentMode.HTML);
 		messageLabel.addStyleName("record-comment-message");
 		addComponents(userTimeLayout, messageLabel);
+	}
+
+	protected Component createEmptyLineInsteadOfAddButton() {
+
+		Label emptyLine = new Label();
+		emptyLine.setHeight("2em");
+
+		return emptyLine;
 	}
 
 	protected Component newCommentComponent(String caption, String windowCaption, Resource icon, Comment comment) {
