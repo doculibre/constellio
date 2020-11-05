@@ -308,7 +308,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 	@Override
 	protected Component initContent() {
 		addStyleName(STYLE_NAME);
-		setSizeFull();
+		setWidth("100%");
 
 		AutocompleteSuggestionsProvider<T> suggestionsProvider = new AutocompleteSuggestionsProvider<T>() {
 			@Override
