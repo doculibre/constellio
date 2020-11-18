@@ -111,7 +111,7 @@ public class TableColumnsManager implements Serializable {
 			List<Object> orderedColumns = new ArrayList<>();
 			for (String columnId : visibleColumnIdsForUser) {
 				Object propertyId = toPropertyId(columnId, table.getVisibleColumns());
-				if (propertyId != null) {
+				if (propertyId != null && !orderedColumns.contains(propertyId)) {
 					orderedColumns.add(propertyId);
 				}
 			}
