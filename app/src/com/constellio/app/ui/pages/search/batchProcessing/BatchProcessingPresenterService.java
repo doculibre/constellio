@@ -6,7 +6,6 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
-import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultModel;
 import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultXLSReportWriter;
@@ -29,6 +28,7 @@ import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessR
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.data.io.services.facades.IOServices;
@@ -442,11 +442,8 @@ public class BatchProcessingPresenterService {
 		//		System.out.println("ACTION : ");
 		//		System.out.println(action);
 		List<Transaction> transactionList = prepareTransactionWithQuery(request, true);
-		RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		for (Transaction transaction : transactionList) {
-			if (rmConfigs.isIgnoreValidationsInBatchProcessing()) {
-				transaction.setOptions(RecordUpdateOptions.userModificationsSafeOptions());
-			}
+			transaction.setOptions(RecordUpdateOptions.userModificationsSafeOptions());
 			recordServices.validateTransaction(transaction);
 		}
 
@@ -484,6 +481,7 @@ public class BatchProcessingPresenterService {
 		List<Transaction> transactionList = prepareTransactionWithQuery(request, true);
 
 		for (Transaction transaction : transactionList) {
+			transaction.setOptions(RecordUpdateOptions.userModificationsSafeOptions());
 			recordServices.validateTransaction(transaction);
 		}
 
@@ -678,6 +676,9 @@ public class BatchProcessingPresenterService {
 
 		List<Record> recordList = searchServices.search(request.getQuery());
 		for (Record record : recordList) {
+			if (record.getLoadedFieldsMode() != RecordDTOMode.FULLY_LOADED) {
+				record = recordServices.getDocumentById(record.getId());
+			}
 			transaction.add(record);
 			if (++counter == 1000) {
 				counter = 0;

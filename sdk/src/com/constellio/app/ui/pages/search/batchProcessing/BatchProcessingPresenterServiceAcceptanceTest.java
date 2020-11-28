@@ -17,6 +17,7 @@ import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessR
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
 import com.constellio.app.ui.util.DateFormatUtils;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -29,6 +30,7 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -187,6 +189,23 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple(null, idForFormModifedBy + " (System Admin)", "folder_default_formModifiedBy"));
 		assertThat(results.getRecordModifications(folder1.getId()).getFieldsModifications()).extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
 				tuple("42-5-C", "5-2-C", "folder_default_mainCopyRule"));
+	}
+
+	@Test
+	public void givenSearchedFoldersAreSummaryRecordsAndANonSummaryMetadataIsChanged()
+			throws Exception {
+
+		Record folder1 = recordService.getRecordSummaryById(zeCollection, records.folder_A04);
+
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A04))))//.setReturnedMetadatas(onlyFields(folderSchemaType.getSummaryMetadatasDataStoreCodes())))
+				//.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.KEYWORDS, asList("test"))
+				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + CommonMetadataBuilder.REMOVED_AUTHORIZATIONS, asList("auth1"));
+
+		BatchProcessResults results = presenterService.simulateWithQuery(request);
+
+		assertThat(results).isNotNull();
 	}
 
 	@Test
