@@ -208,6 +208,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			@Override
 			public void valueChange(ValueChangeEvent event) {
 				presenter.refreshList();
+				presenter.decommissioningList();
 			}
 		});
 
