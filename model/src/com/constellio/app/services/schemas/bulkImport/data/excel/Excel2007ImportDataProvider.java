@@ -1,10 +1,7 @@
 package com.constellio.app.services.schemas.bulkImport.data.excel;
 
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataProviderRuntimeException;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataProviderRuntimeException.ImportDataProviderRuntimeException_InvalidDate;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -14,8 +11,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class Excel2007ImportDataProvider implements ImportDataProvider {
 
@@ -23,27 +22,21 @@ public class Excel2007ImportDataProvider implements ImportDataProvider {
 
 	private OPCPackage opcPackage;
 	private XSSFWorkbook workbook;
+	private Map<String, Integer> schemaSizeMap;
+	private static final int EXCEL_HEADER_SIZE = 2;
 
 	public Excel2007ImportDataProvider(File excelFile) {
 		this.excelFile = excelFile;
+		this.schemaSizeMap = new HashMap<>();
 	}
 
 	@Override
 	public int size(String schemaType) {
-		int count = 0;
-		ImportDataIterator iterator = newDataIterator(schemaType);
-		try {
-			while (iterator.hasNext()) {
-				iterator.next();
-				count++;
-			}
-		} catch (RuntimeException e) {
-			if (e instanceof ImportDataIteratorRuntimeException_InvalidDate) {
-				ImportDataIteratorRuntimeException_InvalidDate exception = (ImportDataIteratorRuntimeException_InvalidDate) e;
-				throw new ImportDataProviderRuntimeException_InvalidDate(exception.getDateFormat(), exception.getInvalidValue());
-			}
-			throw new ImportDataProviderRuntimeException(e);
+		if (schemaSizeMap.get(schemaType) != null) {
+			return schemaSizeMap.get(schemaType);
 		}
+		int count = workbook.getSheet(schemaType).getPhysicalNumberOfRows() - EXCEL_HEADER_SIZE;
+		schemaSizeMap.put(schemaType, count);
 		return count;
 	}
 
@@ -81,12 +74,6 @@ public class Excel2007ImportDataProvider implements ImportDataProvider {
 
 	public XSSFWorkbook loadWorkbook(File workbookFile) {
 		try {
-
-
-
-
-
-
 			opcPackage = OPCPackage.open(new FileInputStream(workbookFile));
 			return new XSSFWorkbook(opcPackage);
 		} catch (InvalidFormatException | IOException e) {
