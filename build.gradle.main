@@ -30,6 +30,15 @@ allprojects {
     sourceCompatibility = 8
     targetCompatibility = 8
 
+    // Defaults
+    if (!project.hasProperty("constellioVersion")) {
+        project.ext.constellioVersion = "9.42.42"
+    }
+
+    if (!project.hasProperty("runTest")) {
+        project.ext.runTest = "true"
+    }
+
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
         options.fork = false
