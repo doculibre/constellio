@@ -27,5 +27,5 @@ You are invited to take a clone of the latest version of the project to obtain a
 
 ### Nonofficial Docker image
 
-- https://hub.docker.com/repository/docker/lracicot/constellio
-- https://hub.docker.com/repository/docker/lracicot/constellio-solr
+- https://hub.docker.com/r/lracicot/constellio
+- https://hub.docker.com/r/lracicot/constellio-solr
